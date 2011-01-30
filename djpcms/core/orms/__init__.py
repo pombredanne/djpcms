@@ -42,7 +42,7 @@ def getid(obj):
     if obj:
         try:
             return obj.id
-        except AttributeError, SyntaxError:
+        except (AttributeError, SyntaxError):
             return obj
     else:
         return obj

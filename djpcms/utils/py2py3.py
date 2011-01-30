@@ -13,6 +13,9 @@ __all__ = ['string_type',
            'map']
 
 
+
+
+
 def ispy3k():
     return int(sys.version[0]) >= 3
 
@@ -64,3 +67,8 @@ def to_string(s, encoding='utf-8', errors='strict'):
     else:
         string_type(s)
         
+        
+def symlink(filename,linkname):
+    import ctypes
+    kdll = ctypes.windll.LoadLibrary("kernel32.dll")
+    kdll.CreateSymbolicLinkA(filename,linkname,0)

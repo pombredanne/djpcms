@@ -34,10 +34,10 @@ class Media(object):
         return self.render()
 
     def render(self):
-        return mark_safe(u'\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES])))
+        return mark_safe('\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES])))
 
     def render_js(self):
-        return [u'<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js]
+        return ['<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js]
 
     def render_css(self):
         # To keep rendering order consistent, we can't just iterate over items().
@@ -45,12 +45,12 @@ class Media(object):
         media = self._css.keys()
         media.sort()
         return chain(*[
-            [u'<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium)
+            ['<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium)
                     for path in self._css[medium]]
                 for medium in media])
 
     def absolute_path(self, path, prefix=None):
-        if path.startswith(u'http://') or path.startswith(u'https://') or path.startswith(u'/'):
+        if path.startswith('http://') or path.startswith('https://') or path.startswith('/'):
             return path
         if prefix is None:
             if settings.STATIC_URL is None:

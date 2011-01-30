@@ -4,10 +4,11 @@ Several parts are originally from django
 '''
 from copy import deepcopy
 
+from py2py3 import iteritems
+
 from djpcms import nodata
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
-from djpcms.utils.py2py3 import iteritems
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 
@@ -47,11 +48,11 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
     if with_base_fields:
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
-                fields = base.base_fields.items() + fields
+                fields = list(base.base_fields.items()) + fields
     else:
         for base in bases[::-1]:
             if hasattr(base, 'declared_fields'):
-                fields = base.declared_fields.items() + fields
+                fields = list(base.declared_fields.items()) + fields
 
     return OrderedDict(fields),OrderedDict(inlines)
 
@@ -308,7 +309,7 @@ class BoundField(object):
         id_ = widget.attrs.get('id') or self.auto_id
         if id_:
             attrs = attrs and flatatt(attrs) or ''
-            contents = u'<label for="%s"%s>%s</label>' % (widget.id_for_label(id_), attrs, unicode(contents))
+            contents = '<label for="%s"%s>%s</label>' % (widget.id_for_label(id_), attrs, unicode(contents))
         return mark_safe(contents)
 
     def css_classes(self, extra_classes=None):

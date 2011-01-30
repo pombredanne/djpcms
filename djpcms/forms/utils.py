@@ -3,8 +3,8 @@ import logging
 from datetime import datetime
 
 from djpcms import sites, forms
-from djpcms.contrib import messages
-from djpcms.utils.translation import ugettext_lazy as _
+from djpcms.core import messages
+from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str, gen_unique_id
 from djpcms.utils.dateformat import format
 from djpcms.utils.ajax import jredirect, jremove
@@ -203,7 +203,7 @@ def saveform(djp, editing = False, force_redirect = False):
             smsg     = getattr(view,'success_message',success_message)
             msg      = smsg(instance, 'changed' if editing else 'added')
             f.add_message(request, msg)
-        except Exception, e:
+        except Exception as e:
             exc_info = sys.exc_info()
             logger.error('Form Error: %s' % request.path,
                          exc_info=exc_info,

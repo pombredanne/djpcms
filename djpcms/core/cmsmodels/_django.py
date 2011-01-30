@@ -14,7 +14,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 
 from djpcms.template import loader
-from djpcms.core.page import PageInterface, BlockInterface
+from djpcms.core.page import PageInterface, BlockInterface,\
+                             TemplateInterface, MarkupMixin
 from djpcms.core.permissions import has_permission, get_view_permission
 from djpcms.apps.djangosite.fields import SlugCode
 from djpcms.utils import lazyattr, force_str, htmltype
@@ -22,9 +23,6 @@ from djpcms.utils.func import PathList
 from djpcms.uploads import uploader, storage_manager
 
 from .djmanagers import PageManager, BlockContentManager, SiteContentManager, PermissionManager
-
-
-protocol_re = re.compile('^\w+://')
 
 
 class TimeStamp(models.Model):
@@ -48,7 +46,7 @@ class InnerTemplate(TimeStamp):
     blocks   = models.TextField(help_text = _('comma separated strings indicating the content blocks'))
         
     def __unicode__(self):
-        return u'%s' % self.name
+        return '%s' % self.name
     
     class Meta:
         app_label = 'djpcms'

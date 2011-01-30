@@ -3,6 +3,9 @@ import os
 import sys
 from optparse import OptionParser
 
+import djpcms
+
+
 def makeoptions():
     parser = OptionParser()
     parser.add_option("-v", "--verbosity",

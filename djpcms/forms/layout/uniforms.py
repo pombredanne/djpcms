@@ -1,4 +1,3 @@
-from djpcms.contrib import messages
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
 
@@ -110,13 +109,13 @@ class Fieldset(UniFormElement):
 
     def _render(self, form, layout):
         if self.css:
-            html = u'<fieldset class="%s">' % self.css
+            html = '<fieldset class="{0}">'.format(self.css)
         else:
-            html = u'<fieldset>'
+            html = '<fieldset>'
         html += self.legend_html
         for field in self.fields:
             html += render_field(field, form, layout, self.css)
-        html += u'</fieldset>'
+        html += '</fieldset>'
         return loader.mark_safe(html)
 
 
@@ -131,11 +130,11 @@ class Row(UniFormElement):
 
     def _render(self, form, layout):
         css = self._css(layout)
-        output = u'%s<div class="%s">' % (self.legend_html,css)
+        output = '%s<div class="%s">' % (self.legend_html,css)
         for field in self.fields:
             output += render_field(field, form, layout, self.css)
-        output += u'</div>'
-        return u''.join(output)
+        output += '</div>'
+        return ''.join(output)
 
 
 class Columns(UniFormElement):
@@ -155,10 +154,10 @@ class Columns(UniFormElement):
         css = self._css(layout)
         content = {}
         for i,column in enumerate(self.columns):
-            output = u'<div class="%s">' % css
+            output = '<div class="%s">' % css
             for field in column:
                 output += render_field(field, form, layout, self.css)
-            output += u'</div>'
+            output += '</div>'
             content['content%s' % i] = loader.mark_safe(output)
         return loader.render_to_string(self.template, content)
 

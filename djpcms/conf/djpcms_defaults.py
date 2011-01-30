@@ -17,7 +17,6 @@ MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
 DJPCMS_WEB_FRAMEWORK = None
-USER_MODEL = 'django'
 HTTP_LIBRARY = 'django'
 CMS_ORM = 'django'
 TEMPLATE_ENGINE = 'django'

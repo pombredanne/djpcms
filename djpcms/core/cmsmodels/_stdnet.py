@@ -2,7 +2,8 @@ from datetime import datetime
 
 from stdnet import orm
 
-from djpcms.core.page import PageInterface, BlockInterface, MarkupMixin
+from djpcms.core.page import PageInterface, BlockInterface,\
+                             TemplateInterface, MarkupMixin
 from djpcms.utils import htmltype
 from djpcms.utils import force_str
 from djpcms.template import Template, mark_safe
@@ -38,7 +39,7 @@ class TimeStamp(ModelBase):
         super(TimeStamp,self).save(commit = commit)
     
 
-class InnerTemplate(TimeStamp):
+class InnerTemplate(TimeStamp,TemplateInterface):
     '''Page Inner template'''
     name     = field.CharField()
     template = field.CharField()
@@ -49,16 +50,6 @@ class InnerTemplate(TimeStamp):
     
     class Meta:
         app_label = 'djpcms'
-    
-    def render(self, c):
-        '''Render the inner template given the context ``c``.
-        '''
-        return Template(self.template).render(c)
-        
-    def numblocks(self):
-        '''Number of ``blocks`` within template.'''
-        bs = self.blocks.split(',')
-        return len(bs)
     
     
 class CssPageInfo(TimeStamp):

@@ -29,7 +29,7 @@ class ajaxhtml(object):
     
     def __init__(self):
         d = self._dict
-        for k,v in d.iteritems():
+        for k,v in d.items():
             setattr(self,k,v)
     
     def __setitem__(self, k, v):

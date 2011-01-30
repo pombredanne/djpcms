@@ -7,7 +7,10 @@ from djpcms import sites, forms
 from djpcms.forms.utils import fill_form_data
 from djpcms.core.exceptions import *
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 try:
     skip = unittest.skip

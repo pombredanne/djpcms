@@ -1,6 +1,4 @@
-from stdnet.orm import StdNetType, model_to_dict
-from stdnet.orm import register_applications
-
+import stdnet
 from djpcms import sites
 from djpcms.utils.py2py3 import iteritems
 
@@ -14,6 +12,7 @@ class OrmWrapper(BaseOrmWrapper):
     orm = 'stdnet'
     
     def setup(self):
+        from stdnet.orm import model_to_dict
         self.meta = meta = self.model._meta
         self.objects     = self.model.objects
         self.module_name = meta.name
@@ -26,6 +25,7 @@ class OrmWrapper(BaseOrmWrapper):
         self.filter = self.objects.filter
         
     def test(self):
+        from stdnet.orm import StdNetType
         if not isinstance(self.model,StdNetType):
             raise ValueError
             
@@ -54,5 +54,7 @@ class OrmWrapper(BaseOrmWrapper):
     
     @classmethod
     def setup_environment(cls):
+        from stdnet.orm import register_applications
         register_applications(sites.settings.INSTALLED_APPS)
     
+

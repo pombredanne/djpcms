@@ -19,7 +19,7 @@ BOOLEAN_MAPPING = {True: {'icon':'ui-icon-check','name':'yes'},
 
 def _boolean_icon(val):
     v = BOOLEAN_MAPPING.get(val,'unknown')
-    return mark_safe(u'<span class="ui-icon %(icon)s" title="%(name)s">%(name)s</span>' % v)
+    return mark_safe('<span class="ui-icon %(icon)s" title="%(name)s">%(name)s</span>' % v)
 
 
 def nicerepr(val, nd = 3):

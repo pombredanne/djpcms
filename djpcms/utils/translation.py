@@ -1,1 +1,5 @@
-from django.utils.translation import *
+from .functional import lazy
+
+@lazy
+def gettext(text):
+    return text

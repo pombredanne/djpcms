@@ -77,6 +77,19 @@ If not specified we get the template of the :attr:`parent` page.'''
             level = 1
         return level
     
+    
+class TemplateInterface(object):
+    
+    def render(self, c):
+        '''Render the inner template given the context ``c``.
+        '''
+        return Template(self.template).render(c)
+    
+    def numblocks(self):
+        '''Number of ``blocks`` within template.'''
+        bs = self.blocks.split(',')
+        return len(bs)
+    
 
 class BlockInterface(object):
     '''Content Block Interface'''
@@ -94,7 +107,7 @@ with the wrapper callable.'''
                 if has_permission(djp.request.user,get_view_permission(self), self):
                     djp.media += plugin.media
                     html = plugin(djp, self.arguments, wrapper = wrapper)
-        except Exception, e:
+        except Exception as e:
             if getattr(djp.settings,'TESTING',False):
                 raise
             exc_info = sys.exc_info()

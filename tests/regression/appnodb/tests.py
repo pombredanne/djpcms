@@ -46,5 +46,4 @@ class TestBaseApplication(TestCase):
     def testContent(self):
         resp = self.get('/apps/nodb/', response = True)
         self.assertTrue("New random number: " in resp.content)
-        
     

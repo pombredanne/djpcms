@@ -1,15 +1,15 @@
-from django.utils.safestring import mark_safe
+
 
 class htmldoc(object):
     
     def __init__(self, name, html, vimg, slash = ""):
         self.name = name
-        self.html = mark_safe(html)
+        self.html = html
         self.vimg = vimg
         self.slash = slash
         
-    def __unicode__(self):
-        return u'%s' % self.name
+    def __str__(self):
+        return self.name
     
     def _validatorsrc(self, extra = ''):
         src = '#'

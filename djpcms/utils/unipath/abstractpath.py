@@ -12,12 +12,15 @@ http://www.python.org/download/releases/2.5/license/).
 
 import os
 
+from py2py3 import string_type
+
 from djpcms.utils.unipath.errors import UnsafePathError
 
 __all__ = ["AbstractPath"]
 
 # Use unicode strings if possible
-_base = os.path.supports_unicode_filenames and unicode or str
+_base = os.path.supports_unicode_filenames and string_type or bytes
+
 
 class AbstractPath(_base):
     """An object-oriented approach to os.path functions."""

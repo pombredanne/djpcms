@@ -2,14 +2,10 @@ import operator
 from copy import copy
 from datetime import datetime
 
-# Hack for Python 2.6 -> Python 3
-try:
-    from itertools import izip as zip
-except ImportError:
-    import zip
+from py2py3 import zip
 
 from djpcms.core import api
-from djpcms.utils.translation import ugettext as _
+from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
@@ -369,8 +365,8 @@ class ModelView(View):
                                        splitregex = splitregex,
                                        **kwargs)
         
-    def __unicode__(self):
-        return u'%s: %s' % (self.name,self.regex)
+    def __str__(self):
+        return '%s: %s' % (self.name,self.regex)
     
     def __get_model(self):
         return self.appmodel.model
@@ -647,7 +643,7 @@ and if your model has an AutocompleteView installed, it will work out of the box
                     rel_name = name.split('__')[0]
                     q = Q( **{str(name):query} )
             qs = self.model.objects.filter(q)                    
-            data = ''.join([u'%s|%s|%s\n' % (getattr(f,rel_name),f,f.pk) for f in qs])
+            data = ''.join(['%s|%s|%s\n' % (getattr(f,rel_name),f,f.pk) for f in qs])
         else:
             data = ''
         return djp.http.HttpResponse(data)

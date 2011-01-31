@@ -7,6 +7,7 @@ class Strategy(models.Model):
     def __unicode__(self):
         return u'%s' % self.name
     
+    
 class Trade(models.Model):
     name = models.CharField(unique = True, max_length = 200)
     currency = models.CharField(max_length = 3, help_text="trade currency")

@@ -41,7 +41,7 @@ def load():
                 try:
                     appmod = import_module('djpcms.contrib.flowrepo.markups.{0}'.format(d))
                     app = appmod.app
-                except ImportError, e:
+                except ImportError as e:
                     pass
                 else:
                     app.setup()

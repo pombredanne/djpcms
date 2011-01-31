@@ -1,8 +1,8 @@
 import datetime
 import os
 
-from djpcms.test import TestCase
-from djpcms.utils.pathtool import parentdir
+from djpcms import test
+from djpcms import parentdir
 from djpcms.apps.included.docs import DocApplication
 
 
@@ -20,10 +20,10 @@ appurls = DocTestApplication('/docs/'),
 
 
 
-class DocsViewTest(TestCase):
+class DocsViewTest(test.TestCase):
     appurls  = 'regression.appdoc.tests'
     
     def testIndex(self):
         pass
         #context = self.get('/docs/')
-        
+

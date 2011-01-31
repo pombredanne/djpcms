@@ -36,10 +36,15 @@ class FormSet(object):
 def get_form_meta_data(bases, attrs, with_base_fields=True):
     """Adapted form django
     """
-    fields = [(field_name, attrs.pop(field_name)) for field_name, obj in attrs.items() if isinstance(obj, Field)]
+    fields = []
+    inlines = []
+    for name,obj in list(attrs.items()):
+        if isinstance(obj, Field):
+            fields.append((name, attrs.pop(name)))
+        elif isinstance(obj, FormSet):
+            fields.append((name, attrs.pop(name)))
+                        
     fields = sorted(fields, key=lambda x: x[1].creation_counter)
-    
-    inlines = [(name, attrs.pop(name)) for name, obj in attrs.items() if isinstance(obj, FormSet)]
     inlines = sorted(inlines, key=lambda x: x[1].creation_counter)
     
     # If this class is subclassing another Form, add that Form's fields.

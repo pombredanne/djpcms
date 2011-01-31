@@ -66,7 +66,7 @@ class AutocompleteForeignKeyInput(BaseAutocompleteInput):
             obj = self.model.objects.get(pk = value)
             label = getattr(obj,key)
         else:
-            label = u''
+            label = ''
         
         ctx = {'name': name,
                'value': value,

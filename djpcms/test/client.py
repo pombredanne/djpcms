@@ -14,20 +14,20 @@ else:
     from urlparse import urlparse, urlunparse, urlsplit
 
 
-from django.contrib.auth import authenticate, login
-from django.core.handlers.base import BaseHandler
-from django.core.handlers.wsgi import WSGIRequest
-from django.core.signals import got_request_exception
-from django.http import SimpleCookie, HttpRequest, QueryDict
-from django.template import TemplateDoesNotExist
-from django.test import signals
-from django.utils.functional import curry
-from django.utils.encoding import smart_str
-from django.utils.http import urlencode
-from django.utils.importlib import import_module
-from django.utils.itercompat import is_iterable
-from django.db import transaction, close_connection
-from django.test.utils import ContextList
+#from django.contrib.auth import authenticate, login
+#from django.core.handlers.base import BaseHandler
+#from django.core.handlers.wsgi import WSGIRequest
+#from django.core.signals import got_request_exception
+#from django.http import SimpleCookie, HttpRequest, QueryDict
+#from django.template import TemplateDoesNotExist
+#from django.test import signals
+#from django.utils.functional import curry
+#from django.utils.encoding import smart_str
+#from django.utils.http import urlencode
+#from django.utils.importlib import import_module
+#from django.utils.itercompat import is_iterable
+#from django.db import transaction, close_connection
+#from django.test.utils import ContextList
 
 __all__ = ('Client', 'RequestFactory', 'encode_file', 'encode_multipart')
 
@@ -377,7 +377,7 @@ class Client(RequestFactory):
 
             try:
                 response = self.handler(environ)
-            except TemplateDoesNotExist, e:
+            except TemplateDoesNotExist as e:
                 # If the view raises an exception, Django will attempt to show
                 # the 500.html template. If that template is not available,
                 # we should ignore the error in favor of re-raising the
@@ -394,7 +394,7 @@ class Client(RequestFactory):
             if self.exc_info:
                 exc_info = self.exc_info
                 self.exc_info = None
-                raise exc_info[1], None, exc_info[2]
+                raise (exc_info[1], None, exc_info[2])
 
             # Save the client and request that stimulated the response.
             response.client = self

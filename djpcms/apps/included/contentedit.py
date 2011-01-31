@@ -5,7 +5,7 @@ and defines several ajax enabled sub-views
 '''
 from djpcms import forms, sites
 from djpcms.core.page import block_htmlid
-from djpcms.utils.translation import ugettext_lazy as _
+from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls, jremove, dialog, jempty
@@ -87,8 +87,8 @@ class ChangeContentView(appview.EditView):
         try:
             djpview = sites.djp(request, url[1:])
             preview_html = instance.render(djpview, plugin = plugin, wrapper = dummy_wrap)
-        except Exception, e:
-            preview_html = u'%s' % e
+        except Exception as e:
+            preview_html = '%s' % e
         if wrapped:
             return loader.mark_safe('<div id="%s">%s</div>' % (instance.pluginid('preview'),preview_html))
         else:
@@ -157,7 +157,7 @@ class ChangeContentView(appview.EditView):
             if pform:
                 html = UniForm(pform,tag=False).render(djp)
             else:
-                html = u''
+                html = ''
             data = jhtmls(identifier = '#%s' % instance.pluginid('options'), html = html)
             preview = self.get_preview(djp.request, instance, url, plugin = new_plugin, wrapped = False)
             data.add('#%s' % instance.pluginid('preview'), preview)
@@ -353,7 +353,7 @@ The url is given by the ContentBlocks models
         try:
             initial = {'url':data['{0}-url'.format(prefix)]}
             f = self.get_form(djp, initial = initial, withdata = False)
-        except PermissionDenied, e:
+        except PermissionDenied as e:
             return jerror(str(e))
         
         if f:

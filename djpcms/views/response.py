@@ -164,13 +164,12 @@ return the wrapper with the underlying view.'''
         return False
             
     def robots(self):
-        '''
-        Robots
+        '''Robots
         '''
         if self.view.has_permission(None, self.instance):
             if not self.page or self.page.insitemap:
-                return u'ALL'
-        return u'NONE,NOARCHIVE'
+                return 'ALL'
+        return 'NONE,NOARCHIVE'
         
     def response(self):
         '''return the type of response or an instance of HttpResponse

@@ -76,7 +76,7 @@ class CssPageInfo(TimeStamp):
         
     def __unicode__(self):
         if self.body_class_name:
-            return u'%s - %s' % (self.body_class_name,self.conteiner_class())
+            return '%s - %s' % (self.body_class_name,self.conteiner_class())
         else:
             return self.conteiner_class()
         
@@ -86,7 +86,7 @@ class CssPageInfo(TimeStamp):
         If not specified it return container_gridsize for 960 grid templates
         '''
         if not self.container_class_name:
-            return u'container_%s' % self.gridsize
+            return 'container_%s' % self.gridsize
         else:
             return self.container_class_name
     
@@ -189,22 +189,6 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
     def save(self, **kwargs):
         self.level = self.get_level()
         super(Page,self).save(**kwargs)
-
-    def get_level(self):
-        try:
-            url = self.url
-            if url.startswith('/'):
-                url = url[1:]
-            if url.endswith('/'):
-                url = url[:-1]
-            if url:
-                bits  = url.split('/')
-                level = len(bits)
-            else:
-                level = 0
-        except:
-            level = 1
-        return level
 
     def published(self):
         return self in Page.objects.published()

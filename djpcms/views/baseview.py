@@ -109,7 +109,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         if page:
             return page.link
         else:
-            return u'link'
+            return 'link'
     
     def parentresponse(self, djp):
         return response_from_page(djp, djp.page.parent)
@@ -292,9 +292,9 @@ which handle the response'''
             return 0
     
     def bodybits(self, page):
-        b = u''
+        b = ''
         if self.editurl:
-            b = u'class="edit"'
+            b = 'class="edit"'
         elif page:
             css = page.cssinfo
             if css and css.body_class_name:
@@ -302,7 +302,7 @@ which handle the response'''
         return mark_safe(b)
     
     def contentbits(self, page):
-        b = u''
+        b = ''
         if page:
             css = page.cssinfo
             if css and css.container_class_name:

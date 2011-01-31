@@ -194,7 +194,7 @@ class Path(AbstractPath):
            On some platforms (Windows), the path must not be a directory.
         """
         if not self.exists():
-            fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0666)
+            fd = os.open(self, os.O_WRONLY | os.O_CREAT, 666)
             os.close(fd)
         if mtime is None:
             mtime = time.time()
@@ -205,7 +205,7 @@ class Path(AbstractPath):
 
 
     #### CREATING, REMOVING, AND RENAMING ####
-    def mkdir(self, parents=False, mode=0777):
+    def mkdir(self, parents=False, mode=777):
         if self.exists():
             return
         if parents:

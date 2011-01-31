@@ -55,8 +55,8 @@ class Paginator(object):
         
     def navigation(self):
         if self.pages == 1:
-            return u''
-        return u''
+            return ''
+        return ''
         ul   = linklist()
         
         # Left links

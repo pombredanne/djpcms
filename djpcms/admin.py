@@ -23,7 +23,7 @@ class SafeModelAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         try:
             obj = super(SafeModelAdmin,self).save_model(request, obj, form, change)
-        except Exception, e:
+        except Exception as e:
             if messages:
                 messages.error(request, 'Could not save: %s' % str(e))
         sites.pagecache.clear(request)

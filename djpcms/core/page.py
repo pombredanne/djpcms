@@ -116,7 +116,7 @@ with the wrapper callable.'''
                 extra={'request':djp.request}
             )
             if djp.request.user.is_superuser:
-                html = escape(u'%s' % e)
+                html = escape('%s' % e)
         
         if html:
             return wrapper(djp, self, html)
@@ -133,7 +133,7 @@ with the wrapper callable.'''
         return p
             
     def __unicode__(self):
-        return u'%s-%s-%s' % (self.page.id,self.block,self.position)
+        return '%s-%s-%s' % (self.page.id,self.block,self.position)
     
     def __get_plugin(self):
         return get_plugin(self.plugin_name)

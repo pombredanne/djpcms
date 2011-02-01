@@ -837,6 +837,73 @@
 			});
 		}
 	});
+	
+	
+	/**
+	 * Return an object containing the formatted currency and a flag
+	 * indicating if it is negative
+	 */
+	$.djpcms.format_currency = function(s,precision) {
+		if(!precision) {
+			precision = 3;
+		}
+		s = s.replace(/,/g,'');
+		var c = parseFloat(s);
+		if(isNaN(c))  {
+			return {value:s,negative:false};
+		}
+		isneg = false;
+		if(c<0) {
+			isneg = true;
+			c     = Math.abs(c);
+		}
+		var cn  = parseInt(c,10);
+		var de  = c - cn;
+		if(de > 0) {
+			var mul = Math.pow(10,precision);
+			var atom = c/mul;
+			if(atom > de)  {
+				de = "";
+			}
+			else {
+				atom += "";
+				atom  = atom.split(".")[1];
+				for(var i=0;atom.length;i++)  {
+					if(parseInt(atom[i],10) > 0)  {
+						break;
+					}
+				}
+				mul = Math.pow(10,i+1);
+				de  = parseFloat(parseInt(de*mul,10))/mul;
+				ro  = "" + cn + de;
+				ro  = ro.split(".");
+				de  = "."+ro[1];
+			}
+		}
+		else {
+			de = "";
+		}
+		cn += "";
+		var d,k;
+		var N  = cn.length;
+		var cs = "";
+		for(var j=0;j<N;j++)  {
+			cs += cn[j];
+			k = N - j - 1;
+			d = parseInt(k/3,10);
+			if(3*d == k && k > 0) {
+				cs += ',';
+			}
+		}
+		cs += de;
+		if(isneg) {
+			cs = '-'+cs;
+		}
+		else {
+			cs = ''+cs;
+		}
+		return {value:cs,negative:isneg};
+	}
 		
 })(jQuery);
 

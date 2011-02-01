@@ -15,13 +15,23 @@ of different scales in a uniform way.'''
 def significant_format(number, decimal_sep = '.', thousand_sep=',', n = 3):
     """Format a number according to a given number of significant figures.
 """
-    sn1 = str(number)
-    str_number = significant(number, n)
-    if len(sn1) < len(str_number):
-        str_number = sn1
+    str_number = None
+    try:
+        inum = int(number)
+        if inum == float(number):
+            number = inum
+            str_number = str(number)
+    except:
+        pass
+    if str_number is None:            
+        sn1 = str(number)
+        str_number = significant(number, n)
+        if len(sn1) < len(str_number):
+            str_number = sn1
+        number = float(number)
     
     # sign
-    if float(number) < 0:
+    if number < 0:
         sign = '-'
     else:
         sign = ''

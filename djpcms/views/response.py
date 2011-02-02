@@ -223,9 +223,10 @@ return the wrapper with the underlying view.'''
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
-                 b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
+                b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
+        context = loader.context(context, self.request)
         html = loader.render_to_string(self.template_file,context)
         return self.http.HttpResponse(html)
         

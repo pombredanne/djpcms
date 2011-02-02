@@ -1,5 +1,8 @@
 '''
-Script for running the IssueTracker application as stand-alone
+Script for running a stand-alone IssueTracker application
+
+Requires python-stdnet
+
 '''
 import djpcms
 from stdnet import orm

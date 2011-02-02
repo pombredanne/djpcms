@@ -113,7 +113,7 @@ def get_form(djp,
              form_withrequest = None,
              template = None,
              form_ajax = False,
-             withinputs = False,
+             withinputs = True,
              force_prefix = False):
     '''Comprehensive method for building a
 :class:`djpcms.forms.HtmlForm` instance:
@@ -161,7 +161,7 @@ def get_form(djp,
     widget = form_factory.widget(form,
                                  inputs = inputs,
                                  action = djp.url,
-                                 method = method)
+                                 method = method.lower())
     
     if form_ajax:
         widget.addClass(djp.css.ajax)
@@ -175,7 +175,7 @@ def saveform(djp, editing = False, force_redirect = False):
     view = djp.view
     request = djp.request
     http = djp.http
-    is_ajax = request.is_ajax()
+    is_ajax = request.is_xhr
     POST = request.POST
     GET = request.GET
     curr = request.environ.get('HTTP_REFERER')

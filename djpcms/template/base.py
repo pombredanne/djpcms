@@ -34,6 +34,8 @@ class BaseTemplateHandler(object):
         raise NotImplementedError
     
     def get_processors(self, request):
+        site = request.site
+        
         processors = request.site.settings.TEMPLATE_CONTEXT_PROCESSORS
         return ()
     
@@ -43,11 +45,10 @@ class BaseTemplateHandler(object):
                 autoescape=False):
         c = self.context_class(dict, current_app=current_app, autoescape=autoescape)
         if request:
-            if processors is None:
-                processors = ()
-            else:
-                processors = tuple(processors)
-            for processor in self.get_processors(request) + processors:
+            site_processors = request.site.template_context()
+            if processors is not None:
+                site_processors += tuple(processors)
+            for processor in site_processors:
                 c.update(processor(request))
         return c
     

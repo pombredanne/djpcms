@@ -34,6 +34,7 @@ class ApplicationSite(ResolverMixin):
         self.choices = [('','-----------------')]
         self._request_middleware = None
         self._response_middleware = None
+        self._template_context_processors = None
         self.ModelApplication = ModelApplication
         
     def __repr__(self):
@@ -185,6 +186,19 @@ returns the application handler. If the appname is not available, it raises a Ke
                             ew.append(mwobj.process_exception)
             finally:
                 self.lock.release()
+                
+    def _load_template_processors(self):
+        if self._template_context_processors is None:
+            self.lock.acquire()
+            mw = []
+            try:
+                for p_path in self.settings.TEMPLATE_CONTEXT_PROCESSORS:
+                    func = module_attribute(p_path)
+                    if func:
+                        mw.append(func)
+                self._template_context_processors = tuple(mw)
+            finally:
+                self.lock.release()
     
     def request_middleware(self):
         self._load_middleware()
@@ -197,4 +211,8 @@ returns the application handler. If the appname is not available, it raises a Ke
     def exception_middleware(self):
         self._load_middleware()
         return self._exception_middleware
+    
+    def template_context(self):
+        self._load_template_processors()
+        return self._template_context_processors
     

@@ -1,6 +1,4 @@
-from djpcms.contrib import messages
 from djpcms.views import appview
-from djpcms.utils.ajax import jredirect
 from djpcms.forms.utils import saveform
 
 from .forms import LoginForm, PasswordChangeForm, RegisterForm

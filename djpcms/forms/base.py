@@ -251,6 +251,20 @@ class BoundField(object):
         self.value = self.field.clean(value, self)
         return self.value
         
+    def render(self, layout):
+        '''Render the Bound Field as HTML using a ``layout`` instance.'''
+        label = None if css_class == nolabel else field.label 
+        html = loader.render_to_string(layout.field_template,
+                                       {'field': self,
+                                        'label': label,
+                                        'required': layout.required_tag})
+        rendered_fields = get_rendered_fields(form)
+        if not field in rendered_fields:
+            rendered_fields.append(field)
+        else:
+            raise Exception("A field should only be rendered once: %s" % field)
+        return html
+        
     def __str__(self):
         return self.as_widget()
 
@@ -335,15 +349,3 @@ class BoundField(object):
         return self.field.widget.is_hidden
     is_hidden = property(_is_hidden)
 
-    def _auto_id(self):
-        """
-        Calculates and returns the ID attribute for this BoundField, if the
-        associated Form has specified auto_id. Returns an empty string otherwise.
-        """
-        auto_id = self.form.auto_id
-        if auto_id and '%s' in smart_unicode(auto_id):
-            return smart_unicode(auto_id) % self.html_name
-        elif auto_id:
-            return self.html_name
-        return ''
-    auto_id = property(_auto_id)

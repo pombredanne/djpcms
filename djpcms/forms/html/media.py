@@ -4,6 +4,8 @@ Originally from django
 '''
 from itertools import chain
 
+from djpcms.template import loader
+
 __all__ = ['MEDIA_TYPES',
            'Media',
            'media_property',
@@ -31,11 +33,11 @@ class Media(object):
         # if media_attrs != {}:
         #     raise TypeError("'class Media' has invalid attribute(s): %s" % ','.join(media_attrs.keys()))
 
-    def __unicode__(self):
-        return self.render()
-
+    def html(self):
+        return loader.mark_safe(self.render())
+                                
     def render(self):
-        return mark_safe('\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES])))
+        return '\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES]))
 
     def render_js(self):
         return ['<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js]

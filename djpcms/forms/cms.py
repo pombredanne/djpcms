@@ -316,6 +316,6 @@ ContentBlockHtmlForm = forms.HtmlForm(
                                             'view_permission'),
                           uniforms.Columns(('for_not_authenticated',),
                                            ('requires_login',),
-                                           css_class=uniforms.inlineLabels3)
+                                           default_style=uniforms.inlineLabels3)
                            )
 )

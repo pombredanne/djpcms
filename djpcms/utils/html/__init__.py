@@ -2,6 +2,7 @@ from djpcms.template import loader
 
 from .pagination import *
 from .grid960 import *
+from .htmltype import *
 
 
 def box(hd = None, bd = None, ft = None, minimize = False, rounded = True,

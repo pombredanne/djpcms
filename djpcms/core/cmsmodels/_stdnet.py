@@ -4,8 +4,7 @@ from stdnet import orm
 
 from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin
-from djpcms.utils import htmltype
-from djpcms.utils import force_str
+from djpcms.utils import force_str, html
 
 
 ModelBase = orm.StdModel
@@ -114,7 +113,7 @@ class Page(TimeStamp, PageInterface):
     parent    = field.ForeignKey('self',
                                   required = False,
                                   related_name = 'children')
-    doctype = field.IntegerField(default = htmltype.htmldefault)
+    doctype = field.IntegerField(default = html.htmldefaultdoc)
     insitemap = field.BooleanField(default = True)
     
     # Denormalized level in the tree and url, for performance 

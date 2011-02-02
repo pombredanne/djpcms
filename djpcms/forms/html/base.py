@@ -25,12 +25,13 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     is_hidden = False
     default_style = None
     inline = False
+    template = None
     attributes = {'id':None}
     
     def __init__(self, tag = None, cn = None, template = None, **kwargs):
         attrs = {}
         self.tag = tag or self.tag
-        self.template = template
+        self.template = template or self.template
         for attr,value in iteritems(self.attributes):
             if attr in kwargs:
                 value = kwargs.pop(attr)
@@ -49,10 +50,17 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
             cs = ' '.join(self.__classes)
         self.__attrs['class'] = cs
         return flatatt(self.__attrs)
+    
+    def ischeckbox(self):
+        return False
         
     @property
     def attrs(self):
         return self.__attrs
+    
+    @property
+    def classes(self):
+        return self.__classes
     
     def addClass(self, cn):
         if cn:
@@ -75,18 +83,23 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
                     ks.remove(cn)
         return self
     
-    def render(self, djp = None):
+    def render(self, *args, **kwargs):
         if self.inline:
             return mark_safe('<{0}{1}/>'.format(self.tag,self.flatatt()))
+        elif self.tag:
+            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,
+                                                            self.flatatt(),
+                                                            self.inner(*args, **kwargs)))
         else:
-            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,self.flatatt(),self.inner(djp)))
+            return self.inner(*args, **kwargs)
     
-    def inner(self, djp = None):
+    def inner(self, *args, **kwargs):
         return ''
 
     
 class FormWidget(HtmlWidget):
-    '''Form Render'''
+    '''Form HTML widget'''
+    tag = 'form'
     default_template = 'djpcms/uniforms/uniform.html'
     attributes = merge_dict(HtmlWidget.attributes, {
                                                     'method':'post',
@@ -100,5 +113,7 @@ class FormWidget(HtmlWidget):
         self.inputs = inputs
         
     def inner(self, djp = None):
-        return self.layout.render(self.form,self.inputs)
+        return self.layout.render(djp,
+                                  self.form,
+                                  self.inputs)
     

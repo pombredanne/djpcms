@@ -8,10 +8,10 @@ import traceback
 from djpcms import sites
 from djpcms.core.permissions import inline_editing, get_view_permission, has_permission
 from djpcms.utils.ajax import jservererror, jredirect
-from djpcms.utils.html import grid960, box
+from djpcms.utils.html import grid960, box, htmldoc
 from djpcms.forms import Media
 from djpcms.forms.utils import saveform, get_form
-from djpcms.utils import htmltype, logerror
+from djpcms.utils import logerror
 from djpcms.views.response import DjpResponse
 from djpcms.views.contentgenerator import BlockContentGen
 from djpcms.template import loader
@@ -146,20 +146,17 @@ Hooks:
         inner_template  = None
         grid    = self.grid960(page)
         
-        context = {'grid': grid}
-        
         # Inner template available, fill the context dictionary
         # with has many content keys as the number of blocks in the page
-        if page:
-            context['htmldoc'] = loader.mark_safe(htmltype.get(page.doctype))
-        else:
-            context['htmldoc'] = loader.mark_safe(htmltype.get())
+        context = {'grid': grid,
+                   'htmldoc': htmldoc(None if not page else page.doctype)}
             
         if page:
+            inner_template = page.inner_template
             if not self.editurl and djp.has_own_page():
                 context['edit_content_url'] = inline_editing(request,page,djp.instance)
             
-        if page and page.inner_template:
+        if inner_template:
             cb = {'djp':  djp,
                   'grid': grid}
             blocks = page.inner_template.numblocks()
@@ -177,9 +174,6 @@ Hooks:
         context['inner'] = inner
         self.extra_content(djp,context)
         return djp.render_to_response(context)
-    
-    def get_ajax_response(djp):
-        return None
     
     def default_post(self, djp):
         '''Default post response handler.'''

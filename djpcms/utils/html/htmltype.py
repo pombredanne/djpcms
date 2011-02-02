@@ -1,15 +1,25 @@
 
+from djpcms.template import mark_safe
 
-class htmldoc(object):
+__all__ = ['htmldefaultdoc',
+           'htmldoc']
+
+htmldefaultdoc = 4
+
+
+class HTMLdoc(object):
     
     def __init__(self, name, html, vimg, slash = ""):
         self.name = name
-        self.html = html
+        self._html = html
         self.vimg = vimg
         self.slash = slash
         
     def __str__(self):
         return self.name
+    
+    def html(self):
+        return mark_safe(self._html)
     
     def _validatorsrc(self, extra = ''):
         src = '#'
@@ -25,42 +35,40 @@ class htmldoc(object):
         return self._validatorsrc()
 
 
-def get(code = None):
-    global _htmldict, htmldefault
-    code = code or htmldefault
-    d = _htmldict.get(code,None)
-    if not d:
-        d = _htmldict.get(htmldefault)
-    return d
+def htmldoc(code = None):
+    global _htmldict, htmldefaultdoc
+    code = code or htmldefaultdoc
+    if code in _htmldict:
+        return _htmldict[code]
+    else:
+        return _htmldict[htmldefaultdoc]
 
-
-htmldefault = 4
 
 htmldocs = (
             (1, 
-             htmldoc('HTML 4.01',
+             HTMLdoc('HTML 4.01',
                      """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
                         "http://www.w3.org/TR/html4/strict.dtd">""",
                      "valid-html401")),
             (2, 
-             htmldoc('HTML 4.01 Transitional',
+             HTMLdoc('HTML 4.01 Transitional',
                      """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
                         "http://www.w3.org/TR/html4/loose.dtd">""",
                      "valid-html401")),
             (3, 
-             htmldoc('XHTML 1.0 Strict',
+             HTMLdoc('XHTML 1.0 Strict',
                      """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
                         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">""",
                      "valid-xhtml10",
                      "/")),
             (4, 
-             htmldoc('XHTML 1.0 Transitional',
+             HTMLdoc('XHTML 1.0 Transitional',
                      """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
                         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">""",
                      "valid-xhtml10",
                      "/")),
             (5, 
-             htmldoc('HTML5',
+             HTMLdoc('HTML5',
                      """<!DOCTYPE html>""",
                      None)),
             )

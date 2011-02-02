@@ -263,18 +263,14 @@ No reason to change this default unless you really don't want to see the views i
     def get_form(self, djp,
                  form_class,
                  addinputs = True,
-                 form_withrequest = None,
                  form_ajax = None,
-                 forceform = False,
                  instance  = None,
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
-It can be overridden to twick its behaviour.
 
 :parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
 :parameter form_class: form class to use.
 :parameter addinputs: boolean flag indicating if submit inputs should be added. Default ``True``.
-:parameter form_withrequest: if form_class requires the request object to be passed to its constructor. Default ``None``.
 :parameter form_ajax: if form uses AJAX. Default ``False``.
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False`` no instance will be
                      passed to the form constructor. If ``None`` the instance will be obtained from

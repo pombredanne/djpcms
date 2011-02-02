@@ -1,10 +1,10 @@
 import sys
 import ctypes
 
-from .base import PlatForm as PlatFormBase
+from .base import Platform as PlatformBase
 
 
-class PlatForm(PlatFormBase):
+class Platform(PlatformBase):
     
     def isPosix(self):
         return True

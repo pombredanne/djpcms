@@ -151,7 +151,6 @@ Usage::
                  description    = None,
                  force_redirect = None,
                  form           = None,
-                 form_withrequest = None,
                  form_ajax     = None,
                  headers       = None,
                  astable        = None,
@@ -192,7 +191,6 @@ Usage::
         if force_redirect is not None:
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
-        self._form_withrequest = form_withrequest
         self._form_ajax  = form_ajax if form_ajax is not None else self._form_ajax
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter
@@ -236,14 +234,11 @@ Usage::
     
     def get_form(self, djp,
                  form = None,
-                 form_withrequest = None,
                  form_ajax = None,
                  **kwargs):
-        form_withrequest = form_withrequest if form_withrequest is not None else self._form_withrequest
         form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         return self.appmodel.get_form(djp,
                                       form or self._form,
-                                      form_withrequest = form_withrequest,
                                       form_ajax = form_ajax,
                                       **kwargs)
         

@@ -133,7 +133,6 @@ def get_form(djp,
     data = request.data_dict
     prefix = data.get('_prefixed',None)
     save_as_new = data.has_key('_save_as_new')
-    #initial  = update_initial(request, form_class, initial, own_view = own_view)
     
     if withinputs:
         inputs = getattr(form_factory,'submits',None)

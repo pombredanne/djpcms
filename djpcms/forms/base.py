@@ -151,7 +151,7 @@ class Form(BaseForm):
         self._fields = fields = []
         
         prefix = self.prefix
-        initial = self.initial
+        self.initial = initial = self.initial or {}
         is_bound = self.is_bound
         
         # Loop over form fields

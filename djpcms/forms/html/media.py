@@ -2,6 +2,7 @@
 
 Originally from django
 '''
+from itertools import chain
 
 __all__ = ['MEDIA_TYPES',
            'Media',

@@ -75,13 +75,13 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
                     ks.remove(cn)
         return self
     
-    def render(self):
+    def render(self, djp = None):
         if self.inline:
             return mark_safe('<{0}{1}/>'.format(self.tag,self.flatatt()))
         else:
-            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,self.flatatt(),self.inner()))
+            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,self.flatatt(),self.inner(djp)))
     
-    def inner(self):
+    def inner(self, djp = None):
         return ''
 
     
@@ -99,7 +99,6 @@ class FormWidget(HtmlWidget):
         self.layout = layout
         self.inputs = inputs
         
-    def inner(self):
-        return loader.render_to_string(self.template,cd,
-                                       context_instance)
+    def inner(self, djp = None):
+        return self.layout.render(self.form,self.inputs)
     

@@ -3,6 +3,7 @@ from copy import copy
 from djpcms.utils.ajax import jredirect, jhtmls
 from djpcms.utils import lazyattr
 from djpcms.utils.navigation import Navigator, Breadcrumbs
+from djpcms.template import loader
 
 
 class DjpResponse(object):
@@ -203,44 +204,30 @@ return the wrapper with the underlying view.'''
         
         return func(self)        
     
-    def render_to_response(self, more_context = None,
-                           template_file = None, **kwargs):
-        """
-        A shortcut method that runs the `render_to_response` Django shortcut.
- 
-        It will apply the view's context object as the context for rendering
-        the template. Additional context variables may be passed in, similar
-        to the `render_to_response` shortcut.
- 
-        """
+    def render_to_response(self, context):
         css = self.css
-        context  = loader.context(self.request)
-        d = context.push()
-        if more_context:
-            d.update(more_context)
+        #context  = loader.context(self.request)
+        #d = context.push()
+        #if more_context:
+        #    d.update(more_context)
         media = self.media
         sitenav = Navigator(self,
                             classes = css.main_nav,
                             levels = self.settings.SITE_NAVIGATION_LEVELS)
-        d.update({'djp':        self,
+        
+        context.update({'djp':        self,
                   'media':      media,
                   'page':       self.page,
-                  'cssajax':    self.css,
                   'is_popup':   False,
-                  'admin_site': False,
                   'sitenav':    sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
                  b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
-            d['breadcrumbs'] = b
-        template_file = template_file or self.template_file
+            context['breadcrumbs'] = b
         
-        httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
-        html = loader.render_to_string(template_file,
-                                       context_instance=context,
-                                       **kwargs)
-        return self.http.HttpResponse(html, **httpresponse_kwargs)
+        html = loader.render_to_string(self.template_file,context)
+        return self.http.HttpResponse(html)
         
     def redirect(self, url):
         if self.is_xhr:

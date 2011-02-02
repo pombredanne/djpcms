@@ -30,11 +30,11 @@ class LoginView(appview.ModelView):
     '''A Battery included Login view.
     '''
     def __init__(self, regex = 'login', parent = None, insitemap = False, isplugin = True,
-                 form = LoginForm, form_withrequest = True, **kwargs):
+                 form = LoginForm, **kwargs):
         super(LoginView,self).__init__(regex = regex, parent = parent,
                                       insitemap = insitemap,
                                       isplugin = isplugin,
-                                      form = form, form_withrequest = form_withrequest,
+                                      form = form,
                                       **kwargs)
         
     def title(self, page, **kwargs):

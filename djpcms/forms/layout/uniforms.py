@@ -25,10 +25,11 @@ def_renderer = lambda x: x
 
 
 def render_field(field, form, layout, css_class):
-    if isinstance(field, str):
-        return render_form_field(field, form, layout, css_class)
-    else:
+    if isinstance(field,UniFormElement):
         return field.render(form, layout)
+    else:
+        return render_form_field(field, form, layout, css_class)
+    
     
 def get_rendered_fields(form):
     rf = getattr(form, 'rendered_fields', [])
@@ -37,14 +38,9 @@ def get_rendered_fields(form):
 
 
 def render_form_field(field, form, layout, css_class):
-    try:
-        field_instance = form.fields[field]
-    except KeyError:
-        raise Exception("Could not resolve form field '%s'." % field)
-    bound_field = BoundField(form, field_instance, field)
-    label = None if css_class == nolabel else bound_field.label 
+    label = None if css_class == nolabel else field.label 
     html = loader.render_to_string("djpcms/uniforms/field.html",
-                                   {'field': bound_field,
+                                   {'field': field,
                                     'label': label,
                                     'required': _required_tag()})
     rendered_fields = get_rendered_fields(form)
@@ -169,8 +165,7 @@ class Html(UniFormElement):
 
     def _render(self, form, layout):
         return self.html
-    
-
+    
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.
@@ -205,8 +200,8 @@ class Layout(FormLayout):
         
         missing_fields = []
         rendered_fields = get_rendered_fields(form)
-        for field in form.fields.keys():
-            if not field in rendered_fields:
+        for field in form.fields:
+            if not field.name in rendered_fields:
                 missing_fields.append(field)
         
         if missing_fields:
@@ -216,13 +211,9 @@ class Layout(FormLayout):
         if ctx:
             ctx['inputs'] = inputs
             ctx['html'] = loader.mark_safe(html)
-            html = loader.render_to_string(self.template, ctx)
+            return loader.render_to_string(self.template, ctx)
         else:
-            html = loader.mark_safe(html)
+            return loader.mark_safe(html)
         
-        if self.id:
-            return loader.mark_safe('<div id="%s">%s</div>' % (self.id,html))
-        else:
-            return html
     
       

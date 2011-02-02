@@ -21,8 +21,10 @@ def get_engine(engine, config = None):
         raise NotImplementedError("Cheetah not yet supported.")
     elif engine == 'mustache':
         raise NotImplementedError("Mustache not yet supported.")
+    elif not engine:
+        raise NotImplementedError('Template handler not specified')
     else:
-        raise NotImplementedError
+        raise NotImplementedError('Template handler {0} not available'.format(engine))
     return TemplateHandler(config)
 
 

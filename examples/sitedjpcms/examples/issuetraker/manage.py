@@ -20,11 +20,12 @@ def appurls():
 
 if __name__ == '__main__':
     site = djpcms.MakeSite(__file__,
-                           CMS_ORM = 'stdnet',
                            APPLICATION_URL_MODULE = 'issuetraker.manage',
                            USER_MODEL = 'issuetraker.models.User',
                            #HTTP_LIBRARY = 'werkzeug',
+                           CMS_ORM = 'stdnet',
                            HTTP_LIBRARY = 'django',
+                           TEMPLATE_ENGINE = 'django',
                            INSTALLED_APPS = ('djpcms',
                                              'issuetraker',
                                              'stdnet.contrib.sessions'),

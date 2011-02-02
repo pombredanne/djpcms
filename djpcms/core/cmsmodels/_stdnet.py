@@ -6,10 +6,11 @@ from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin
 from djpcms.utils import htmltype
 from djpcms.utils import force_str
-from djpcms.template import Template, mark_safe
+
 
 ModelBase = orm.StdModel
 field = orm
+
 
 def create_new_content(user = None, **kwargs):
     user_last = None

@@ -151,9 +151,9 @@ Hooks:
         # Inner template available, fill the context dictionary
         # with has many content keys as the number of blocks in the page
         if page:
-            context['htmldoc'] = htmltype.get(page.doctype)
+            context['htmldoc'] = loader.mark_safe(htmltype.get(page.doctype))
         else:
-            context['htmldoc'] = htmltype.get()
+            context['htmldoc'] = loader.mark_safe(htmltype.get())
             
         if page:
             if not self.editurl and djp.has_own_page():
@@ -292,7 +292,7 @@ which handle the response'''
             return 0
     
     def bodybits(self, page):
-        b = ''
+        return ''
         if self.editurl:
             b = 'class="edit"'
         elif page:
@@ -302,6 +302,7 @@ which handle the response'''
         return mark_safe(b)
     
     def contentbits(self, page):
+        return ''
         b = ''
         if page:
             css = page.cssinfo

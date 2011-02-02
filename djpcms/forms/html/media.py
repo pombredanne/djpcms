@@ -29,10 +29,6 @@ class Media(object):
         for name in MEDIA_TYPES:
             getattr(self, 'add_' + name)(media_attrs.get(name, None))
 
-        # Any leftover attributes must be invalid.
-        # if media_attrs != {}:
-        #     raise TypeError("'class Media' has invalid attribute(s): %s" % ','.join(media_attrs.keys()))
-
     def html(self):
         return loader.mark_safe(self.render())
                                 

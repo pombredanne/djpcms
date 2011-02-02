@@ -15,10 +15,7 @@ __all__ = ['Field',
 
 
 def standard_validation_error(field,value):
-    if value == nodata:
-        return 'Field {0} is required'.format(field.name)
-    else:
-        return str(value)
+    return '{0} is required'.format(field.label)
     
 
 class Field(object):
@@ -67,7 +64,7 @@ class Field(object):
             else:
                 value = self.get_default(bfield)
                 if not value:
-                    raise ValidationError(self.validation_error(self,nodata))
+                    raise ValidationError(self.validation_error(bfield,value))
                 return value
         return value
     

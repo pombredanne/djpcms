@@ -1,7 +1,8 @@
 from inspect import isclass
 
-from djpcms.forms.html import HtmlWidget
+from djpcms.forms.html import HtmlWidget, List
 from djpcms.template import loader
+from djpcms.utils.ajax import jhtmls
 
 __all__ = ['FormLayout',
            'FormLayoutElement',
@@ -27,13 +28,17 @@ class BaseFormLayout(HtmlWidget):
 
 
 class FormLayout(BaseFormLayout):
-    '''Base form class for programmatic form layout design'''
-    field_template = "djpcms/uniforms/field.html"
+    '''Base form class for form layout design'''
     
-    def __init__(self, auto_id='id_{0[html_name]}', **kwargs):
+    field_template = "djpcms/uniforms/field.html"
+    '''Template file for rendering form fields'''
+    form_class = None
+    '''form css class'''
+    from_error_class = 'errorlist'
+    
+    def __init__(self, **kwargs):
         super(FormLayout,self).__init__(**kwargs)
         self._allfields = []
-        self.auto_id = auto_id
         
     def render(self, djp, form, inputs):
         raise NotImplementedError
@@ -54,6 +59,17 @@ class FormLayout(BaseFormLayout):
         form.rendered_fields = rf
         return rf
 
+    def json_errors(self, f):
+        '''Convert errors in form into a JSON serializable dictionary with keys given by errors html id.'''
+        dfields = f._fields_dict
+        jerr = jhtmls()
+        from_error_class = self.from_error_class
+        for name,err in f.errors.items():
+            bf = dfields[name]
+            err = List(data = err, cn = from_error_class).render()
+            jerr.add('#' + bf.errors_id,err,alldocument = False)
+        return jerr
+
 
 class FormLayoutElement(BaseFormLayout):
     '''Base form class for programmatic form layout design'''
@@ -69,6 +85,7 @@ class FormLayoutElement(BaseFormLayout):
         self.addClass(self.elem_css).addClass(self.default_style)
         
     def render_field(self, djp, field, layout):
+        '''Render a single field'''
         if isinstance(field,FormLayoutElement):
             return field.render(djp,layout)
         form = field.form
@@ -83,8 +100,8 @@ class FormLayoutElement(BaseFormLayout):
         ctx = {'label': None if self.default_style == nolabel else field.label,
                'required_tag': self.required_tag or layout.required_tag,
                'field':field,
-               'auto_id':layout.auto_id.format(field.__dict__),
-               'widget':widget.render(djp,field)}
+               'error': form.errors.get(field.name,''), 
+               'widget':widget.render_from_field(field)}
         field_template = self.field_template or layout.field_template
         return loader.render_to_string(field_template,ctx)
 

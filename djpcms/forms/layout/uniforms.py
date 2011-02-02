@@ -82,10 +82,11 @@ class Layout(FormLayout):
 '''
     template = "djpcms/uniforms/uniform.html"
     default_style  = 'inlineLabels'
+    form_class = 'uniForm'
     
     def __init__(self, *fields, **kwargs):
         super(Layout,self).__init__(**kwargs)
-        self.add(*fields)
+        self.add(*fields)
     def render(self, djp, form, inputs):
         '''Render the uniform layout of *form*.
 This function is called by an instance of

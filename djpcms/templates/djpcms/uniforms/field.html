@@ -1,12 +1,12 @@
 {% if field.is_hidden %}{{ field }}{% else %}
-<div class="ctrlHolder{% if field.error %} error{% endif %}{% if field.field.required %} {{ required }}{% endif %}">
-	<div id="{{ auto_id }}-errors">{{ field.errors }}
+<div class="ctrlHolder{% if error %} error{% endif %}{% if field.field.required %} {{ required }}{% endif %}">
+	<div id="{{ field.errors_id }}">{{ errors }}
     </div>{% if widget.ischeckbox %}
-    <label for="{{ auto_id }}">
+    <label for="{{ field.id }}">
      {{ widget }}{% if label %}
       {{ label }}{% endif %}
     </label>{% else %}{% if label %}
-    <label for="{{ auto_id }}">
+    <label for="{{ field.id }}">
       {{ label }}
     </label>{% endif %}
       {{ widget }}{% if field.help_text %}

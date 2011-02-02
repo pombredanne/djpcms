@@ -14,7 +14,7 @@ from djpcms.utils.text import nicename
 
 from .globals import *
 from .fields import Field
-from .html import media_property, FormWidget
+from .html import media_property, FormWidget, List
 
 
 __all__ = ['Form',
@@ -83,6 +83,7 @@ BaseForm = DeclarativeFieldsMetaclass('BaseForm',(object,),{})
 class Form(BaseForm):
     '''base class for forms.'''
     prefix_input = '_prefixed'
+    auto_id='id_{0[html_name]}'
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
@@ -149,6 +150,7 @@ class Form(BaseForm):
         else:
             rawdata = self.rawdata
         self._fields = fields = []
+        self._fields_dict = dfields = {}
         
         prefix = self.prefix
         self.initial = initial = self.initial or {}
@@ -156,27 +158,32 @@ class Form(BaseForm):
         
         # Loop over form fields
         for name,field in iteritems(self.base_fields):
-            key = name
-            if prefix:
-                key = prefix+name
-                
+            key = self.prefix+name         
             bfield = BoundField(self,field,name,key)
             fields.append(bfield)
+            dfields[name] = bfield
+            field_value = None
             
             if is_bound:
                 if key in rawdata:
-                    value = rawdata[key]
+                    value = field_value = rawdata[key]
                 else:
                     value = nodata
                 try:
                     value = bfield.clean(value)
                     cleaned[name] = value
                 except ValidationError as e:
-                    errors[name] = force_str(e)
+                    e = force_str(e)
+                    if name in errors:
+                        errors[name].append(e)
+                    else:
+                        errors[name] = [e]
                 data[name] = value
             
             elif name in initial:
-                data[name] = initial[name]
+                data[name] = field_value = initial[name]
+            
+            bfield.value = field_value
                 
         if is_bound and not errors:
             self._cleaned_data = cleaned
@@ -205,10 +212,11 @@ class Form(BaseForm):
     def save(self, commit = True):
         '''Save the form. This method works if an instance or a model is available'''
         self.mapper.save(self.cleaned_data, self.instance, commit)
-                
+        
 
 class HtmlForm(object):
-    '''An HTML class Factory Form'''
+    '''An HTML class Factory Form used for grouping a :class:`Form` class, a
+    form :class:`Layout` instance and a model class.'''
     def __init__(self, form_class, layout = None, model = None):
         self.form_class = form_class
         self._layout = layout
@@ -233,80 +241,23 @@ class HtmlForm(object):
         
 class BoundField(object):
     "A Wrapper containg a form, field and data"
-    def __init__(self, form, field, name, html_name):
+    def __init__(self, form, field, name, html_name = None):
         self.form = form
         self.field = field.copy(self)
         self.name = name
-        self.html_name = html_name
+        self.html_name = html_name or name
         self.value = None
-        #self.html_initial_name = form.add_initial_prefix(name)
-        #self.html_initial_id = form.add_initial_prefix(self.auto_id)
         if field.label is None:
             self.label = nicename(name)
         else:
             self.label = field.label
         self.help_text = field.help_text
+        self.id = form.auto_id.format(self.__dict__)
+        self.errors_id = self.id + '-errors'
         
     def clean(self, value):
         self.value = self.field.clean(value, self)
         return self.value
-        
-    def render(self, layout):
-        '''Render the Bound Field as HTML using a ``layout`` instance.'''
-        label = None if css_class == nolabel else field.label 
-        html = loader.render_to_string(layout.field_template,
-                                       {'field': self,
-                                        'label': label,
-                                        'required': layout.required_tag})
-        rendered_fields = get_rendered_fields(form)
-        if not field in rendered_fields:
-            rendered_fields.append(field)
-        else:
-            raise Exception("A field should only be rendered once: %s" % field)
-        return html
-        
-    def __str__(self):
-        return self.as_widget()
-
-    def _errors(self):
-        """
-        Returns an ErrorList for this field. Returns an empty ErrorList
-        if there are none.
-        """
-        return self.form.errors.get(self.name, self.form.error_class())
-    errors = property(_errors)
-
-    def as_widget(self, widget=None, attrs=None, only_initial=False):
-        """
-        Renders the field by rendering the passed widget, adding any HTML
-        attributes passed as attrs.  If no widget is specified, then the
-        field's default widget will be used.
-        """
-        if not widget:
-            widget = self.field.widget
-
-        attrs = attrs or {}
-        auto_id = self.auto_id
-        if auto_id and 'id' not in attrs and 'id' not in widget.attrs:
-            if not only_initial:
-                attrs['id'] = auto_id
-            else:
-                attrs['id'] = self.html_initial_id
-
-        if not self.form.is_bound:
-            data = self.form.initial.get(self.name, self.field.initial)
-            if callable(data):
-                data = data()
-        else:
-            data = self.field.bound_data(
-                self.data, self.form.initial.get(self.name, self.field.initial))
-        data = self.field.prepare_value(data)
-
-        if not only_initial:
-            name = self.html_name
-        else:
-            name = self.html_initial_name
-        return widget.render(name, data, attrs=attrs)
 
     def _data(self):
         """
@@ -314,38 +265,4 @@ class BoundField(object):
         """
         return self.field.widget.value_from_datadict(self.form.data, self.form.files, self.html_name)
     data = property(_data)
-
-    def label_tag(self, contents=None, attrs=None):
-        """
-        Wraps the given contents in a <label>, if the field has an ID attribute.
-        Does not HTML-escape the contents. If contents aren't given, uses the
-        field's HTML-escaped label.
-
-        If attrs are given, they're used as HTML attributes on the <label> tag.
-        """
-        contents = contents or conditional_escape(self.label)
-        widget = self.field.widget
-        id_ = widget.attrs.get('id') or self.auto_id
-        if id_:
-            attrs = attrs and flatatt(attrs) or ''
-            contents = '<label for="%s"%s>%s</label>' % (widget.id_for_label(id_), attrs, unicode(contents))
-        return mark_safe(contents)
-
-    def css_classes(self, extra_classes=None):
-        """
-        Returns a string of space-separated CSS classes for this field.
-        """
-        if hasattr(extra_classes, 'split'):
-            extra_classes = extra_classes.split()
-        extra_classes = set(extra_classes or [])
-        if self.errors and hasattr(self.form, 'error_css_class'):
-            extra_classes.add(self.form.error_css_class)
-        if self.field.required and hasattr(self.form, 'required_css_class'):
-            extra_classes.add(self.form.required_css_class)
-        return ' '.join(extra_classes)
-
-    def _is_hidden(self):
-        "Returns True if this BoundField's widget is hidden."
-        return self.field.widget.is_hidden
-    is_hidden = property(_is_hidden)
 

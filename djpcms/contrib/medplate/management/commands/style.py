@@ -60,7 +60,7 @@ class Command(BaseCommand):
         style = options['style']
         target = options['target']
         if not target:
-            target = os.path.join(sites.settings.MEDIA_ROOT,'site','site.css')
+            target = os.path.join('media','site','site.css')
         render(style,target)
         
         

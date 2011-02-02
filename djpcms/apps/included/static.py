@@ -131,7 +131,11 @@ class StaticFileApp(StaticFileView):
 
 
 class Static(appsite.Application):
+    '''A simple application for handling static files.
+    This application should be only used during development while
+    leaving the task of serving media files to other servers in production.'''
     _media = None
+    site_name = 'site'
     show_indexes = False
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticFileRoot()
@@ -162,5 +166,11 @@ class Static(appsite.Application):
                 hd = handler(name,module.__path__[0])
                 if hd.exists:
                     mapping[name] = hd
+            if self.site_name:
+                hd = handler(self.site_name,site.settings.SITE_DIRECTORY)
+                if hd.exists:
+                    mapping[self.site_name] = hd
+                
+                
         return self._media
     

@@ -3,9 +3,18 @@ Script for running a stand-alone IssueTracker application
 
 Requires python-stdnet
 
+To run the server simply::
+
+    python manage.py
+    
+To create style sheet::
+
+    python manage.py style
+
 '''
+import sys
 import djpcms
-from stdnet import orm
+from djpcms.apps.management import execute
 
 
 def appurls():
@@ -31,12 +40,15 @@ if __name__ == '__main__':
                            TEMPLATE_ENGINE = 'django',
                            INSTALLED_APPS = ('djpcms',
                                              'issuetraker',
-                                             'stdnet.contrib.sessions'),
+                                             'stdnet.contrib.sessions',
+                                             'djpcms.contrib.medplate'),
                            MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
                                                  'stdnet.contrib.sessions.middleware.SessionMiddleware',),
                            DEBUG = True,
                        )
-    orm.register_applications(site.settings.INSTALLED_APPS)
-    djpcms.serve(site)
+    if len(sys.argv) > 1:
+        execute()
+    else:
+        djpcms.serve(site)
 
 

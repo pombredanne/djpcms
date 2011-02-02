@@ -180,7 +180,8 @@ def saveform(djp, editing = False, force_redirect = False):
     GET = request.GET
     curr = request.environ.get('HTTP_REFERER')
     next = get_next(request)
-    f = view.get_form(djp)
+    fhtml = view.get_form(djp)
+    f = fhtml.form
     
     if POST.has_key("_cancel"):
         redirect_url = next
@@ -238,7 +239,7 @@ def saveform(djp, editing = False, force_redirect = False):
             return http.HttpResponseRedirect(redirect_url)
     else:
         if is_ajax:
-            return f.json_errors()
+            return fhtml.layout.json_errors(f)
         else:
             return view.handle_response(djp)
         

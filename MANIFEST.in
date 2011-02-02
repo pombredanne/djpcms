@@ -29,7 +29,9 @@ recursive-include djpcms/contrib/flowrepo/media *
 recursive-include djpcms/contrib/social/templates *
 recursive-include djpcms/contrib/social/media *
 recursive-include examples *.py
-recursive-include examples/djpcms-site/sitedjpcms/templates *
-recursive-include examples/djpcms-site/sitedjpcms/media *
-recursive-include examples/vinoweb/vinoweb/templates *
-recursive-include examples/vinoweb/vinoweb/media *
+recursive-include examples/sitedjpcms/templates *
+recursive-include examples/sitedjpcms/media *
+recursive-include examples/sitedjpcms/examples/issuetraker/templates *
+recursive-include examples/sitedjpcms/examples/issuetraker/media *
+recursive-include examples/sitedjpcms/examples/vinoweb/templates *
+recursive-include examples/sitedjpcms/examples/vinoweb/media *

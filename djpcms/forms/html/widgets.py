@@ -43,3 +43,5 @@ class List(HtmlWidget,list):
     
     def inner(self):
         return '\n'.join(('<li>' + elem + '</li>' for elem in self))
+    
+    

@@ -44,12 +44,17 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         self.__classes = set()
         self.addClass(cn)
         
-    def flatatt(self):
+    def flatatt(self, **attrs):
         cs = ''
         if self.__classes:
             cs = ' '.join(self.__classes)
         self.__attrs['class'] = cs
-        return flatatt(self.__attrs)
+        if attrs:
+            _attrs = self.__attrs.copy()
+            _attrs.update(attrs)
+            return flatatt(_attrs)
+        else:
+            return flatatt(self.__attrs)
     
     def ischeckbox(self):
         return False
@@ -84,11 +89,18 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         return self
     
     def render(self, *args, **kwargs):
+        fattr = self.flatatt()
+        return self._render(fattr, *args, **kwargs)
+    
+    def render_from_field(self, field):
+        fattr = self.flatatt(name = field.html_name, id = field.id, value = field.value)
+        return self._render(fattr)
+    
+    def _render(self, fattr, *args, **kwargs):
         if self.inline:
-            return mark_safe('<{0}{1}/>'.format(self.tag,self.flatatt()))
+            return mark_safe('<{0}{1}/>'.format(self.tag,fattr))
         elif self.tag:
-            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,
-                                                            self.flatatt(),
+            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,fattr,
                                                             self.inner(*args, **kwargs)))
         else:
             return self.inner(*args, **kwargs)
@@ -111,6 +123,7 @@ class FormWidget(HtmlWidget):
         self.form = form
         self.layout = layout
         self.inputs = inputs
+        self.addClass(self.layout.form_class)
         
     def inner(self, djp = None):
         return self.layout.render(djp,

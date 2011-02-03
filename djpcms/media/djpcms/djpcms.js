@@ -6,13 +6,12 @@
  * License:      new BSD licence
  * Contact:      luca.sbardella@gmail.com
  * web:			 https://github.com/lsbardel/djpcms
- * @requires:	 jQuery
+ * @requires:	 jQuery, jQuery-UI
  * 
  * Copyright (c) 2009-2011, Luca Sbardella
  * New BSD License 
  * http://www.opensource.org/licenses/bsd-license.php
  *
- * 
  */
 
 
@@ -29,6 +28,7 @@
 		
 			var decorators = {};
 			var jsonCallBacks = {};
+			var logging_pannel = null;
 			
 			this.inrequest = false;
 	
@@ -52,10 +52,17 @@
 				debug:			   false
 			};
 			
+			function set_logging_pannel(panel) {
+				logging_pannel = panel;
+			}
+			
 			this.log = function(s) {
-				if(this.options.debug) {
+				if($.djpcms.options.debug) {
 					if (typeof console != "undefined" && typeof console.debug != "undefined") {
 						console.log('$.djpcms: '+ s);
+						if(logging_pannel) {
+							logging_pannel.append('<p>'+s+'</p>');
+						}
 					} else {
 						//alert(s);
 					}
@@ -96,10 +103,11 @@
 			};
 			
 			/**
-			 * Handle a JSON call back by looping through all the callback objects registered
-			 * @param data JSON object
-			 * @param el (Optional) jQuery object or HTMLObject
-			 * @return boolean, true if everything is good, false if an error has occured
+			 * Handle a JSON call back by looping through all the callback
+			 * objects registered
+			 * @param data JSON object already unserialized
+			 * @param status String status flag
+			 * @param elem (Optional) jQuery object or HTMLObject
 			 */
 			this.jsonCallBack = function(data, status, elem) {
 				if(status == "success") {
@@ -119,20 +127,28 @@
 				if(jcb) {
 					return jcb.handle(data.body, elem) & data.error;
 				}
+				else {
+					$.djpcms.log('Could not find callback ' + id)
+				}
 			};
-	
+			
+			/**
+			 * DJPCMS Handler constructor
+			 */
 			this.construct = function() {
-				var this_ = $.djpcms;
+				var djp = $.djpcms;
 				return this.each(function() {
-					var config = this_.options;
-					
-					// store common expression for speed					
-					var $this = $(this);
+					var config = djp.options;
+					var me = $(this);
+					var logger = $('.djp-logging-panel',me);
+					if(logger) {
+						set_logging_pannel(logger);
+					}
 					
 					$.each(decorators,function(id,decorator) {
-						this_.log('Adding decorator ' + decorator.id);
-						decorator.decorate($this,config);
-					});
+						djp.log(this + ' - adding decorator ' + decorator.id);
+						decorator.decorate(me,config);
+					});						
 				});
 			};
 		}
@@ -145,6 +161,7 @@
 	
 	
 	var dj = $.djpcms;
+	$(window).trigger("djpcms-ready");
 	
 	
 	/**

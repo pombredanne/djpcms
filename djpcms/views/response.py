@@ -1,9 +1,12 @@
+import sys
+import traceback
 from copy import copy
 
-from djpcms.utils.ajax import jredirect, jhtmls
+from djpcms.utils.ajax import jredirect, jhtmls, jservererror
 from djpcms.template import loader, Context, RequestContext
-from djpcms.utils import lazyattr
+from djpcms.utils import lazyattr, logerror
 from djpcms.utils.navigation import Navigator, Breadcrumbs
+from djpcms.core.exceptions import ViewDoesNotExist
 
 
 class DjpResponse(object):
@@ -189,14 +192,27 @@ return the wrapper with the underlying view.'''
             if not request.user.is_authenticated() and method == 'get':
                 request.session.set_test_cookie()
 
-        if method not in (m.lower() for m in view.methods(request)):
-            return http.HttpResponseNotAllowed(method)
+            if method not in (m.lower() for m in view.methods(request)):
+                return http.HttpResponseNotAllowed(method)
         
-        func = getattr(view,'%s_response' % method,None)
-        if not func:
-            raise ValueError("Allowed view method %s does not exist in %s." % (method,view))
-        
-        return func(self)        
+            return getattr(view,'%s_response' % method)(self)
+        else:
+            # AJAX RESPONSE
+            try:
+                if method not in (m.lower() for m in view.methods(request)):
+                    raise ViewDoesNotExist('{0} method not available'.format(method))
+                res = getattr(view,'ajax_%s_response' % method)(self)
+            except ViewDoesNotExist as e:
+                res = jservererror(str(e), url = request.path)
+            except Exception as e:
+                if site.settings.DEBUG:
+                    exc_info = sys.exc_info()
+                    stack_trace = '\n'.join(traceback.format_exception(*exc_info))
+                    logerror(self.view.logger, request, exc_info)
+                    res = jservererror(stack_trace, url = self.url)
+                else:
+                    raise e
+            return self.http.HttpResponse(res.dumps(),res.mimetype())
     
     def render_to_response(self, more_context = None,
                            template_file = None, **kwargs):

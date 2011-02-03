@@ -3,7 +3,6 @@ Base class for djpcms views.
 '''
 import logging
 import sys
-import traceback
 
 from djpcms import sites
 from djpcms.permissions import inline_editing, get_view_permission, has_permission
@@ -13,7 +12,7 @@ from djpcms.utils.html import grid960, box
 from djpcms.forms import saveform, get_form
 from djpcms.forms.cms import ShortPageForm, NewChildForm
 from djpcms.utils.uniforms import UniForm
-from djpcms.utils import UnicodeObject, function_module, htmltype, logerror
+from djpcms.utils import UnicodeObject, function_module, htmltype
 from djpcms.utils.media import Media
 from djpcms.views.response import DjpResponse
 from djpcms.views.contentgenerator import BlockContentGen
@@ -122,9 +121,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         return kwargs
     
     def render(self, djp, **kwargs):
-        '''
-        Render the Current View plugin.
-        Return safe unicode
+        '''Render the Current View plugin and return safe unicode.
         This function is implemented by application views
         '''
         return ''
@@ -182,93 +179,51 @@ Hooks:
         self.extra_content(djp,context)
         return djp.render_to_response(context)
     
-    def get_ajax_response(djp):
-        return None
-    
-    def default_post(self, djp):
-        '''Default post response handler.'''
-        raise NotImplementedError('Default Post view not implemented')
+    def ajax_get_response(self, djp):
+        return jservererror('AJAX GET RESPONSE NOT AVAILABLE', url = djp.url)
     
     def get_response(self, djp):
         '''Get response handler.'''
         return self.handle_response(djp)
     
     def post_response(self, djp):
-        '''Handle the post view. This function checks the request.POST dictionary
-for a post_view_key specified in HTML_CLASSES (by default 'xhr')
-        
-If it finds this key, the post view is an AJAX-JSON request and the key VALUE represents
- a function responsible for handling the response.
-        
-These ajax enabled post view functions must start with the prefix
-ajax__ followed by the VALUE of the post_view_key.
-
-Example:
-    so lets say we find in the POST dictionary
+        '''Get response handler.'''
+        return self.default_post(djp)
     
-    {
-    ...
-    'xhr': 'change_parameter',
-    ...
-    }
-
-Than there should be a function called   'ajax__change_parameter'
-which handle the response'''
+    def default_post(self, djp):
+        '''Default post response handler.'''
+        raise NotImplementedError('Default Post view not implemented')
+    
+    def ajax_post_response(self, djp):
         request   = djp.request
         post      = request.POST
-        is_ajax   = request.is_ajax()
-        ajax_key  = False
-        mimetype  = None
-        http      = djp.http
         
-        if is_ajax:
-            mimetype = 'application/javascript'
-            params   = dict(post.items())
-            prefix   = params.get('_prefixed',None)
-            ajax_key = params.get(djp.css.post_view_key, None)
-            if ajax_key:
-                if prefix and prefix in ajax_key:
-                    ajax_key = ajax_key[len(prefix)+1:]
-                ajax_key = ajax_key.replace('-','_').lower()
+        params   = dict(post.items())
+        prefix   = params.get('_prefixed',None)
+        ajax_key = params.get(djp.css.post_view_key, None)
+        if ajax_key:
+            if prefix and prefix in ajax_key:
+                ajax_key = ajax_key[len(prefix)+1:]
+            ajax_key = ajax_key.replace('-','_').lower()
             
-        # If ajax_key is defined, it means this is a AJAX-JSON request
-        if is_ajax:
-            #
-            # Handle the cancel request redirect.
-            # Check for next in the parameters,
-            # If not there redirect to self.defaultredirect
-            if ajax_key == 'cancel':
-                next = params.get('next',None)
-                next = self.defaultredirect(djp.request, next = url, **djp.kwargs)
-                res  = jredirect(next)
-            else:
-                ajax_view_function = None
-                if ajax_key:
-                    ajax_view = 'ajax__%s' % ajax_key
-                    ajax_view_function  = getattr(self,str(ajax_view),None)
-                
-                # No post view function found. Let's try the default ajax post view
-                if not ajax_view_function:
-                    ajax_view_function = self.default_post;
-            
-                try:
-                    res  = ajax_view_function(djp)
-                except Exception as e:
-                    # we got an error. If in debug mode send a JSON response with
-                    # the error message back to javascript.
-                    if djp.settings.DEBUG:
-                        exc_info = sys.exc_info()
-                        stack_trace = '\n'.join(traceback.format_exception(*exc_info))
-                        logerror(self.logger, request, exc_info)
-                        res = jservererror(stack_trace, url = djp.url)
-                    else:
-                        raise e
-            
-            return http.HttpResponse(res.dumps(),mimetype)
-        #
-        # Otherwise it is the default POST response
+        # Handle the cancel request redirect.
+        # Check for next in the parameters,
+        # If not there redirect to self.defaultredirect
+        if ajax_key == 'cancel':
+            next = params.get('next',None)
+            next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
+            return jredirect(next)
         else:
-            return self.default_post(djp)
+            ajax_view_function = None
+            if ajax_key:
+                ajax_view = 'ajax__%s' % ajax_key
+                ajax_view_function  = getattr(self,str(ajax_view),None)
+            
+            # No post view function found. Let's try the default ajax post view
+            if not ajax_view_function:
+                ajax_view_function = self.default_post;
+        
+            return ajax_view_function(djp)
 
     def grid960(self, page = None):
         #TODO Need to move this out of here

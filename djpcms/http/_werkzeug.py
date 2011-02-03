@@ -36,5 +36,5 @@ def is_authenticated(request):
 
 
 
-def serve(port = 8060, use_reloader = False):
+def serve(port = 0, use_reloader = False):
     run_simple('localhost',port,sites.wsgi,use_reloader)

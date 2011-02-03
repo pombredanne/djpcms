@@ -52,7 +52,7 @@ def finish_response(res, environ, start_response):
     return res
         
 
-def serve(port = 8060, use_reloader = False):
+def serve(port = 0, use_reloader = False):
     from django.core.servers.basehttp import run
     run('localhost', port, sites.wsgi)
     

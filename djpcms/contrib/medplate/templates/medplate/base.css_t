@@ -2,8 +2,8 @@
 
 {% block include-media %}
 {% include "uni-form.css" %}
-{% include "jquery-ui-css/smooth/jquery-ui.css" %}
-{% endblock %}
+{{ jquery }}{% endblock %}
+
 
 {% block body %}
 {% block text %}

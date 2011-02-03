@@ -143,6 +143,7 @@ def encode_multipart(boundary, data):
     ])
     return '\r\n'.join(lines)
 
+
 def encode_file(boundary, key, file):
     to_str = lambda s: smart_str(s, settings.DEFAULT_CHARSET)
     content_type = mimetypes.guess_type(file.name)[0]
@@ -156,7 +157,6 @@ def encode_file(boundary, key, file):
         '',
         file.read()
     ]
-
 
 
 class RequestFactory(object):

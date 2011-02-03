@@ -58,3 +58,4 @@ class OrmWrapper(BaseOrmWrapper):
         register_applications(sites.settings.INSTALLED_APPS)
     
 
+

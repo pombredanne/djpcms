@@ -7,7 +7,6 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.orms import monkey_patch_user
-from djpcms.http import make_wsgi
 
 from djpcms.models import BlockContent
 from djpcms.apps.included.contentedit import ContentSite
@@ -163,9 +162,6 @@ returns the application handler. If the appname is not available, it raises a Ke
         
     def count(self):
         return len(self._registry)
-    
-    def as_wsgi(self):
-        return make_wsgi(self)
     
     def _load_middleware(self):
         if self._request_middleware is None:

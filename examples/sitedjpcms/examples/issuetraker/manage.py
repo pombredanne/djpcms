@@ -5,14 +5,13 @@ Requires python-stdnet
 
 To run the server simply::
 
-    python manage.py
+    python manage.py serve
     
 To create style sheet::
 
     python manage.py style
 
 '''
-import sys
 import djpcms
 from djpcms.apps.management import execute
 
@@ -31,24 +30,19 @@ def appurls():
 
 
 if __name__ == '__main__':
-    site = djpcms.MakeSite(__file__,
-                           APPLICATION_URL_MODULE = 'issuetraker.manage',
-                           USER_MODEL = 'issuetraker.models.User',
-                           #HTTP_LIBRARY = 'werkzeug',
-                           CMS_ORM = 'stdnet',
-                           HTTP_LIBRARY = 'django',
-                           TEMPLATE_ENGINE = 'django',
-                           INSTALLED_APPS = ('djpcms',
-                                             'issuetraker',
-                                             'stdnet.contrib.sessions',
-                                             'djpcms.contrib.medplate'),
-                           MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
-                                                 'stdnet.contrib.sessions.middleware.SessionMiddleware',),
-                           DEBUG = True,
-                       )
-    if len(sys.argv) > 1:
-        execute()
-    else:
-        djpcms.serve(site)
+    djpcms.MakeSite(__file__,
+                    APPLICATION_URL_MODULE = 'issuetraker.manage',
+                    USER_MODEL = 'issuetraker.models.User',
+                    CMS_ORM = 'stdnet',
+                    TEMPLATE_ENGINE = 'django',
+                    INSTALLED_APPS = ('djpcms',
+                                      'issuetraker',
+                                      'stdnet.contrib.sessions',
+                                      'djpcms.contrib.medplate'),
+                    MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
+                                          'stdnet.contrib.sessions.middleware.SessionMiddleware',),
+                    DEBUG = True
+                    )
+    execute()
 
 

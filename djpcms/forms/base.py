@@ -171,6 +171,9 @@ class Form(BaseForm):
                     value = nodata
                 try:
                     value = bfield.clean(value)
+                    func_name = 'clean_' + name
+                    if hasattr(self,func_name):
+                        value = getattr(self,func_name)(value)
                     cleaned[name] = value
                 except ValidationError as e:
                     e = force_str(e)

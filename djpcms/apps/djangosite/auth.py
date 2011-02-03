@@ -57,3 +57,4 @@ class DjangoUser(UserInterface):
     def get(cls, **kwargs):
         return User.objects.get(**kwargs)
     
+    

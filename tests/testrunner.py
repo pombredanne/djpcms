@@ -7,7 +7,7 @@ import djpcms
 # Must be here
 site = djpcms.MakeSite('regression','conf')
 
-from djpcms.test import DjpcmsTestSuiteRunner
+from djpcms.test import TestSuiteRunner
 import djpcms.contrib as contrib
 
 logger = logging.getLogger()
@@ -83,7 +83,7 @@ def run(tags = None, verbosity = 1, interactive = True, failfast = False):
     setup_logging(verbosity, site.settings)
     apptests = import_tests(tags, site.settings)
     
-    test_runner = DjpcmsTestSuiteRunner(verbosity=verbosity,
-                                        interactive=True,
-                                        failfast=failfast)
+    test_runner = TestSuiteRunner(verbosity=verbosity,
+                                  interactive=True,
+                                  failfast=failfast)
     test_runner.run_tests(apptests)

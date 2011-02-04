@@ -1,6 +1,8 @@
 import stdnet
+
+from py2py3 import iteritems
+
 from djpcms import sites
-from djpcms.utils.py2py3 import iteritems
 
 from .base import BaseOrmWrapper
 

@@ -6,7 +6,7 @@ from djpcms import sites, forms
 from djpcms.core import messages
 from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str, gen_unique_id
-from djpcms.utils.dateformat import format
+from djpcms.utils.dates import format
 from djpcms.utils.ajax import jredirect, jremove
 
 from .html import HiddenInput
@@ -226,7 +226,7 @@ def saveform(djp, editing = False, force_redirect = False):
                                                 next = next,
                                                 instance = instance)
             
-            # not forcing redirect. Check if we can send a json message
+            # not forcing redirect. Check if we can send a JSON message
             if not force_redirect:
                 if redirect_url == curr and is_ajax:
                     return f.json_message()

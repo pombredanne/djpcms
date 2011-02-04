@@ -14,9 +14,13 @@ Usage:
 import re
 import time
 import calendar
+
+from djpcms.utils.translation import gettext as _
+from djpcms.utils.strings import force_str
+
 from .dates import MONTHS, MONTHS_3, MONTHS_AP, WEEKDAYS, WEEKDAYS_ABBR
-from .translation import gettext as _
-from .strings import force_str
+from .tzinfo import LocalTimezone
+
 
 
 re_formatchars = re.compile(r'(?<!\\)([aAbBcdDfFgGhHiIjlLmMnNOPrsStTUuwWyYzZ])')
@@ -26,9 +30,9 @@ re_escaped = re.compile(r'\\(.)')
 class Formatter(object):
     def format(self, formatstr):
         pieces = []
-        for i, piece in enumerate(re_formatchars.split(force_unicode(formatstr))):
+        for i, piece in enumerate(re_formatchars.split(force_str(formatstr))):
             if i % 2:
-                pieces.append(force_unicode(getattr(self, piece)()))
+                pieces.append(force_str(getattr(self, piece)()))
             elif piece:
                 pieces.append(re_escaped.sub(r'\1', piece))
         return ''.join(pieces)

@@ -1,6 +1,6 @@
 "Commonly-used date structures"
 
-from .translation import gettext as _
+from djpcms.utils.translation import gettext as _
 
 WEEKDAYS = {
     0:_('Monday'), 1:_('Tuesday'), 2:_('Wednesday'), 3:_('Thursday'), 4:_('Friday'),

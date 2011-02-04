@@ -5,6 +5,8 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import deepcopy
 
+from py2py3 import iteritems
+
 from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
 from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
@@ -16,7 +18,7 @@ from djpcms.plugins import register_application
 from djpcms.views.baseview import editview, response_from_page
 from djpcms.views.appview import View, ViewView
 from djpcms.utils.collections import OrderedDict
-from djpcms.utils.py2py3 import iteritems
+
 
 render_to_string = loader.render_to_string
 

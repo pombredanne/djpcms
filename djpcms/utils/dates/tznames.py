@@ -25,4 +25,3 @@ def link(tz = None):
             return None
     except:
         return None
-    

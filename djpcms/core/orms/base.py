@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from djpcms import sites, nodata
-from djpcms.utils.dateformat import format as date_format
+from djpcms.utils.dates import format as date_format
 from djpcms.utils import force_str, significant_format
 from djpcms.template import loader, mark_safe, conditional_escape
 

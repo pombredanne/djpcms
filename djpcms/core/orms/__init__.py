@@ -1,6 +1,7 @@
+from py2py3 import itervalues
+
 from djpcms import sites
 from djpcms.core.exceptions import ModelException
-from djpcms.utils.py2py3 import itervalues
  
 from .base import *
 from .user import monkey_patch_user

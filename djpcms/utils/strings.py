@@ -1,4 +1,6 @@
 import sys
+import locale
+import codecs
 from datetime import datetime, date, time
 from decimal import Decimal
 
@@ -60,3 +62,12 @@ def force_str(s, encoding='utf-8', strings_only=False, errors='strict'):
     return string_type(s)
 
 
+# The encoding of the default system locale but falls back to the
+# given fallback encoding if the encoding is unsupported by python or could
+# not be determined.  See tickets #10335 and #5846
+try:
+    DEFAULT_LOCALE_ENCODING = locale.getdefaultlocale()[1] or 'ascii'
+    codecs.lookup(DEFAULT_LOCALE_ENCODING)
+except:
+    DEFAULT_LOCALE_ENCODING = 'ascii'
+    

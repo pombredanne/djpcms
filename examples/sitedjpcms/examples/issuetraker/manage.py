@@ -29,20 +29,24 @@ def appurls():
             )
 
 
-if __name__ == '__main__':
+def build():
     djpcms.MakeSite(__file__,
-                    APPLICATION_URL_MODULE = 'issuetraker.manage',
-                    USER_MODEL = 'issuetraker.models.User',
-                    CMS_ORM = 'stdnet',
-                    TEMPLATE_ENGINE = 'django',
-                    INSTALLED_APPS = ('djpcms',
-                                      'issuetraker',
-                                      'stdnet.contrib.sessions',
-                                      'djpcms.contrib.medplate'),
-                    MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
-                                          'stdnet.contrib.sessions.middleware.SessionMiddleware',),
-                    DEBUG = True
-                    )
+                APPLICATION_URL_MODULE = 'issuetraker.manage',
+                USER_MODEL = 'issuetraker.models.User',
+                CMS_ORM = 'stdnet',
+                TEMPLATE_ENGINE = 'django',
+                INSTALLED_APPS = ('djpcms',
+                                  'issuetraker',
+                                  'stdnet.contrib.sessions',
+                                  'djpcms.contrib.medplate'),
+                MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
+                                      'stdnet.contrib.sessions.middleware.SessionMiddleware',),
+                DEBUG = True
+                )
+    
+    
+if __name__ == '__main__':
+    build()
     execute()
 
 

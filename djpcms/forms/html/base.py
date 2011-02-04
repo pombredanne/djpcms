@@ -1,5 +1,6 @@
+from py2py3 import iteritems
+
 from djpcms.utils import slugify, merge_dict
-from djpcms.utils.py2py3 import iteritems
 from djpcms.template import loader, mark_safe, conditional_escape
 
 from .media import BaseMedia

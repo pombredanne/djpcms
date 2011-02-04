@@ -6,7 +6,7 @@ import sys
 import traceback
 
 from djpcms import sites
-from djpcms.core.permissions import inline_editing, get_view_permission, has_permission
+from djpcms.core import permissions
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.utils.html import grid960, box, htmldoc
 from djpcms.forms import Media
@@ -271,7 +271,7 @@ which handle the response'''
         '''Check if view can be displayed.
         '''
         if request and page:
-            return has_permission(request.user,get_view_permission(page),page)
+            return permission.has_permission(request.user,get_view_permission(page),page)
         else:
             return True
     

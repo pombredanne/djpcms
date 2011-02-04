@@ -25,6 +25,9 @@ as JSON string.
         '''Serialize ``self`` as a ``JSON`` string'''
         return self._dump(self.dict())
     
+    def mimetype(self):
+        return 'application/javascript'
+    
     def tojson(self, autoescape = True):
         t = handle()
         try:

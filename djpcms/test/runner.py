@@ -1,6 +1,5 @@
 import sys
 import unittest
-import signal
 from inspect import isclass
 
 import djpcms

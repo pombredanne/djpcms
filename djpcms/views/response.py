@@ -1,9 +1,12 @@
+import sys
+import traceback
 from copy import copy
 
-from djpcms.utils.ajax import jredirect, jhtmls
-from djpcms.utils import lazyattr
+from djpcms.utils.ajax import jredirect, jhtmls, jservererror
+from djpcms.template import loader, Context, RequestContext
+from djpcms.utils import lazyattr, logerror
 from djpcms.utils.navigation import Navigator, Breadcrumbs
-from djpcms.template import loader
+from djpcms.core.exceptions import ViewDoesNotExist
 
 
 class DjpResponse(object):
@@ -29,13 +32,13 @@ class DjpResponse(object):
     def __init__(self, request, view, wrapper = None, prefix = None, **kwargs):
         self.request    = request
         self.view       = view
+        self.kwargs     = kwargs
         site            = request.site
         self.is_xhr     = request.is_xhr
         self.site       = site
         self.settings   = site.settings
         self.http       = site.http
         self.css        = self.settings.HTML_CLASSES
-        self.kwargs     = kwargs
         self.wrapper    = wrapper
         self.prefix     = prefix
     
@@ -114,10 +117,8 @@ return the wrapper with the underlying view.'''
     
     @lazyattr
     def get_url(self):
-        '''
-        Build the url for this application view
-        '''
-        return self.view.get_url(self, **self.kwargs)
+        '''Build the url for this application view.'''
+        return self.view.get_url(self)
     url = property(get_url)
     
     @lazyattr
@@ -139,18 +140,13 @@ return the wrapper with the underlying view.'''
         return self.view.children(self, **self.kwargs) or []
     children = property(get_children)
     
-    def _get_instance(self):
+    @property
+    def instance(self):
         if self.view.object_view:
-            instance = self.kwargs.get('instance',None)
-            if not instance:
+            kwargs = self.kwargs
+            if 'instance' not in kwargs:
                 self.url
-                return self.kwargs.get('instance',None)
-            else:
-                return instance
-            
-    def _set_instance(self, instance):
-        self.kwargs['instance'] = instance
-    instance = property(fget = _get_instance, fset = _set_instance)
+            return kwargs['instance']
         
     def has_own_page(self):
         '''Return ``True`` if the response has its own :class:djpcms.models.Page` object.
@@ -195,14 +191,27 @@ return the wrapper with the underlying view.'''
             if not http.is_authenticated(request) and method == 'get':
                 request.session.set_test_cookie()
 
-        if method not in (m.lower() for m in view.methods(request)):
-            return http.HttpResponseNotAllowed(method)
+            if method not in (m.lower() for m in view.methods(request)):
+                return http.HttpResponseNotAllowed(method)
         
-        func = getattr(view,'%s_response' % method,None)
-        if not func:
-            raise ValueError("Allowed view method %s does not exist in %s." % (method,view))
-        
-        return func(self)        
+            return getattr(view,'%s_response' % method)(self)
+        else:
+            # AJAX RESPONSE
+            try:
+                if method not in (m.lower() for m in view.methods(request)):
+                    raise ViewDoesNotExist('{0} method not available'.format(method))
+                res = getattr(view,'ajax_%s_response' % method)(self)
+            except ViewDoesNotExist as e:
+                res = jservererror(str(e), url = request.path)
+            except Exception as e:
+                if site.settings.DEBUG:
+                    exc_info = sys.exc_info()
+                    stack_trace = '\n'.join(traceback.format_exception(*exc_info))
+                    logerror(self.view.logger, request, exc_info)
+                    res = jservererror(stack_trace, url = self.url)
+                else:
+                    raise e
+            return self.http.HttpResponse(res.dumps(),res.mimetype())
     
     def render_to_response(self, context):
         css = self.css

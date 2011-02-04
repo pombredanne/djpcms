@@ -843,6 +843,14 @@
                     parsers.push(parser);
                 };
             };
+            this.replaceParser = function (parser) {
+            	for(var i = 0; i < parsers.length; i++) {
+            		if(parsers[i].id.toLowerCase() == parser.id.toLowerCase()) {
+            			parsers[i] = parser;
+            			break;
+            		}
+            	};
+            };
             this.addWidget = function (widget) {
                 widgets.push(widget);
             };

@@ -200,8 +200,8 @@ Usage::
         return self.appmodel.baseurl
     baseurl = property(__get_baseurl)
     
-    def get_url(self, djp, **kwargs):
-        purl = self.regex.get_url(**kwargs)
+    def get_url(self, djp):
+        purl = self.regex.get_url(**djp.kwargs)
         return self.baseurl + purl
     
     def names(self):
@@ -480,18 +480,21 @@ class ObjectView(ModelView):
 A view of this type has an embedded object available which is used to generate the full url.'''
     object_view = True
     
-    def get_url(self, djp, instance = None, **kwargs):
+    def get_url(self, djp):
+        kwargs = djp.kwargs
+        instance=  None
+        if 'instance' in kwargs:
+            instance = kwargs['instance']
         if instance:
             kwargs.update(self.appmodel.objectbits(instance))
         else:
-            instance = self.appmodel.get_object(djp.request, **kwargs)
+            instance = self.appmodel.get_object(djp)
+            djp.kwargs['instance'] = instance  
         
         if not instance:
             raise djp.http.Http404
         
-        if djp:
-            djp.instance = instance
-        return super(ObjectView,self).get_url(djp, **kwargs)
+        return super(ObjectView,self).get_url(djp)
     
     def title(self, djp):
         return self.appmodel.title_object(djp.instance)

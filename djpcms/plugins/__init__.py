@@ -277,6 +277,13 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         return html
     
 
+class JavascriptLogger(DJPplugin):
+    description = 'Javascript Logging Panel'
+    
+    def render(self, djp, wrapper, prefix, **kwargs):
+        return '<div class="djp-logging-panel"></div>'
+    
+    
 class SimpleWrap(DJPwrapper):
     name         = 'simple no-tags'
 

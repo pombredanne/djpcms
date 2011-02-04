@@ -4,11 +4,12 @@ Several parts are originally from django
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems
+from py2py3 import iteritems, to_string
 
 from djpcms import nodata
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
+from djpcms.core import messages
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 
@@ -81,7 +82,7 @@ BaseForm = DeclarativeFieldsMetaclass('BaseForm',(object,),{})
 
 
 class Form(BaseForm):
-    '''base class for forms.'''
+    '''Base class for forms with JSON messages.'''
     prefix_input = '_prefixed'
     auto_id='id_{0[html_name]}'
     
@@ -97,6 +98,7 @@ class Form(BaseForm):
         self.prefix = prefix or ''
         self.model = model
         self.instance = instance
+        self.messages = {}
         self.request = request
         if self.instance:
             model = self.instance.__class__
@@ -155,6 +157,7 @@ class Form(BaseForm):
         prefix = self.prefix
         self.initial = initial = self.initial or {}
         is_bound = self.is_bound
+        form_message = self.form_message
         
         # Loop over form fields
         for name,field in iteritems(self.base_fields):
@@ -176,11 +179,7 @@ class Form(BaseForm):
                         value = getattr(self,func_name)(value)
                     cleaned[name] = value
                 except ValidationError as e:
-                    e = force_str(e)
-                    if name in errors:
-                        errors[name].append(e)
-                    else:
-                        errors[name] = [e]
+                    form_message(errors, name, force_str(e))
                 data[name] = value
             
             elif name in initial:
@@ -196,8 +195,20 @@ class Form(BaseForm):
             try:
                 self.clean()
             except ValidationError as e:
-                errors['__all__'] = force_str(e)
+                form_message(errors, '__all__', force_str(e))
                 del self._cleaned_data
+                
+    def form_message(self, container, key, msg):
+        '''Add a message to a message container in the form.
+Messages can be errors or not.
+
+:parameter container: a dictionary type container.
+:parameter key: the dictionary key where the message goes.
+:parameteer msg: the actual message, unicode please.'''
+        if key in container:
+            container[key].append(msg)
+        else:
+            container[key] = [msg]
             
     def is_valid(self):
         return self.is_bound and not self.errors
@@ -216,6 +227,19 @@ class Form(BaseForm):
         '''Save the form. This method works if an instance or a model is available'''
         self.mapper.save(self.cleaned_data, self.instance, commit)
         
+    def request_message(self, request, msg, error = False):
+        '''A tool for adding request messages'''
+        msg = to_string(msg)
+        if msg:
+            if error:
+                self.form_message(self.errors,'__all__',msg)
+                if not request.is_xhr:
+                    messages.error(request,msg)
+            else:
+                self.form_message(self.messages,'__all__',msg)
+                if not request.is_xhr:
+                    messages.info(request,msg)
+        return self
 
 class HtmlForm(object):
     '''An HTML class Factory Form used for grouping a :class:`Form` class, a

@@ -113,7 +113,6 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
 class FormWidget(HtmlWidget):
     '''Form HTML widget'''
     tag = 'form'
-    default_template = 'djpcms/uniforms/uniform.html'
     attributes = merge_dict(HtmlWidget.attributes, {
                                                     'method':'post',
                                                     'enctype':'multipart/form-data',

@@ -91,7 +91,7 @@ class Layout(FormLayout):
         '''Render the uniform layout of *form*.
 This function is called by an instance of
 :class:`djpcms.forms.html.FormWidget`'''
-        ctx  = {}
+        ctx  = {'layout':self}
         html = ''
         for field in self._allfields:
             h = field.render(form, self)
@@ -113,7 +113,7 @@ This function is called by an instance of
         ctx['has_inputs'] = len(inputs)
         ctx['inputs'] = (input.render(djp) for input in inputs)
         ctx['form']   = loader.mark_safe(html)
-        ctx['errors'] = ''
+        ctx['messages'] = ''
         
         return loader.render_to_string(self.template, ctx)
         

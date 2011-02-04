@@ -6,10 +6,8 @@ CHANGE = 30
 DELETE = 40
 
 
-def has_permission(user,
-                   permission_code,
-                   obj=None,
-                   default = False):
+def has(user, permission_code, obj=None, default = False):
+    '''Check for permissions'''
     if user.is_superuser:
         return True
     # No object or model
@@ -19,15 +17,16 @@ def has_permission(user,
         else:
             return False
     else:
-        return has_permission(user, permission_code, obj, default)    
+        return has(user, permission_code, obj, default)    
 
 
-def inline_editing(request, page, obj = None):
+def editing(request, page, obj = None):
+    '''Check for page/block editing permissions'''
     settings = request.site.settings
     editing  = settings.CONTENT_INLINE_EDITING
     canedit  = settings.DJPCMS_USER_CAN_EDIT_PAGES
     if page and editing.get('available',False):
-        if has_permission(request.user, CHANGE, page, canedit):
+        if has(request.user, CHANGE, page, canedit):
             return '/%s%s' % (editing.get('preurl','edit'),request.path)
     return False
     

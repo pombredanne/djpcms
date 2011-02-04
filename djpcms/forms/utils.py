@@ -4,6 +4,7 @@ from datetime import datetime
 
 from djpcms import sites, forms
 from djpcms.core import messages
+from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str, gen_unique_id
 from djpcms.utils.dates import format
@@ -76,15 +77,13 @@ def add_hidden_field(form, name, required = False):
 
 
 def success_message(instance, mch):
-    dt = datetime.now()
-    c = {'dt': format(dt,sites.settings.DATETIME_FORMAT),
-         'mch': mch,
-         'obj': instance}
+    '''Very basic success message. Write your own for a better one.'''
+    c = {'mch': mch}
     if instance:
-        c['name'] = force_str(instance._meta.verbose_name)
-        return _('The %(name)s "%(obj)s" was succesfully %(mch)s %(dt)s') % c
+        c['name'] = mapper(instance).pretty_repr(instance)
+        return '{0[name]} succesfully {0[mch]}'.format(c)
     else:
-        return _('%(mch)s %(dt)s') % c
+        return '0[mch]'.format(c)
 
 
 def update_initial(request, form_class, initial = None,
@@ -171,7 +170,7 @@ def get_form(djp,
 
     
 def saveform(djp, editing = False, force_redirect = False):
-    '''Comprehensive save method for forms'''
+    '''Comprehensive save method for forms.'''
     view = djp.view
     request = djp.request
     http = djp.http
@@ -181,6 +180,7 @@ def saveform(djp, editing = False, force_redirect = False):
     curr = request.environ.get('HTTP_REFERER')
     next = get_next(request)
     fhtml = view.get_form(djp)
+    json_messages = fhtml.layout.json_messages
     f = fhtml.form
     
     if POST.has_key("_cancel"):
@@ -197,39 +197,28 @@ def saveform(djp, editing = False, force_redirect = False):
             return http.HttpResponseRedirect(redirect_url)
     
     if f.is_valid():
-        try:
-            editing  = editing if not POST.has_key('_save_as_new') else False
-            instance = view.save(request, f)
-            smsg     = getattr(view,'success_message',success_message)
-            msg      = smsg(instance, 'changed' if editing else 'added')
-            f.add_message(request, msg)
-        except Exception as e:
-            exc_info = sys.exc_info()
-            logger.error('Form Error: %s' % request.path,
-                         exc_info=exc_info,
-                         extra={'request':request})
-            f.add_message(request,e,error=True)
-            if is_ajax:
-                return f.json_errors()
-            elif next:
-                return http.HttpResponseRedirect(next)
-            else:
-                return view.handle_response(djp)
+        editing  = editing if not POST.has_key('_save_as_new') else False
+        instance = view.save(request, f)
+        smsg     = getattr(view,'success_message',success_message)
+        msg      = smsg(instance, 'changed' if editing else 'added')
+        f.request_message(request, msg)
         
+        # Save and continue. Redirect to referer if not AJAX or send messages 
         if POST.has_key('_save_and_continue'):
             if is_ajax:
-                return f.json_message()
+                return json_messages(f)
             else:
-                redirect_url = curr
-        else:
-            redirect_url = view.defaultredirect(request,
-                                                next = next,
-                                                instance = instance)
+                return http.HttpResponseRedirect(curr)
+
+        # Check redirect url
+        redirect_url = view.defaultredirect(request,
+                                            next = next,
+                                            instance = instance)
             
-            # not forcing redirect. Check if we can send a JSON message
-            if not force_redirect:
-                if redirect_url == curr and is_ajax:
-                    return f.json_message()
+        # not forcing redirect. Check if we can send a JSON message
+        if not force_redirect:
+            if redirect_url == curr and is_ajax:
+                return json_messages(f)
             
         # We are Redirecting
         if is_ajax:
@@ -239,7 +228,7 @@ def saveform(djp, editing = False, force_redirect = False):
             return http.HttpResponseRedirect(redirect_url)
     else:
         if is_ajax:
-            return fhtml.layout.json_errors(f)
+            return json_messages(f)
         else:
             return view.handle_response(djp)
         

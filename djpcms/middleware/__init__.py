@@ -16,3 +16,8 @@ class CreateRootPageAndUser(object):
                 url = site.get_url(User.model,'add')
                 if url and url != request.path:
                     return site.http.HttpResponseRedirect(url)
+            elif users.count() == 1:
+                user = users[0]
+                if not user.is_superuser():
+                    user.superuser = True
+                    user.save()

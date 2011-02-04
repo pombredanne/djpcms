@@ -12,6 +12,10 @@ To create style sheet::
     python manage.py style
 
 '''
+from vws import virtual
+virtual(('djpcms','djpcms'),
+        ('stdnet','python-stdnet'))
+
 import djpcms
 from djpcms.apps.management import execute
 
@@ -31,18 +35,19 @@ def appurls():
 
 def build():
     djpcms.MakeSite(__file__,
-                APPLICATION_URL_MODULE = 'issuetraker.manage',
-                USER_MODEL = 'issuetraker.models.User',
-                CMS_ORM = 'stdnet',
-                TEMPLATE_ENGINE = 'django',
-                INSTALLED_APPS = ('djpcms',
-                                  'issuetraker',
-                                  'stdnet.contrib.sessions',
-                                  'djpcms.contrib.medplate'),
-                MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
-                                      'stdnet.contrib.sessions.middleware.SessionMiddleware',),
-                DEBUG = True
-                )
+                    APPLICATION_URL_MODULE = 'issuetraker.manage',
+                    USER_MODEL = 'issuetraker.models.User',
+                    CMS_ORM = 'stdnet',
+                    TEMPLATE_ENGINE = 'django',
+                    INSTALLED_APPS = ('djpcms',
+                                      'issuetraker',
+                                      'stdnet.contrib.sessions',
+                                      'djpcms.contrib.medplate'),
+                    MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
+                                          'stdnet.contrib.sessions.middleware.SessionMiddleware',),
+                    DEBUG = True
+                    )
+    return djpcms.sites
     
     
 if __name__ == '__main__':

@@ -96,6 +96,10 @@ class BaseOrmWrapper(object):
     def _hash(self):
         raise NotImplementedError
     
+    def pretty_repr(self, instance):
+        '''Return a string with a pretty representation of instance'''
+        return force_str(instance)
+    
     def set_application(self, appmodel):
         self.appmodel = appmodel
         self.list_display = appmodel.list_display or []

@@ -30,11 +30,17 @@ class BaseFormLayout(HtmlWidget):
 class FormLayout(BaseFormLayout):
     '''Base form class for form layout design'''
     
+    '''Form template'''
     field_template = "djpcms/uniforms/field.html"
     '''Template file for rendering form fields'''
     form_class = None
     '''form css class'''
-    from_error_class = 'errorlist'
+    form_messages_container_class = 'form-messages'
+    '''Class used to hold form-wide messages'''
+    form_error_class = 'errorlist'
+    '''Class for form errors'''
+    form_message_class = 'messagelist'
+    '''Class for form messages'''
     
     def __init__(self, **kwargs):
         super(FormLayout,self).__init__(**kwargs)
@@ -59,16 +65,24 @@ class FormLayout(BaseFormLayout):
         form.rendered_fields = rf
         return rf
 
-    def json_errors(self, f):
+    def json_messages(self, f):
         '''Convert errors in form into a JSON serializable dictionary with keys given by errors html id.'''
         dfields = f._fields_dict
-        jerr = jhtmls()
-        from_error_class = self.from_error_class
-        for name,err in f.errors.items():
-            bf = dfields[name]
-            err = List(data = err, cn = from_error_class).render()
-            jerr.add('#' + bf.errors_id,err,alldocument = False)
-        return jerr
+        ListDict = jhtmls()
+        self._add(ListDict,dfields,f.errors,self.form_error_class)
+        self._add(ListDict,dfields,f.messages,self.form_message_class)
+        return ListDict
+        
+    def _add(self, ListDict, fields, container, msg_class):
+        # Add messages to the list dictionary
+        for name,msg in container.items():
+            if name in fields:
+                name = '#' + fields[name].errors_id
+            else:
+                name = '.' + self.form_messages_container_class
+            ListDict.add(name,
+                         List(data = msg, cn = msg_class).render(),
+                         alldocument = False)
 
 
 class FormLayoutElement(BaseFormLayout):

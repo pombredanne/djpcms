@@ -1,5 +1,5 @@
 {% if csrf_token %}{{ csrf_token }}{% endif %}
-<div class="form-messages ctrlHolder">{{ errors }}</div>
+<div class="{{ layout.form_messages_container_class }} ctrlHolder">{{ messages }}</div>
 {{ form }}
 {{ inlines }}{% if has_inputs %}
 <div class="buttonHolder">{% for input in inputs %}

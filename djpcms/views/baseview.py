@@ -154,7 +154,7 @@ Hooks:
         if page:
             inner_template = page.inner_template
             if not self.editurl and djp.has_own_page():
-                context['edit_content_url'] = inline_editing(request,page,djp.instance)
+                context['edit_content_url'] = permissions.editing(request,page,djp.instance)
             
         if inner_template:
             cb = {'djp':  djp,
@@ -271,7 +271,7 @@ which handle the response'''
         '''Check if view can be displayed.
         '''
         if request and page:
-            return permission.has_permission(request.user,get_view_permission(page),page)
+            return permissions.has(request.user,permissions.VIEW,page)
         else:
             return True
     

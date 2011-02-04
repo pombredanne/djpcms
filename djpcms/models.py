@@ -8,6 +8,12 @@ elif sites.settings.CMS_ORM == 'stdnet':
     
     from djpcms.core.cmsmodels._stdnet import *
     
-else:
+elif sites.settings.CMS_ORM == 'sqlalchemy':
     
-    raise NotImplementedError('Objecr Relational Mapper {0} not available for CMS models'.format(sites.settings.CMS_ORM))
+    from djpcms.core.cmsmodels._sqlalchemy import *
+    
+else:
+    BlockContent = None
+    Page = None
+    Site = None
+

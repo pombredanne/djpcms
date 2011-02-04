@@ -20,6 +20,7 @@ def is_checkbox(field):
 
 @register.filter
 def with_class(field):
+    return ''
     class_name = get_class_name(field)
     class_name = class_converter.get(class_name, class_name)
     if "class" in field.field.widget.attrs:

@@ -1,11 +1,9 @@
-from django.contrib.auth.models import User
-
-from djpcms.test import TestCase
+from djpcms import test
 
 from regression.appvanilla.models import Strategy
 
 
-class TestAppViews(TestCase):
+class TestAppViews(test.TestCase):
     appurls = 'regression.appvanilla.appurls'
     
     def testParents(self):
@@ -43,4 +41,3 @@ class TestAppViews(TestCase):
         a  = self.makepage('edit',Strategy)
         a1 = self.makepage('edit',Strategy,parent=p1)
         self.assertEqual(a1.parent,p1)
-        

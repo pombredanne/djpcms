@@ -1,106 +1,175 @@
-from djpcms import sites
+from copy import copy, deepcopy
 
-from django import forms
-from django.forms.forms import BoundField
-from django.db import models
+from djpcms import sites, nodata
 
+from .globals import *
+from .html import TextInput
 
-__all__ = ['IntegerField',
-           'FloatField',
-           'DateField',
-           'DateTimeField',
-           'BooleanField',
+__all__ = ['Field',
            'CharField',
-           'FileField',
-           'RegexField',
-           'EmailField',
+           'BooleanField',
+           'DateField',
            'ChoiceField',
-           'LazyAjaxChoice',
-           'ModelCharField',
-           'SlugField',
-           'BoundField']
+           'IntegerField',
+           'ModelChoiceField']
 
 
-IntegerField = forms.IntegerField
-FloatField = forms.FloatField
-DateField = forms.DateField
-DateTimeField = forms.DateTimeField
-BooleanField = forms.BooleanField
-CharField = forms.CharField
-FileField = forms.FileField
-RegexField = forms.RegexField
-EmailField = forms.EmailField
+def standard_validation_error(field,value):
+    return '{0} is required'.format(field.label)
+    
 
-
-class ChoiceField(forms.ChoiceField):
-    '''
-    A Lazy ChoiceField.
-    This ChoiceField does not unwind choices until a deepcopy is called on it.
-    This allows for dynamic choices generation every time an instance of a Form is created.
-    '''
-    def __init__(self, *args, **kwargs):
-        self._lazy_choices = kwargs.pop('choices',())
-        super(ChoiceField,self).__init__(*args, **kwargs)
+class Field(object):
+    default = None
+    widget = None
+    creation_counter = 0
+    
+    def __init__(self,
+                 required = True,
+                 default = None,
+                 validation_error = None,
+                 help_text = None,
+                 label = None,
+                 widget = None,
+                 **kwargs):
+        self.name = None
+        self.default = default or self.default
+        self.required = required
+        self.validation_error = validation_error or standard_validation_error
+        self.help_text = help_text
+        self.label = label
+        self.widget = widget or self.widget
+        self._handle_params(**kwargs)
+        # Increase the creation counter, and save our local copy.
+        self.creation_counter = Field.creation_counter
+        Field.creation_counter += 1
         
-    def __deepcopy__(self, memo):
-        result = super(ChoiceField,self).__deepcopy__(memo)
-        lz = self._lazy_choices
-        if callable(lz):
-            lz = lz()
-        result.choices = lz
+    def set_name(self, name):
+        self.name = name
+        if not self.label:
+            self.label = name
+        
+    def _handle_params(self, **kwargs):
+        self._raise_error(kwargs)
+        
+    def _raise_error(self, kwargs):
+        keys = list(kwargs)
+        if keys:
+            raise ValueError('Parameter {0} not recognized'.format(keys[0]))
+    
+    def clean(self, value, bfield):
+        '''Clean the field value'''
+        if value == nodata or not value:
+            if not self.required:
+                return self.get_default(bfield)
+            else:
+                value = self.get_default(bfield)
+                if not value:
+                    raise ValidationError(self.validation_error(bfield,value))
+                return value
+        return value
+    
+    def get_default(self, bfield):
+        default = self.default
+        if hasattr(default,'__call__'):
+            default = default(bfield)
+        return default
+    
+    def copy(self, bfield):
+        result = copy(self)
+        result.widget = deepcopy(self.widget)
         return result
 
 
-class LazyAjaxChoice(ChoiceField):
+class CharField(Field):
+    default = ''
+    widget = TextInput
     
-    def __init__(self, *args, **kwargs):
-        super(LazyAjaxChoice,self).__init__(*args, **kwargs)
+    def _handle_params(self, max_length = 30, **kwargs):
+        if not max_length:
+            raise ValueError('max_length must be provided for {0}'.format(self.__class__.__name__))
+        self.max_length = int(max_length)
+        if self.max_length <= 0:
+            raise ValueError('max_length must be positive')
+        self._raise_error(kwargs)
         
-    def widget_attrs(self, widget):
-        return {'class': sites.settings.HTML_CLASSES.ajax}
-    
-
-class ModelCharField(CharField):
-    
-    def __init__(self, model, fieldname, extrafilters = None, *args, **kwargs):
-        self.model       = model
-        self.model_field = None
-        for field in model._meta.fields:
-            if field.attname == fieldname:
-                self.model_field = field
-                break
-        if not self.model_field:
-            raise ValueError('field %s not available in model %s' % (fieldname,model))
-        if not isinstance(self.model_field,models.CharField):
-            raise ValueError('field %s not char field in model %s' % (fieldname,model))
-        self.extrafilters = extrafilters
-        super(ModelCharField,self).__init__(*args, **kwargs)
-        
-    def clean(self, value):
-        value = super(ModelCharField,self).clean(value)
-        fieldname = self.model_field.attname
+    def _clean(self, value):
         try:
-            value = value[:self.model_field.max_length]
+            return str(value)
         except:
-            value = value
-        value = self.trim(value)
-        if self.model_field._unique:
-            kwargs = self.extrafilters or {}
-            kwargs[fieldname] = value
-            obj = self.model.objects.filter(**kwargs)
-            if obj.count():
-                raise forms.ValidationError('%s code already available' % value)
-        return value
-        
-    def trim(self, value):
-        return value
+            raise ValidationError
 
 
-class SlugField(ModelCharField):
+class IntegerField(Field):
+    widget = TextInput
     
-    def __init__(self, *args, **kwargs):
-        super(SlugField,self).__init__(*args, **kwargs)
+    def _handle_params(self, validator = None, **kwargs):
+        self.validator = validator
+        self._raise_error(kwargs)
         
-    def trim(self, value):
-        return self.model_field.trim(value)
+    def _clean(self, value):
+        try:
+            value = int(value)
+            if self.validator:
+                return self.validator(value)
+            return value
+        except:
+            raise ValidationError
+        
+        
+class DateField(Field):
+    widget = TextInput
     
+    def _clean(self, value):
+        try:
+            value = int(value)
+            if self.validator:
+                return self.validator(value)
+            return value
+        except:
+            raise ValidationError
+    
+    
+class ChoiceField(Field):
+    
+    def _handle_params(self, choices = None, **kwargs):
+        '''Choices is an iterable or a callable which takes the form as only argument'''
+        self.choices = choices
+        self._raise_error(kwargs)
+        
+    def clean(self, value, bfield):
+        '''Clean the field value'''
+        if value == nodata:
+            ch = self.choices
+            if not hasattr(ch,'__getitem__'):
+                ch = list(ch)
+                self.choices = ch
+            if ch:
+                value = ch[0][0]
+                return value
+        return super(ChoiceField,self).clean(value, bfield)
+        
+    def copy(self, bfield):
+        ch = self.choices
+        self.choices = None
+        result = super(ChoiceField,self).copy(bfield)
+        self.choices = ch
+        if hasattr(ch,'__call__'):
+            ch = ch(bfield)
+        result.choices = ch
+        return result
+    
+    
+class BooleanField(Field):
+
+    def _clean(self, value):
+        """Returns a Python boolean object."""
+        if value in ('False', '0'):
+            value = False
+        else:
+            value = bool(value)
+        return value
+    
+    
+class ModelChoiceField(ChoiceField):
+    pass
+

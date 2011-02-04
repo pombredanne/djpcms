@@ -2,16 +2,14 @@ import sys
 import logging
 from datetime import datetime
 
-from django.utils.dateformat import format
-from django import forms
-
-from djpcms import sites
-from djpcms.contrib import messages
-from djpcms.utils.translation import ugettext_lazy as _
-from djpcms.utils.html import input
+from djpcms import sites, forms
+from djpcms.core import messages
+from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str, gen_unique_id
+from djpcms.utils.dates import format
 from djpcms.utils.ajax import jredirect, jremove
 
+from .html import HiddenInput
 
 logger = logging.getLogger('djpcms.forms')
 
@@ -104,7 +102,7 @@ def update_initial(request, form_class, initial = None,
 
 
 def get_form(djp,
-             form_class,
+             form_factory,
              method = 'POST',
              initial = None,
              prefix = None,
@@ -115,12 +113,13 @@ def get_form(djp,
              form_withrequest = None,
              template = None,
              form_ajax = False,
-             withinputs = False):
+             withinputs = True,
+             force_prefix = False):
     '''Comprehensive method for building a
-:class:`djpcms.utils.uniforms.UniForm` instance:
+:class:`djpcms.forms.HtmlForm` instance:
     
 :parameter djp: instance of :class:`djpcms.views.DjpResponse`.
-:parameter form_class: required form class.
+:parameter form_factory: A required instance of :class:`djpcms.forms.HtmlForm`.
 :parameter method: optional string indicating submit method. Default ``POST``.
 :parameter initial: If not none, a dictionary of initial values.
 :parameter prefix: Optional prefix string to use in the form.
@@ -129,51 +128,46 @@ def get_form(djp,
                       available form class as no inputs associated with it.
                       Default ``None``.
 '''
-    from djpcms.utils.uniforms import UniForm
     request  = djp.request
     own_view = djp.own_view()
-    
-    data = request.POST if request.method == 'POST' else request.GET
+    data = request.data_dict
     prefix = data.get('_prefixed',None)
-    
     save_as_new = data.has_key('_save_as_new')
-    initial  = update_initial(request, form_class, initial,
-                              own_view = own_view)
     
-    inputs = getattr(form_class,'submits',None)
-    if inputs:
-        inputs = [input(value = val, name = nam) for val,nam in inputs]
-    elif addinputs:
-        inputs = addinputs(instance, own_view)
+    if withinputs:
+        inputs = getattr(form_factory,'submits',None)
+        if inputs:
+            inputs = [input(value = val, name = nam) for val,nam in inputs]
+        elif addinputs:
+            inputs = addinputs(instance, own_view)
+    else:
+        inputs = []
         
-    if not prefix:
+    if not prefix and force_prefix:
         prefix = gen_unique_id()
-        inputs.append(input(value = prefix, name = '_prefixed', type = 'hidden'))
+        pinput = form_factory.prefixinput(gen_unique_id())
+        inputs.append(pinput)
                 
-    f     = form_class(**form_kwargs(request     = request,
-                                     initial     = initial,
-                                     instance    = instance,
-                                     prefix      = prefix,
-                                     withdata    = withdata,
-                                     withrequest = form_withrequest,
-                                     method      = method,
-                                     own_view    = own_view,
-                                     save_as_new = save_as_new,
-                                     inputs      = inputs if withinputs else None))
-        
-    wrap = UniForm(f,
-                   request  = request,
-                   instance = instance,
-                   action   = djp.url,
-                   inputs   = inputs,
-                   template = template,
-                   save_as_new = save_as_new)
+    # Create the form instance
+    form  = form_factory(**form_kwargs(request     = request,
+                                       initial     = initial,
+                                       instance    = instance,
+                                       prefix      = prefix,
+                                       withdata    = withdata,
+                                       method      = method,
+                                       own_view    = own_view))
+    
+    # Get the form HTML Widget
+    widget = form_factory.widget(form,
+                                 inputs = inputs,
+                                 action = djp.url,
+                                 method = method.lower())
+    
     if form_ajax:
-        wrap.addClass(djp.css.ajax)
-    wrap.is_ajax = request.is_ajax()
+        widget.addClass(djp.css.ajax)
     if model:
-        wrap.addClass(str(model._meta).replace('.','-'))
-    return wrap
+        widget.addClass(str(model._meta).replace('.','-'))
+    return widget
 
     
 def saveform(djp, editing = False, force_redirect = False):
@@ -181,12 +175,13 @@ def saveform(djp, editing = False, force_redirect = False):
     view = djp.view
     request = djp.request
     http = djp.http
-    is_ajax = request.is_ajax()
+    is_ajax = request.is_xhr
     POST = request.POST
     GET = request.GET
     curr = request.environ.get('HTTP_REFERER')
     next = get_next(request)
-    f = view.get_form(djp)
+    fhtml = view.get_form(djp)
+    f = fhtml.form
     
     if POST.has_key("_cancel"):
         redirect_url = next
@@ -208,7 +203,7 @@ def saveform(djp, editing = False, force_redirect = False):
             smsg     = getattr(view,'success_message',success_message)
             msg      = smsg(instance, 'changed' if editing else 'added')
             f.add_message(request, msg)
-        except Exception, e:
+        except Exception as e:
             exc_info = sys.exc_info()
             logger.error('Form Error: %s' % request.path,
                          exc_info=exc_info,
@@ -231,7 +226,7 @@ def saveform(djp, editing = False, force_redirect = False):
                                                 next = next,
                                                 instance = instance)
             
-            # not forcing redirect. Check if we can send a json message
+            # not forcing redirect. Check if we can send a JSON message
             if not force_redirect:
                 if redirect_url == curr and is_ajax:
                     return f.json_message()
@@ -244,7 +239,7 @@ def saveform(djp, editing = False, force_redirect = False):
             return http.HttpResponseRedirect(redirect_url)
     else:
         if is_ajax:
-            return f.json_errors()
+            return fhtml.layout.json_errors(f)
         else:
             return view.handle_response(djp)
         

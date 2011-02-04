@@ -37,8 +37,7 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         return self.render()
     
     def blocks(self):
-        '''
-        Function called within a template for generating all contents
+        '''Function called within a template for generating all contents
         within a block.
         This function produce HTML only if self.view is based on a database Page
         object. Otherwise it does nothing.

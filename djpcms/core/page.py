@@ -2,10 +2,11 @@ import sys
 import logging
 
 from djpcms import sites
-from djpcms.core.models import ModelInterface
 from djpcms.template import escape
 from djpcms.core.exceptions import BlockOutOfBound
-from djpcms.permissions import has_permission, get_view_permission
+from djpcms.core import permissions
+from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
+import djpcms.contrib.flowrepo.markups as markuplib
 
 
 def block_htmlid(pageid, block):
@@ -13,7 +14,7 @@ def block_htmlid(pageid, block):
     return 'djpcms-block-{0}-{1}'.format(pageid,block)
 
 
-class PageInterface(ModelInterface):
+class PageInterface(object):
     '''Page object interface'''
     
     def numblocks(self):
@@ -60,6 +61,34 @@ If not specified we get the template of the :attr:`parent` page.'''
     def _get_block(self, block, position):
         raise NotImplementedError
     
+    def get_level(self):
+        try:
+            url = self.url
+            if url.startswith('/'):
+                url = url[1:]
+            if url.endswith('/'):
+                url = url[:-1]
+            if url:
+                bits  = url.split('/')
+                level = len(bits)
+            else:
+                level = 0
+        except:
+            level = 1
+        return level
+    
+    
+class TemplateInterface(object):
+    
+    def render(self, c):
+        '''Render the inner template given the context ``c``.
+        '''
+        return Template(self.template).render(c)
+    
+    def numblocks(self):
+        '''Number of ``blocks`` within template.'''
+        bs = self.blocks.split(',')
+        return len(bs)
     
 
 class BlockInterface(object):
@@ -78,7 +107,7 @@ with the wrapper callable.'''
                 if has_permission(djp.request.user,get_view_permission(self), self):
                     djp.media += plugin.media
                     html = plugin(djp, self.arguments, wrapper = wrapper)
-        except Exception, e:
+        except Exception as e:
             if getattr(djp.settings,'TESTING',False):
                 raise
             exc_info = sys.exc_info()
@@ -87,7 +116,7 @@ with the wrapper callable.'''
                 extra={'request':djp.request}
             )
             if djp.request.user.is_superuser:
-                html = escape(u'%s' % e)
+                html = escape('%s' % e)
         
         if html:
             return wrapper(djp, self, html)
@@ -104,5 +133,39 @@ with the wrapper callable.'''
         return p
             
     def __unicode__(self):
-        return u'%s-%s-%s' % (self.page.id,self.block,self.position)
+        return '%s-%s-%s' % (self.page.id,self.block,self.position)
+    
+    def __get_plugin(self):
+        return get_plugin(self.plugin_name)
+    plugin = property(__get_plugin)
+        
+    def _get_wrapper(self):
+        return get_wrapper(self.container_type,default_content_wrapper)
+    wrapper = property(_get_wrapper)
+    
+    def plugin_class(self):
+        '''
+        utility functions.
+        Return the class of the embedded plugin (if available)
+        otherwise it returns Null
+        '''
+        if self.plugin:
+            return self.plugin.__class__
+        else:
+            return None
+    
+    
+class MarkupMixin(object):
+    
+    def htmlbody(self):
+        text = self.body
+        if not text:
+            return ''
+        mkp = markuplib.get(self.markup)
+        if mkp:
+            handler = mkp.get('handler')
+            text = handler(text)
+            text = mark_safe(force_str(text))
+        return text
+    
     

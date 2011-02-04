@@ -6,7 +6,8 @@ def get_version():
     return '.'.join(map(str,VERSION))
 
 # This list is updated by the views.appsite.appsite handler
-siteapp_choices = [('','-----------------')]
+empty_choice = ('','-----------------')
+siteapp_choices = [empty_choice]
 
 
 __version__   = get_version()
@@ -19,12 +20,12 @@ __docformat__ = "restructuredtext"
 
 import os
 import sys
-from .apps import *
 
-parent = lambda x : os.path.split(x)[0]
-this_dir = parent(os.path.abspath(__file__))
-path_dir = parent(this_dir)
+parentdir = lambda dir,up=1: dir if not up else parentdir(os.path.split(dir)[0],up-1)
+this_dir = parentdir(os.path.abspath(__file__))
+path_dir = parentdir(this_dir)
 libs = []
+
 
 def install_lib(basepath, dirname, module_name):
     try:
@@ -37,16 +38,24 @@ def install_lib(basepath, dirname, module_name):
             libs.append(module)
         except ImportError:
             pass
-    
-    
+        
+        
 def install_libs():
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(this_dir,'libs')
-    install_lib(dlibs, 'django-tagging', 'tagging')
-    install_lib(dlibs, 'djpadmin', 'djpadmin')
-    install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
-    
+    install_lib(dlibs, 'py2py3', 'py2py3')
+    #install_lib(dlibs, 'django-tagging', 'tagging')
+    #install_lib(dlibs, 'djpadmin', 'djpadmin')
+    #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
+
+install_libs()
+
+
+from .apps import *
+from .http import serve
+from .conf import nodata
+
     
 def init_logging(clear_all = False):
     '''Initialise logging'''
@@ -56,9 +65,14 @@ def init_logging(clear_all = False):
         import logging
         logging.Logger.manager.loggerDict.clear()
 
-    if sites.settings.LOGGING:
-        dictConfig(sites.settings.LOGGING)
+    settings = sites.settings
+    if settings:
+        if settings.DEBUG:
+            settings.LOGGING['root'] = {
+                                        'handlers': ['console'],
+                                        'level': 'DEBUG',
+                                        }
+        dictConfig(settings.LOGGING)
         
-    
-install_libs()
+
 

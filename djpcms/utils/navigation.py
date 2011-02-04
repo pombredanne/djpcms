@@ -98,14 +98,14 @@ class Navigator(lazycounter):
                 classes.append(scn)
             if url in urlselects:
                 classes.append(css.link_selected)
-            items.append(self.make_item(djp, u' '.join(classes)))
+            items.append(self.make_item(djp, ' '.join(classes)))
         return items
 
     def render(self):
         if self.mylevel <= self.levels:
             return loader.render_to_string('djpcms/bits/navitem.html', {'navigator': self})
         else:
-            return u''         
+            return ''         
 
 
 class Breadcrumbs(lazycounter):
@@ -120,7 +120,7 @@ class Breadcrumbs(lazycounter):
         parent = djp.parent
         if parent:
             c = {'name':    djp.title,
-                 'classes': u' '.join(classes)}
+                 'classes': ' '.join(classes)}
             if not first:
                 try:
                     c['url'] = djp.url

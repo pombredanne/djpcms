@@ -5,21 +5,20 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import deepcopy
 
-from djpcms import forms
-from djpcms.template import loader, Template, Context, RequestContext, mark_safe
-from djpcms.core.models import getmodel
+from py2py3 import iteritems
+
+from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
+from djpcms.template import loader, mark_safe
+from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException
-from djpcms.utils import UnicodeObject, slugify
-from djpcms.forms import get_form
+from djpcms.utils import slugify
+from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
-from djpcms.utils.html import input
-from djpcms.utils.uniforms import UniForm
-from djpcms.permissions import has_permission
 from djpcms.views.baseview import editview, response_from_page
 from djpcms.views.appview import View, ViewView
-from djpcms.utils.media import MediaDefiningClass
 from djpcms.utils.collections import OrderedDict
+
 
 render_to_string = loader.render_to_string
 
@@ -104,7 +103,7 @@ class Application(ResolverMixin):
     hidden           = False
     '''If ``True`` the application is only used internally. Default ``False``.'''
     form             = None
-    '''A form class used in the application. Default ``None``.'''
+    '''A form factory used in the application. Default ``None``.'''
     form_method      ='post'
     '''Form submit method, ``get`` or ``post``. Default ``post``.'''
     form_withrequest = False
@@ -163,12 +162,16 @@ No reason to change this default unless you really don't want to see the views i
                        name  = view_name)
             urls.append(nurl)
         self._urls = tuple(urls)
+        self.registration_done()
     
     def __repr__(self):
         return '%s: %s' % (self.__class__.__name__,self.baseurl)
     
     def __str__(self):
         return self.__repr__()
+    
+    def registration_done(self):
+        pass
     
     def getview(self, code):
         '''Get an application view from the view code.'''
@@ -223,12 +226,15 @@ No reason to change this default unless you really don't want to see the views i
         #Build views for this application
         roots = []
         
+        if not self.views:
+            raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
+        
         # Find the root view
-        for name,view in self.views.iteritems():
+        for name,view in iteritems(self.views):
             if view.object_view:
                 self.object_views.append(view)
             view.name = name
-            view.code = u'%s-%s' % (self.name,view.name)
+            view.code = self.name + '-' + view.name
             if not view.parent:
                 if not view.urlbit:
                     if self.root_application:
@@ -251,7 +257,7 @@ No reason to change this default unless you really don't want to see the views i
             view = process_views(views[0],views,self)
             view.processurlbits(self)
             if view.isapp:
-                name = u'%s %s' % (self.name,view.name.replace('_',' '))
+                name = self.name + ' ' + view.name.replace('_',' ')
                 self.application_site.choices.append((view.code,name))
             if view.isplugin:
                 register_application(view)
@@ -259,76 +265,63 @@ No reason to change this default unless you really don't want to see the views i
     def get_form(self, djp,
                  form_class,
                  addinputs = True,
-                 form_withrequest = None,
                  form_ajax = None,
-                 forceform = False,
                  instance  = None,
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
-It can be overridden to twick its behaviour.
 
 :parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
 :parameter form_class: form class to use.
 :parameter addinputs: boolean flag indicating if submit inputs should be added. Default ``True``.
-:parameter form_withrequest: if form_class requires the request object to be passed to its constructor. Default ``None``.
 :parameter form_ajax: if form uses AJAX. Default ``False``.
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False`` no instance will be
                      passed to the form constructor. If ``None`` the instance will be obtained from
                      ``djp``. Default ``None``.
 '''
-        template = self.form_template
-        if callable(template):
-            template = template(djp)
+        # Check the Form Class
+        form_class = form_class or self.form
+        if not form_class:
+            raise ValueError("Form class not defined in {0}".format(self))
+        elif isinstance(form_class,Form):
+            form_class = HtmlForm(Form)
         
+        # Check instance and model    
         if instance == False:
             instance = None
         else:
             instance = instance or djp.instance
+            
         if instance:
             model = instance.__class__
         else:
-            model    = kwargs.pop('model',None)
+            model = getattr(form_class,'model',None)
             if not model:
                 model = getattr(self,'model',None)
-        request  = djp.request
-        form_withrequest = form_withrequest if form_withrequest is not None else self.form_withrequest
+        form_class.model = model
+        
         form_ajax = form_ajax if form_ajax is not None else self.form_ajax
-        
-        form_class = form_class or self.form or forms.ModelForm
-        
-        if isinstance(form_class,type):
-            if forceform or not hasattr(form_class,'_meta'):
-                mform = form_class
-            else:
-                if form_class._meta.model == model:
-                    mform = form_class
-                else:
-                    mform = forms.modelform_factory(model, form_class)
-        
         return get_form(djp,
-                        mform,
+                        form_class,
                         instance = instance,
                         addinputs= self.submit if addinputs else None,
                         model=model,
                         form_ajax=form_ajax,
-                        form_withrequest=form_withrequest,
-                        template=template,
                         **kwargs)
         
     def submit(self, instance, own_view = False):
         '''Generate the submits elements to be added to the model form.
         '''
         if instance:
-            sb = [input(value = self._form_save, name = '_save')]
+            sb = [SubmitInput(value = self._form_save, name = '_save')]
             if self._submit_as_new:
-                sb.append(input(value = self._submit_as_new, name = '_save_as_new'))
+                sb.append(SubmitInput(value = self._submit_as_new, name = '_save_as_new'))
         else:
-            sb = [input(value = self._form_add, name = '_save')]
+            sb = [SubmitInput(value = self._form_add, name = '_save')]
         if own_view:
             if self._form_continue:
-                sb.append(input(value = self._form_continue, name = '_save_and_continue'))
+                sb.append(SubmitInput(value = self._form_continue, name = '_save_and_continue'))
             if self._submit_cancel:
-                sb.append(input(value = self._submit_cancel, name = '_cancel'))
+                sb.append(SubmitInput(value = self._submit_cancel, name = '_cancel'))
         return sb
 
     def get_label_for_field(self, name):
@@ -413,11 +406,11 @@ functionality when searching for model instances.'''
     
     def __init__(self, baseurl, model, **kwargs):
         super(ModelApplication,self).__init__(baseurl, **kwargs)
-        self._model  = model
+        self.model  = model
         
     def register(self, application_site):
-        self.opts   = getmodel(self)
-        self.model  = self.opts.model
+        self.opts = mapper(self.model)
+        self.opts.set_application(self)
         return super(ModelApplication,self).register(application_site)
         
     def get_root_code(self):

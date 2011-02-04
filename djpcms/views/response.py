@@ -34,8 +34,8 @@ class DjpResponse(object):
         self.view       = view
         self.kwargs     = kwargs
         site            = request.site
+        self.is_xhr     = request.is_xhr
         self.site       = site
-        self.pagecache  = site.pagecache
         self.settings   = site.settings
         self.http       = site.http
         self.css        = self.settings.HTML_CLASSES
@@ -64,7 +64,7 @@ class DjpResponse(object):
         return self.url == self.request.path
     
     def underlying(self):
-        '''If the current wapper has an editing view,
+        '''If the current wrapper is for an editing view,
 return the wrapper with the underlying view.'''
         if self.view.editurl:
             return self.view._view(self.request, **self.kwargs)
@@ -161,20 +161,19 @@ return the wrapper with the underlying view.'''
         return False
             
     def robots(self):
-        '''
-        Robots
+        '''Robots
         '''
         if self.view.has_permission(None, self.instance):
             if not self.page or self.page.insitemap:
-                return u'ALL'
-        return u'NONE,NOARCHIVE'
+                return 'ALL'
+        return 'NONE,NOARCHIVE'
         
     def response(self):
         '''return the type of response or an instance of HttpResponse
         '''
         view    = self.view
         request = self.request
-        is_ajax = request.is_ajax()
+        is_ajax = request.is_xhr
         page    = self.page
         site    = request.site
         http    = site.http
@@ -189,7 +188,7 @@ return the wrapper with the underlying view.'''
             if isinstance(re,http.HttpResponse):
                 return re
             # If user not authenticated set a test cookie  
-            if not request.user.is_authenticated() and method == 'get':
+            if not http.is_authenticated(request) and method == 'get':
                 request.session.set_test_cookie()
 
             if method not in (m.lower() for m in view.methods(request)):
@@ -214,54 +213,40 @@ return the wrapper with the underlying view.'''
                     raise e
             return self.http.HttpResponse(res.dumps(),res.mimetype())
     
-    def render_to_response(self, more_context = None,
-                           template_file = None, **kwargs):
-        """
-        A shortcut method that runs the `render_to_response` Django shortcut.
- 
-        It will apply the view's context object as the context for rendering
-        the template. Additional context variables may be passed in, similar
-        to the `render_to_response` shortcut.
- 
-        """
+    def render_to_response(self, context):
         css = self.css
-        context  = RequestContext(self.request)
-        d = context.push()
-        if more_context:
-            d.update(more_context)
+        #context  = loader.context(self.request)
+        #d = context.push()
+        #if more_context:
+        #    d.update(more_context)
         media = self.media
         sitenav = Navigator(self,
                             classes = css.main_nav,
                             levels = self.settings.SITE_NAVIGATION_LEVELS)
-        d.update({'djp':        self,
+        
+        context.update({'djp':        self,
                   'media':      media,
                   'page':       self.page,
-                  'cssajax':    self.css,
                   'is_popup':   False,
-                  'admin_site': False,
                   'sitenav':    sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
-                 b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
-            d['breadcrumbs'] = b
-        template_file = template_file or self.template_file
+                b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
+            context['breadcrumbs'] = b
         
-        httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
-        html = loader.render_to_string(template_file,
-                                       context_instance=context,
-                                       **kwargs)
-        return self.site.http.HttpResponse(html, **httpresponse_kwargs)
+        context = loader.context(context, self.request)
+        html = loader.render_to_string(self.template_file,context)
+        return self.http.HttpResponse(html)
         
     def redirect(self, url):
-        if self.request.is_ajax():
+        if self.is_xhr:
             return jredirect(url = url)
         else:
             return self.http.HttpResponseRedirect(url)
         
     def instancecode(self):
-        '''If an instance is available, return a unique code for it. Otherwise return None.'''
-        from djpcms.views import appsite 
+        '''If an instance is available, return a unique code for it. Otherwise return None.''' 
         instance = self.instance
         if not instance:
             return None

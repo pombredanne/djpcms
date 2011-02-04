@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth import authenticate, login, logout
 
-from djpcms.apps.included.user import UserInterface
-
 
 class DjangoUser(UserInterface):
     
@@ -57,4 +55,4 @@ class DjangoUser(UserInterface):
     def get(cls, **kwargs):
         return User.objects.get(**kwargs)
     
-    
+   

@@ -8,6 +8,5 @@ MANIFEST
 .coverage
 .pydevproject
 .settings/*
-examples/djpcms-site/runfab.py
-examples/djpcms-site/sitedjpcms/settings.py
-examples/djpcms-site/docs/*
+examples/runfab.py
+examples/sitedjpcms/settings.py

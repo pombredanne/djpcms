@@ -7,10 +7,6 @@ from djpcms.views.appsite import Application
 from djpcms.views.appview import View
 from djpcms.views.regex import RegExUrl
 
-from django import http
-from django.conf.urls.defaults import url
-
-
     
 class DocView(View):
     '''Sphinx documentation view.'''
@@ -43,7 +39,7 @@ class DocView(View):
         lang    = args.get('lang',app.deflang)
         version = args.get('version',app.defversion)
         url     = args.get('url','')
-        docroot = self.appmodel.get_docroot(lang, version)
+        docroot = self.appmodel.get_docroot(djp, lang, version)
     
         # First look for <bits>/index.fpickle, then for <bits>.fpickle
         bits = url.strip('/').split('/') + ['%s.fjson' % app.master_doc]
@@ -52,7 +48,7 @@ class DocView(View):
             bits = bits[:-2] + ['%s.fjson' % bits[-2]]
             doc = docroot.child(*bits)
             if not doc.exists():
-                raise http.Http404("'%s' does not exist" % doc)
+                raise djp.http.Http404("'%s' does not exist" % doc)
 
         bits[-1] = bits[-1].replace('.fjson', '')
         name  = self.appmodel.name
@@ -129,17 +125,17 @@ class DocApplication(Application):
     def get_path_args(self, lang, version):
         return (lang, version, "_build", "json")
     
-    def get_docroot(self, lang, version):
+    def get_docroot(self, djp, lang, version):
         docroot = Path(self.DOCS_PICKLE_ROOT).child(*self.get_path_args(lang, version))
         if not docroot.exists():
-            raise http.Http404()
+            raise djp.http.Http404()
         return docroot 
     
     def bodybits(self):
         if self.editurl:
-            return mark_safe(u'class="edit documentation"')
+            return mark_safe('class="edit documentation"')
         else:
-            return mark_safe(u'class="documentation"')
+            return mark_safe('class="documentation"')
         
     def doc_index_url(self, request, lang, version):
         return '%s%s/%s/' % (self.baseurl,lang,version)

@@ -2,20 +2,13 @@ import operator
 from copy import copy
 from datetime import datetime
 
-# Hack for Python 2.6 -> Python 3
-try:
-    from itertools import izip as zip
-except ImportError:
-    import zip
+from py2py3 import zip
 
-from django.db.models import Q
-from django.db.models.query import QuerySet
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.text import smart_split
-
-from djpcms.utils.translation import ugettext as _
-from djpcms.template import loader, RequestContext
-from djpcms.forms import saveform, deleteinstance, autocomplete
+from djpcms.core import api
+from djpcms.utils.translation import gettext as _
+from djpcms.template import loader
+from djpcms.forms import autocomplete
+from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.views.regex import RegExUrl
@@ -158,12 +151,12 @@ Usage::
                  description    = None,
                  force_redirect = None,
                  form           = None,
-                 form_withrequest = None,
                  form_ajax     = None,
                  headers       = None,
                  astable        = None,
                  table_generator = None,
-                 success_message = None):
+                 success_message = None,
+                 append_slash = True):
         self.name        = None
         self.description = description
         self.parent    = parent
@@ -172,7 +165,7 @@ Usage::
         self.in_nav    = in_navigation
         self.appmodel  = None
         self.insitemap = insitemap
-        self.urlbit    = RegExUrl(regex,splitregex)
+        self.urlbit    = RegExUrl(regex,splitregex,append_slash)
         self.regex     = None
         self.func      = None
         self.code      = None
@@ -198,7 +191,6 @@ Usage::
         if force_redirect is not None:
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
-        self._form_withrequest = form_withrequest
         self._form_ajax  = form_ajax if form_ajax is not None else self._form_ajax
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter
@@ -242,14 +234,11 @@ Usage::
     
     def get_form(self, djp,
                  form = None,
-                 form_withrequest = None,
                  form_ajax = None,
                  **kwargs):
-        form_withrequest = form_withrequest if form_withrequest is not None else self._form_withrequest
         form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         return self.appmodel.get_form(djp,
                                       form or self._form,
-                                      form_withrequest = form_withrequest,
                                       form_ajax = form_ajax,
                                       **kwargs)
         
@@ -258,7 +247,7 @@ Usage::
         return False if not page else page.soft_root
         
     def get_page(self, djp):
-        pages = djp.pagecache.get_for_application(self.code)
+        pages = api.get_for_application(djp,self.code)
         if pages:
             if len(pages) == 1:
                 return pages[0]
@@ -371,8 +360,8 @@ class ModelView(View):
                                        splitregex = splitregex,
                                        **kwargs)
         
-    def __unicode__(self):
-        return u'%s: %s' % (self.name,self.regex)
+    def __str__(self):
+        return '%s: %s' % (self.name,self.regex)
     
     def __get_model(self):
         return self.appmodel.model
@@ -437,11 +426,7 @@ It returns a queryset.
         qs = super(SearchView,self).appquery(djp)
         request = djp.request
         slist = self.appmodel.opts.search_fields
-        if request.method == 'GET':
-            data = dict(request.GET.items())
-        else:
-            data = dict(request.POST.items())
-        search_string = data.get(self.search_text,None)
+        search_string = request.data_dict.get(self.search_text,None)
         if slist and search_string:
             bits  = smart_split(search_string)
             #bits  = search_string.split(' ')
@@ -656,7 +641,7 @@ and if your model has an AutocompleteView installed, it will work out of the box
                     rel_name = name.split('__')[0]
                     q = Q( **{str(name):query} )
             qs = self.model.objects.filter(q)                    
-            data = ''.join([u'%s|%s|%s\n' % (getattr(f,rel_name),f,f.pk) for f in qs])
+            data = ''.join(['%s|%s|%s\n' % (getattr(f,rel_name),f,f.pk) for f in qs])
         else:
             data = ''
         return djp.http.HttpResponse(data)

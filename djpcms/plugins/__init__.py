@@ -3,10 +3,10 @@ import logging
 import json
 
 from djpcms import forms
-from djpcms.forms import form_kwargs
+from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str
 from djpcms.utils.text import capfirst, nicename
-from djpcms.utils.formjson import form2json
+#from djpcms.utils.formjson import form2json
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
@@ -183,7 +183,8 @@ This is the function plugins need to implement.
     
     def save(self, pform):
         '''Save the form plugin'''
-        return form2json(pform)
+        return json.dumps(pform.data)
+        #return form2json(pform)
     
     def get_form(self, djp, args = None, withdata = True):
         '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when in editing mode.
@@ -259,7 +260,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         #kwargs may be an input from a possible plugin form
         app  = self.app
         request = djp.request
-        html = u''
+        html = ''
         if app.has_permission(request):
             if djp.view != app or kwargs:
                 args = djp.kwargs.copy()

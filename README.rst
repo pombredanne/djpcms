@@ -8,7 +8,7 @@
 :Documentation: http://djpcms.com/docs/
 :Dowloads: http://pypi.python.org/pypi/djpcms/
 :Source: http://github.com/lsbardel/djpcms
-:Keywords: web, cms, dynamic, ajax, django, jquery
+:Keywords: web, cms, dynamic, ajax, python, jquery
 
 --
 
@@ -77,6 +77,10 @@ Running tests
 On the top level directory type::
 
 	python runtests.py
+	
+For options in running tests type::
+
+    python runtests.py --help
 	
 To access coverage of tests you need to install the coverage_ package and run the tests using::
 

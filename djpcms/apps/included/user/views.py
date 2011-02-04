@@ -1,10 +1,7 @@
-from djpcms.contrib import messages
 from djpcms.views import appview
-from djpcms.utils.ajax import jredirect
-from djpcms.forms import saveform
-from djpcms.apps.included.user.user import UserClass
+from djpcms.forms.utils import saveform
 
-from forms import LoginForm, PasswordChangeForm
+from .forms import LoginForm, PasswordChangeForm, RegisterForm
 
 
 class LogoutView(appview.ModelView):
@@ -22,7 +19,7 @@ class LogoutView(appview.ModelView):
         url     = params.get('next',None) or '/'
         user    = request.user
         if user.is_authenticated():
-            UserClass().logout(request)
+            self.model.logout(request)
         return djp.http.HttpResponseRedirect(url)
 
 
@@ -31,11 +28,11 @@ class LoginView(appview.ModelView):
     '''A Battery included Login view.
     '''
     def __init__(self, regex = 'login', parent = None, insitemap = False, isplugin = True,
-                 form = LoginForm, form_withrequest = True, **kwargs):
+                 form = LoginForm, **kwargs):
         super(LoginView,self).__init__(regex = regex, parent = parent,
                                       insitemap = insitemap,
                                       isplugin = isplugin,
-                                      form = form, form_withrequest = form_withrequest,
+                                      form = form,
                                       **kwargs)
         
     def title(self, page, **kwargs):
@@ -62,3 +59,6 @@ class LoginView(appview.ModelView):
     
     def success_message(self, instance, mch):
         return ''
+
+
+            

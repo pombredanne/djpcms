@@ -46,6 +46,7 @@ class ResolverMixin(object):
 method'''
     
     def load(self):
+        '''Load urls and set-up sites'''
         if getattr(self,'_urls',None) is None:
             self._urls = self._load()
         
@@ -76,8 +77,7 @@ method'''
         self.clearcache()
     
     def clean_path(self, environ):
-        '''
-        Clean url and redirect if needed
+        '''Clean url and redirect if needed
         '''
         path = environ['PATH_INFO']
         url = path
@@ -87,9 +87,9 @@ method'''
                 url = re.sub("/+" , "/", url)
                 modified = True
         
-            if not url.endswith('/'):
-                modified = True
-                url = '%s/' % url
+            #if not url.endswith('/'):
+            #    modified = True
+            #    url = '%s/' % url
                 
             if modified:
                 if not url.startswith('/'):
@@ -234,7 +234,7 @@ Adapted for djpcms
             for pattern in self.url_patterns:
                 try:
                     sub_match = pattern.resolve(new_path)
-                except Resolver404, e:
+                except Resolver404 as e:
                     sub_tried = e.args[0].get('tried')
                     if sub_tried is not None:
                         tried.extend([(pattern.regex.pattern + '   ' + t) for t in sub_tried])
@@ -272,7 +272,7 @@ Adapted for djpcms
         callback = getattr(self.urlconf_module, 'handler%s' % view_type)
         try:
             return get_callable(callback), {}
-        except (ImportError, AttributeError), e:
+        except (ImportError, AttributeError) as e:
             raise ViewDoesNotExist("Tried %s. Error was: %s" % (callback, str(e)))
 
     def resolve404(self):

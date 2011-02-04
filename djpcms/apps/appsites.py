@@ -1,10 +1,15 @@
-from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered, ApplicationNotAvailable
+from threading import Lock
+
+from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
+                                   ImproperlyConfigured, ApplicationNotAvailable
 from djpcms.views.appsite import Application, ModelApplication
-from djpcms.apps.included.contentedit import ContentSite, BlockContent
 from djpcms.utils.collections import OrderedDict
-from djpcms.utils.importer import import_module
+from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.http import make_wsgi
+from djpcms.core.orms import monkey_patch_user
+
+from djpcms.models import BlockContent
+from djpcms.apps.included.contentedit import ContentSite
 
 
 
@@ -14,7 +19,9 @@ class ApplicationSite(ResolverMixin):
     An instance of this class is used to handle url of
     registered applications.
     '''
-    def __init__(self, url, config):
+    def __init__(self, root, url, config):
+        self.lock = Lock()
+        self.root = root
         self.route = url
         self.url = url
         self.config = config
@@ -24,12 +31,24 @@ class ApplicationSite(ResolverMixin):
         self._registry = {}
         self._nameregistry = OrderedDict()
         self.choices = [('','-----------------')]
+        self._request_middleware = None
+        self._response_middleware = None
+        self._template_context_processors = None
         self.ModelApplication = ModelApplication
         
     def __repr__(self):
         return '{0} - {1}'.format(self.route,'loaded' if self.isloaded else 'not loaded')
     __str__ = __repr__
-        
+    
+    def __get_User(self):
+        return self.root.User
+    def __set_User(self, User):
+        if not self.root.User:
+            self.root.User = monkey_patch_user(User)
+        elif User is not self.root.User:
+            raise ImproperlyConfigured('A different User class has been already registered')
+    User = property(__get_User,__set_User)
+    
     def load_initial(self):
         baseurl = self.config.CONTENT_INLINE_EDITING.get('pagecontent', '/content/')
         self.register(ContentSite(baseurl, BlockContent, editavailable = False))
@@ -45,6 +64,8 @@ to the site. If a model is already registered, this will raise AlreadyRegistered
         if name:
             app_module = import_module(name)
             appurls = app_module.appurls
+            if hasattr(appurls,'__call__'):
+                appurls = appurls()
         self.load_initial()
         for application in appurls:
             self.register(application)
@@ -124,10 +145,70 @@ returns the application handler. If the appname is not available, it raises a Ke
                 except:
                     return None
         return None
+    
+    def get_url(self, model, view_name, instance = None, **kwargs):
+        if not isinstance(model,type):
+            instance = model
+            model = instance.__class__
+        app = self.for_model(model)
+        if app:
+            view = app.getview(view_name)
+            if view:
+                try:
+                    return view.get_url(None, instance = instance, **kwargs)
+                except:
+                    return None
+        return None
         
     def count(self):
         return len(self._registry)
     
-    def as_wsgi(self):
-        return make_wsgi(self)
+    def _load_middleware(self):
+        if self._request_middleware is None:
+            self._request_middleware = mw = []
+            self._response_middleware = rw = []
+            self._exception_middleware = ew = []
+            self.lock.acquire()
+            try:
+                for middleware_path in self.settings.MIDDLEWARE_CLASSES:
+                    mwcls = module_attribute(middleware_path)
+                    if mwcls:
+                        mwobj = mwcls()
+                        if hasattr(mwobj,'process_request'):
+                            mw.append(mwobj.process_request)
+                        if hasattr(mwobj,'process_response'):
+                            rw.append(mwobj.process_response)
+                        if hasattr(mwobj,'process_exception'):
+                            ew.append(mwobj.process_exception)
+            finally:
+                self.lock.release()
+                
+    def _load_template_processors(self):
+        if self._template_context_processors is None:
+            self.lock.acquire()
+            mw = []
+            try:
+                for p_path in self.settings.TEMPLATE_CONTEXT_PROCESSORS:
+                    func = module_attribute(p_path)
+                    if func:
+                        mw.append(func)
+                self._template_context_processors = tuple(mw)
+            finally:
+                self.lock.release()
+    
+    def request_middleware(self):
+        self._load_middleware()
+        return self._request_middleware
+    
+    def response_middleware(self):
+        self._load_middleware()
+        return self._response_middleware
+    
+    def exception_middleware(self):
+        self._load_middleware()
+        return self._exception_middleware
+    
+    def template_context(self):
+        self._load_template_processors()
+        return self._template_context_processors
     

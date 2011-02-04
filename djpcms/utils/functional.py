@@ -1,4 +1,9 @@
+'''Originally from django
+'''
+import sys
 from functools import wraps
+from py2py3 import string_type
+
 
 def memoize(func, cache, num_args):
     """
@@ -69,11 +74,7 @@ def lazy(func, *resultclasses):
                         continue
                     setattr(cls, k, meth)
             cls._delegate_str = str in resultclasses
-            cls._delegate_unicode = unicode in resultclasses
-            assert not (cls._delegate_str and cls._delegate_unicode), "Cannot call lazy() with both str and unicode return types."
-            if cls._delegate_unicode:
-                cls.__unicode__ = cls.__unicode_cast
-            elif cls._delegate_str:
+            if cls._delegate_str:
                 cls.__str__ = cls.__str_cast
         __prepare_class__ = classmethod(__prepare_class__)
 
@@ -95,17 +96,12 @@ def lazy(func, *resultclasses):
             return __wrapper__
         __promise__ = classmethod(__promise__)
 
-        def __unicode_cast(self):
-            return self.__func(*self.__args, **self.__kw)
-
         def __str_cast(self):
-            return str(self.__func(*self.__args, **self.__kw))
+            return string_type(self.__func(*self.__args, **self.__kw))
 
         def __cmp__(self, rhs):
             if self._delegate_str:
-                s = str(self.__func(*self.__args, **self.__kw))
-            elif self._delegate_unicode:
-                s = unicode(self.__func(*self.__args, **self.__kw))
+                s = self.__str_cast()
             else:
                 s = self.__func(*self.__args, **self.__kw)
             if isinstance(rhs, Promise):
@@ -115,9 +111,7 @@ def lazy(func, *resultclasses):
 
         def __mod__(self, rhs):
             if self._delegate_str:
-                return str(self) % rhs
-            elif self._delegate_unicode:
-                return unicode(self) % rhs
+                return string_type(self) % rhs
             else:
                 raise AssertionError('__mod__ not supported for non-string types')
 
@@ -134,8 +128,10 @@ def lazy(func, *resultclasses):
 
     return wraps(func)(__wrapper__)
 
+
 def _lazy_proxy_unpickle(func, args, kwargs, *resultclasses):
     return lazy(func, *resultclasses)(*args, **kwargs)
+
 
 def allow_lazy(func, *resultclasses):
     """
@@ -152,6 +148,7 @@ def allow_lazy(func, *resultclasses):
             return func(*args, **kwargs)
         return lazy(func, *resultclasses)(*args, **kwargs)
     return wraps(func)(wrapper)
+
 
 class LazyObject(object):
     """
@@ -198,6 +195,7 @@ class LazyObject(object):
         if self._wrapped is None:
             self._setup()
         return  dir(self._wrapped)
+
 
 class SimpleLazyObject(LazyObject):
     """

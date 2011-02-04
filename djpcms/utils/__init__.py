@@ -12,14 +12,10 @@ def gen_unique_id():
     return str(uuid4())
 
 
-def flatatt(attrs):
-    """
-    Convert a dictionary of attributes to a single string.
-    The returned string will contain a leading space followed by key="value",
-    XML-style pairs.  It is assumed that the keys do not need to be XML-escaped.
-    If the passed dictionary is empty, then return an empty string.
-    """
-    return u''.join([u' %s="%s"' % (k, conditional_escape(v)) for k, v in attrs.items()])
+def merge_dict(d1,d2):
+    d = d1.copy()
+    d.update(d2)
+    return d
 
 
 def construct_search(field_name):
@@ -44,22 +40,6 @@ def isexact(bit):
         return bit[1:Nn]
     else:
         return bit
-
-
-def function_module(dotpath, default = None):
-    '''
-    Load a function from a module.
-    If the module or the function is not available, return the default argument
-    '''
-    if dotpath:
-        bits = str(dotpath).split('.')
-        try:
-            module = __import__('.'.join(bits[:-1]),globals(),locals(),[''])
-            return getattr(module,bits[-1],default)
-        except Exception as e:
-            return default
-    else:
-        return default
     
     
 def lazyattr(f):
@@ -134,15 +114,15 @@ def slugify(value, rtx = '-'):
     '''Normalizes string, removes non-alpha characters,
 and converts spaces to hyphens *rtx* character'''
     value = unicodedata.normalize('NFKD', force_str(value)).encode('ascii', 'ignore')
-    value = force_str(re.sub('[^\w\s-]', '', value).strip())
+    value = force_str(re.sub('[^\w\s-]', '', value.decode()).strip())
     return re.sub('[-\s]+', rtx, value)
 
 
-def logerror(logger, request, exc_info):
+def logerror(logger, request, exc_info, status_code = 500):
     logger.error('Internal Server Error: %s' % request.path,
                  exc_info=exc_info,
                  extra={
-                        'status_code': 500,
+                        'status_code': status_code,
                         'request':request
                         }
                  )

@@ -1,72 +1,104 @@
 import json
 import unittest
+from copy import copy
 
 import djpcms
-from djpcms import sites
-from djpcms.utils.importer import import_module
-from djpcms.plugins import SimpleWrap
-from djpcms.forms import fill_form_data, model_to_dict, cms
-from djpcms.models import Page
-from djpcms.apps.included.user import UserClass
+from djpcms import sites, forms
+from djpcms.forms.utils import fill_form_data
 from djpcms.core.exceptions import *
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
-from .client import Client
+try:
+    skip = unittest.skip
+    skipIf = unittest.skipIf
+    skipUnless = unittest.skipUnless
+    SkipTest = unittest.SkipTest
+    TestCaseBase = unittest.TestCase
+    TextTestRunner = unittest.TextTestRunner
+    TestSuiteBase = unittest.TestSuite
+except AttributeError:
+    from .skiptests import *
+    
+#from .client import Client
 
 
-class TestCase(unittest.TestCase):
+class TestCase(TestCaseBase):
     '''Implements shortcut functions for testing djpcms.
 Must be used as a base class for TestCase classes'''
-    client_class = Client
+    #client_class = Client
     urlbase   = '/'
-    Page = Page
     sites = sites
     _env = None
     
     def _pre_setup(self):
+        from djpcms.core import api
+        self.api = api
         sites.settings.TESTING = True
+        self.SITE_DIRECTORY = sites.settings.SITE_DIRECTORY
+        self.INSTALLED_APPS = copy(sites.settings.INSTALLED_APPS)
         self.site = self.makesite()
-        self.settings = self.site.settings
-        sites.load()
+        if self.site:
+            self.settings = self.site.settings
+            sites.load()
         if self._env:
             self._env.pre_setup()
         
     def makesite(self):
         '''Setup the site'''
         appurls = getattr(self,'appurls',None)
-        sites.clear()
-        sett = sites.settings
-        return sites.make(sett.SITE_DIRECTORY,
+        apps = sites.settings.INSTALLED_APPS + self.installed_apps()
+        self.sites.clear()
+        return sites.make(self.SITE_DIRECTORY,
                           'conf',
                           route = self.urlbase,
-                          APPLICATION_URL_MODULE = appurls)
+                          APPLICATION_URL_MODULE = appurls,
+                          INSTALLED_APPS = apps)
         
+    def installed_apps(self):
+        return []
+    
     def __call__(self, result=None):
         """
         Wrapper around default __call__ method to perform common Django test
         set up. This means that user-defined Test Cases aren't required to
         include a call to super().setUp().
         """
-        self.client = self.client_class()
-        self._pre_setup()
+        #self.client = self.client_class()
+        from .client import Client
+        self.client = Client()
+        skipping = getattr(self.__class__, "__unittest_skip__", False)
+        if not skipping:
+            self._pre_setup()
         super(TestCase, self).__call__(result)
-        self._post_teardown()
+        if not skipping:
+            self._post_teardown()
             
     def _post_teardown(self):
         if self._env:
             self._env.post_teardown()
+        sites.settings.INSTALLED_APPS = self.INSTALLED_APPS
     
     def clear(self, db = False):
         '''If db is set to True it clears the database pages'''
         if db:
-            self.Page.objects.all().delete()
+            self.api.all().delete()
         else:
             sites.clear()
 
     def makepage(self, view = None, model = None, bit = '', parent = None, fail = False, **kwargs):
-        form = cms.PageForm()
-        data = model_to_dict(form.instance, form._meta.fields, form._meta.exclude)
+        create_page = self.api.create_page
+        if fail:
+            self.assertRaises(forms.ValidationError, create_page)
+        else:
+            page = create_page()
+            self.assertTrue(page.pk)
+            return page
+        #data = model_to_dict(form.instance, form._meta.fields, form._meta.exclude)
+        data = {}
         data.update(**kwargs)
         data.update({'url_pattern': bit,
                      'parent': None if not parent else parent.id})
@@ -121,11 +153,14 @@ class TestCaseWithUser(TestCase):
     def _pre_setup(self):
         super(TestCaseWithUser,self)._pre_setup()
         p = self.get()['page']
-        self.superuser = UserClass().create_super('testuser', 'test@testuser.com', 'testuser')
-        self.user = UserClass().create('simpleuser', 'simple@testuser.com', 'simpleuser')
         self.assertEqual(p.url,'/')
-        #if not hasattr(self,'fixtures'):
-        #    self.assertEqual(Page.objects.all().count(),1)
+        User = self.site.User
+        if User:
+            self.superuser = User.create_super('testuser', 'test@testuser.com', 'testuser')
+            self.user = User.create('simpleuser', 'simple@testuser.com', 'simpleuser')
+        else:
+            self.superuser = None
+            self.user = None
             
     def editurl(self, url):
         return '/{0}{1}'.format(self.site.settings.CONTENT_INLINE_EDITING['preurl'],url)
@@ -167,6 +202,7 @@ class PluginTest(TestCaseWithUser):
         self._simplePage()
     
     def testEdit(self):
+        from djpcms.plugins import SimpleWrap
         '''Test the editing view by getting a the view and the editing form
 and sending AJAX requests.'''
         c = self._simplePage()

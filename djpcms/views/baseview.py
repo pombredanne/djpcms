@@ -5,8 +5,7 @@ import logging
 import sys
 
 from djpcms import sites
-from djpcms.permissions import inline_editing, get_view_permission, has_permission
-from djpcms.contrib import messages
+from djpcms.core import permissions
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.utils.html import grid960, box
 from djpcms.forms import saveform, get_form
@@ -16,7 +15,7 @@ from djpcms.utils import UnicodeObject, function_module, htmltype
 from djpcms.utils.media import Media
 from djpcms.views.response import DjpResponse
 from djpcms.views.contentgenerator import BlockContentGen
-from djpcms.template import mark_safe, RequestContext, Context, loader
+from djpcms.template import loader
 from djpcms.core.exceptions import PermissionDenied
 
 from .utils import view_edited_url
@@ -33,9 +32,8 @@ and a Page instance, it calculates a new response object.'''
         return None
 
 
-# THE DJPCMS INTERFACE CLASS for handling views
-# the response method handle all the views in djpcms
-class djpcmsview(UnicodeObject):
+# THE DJPCMS BASE CLASS for handling views
+class djpcmsview(object):
     '''Base class for handling http requests.
     
     .. attribute:: _methods
@@ -112,7 +110,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         if page:
             return page.link
         else:
-            return u'link'
+            return 'link'
     
     def parentresponse(self, djp):
         return response_from_page(djp, djp.page.parent)
@@ -147,20 +145,17 @@ Hooks:
         inner_template  = None
         grid    = self.grid960(page)
         
-        context = {'grid': grid}
-        
         # Inner template available, fill the context dictionary
         # with has many content keys as the number of blocks in the page
-        if page:
-            context['htmldoc'] = htmltype.get(page.doctype)
-        else:
-            context['htmldoc'] = htmltype.get()
+        context = {'grid': grid,
+                   'htmldoc': htmldoc(None if not page else page.doctype)}
             
         if page:
+            inner_template = page.inner_template
             if not self.editurl and djp.has_own_page():
                 context['edit_content_url'] = inline_editing(request,page,djp.instance)
             
-        if page and page.inner_template:
+        if inner_template:
             cb = {'djp':  djp,
                   'grid': grid}
             blocks = page.inner_template.numblocks()
@@ -168,7 +163,7 @@ Hooks:
                 cb['content%s' % b] = BlockContentGen(djp, b)
             
             # Call the inner-template renderer
-            inner = page.inner_template.render(Context(cb, autoescape=False))
+            inner = page.inner_template.render(loader.context(cb, autoescape=False))
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)
@@ -179,8 +174,14 @@ Hooks:
         self.extra_content(djp,context)
         return djp.render_to_response(context)
     
+<<<<<<< HEAD
     def ajax_get_response(self, djp):
         return jservererror('AJAX GET RESPONSE NOT AVAILABLE', url = djp.url)
+=======
+    def default_post(self, djp):
+        '''Default post response handler.'''
+        raise NotImplementedError('Default Post view not implemented')
+>>>>>>> abed7c4cb9b2a9692aa96d457fa8defb1e18a1b7
     
     def get_response(self, djp):
         '''Get response handler.'''
@@ -236,7 +237,7 @@ Hooks:
         '''Check if view can be displayed.
         '''
         if request and page:
-            return has_permission(request.user,get_view_permission(page),page)
+            return permission.has_permission(request.user,get_view_permission(page),page)
         else:
             return True
     
@@ -251,9 +252,9 @@ Hooks:
             return 0
     
     def bodybits(self, page):
-        b = u''
+        return ''
         if self.editurl:
-            b = u'class="edit"'
+            b = 'class="edit"'
         elif page:
             css = page.cssinfo
             if css and css.body_class_name:
@@ -261,7 +262,8 @@ Hooks:
         return mark_safe(b)
     
     def contentbits(self, page):
-        b = u''
+        return ''
+        b = ''
         if page:
             css = page.cssinfo
             if css and css.container_class_name:
@@ -396,12 +398,13 @@ This view is never in navigation and it provides a hook for adding the edit page
             return False
         
     def extra_content(self, djp, c):
+        from djpcms.forms import cms
         page = djp.page
         request = djp.request
         page_url = self.page_url(djp.request)
         ed = {
-             'page_form': get_form(djp, ShortPageForm, instance = page, withinputs=True).render(djp,validate=True),
-             'new_child_form': get_form(djp, NewChildForm, instance = page, withinputs=True).render(djp,validate=True),
+             'page_form': get_form(djp, cms.ShortPageForm, instance = page, withinputs=True).render(djp,validate=True),
+             'new_child_form': get_form(djp, cms.NewChildForm, instance = page, withinputs=True).render(djp,validate=True),
              'page_url': self.page_url(djp.request)}
         bd = loader.render_to_string(self.edit_template,ed)
         c.update({'page_url':page_url,
@@ -414,9 +417,9 @@ This view is never in navigation and it provides a hook for adding the edit page
         page    = djp.page
         data = dict(request.POST.items())
         if data.get('_child',None) == 'create':
-            return get_form(djp, NewChildForm, instance = djp.page)
+            return get_form(djp, cms.NewChildForm, instance = djp.page)
         else:
-            return get_form(djp, ShortPageForm, instance = djp.page)
+            return get_form(djp, cms.ShortPageForm, instance = djp.page)
         
     def save(self, request, f):
         return f.save()

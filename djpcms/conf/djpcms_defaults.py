@@ -1,29 +1,33 @@
 import logging
 
-INSTALLED_APPS                  = []
-ROOT_URLCONF                    = 'djpcms.apps.djangosite.defaults.urls' # default value for django
-APPLICATION_URL_MODULE          = None
-ADMIN_URL_PREFIX                = '/admin/'
-ADMIN_MEDIA_PREFIX              = '/media/admin/'
+DEBUG = False
+# List of installed application. These must be dotted python paths
+INSTALLED_APPS = []
+# Dictionary used to configure applications
+INSTALLED_APPS_CONF = {}
+APPLICATION_URL_MODULE = None
 LANGUAGE_REDIRECT               = False
 HTML_CLASSES                    = None
 MAX_SEARCH_DISPLAY              = 20
 CACHE_VIEW_OBJECTS              = True
 DJPCMS_IMAGE_UPLOAD_FUNCTION    = None
-SERVE_STATIC_FILES              = False
 DJPCMS_EMPTY_VALUE              = '(None)'
 
-USER_MODEL                      = 'django'
-HTTP_LIBRARY                    = 'django'
-CMS_ORM                         = 'django'
-TEMPLATE_ENGINE                 = 'django'
+SITE_ID = 1
+MIDDLEWARE_CLASSES = ()
+TEMPLATE_DIRS = ()
+TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
+DJPCMS_WEB_FRAMEWORK = None
+HTTP_LIBRARY = None
+CMS_ORM = None
+TEMPLATE_ENGINE = None
+MEDIA_URL = '/media/'
+DEFAULT_TEMPLATE_NAME = ['base.html','djpcms/base.html']
 
-# Template engine settings
-DEFAULT_TEMPLATE_NAME           = ['base.html','djpcms/base.html']
-
-#styling
-DJPCMS_STYLE                    = None
-DJPCMS_STYLING_FUNCTION         = None
+# django settings
+ROOT_URLCONF                    = 'djpcms.apps.djangosite.defaults.urls' # default value for django
+ADMIN_URL_PREFIX                = '/admin/'
+ADMIN_MEDIA_PREFIX              = '/media/admin/'
 
 #Logging
 GLOBAL_LOG_LEVEL                = logging.INFO

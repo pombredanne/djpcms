@@ -13,20 +13,16 @@ from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 
-from djpcms.template import Template, mark_safe
-from djpcms.core.page import PageInterface, BlockInterface
-from djpcms.permissions import has_permission, get_view_permission
-from djpcms.fields import SlugCode
-from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
-from djpcms.utils import lazyattr, function_module, force_str, htmltype
+from djpcms.template import loader
+from djpcms.core.page import PageInterface, BlockInterface,\
+                             TemplateInterface, MarkupMixin
+from djpcms.core.permissions import has_permission, get_view_permission
+from djpcms.apps.djangosite.fields import SlugCode
+from djpcms.utils import lazyattr, force_str, htmltype
 from djpcms.utils.func import PathList
 from djpcms.uploads import uploader, storage_manager
-import djpcms.contrib.flowrepo.markups as markuplib
 
 from .djmanagers import PageManager, BlockContentManager, SiteContentManager, PermissionManager
-
-
-protocol_re = re.compile('^\w+://')
 
 
 class TimeStamp(models.Model):
@@ -50,7 +46,7 @@ class InnerTemplate(TimeStamp):
     blocks   = models.TextField(help_text = _('comma separated strings indicating the content blocks'))
         
     def __unicode__(self):
-        return u'%s' % self.name
+        return '%s' % self.name
     
     class Meta:
         app_label = 'djpcms'
@@ -58,7 +54,7 @@ class InnerTemplate(TimeStamp):
     def render(self, c):
         '''Render the inner template given the context ``c``.
         '''
-        return Template(self.template).render(c)
+        return loader.Template(self.template).render(c)
         
     def numblocks(self):
         '''Number of ``blocks`` within template.'''
@@ -80,7 +76,7 @@ class CssPageInfo(TimeStamp):
         
     def __unicode__(self):
         if self.body_class_name:
-            return u'%s - %s' % (self.body_class_name,self.conteiner_class())
+            return '%s - %s' % (self.body_class_name,self.conteiner_class())
         else:
             return self.conteiner_class()
         
@@ -90,14 +86,14 @@ class CssPageInfo(TimeStamp):
         If not specified it return container_gridsize for 960 grid templates
         '''
         if not self.container_class_name:
-            return u'container_%s' % self.gridsize
+            return 'container_%s' % self.gridsize
         else:
             return self.container_class_name
     
     
 class Page(TimeStamp, PageInterface):
     '''The page model holds several information regarding pages in the sitemap.'''
-    site        = models.ForeignKey(Site)
+    site        = models.ForeignKey(Site, null = True, blank = True)
     '''Site to which the page belongs.'''
     application_view = models.CharField(max_length = 200, blank = True)
     '''Name of the :class:`djpcms.views.appview.AppViewBase` owner of the page. It can be empty, in which case the page is a ``flat`` page (not part of an application).'''
@@ -193,22 +189,6 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
     def save(self, **kwargs):
         self.level = self.get_level()
         super(Page,self).save(**kwargs)
-
-    def get_level(self):
-        try:
-            url = self.url
-            if url.startswith('/'):
-                url = url[1:]
-            if url.endswith('/'):
-                url = url[:-1]
-            if url:
-                bits  = url.split('/')
-                level = len(bits)
-            else:
-                level = 0
-        except:
-            level = 1
-        return level
 
     def published(self):
         return self in Page.objects.published()
@@ -340,17 +320,6 @@ class SiteContent(models.Model):
     class Meta:
         app_label = 'djpcms'
         ordering  = ('code',)
-    
-    def htmlbody(self):
-        text = self.body
-        if not text:
-            return ''
-        mkp = markuplib.get(self.markup)
-        if mkp:
-            handler = mkp.get('handler')
-            text = handler(text)
-            text = mark_safe(force_str(text))
-        return text
     
     def update(self, user = None, body = ''):
         self.body = body

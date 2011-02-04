@@ -1,10 +1,9 @@
 import datetime
-from djpcms import sites
 from djpcms.core.exceptions import ApplicationNotAvailable
 
 
 def djpcms(request):
-    settings = sites.settings
+    settings = request.site.settings
     ctx = {'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
            'debug': settings.DEBUG,

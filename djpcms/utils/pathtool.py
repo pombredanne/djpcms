@@ -1,8 +1,6 @@
 import os
 import sys
 
-parentdir = lambda dir,up=1: dir if not up else parentdir(os.path.split(dir)[0],up-1)
-
 
 def uplevel(path,lev):
     if lev:

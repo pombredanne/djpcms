@@ -1,4 +1,4 @@
-Version 0.9.0 - Development
+Version 0.8.6 - Development
 =======================================
 * Introduced a new Ajax decorator called ``rearrange`` which adds drag & drop functionalities during page editing. 
 * Added abstraction for ``User``, ``Request`` and ``Response`` classes.

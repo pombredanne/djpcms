@@ -2,8 +2,8 @@ import sys
 import traceback
 from copy import copy
 
-from djpcms.utils.ajax import jredirect, jhtmls, jservererror
-from djpcms.template import loader, Context, RequestContext
+from djpcms.utils.ajax import jredirect, jservererror
+from djpcms.template import loader
 from djpcms.utils import lazyattr, logerror
 from djpcms.utils.navigation import Navigator, Breadcrumbs
 from djpcms.core.exceptions import ViewDoesNotExist

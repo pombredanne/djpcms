@@ -7,12 +7,8 @@ import sys
 from djpcms import sites
 from djpcms.core import permissions
 from djpcms.utils.ajax import jservererror, jredirect
-from djpcms.utils.html import grid960, box
-from djpcms.forms import saveform, get_form
-from djpcms.forms.cms import ShortPageForm, NewChildForm
-from djpcms.utils.uniforms import UniForm
-from djpcms.utils import UnicodeObject, function_module, htmltype
-from djpcms.utils.media import Media
+from djpcms.utils.html import grid960, box, htmldoc
+from djpcms.forms.utils import saveform, get_form
 from djpcms.views.response import DjpResponse
 from djpcms.views.contentgenerator import BlockContentGen
 from djpcms.template import loader
@@ -174,15 +170,9 @@ Hooks:
         self.extra_content(djp,context)
         return djp.render_to_response(context)
     
-<<<<<<< HEAD
     def ajax_get_response(self, djp):
         return jservererror('AJAX GET RESPONSE NOT AVAILABLE', url = djp.url)
-=======
-    def default_post(self, djp):
-        '''Default post response handler.'''
-        raise NotImplementedError('Default Post view not implemented')
->>>>>>> abed7c4cb9b2a9692aa96d457fa8defb1e18a1b7
-    
+
     def get_response(self, djp):
         '''Get response handler.'''
         return self.handle_response(djp)

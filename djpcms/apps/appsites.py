@@ -12,6 +12,12 @@ from djpcms.models import BlockContent
 from djpcms.apps.included.contentedit import ContentSite
 
 
+class DummyDjp(object):
+    __slots__ = ('instance','kwargs')
+    def __init__(self,instance,kwargs):
+        self.instance = instance
+        self.kwargs = kwargs
+
 
 class ApplicationSite(ResolverMixin):
     '''
@@ -147,6 +153,7 @@ returns the application handler. If the appname is not available, it raises a Ke
         return None
     
     def get_url(self, model, view_name, instance = None, **kwargs):
+        '''Build a url from a model, a view name and optionally a model instance'''
         if not isinstance(model,type):
             instance = model
             model = instance.__class__
@@ -155,13 +162,10 @@ returns the application handler. If the appname is not available, it raises a Ke
             view = app.getview(view_name)
             if view:
                 try:
-                    return view.get_url(None, instance = instance, **kwargs)
+                    return view.get_url(DummyDjp(instance,kwargs))
                 except:
                     return None
         return None
-        
-    def count(self):
-        return len(self._registry)
     
     def _load_middleware(self):
         if self._request_middleware is None:

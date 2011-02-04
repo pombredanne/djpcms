@@ -61,7 +61,7 @@
 					if (typeof console != "undefined" && typeof console.debug != "undefined") {
 						console.log('$.djpcms: '+ s);
 						if(logging_pannel) {
-							logging_pannel.append('<p>'+s+'</p>');
+							logging_pannel.prepend('<p>'+s+'</p>');
 						}
 					} else {
 						//alert(s);

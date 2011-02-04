@@ -14,9 +14,8 @@ from djpcms.utils.ajax import jhtmls, jremove, dialog, jempty, jerror, jattribut
 from djpcms.utils.html import input, htmlcomp
 from djpcms.utils.uniforms import UniForm, FormLayout
 from djpcms.forms.cms import ContentBlockForm
-from djpcms.plugins import get_plugin
 from djpcms.plugins.extrawrappers import CollapsedWrapper
-from djpcms.views import appsite, appview, view_edited_url
+from djpcms.views import appsite, appview
 
 dummy_wrap = lambda d,b,x : x
 

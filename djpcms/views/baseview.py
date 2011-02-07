@@ -383,7 +383,7 @@ This view is never in navigation and it provides a hook for adding the edit page
     
     def has_permission(self, request = None, page = None, obj = None):
         if self._view.has_permission(request,page,obj):
-            return inline_editing(request, page, obj)
+            return permissions.editing(request, page, obj)
         else:
             return False
         

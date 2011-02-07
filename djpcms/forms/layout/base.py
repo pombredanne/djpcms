@@ -66,7 +66,8 @@ class FormLayout(BaseFormLayout):
         return rf
 
     def json_messages(self, f):
-        '''Convert errors in form into a JSON serializable dictionary with keys given by errors html id.'''
+        '''Convert errors in form into a JSON serializable dictionary with keys
+        given by errors html id.'''
         dfields = f._fields_dict
         ListDict = jhtmls()
         self._add(ListDict,dfields,f.errors,self.form_error_class)

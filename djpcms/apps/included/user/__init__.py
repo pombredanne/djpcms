@@ -7,8 +7,7 @@ permission = lambda self, request, obj: False if not request else request.user.i
 
 class UserApplication(appsite.ModelApplication):
     '''This is a special Application since it deals with users and therefore is everywhere.
-No assamtion has been taken of which model it is used for storing user data as long as
-there is a common interface for common operations.'''
+No assumption has been taken over which model is used for storing user data.'''
     name     = 'account'
     userpage = False
     form     = PasswordChangeForm
@@ -23,9 +22,11 @@ there is a common interface for common operations.'''
     add = appview.AddView(regex = 'create',
                           isplugin = True,
                           parent = 'home',
-                          form = HtmlForm(RegisterForm))
+                          form = HtmlForm(RegisterForm),
+                          force_redirect = True)
     
     def registration_done(self):
+        '''Set the user model in the application site'''
         self.application_site.User = self.opts
     
     def objectbits(self, obj):

@@ -2,6 +2,8 @@ import sys
 import logging
 from datetime import datetime
 
+from py2py3 import to_string
+
 from djpcms import sites, forms
 from djpcms.core import messages
 from djpcms.core.orms import mapper
@@ -23,6 +25,15 @@ def next_and_current(request):
     if next:
         next = request.build_absolute_uri(next)
     return next,curr
+
+
+def set_request_message(f, request):
+    if '__all__' in f.errors:
+        for msg in f.errors['__all__']:
+            messages.error(request,msg)
+    if '__all__' in f.messages:
+        for msg in f.messages['__all__']:
+            messages.info(request,msg)
 
 
 def form_kwargs(request,
@@ -180,7 +191,8 @@ def saveform(djp, editing = False, force_redirect = False):
     curr = request.environ.get('HTTP_REFERER')
     next = get_next(request)
     fhtml = view.get_form(djp)
-    json_messages = fhtml.layout.json_messages
+    
+    layout = fhtml.layout
     f = fhtml.form
     
     if POST.has_key("_cancel"):
@@ -201,13 +213,14 @@ def saveform(djp, editing = False, force_redirect = False):
         instance = view.save(request, f)
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
-        f.request_message(request, msg)
+        f.add_message(msg)
         
         # Save and continue. Redirect to referer if not AJAX or send messages 
         if POST.has_key('_save_and_continue'):
             if is_ajax:
-                return json_messages(f)
+                return layout.json_messages(f)
             else:
+                set_request_message(f,request)
                 return http.HttpResponseRedirect(curr)
 
         # Check redirect url
@@ -218,17 +231,17 @@ def saveform(djp, editing = False, force_redirect = False):
         # not forcing redirect. Check if we can send a JSON message
         if not force_redirect:
             if redirect_url == curr and is_ajax:
-                return json_messages(f)
+                return layout.json_messages(f)
             
         # We are Redirecting
+        set_request_message(f,request)
         if is_ajax:
-            f.force_message(request)
             return jredirect(url = redirect_url)
         else:
             return http.HttpResponseRedirect(redirect_url)
     else:
         if is_ajax:
-            return json_messages(f)
+            return layout.json_messages(f)
         else:
             return view.handle_response(djp)
         

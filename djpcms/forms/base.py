@@ -4,12 +4,11 @@ Several parts are originally from django
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems, to_string
+from py2py3 import iteritems
 
 from djpcms import nodata
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
-from djpcms.core import messages
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 
@@ -223,23 +222,16 @@ Messages can be errors or not.
             self.factory.layout = layout
         return layout.render(self)
     
+    def add_message(self, msg):
+        self.form_message(self.messages, '__all__', msg)
+        
+    def add_error(self, msg):
+        self.form_message(self.errors, '__all__', msg)
+    
     def save(self, commit = True):
         '''Save the form. This method works if an instance or a model is available'''
         self.mapper.save(self.cleaned_data, self.instance, commit)
         
-    def request_message(self, request, msg, error = False):
-        '''A tool for adding request messages'''
-        msg = to_string(msg)
-        if msg:
-            if error:
-                self.form_message(self.errors,'__all__',msg)
-                if not request.is_xhr:
-                    messages.error(request,msg)
-            else:
-                self.form_message(self.messages,'__all__',msg)
-                if not request.is_xhr:
-                    messages.info(request,msg)
-        return self
 
 class HtmlForm(object):
     '''An HTML class Factory Form used for grouping a :class:`Form` class, a

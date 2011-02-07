@@ -21,3 +21,4 @@ class CreateRootPageAndUser(object):
                 if not user.is_superuser():
                     user.superuser = True
                     user.save()
+

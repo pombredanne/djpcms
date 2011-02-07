@@ -1,5 +1,6 @@
 import datetime
 from djpcms.core.exceptions import ApplicationNotAvailable
+from djpcms.core.messages import get_messages
 
 
 def djpcms(request):
@@ -26,3 +27,10 @@ def djpcms(request):
         except ApplicationNotAvailable:
             pass
     return ctx
+
+
+def messages(request):
+    """Returns a lazy 'messages' context variable.
+    """
+    return {'messages': get_messages(request)}
+

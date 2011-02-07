@@ -58,17 +58,12 @@ class TestLoader(unittest.TestLoader):
     
     def loadTestsFromModules(self, modules, itags = None):
         """Return a suite of all tests cases contained in the given module"""
-        itags = itags or []
-        tests = []
+        from django.db.models import get_app
+        suite = self.suiteClass()
         for module in modules:
-            for name in dir(module):
-                obj = getattr(module, name)
-                if (isclass(obj) and issubclass(obj, self.testClass)):
-                    tag = getattr(obj,'tag',None)
-                    if tag and not tag in itags:
-                        continue
-                    tests.append(self.loadTestsFromTestCase(obj))
-        return self.suiteClass(tests)
+            app = get_app(module.split('.')[-1])
+            suite.addTest(build_suite(app))
+        return suite
     
 
 class TestSuiteRunner(object):
@@ -79,6 +74,7 @@ class TestSuiteRunner(object):
         self.verbosity = verbosity
         self.interactive = interactive
         self.failfast = failfast
+        setup_logging(self.verbosity)
 
     def setup_test_environment(self, **kwargs):
         self.environment = TestEnvironment(self)
@@ -109,7 +105,6 @@ class TestSuiteRunner(object):
         return loader.loadTestsFromModules(modules)
     
     def run_suite(self, suite, **kwargs):
-        env = self.env
         for test in suite:
             test.set_env(self.env)
         return self.TextTestRunner(verbosity=self.verbosity).run(suite)
@@ -136,7 +131,6 @@ class TestSuiteRunner(object):
 
         Returns the number of tests that failed.
         """
-        setup_logging(self.verbosity)
         self.env = env = self.setup_test_environment()
         suite = self.build_suite(modules)
         env.setupdb()

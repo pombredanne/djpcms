@@ -12,7 +12,7 @@ from djpcms.core.exceptions import *
 
 from BeautifulSoup import BeautifulSoup
 
-from .client import Client
+from django.test import Client
 
 
 class TestCase(unittest.TestCase):

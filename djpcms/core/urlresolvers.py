@@ -95,7 +95,7 @@ method'''
                 if not url.startswith('/'):
                     url = '/%s' % url
                 qs = environ['QUERY_STRING']
-                if qs and environ['method'] == 'GET':
+                if qs and environ['REQUEST_METHOD'] == 'GET':
                     url = '{0}?{1}'.format(url,qs)
                 return self.http.HttpResponseRedirect(url)
         return url

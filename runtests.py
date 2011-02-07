@@ -2,6 +2,7 @@
 import os
 import sys
 from optparse import OptionParser
+import djpcms
 
 def makeoptions():
     parser = OptionParser()
@@ -14,8 +15,6 @@ def makeoptions():
     return parser
 
 if __name__ == '__main__':
-    import djpcms
-    import sys
     options, tags = makeoptions().parse_args()
     verbosity = options.verbosity
     

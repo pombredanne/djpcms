@@ -26,7 +26,6 @@ ALL_TEST_PATHS = (TESTS_DIR,CONTRIB_DIR)
 
 
 def get_tests():
-    tests = []
     join  = os.path.join
     for dirpath in ALL_TEST_PATHS:
         loc = os.path.split(dirpath)[1]
@@ -60,29 +59,13 @@ def import_tests(tags, settings):
             if model_label not in apps:
                 if app in apptests:
                     raise ValueError('Application {0} already available in testsing'.format(model_name))
-                apptests.append(app)
+                apptests.append(model_label)
                 apps.append(model_label)
     return apptests
 
-
-def setup_logging(verbosity, settings):
-    LOGGING = settings.LOGGING
-    LOGGING['loggers'] = {}
-    root = {}
-    LOGGING['root'] = root
-    level = LOGGING_MAP.get(verbosity,None)
-    if level is None:
-        root['handlers'] = ['silent']
-    else:
-        root['handlers'] = ['console']
-        root['level'] = level
-    djpcms.init_logging(True)
-
         
 def run(tags = None, verbosity = 1, interactive = True, failfast = False):
-    setup_logging(verbosity, site.settings)
     apptests = import_tests(tags, site.settings)
-    
     test_runner = TestSuiteRunner(verbosity=verbosity,
                                   interactive=True,
                                   failfast=failfast)

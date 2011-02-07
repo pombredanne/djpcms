@@ -243,7 +243,7 @@ return the wrapper with the underlying view.'''
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
-                 b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
+                b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
             d['breadcrumbs'] = b
         template_file = template_file or self.template_file
         

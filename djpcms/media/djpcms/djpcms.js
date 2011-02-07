@@ -30,6 +30,9 @@
 			var jsonCallBacks = {};
 			var logging_pannel = null;
 			
+			var INFO = "INFO";
+			var ERROR = "ERROR";
+			
 			this.inrequest = false;
 	
 			this.options = {
@@ -50,23 +53,25 @@
 				//tabs:			   {cookie: {expiry: 7}},
 				tablesorter:	   {widgets:['zebra','hovering']},
 				debug:			   false
-			};
-			
+			};			
 			function set_logging_pannel(panel) {
 				logging_pannel = panel;
 			}
 			
-			this.log = function(s) {
+			function log(msg, level) {
+				msg = level ? level : INFO + ': ' + msg;
 				if($.djpcms.options.debug) {
 					if (typeof console != "undefined" && typeof console.debug != "undefined") {
-						console.log('$.djpcms: '+ s);
-						if(logging_pannel) {
-							logging_pannel.prepend('<p>'+s+'</p>');
-						}
-					} else {
-						//alert(s);
+						console.log(msg);
 					}
 				}
+				if(logging_pannel) {
+					logging_pannel.prepend('<p>'+msg+'</p>');
+				}
+			}
+			
+			function error(msg) {
+				log(msg,'ERROR');
 			}
 			
 			this.postparam = function(name) {
@@ -109,9 +114,20 @@
 			 * @param status String status flag
 			 * @param elem (Optional) jQuery object or HTMLObject
 			 */
-			this.jsonCallBack = function(data, status, elem) {
+			function jsonParse(data, elem) {
+				var id  = data.header;
+				var jcb = jsonCallBacks[id];
+				if(jcb) {
+					return jcb.handle(data.body, elem) & data.error;
+				}
+				else {
+					error('Could not find callback ' + id)
+				}
+			};
+			
+			function jsonCallBack(data, status, elem) {
 				if(status == "success") {
-					v = this.jsonParse(data,elem);
+					v = jsonParse(data,elem);
 				}
 				else {
 					v = false;
@@ -120,18 +136,12 @@
 				return v;
 			};
 			
-			
-			this.jsonParse = function(data, elem) {
-				var id  = data.header;
-				var jcb = jsonCallBacks[id];
-				if(jcb) {
-					return jcb.handle(data.body, elem) & data.error;
-				}
-				else {
-					$.djpcms.log('Could not find callback ' + id)
-				}
-			};
-			
+			/**
+			 * API
+			 */
+			this.log = log;
+			this.jsonParse = jsonParse;
+			this.jsonCallBack = jsonCallBack;
 			/**
 			 * DJPCMS Handler constructor
 			 */
@@ -146,7 +156,7 @@
 					}
 					
 					$.each(decorators,function(id,decorator) {
-						djp.log(this + ' - adding decorator ' + decorator.id);
+						djp.log('adding decorator ' + decorator.id);
 						decorator.decorate(me,config);
 					});						
 				});

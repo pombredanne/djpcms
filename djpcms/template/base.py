@@ -69,6 +69,11 @@ class BaseTemplateHandler(object):
     def mark_safe(self, html):
         return handle().mark_safe(html)
     
+    def render(self, template_name, dictionary, autoescape=False):
+        return handle().render(template_name,
+                               dictionary,
+                               autoescape=autoescape)
+        
     def render_to_string(self, template_name, dictionary=None, context_instance=None):
         return handle().render_to_string(template_name,
                                          dictionary=dictionary,

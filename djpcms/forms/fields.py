@@ -3,7 +3,7 @@ from copy import copy, deepcopy
 from djpcms import sites, nodata
 
 from .globals import *
-from .html import TextInput
+from .html import TextInput, CheckboxInput
 
 __all__ = ['Field',
            'CharField',
@@ -160,7 +160,8 @@ class ChoiceField(Field):
     
     
 class BooleanField(Field):
-
+    widget = CheckboxInput
+    
     def _clean(self, value):
         """Returns a Python boolean object."""
         if value in ('False', '0'):

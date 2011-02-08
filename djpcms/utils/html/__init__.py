@@ -25,7 +25,7 @@ def box(hd = None, bd = None, ft = None, minimize = False, rounded = True,
          'ft': None if not ft else ft,
          'menulist': menulist,
          'classes': ' '.join(classes)}
-    return loader.render_to_string(['box.html',
-                                    'content/box.html',
-                                    'djpcms/content/box.html'], c)
+    return loader.render(['box.html',
+                          'content/box.html',
+                          'djpcms/content/box.html'],c)
     

@@ -243,6 +243,13 @@ class ContentBlockForm(forms.Form):
 # Short Form for a Page. Used only for editing an existing page
 class ShortPageForm(forms.Form):
     '''Form to used to edit inline a page'''
+    title = forms.CharField(label = 'Page title')
+    link = forms.CharField(label = 'Text to display in links')
+    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.')
+    requires_login = forms.BooleanField()
+    soft_root = forms.BooleanField()
+    #inner_template = 
+    #cssinfo = 
     #view_permission = forms.ModelMultipleChoiceField(queryset = Group.objects.all(), required = False)
     
     #layout = FormLayout(Columns(('title','inner_template','in_navigation','requires_login'),
@@ -254,21 +261,12 @@ class ShortPageForm(forms.Form):
         if page.pk:
             ObjectPermission.objects.set_view_permission(page, groups = pe)
         return page
-    
-    #class Meta:
-    #    model = Page
-    #    fields = ['link','title','inner_template','cssinfo',
-    #              'in_navigation','requires_login','soft_root']
-        
-    submits = (('change', '_save'),)
 
 
 class NewChildForm(forms.Form):
     #url_pattern = forms.CharField(label = 'New child page url', required = True)
    # 
     #layout = FormLayout(Fieldset('url_pattern', css_class = inlineLabels))
-    
-    submits = (('create', '_child'),)
     
     #class Meta:
     #    model = Page
@@ -308,6 +306,16 @@ def _getid(obj):
     else:
         return obj
         
+
+ChildFormHtml = forms.HtmlForm(
+    NewChildForm,
+    submits = (('create', '_child'),)
+)
+
+PageFormHtml = forms.HtmlForm(
+    ShortPageForm,
+    submits = (('change', '_save'),)
+)
 
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,

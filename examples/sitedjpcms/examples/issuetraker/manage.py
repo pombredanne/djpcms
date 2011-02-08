@@ -22,13 +22,15 @@ from djpcms.apps.management import execute
 
 def appurls():
     from djpcms import sites
-    from djpcms.apps.included import user, static
+    from djpcms.apps.included import user, static, contentedit
     from stdnet.contrib.sessions.models import User
+    from djpcms.models import Page
     from .application import IssueTraker, Issue
     
     return (
             static.Static(sites.settings.MEDIA_URL, show_indexes=True),
             user.UserApplication('/accounts/', User),
+            contentedit.PageApplication('/edit-content/', Page),
             IssueTraker('/',Issue),
             )
 

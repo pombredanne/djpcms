@@ -143,13 +143,11 @@ def get_form(djp,
     data = request.data_dict
     prefix = data.get('_prefixed',None)
     save_as_new = data.has_key('_save_as_new')
-    
-    if withinputs:
-        inputs = getattr(form_factory,'submits',None)
-        if inputs:
-            inputs = [input(value = val, name = nam) for val,nam in inputs]
-        elif addinputs:
-            inputs = addinputs(instance, own_view)
+    submits = form_factory.submits
+    if submits:
+        inputs = [forms.SubmitInput(value = val, name = nam) for val,nam in submits]
+    elif addinputs:
+        inputs = addinputs(instance, own_view)
     else:
         inputs = []
         

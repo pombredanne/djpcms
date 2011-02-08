@@ -112,14 +112,18 @@ class FormLayoutElement(BaseFormLayout):
         widget = field.field.widget
         if isclass(widget):
             widget = widget()
+        self.add_widget_classes(field,widget)
         ctx = {'label': None if self.default_style == nolabel else field.label,
                'required_tag': self.required_tag or layout.required_tag,
                'field':field,
                'error': form.errors.get(field.name,''), 
-               'widget':widget.render_from_field(field)}
+               'widget':widget.render_from_field(field),
+               'ischeckbox':widget.ischeckbox()}
         field_template = self.field_template or layout.field_template
         return loader.render_to_string(field_template,ctx)
 
+    def add_widget_classes(self, field, widget):
+        pass
 
 
 class Html(FormLayoutElement):

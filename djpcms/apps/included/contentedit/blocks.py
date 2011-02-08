@@ -10,9 +10,10 @@ from djpcms.core.exceptions import PermissionDenied
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls, jremove, dialog, jempty
 from djpcms.utils.ajax import jerror, jattribute, jcollection
-from djpcms.forms.cms import ContentBlockForm
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.views import appsite, appview
+
+from .forms import ContentBlockForm
 
 dummy_wrap = lambda d,b,x : x
 
@@ -391,7 +392,6 @@ The url is given by the ContentBlocks models
 class ContentSite(appsite.ModelApplication):
     '''AJAX enabled applications for changing content of a page.'''
     form        = ContentBlockForm
-    form_layout = 'onecolumn'
     hidden      = True
     
     edit        = ChangeContentView()

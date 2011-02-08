@@ -1,7 +1,8 @@
 {% if field.is_hidden %}{{ field }}{% else %}
 <div class="ctrlHolder{% if error %} error{% endif %}{% if field.field.required %} {{ required }}{% endif %}">
 	<div id="{{ field.errors_id }}">{{ errors }}
-    </div>{% if widget.ischeckbox %}
+    </div>{% if ischeckbox %}
+    <p class="label"></p>
     <label for="{{ field.id }}">
      {{ widget }}{% if label %}
       {{ label }}{% endif %}

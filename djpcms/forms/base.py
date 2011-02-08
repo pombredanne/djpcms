@@ -236,10 +236,11 @@ Messages can be errors or not.
 class HtmlForm(object):
     '''An HTML class Factory Form used for grouping a :class:`Form` class, a
     form :class:`Layout` instance and a model class.'''
-    def __init__(self, form_class, layout = None, model = None):
+    def __init__(self, form_class, layout = None, model = None, submits = None):
         self.form_class = form_class
         self._layout = layout
         self.model = model
+        self.submits = submits
         
     def __get_layout(self):
         layout = self._layout

@@ -12,6 +12,10 @@ blockLabels2   = 'blockLabels2'
 inlineFormsets = 'blockLabels2'
 
 
+WIDGET_CLASSES = {'CharField': 'textInput',
+                  'DateField': 'dateInput'}
+
+
 def default_csrf():
     return 'django.middleware.csrf.CsrfViewMiddleware' in sites.settings.MIDDLEWARE_CLASSES
 
@@ -23,7 +27,15 @@ def get_rendered_fields(form):
     return rf
 
 
-class Fieldset(FormLayoutElement):
+class UniFormElement(FormLayoutElement):
+            
+    def add_widget_classes(self, field, widget):
+        cls = field.field.__class__.__name__
+        if cls in WIDGET_CLASSES:
+            widget.addClass(WIDGET_CLASSES[cls])
+
+
+class Fieldset(UniFormElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
     tag = 'fieldset'
     
@@ -42,6 +54,7 @@ class Fieldset(FormLayoutElement):
             return self.legend_html + '\n' + html
         else:
             return html
+      
 
 
 class Row(Fieldset):
@@ -50,7 +63,7 @@ class Row(Fieldset):
     elem_css = "formRow"
 
 
-class Columns(FormLayoutElement):
+class Columns(UniFormElement):
     '''A :class:`FormLayoutElement` whiche defines a set of columns. Renders to a set of <div>.'''
     elem_css  = "formColumn"
     templates = {2: 'djpcms/yui/yui-simple.html',
@@ -116,6 +129,4 @@ This function is called by an instance of
         ctx['messages'] = ''
         
         return loader.render_to_string(self.template, ctx)
-        
-    
-      
+        

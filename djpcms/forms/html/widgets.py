@@ -7,6 +7,7 @@ __all__ = ['TextInput',
            'SubmitInput',
            'HiddenInput',
            'PasswordInput',
+           'CheckboxInput',
            'List']
 
 class TextInput(HtmlWidget):
@@ -29,6 +30,13 @@ class HiddenInput(TextInput):
     
 class PasswordInput(TextInput):
     attributes = merge_dict(TextInput.attributes, {'type':'password'})
+    
+
+class CheckboxInput(TextInput):
+    attributes = merge_dict(TextInput.attributes, {'type':'checkbox'})
+    
+    def ischeckbox(self):
+        return True
     
 
 class List(HtmlWidget,list):

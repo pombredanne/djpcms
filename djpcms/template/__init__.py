@@ -1,7 +1,7 @@
 import json
-from .base import handle, BaseTemplateHandler
+from .base import handle, BaseTemplateHandler, TemplateHandler
 
-loader = BaseTemplateHandler()
+loader = TemplateHandler()
 
 # Default Implementation
 mark_safe = loader.mark_safe

@@ -1,5 +1,9 @@
 import logging
-import sys
+
+try:
+    range = xrange
+except:
+    pass
 
 import djpcms
 from djpcms.utils.ajax import jservererror, jredirect
@@ -24,6 +28,20 @@ and a Page instance, it calculates a new response object.'''
         return view(djp.request)
     else:
         return None
+    
+
+def page_edit_url(djp):
+    site = djp.site 
+    page = djp.page
+    request = djp.request
+    kwargs = {'path':request.path[1:]}
+    if djp.has_own_page():
+        if djp.site.has_permission(djp.request,djpcms.CHANGE,page):
+            return site.get_url(page.__class__,'change',**kwargs)
+    else:
+        if djp.site.has_permission(djp.request,djpcms.ADD,page):
+            return site.get_url(page.__class__,'add',**kwargs)
+        
 
 
 # THE DJPCMS BASE CLASS for handling views
@@ -137,6 +155,7 @@ Hooks:
 * *extra_response*: for more.'''
         # Get page object and template_name
         request = djp.request
+        site    = request.site
         http    = request.site.http
         page    = djp.page
         inner_template  = None
@@ -149,14 +168,15 @@ Hooks:
             
         if page:
             inner_template = page.inner_template
-            if not self.editurl and djp.has_own_page():
-                context['edit_content_url'] = request.site.has_permission(request,djpcms.CHANGE,page)
+            if not inner_template:
+                inner_template = site.add_default_inner_template(page)
+            if not self.editurl:
+                context['edit_content_url'] = page_edit_url(djp)
             
         if inner_template:
             cb = {'djp':  djp,
                   'grid': grid}
-            blocks = page.inner_template.numblocks()
-            for b in range(0,blocks):
+            for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(djp, b)
             
             # Call the inner-template renderer

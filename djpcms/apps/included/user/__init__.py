@@ -24,7 +24,8 @@ No assumption has been taken over which model is used for storing user data.'''
     add = appview.AddView(regex = 'create',
                           isplugin = True,
                           parent = 'home',
-                          form = HtmlForm(RegisterForm),
+                          form = HtmlForm(RegisterForm,
+                                          submits = (('Create','create_user'),)),
                           force_redirect = True)
     
     def registration_done(self):

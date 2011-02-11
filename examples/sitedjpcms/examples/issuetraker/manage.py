@@ -41,6 +41,7 @@ def build():
                     USER_MODEL = 'issuetraker.models.User',
                     CMS_ORM = 'stdnet',
                     TEMPLATE_ENGINE = 'django',
+                    DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
                     INSTALLED_APPS = ('djpcms',
                                       'issuetraker',
                                       'stdnet.contrib.sessions',

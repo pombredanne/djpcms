@@ -1,4 +1,4 @@
-from djpcms.core.api import get_root, create_page
+from djpcms.apps.included.contentedit import get_root, create_page
 
 
 class CreateRootPageAndUser(object):
@@ -18,6 +18,6 @@ class CreateRootPageAndUser(object):
             elif users.count() == 1:
                 user = users[0]
                 if not user.is_superuser:
-                    user.superuser = True
+                    user.is_superuser = True
                     user.save()
 

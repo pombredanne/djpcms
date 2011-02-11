@@ -21,21 +21,6 @@ class TemplateHandler(LibraryTemplateHandler):
             loader = self.find_template_loader(code,args)
             env = jinja2.Environment(loader=loader)
             envs.append(env)
-            
-    def find_template_loader(self, code, args):
-        bits = code.split('.')
-        module, attr = '.'.join(bits[:-1]),bits[-1]
-        try:
-            mod = import_module(module)
-        except ImportError as e:
-            raise ImproperlyConfigured('Error importing template source loader {0}: "{1}"'.format(module, e))
-        try:
-            TemplateLoader = getattr(mod, attr)
-        except AttributeError as e:
-            raise ImproperlyConfigured('No template loader attribute {0} in {1}: "{2}"'.format(attr, module, e))
-
-        fargs = [arg if not hasattr(arg,'__call__') else arg() for arg in args]
-        return TemplateLoader(*fargs)
     
     def render_to_string(self, template_name, vars = None):
         """
@@ -53,7 +38,7 @@ class TemplateHandler(LibraryTemplateHandler):
     def get_template(self, template_name):
         for env in self.envs:
             return env.get_template(template_name)
-        raise jinja2.TemplateNotFound(name)
+        raise jinja2.TemplateNotFound(template_name)
     
     def select_template(self, template_name_list):
         "Given a list of template names, returns the first that can be loaded."

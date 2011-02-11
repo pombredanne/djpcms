@@ -14,8 +14,9 @@ class PageApplication(appsite.ModelApplication):
     form  = ShortPageForm
     
     main = appview.SearchView()
-    editroot = editPageView(regex = 'route', parent = 'main')
-    edit = editPageView(regex = '(?P<path>[\w./-]*)', splitregex = False, parent = 'editroot')
+    changeroot = editPageView(regex = 'route', parent = 'main')
+    change = editPageView(regex = '(?P<path>[\w./-]*)', splitregex = False,
+                          parent = 'changeroot')
     
     def get_object(self, request, **kwargs):
         url = '/'

@@ -29,15 +29,11 @@ def get_engine(engine, config = None):
 
 
 class BaseTemplateHandler(object):
-
+    '''Base class for template handlers'''
+    TemplateDoesNotExist = None
+    
     def setup(self):
         raise NotImplementedError
-    
-    def get_processors(self, request):
-        site = request.site
-        
-        processors = request.site.settings.TEMPLATE_CONTEXT_PROCESSORS
-        return ()
     
     def context(self,
                 dict=None, request = None,
@@ -51,6 +47,31 @@ class BaseTemplateHandler(object):
             for processor in site_processors:
                 c.update(processor(request))
         return c
+    
+    def loaders(self):
+        '''List of template loaders for thie library'''
+        raise NotImplementedError
+    
+    def render(self, template_name, dictionary, autoescape=False):
+        '''Render a template name'''
+        raise NotImplementedError
+    
+    def template_variables(self, template_name):
+        '''Return an iterable over the template variables'''
+        raise NotImplementedError
+    
+    def load_template_source(self, template_name, dirs=None):
+        '''Load the template source and return a tuple containing the
+        template content and the template location'''
+        for loader in self.loaders():
+            try:
+                return loader.load_template_source(template_name, dirs)
+            except self.TemplateDoesNotExist:
+                pass
+        raise self.TemplateDoesNotExist            
+    
+
+class TemplateHandler(BaseTemplateHandler):
     
     @property
     def template_class(self):
@@ -69,6 +90,14 @@ class BaseTemplateHandler(object):
     def mark_safe(self, html):
         return handle().mark_safe(html)
     
+    def loaders(self):
+        return handle().loaders()
+    
+    def find_template(self, template_name, **dirs):
+        '''Returns a tuple containing the source and origin for the given template
+        name.'''
+        return handle().find_template(template_name, **dirs)
+    
     def render(self, template_name, dictionary, autoescape=False):
         return handle().render(template_name,
                                dictionary,
@@ -78,6 +107,12 @@ class BaseTemplateHandler(object):
         return handle().render_to_string(template_name,
                                          dictionary=dictionary,
                                          context_instance=context_instance)
+        
+    def load_template_source(self, template_name, dirs=None):
+        return handle().load_template_source(template_name, dirs)
+    
+    def template_variables(self, template_name):
+        return handle().template_variables(template_name)
     
 
 class LibraryTemplateHandler(BaseTemplateHandler):
@@ -87,6 +122,12 @@ class LibraryTemplateHandler(BaseTemplateHandler):
     def __init__(self, config):
         self.config = config
         self.setup()
+
+    def setup(self):
+        raise NotImplementedError
+            
+    def find_template(self, template_name, **dirs):
+        raise NotImplementedError
     
     
 _handlers = {}

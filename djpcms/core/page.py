@@ -1,11 +1,17 @@
 import sys
+import re
 import logging
 
+import djpcms
 from djpcms import sites
-from djpcms.template import escape
+from djpcms.utils import force_str
+from djpcms.template import loader, escape
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 import djpcms.contrib.flowrepo.markups as markuplib
+
+
+contentre = re.compile('{{ content\d }}')
 
 
 def block_htmlid(pageid, block):
@@ -82,12 +88,16 @@ class TemplateInterface(object):
     def render(self, c):
         '''Render the inner template given the context ``c``.
         '''
-        return Template(self.template).render(c)
+        return loader.template_class(self.template).render(c)
     
     def numblocks(self):
         '''Number of ``blocks`` within template.'''
         bs = self.blocks.split(',')
         return len(bs)
+    
+    def blocks_from_content(self):
+        cs = contentre.findall(self.template)
+        self.blocks = ','.join((c[3:-3] for c in cs))
     
 
 class BlockInterface(object):
@@ -100,10 +110,11 @@ This function call the plugin render function and wrap the resulting HTML
 with the wrapper callable.'''
         html = ''
         try:
+            site = djp.site
             plugin  = plugin or self.plugin
             wrapper = wrapper or self.wrapper
             if plugin:
-                if has_permission(djp.request.user,get_view_permission(self), self):
+                if site.has_permission(djp.request,djpcms.VIEW, self):
                     djp.media += plugin.media
                     html = plugin(djp, self.arguments, wrapper = wrapper)
         except Exception as e:
@@ -154,6 +165,35 @@ with the wrapper callable.'''
             return None
     
     
+class BlockContentManager(object):
+    
+    def for_page_block(self, page, block):
+        '''Get contentblocks for a given page and block
+        @param page: instance of a page model
+        @param block: integer indicating the block number
+        @return: a queryset  
+        '''
+        blockcontents = self.filter(page = page, block = block)
+        create = False
+        pos = None
+
+        # No contents, create an empty one
+        if not blockcontents:
+            create = True
+            pos    = 0
+        # Last content has a plugin. Add another block
+        elif blockcontents[-1].plugin_name:
+            create = True
+            pos = blockcontents[-1].position + 1
+            
+        if create:
+            bc = self.model(page = page, block = block, position = pos)
+            bc.save()
+            return self.filter(page = page, block = block)
+        else:
+            return blockcontents
+    
+    
 class MarkupMixin(object):
     
     def htmlbody(self):
@@ -164,7 +204,7 @@ class MarkupMixin(object):
         if mkp:
             handler = mkp.get('handler')
             text = handler(text)
-            text = mark_safe(force_str(text))
+            text = loader.mark_safe(force_str(text))
         return text
     
     

@@ -1,23 +1,19 @@
 {% extends "djpcms/base.html" %}
-{% block body-container-bits %} class="{{ grid.container_class }}"{% endblock %}
-{% block site-content-class %}{% endblock %}
 
-{% block pre-banner %}
+{% block site-header %}
 <div id="site-navigation-banner" class="topnav {{ grid.column1 }}">
 {% include "djpcms/bits/usernav.html" %}
 </div>
-{{ grid.clear }}{% endblock %}
-
-{% block branding-banner %}
+{{ grid.clear }}
 <div class="{{ grid.column1 }}">
- <h1><a href="/">{{ foruser.fullname }}</a></h1>
+ <h1><a href="/">Issue Tracker</a></h1>
  <div class="nav-container">
   {{ sitenav.render }}
  </div>
 </div>
 {{ grid.clear }}{% endblock %}
 
-{% block page-footer %}
+{% block site-footer %}
 <div id="footer" class="{{ grid.column1 }}">
 Copyright &copy; 2009-{{ now.year }}.
 <br{{ htmldoc.slash }}>

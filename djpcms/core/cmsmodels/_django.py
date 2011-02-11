@@ -51,15 +51,10 @@ class InnerTemplate(TimeStamp):
     class Meta:
         app_label = 'djpcms'
     
-    def render(self, c):
-        '''Render the inner template given the context ``c``.
-        '''
-        return loader.Template(self.template).render(c)
-        
-    def numblocks(self):
-        '''Number of ``blocks`` within template.'''
-        bs = self.blocks.split(',')
-        return len(bs)
+    def save(self):
+        if not self.blocks:
+            self.blocks = self.get_blocks()
+        super(InnerTemplate,self).save()
     
     
 class CssPageInfo(TimeStamp):

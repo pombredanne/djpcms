@@ -3,7 +3,8 @@ from datetime import datetime
 from stdnet import orm
 
 from djpcms.core.page import PageInterface, BlockInterface,\
-                             TemplateInterface, MarkupMixin
+                             TemplateInterface, MarkupMixin,\
+                             BlockContentManager
 from djpcms.utils import force_str, html
 
 
@@ -47,6 +48,11 @@ class InnerTemplate(TimeStamp,TemplateInterface):
         
     def __unicode__(self):
         return u'%s' % self.name
+    
+    def save(self):
+        if not self.blocks:
+            self.blocks_from_content()
+        return super(InnerTemplate,self).save()        
     
     class Meta:
         app_label = 'djpcms'
@@ -160,6 +166,10 @@ class Page(TimeStamp, PageInterface):
             return b
         else:
             return blocks.get(position = position)
+            
+    
+class BlockManager(orm.Manager,BlockContentManager):
+    pass
 
 
 class BlockContent(ModelBase, BlockInterface):
@@ -175,6 +185,8 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
     title          = field.CharField(required = False)
     for_not_authenticated = field.BooleanField(default = False, index = False)
     requires_login = field.BooleanField(default = False, index = False)
+    
+    objects = BlockManager()
     
     class Meta:
         app_label = 'djpcms'

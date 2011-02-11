@@ -489,7 +489,8 @@ A view of this type has an embedded object available which is used to generate t
         if instance:
             kwargs.update(self.appmodel.objectbits(instance))
         else:
-            instance = self.appmodel.get_object(djp)
+            request = getattr(djp,'request',None)
+            instance = self.appmodel.get_object(request, **kwargs)
             djp.kwargs['instance'] = instance  
         
         if not instance:

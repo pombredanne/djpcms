@@ -1,0 +1,17 @@
+#page-header {
+	background-image: -moz-linear-gradient(top, #fff, #dcdcdc);
+	background-image: linear-gradient(top, #fff, #dcdcdc);
+}
+#site-body {
+	min-height: 500px;
+}
+#page-footer {
+	text-align: center;
+	min-height: 200px;
+    background-image: -moz-linear-gradient(top, #dcdcdc, #fff);
+    background-image: linear-gradient(top, #dcdcdc, #fff);
+}
+#page-header h1 a {
+	font-size: inherit;
+	font-weight: bold;
+}

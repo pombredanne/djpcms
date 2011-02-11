@@ -20,9 +20,10 @@ TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
 DJPCMS_WEB_FRAMEWORK = None
 HTTP_LIBRARY = None
 CMS_ORM = None
-TEMPLATE_ENGINE = None
+TEMPLATE_ENGINE = None # django, jinja2
 MEDIA_URL = '/media/'
 DEFAULT_TEMPLATE_NAME = ['base.html','djpcms/base.html']
+DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 
 # django settings
 ROOT_URLCONF                    = 'djpcms.apps.djangosite.defaults.urls' # default value for django

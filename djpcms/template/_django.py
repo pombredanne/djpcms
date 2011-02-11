@@ -7,6 +7,7 @@ from .base import LibraryTemplateHandler
 
 
 class TemplateHandler(LibraryTemplateHandler):
+    TemplateDoesNotExist = loader.TemplateDoesNotExist
     
     def setup(self):
         self.mark_safe = safestring.mark_safe
@@ -15,6 +16,7 @@ class TemplateHandler(LibraryTemplateHandler):
         self.escape = html.escape
         self.conditional_escape = html.conditional_escape
         self.get_processors = context.get_standard_processors
+        self.find_template = loader.find_template
         
     def get_template(self, template_name):
         if isinstance(template_name, (list, tuple)):
@@ -31,7 +33,23 @@ class TemplateHandler(LibraryTemplateHandler):
             context_instance = Context(dictionary)
         return t.render(context_instance)
 
+    def loaders(self):
+        '''Django sucks, since it does not have a function to return theloaders'''
+        if loader.template_source_loaders is None:
+            try:
+                loader.find_template('')
+            except self.TemplateDoesNotExist:
+                pass
+        return loader.template_source_loaders
+    
     def render(self, template_name, dictionary=None, autoescape = False):
         context_instance = Context(dictionary, autoescape = autoescape)
         t = self.get_template(template_name)
         return t.render(context_instance)
+    
+    def template_variables(self, template_name):
+        t = self.get_template(template_name)
+        for node in t:
+            yield node
+        
+

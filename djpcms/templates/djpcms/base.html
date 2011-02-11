@@ -1,15 +1,15 @@
-{# BATTERY INCLUDED TEMPLATE FOR QUICK DEVELOPMENT #}
+{# BATTERY INCLUDED SIMPLE TEMPLATE FOR QUICK DEVELOPMENT #}
 {# YOU NEED TO DEFINE YOUR root.html TEMPLATE TO USE THIS #}
 {% extends "root.html" %}{% load djpcmstags %}
 
 {% block html-container %}{% if not is_popup %}
-<div id="page-header">{% block pre-banner %}{% endblock %} 
- <div id="branding-banner">{% block branding-banner %}{% endblock %}
- </div>{% block post-banner %}{% endblock %}
+<div id="page-header">
+<div id="site-header" {% block site-header-class %} class="{{ grid.container_class }}"{% endblock %}>
+{% block site-header %}{% endblock %}</div>
 </div>{% endif %}
 
 <div id="page-body">
- <div id="site-content"{% block site-content-class %} class="{{ grid.container_class }}"{% endblock %}>{% block page-prebody %}
+ <div id="site-body"{% block site-body-class %} class="{{ grid.container_class }}"{% endblock %}>{% block page-prebody %}
    <div class="{{ grid.column1 }}">{% block breadcrumbs %}{% if page.level %}
     {% include "djpcms/bits/breadcrumbs.html" %}{% else %}{% if djp.title %}
     <div class="breadcrumbs">
@@ -31,7 +31,9 @@
  </div>
 </div>
  
- <div id="page-footer">{% block page-footer %}{% endblock %}
+<div id="page-footer">
+<div id="site-footer" {% block site-footer-class %} class="{{ grid.container_class }}"{% endblock %}>
+{% block site-footer %}{% endblock %}</div>
 </div>{% endblock %}
 
 

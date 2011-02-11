@@ -1,3 +1,4 @@
+import os
 from threading import Lock
 
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
@@ -6,15 +7,17 @@ from djpcms.views.appsite import Application, ModelApplication
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
+from djpcms.template import loader
 
-from djpcms.models import BlockContent
+from djpcms.models import BlockContent, InnerTemplate
 from djpcms.apps.included.contentedit import ContentSite
 
 
 class DummyDjp(object):
-    __slots__ = ('instance','kwargs')
+    __slots__ = ('kwargs',)
     def __init__(self,instance,kwargs):
-        self.instance = instance
+        if instance:
+            kwargs['instance'] = instance
         self.kwargs = kwargs
 
 
@@ -217,4 +220,19 @@ returns the application handler. If the appname is not available, it raises a Ke
     
     def has_permission(self, request, permission_code, obj = None):
         return self.root.has_permission(request, permission_code, obj)
+    
+    def add_default_inner_template(self, page):
+        template_name = self.settings.DEFAULT_INNER_TEMPLATE
+        if not template_name:
+            return
+        name = os.path.split(template_name)[1].split('.')[0]
+        source, loc = loader.load_template_source(template_name)
+        te = InnerTemplate(name = name, template = source)
+        te.save()
+        page.inner_template = te
+        page.save()
+        return te
+        
+        
+            
     

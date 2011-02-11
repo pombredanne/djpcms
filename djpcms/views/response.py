@@ -123,7 +123,7 @@ return the wrapper with the underlying view.'''
     
     @lazyattr
     def _get_template(self):
-        return self.view.get_template(self.page)
+        return self.view.get_template(self.request, self.page)
     template_file = property(_get_template)
     
     @lazyattr

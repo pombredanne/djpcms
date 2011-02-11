@@ -1,6 +1,8 @@
 from djpcms.views import appsite, appview
 from djpcms.forms import HtmlForm
-from djpcms.apps.included.user.views import *
+
+from .forms import LoginForm, PasswordChangeForm, RegisterForm
+from .views import *
 
 permission = lambda self, request, obj: False if not request else request.user.is_authenticated()
 
@@ -13,7 +15,7 @@ No assumption has been taken over which model is used for storing user data.'''
     form     = PasswordChangeForm
     
     home   = appview.ModelView()
-    login  = LoginView(parent = 'home')
+    login  = LoginView(parent = 'home', form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
     change = appview.EditView(regex = 'change',
                               isplugin = True,
@@ -27,7 +29,7 @@ No assumption has been taken over which model is used for storing user data.'''
     
     def registration_done(self):
         '''Set the user model in the application site'''
-        self.application_site.User = self.opts
+        self.application_site.User = self.mapper
     
     def objectbits(self, obj):
         if self.userpage:
@@ -45,6 +47,12 @@ No assumption has been taken over which model is used for storing user data.'''
         else:
             return request.user
         
+    def has_add_permission(self, request = None, obj = None):
+        if request:
+            if not request.user.is_authenticated():
+                return True
+        return False
+    
     def has_edit_permission(self, request = None, obj=None):
         return permission(self,request,obj)
     

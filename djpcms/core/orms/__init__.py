@@ -4,7 +4,6 @@ from djpcms import sites
 from djpcms.core.exceptions import ModelException
  
 from .base import *
-from .user import monkey_patch_user
 
 sites.register_orm('django')
 sites.register_orm('stdnet')

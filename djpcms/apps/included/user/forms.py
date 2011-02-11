@@ -1,6 +1,6 @@
 from djpcms import sites, forms
 
-from .orm import create_user
+from .orm import create_user, authenticate, login
 
 
 class LoginForm(forms.Form):
@@ -9,8 +9,6 @@ class LoginForm(forms.Form):
     username   = forms.CharField(max_length=30,
                                  widget=forms.TextInput(cn = 'autocomplete-off'))
     password   = forms.CharField(max_length=60,widget=forms.PasswordInput)
-
-    submits = (('Sign in','login_user'),)
     
     def clean(self):
         '''process login
@@ -23,10 +21,10 @@ class LoginForm(forms.Form):
         User = sites.User
         if not User:
             raise forms.ValidationError('No user')
-        user = User.authenticate(username = username, password = password)
+        user = authenticate(User, username = username, password = password)
         if user is not None and user.is_authenticated():
-            if user.is_active():
-                user.login(request)
+            if user.is_active:
+                login(User,request, user)
                 try:
                     request.session.delete_test_cookie()
                 except:

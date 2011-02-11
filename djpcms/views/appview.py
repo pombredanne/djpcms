@@ -4,7 +4,6 @@ from datetime import datetime
 
 from py2py3 import zip
 
-from djpcms.core import api
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
@@ -13,6 +12,7 @@ from djpcms.utils.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
+
 
 
 class pageinfo(object):
@@ -247,6 +247,7 @@ Usage::
         return False if not page else page.soft_root
         
     def get_page(self, djp):
+        from djpcms.apps.included.contentedit import api
         pages = api.get_for_application(djp,self.code)
         if pages:
             if len(pages) == 1:
@@ -425,7 +426,7 @@ It returns a queryset.
         '''
         qs = super(SearchView,self).appquery(djp)
         request = djp.request
-        slist = self.appmodel.opts.search_fields
+        slist = self.appmodel.mapper.search_fields
         search_string = request.data_dict.get(self.search_text,None)
         if slist and search_string:
             bits  = smart_split(search_string)
@@ -559,7 +560,7 @@ class EditView(ObjectView):
         super(EditView,self).__init__(regex = regex, parent = parent, **kwargs)
     
     def _has_permission(self, request, obj):
-        return self.appmodel.has_edit_permission(request, obj)
+        return permissions.has(request.user, permissions.CHANGE, obj)
     
     def title(self, djp):
         return 'Edit %s' % self.appmodel.title_object(djp.instance)

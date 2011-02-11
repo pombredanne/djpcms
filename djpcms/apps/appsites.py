@@ -6,7 +6,6 @@ from djpcms.views.appsite import Application, ModelApplication
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.orms import monkey_patch_user
 
 from djpcms.models import BlockContent
 from djpcms.apps.included.contentedit import ContentSite
@@ -50,7 +49,7 @@ class ApplicationSite(ResolverMixin):
         return self.root.User
     def __set_User(self, User):
         if not self.root.User:
-            self.root.User = monkey_patch_user(User)
+            self.root.User = User
         elif User is not self.root.User:
             raise ImproperlyConfigured('A different User class has been already registered')
     User = property(__get_User,__set_User)
@@ -215,4 +214,7 @@ returns the application handler. If the appname is not available, it raises a Ke
     def template_context(self):
         self._load_template_processors()
         return self._template_context_processors
+    
+    def has_permission(self, request, permission_code, obj = None):
+        return self.root.has_permission(request, permission_code, obj)
     

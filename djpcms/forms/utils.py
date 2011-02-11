@@ -38,7 +38,6 @@ def set_request_message(f, request):
 
 def form_kwargs(request,
                 instance = None,
-                withrequest = False,
                 withdata = True,
                 method = 'POST',
                 own_view = True,
@@ -62,8 +61,7 @@ Usage::
         if bind:
             kwargs['data'] = data
             kwargs['files'] = request.FILES
-    if withrequest:
-        kwargs['request'] = request
+    kwargs['request'] = request
     if instance:
         kwargs['instance'] = instance
     return kwargs

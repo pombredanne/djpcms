@@ -382,9 +382,9 @@ User should subclass this for full control on the model application.
 
     The model class which own the application
     
-.. attribute:: opts
+.. attribute:: mapper
 
-    Instance of :class:`djpcms.core.models.ModelTypeWrapper`. Created from :attr:`model`
+    Instance of :class:`djpcms.core.orms.BaseOrmWrapper`. Created from :attr:`model`
 '''
     list_display     = None
     '''List of object's field to display. If available, the search view will display a sortable table
@@ -409,8 +409,8 @@ functionality when searching for model instances.'''
         self.model  = model
         
     def register(self, application_site):
-        self.opts = mapper(self.model)
-        self.opts.set_application(self)
+        self.mapper = mapper(self.model)
+        self.mapper.set_application(self)
         return super(ModelApplication,self).register(application_site)
         
     def get_root_code(self):
@@ -494,28 +494,19 @@ Re-implement for custom arguments.'''
         except:
             return None
     
-    # PERMISSIONS
+    # STANDARD PERMISSIONS
     #-----------------------------------------------------------------------------------------
-    def has_add_permission(self, request = None, obj=None):
-        if not request:
-            return False
-        return self.opts.has_add_permission(request.user,obj)
+    def has_view_permission(self, request, obj = None):
+        return request.site.has_permission(request,permissions.VIEW,obj)
     
-    def has_edit_permission(self, request = None, obj=None):
-        if not request:
-            return False
-        return self.opts.has_change_permission(request.user,obj)
+    def has_add_permission(self, request, obj=None):
+        return request.site.has_permission(request,permissions.ADD,obj)
     
-    def has_view_permission(self, request = None, obj = None):
-        '''Return True if the page can be viewed, otherwise False'''
-        if not request:
-            return False
-        return self.opts.has_view_permission(request.user,obj)
+    def has_change_permission(self, request, obj=None):
+        return request.site.has_permission(request,permissions.CHANGE,obj)
     
-    def has_delete_permission(self, request = None, obj=None):
-        if not request:
-            return False
-        return self.opts.has_delete_permission(request.user,obj)
+    def has_delete_permission(self, request, obj=None):
+        return request.site.has_permission(request,permissions.DELETE,obj)
     #-----------------------------------------------------------------------------------------------
     
     def basequery(self, djp, **kwargs):

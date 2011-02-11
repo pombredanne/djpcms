@@ -4,7 +4,6 @@ import logging
 from djpcms import sites
 from djpcms.template import escape
 from djpcms.core.exceptions import BlockOutOfBound
-from djpcms.core import permissions
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 import djpcms.contrib.flowrepo.markups as markuplib
 

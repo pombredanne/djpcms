@@ -30,7 +30,7 @@ def appurls():
     return (
             static.Static(sites.settings.MEDIA_URL, show_indexes=True),
             user.UserApplication('/accounts/', User),
-            contentedit.PageApplication('/edit-content/', Page),
+            contentedit.PageApplication('/edit/', Page),
             IssueTraker('/',Issue),
             )
 

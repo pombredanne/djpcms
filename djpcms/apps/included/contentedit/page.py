@@ -5,8 +5,7 @@ from .forms import ShortPageForm
 
 
 class editPageView(appview.EditView):
-    
-    def render(self, djp):
+    pass
         
     
 
@@ -15,4 +14,15 @@ class PageApplication(appsite.ModelApplication):
     form  = ShortPageForm
     
     main = appview.SearchView()
-    edit = editPageView(regex = '?(<path>.*)', parent = 'main')
+    editroot = editPageView(regex = 'route', parent = 'main')
+    edit = editPageView(regex = '(?P<path>[\w./-]*)', splitregex = False, parent = 'editroot')
+    
+    def get_object(self, request, **kwargs):
+        url = '/'
+        if 'path' in kwargs:
+            url += kwargs['path']
+        return self.mapper.get(url = url)
+        
+    def objectbits(self, page):
+        return {'path': page.url[1:]}
+    

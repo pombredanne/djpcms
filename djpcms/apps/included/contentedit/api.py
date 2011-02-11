@@ -1,8 +1,9 @@
 from djpcms import sites
 from djpcms.models import Page, Site
-from djpcms.forms import cms, ValidationError
+from djpcms.forms import ValidationError
+from djpcms.core.orms import mapper, getid
 
-from .orms import mapper, getid
+from .forms import PageForm
 
 
 def all():
@@ -28,7 +29,7 @@ def create_page(parent = None, user = None,
     else:
         data = {'site':get_current_site()}
         
-    f = cms.PageForm(data = data, parent = parent, model = Page)
+    f = PageForm(data = data, parent = parent, model = Page)
     if f.is_valid():
         if commit:
             return f.save(commit = commit)

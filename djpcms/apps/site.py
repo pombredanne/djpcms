@@ -19,7 +19,18 @@ __all__ = ['MakeSite',
            'get_url',
            'get_urls',
            'loadapps',
-           'sites']
+           'sites',
+           'VIEW',
+           'ADD',
+           'CHANGE',
+           'DELETE']
+
+
+# Main permission flags
+VIEW = 10
+ADD = 20
+CHANGE = 30
+DELETE = 40
 
 
 logger = logging.getLogger('sites')
@@ -37,6 +48,15 @@ class editHandler(ResolverMixin):
     def editsite(self):
         return self.site
         
+    
+class SimplePermissionBackend(object):
+    
+    def __call__(self, request, permission_code, obj):
+        if permission_code <= VIEW:
+            return True
+        else:
+            return request.user.is_superuser
+        
 
 
 class ApplicationSites(ResolverMixin):
@@ -47,6 +67,7 @@ of djpcms routes'''
         self._sites = {}
         self.modelwrappers = {}
         self.clear()
+        self.has_permission = SimplePermissionBackend()
         
     def clear(self):
         self._sites.clear()
@@ -253,6 +274,9 @@ of djpcms routes'''
     
     def view_from_page(self, page):
         site = self.get_site(page.url)
+        
+    def has_permission(user, permission_code, obj):
+        '''Check for user and object permissions'''
         
     def wsgi(self, environ, start_response):
         '''DJPCMS WSGI handler'''

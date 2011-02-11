@@ -29,13 +29,24 @@
 			var decorators = {};
 			var jsonCallBacks = {};
 			var logging_pannel = null;
-			
-			var INFO = "INFO";
-			var ERROR = "ERROR";
-			
+			var _level = {
+					DEBUG: 10,
+					INFO: 20,
+					WARN: 30,
+					ERROR: 40,
+					CRITICAL: 50
+				};
+			var _map = {}
+			$.each(_level, function(code,val) {
+				var cval = 'l'+val;
+				_map[cval] = code;
+			});
+			this.logging = _level;
+			this.logging.name = _map;
 			this.inrequest = false;
 	
 			this.options = {
+				logging_level: _level.INFO,
 				media_url:		   "/media-site/",
 				confirm_actions:   {'delete': 'Please confirm delete',
 									'flush': 'Please confirm flush'},
@@ -53,13 +64,18 @@
 				//tabs:			   {cookie: {expiry: 7}},
 				tablesorter:	   {widgets:['zebra','hovering']},
 				debug:			   false
-			};			
+			};
 			function set_logging_pannel(panel) {
 				logging_pannel = panel;
 			}
 			
 			function log(msg, level) {
-				msg = level ? level : INFO + ': ' + msg;
+				var djp = $.djpcms;
+				var ll = djp.options.logging_level;
+				if(!level) {level = ll}
+				if(level < ll) {return;}
+				var pre = djp.logging.name['l'+level] || 'LOGGING';
+				msg = pre + ': ' + msg;
 				if($.djpcms.options.debug) {
 					if (typeof console != "undefined" && typeof console.debug != "undefined") {
 						console.log(msg);
@@ -70,8 +86,14 @@
 				}
 			}
 			
+			function debug(msg) {
+				log(msg,_level.DEBUG);
+			}
+			function info(msg) {
+				log(msg,_level.INFO);
+			}
 			function error(msg) {
-				log(msg,'ERROR');
+				log(msg,_level.ERROR);
 			}
 			
 			this.postparam = function(name) {
@@ -147,9 +169,10 @@
 			 */
 			this.construct = function() {
 				var djp = $.djpcms;
-				return this.each(function() {
+				var res = this.each(function() {
 					var config = djp.options;
 					var me = $(this);
+					// Check for a logging pannel
 					var logger = $('.djp-logging-panel',me);
 					if(logger) {
 						set_logging_pannel(logger);
@@ -160,6 +183,8 @@
 						decorator.decorate(me,config);
 					});						
 				});
+				res.trigger('djpcms.loaded');
+				return res;
 			};
 		}
 	});
@@ -168,11 +193,6 @@
 	$.fn.extend({
         djpcms: $.djpcms.construct
 	});
-	
-	
-	var dj = $.djpcms;
-	$(window).trigger("djpcms-ready");
-	
 	
 	/**
 	 * ERROR and SERVER ERROR callback
@@ -252,7 +272,7 @@
 	/**
 	 * attribute JSON callback
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.addJsonCallBack({
 		id: "attribute",
 		handle: function(data, elem) {
 			var selected = []
@@ -279,7 +299,7 @@
 	/**
 	 * Remove html elements
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.addJsonCallBack({
 		id: "remove",
 		handle: function(data, elem) {
 			$.each(data, function(i,b) {
@@ -299,7 +319,7 @@
 	/**
 	 * Redirect
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.addJsonCallBack({
 		id: "redirect",
 		handle: function(data, elem) {
 			window.location = data;
@@ -309,7 +329,7 @@
 	/**
 	 * Popup
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.addJsonCallBack({
 		id: "popup",
 		handle: function(data, elem) {
 			$.popupWindow({windowURL:data,centerBrowser:1});
@@ -321,7 +341,7 @@
 	 * 
 	 * Create a jQuery dialog from JSON data
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.addJsonCallBack({
 		id: "dialog",
 		handle: function(data, elem) {
 			var el = $('<div></div>').html(data.html);
@@ -368,7 +388,7 @@
 	/**
 	 * Ajax links, buttons and select 
 	 */
-	dj.addDecorator({
+	$.djpcms.addDecorator({
 		id:	"ajax_widgets",
 		description: "add ajax functionality to links, buttons and selects",
 		decorate: function($this,config) {
@@ -612,7 +632,7 @@
 	/**
 	 * jQuery UI Tabs
 	 */
-	dj.addDecorator({
+	$.djpcms.addDecorator({
 		id:"ui_tabs",
 		decorate: function($this, config) {
 			$('.ui-tabs',$this).tabs(config.tabs);

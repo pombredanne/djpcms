@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body-extra-style %}
+#login-reg {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0,0,0,0.2);
+    padding: 10px;
+}
+#body-container {background: transparent;}
+#inner-body {margin-top: 100px;}
+{% endblock %}
+
+{% block page-body %}
+<div class="{{ grid.column_1_4 }}">
+{{ grid.empty }}
+</div>
+<div id="inner-body" class="{{ grid.column_1_2 }}">
+<div id="login-reg">
+<h2>Sign in</h2>
+{{ inner }}
+</div>
+</div>
+<div class="{{ grid.column_1_4 }}">
+{{ grid.empty }}
+</div>
+{{ grid.clear }}
+{% endblock %}

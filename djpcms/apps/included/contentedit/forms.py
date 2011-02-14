@@ -193,12 +193,10 @@ class PluginChoice(forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         super(PluginChoice,self).__init__(*args, **kwargs)
     
-    def clean(self, value):
+    def _clean(self, value):
+        '''Overried default value to return a Content Type object
         '''
-        Overried default value to return a Content Type object
-        '''
-        name = super(PluginChoice,self).clean(value)
-        value = get_plugin(name) 
+        value = get_plugin(value) 
         if not value:
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
@@ -229,18 +227,12 @@ class ContentBlockForm(forms.Form):
             ObjectPermission.objects.set_view_permission(cb, groups = pe)
         return cb
 
-    def clean_requires_login(self):
-        rl = self.cleaned_data['requires_login']
-        if rl and self.cleaned_data['for_not_authenticated']:
-            raise forms.ValidationError("Select this or for not authenticated or neither. Cannot select both.")
-        return rl
-    
-    def clean_view_permission(self):
-        vp = self.cleaned_data['view_permission']
-        if vp and self.cleaned_data['for_not_authenticated']:
-            raise forms.ValidationError("Select this or for not authenticated or neither. Cannot select both.")
-        return vp
-
+    def clean(self):
+        cd = self.cleaned_data
+        rl = cd['requires_login']
+        na = cd['for_not_authenticated']
+        if rl and na:
+            raise forms.ValidationError("Cannot select 'requires login' and 'for not authenticated' at the same time.")
 
 # Short Form for a Page. Used only for editing an existing page
 class ShortPageForm(forms.Form):

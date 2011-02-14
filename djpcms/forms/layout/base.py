@@ -62,7 +62,7 @@ class FormLayout(BaseFormLayout):
     
     def get_rendered_fields(self,form):
         rf = getattr(form, '_rendered_fields', {})
-        form.rendered_fields = rf
+        form._rendered_fields = rf
         return rf
     
     def get_missing_fields(self,form):

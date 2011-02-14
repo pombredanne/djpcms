@@ -246,11 +246,13 @@ class ChangeContentView(appview.ChangeView):
 The instance.plugin object is maintained but its fields may change.'''
         # First get the plugin name
         is_ajax = djp.request.is_ajax()
-        form = self.get_form(djp, all = False)
+        fhtml = self.get_form(djp, all = False)
+        form = fhtml.form
+        layout = fhtml.layout
         
         if not form.is_valid():
             if is_ajax:
-                return form.json_errors()
+                return layout.json_messages(form)
             else:
                 return djp.view.handle_response(djp)
         

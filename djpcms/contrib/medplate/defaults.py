@@ -95,8 +95,11 @@ context.add(
                        data = {
                                'background':'transparent',
                                'input_border':'1px solid #ccc',
-                               'input_padding': '3px 0',
-                               'table_padding': '2px 5px 2px 0'
+                               'input_padding': '3px 3px',
+                               'table_padding': '2px 5px 2px 0',
+                               'buttonholder_padding': "10px 0",
+                               'error_color': '#af4c4c',
+                               'error_background': '#ffbfbf'
                                }
                        )
             )

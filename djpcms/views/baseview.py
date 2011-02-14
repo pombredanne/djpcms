@@ -97,18 +97,27 @@ Not used very often but here just in case.'''
         '''Given a :class:`djpcms.models.Page` instance, which may be ``None``,
 returns the template file for rendering the page.
 
-:parameter page: A pgae instance or ``None``.
+:parameter request: Http Request instance.
+:parameter page: Page instance or ``None``.
 
 If :attr:`template_name` is specified, it uses it, otherwise if ``page`` is available,
 it gets the template from :meth:`djpcms.models.Page.get_template`.
 If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
-        if self.template_name:
-            return self.template_name
+        # First Check if page has a template
+        if page:
+            if page.template:
+                return page.template
+        t = self.template_name
+        de = request.site.settings.DEFAULT_TEMPLATE_NAME
+        if t:
+            if de not in t:
+                t += de
+            return t
         else:
             if page:
                 return page.get_template()
             else:
-                return request.site.settings.DEFAULT_TEMPLATE_NAME
+                return de
         
     def title(self, djp):
         '''View title.'''

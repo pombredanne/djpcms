@@ -1,18 +1,64 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block body %}
-{{ tag }} input,
-{{ tag }} textarea,
-{{ tag }} select {{% if input_border %}
-    border: {{ input_border }};{% endif %}
-    padding: {{ input_padding }};
+{{ tag }} .ctrlHolder,
+{{ tag }} .buttonHolder{
+    margin: 0; padding: 0; clear: both;
+    overflow:hidden;
 }
-
+{{ tag }} .ctrlHolder {
+    padding: 5px;
+}
+{{ tag }} input[type="text"],
+{{ tag }} textarea,
+{{ tag }} select {
+    border: none;
+    padding: 0;
+    width:100%;
+}
+{{ tag }} input[type="checkbox"] {
+    float: left;
+    width:auto;
+    margin-right: 10px;
+}
 {{ tag }} table td {
     padding: {{ table_padding }};
 }
 
 {{ tag }} div.djp-autocomplete .textInput {
     width: 98%;
+}
+
+{{ tag }} .field-widget {
+    overflow:hidden;
+    width:100%;
+}
+{{ tag }} .buttonHolder {
+    padding: {{ buttonholder_padding }};
+}
+
+{{ tag }} .errorlist{
+    color: {{ error_color }};
+    margin: 0 0 6px 0;
+    padding: 4px;
+    background: {{ error_background }};
+}
+
+/*   Inline Labels
+------------------------------------------------ */
+{{ tag }} .inlineLabels .label {
+    float: left;
+    width: 32%;
+    margin: .3em 2% .3em 0;
+}    
+{{ tag }} .inlineLabels .field-widget,
+{{ tag }} .inlineLabels .formHint,
+{{ tag }} .inlineLabels.buttonHolder {
+    margin-left: 34%;
+    width:auto;
+}
+{{ tag }} .inlineLabels .field-widget.input {
+    border: {{ input_border }};
+    padding: {{ input_padding }};
 }
 {% endblock %}

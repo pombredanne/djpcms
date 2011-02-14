@@ -15,6 +15,7 @@ No assumption has been taken over which model is used for storing user data.'''
     
     home   = appview.ModelView()
     login  = LoginView(parent = 'home',
+                       template_name = 'login.html',
                        form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
     change = appview.ChangeView(regex = 'change',

@@ -78,7 +78,7 @@
 
     /* Styles for form controls where labels are in line with the input elements */
     /* Set the class of the parent (preferably to a fieldset) to .inlineLabels */
-        .uniForm .inlineLabels label,
+        /*.uniForm .inlineLabels label,*/
         .uniForm .inlineLabels .label{ float: left; margin: 0; padding: 0; line-height: 100%; position: relative; }
         
         /* Float the input elements */
@@ -227,7 +227,7 @@
     /* .inlineLabels */
     .uniForm .inlineLabels .ctrlHolder{}
     
-    .uniForm .inlineLabels label,
+    /*.uniForm .inlineLabels label,*/
     .uniForm .inlineLabels .label{ width: 32%; /* <- Required property */ margin: .3em 2% 0 0; /* <- Required property */ }
     
     .uniForm .inlineLabels .textInput,

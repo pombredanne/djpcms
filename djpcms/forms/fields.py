@@ -21,10 +21,11 @@ def standard_validation_error(field,value):
 class Field(object):
     default = None
     widget = None
+    required = True
     creation_counter = 0
     
     def __init__(self,
-                 required = True,
+                 required = None,
                  default = None,
                  validation_error = None,
                  help_text = None,
@@ -33,7 +34,7 @@ class Field(object):
                  **kwargs):
         self.name = None
         self.default = default or self.default
-        self.required = required
+        self.required = required if required is not None else self.required
         self.validation_error = validation_error or standard_validation_error
         self.help_text = help_text
         self.label = label
@@ -60,12 +61,14 @@ class Field(object):
         '''Clean the field value'''
         if value == nodata or not value:
             if not self.required:
-                return self.get_default(bfield)
+                value = self.get_default(bfield)
             else:
                 value = self.get_default(bfield)
                 if not value:
                     raise ValidationError(self.validation_error(bfield,value))
-                return value
+        return self._clean(value)
+    
+    def _clean(self, value):
         return value
     
     def get_default(self, bfield):
@@ -131,15 +134,19 @@ class DateField(Field):
 
     
 class BooleanField(Field):
+    default = False
+    required = False
     widget = CheckboxInput
     
-    def _clean(self, value):
-        """Returns a Python boolean object."""
-        if value in ('False', '0'):
-            value = False
+    def clean(self, value, bfield):
+        '''Clean the field value'''
+        if value == nodata:
+            return self.default
         else:
-            value = bool(value)
-        return value
+            if value in ('False', '0'):
+                return False
+            else:
+                return bool(value)
     
     
 class ChoiceField(Field):

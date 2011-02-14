@@ -5,6 +5,8 @@ from djpcms.contrib.medplate.themes.smooth import context as base_context
 
 context = base_context.copy()
 
+context.update({'text_shadow': '4px 4px 4px #ddd'})
+
 context.nav.update({'text_align':'center',
                     'hover_background':'#ccc',
                     'selected_background':'#33789C',

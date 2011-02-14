@@ -2,6 +2,6 @@
 <div class="{{ layout.form_messages_container_class }} ctrlHolder">{{ messages }}</div>
 {{ form }}
 {{ inlines }}{% if has_inputs %}
-<div class="buttonHolder">{% for input in inputs %}
+<div class="{% if layout.default_style %}{{ layout.default_style }} {% endif %}buttonHolder">{% for input in inputs %}
   {{ input }}{% endfor %}
 </div>{% endif %}

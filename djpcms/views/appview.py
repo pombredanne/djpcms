@@ -158,6 +158,12 @@ Usage::
         self.editurl   = None
         self.headers   = headers or self.headers
         self.astable   = astable if astable is not None else self.astable
+        self.template_name = template_name or self.template_name
+        if self.template_name:
+            t = self.template_name
+            if not (isinstance(t,list) or isinstance(t,tuple)):
+                t = (t,)
+            self.template_name = tuple(t)
         if title:
             self.title = title 
         if table_generator:
@@ -168,8 +174,6 @@ Usage::
             self._has_permission = permission
         if methods:
             self._methods = methods
-        if template_name:
-            self.template_name = template_name
         if success_message:
             self.success_message = success_message
         if view_template:

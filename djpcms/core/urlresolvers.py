@@ -20,7 +20,7 @@ class Resolver404(Exception):
     pass
 
     
-def cachevalue(path, view, site, editsite, kwargs):
+def cachevalue(path, view, site, kwargs):
     '''add a path in the cache dictionary. The value is composed by
     
     (site,view,kwargs)
@@ -30,12 +30,7 @@ The parameters are:
 :parameter path: absolute path to view (excluding leading slash).
 :parameter view: instance of :class:`djpcms.views.baseview.djpcmsview`.
 :parameter site: instance of the application site containing the ``view``
-:parameter editsite: a site instance or None. If defined this is an ediding view.
 :parameter kwargs: dictionary of view parameters.'''
-    from djpcms.views.baseview import editview
-    if editsite:
-        site = editsite
-        view = editview(view, site.settings.CONTENT_INLINE_EDITING['preurl'])
     cached = (site,view,kwargs)
     _view_cache[path] = cached
     return cached
@@ -107,7 +102,7 @@ method'''
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)
     
-    def resolve(self, path, subpath = None, site = None, editsite = False):
+    def resolve(self, path, subpath = None, site = None, numpass = 0):
         global _view_cache
         subpath = subpath if subpath is not None else path
         cached = _view_cache.get(path,None)
@@ -116,29 +111,25 @@ method'''
                 urls = self.urls()
                 self.resolver = RegexURLResolver(r'^', urls)
             
-            if not site:
+            if not numpass:
                 view = self.resolve_flat(subpath)
                 if view:
                     try:
                         site = self.get_site()
                     except:
                         site = self
-                    return cachevalue(path, view, site, editsite, {})
+                    return cachevalue(path, view, site, {})
             try:
                 view, rurl, kwargs = self.resolver.resolve(subpath)
             except Resolver404 as e:
                 raise self.http.Http404(str(e))
             if isinstance(view,ResolverMixin):
                 if len(rurl) == 1:
-                    edit = view.editsite()
-                    if edit:
-                        return view.resolve(path, rurl[0], None, edit)
-                    else:
-                        return view.resolve(path, rurl[0], site or view, editsite)
+                    return view.resolve(path, rurl[0], site, numpass+1)
                 else:
                     raise self.http.Http404
             else:
-                return cachevalue(path, view, site, editsite, kwargs)
+                return cachevalue(path, view, site, kwargs)
         else:
             return cached
         

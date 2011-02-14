@@ -61,9 +61,17 @@ class FormLayout(BaseFormLayout):
                     setattr(self,field.key,field)
     
     def get_rendered_fields(self,form):
-        rf = getattr(form, '_rendered_fields', [])
+        rf = getattr(form, '_rendered_fields', {})
         form.rendered_fields = rf
         return rf
+    
+    def get_missing_fields(self,form):
+        mf = []
+        rendered_fields = self.get_rendered_fields(form)
+        for field in form.fields:
+            if not field.name in rendered_fields:
+                mf.append(field.name)
+        return mf
 
     def json_messages(self, f):
         '''Convert errors in form into a JSON serializable dictionary with keys
@@ -105,8 +113,8 @@ class FormLayoutElement(BaseFormLayout):
             return field.render(djp,layout)
         form = field.form
         rendered_fields = layout.get_rendered_fields(form)
-        if not field in rendered_fields:
-            rendered_fields.append(field)
+        if not field.name in rendered_fields:
+            rendered_fields[field.name] = field
         else:
             raise Exception("A field should only be rendered once: %s" % field)
         widget = field.field.widget
@@ -117,7 +125,8 @@ class FormLayoutElement(BaseFormLayout):
                'required_tag': self.required_tag or layout.required_tag,
                'field':field,
                'error': form.errors.get(field.name,''), 
-               'widget':widget.render_from_field(field),
+               'widget':widget.render_from_field(djp, field),
+               'is_hidden': widget.is_hidden,
                'ischeckbox':widget.ischeckbox()}
         field_template = self.field_template or layout.field_template
         return loader.render_to_string(field_template,ctx)

@@ -46,6 +46,7 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         self.addClass(cn)
         
     def flatatt(self, **attrs):
+        '''Return a string with atributes to add to the tag'''
         cs = ''
         if self.__classes:
             cs = ' '.join(self.__classes)
@@ -93,9 +94,9 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         fattr = self.flatatt()
         return self._render(fattr, *args, **kwargs)
     
-    def render_from_field(self, field):
+    def render_from_field(self, djp, field):
         fattr = self.flatatt(name = field.html_name, id = field.id, value = field.value)
-        return self._render(fattr)
+        return self._render(fattr, djp, field)
     
     def _render(self, fattr, *args, **kwargs):
         if self.inline:
@@ -129,4 +130,12 @@ class FormWidget(HtmlWidget):
         return self.layout.render(djp,
                                   self.form,
                                   self.inputs)
+        
+    def is_valid(self):
+        '''Proxy for self.forms.is_valid'''
+        return self.form.is_valid()
+    
+    def add(self, elem):
+        '''Add extra element to the form widget'''
+        pass
     

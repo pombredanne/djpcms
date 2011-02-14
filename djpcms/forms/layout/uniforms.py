@@ -17,14 +17,7 @@ WIDGET_CLASSES = {'CharField': 'textInput',
 
 
 def default_csrf():
-    return 'django.middleware.csrf.CsrfViewMiddleware' in sites.settings.MIDDLEWARE_CLASSES
-
-
-    
-def get_rendered_fields(form):
-    rf = getattr(form, 'rendered_fields', [])
-    form.rendered_fields = rf
-    return rf
+    return 'django.middleware.csrf.CsrfViewMiddleware' in sites.settings.MIDDLEWARE_CLASSES
 
 
 class UniFormElement(FormLayoutElement):
@@ -47,9 +40,10 @@ class Fieldset(UniFormElement):
         self.legend_html = legend_html
         self.fields = fields
 
-    def inner(self, djp, layout):
+    def inner(self, djp, form, layout):
         render_field = self.render_field
-        html = '\n'.join((render_field(djp, field, layout) for field in self.fields))
+        dfields = form.dfields
+        html = '\n'.join((render_field(djp, dfields[field], layout) for field in self.fields))
         if html:
             return self.legend_html + '\n' + html
         else:
@@ -66,8 +60,8 @@ class Row(Fieldset):
 class Columns(UniFormElement):
     '''A :class:`FormLayoutElement` whiche defines a set of columns. Renders to a set of <div>.'''
     elem_css  = "formColumn"
-    templates = {2: 'djpcms/yui/yui-simple.html',
-                 3: 'djpcms/yui/yui-simple3.html'}
+    template = {2: 'djpcms/yui/yui-simple.html',
+                3: 'djpcms/yui/yui-simple3.html'}
     
     def __init__(self, *columns, **kwargs):
         super(Columns,self).__init__(**kwargs)
@@ -78,16 +72,20 @@ class Columns(UniFormElement):
         if not self.template:
             raise ValueError('Template not available in uniform Column.')
 
-    def _render(self, layout):
-        css = self._css(layout)
+    def _inner(self, djp, form, layout):
+        render_field = self.render_field
+        dfields = form.dfields
         content = {}
-        for i,column in enumerate(self.columns):
-            output = '<div class="%s">' % css
+        
+        def _data(column):
+            yield '<div>'
             for field in column:
-                output += render_field(field, form, layout, self.css)
-            output += '</div>'
-            content['content%s' % i] = loader.mark_safe(output)
-        return loader.render_to_string(self.template, content)
+                yield render_field(djp, dfields[field], layout)
+            yield '</div>'
+            
+        for i,column in enumerate(self.columns):
+            content['content%s' % i] = '\n'.join(_data(column))
+        return loader.render(self.template, content)
     
 
 class Layout(FormLayout):
@@ -107,21 +105,16 @@ This function is called by an instance of
         ctx  = {'layout':self}
         html = ''
         for field in self._allfields:
-            h = field.render(form, self)
+            h = field.render(djp, form, self)
             if field.key and self.template:
                 ctx[field.key] = h
             else:
                 html += h
         
-        missing_fields = []
-        rendered_fields = get_rendered_fields(form)
-        for field in form.fields:
-            if not field.name in rendered_fields:
-                missing_fields.append(field)
-        
+        missing_fields = self.get_missing_fields(form)        
         if missing_fields:
             fset  = Fieldset(*missing_fields).addClass(self.default_style)
-            html += fset.render(djp,self)
+            html += fset.render(djp,form,self)
                
         ctx['has_inputs'] = len(inputs)
         ctx['inputs'] = (input.render(djp) for input in inputs)

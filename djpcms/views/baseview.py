@@ -15,8 +15,6 @@ from djpcms.views.contentgenerator import BlockContentGen
 from djpcms.template import loader
 from djpcms.core.exceptions import PermissionDenied
 
-from .utils import view_edited_url
-
     
 def response_from_page(djp, page):
     '''Given a :class:`djpcms.views.DjpResponse` object
@@ -145,15 +143,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
     def extra_content(self, djp, c):
         pass
     
-    def handle_response(self, djp):
-        '''Handle the response. This function SHOULD NOT be overwritten.
-Several functions can be overwritten for tweaking the results.
-If that is not enough, maybe more hooks should be put in place.
-Hooks:
-* 'preget':     for pre-processing and redirects
-* 'render':     for creating content when there is no inner_template
-* *extra_response*: for more.'''
-        # Get page object and template_name
+    def get_context(self, djp, editing = False):
         request = djp.request
         site    = request.site
         http    = request.site.http
@@ -161,8 +151,6 @@ Hooks:
         inner_template  = None
         grid    = self.grid960(page)
         
-        # Inner template available, fill the context dictionary
-        # with has many content keys as the number of blocks in the page
         context = {'grid': grid,
                    'htmldoc': htmldoc(None if not page else page.doctype)}
             
@@ -170,16 +158,14 @@ Hooks:
             inner_template = page.inner_template
             if not inner_template:
                 inner_template = site.add_default_inner_template(page)
-            if not self.editurl:
+            if not editing:
                 context['edit_content_url'] = page_edit_url(djp)
             
         if inner_template:
             cb = {'djp':  djp,
                   'grid': grid}
             for b in range(inner_template.numblocks()):
-                cb['content%s' % b] = BlockContentGen(djp, b)
-            
-            # Call the inner-template renderer
+                cb['content%s' % b] = BlockContentGen(djp, b, editing)
             inner = page.inner_template.render(loader.context(cb, autoescape=False))
         else:
             # No page or no inner_template. Get the inner content directly
@@ -188,23 +174,19 @@ Hooks:
                 return inner
         
         context['inner'] = inner
-        self.extra_content(djp,context)
-        return djp.render_to_response(context)
+        return context
     
     def ajax_get_response(self, djp):
         return jservererror('AJAX GET RESPONSE NOT AVAILABLE', url = djp.url)
 
     def get_response(self, djp):
         '''Get response handler.'''
-        return self.handle_response(djp)
+        context = self.get_context(djp)
+        return djp.render_to_response(context)
     
     def post_response(self, djp):
         '''Get response handler.'''
-        return self.default_post(djp)
-    
-    def default_post(self, djp):
-        '''Default post response handler.'''
-        raise NotImplementedError('Default Post view not implemented')
+        raise NotImplementedError('Post response not implemented')
     
     def ajax_post_response(self, djp):
         request   = djp.request
@@ -387,56 +369,3 @@ class wrapview(djpcmsview):
     def grid960(self, page):
         return self._view.grid960(page)
 
-
-class editview(wrapview):
-    '''Special :class:`djpcms.views.baseview.wrapview` for editing page content.
-This view is never in navigation and it provides a hook for adding the edit page form.
-    '''
-    edit_template = 'djpcms/content/edit_page.html' 
-    
-    def __init__(self, view, prefix):
-        super(editview,self).__init__(view,prefix)
-        self.editurl = self.prefix
-    
-    def in_navigation(self, request, page):
-        return 0
-    
-    def has_permission(self, request = None, page = None, obj = None):
-        if self._view.has_permission(request,page,obj):
-            return permissions.editing(request, page, obj)
-        else:
-            return False
-        
-    def extra_content(self, djp, c):
-        from djpcms.forms import cms
-        page = djp.page
-        request = djp.request
-        page_url = self.page_url(djp.request)
-        ed = {
-             'page_form': get_form(djp, cms.PageFormHtml, instance = page).render(djp),
-             'new_child_form': get_form(djp, cms.ChildFormHtml, instance = page).render(djp),
-             'page_url': self.page_url(djp.request)}
-        bd = loader.render_to_string(self.edit_template,ed)
-        c.update({'page_url':page_url,
-                  'edit_page':box(hd = "Edit Page Layout",
-                                  bd = bd,
-                                  collapsed=True)})
-
-    def get_form(self, djp):
-        from djpcms.forms import cms
-        request = djp.request
-        page    = djp.page
-        data = dict(request.POST.items())
-        if data.get('_child',None) == 'create':
-            return get_form(djp, cms.ChildFormHtml, instance = djp.page)
-        else:
-            return get_form(djp, cms.PageFormHtml, instance = djp.page)
-        
-    def save(self, request, f):
-        return f.save()
-    
-    def default_post(self, djp):
-        return saveform(djp)
-    
-    def page_url(self, request):
-        return view_edited_url(request.path)

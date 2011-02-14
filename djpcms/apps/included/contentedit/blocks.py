@@ -4,6 +4,7 @@ The application derives from the base appsite.ModelApplication
 and defines several ajax enabled sub-views 
 '''
 from djpcms import forms, sites
+from djpcms.forms import SubmitInput
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
@@ -13,7 +14,7 @@ from djpcms.utils.ajax import jerror, jattribute, jcollection
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.views import appsite, appview
 
-from .forms import ContentBlockForm
+from .forms import ContentBlockHtmlForm
 
 dummy_wrap = lambda d,b,x : x
 
@@ -68,18 +69,18 @@ def update_contentblock(djp, cblock, block, position, jattr):
         
 # Application view for handling change in content block internal plugin
 # It handles two different Ajax interaction with the browser 
-class ChangeContentView(appview.EditView):
+class ChangeContentView(appview.ChangeView):
     '''
     View class for managing inline editing of a content block.
     The url is given by the ContentBlocks models
     '''
     _methods = ('post',)
     
-    def __init__(self):
-        regex = '(?P<pageid>\d+)/(?P<blocknumber>\d+)/(?P<position>\d+)'
+    def __init__(self, regex = '(?P<pageid>\d+)/(?P<blocknumber>\d+)/(?P<position>\d+)',
+                 isapp = False, **kwargs):
         super(ChangeContentView,self).__init__(regex = regex,
-                                               parent = None,
-                                               isapp = False)
+                                               isapp = isapp,
+                                               **kwargs)
         
     def render(self, djp, url = None):
         return self.get_form(djp, url = url).render(djp)
@@ -106,9 +107,9 @@ class ChangeContentView(appview.EditView):
             initial['url'] = url
         else:
             initial = None
-        uni = super(ChangeContentView,self).get_form(djp,
-                                                     initial = initial,
-                                                     **kwargs)
+        fw = super(ChangeContentView,self).get_form(djp,
+                                                    initial = initial,
+                                                    **kwargs)
         if all:
             instance = djp.instance
             pform,purl = self.get_plugin_form(djp, instance.plugin)
@@ -117,15 +118,15 @@ class ChangeContentView(appview.EditView):
                 layout = getattr(pform,'layout',None) or FormLayout()
                 layout.id = id
                 pform.layout = layout
-                uni.add(pform)
+                fw.add(pform)
             else:
                 # No plugin
-                uni.add('<div id="%s"></div>' % id)
-            sub = forms.SubmitInput(value = "edit", name = 'edit_content').render()
+                fw.add('<div id="%s"></div>' % id)
+            sub = SubmitInput(value = "edit", name = 'edit_content').render()
             id = instance.pluginid('edit')
             cl = '' if purl else ' class="djphide"'
-            uni.inputs.append('<span id="{0}"{1}>{2}</span>'.format(id,cl,sub))
-        return uni
+            #fw.inputs.append('<span id="{0}"{1}>{2}</span>'.format(id,cl,sub))
+        return fw
         
     def get_plugin_form(self, djp, plugin, withdata = True):
         '''If *plugin* is not ``None``, it returns a tuple with the plugin form and the url for editing plugin contents.'''
@@ -329,7 +330,7 @@ class DeleteContentView(appview.DeleteView):
             return self.redirect(refer)
     
 
-class EditPluginView(appview.EditView):
+class EditPluginView(appview.ChangeView):
     '''View class for editing the content of a plugin. Not all plugins have an editing view.
 The url is given by the ContentBlocks models
     '''
@@ -391,15 +392,14 @@ The url is given by the ContentBlocks models
 
 class ContentSite(appsite.ModelApplication):
     '''AJAX enabled applications for changing content of a page.'''
-    form        = ContentBlockForm
     hidden      = True
     
-    edit        = ChangeContentView()
+    edit        = ChangeContentView(form = ContentBlockHtmlForm, parent = None)
     delete      = DeleteContentView(parent = 'edit')
     plugin      = EditPluginView(regex = 'plugin', parent = 'edit')
     
     def submit(self, *args, **kwargs):
-        return [input(value = "save", name = '_save')]
+        return [SubmitInput(value = "save", name = '_save')]
     
     def objectbits(self, obj):
         return {'pageid': obj.page.id,
@@ -433,7 +433,7 @@ class ContentSite(appsite.ModelApplication):
         pageid       = int(pageid)
         blocknumber  = int(blocknumber)
         position     = int(position)
-        page         = request.site.pagecache.get_from_id(pageid)
+        page         = request.site.get_page(id = pageid)
         blocks       = self.model.objects.filter(page = page)
         inner        = page.inner_template
         if inner:
@@ -466,7 +466,7 @@ class ContentSite(appsite.ModelApplication):
         '''
         blockcontents = self.model.objects.for_page_block(page, b)
         request  = djp.request
-        url      = djp.view.page_url(request)
+        url      = djp.url
         editview = self.getview('edit')
         wrapper  = EditWrapperHandler(url)
         pos = 0

@@ -12,19 +12,20 @@ Within each ``block`` there may be one or more ``contents``.
 
 The edit mode block elements are rendered using the EDIT_BLOCK_TEMPLATES templates (see at top of file)
     '''
-    def __init__(self, djp, b):
+    def __init__(self, djp, b, editing):
         '''Initialize generator: *djp* is an instance of :class:`djpcms.views.response.DjpResponse`
 and *b* is an integer indicating the ``block`` number in the page.'''
         self.djp     = djp
         self.page    = djp.page
         self.view    = djp.view
         self.request = djp.request
+        self.editing = editing
         self.b       = b
         
     def render(self):
         '''Render the Block by looping over all the content block items
         '''
-        edit = '' if not self.view.editurl else 'sortable-block '
+        edit = '' if not self.editing else 'sortable-block '
         id   = block_htmlid(self.page.id,self.b)
         html = ['<div id="{0}" class="{1}djpcms-block">'.format(id,edit)]
         for ht in self.blocks():
@@ -42,7 +43,7 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         This function produce HTML only if self.view is based on a database Page
         object. Otherwise it does nothing.
         '''
-        if self.view.editurl:
+        if self.editing:
             appmodel = self.djp.site.for_model(BlockContent)
             return appmodel.blocks(self.djp, self.page, self.b)
         else:

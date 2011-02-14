@@ -206,10 +206,12 @@ class PluginChoice(forms.ChoiceField):
 
     
 class ContentBlockForm(forms.Form):
-    url = forms.CharField(widget=forms.HiddenInput, required = False),
-    plugin_name = PluginChoice(label = 'Plugin', choices = plugingenerator),
+    url = forms.CharField(widget=forms.HiddenInput, required = False)
+    title = forms.CharField(required = False)
+    plugin_name = PluginChoice(label = 'Plugin', choices = plugingenerator)
     container_type = forms.ChoiceField(label = 'Container', choices = wrappergenerator)
     for_not_authenticated = forms.BooleanField(default = False)
+    view_permission = forms.CharField(required = False)
     requires_login = forms.BooleanField(default = False)
         
     def save(self, commit = True):
@@ -312,10 +314,12 @@ ChildFormHtml = forms.HtmlForm(
     submits = (('create', '_child'),)
 )
 
+
 PageFormHtml = forms.HtmlForm(
     ShortPageForm,
     submits = (('change', '_save'),)
 )
+
 
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,

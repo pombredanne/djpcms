@@ -1,4 +1,5 @@
 import operator
+import re
 from copy import copy
 from datetime import datetime
 
@@ -12,21 +13,6 @@ from djpcms.utils.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
-
-
-
-class pageinfo(object):
-    
-    def __init__(self,url,last_modified):
-        self.url = url
-        self.last_modified = last_modified
-
-
-def selfmethod(self, f):
-    def _(*args, **kwargs):
-        return f(self, *args, **kwargs)
-    _.__name__ = f.__name__
-    return _
 
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -201,8 +187,11 @@ Usage::
     baseurl = property(__get_baseurl)
     
     def get_url(self, djp):
-        purl = self.regex.get_url(**djp.kwargs)
-        return self.baseurl + purl
+        purl = self.baseurl + self.regex.get_url(**djp.kwargs)
+        if '//' in purl:
+            return re.sub("/+" , "/", purl)
+        else:
+            return purl
     
     def names(self):
         return self.regex.names
@@ -554,14 +543,14 @@ class DeleteView(ObjectView):
       
 
 # Edit/Change an object
-class EditView(ObjectView):
-    '''An :class:`ObjectView` class specialised for editing an object.
+class ChangeView(ObjectView):
+    '''An :class:`ObjectView` class specialised for changing an instance of a model.
     '''
     def __init__(self, regex = 'edit', parent = 'view', **kwargs):
-        super(EditView,self).__init__(regex = regex, parent = parent, **kwargs)
+        super(ChangeView,self).__init__(regex = regex, parent = parent, **kwargs)
     
     def _has_permission(self, request, obj):
-        return permissions.has(request.user, permissions.CHANGE, obj)
+        return self.appmodel.has_change_permission(request, obj)
     
     def title(self, djp):
         return 'Edit %s' % self.appmodel.title_object(djp.instance)

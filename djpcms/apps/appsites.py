@@ -9,7 +9,7 @@ from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.template import loader
 
-from djpcms.models import BlockContent, InnerTemplate
+from djpcms.models import Page, BlockContent, InnerTemplate
 from djpcms.apps.included.contentedit import ContentSite
 
 
@@ -122,6 +122,9 @@ application class which has been unregistered.'''
     def for_model(self, model):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for model *model*.
 If the application is not available, it returns ``None``. Never fails.'''
+        #Allow for OrmWrapper
+        if hasattr(model,'model'):
+            model = model.model
         try:
             return self._registry.get(model,None)
         except:
@@ -232,7 +235,12 @@ returns the application handler. If the appname is not available, it raises a Ke
         page.inner_template = te
         page.save()
         return te
+    
+    def resolve(self, path, subpath = None, site = None, numpass = 0):
+        return super(ApplicationSite,self).resolve(path, subpath, site = self, numpass = numpass)
         
+    def get_page(self, **kwargs):
+        return Page.objects.get(**kwargs)
         
             
     

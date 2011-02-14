@@ -12,15 +12,15 @@ class UserApplication(appsite.ModelApplication):
 No assumption has been taken over which model is used for storing user data.'''
     name     = 'account'
     userpage = False
-    form     = PasswordChangeForm
     
     home   = appview.ModelView()
-    login  = LoginView(parent = 'home', form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
+    login  = LoginView(parent = 'home',
+                       form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
-    change = appview.EditView(regex = 'change',
-                              isplugin = True,
-                              parent = 'home',
-                              form = HtmlForm(PasswordChangeForm))
+    change = appview.ChangeView(regex = 'change',
+                                isplugin = True,
+                                parent = 'home',
+                                form = HtmlForm(PasswordChangeForm))
     add = appview.AddView(regex = 'create',
                           isplugin = True,
                           parent = 'home',

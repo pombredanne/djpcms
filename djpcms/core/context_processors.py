@@ -1,31 +1,31 @@
-import datetime
+from datetime import datetime
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 
 
 def djpcms(request):
-    settings = request.site.settings
+    site = request.site
+    settings = site.settings
     ctx = {'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
+           'user': request.user,
            'debug': settings.DEBUG,
            'release': not settings.DEBUG,
-           'now': datetime.datetime.now(),
-           'MEDIA_URL': settings.MEDIA_URL,
-           'site_admin_url': settings.ADMIN_URL_PREFIX,
-           'login_url': settings.LOGIN_URL,
-           'logout_url': settings.LOGOUT_URL}
-    site = getattr(request,'site',None)
-    if site:
-        try:
-            userapp = site.getapp('account')
-            userapp = userapp.appmodel
-            if getattr(userapp,'userpage',False):
-                url = userapp.viewurl(request, request.user)
-            else:
-                url = userapp.baseurl
-            ctx.update({'user_url': url})
-        except ApplicationNotAvailable:
-            pass
+           'now': datetime.now,
+           'MEDIA_URL': settings.MEDIA_URL}
+    
+    # lets check if there is a user application. The likelihood is that there is one :)
+    userapp = site.for_model(site.User)
+    if userapp:
+        ctx.update({
+                    'login_url': userapp.appviewurl(request,'login'),
+                    'logout_url': userapp.appviewurl(request,'logout'),
+                    })
+        if getattr(userapp,'userpage',False):
+            url = userapp.viewurl(request, request.user)
+        else:
+            url = userapp.baseurl
+        ctx.update({'user_url': url})
     return ctx
 
 

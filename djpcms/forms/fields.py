@@ -3,7 +3,7 @@ from copy import copy, deepcopy
 from djpcms import sites, nodata
 
 from .globals import *
-from .html import TextInput, CheckboxInput
+from .html import TextInput, CheckboxInput, Select
 
 __all__ = ['Field',
            'CharField',
@@ -128,36 +128,7 @@ class DateField(Field):
         except:
             raise ValidationError
     
-    
-class ChoiceField(Field):
-    
-    def _handle_params(self, choices = None, **kwargs):
-        '''Choices is an iterable or a callable which takes the form as only argument'''
-        self.choices = choices
-        self._raise_error(kwargs)
-        
-    def clean(self, value, bfield):
-        '''Clean the field value'''
-        if value == nodata:
-            ch = self.choices
-            if not hasattr(ch,'__getitem__'):
-                ch = list(ch)
-                self.choices = ch
-            if ch:
-                value = ch[0][0]
-                return value
-        return super(ChoiceField,self).clean(value, bfield)
-        
-    def copy(self, bfield):
-        ch = self.choices
-        self.choices = None
-        result = super(ChoiceField,self).copy(bfield)
-        self.choices = ch
-        if hasattr(ch,'__call__'):
-            ch = ch(bfield)
-        result.choices = ch
-        return result
-    
+
     
 class BooleanField(Field):
     widget = CheckboxInput
@@ -171,6 +142,38 @@ class BooleanField(Field):
         return value
     
     
+class ChoiceField(Field):
+    widget = Select
+    
+    def _handle_params(self, choices = None, separator = ' ', inline = True, **kwargs):
+        '''Choices is an iterable or a callable which takes the form as only argument'''
+        self.choices = choices
+        self.separator = separator
+        self.inline = inline
+        self._raise_error(kwargs)
+        
+    def _clean(self, value):
+        '''Clean the field value'''
+        return value
+        if value == nodata:
+            ch = self.choices
+            if not hasattr(ch,'__getitem__'):
+                ch = list(ch)
+                self.choices = ch
+            if ch:
+                value = ch[0][0]
+                return value
+        return super(ChoiceField,self).clean(value, bfield)
+
+    
+    
 class ModelChoiceField(ChoiceField):
-    pass
+    #auto_class = AutocompleteForeignKeyInput
+        
+    def __deepcopy__(self, memo):
+        result = super(ModelChoiceField,self).__deepcopy__(memo)
+        qs = result.queryset
+        if hasattr(qs,'__call__'):
+            result.queryset = qs()
+        return set_autocomplete(result)
 

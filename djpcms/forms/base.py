@@ -125,6 +125,11 @@ class Form(BaseForm):
         self._unwind()
         return self._fields
     
+    @property
+    def dfields(self):
+        self._unwind()
+        return self._fields_dict
+    
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:
             return data[self.prefix_input]

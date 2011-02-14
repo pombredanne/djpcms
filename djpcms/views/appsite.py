@@ -7,6 +7,7 @@ from copy import deepcopy
 
 from py2py3 import iteritems
 
+import djpcms
 from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
 from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
@@ -15,7 +16,7 @@ from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException
 from djpcms.utils import slugify
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
-from djpcms.views.baseview import editview, response_from_page
+from djpcms.views.baseview import response_from_page
 from djpcms.views.appview import View, ViewView
 from djpcms.utils.collections import OrderedDict
 
@@ -90,6 +91,8 @@ class Application(ResolverMixin):
 '''
     __metaclass__ = ApplicationMetaClass
     
+    inherit          = False
+    '''Flag indicating if application views are inherited from base class. Default ``False``.'''
     name             = None
     '''Application name. Default ``None``, calculated from class name.'''
     description      = None
@@ -98,8 +101,6 @@ class Application(ResolverMixin):
     '''True if authentication is required. Default ``False``.'''
     has_api          = False
     '''Flag indicating if API is available. Default ``False``.'''
-    inherit          = False
-    '''Flag indicating if application views are inherited from base class. Default ``False``.'''
     hidden           = False
     '''If ``True`` the application is only used internally. Default ``False``.'''
     form             = None
@@ -497,16 +498,16 @@ Re-implement for custom arguments.'''
     # STANDARD PERMISSIONS
     #-----------------------------------------------------------------------------------------
     def has_view_permission(self, request, obj = None):
-        return request.site.has_permission(request,permissions.VIEW,obj)
+        return request.site.has_permission(request,djpcms.VIEW,obj)
     
     def has_add_permission(self, request, obj=None):
-        return request.site.has_permission(request,permissions.ADD,obj)
+        return request.site.has_permission(request,djpcms.ADD,obj)
     
     def has_change_permission(self, request, obj=None):
-        return request.site.has_permission(request,permissions.CHANGE,obj)
+        return request.site.has_permission(request,djpcms.CHANGE,obj)
     
     def has_delete_permission(self, request, obj=None):
-        return request.site.has_permission(request,permissions.DELETE,obj)
+        return request.site.has_permission(request,djpcms.DELETE,obj)
     #-----------------------------------------------------------------------------------------------
     
     def basequery(self, djp, **kwargs):

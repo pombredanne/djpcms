@@ -41,18 +41,6 @@ context.add(
                        )
             )
 
-
-#________________________________________ BREADCRUMBS
-context.add(
-            CssContext('breadcrumbs',
-                       tag = 'div.breadcrumbs',
-                       template = 'medplate/breadcrumbs.css_t',
-                       data = {
-                               'background': 'transparent',
-                               'font_size': '130%',
-                               'padding': '10px 0'}
-                       )
-            )
                     
 #________________________________________ MAIN NAVIGATION
 context.add(

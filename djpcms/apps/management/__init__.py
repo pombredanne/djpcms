@@ -30,37 +30,6 @@ def find_commands(management_dir):
         return []
 
 
-def find_management_module(app_name):
-    """
-    Determines the path to the management module for the given app_name,
-    without actually importing the application or the management module.
-
-    Raises ImportError if the management module cannot be found for any reason.
-    """
-    parts = app_name.split('.')
-    parts.append('management')
-    parts.reverse()
-    part = parts.pop()
-    path = None
-
-    # When using manage.py, the project module is added to the path,
-    # loaded, then removed from the path. This means that
-    # testproject.testapp.models can be loaded in future, even if
-    # testproject isn't in the path. When looking for the management
-    # module, we need look for the case where the project name is part
-    # of the app_name but the project directory itself isn't on the path.
-    try:
-        f, path, descr = imp.find_module(part,path)
-    except ImportError as e:
-        if os.path.basename(os.getcwd()) != part:
-            raise e
-
-    while parts:
-        part = parts.pop()
-        f, path, descr = imp.find_module(part, path and [path] or None)
-    return path
-
-
 def load_command_class(app_name, name):
     """
     Given a command name and an application name, returns the Command
@@ -74,13 +43,17 @@ def load_command_class(app_name, name):
 def get_commands():
     global _commands
     if _commands is None:
-        _commands = dict([(name, 'djpcms.apps') for name in find_commands(__path__[0])])
+        _commands = {}
         apps = sites.settings.INSTALLED_APPS
 
         # Find and load the management module for each installed app.
         for app_name in apps:
+            command_module = app_name
+            if app_name == 'djpcms':
+                command_module = 'djpcms.apps'
             try:
-                path = find_management_module(app_name)
+                mod = import_module(command_module+'.management')
+                path = mod.__path__[0]
                 _commands.update(dict([(name, app_name)
                                        for name in find_commands(path)]))
             except ImportError:

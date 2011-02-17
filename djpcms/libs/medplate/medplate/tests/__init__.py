@@ -1,6 +1,6 @@
 from djpcms import test
-from djpcms.contrib.medplate import CssContext, defaults, base_context
-from djpcms.contrib.medplate.management.commands.style import Command
+from medplate import CssContext, defaults, base_context
+from medplate.management.commands.style import Command
 
 
 class TestCss(test.TestCase):

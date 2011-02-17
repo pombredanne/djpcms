@@ -3,23 +3,17 @@ import re
 import sys
 import logging
 
-from django.utils.dateformat import DateFormat
 from django.db import models
-from django.utils import html, translation
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 
-from djpcms.template import loader
 from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin
-from djpcms.core.permissions import has_permission, get_view_permission
 from djpcms.apps.djangosite.fields import SlugCode
-from djpcms.utils import lazyattr, force_str, htmltype
-from djpcms.utils.func import PathList
+from djpcms.utils import html
 from djpcms.uploads import uploader, storage_manager
 
 from .djmanagers import PageManager, BlockContentManager, SiteContentManager, PermissionManager
@@ -158,8 +152,7 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
                                    verbose_name = 'in sitemap',
                                    help_text=_('Optional. Dotted path to a python class dealing with requests'))
     
-    doctype = models.PositiveIntegerField(default = htmltype.htmldefault,
-                                          choices = htmltype.htmldocs)
+    doctype = models.PositiveIntegerField(default = html.htmldefaultdoc)
     insitemap = models.BooleanField(default = True,
                                     verbose_name = 'in sitemap',
                                     help_text=_('If the page is public, include it in sidemap or not.'))

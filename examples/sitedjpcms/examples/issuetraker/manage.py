@@ -45,7 +45,7 @@ def build():
                     INSTALLED_APPS = ('djpcms',
                                       'issuetraker',
                                       'stdnet.contrib.sessions',
-                                      'djpcms.contrib.medplate'),
+                                      'medplate'),
                     MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
                                           'stdnet.contrib.sessions.middleware.SessionMiddleware',),
                     DEBUG = True

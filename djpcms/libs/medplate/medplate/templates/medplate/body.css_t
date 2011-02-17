@@ -1,7 +1,6 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block include-media %}
-{# {% include "uni-form.css" %} #}
 {{ jquery }}{% endblock %}
 
 

@@ -1,7 +1,8 @@
 #
 # Script for generating style-sheet
+from medplate import CssContext
 
-from djpcms.contrib.medplate.themes.smooth import context as base_context
+root = CssContext({'text_shadow': '4px 4px 4px #ddd'})
 
 context = base_context.copy()
 

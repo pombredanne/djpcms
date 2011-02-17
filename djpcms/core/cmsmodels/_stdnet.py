@@ -5,7 +5,7 @@ from stdnet import orm
 from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin,\
                              BlockContentManager
-from djpcms.utils import force_str, html
+from djpcms.utils import html
 
 
 ModelBase = orm.StdModel

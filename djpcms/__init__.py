@@ -45,6 +45,7 @@ def install_libs():
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(this_dir,'libs')
     install_lib(dlibs, 'py2py3', 'py2py3')
+    install_lib(dlibs, 'medplate', 'medplate')
     #install_lib(dlibs, 'django-tagging', 'tagging')
     #install_lib(dlibs, 'djpadmin', 'djpadmin')
     #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')

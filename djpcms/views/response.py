@@ -212,7 +212,10 @@ return the wrapper with the underlying view.'''
                     res = jservererror(stack_trace, url = self.url)
                 else:
                     raise e
-            return self.http.HttpResponse(res.dumps(),res.mimetype())
+            if isinstance(res,self.http.HttpResponse):
+                return res
+            else:
+                return self.http.HttpResponse(res.dumps(),res.mimetype())
     
     def render_to_response(self, more_context = None,
                            template_file = None, **kwargs):

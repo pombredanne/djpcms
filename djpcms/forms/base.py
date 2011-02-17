@@ -235,7 +235,7 @@ Messages can be errors or not.
     
     def save(self, commit = True):
         '''Save the form. This method works if an instance or a model is available'''
-        self.mapper.save(self.cleaned_data, self.instance, commit)
+        return self.mapper.save(self.cleaned_data, self.instance, commit)
         
 
 class HtmlForm(object):

@@ -382,7 +382,7 @@
 			function deco(event,elem) {
 				event.preventDefault();
 				if($.djpcms.inrequest) {
-					return
+					return;
 				}
 				$.djpcms.inrequest = true;
 				var a = $(elem);

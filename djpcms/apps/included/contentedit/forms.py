@@ -223,7 +223,7 @@ class ContentBlockForm(forms.Form):
         if pe:
             instance.requires_login = True
         cb = super(ContentBlockForm,self).save(commit = commit)
-        if cb.pk:
+        if commit and cb.id:
             ObjectPermission.objects.set_view_permission(cb, groups = pe)
         return cb
 

@@ -1153,19 +1153,27 @@ form.uniForm {
 
 
 form.uniForm .ctrlHolder,
-form.uniForm .buttonHolder{
-    margin: 0; padding: 0; clear: both;
-    overflow:hidden;
+form.uniForm .buttonHolder {
+    margin: 0; padding: 0;
+    clear: both;
+    overflow: hidden;
 }
 form.uniForm .ctrlHolder {
     padding: 5px;
 }
 form.uniForm input[type="text"],
+form.uniForm input[type="password"],
 form.uniForm textarea,
 form.uniForm select {
     border: none;
     padding: 0;
     width:100%;
+    background: transparent;
+}
+form.uniForm input:focus,
+form.uniForm select:focus {
+	border: none;
+	outline: none; /*This is for google chrome*/
 }
 form.uniForm input[type="checkbox"] {
     float: left;
@@ -1179,16 +1187,11 @@ form.uniForm table td {
 form.uniForm div.djp-autocomplete .textInput {
     width: 98%;
 }
-
-form.uniForm .field-widget {
-    overflow:hidden;
-    width:100%;
-}
 form.uniForm .buttonHolder {
     padding: 10px 0;
 }
 
-form.uniForm .errorlist{
+form.uniForm .errorlist {
     color: #af4c4c;
     margin: 0 0 6px 0;
     padding: 4px;
@@ -1206,7 +1209,7 @@ form.uniForm .inlineLabels .field-widget,
 form.uniForm .inlineLabels .formHint,
 form.uniForm .inlineLabels.buttonHolder {
     margin-left: 34%;
-    width:auto;
+    width: auto;
 }
 form.uniForm .inlineLabels .field-widget.input {
     border: 2px solid #dfdfdf;

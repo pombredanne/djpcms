@@ -17,7 +17,7 @@ def box(hd = None, bd = None, ft = None, minimize = False, rounded = True,
         classes.append('collapsable')
         menulist.append('<a class="collapse" href="#">COLLAPSE</a>')
     if delurl:
-        menulist.append('<a class="deletable ajax" href="%s">DELETE</a>'.format(delurl))
+        menulist.append('<a class="deletable ajax" href="{0}">DELETE</a>'.format(delurl))
     c = {'id': id,
          'title': None if not hd else hd,
          'hd': True,

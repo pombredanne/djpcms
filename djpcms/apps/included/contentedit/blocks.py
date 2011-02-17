@@ -264,12 +264,12 @@ The instance.plugin object is maintained but its fields may change.'''
         instance.plugin_name = plugin.name
         
         # Get the full form
-        form  =  self.get_form(djp)
+        form  =  self.get_form(djp).form
         if form.is_valid():
-            forms      = list(form.forms_only())
-            instance   = form[0].save(commit = False)
-            pform = None if len(forms) == 1 else forms[1]
-            #pform      = instance.plugin.get_form(djp)
+            # save the plugin
+            instance   = form.save(commit = False)
+            pform = None
+            #pform = None if len(forms) == 1 else forms[1]
             instance.arguments = instance.plugin.save(pform)
             instance.save()
             # We now serialize the argument form
@@ -290,12 +290,12 @@ The instance.plugin object is maintained but its fields may change.'''
                     jquery.add('#'+block_htmlid(page.id,block),html,'append')
                 return jquery
             else:
-                pass 
+                raise NotImplemented 
         else:
             if is_ajax:
                 return form.json_errors()
             else:
-                pass
+                raise NotImplemented
             
     def get_preview_response(self, djp, url):
         instance = djp.instance
@@ -418,7 +418,7 @@ class ContentSite(appsite.ModelApplication):
         if not p or not p.edit_form:
             return
         view = self.getview('plugin')
-        if view and self.has_edit_permission(request, obj):
+        if view and self.has_change_permission(request, obj):
             djp = view(request, instance = obj)
             return djp.url
         

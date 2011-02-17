@@ -182,9 +182,11 @@ This is the function plugins need to implement.
         return ''
     
     def save(self, pform):
-        '''Save the form plugin'''
-        return json.dumps(pform.data)
-        #return form2json(pform)
+        '''Save the plugin data from the plugin form'''
+        if pform:
+            return json.dumps(pform.data)
+        else:
+            return json.dumps({})
     
     def get_form(self, djp, args = None, withdata = True):
         '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when in editing mode.

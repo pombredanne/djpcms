@@ -1,5 +1,7 @@
 
-A library for Creating media files and compress them.
+UNDER DEVELOPMENT
+
+A djpcms_ library for creating media files from templates and compress them.
 
 
 Creating css files
@@ -181,4 +183,5 @@ Dependecies
 * BeautifulSoup
 
 
-.. _django_compressor: https://github.com/mintchaos/django_compressor
+.. _djpcms: www.djpcms.com
+

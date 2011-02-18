@@ -1,5 +1,6 @@
 {% block description %}{% endblock %}
-{% block include-media %}{% endblock %}
+{% block include-media %}{% if jquery %}
+{{ jquery }}{% endif %}{% endblock %}
 {% block main-properties %}{% endblock %}
 {% block body %}{% endblock %}{% for elem in elems %}
 {{ elem }}{% endfor %}

@@ -1,7 +1,7 @@
 {% extends "medplate/elem.css_t" %}
 
-{% block include-media %}
-{{ jquery }}{% endblock %}
+{% block include-media %}{% if jquery %}
+{{ jquery }}{% endif %}{% endblock %}
 
 
 {% block body %}

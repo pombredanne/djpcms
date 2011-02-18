@@ -74,17 +74,19 @@ class CssContext(object):
         else:
             return ''
     
-    def render(self, style, mediaulr, template_engine = None):
+    def render(self, style, media_url, template_engine = None):
+        '''Render the css context'''
         loader = template.handle(template_engine)
         tag = self.tag()
         data = self.defaults.copy()
         data.update(self.data)
         if self.process:
             data = self.process(data)
-        data['MEDIA_URL'] = mediaulr
+        data['MEDIA_URL'] = media_url
         data['tag'] = tag
         data['description'] = self.description or tag
-        data['elems'] = (elem.render(style,mediaulr,template_engine) for elem in self.context_dictionary.values())
+        data['elems'] = (elem.render(style,media_url,template_engine) for\
+                            elem in self.context_dictionary.values())
         self.extra_data(loader,data,style)
         if style in self.themes:
             sdata = self.themes[style].data
@@ -166,7 +168,7 @@ class CssBody(CssContext):
                                      data = data)
         
     def extra_data(self, loader, data, style):
-        data['jquery'] = jqueryui(loader,style)
+        data['jquery'] = jqueryui(data,loader,style)
         
 
 class DummyBody(CssContext):
@@ -177,6 +179,9 @@ class DummyBody(CssContext):
                                       ineritable_tag = False,
                                       data = data)
     
+    def extra_data(self, loader, data, style):
+        data['jquery'] = jqueryui(data,loader,style)
+        
         
 class CssTheme(object):
     '''Add theme to Context'''    
@@ -192,11 +197,13 @@ class CssTheme(object):
         return '{0}.{1}'.format(self.context,self.name)
     
     
-def rendercss(style, mediaulr, template_engine = None):
+def rendercss(style, media_url, template_engine = None):
+    '''Entry point for rendering css templates.
+    '''
     root = _root
     if not root:
         root = DummyBody() 
-    return root.render(style, mediaulr, template_engine)
+    return root.render(style, media_url, template_engine)
     
     
          

@@ -14,12 +14,13 @@ body_defaults = {
     }
    
 
-def jqueryui(self, loader, style):
+def jqueryui(context, loader, style):
     style = style or 'smooth'
-    base  = 'jquery-ui-css/{0}/'.format(self.jquery_ui_theme)
+    base  = 'jquery-ui-css/{0}/'.format(style)
     data = loader.render(base + 'jquery-ui.css')
     toreplace = 'url(images'
-    replace = 'url({0}djpcms/'.format(self.mediaurl) + base + 'images'
+    media_url = context['MEDIA_URL']
+    replace = 'url({0}djpcms/'.format(media_url) + base + 'images'
     lines = data.split(toreplace)
     def jquery():
         yield lines[0]

@@ -1,5 +1,7 @@
 {% extends "medplate/root.css_t" %}
 
+{% block include-media %}{% endblock %}
+
 {% block description %}
 /*
 -----------------------------------------------

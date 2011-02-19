@@ -470,7 +470,7 @@ Re-implement for custom arguments.'''
         return self.appviewurl(request,'delete',obj,self.has_delete_permission,objrequired=True)
         
     def editurl(self, request, obj):
-        return self.appviewurl(request,'edit',obj,self.has_edit_permission,objrequired=True)
+        return self.appviewurl(request,'edit',obj,self.has_change_permission,objrequired=True)
     
     def viewurl(self, request, obj, field_name = None):
         return self.appviewurl(request,'view',obj,objrequired=True)
@@ -534,6 +534,7 @@ This dictionary should be used to render an object within a template. It returns
         if editurl:
             editurl = '%s?next=%s' % (editurl,djp.url)
         content = {'item':      obj,
+                   'mapper':    self.mapper,
                    'djp':       djp,
                    'user':      request.user}
         content.update(self.object_links(djp,obj))
@@ -550,7 +551,7 @@ This dictionary should be used to render an object within a template. It returns
         exclude = self.exclude_object_links
         content = {'geturls':gets,
                    'posturls':posts,
-                   'module_name':self.opts.module_name}
+                   'module_name':self.mapper.module_name}
         for view in self.object_views:
             djpv = view(request, instance = obj)
             if view.has_permission(request, djpv.page, obj):
@@ -628,7 +629,7 @@ The search looks in::
          [<<app_label>>/<<model_name>>.html,
           "djpcms/components/object.html"]
 '''
-        opts = self.opts
+        opts = self.mapper
         template_name = '%s.html' % opts.module_name
         return ['%s/%s' % (opts.app_label,template_name),
                 'djpcms/components/object.html']
@@ -636,11 +637,10 @@ The search looks in::
     def get_item_template(self, obj, wrapper):
         '''
         Search item template. Look in
-         1 - components/<<module_name>>_search_item.html
-         2 - <<app_label>>/<<module_name>>_search_item.html
-         3 - djpcms/components/object_search_item.html (fall back)
+         1 - <<app_label>>/<<module_name>>_list_item.html
+         2 - djpcms/object_list_item.html (fall back)
         '''
-        opts = self.opts
+        opts = self.mapper
         template_name = '%s_list_item.html' % opts.module_name
         return ['%s/%s' % (opts.app_label,template_name),
                 'djpcms/object_list_item.html']

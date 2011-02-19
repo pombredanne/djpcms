@@ -10,6 +10,6 @@ class Issue(orm.StdModel):
     description = orm.CharField(required = True)
     body = orm.CharField()
     
-    def __str__(self):
+    def __unicode__(self):
         return self.description
     

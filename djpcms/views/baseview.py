@@ -7,7 +7,7 @@ except:
 
 import djpcms
 from djpcms.utils.ajax import jservererror, jredirect
-from djpcms.utils.html import grid960, box, htmldoc
+from djpcms.html import grid960, box, htmldoc
 from djpcms.forms import Media
 from djpcms.forms.utils import saveform, get_form
 from djpcms.views.response import DjpResponse
@@ -146,7 +146,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         '''
         return ''
     
-    def preget(self, djp):
+    def preprocess(self, djp):
         pass
     
     def extra_content(self, djp, c):

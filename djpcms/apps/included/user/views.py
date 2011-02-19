@@ -19,13 +19,13 @@ class LogoutView(appview.ModelView):
     def __init__(self, regex = 'logout', parent = None):
         super(LogoutView,self).__init__(regex = regex, parent = parent, isapp = False, insitemap = False)
         
-    def preget(self, djp):
+    def preprocess(self, djp):
         request = djp.request
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
         user    = request.user
         if user.is_authenticated():
-            self.model.logout(sites.User, request)
+            logout(sites.User, request)
         return djp.http.HttpResponseRedirect(url)
 
 
@@ -45,7 +45,7 @@ class LoginView(appview.ModelView):
         else:
             return 'Sign in'
     
-    def preget(self, djp):
+    def preprocess(self, djp):
         if djp.request.user.is_authenticated():
             return djp.http.HttpResponseRedirect('/')
         

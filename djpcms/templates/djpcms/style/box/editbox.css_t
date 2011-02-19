@@ -1,1 +1,7 @@
-{% extends "medplate/box/box.css_t" %}
+{% extends "djpcms/style/box/box.css_t" %}
+
+{% block body %}{{ block.super }}
+{{ tag }}.movable div.hd {
+    cursor: move;
+}
+{% endblock %}

@@ -8,6 +8,7 @@ __all__ = ['TextInput',
            'HiddenInput',
            'PasswordInput',
            'CheckboxInput',
+           'TextArea',
            'Select',
            'List']
 
@@ -38,6 +39,14 @@ class CheckboxInput(TextInput):
     
     def ischeckbox(self):
         return True
+    
+class TextArea(HtmlWidget):
+    tag = 'textarea'
+    attributes = merge_dict(HtmlWidget.attributes, {
+                                                    'name': None,
+                                                    'rows': 10,
+                                                    'cols': 40
+                                                    })
     
     
 class Select(HtmlWidget):

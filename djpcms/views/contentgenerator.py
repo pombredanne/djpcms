@@ -27,12 +27,13 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         '''
         edit = '' if not self.editing else 'sortable-block '
         id   = block_htmlid(self.page.id,self.b)
-        html = ['<div id="{0}" class="{1}djpcms-block">'.format(id,edit)]
-        for ht in self.blocks():
-            if ht:
-                html.append(ht)
-        html.append('%s</div>' % self.empty())
-        return mark_safe(force_str('\n'.join(html)))
+        def stream():
+            yield '<div id="{0}" class="{1}djpcms-block">'.format(id,edit)
+            for ht in self.blocks():
+                if ht:
+                    yield ht
+            yield self.empty() + '</div>'
+        return mark_safe(force_str('\n'.join(stream())))
     
     def __unicode__(self):
         return self.render()

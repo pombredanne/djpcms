@@ -5,13 +5,6 @@
     border: {{ placeholder_border }};{% endif %}
 }
 
-div.edit-block.movable div.hd {
-    cursor: move;
-}
-div.edit-block div.ft {
-    margin-top: 2px;
-}
-
 
 /** INLINE CONTENT EDITING
 -----------------------------------------------------------*/

@@ -101,12 +101,6 @@ div.edit-menu a {
 	height:14px;
 	width:14px;
 }
-a.collapse {
-	background:transparent url({{ MEDIA_URL }}djpcms/img/buttons.gif) no-repeat scroll -52px 0;
-}
-.collapsed a.collapse {
-	background:transparent url({{ MEDIA_URL }}djpcms/img/buttons.gif) no-repeat scroll -38px 0;
-}
 a.editable {
 	background:transparent url("{{ MEDIA_URL }}djpcms/img/icons/pencil.png") no-repeat;
 }

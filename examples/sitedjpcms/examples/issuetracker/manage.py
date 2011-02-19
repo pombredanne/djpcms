@@ -9,7 +9,7 @@ To run the server simply::
     
 To create style sheet::
 
-    python manage.py style
+    python manage.py style -t media/site/site.css -s smooth
 
 '''
 from vws import virtual
@@ -37,15 +37,15 @@ def appurls():
 
 def build():
     djpcms.MakeSite(__file__,
-                    APPLICATION_URL_MODULE = 'issuetraker.manage',
-                    USER_MODEL = 'issuetraker.models.User',
+                    APPLICATION_URL_MODULE = 'issuetracker.manage',
+                    USER_MODEL = 'issuetracker.models.User',
                     CMS_ORM = 'stdnet',
                     TEMPLATE_ENGINE = 'django',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
                     INSTALLED_APPS = ('djpcms',
-                                      'issuetraker',
                                       'stdnet.contrib.sessions',
-                                      'medplate'),
+                                      'medplate',
+                                      'issuetracker'),   # issuetracker must be last for styling
                     MIDDLEWARE_CLASSES = ('djpcms.middleware.CreateRootPageAndUser',
                                           'stdnet.contrib.sessions.middleware.SessionMiddleware',),
                     DEBUG = True

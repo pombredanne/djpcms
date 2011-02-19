@@ -249,24 +249,8 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
             ("view_blockcontent", "Can view block content"),
         )
     
-    def __get_plugin(self):
-        return get_plugin(self.plugin_name)
-    plugin = property(__get_plugin)
-        
-    def _get_wrapper(self):
-        return get_wrapper(self.container_type,default_content_wrapper)
-    wrapper = property(_get_wrapper)
-    
-    def plugin_class(self):
-        '''
-        utility functions.
-        Return the class of the embedded plugin (if available)
-        otherwise it returns Null
-        '''
-        if self.plugin:
-            return self.plugin.__class__
-        else:
-            return None
+    def __unicode__(self):
+        return self.htmlid()
         
     def changeform(self, djp):
         f = self.plugin.get_form(djp)

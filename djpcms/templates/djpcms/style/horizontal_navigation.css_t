@@ -1,4 +1,4 @@
-{% extends "medplate/base_navigation.css_t" %}
+{% extends "djpcms/style/base_navigation.css_t" %}
 
 {% block body %}{{ block.super }}
 {% block nav-container %}

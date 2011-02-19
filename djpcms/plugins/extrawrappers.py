@@ -1,5 +1,5 @@
 from djpcms.plugins import DJPwrapper
-from djpcms.utils.html import box
+from djpcms.html import box
 
 
 class simplediv(DJPwrapper):
@@ -35,7 +35,7 @@ class BoxWrapper(DJPwrapper):
     
     def wrap(self, djp, cblock, html):
         if html:
-            classes,deleteurl = self._wrap(djp, cblock, html)
+            cn,deleteurl = self._wrap(djp, cblock, html)
             return box(id = self.id(cblock),
                        hd = cblock.title,
                        bd = html,
@@ -43,7 +43,7 @@ class BoxWrapper(DJPwrapper):
                        collapsable = self.collapsable,
                        collapsed = self.collapsed,
                        delurl = deleteurl,
-                       classes = classes)
+                       cn = cn)
         else:
             return ''
     

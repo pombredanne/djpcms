@@ -60,22 +60,21 @@ class Row(Fieldset):
 class Columns(UniFormElement):
     '''A :class:`FormLayoutElement` whiche defines a set of columns. Renders to a set of <div>.'''
     elem_css  = "formColumn"
-    template = {2: 'djpcms/yui/yui-simple.html',
-                3: 'djpcms/yui/yui-simple3.html'}
+    template_dict = {2: 'djpcms/yui/yui-simple.html',
+                     3: 'djpcms/yui/yui-simple3.html'}
     
     def __init__(self, *columns, **kwargs):
         super(Columns,self).__init__(**kwargs)
         self.columns = columns
         ncols = len(columns)
         if not self.template:
-            self.template = self.templates.get(ncols,None)
+            self.template = self.template_dict.get(ncols,None)
         if not self.template:
             raise ValueError('Template not available in uniform Column.')
 
-    def _inner(self, djp, form, layout):
+    def get_context(self, context, djp, form, layout):
         render_field = self.render_field
         dfields = form.dfields
-        content = {}
         
         def _data(column):
             yield '<div>'
@@ -84,8 +83,9 @@ class Columns(UniFormElement):
             yield '</div>'
             
         for i,column in enumerate(self.columns):
-            content['content%s' % i] = '\n'.join(_data(column))
-        return loader.render(self.template, content)
+            context['content%s' % i] = '\n'.join(_data(column))
+            
+        return context
     
 
 class Layout(FormLayout):
@@ -104,9 +104,10 @@ This function is called by an instance of
 :class:`djpcms.forms.html.FormWidget`'''
         ctx  = {'layout':self}
         html = ''
+        template = self.template
         for field in self._allfields:
             h = field.render(djp, form, self)
-            if field.key and self.template:
+            if field.key and template:
                 ctx[field.key] = h
             else:
                 html += h
@@ -121,5 +122,5 @@ This function is called by an instance of
         ctx['form']   = loader.mark_safe(html)
         ctx['messages'] = ''
         
-        return loader.render_to_string(self.template, ctx)
+        return loader.render_to_string(template, ctx)
         

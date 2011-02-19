@@ -1,1 +1,1 @@
-from .css import CssContext, CssTheme, rendercss
+from .css import CssContext, CssTheme, CssBody, rendercss

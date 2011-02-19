@@ -107,8 +107,17 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         else:
             return self.inner(*args, **kwargs)
     
+    def get_context(self, context, *args, **kwargs):
+        pass
+    
     def inner(self, *args, **kwargs):
-        return ''
+        '''Render the inner template'''
+        if self.template:
+            context = {}
+            self.get_context(context,*args,**kwargs)
+            return loader.render(self.template,context)
+        else:
+            return ''
 
     
 class FormWidget(HtmlWidget):

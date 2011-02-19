@@ -12,22 +12,32 @@ default_style = 'allwhite'
 
 def render(style, target, apps, template_engine = None):
     module = None
+    applications = apps or sites.settings.INSTALLED_APPS 
+    imported = {}
     
+    # Import applications styles if available
+    for app in applications:
+        modname = '{0}.style'.format(app)
+        if modname in imported:
+            continue
+        try:
+            imported[modname] = import_module(modname) 
+            continue
+        except ImportError:
+            pass
+        try:
+            modname = 'djpcms.contrib.{0}.style'.format(app)
+            imported[modname] = import_module(modname)
+        except ImportError:
+            pass
+    
+    #import site style if available
     if not apps:
         modname = '{0}.style'.format(sites.settings.SITE_MODULE)
-        import_module(modname)
-    else:
-        for app in apps:
-            modname = '{0}.style'.format(app)
+        if modname not in imported:
             try:
                 import_module(modname)
-                continue
-            except ImportError:
-                pass
-            try:
-                modname = 'djpcms.contrib.{0}.style'.format(app)
-                import_module(modname)
-            except ImportError:
+            except:
                 pass
     
     data = rendercss(style,

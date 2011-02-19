@@ -183,8 +183,12 @@ return the wrapper with the underlying view.'''
         if not view.has_permission(request, page, self.instance):
             return view.permissionDenied(self)
         
+        # chanse to bail out early
+        re = view.preprocess(self)
+        if isinstance(re,http.HttpResponse):
+            return re
+            
         if not is_ajax:
-            re = view.preget(self)
             if isinstance(re,http.HttpResponse):
                 return re
             # If user not authenticated set a test cookie  

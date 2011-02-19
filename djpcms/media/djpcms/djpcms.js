@@ -13,8 +13,6 @@
  * http://www.opensource.org/licenses/bsd-license.php
  *
  */
-
-
 /**
  * 
  * djpcms site handle
@@ -23,158 +21,156 @@
  * @param options_, Object page-specific options
  */
 (function($) {
-	$.extend({
-		djpcms: new function() { 
-		
-			var decorators = {};
-			var jsonCallBacks = {};
-			var logging_pannel = null;
-			
-			this.inrequest = false;
 	
-			this.options = {
-				media_url:		   "/media-site/",
-				confirm_actions:   {'delete': 'Please confirm delete',
-									'flush': 'Please confirm flush'},
-				autoload_class:	   "autoload",
-				ajax_server_error: "ajax-server-error",
-				errorlist:		   "errorlist",
-				formmessages:	   "form-messages",
-				date_format: 	   "d M yy",
-				box_effect:		   {type:"blind",duration:500},
-				remove_effect:	   {type:"drop",duration:500},
-				bitly_key:		   null,
-				twitter_user:	   null,
-				fadetime:		   200,
-				ajaxtimeout:	   30,
-				//tabs:			   {cookie: {expiry: 7}},
-				tablesorter:	   {widgets:['zebra','hovering']},
-				debug:			   false
-			};
-			
-			function set_logging_pannel(panel) {
-				logging_pannel = panel;
-			}
-			
-			this.log = function(s) {
-				if($.djpcms.options.debug) {
-					if (typeof console != "undefined" && typeof console.debug != "undefined") {
-						console.log('$.djpcms: '+ s);
-						if(logging_pannel) {
-							logging_pannel.append('<p>'+s+'</p>');
-						}
-					} else {
-						//alert(s);
-					}
-				}
-			}
-			
-			this.postparam = function(name) {
-				var reqdata = {submitkey: this.options.post_view_key};
-				if(name){
-					reqdata[this.options.post_view_key] = name;
-				}
-				return reqdata;
-			};
-			
-			// Set options
-			this.set_options = function(options_) {
-				$.extend(true, this.options, options_);
-			};
-			
-			// Add a new decorator
-			this.addDecorator = function(deco) {
-				decorators[deco.id] = deco;
-			};
-			// Add a new decorator
-			this.addJsonCallBack = function(jcb) {
-				jsonCallBacks[jcb.id] = jcb;
-			};
-			
-			// Remove a decorator
-			this.removeDecorator = function(rid) {
-				var ndecos = {};
-				$.each(decorators,function(id,decorator) {
-					if(id != rid) {
-						ndecos[id] = decorator;
-					}
-				});
-				this.decorators = ndecos;
-			};
-			
-			/**
-			 * Handle a JSON call back by looping through all the callback
-			 * objects registered
-			 * @param data JSON object already unserialized
-			 * @param status String status flag
-			 * @param elem (Optional) jQuery object or HTMLObject
-			 */
-			this.jsonCallBack = function(data, status, elem) {
-				if(status == "success") {
-					v = this.jsonParse(data,elem);
-				}
-				else {
-					v = false;
-				}
-				this.inrequest = false;
-				return v;
-			};
-			
-			
-			this.jsonParse = function(data, elem) {
-				var id  = data.header;
-				var jcb = jsonCallBacks[id];
-				if(jcb) {
-					return jcb.handle(data.body, elem) & data.error;
-				}
-				else {
-					$.djpcms.log('Could not find callback ' + id)
-				}
-			};
-			
-			/**
-			 * DJPCMS Handler constructor
-			 */
-			this.construct = function() {
-				var djp = $.djpcms;
-				return this.each(function() {
-					var config = djp.options;
-					var me = $(this);
-					var logger = $('.djp-logging-panel',me);
-					if(logger) {
-						set_logging_pannel(logger);
-					}
-					
-					$.each(decorators,function(id,decorator) {
-						djp.log(this + ' - adding decorator ' + decorator.id);
-						decorator.decorate(me,config);
-					});						
-				});
-			};
+    $.djpcms = (function() {
+        
+        var decorators = {},
+            jsonCallBacks = {},
+            logging_pannel = null,
+            inrequest = false,
+            defaults = {
+		        media_url:		   "/media-site/",
+        		confirm_actions:   {'delete': 'Please confirm delete',
+        							'flush': 'Please confirm flush'},
+        		autoload_class:	   "autoload",
+        		ajax_server_error: "ajax-server-error",
+        		errorlist:		   "errorlist",
+        		formmessages:	   "form-messages",
+        		date_format:       "d M yy",
+        		box_effect:		   {type:"blind",duration:500},
+        		remove_effect:	   {type:"drop",duration:500},
+        		bitly_key:		   null,
+        		twitter_user:	   null,
+        		fadetime:		   200,
+        		ajaxtimeout:	   30,
+        		//tabs:			   {cookie: {expiry: 7}},
+        		tablesorter:	   {widgets:['zebra','hovering']},
+        		debug:			   false
+        	};
+		
+		function set_logging_pannel(panel) {
+			logging_pannel = panel;
 		}
-	});
+		
+		function log(s) {
+			if($.djpcms.options.debug) {
+				if (typeof console !== "undefined" && typeof console.debug !== "undefined") {
+					console.log('$.djpcms: '+ s);
+					if(logging_pannel) {
+						logging_pannel.prepend('<p>'+s+'</p>');
+					}
+				} 
+			}
+		};
+		
+		function _postparam(name) {
+			var reqdata = {submitkey: defaults.post_view_key};
+			if(name){
+				reqdata[defaults.post_view_key] = name;
+			}
+			return reqdata;
+		};
+		
+		// Set options
+		function setOptions(options_) {
+			$.extend(true, defaults, options_);
+		};
+		
+		// Add a new decorator
+		function addDecorator(deco) {
+			decorators[deco.id] = deco;
+		};
+		// Add a new decorator
+		function addJsonCallBack(jcb) {
+			jsonCallBacks[jcb.id] = jcb;
+		};
+		
+		// Remove a decorator
+		function removeDecorator(rid) {
+			if(decorators.hasOwnMethod(rid)) {
+			    delete decorators[rid]
+			}
+		}
+		
+		function _jsonParse(data, elem) {
+		    var id  = data.header;
+		    var jcb = jsonCallBacks[id];
+		    if(jcb) {
+		        return jcb.handle(data.body, elem) & data.error;
+		    }
+		    else {
+		        log('Could not find callback ' + id);
+		    }
+		}
+		
+		/**
+		 * Handle a JSON call back by looping through all the callback
+		 * objects registered
+		 * @param data JSON object already unserialized
+		 * @param status String status flag
+		 * @param elem (Optional) jQuery object or HTMLObject
+		 */
+		function _jsonCallBack(data, status, elem) {
+			var v;
+			if(status === "success") {
+				v = _jsonParse(data,elem);
+			}
+			else {
+				v = false;
+			}
+			inrequest = false;
+			return v;
+		};
+		
+		/**
+		 * DJPCMS Handler constructor
+		 */
+		function _construct() {
+			return this.each(function() {
+				var config = defaults;
+				var me = $(this);
+				var logger = $('.djp-logging-panel',me);
+				if(logger) {
+					set_logging_pannel(logger);
+				}
+				
+				$.each(decorators,function(id,decorator) {
+					log(this + ' - adding decorator ' + decorator.id);
+					decorator.decorate(me,config);
+				});						
+			});
+		};
+		
+		//    API
+		return {
+		    construct: _construct,
+		    options: defaults,
+		    jsonParse: _jsonParse,
+		    jsoncallback: addJsonCallBack,
+		    jsonCallBack: _jsonCallBack,
+		    decorator: addDecorator,
+		    set_options: setOptions,
+		    postparam: _postparam,
+		    'log': log
+		};
+	}());
 	
 	// extend plugin scope
 	$.fn.extend({
         djpcms: $.djpcms.construct
-	});
-	
-	
-	var dj = $.djpcms;
-	$(window).trigger("djpcms-ready");
-	
+	});	
 	
 	/**
 	 * ERROR and SERVER ERROR callback
 	 */
-	$.djpcms.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "error",
 		handle: function(data, elem) {
 			var el = $('<div title="Something did not work."></div>').html('<p>'+data+'</p>');
 			el.dialog({modal:true});
 		}
 	});
-	$.djpcms.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "servererror",
 		handle: function(data, elem) {
 			var el = $('<div title="Unhandled Server Error"></div>').html('<p>'+data+'</p>');
@@ -185,7 +181,7 @@
 	/**
 	 * collection callback
 	 */
-	$.djpcms.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "collection",
 		handle: function(data, elem) {
 			$.each(data, function(i,component) {
@@ -198,7 +194,7 @@
 	/**
 	 * html JSON callback
 	 */
-	$.djpcms.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "htmls",
 		handle: function(data, elem) {
 			$.each(data, function(i,b) {
@@ -242,7 +238,7 @@
 	/**
 	 * attribute JSON callback
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "attribute",
 		handle: function(data, elem) {
 			var selected = []
@@ -269,7 +265,7 @@
 	/**
 	 * Remove html elements
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "remove",
 		handle: function(data, elem) {
 			$.each(data, function(i,b) {
@@ -289,7 +285,7 @@
 	/**
 	 * Redirect
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "redirect",
 		handle: function(data, elem) {
 			window.location = data;
@@ -299,7 +295,7 @@
 	/**
 	 * Popup
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "popup",
 		handle: function(data, elem) {
 			$.popupWindow({windowURL:data,centerBrowser:1});
@@ -311,7 +307,7 @@
 	 * 
 	 * Create a jQuery dialog from JSON data
 	 */
-	dj.addJsonCallBack({
+	$.djpcms.jsoncallback({
 		id: "dialog",
 		handle: function(data, elem) {
 			var el = $('<div></div>').html(data.html);
@@ -354,11 +350,20 @@
 	//						DECORATORS
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	$.djpcms.decorator({
+	    id:'ui-state-hover',
+		decorate: function(obj, config) {
+		    $('.edit-menu a',obj).addClass('ui-corner-all')
+		        .mouseenter(function(){$(this).addClass('ui-state-hover');})
+		        .mouseleave(function(){$(this).removeClass('ui-state-hover');});
+		}
+	});
+	
 	
 	/**
 	 * Ajax links, buttons and select 
 	 */
-	dj.addDecorator({
+	$.djpcms.decorator({
 		id:	"ajax_widgets",
 		description: "add ajax functionality to links, buttons and selects",
 		decorate: function($this,config) {
@@ -469,7 +474,7 @@
 	/**
 	 * Autocomplete Off
 	 */
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"autocomplete_off",
 		decorate: function($this,config) {
 			$('.autocomplete-off',$this).each(function() {
@@ -485,7 +490,7 @@
 	/**
 	 * Classy Search
 	 */
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"classy-search",
 		decorate: function($this,config) {
 			$('.classy-search',$this).each(function() {
@@ -510,7 +515,7 @@
 	 * box decorator
 	 * Collappsable boxes
 	 */
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"djpcms_box",
 		description:"Decorate a DJPCMS box element",
 		decorate: function($this,config) {
@@ -533,13 +538,21 @@
 							link.mousedown(function (e) {
 								e.stopPropagation();    
 							}).click(function() {
-								var cp = $(this).parents('.'+cname);
-								var be = config.box_effect;
+							    var self = $(this),
+							        span = $('span',this),
+							        cp = self.parents('.'+cname),
+							        be = config.box_effect;
 								if(cp.hasClass('collapsed')) {
-									$('.bd',cp).show(be.type,{},be.duration,function(){cp.removeClass('collapsed');});
+									$('.bd',cp).show(be.type,{},be.duration,function(){
+									    cp.removeClass('collapsed');
+									    span.removeClass('ui-icon-circle-triangle-s')
+									        .addClass('ui-icon-circle-triangle-n');
+									});
 								}
 								else {
 									$('.bd',cp).hide(be.type,{},be.duration, function(){cp.addClass('collapsed');});
+									span.removeClass('ui-icon-circle-triangle-n')
+                                        .addClass('ui-icon-circle-triangle-s');
 								}
 								//cp.toggleClass('collapsed');
 								return false;
@@ -555,7 +568,7 @@
 	/**
 	 * Accordion menu
 	 */
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"accordion_menu",
 		decorate: function($this,config) {
 			$('ul.accordionmenu',$this).each(function() {
@@ -578,7 +591,7 @@
 	 * decorate tables with jquery.tablesorter plugin
 	 * Plugin can be found at http://tablesorter.com/
 	 */
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"tablesorter",
 		decorate: function($this,config) {
 			$('table.tablesorter',$this).each(function() {
@@ -589,7 +602,7 @@
 	
 	
 	// Calendar Date Picker Decorator
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"Date_Picker",
 		decorate: function($this, config) {
 			var ajaxclass = config.calendar_class ? config.calendar_class : 'dateinput';
@@ -602,7 +615,7 @@
 	/**
 	 * jQuery UI Tabs
 	 */
-	dj.addDecorator({
+	$.djpcms.decorator({
 		id:"ui_tabs",
 		decorate: function($this, config) {
 			$('.ui-tabs',$this).tabs(config.tabs);
@@ -613,7 +626,7 @@
 	 * Cycle jQuery Plugin decorator, from django-flowrepo
 	 * 
 	 */ 
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"image_cycle",
 		decorate: function($this, config) {
 			if(!$.cycle) {
@@ -650,7 +663,7 @@
 		}
 	});
 	
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:"color_picker",
 		decorate: function($this, config) {
 			if(!$.fn.ColorPickerSetColor) {
@@ -678,7 +691,7 @@
 		}
 	});
 	
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:	"anchorbutton",
 		description: "Decorate anchor as button using jQuery UI",
 		decorate: function($this,config) {
@@ -686,7 +699,7 @@
 		}
 	});
 	
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id: 'taboverride',
 		description: "Override tab key to insert 4 spaces",
 		decorate: function($this,config) {
@@ -697,7 +710,7 @@
 		}
 	});
 	
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id:	"autocomplete",
 		description: "add ajax autocomplete to an input",
 		decorate: function($this,config) {
@@ -781,7 +794,7 @@
 	
 	
 	
-	$.djpcms.addDecorator({
+	$.djpcms.decorator({
 		id: "rearrange",
 		description: "Drag and drop functionalities in editing mode",
 		decorate: function($this,config) {
@@ -794,6 +807,7 @@
 			
 			// Start the code
 			sortableItems.mousedown(function (e) {
+			    $.djpcms.log('selected item to move');
 	            sortableItems.css({width:''});
 	            $(this).parent().css({
 	                width: $(this).parent().width() + 'px'

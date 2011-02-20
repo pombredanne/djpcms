@@ -50,11 +50,10 @@ class Fieldset(UniFormElement):
             return html
       
 
-
 class Row(Fieldset):
     '''A :class:`FormLayoutElement` which renders to a <div>.'''
     tag = 'div'
-    elem_css = "formRow"
+    elem_css = "formRow"
 
 
 class Columns(UniFormElement):
@@ -85,8 +84,7 @@ class Columns(UniFormElement):
         for i,column in enumerate(self.columns):
             context['content%s' % i] = '\n'.join(_data(column))
             
-        return context
-    
+        return context    
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.
@@ -122,5 +120,5 @@ This function is called by an instance of
         ctx['form']   = loader.mark_safe(html)
         ctx['messages'] = ''
         
-        return loader.render_to_string(template, ctx)
+        return loader.render(template, ctx)
         

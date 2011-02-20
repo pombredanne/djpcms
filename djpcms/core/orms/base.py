@@ -126,9 +126,9 @@ class BaseOrmWrapper(object):
                    'id':self.get_object_id(obj),
                    'data':data(),
                    'item':obj}
-        return loader.render_to_string(['%s/%s_table.html' % (self.app_label,self.module_name),
-                                        'djpcms/components/object_definition.html'],
-                                        content)
+        return loader.render(['%s/%s_table.html' % (self.app_label,self.module_name),
+                              'djpcms/components/object_definition.html'],
+                              content)
             
     def model_to_dict(self, instance, fields = None, exclude = None):
         raise NotImplementedError

@@ -3,8 +3,9 @@
   <div class="action-box">
   {{ action }}
   </div>{% endif %}
-  <div class="meta">{% block meta %}
-   {{ item }}
+  <div class="meta">{% block meta %}{% if viewurl %}
+  <a href="{{ viewurl }}">{{ item }}</a>{% else %}
+   {{ item }}{% endif %}
    {% if editurl %}<a href="{{ editurl }}" title="edit">edit</a>{% endif %}{% if deleteurl %}
    <a href="{{ deleteurl }}" title="remove {{ item }}">delete</a>{% endif %}{% endblock %}
   </div>

@@ -37,9 +37,9 @@ class FormLayout(BaseFormLayout):
     '''form css class'''
     form_messages_container_class = 'form-messages'
     '''Class used to hold form-wide messages'''
-    form_error_class = 'errorlist'
+    form_error_class = 'errorlist ui-state-error'
     '''Class for form errors'''
-    form_message_class = 'messagelist'
+    form_message_class = 'messagelist ui-state-highlight'
     '''Class for form messages'''
     
     def __init__(self, **kwargs):
@@ -129,7 +129,7 @@ class FormLayoutElement(BaseFormLayout):
                'is_hidden': widget.is_hidden,
                'ischeckbox':widget.ischeckbox()}
         field_template = self.field_template or layout.field_template
-        return loader.render_to_string(field_template,ctx)
+        return loader.render(field_template,ctx)
 
     def add_widget_classes(self, field, widget):
         pass

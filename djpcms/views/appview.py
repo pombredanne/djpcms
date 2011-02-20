@@ -316,7 +316,7 @@ replaced during initialization.
         else:    
             c['items'] = self.data_generator(djp, p.qs)
             
-        return loader.render_to_string(self.view_template, c)
+        return loader.render(self.view_template, c)
     
     def parentresponse(self, djp):
         '''

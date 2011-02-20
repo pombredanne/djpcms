@@ -17,6 +17,8 @@ class AddEditIssueForm(forms.Form):
         cd['user'] = self.request.user
         super(AddEditIssueForm,self).save(commit = commit)
 
+hform = forms.HtmlForm(AddEditIssueForm,
+                       layout = Layout(default_style = blockLabels))
 
 
 class IssueTraker(archive.ArchiveApplication):
@@ -34,10 +36,9 @@ class IssueTraker(archive.ArchiveApplication):
                       (4, 'Medimu'),
                       (5, 'Low'),
                       )
-    add = appview.AddView(form = forms.HtmlForm(AddEditIssueForm,
-                                                layout = Layout(default_style = blockLabels
-                                                                )
-                                                ))
+    add = appview.AddView(form = hform)
+    view = appview.ViewView()
+    edit = appview.ChangeView(form = hform)
     
 
     

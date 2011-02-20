@@ -5,29 +5,18 @@ import re
 import mimetypes
 import warnings
 
-from djpcms.utils.py2py3 import ispy3k
+from py2py3 import ispy3k
 if ispy3k():
     from io import StringIO
     from urllib.parse import urlparse, urlunparse, urlsplit
+    from http.cookies import SimpleCookie
 else:
+    from Cookie import SimpleCookie
     from cStringIO import StringIO
     from urlparse import urlparse, urlunparse, urlsplit
+    
+from djpcms import sites
 
-
-#from django.contrib.auth import authenticate, login
-#from django.core.handlers.base import BaseHandler
-#from django.core.handlers.wsgi import WSGIRequest
-#from django.core.signals import got_request_exception
-#from django.http import SimpleCookie, HttpRequest, QueryDict
-#from django.template import TemplateDoesNotExist
-#from django.test import signals
-#from django.utils.functional import curry
-#from django.utils.encoding import smart_str
-#from django.utils.http import urlencode
-#from django.utils.importlib import import_module
-#from django.utils.itercompat import is_iterable
-#from django.db import transaction, close_connection
-#from django.test.utils import ContextList
 
 __all__ = ('Client', 'RequestFactory', 'encode_file', 'encode_multipart')
 
@@ -56,47 +45,13 @@ class FakePayload(object):
         return content
 
 
-class ClientHandler(BaseHandler):
-    """
-    A HTTP Handler that can be used for testing purposes.
-    Uses the WSGI interface to compose requests, but returns
-    the raw HttpResponse object
-    """
-    def __init__(self, enforce_csrf_checks=True, *args, **kwargs):
-        self.enforce_csrf_checks = enforce_csrf_checks
-        super(ClientHandler, self).__init__(*args, **kwargs)
-
-    def __call__(self, environ):
-        from django.conf import settings
-        from django.core import signals
-
-        # Set up middleware if needed. We couldn't do this earlier, because
-        # settings weren't available.
-        if self._request_middleware is None:
-            self.load_middleware()
-
-        signals.request_started.send(sender=self.__class__)
-        try:
-            request = WSGIRequest(environ)
-            # sneaky little hack so that we can easily get round
-            # CsrfViewMiddleware.  This makes life easier, and is probably
-            # required for backwards compatibility with external tests against
-            # admin views.
-            request._dont_enforce_csrf_checks = not self.enforce_csrf_checks
-            response = self.get_response(request)
-        finally:
-            signals.request_finished.disconnect(close_connection)
-            signals.request_finished.send(sender=self.__class__)
-            signals.request_finished.connect(close_connection)
-
-        return response
-
 def store_rendered_templates(store, signal, sender, template, context, **kwargs):
     """
     Stores templates and contexts that are rendered.
     """
     store.setdefault('templates', []).append(template)
     store.setdefault('context', ContextList()).append(context)
+
 
 def encode_multipart(boundary, data):
     """
@@ -333,9 +288,8 @@ class Client(RequestFactory):
     contexts and templates produced by a view, rather than the
     HTML rendered to the end-user.
     """
-    def __init__(self, enforce_csrf_checks=False, **defaults):
+    def __init__(self, **defaults):
         super(Client, self).__init__(**defaults)
-        self.handler = ClientHandler(enforce_csrf_checks)
         self.exc_info = None
 
     def store_exc_info(self, **kwargs):
@@ -355,7 +309,6 @@ class Client(RequestFactory):
                 return engine.SessionStore(cookie.value)
         return {}
     session = property(_session)
-
 
     def request(self, **request):
         """

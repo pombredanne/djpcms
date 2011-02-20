@@ -137,7 +137,7 @@ class Page(TimeStamp, PageInterface):
     
     def save(self, commit = True):
         self.level = self.get_level()
-        super(Page,self).save(commit = commit)
+        return super(Page,self).save(commit = commit)
 
     def published(self):
         return self in Page.objects.published()

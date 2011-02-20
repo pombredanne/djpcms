@@ -61,6 +61,8 @@ class Select(HtmlWidget):
     def render_options(self, djp, field):
         choices = field.field.choices
         selected_choices = []
+        if field.value:
+            selected_choices.append(field.value)
         if hasattr(choices,'__call__'):
             choices = choices()
         for val,des in choices:

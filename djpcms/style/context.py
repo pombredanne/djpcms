@@ -2,20 +2,6 @@ from medplate import CssContext
 
 from .elements import horizontal_navigation
 
-#________________________________________ ANCHOR
-CssContext('anchor',
-           tag = 'a',
-           template = 'medplate/anchor.css_t',
-           data = {
-                   'decoration': 'none',
-                   'weight':'normal',
-                   'color':'#33789C',
-                   'background': 'transparent',
-                   'color_hover':'#204C64',
-                   'background_hover':None
-                   }
-           )
-
                     
 #________________________________________ MAIN NAVIGATION
 CssContext('nav',
@@ -224,8 +210,6 @@ CssContext('tabs',
 CssContext('messagelist',
            tag='ul.messagelist li',
            data = {
-                   'background':'#FFFFE5',
-                   'color':'#666',
                    'margin':'0 0 3px',
                    'padding':'4px 5px 4px 25px'}
            )
@@ -233,10 +217,7 @@ CssContext('messagelist',
 
 #________________________________________ ERROR LIST
 CssContext('errorlist',
-           tag='ul.messagelist li.error',
-           data = {
-                   'background':'#FFBFBF',
-                   'color':'#AF4C4C'}
+           tag='ul.messagelist li.error'
            )
 
 

@@ -70,7 +70,7 @@ def objvalue(obj,name):
 def objtable(obj):
     appmodel = get_site().for_model(obj.__class__)
     if appmodel:
-        return appmodel.opts.totable(obj)
+        return appmodel.mapper.totable(obj)
     else:
         return obj
     

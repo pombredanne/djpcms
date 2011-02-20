@@ -24,12 +24,13 @@ def appurls():
     from djpcms import sites
     from djpcms.apps.included import user, static, contentedit
     from stdnet.contrib.sessions.models import User
-    from djpcms.models import Page
+    from djpcms.models import Page, BlockContent
     from .application import IssueTraker, Issue
     
     return (
             static.Static(sites.settings.MEDIA_URL, show_indexes=True),
             user.UserApplication('/accounts/', User),
+            contentedit.ContentSite('/edit/block/', BlockContent),
             contentedit.PageApplication('/edit/', Page),
             IssueTraker('/',Issue),
             )
@@ -38,7 +39,6 @@ def appurls():
 def build():
     djpcms.MakeSite(__file__,
                     APPLICATION_URL_MODULE = 'issuetracker.manage',
-                    USER_MODEL = 'issuetracker.models.User',
                     CMS_ORM = 'stdnet',
                     TEMPLATE_ENGINE = 'django',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',

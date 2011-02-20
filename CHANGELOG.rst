@@ -3,8 +3,7 @@ Version 0.9.0 - Development
 =======================================
 * **BACKWARD INCOMPATIBLE CHANGES**
 * This is the first release not dependent on ``django``.
-* Object Relational mapping can be done with ``django`` or ``python-stdnet``
-  or none of them.
+* Object Relational mapping can be done with ``django`` or ``python-stdnet``.
 * Other ORMs can be registered to the library::
 
     from djpcms import sites   

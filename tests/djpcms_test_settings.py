@@ -3,6 +3,7 @@
 import os
 CUR_DIR = os.path.split(os.path.abspath(__file__))[0]
 SITE_ID = 1
+#HTTP_LIBRARY = 'django'
 
 # Required if testing django Integration
 DATABASES = {

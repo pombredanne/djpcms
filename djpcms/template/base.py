@@ -103,10 +103,10 @@ class TemplateHandler(BaseTemplateHandler):
                                dictionary,
                                autoescape=autoescape)
         
-    def render_to_string(self, template_name, dictionary=None, context_instance=None):
-        return handle().render_to_string(template_name,
-                                         dictionary=dictionary,
-                                         context_instance=context_instance)
+    #def render_to_string(self, template_name, dictionary=None, context_instance=None):
+    #    return handle().render_to_string(template_name,
+    #                                     dictionary=dictionary,
+    #                                     context_instance=context_instance)
         
     def load_template_source(self, template_name, dirs=None):
         return handle().load_template_source(template_name, dirs)

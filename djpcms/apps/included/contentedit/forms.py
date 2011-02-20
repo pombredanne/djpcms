@@ -1,7 +1,6 @@
 from djpcms import sites, forms, empty_choice
 from djpcms.forms.layout import uniforms
 from djpcms.utils import force_str, slugify
-#from djpcms.models import Page, BlockContent, ObjectPermission, Site
 from djpcms.plugins import get_plugin, plugingenerator, wrappergenerator
 
 
@@ -201,7 +200,6 @@ class PluginChoice(forms.ChoiceField):
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
 
-
     
 class ContentBlockForm(forms.Form):
     url = forms.CharField(widget=forms.HiddenInput, required = False)
@@ -237,23 +235,21 @@ class ContentBlockForm(forms.Form):
 # Short Form for a Page. Used only for editing an existing page
 class ShortPageForm(forms.Form):
     '''Form to used to edit inline a page'''
-    title = forms.CharField(label = 'Page title')
-    link = forms.CharField(label = 'Text to display in links')
-    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.')
+    title = forms.CharField(label = 'Page title', required = False)
+    link = forms.CharField(label = 'Text to display in links', required = False)
+    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.',
+                                       required = False)
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
     #inner_template = 
     #cssinfo = 
     #view_permission = forms.ModelMultipleChoiceField(queryset = Group.objects.all(), required = False)
     
-    #layout = FormLayout(Columns(('title','inner_template','in_navigation','requires_login'),
-    #                            ('link','cssinfo','soft_root','view_permission'))
-    #                    )
     def save(self, commit = True):
-        pe = self.cleaned_data.pop('view_permission')
+        #pe = self.cleaned_data.pop('view_permission')
         page = super(ShortPageForm,self).save(commit)
-        if page.pk:
-            ObjectPermission.objects.set_view_permission(page, groups = pe)
+        #if page.pk:
+        #    sites.permissions.set_permission(page, 'view', groups = pe)
         return page
 
 

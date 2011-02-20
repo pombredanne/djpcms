@@ -93,7 +93,7 @@ class Form(BaseForm):
         self.factory = factory
         self.rawdata = data
         self._files = files
-        self.initial = initial
+        self.initial = initial if initial is not None else {}
         self.prefix = prefix or ''
         self.model = model
         self.instance = instance
@@ -103,7 +103,9 @@ class Form(BaseForm):
             model = self.instance.__class__
         self.model = model
         if model:
-            self.mapper = mapper(model)            
+            self.mapper = mapper(model)
+        if self.instance:
+            self.form_data()
     
     @property
     def data(self):
@@ -215,10 +217,20 @@ Messages can be errors or not.
             container[key] = [msg]
             
     def is_valid(self):
-        return self.is_bound and not self.errors
+        '''Check if Form is valid, including any subforms'''
+        return self.is_bound and not self.errors 
     
     def clean(self):
+        '''The form clean method. Called last in the validation algorithm.'''
         pass
+    
+    def form_data(self):
+        data = self.initial
+        instance = self.instance
+        for field in self.base_fields:
+            val = getattr(instance,field,nodata)
+            if val != nodata:
+                data[field] = val
     
     def render(self):
         layout = self.factory.layout

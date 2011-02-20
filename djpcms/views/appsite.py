@@ -21,9 +21,6 @@ from djpcms.views.appview import View, ViewView
 from djpcms.utils.collections import OrderedDict
 
 
-render_to_string = loader.render_to_string
-
-
 def get_declared_application_views(bases, attrs):
     """Create a list of Application views instances from the passed in 'attrs', plus any
 similar fields on the base classes (in 'bases')."""
@@ -498,16 +495,16 @@ Re-implement for custom arguments.'''
     # STANDARD PERMISSIONS
     #-----------------------------------------------------------------------------------------
     def has_view_permission(self, request, obj = None):
-        return request.site.has_permission(request,djpcms.VIEW,obj)
+        return request.site.permissions.has(request,djpcms.VIEW,obj)
     
     def has_add_permission(self, request, obj=None):
-        return request.site.has_permission(request,djpcms.ADD,obj)
+        return request.site.permissions.has(request,djpcms.ADD,obj)
     
     def has_change_permission(self, request, obj=None):
-        return request.site.has_permission(request,djpcms.CHANGE,obj)
+        return request.site.permissions.has(request,djpcms.CHANGE,obj)
     
     def has_delete_permission(self, request, obj=None):
-        return request.site.has_permission(request,djpcms.DELETE,obj)
+        return request.site.permissions.has(request,djpcms.DELETE,obj)
     #-----------------------------------------------------------------------------------------------
     
     def basequery(self, djp, **kwargs):
@@ -584,8 +581,9 @@ This dictionary should be used to render an object within a template. It returns
         object_content = self.object_content
         template_name = '%s/%s_search_item.html' % (self.opts.app_label,self.opts.module_name)
         pa = Paginator(data = data, request = request)
+        render = loader.render
         for obj in pa.qs:
-            yield render_to_string(template_name, object_content(djp, obj))
+            yield render(template_name, object_content(djp, obj))
     
     def render_object(self, djp, wrapper = None):
         '''
@@ -596,7 +594,7 @@ This dictionary should be used to render an object within a template. It returns
         request  = djp.request
         template_name = self.get_object_view_template(obj, wrapper or djp.wrapper)
         content = self.object_content(djp, obj)
-        return loader.render_to_string(template_name, content)
+        return loader.render(template_name, content)
         
     def title_object(self, obj):
         '''
@@ -616,11 +614,12 @@ This dictionary should be used to render an object within a template. It returns
         '''
         request = djp.request
         wrapper = djp.wrapper
-        prefix  = djp.prefix
-        app     = self
+        prefix = djp.prefix
+        app = self
+        render = loader.render
         for obj in data:
             content = app.object_content(djp, obj)
-            yield loader.render_to_string(self.get_item_template(obj, wrapper), content)
+            yield render(self.get_item_template(obj, wrapper), content)
     
     def get_object_view_template(self, obj, wrapper):
         '''Return the template file which render the object *obj*.

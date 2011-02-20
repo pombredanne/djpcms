@@ -827,12 +827,10 @@ a
 a {
 	background: transparent;
 	color: #33789C;
+	text-decoration: none;
 }
 
 
-a {
-    text-decoration: ;
-}
 a:link,
 a:visited {
     color: #33789C;
@@ -1069,10 +1067,8 @@ form.uniForm .buttonHolder {
     padding-bottom: 10px 0;
 }
 form.uniForm .errorlist {
-    color: #af4c4c;
     margin: 0 0 6px 0;
     padding: 4px;
-    background: #ffbfbf;
 }
 
 form.uniForm .field-widget.input {
@@ -1685,8 +1681,6 @@ ul.messagelist li
 
 
 ul.messagelist li {
-	background: #FFFFE5;
-	color: #666;
 	padding: 4px 5px 4px 25px;
 	margin: 0 0 3px;
 }
@@ -1701,8 +1695,6 @@ ul.messagelist li.error
 
 
 ul.messagelist li.error {
-	background: #FFBFBF;
-	color: #AF4C4C;
 }
 
 

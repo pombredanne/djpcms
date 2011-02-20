@@ -51,7 +51,7 @@ class editHandler(ResolverMixin):
     
 class SimplePermissionBackend(object):
     
-    def __call__(self, request, permission_code, obj):
+    def has(self, request, permission_code, obj):
         if permission_code <= VIEW:
             return True
         else:
@@ -67,7 +67,7 @@ of djpcms routes'''
         self._sites = {}
         self.modelwrappers = {}
         self.clear()
-        self.has_permission = SimplePermissionBackend()
+        self.permissions = SimplePermissionBackend()
         
     def clear(self):
         self._sites.clear()
@@ -102,8 +102,8 @@ of djpcms routes'''
     def all(self):
         s = self._osites
         if s is None:
-            self._osites = s = OrderedDict(reversed(sorted(self._sites.items(),
-                                           key=lambda x : x[0]))).values()
+            self._osites = s = list(OrderedDict(reversed(sorted(self._sites.items(),
+                                           key=lambda x : x[0]))).values())
         return s                           
                                            
     def __iter__(self):
@@ -204,14 +204,13 @@ of djpcms routes'''
         
         return self._create_site(route,settings)
     
-    def _create_site(self,url,settings):
+    def _create_site(self,route,settings):
         from djpcms.apps import appsites
-        url = self.makeurl(url)
-        self.logger.info('Creating new site at route "{0}"'.format(url))
-        site = self.get(url,None)
-        if site:
-            raise AlreadyRegistered('Site with url {0} already avalable "{1}"'.format(url,site))
-        site = appsites.ApplicationSite(self, url, settings)
+        route = self.makeurl(route)
+        self.logger.info('Creating new site at route "{0}"'.format(route))
+        if route in self._sites:
+            raise AlreadyRegistered('Site with route {0} already avalable "{1}"'.format(route,site))
+        site = appsites.ApplicationSite(self, route, settings)
         self._sites[site.route] = site
         self._osites = None
         self._urls = None

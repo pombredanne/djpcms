@@ -39,10 +39,8 @@
     padding-bottom: {{ buttonholder_padding }};
 }
 {{ tag }} .errorlist {
-    color: {{ error_color }};
     margin: 0 0 6px 0;
     padding: 4px;
-    background: {{ error_background }};
 }
 
 {{ tag }} .field-widget.input {

@@ -458,11 +458,12 @@ class ContentSite(appsite.ModelApplication):
             raise ValueError('Block number too high for current page')
         
         if nblocks:
-            cb     = blocks.count()
             # Create new blocks if necessary
-            for bn in range(cb,nblocks):
-                b = self.model(page = page, block = bn)
-                b.save()
+            for bn in range(nblocks):
+                elems = blocks.filter(block = bn)
+                if not elems:
+                    b = self.model(page = page, block = bn)
+                    b.save()
     
             try:
                 instance = self.model.objects.get(page = page, block = blocknumber, position = position)

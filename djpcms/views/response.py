@@ -240,7 +240,7 @@ return the wrapper with the underlying view.'''
             context['breadcrumbs'] = b
         
         context = loader.context(context, self.request)
-        html = loader.render_to_string(self.template_file,context)
+        html = loader.render(self.template_file,context)
         return self.http.HttpResponse(html)
         
     def redirect(self, url):

@@ -34,10 +34,10 @@ def page_edit_url(djp):
     request = djp.request
     kwargs = {'path':request.path[1:]}
     if djp.has_own_page():
-        if djp.site.has_permission(djp.request,djpcms.CHANGE,page):
+        if djp.site.permissions.has(djp.request,djpcms.CHANGE,page):
             return site.get_url(page.__class__,'change',**kwargs)
     else:
-        if djp.site.has_permission(djp.request,djpcms.ADD,page):
+        if djp.site.permissions.has(djp.request,djpcms.ADD,page):
             return site.get_url(page.__class__,'add',**kwargs)
         
 
@@ -238,7 +238,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
     def has_permission(self, request, page = None, obj = None):
         '''Check for page view permissions.'''
         if page:
-            return request.site.has_permission(request,djpcms.VIEW,page)
+            return request.site.permissions.has(request,djpcms.VIEW,page)
         else:
             return True
     

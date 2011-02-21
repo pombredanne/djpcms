@@ -1,4 +1,5 @@
 #
+# MANAGEMENT COMMANDS LOGIC
 # ADAPTED FROM DJANGO
 #
 import os
@@ -12,7 +13,7 @@ from djpcms.utils.importer import import_module
 
 from .base import BaseCommand, CommandError, handle_default_options
 
-_commands = None
+global_commands = None
 
 
 def find_commands(management_dir):
@@ -24,10 +25,10 @@ def find_commands(management_dir):
     """
     command_dir = os.path.join(management_dir, 'commands')
     try:
-        return [f[:-3] for f in os.listdir(command_dir)
-                if not f.startswith('_') and f.endswith('.py')]
+        return (f[:-3] for f in os.listdir(command_dir)
+                if not f.startswith('_') and f.endswith('.py'))
     except OSError:
-        return []
+        return ()
 
 
 def load_command_class(app_name, name):
@@ -41,9 +42,9 @@ def load_command_class(app_name, name):
 
 
 def get_commands():
-    global _commands
-    if _commands is None:
-        _commands = {}
+    global global_commands
+    if global_commands is None:
+        global_commands = {}
         apps = sites.settings.INSTALLED_APPS
 
         # Find and load the management module for each installed app.
@@ -54,12 +55,12 @@ def get_commands():
             try:
                 mod = import_module(command_module+'.management')
                 path = mod.__path__[0]
-                _commands.update(dict([(name, app_name)
+                global_commands.update(dict([(name, command_module)
                                        for name in find_commands(path)]))
             except ImportError:
                 pass # No management module
 
-    return _commands
+    return global_commands
 
 
 def call_command(name, *args, **options):

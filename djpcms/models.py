@@ -16,4 +16,5 @@ else:
     BlockContent = None
     Page = None
     Site = None
+    InnerTemplate = None
 

@@ -3,16 +3,16 @@ Version 0.9.0 - Development
 =======================================
 * **BACKWARD INCOMPATIBLE CHANGES**
 * This is the first release not dependent on ``django``.
-* Object Relational mapping can be done with ``django`` or ``python-stdnet``
-  or none of them.
+* Object Relational mapping can be done with ``django`` or ``python-stdnet``.
 * Other ORMs can be registered to the library::
 
     from djpcms import sites   
     sites.register_orm('path.to.my.ormwrapper')
     
     
-Version 0.8.6 -Developemnt
+Version 0.8.6 - Developemnt
 ==============================
+* LAST VERSION BASED ON DJANGO
 * Introduced new Ajax decorator ``rearrange`` which adds drag & drop
   functionalities during page editing.
 * Added abstraction for ``User``, ``Request`` and ``Response`` classes.

@@ -4,4 +4,18 @@
 {{ tag }}.collapsed .bd {
 	display: none;
 }
+{{ tag }} .edit-menu {
+	height: 18px;
+}
+{{ tag }} .edit-menu a {
+	height: 18px;
+    margin: 0 0 0;
+    padding: 1px;
+    right: 0.3em;
+    width: 19px;
+}
+{{ tag }} a span.ui-icon {
+	display: block;
+	margin: 1px;
+}
 {% endblock %}

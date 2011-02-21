@@ -21,7 +21,8 @@
 	font-weight:{{ font_weight }};{% endif %}{% if line_height %}
 	line-height: {{ line_height }};{% endif %}{% if text_align %}
 	text-align: {{ text_align }};{% endif %}{% if text_transform %}
-	text-transform: {{ text_transform }};{% endif %}{% if overflow %}
+	text-transform: {{ text_transform }};{% endif %}{% if text_decoration %}
+	text-decoration: {{ text_decoration }};{% endif %}{% if overflow %}
 	overflow: {{ overflow }};{% endif %}{% if display %}
 	display: {{ display }};{% endif %}{% if height %}
 	height: {{ height }};{% endif %}{% if width %}

@@ -114,7 +114,7 @@ with the wrapper callable.'''
             plugin  = plugin or self.plugin
             wrapper = wrapper or self.wrapper
             if plugin:
-                if site.has_permission(djp.request,djpcms.VIEW, self):
+                if site.permissions.has(djp.request,djpcms.VIEW, self):
                     djp.media += plugin.media
                     html = plugin(djp, self.arguments, wrapper = wrapper)
         except Exception as e:
@@ -142,8 +142,8 @@ with the wrapper callable.'''
             p = '{0}-{1}'.format(p,extra)
         return p
             
-    def __unicode__(self):
-        return '%s-%s-%s' % (self.page.id,self.block,self.position)
+    def htmlid(self):
+        return 'block-%s-%s-%s' % (self.page.id,self.block,self.position)
     
     def __get_plugin(self):
         return get_plugin(self.plugin_name)
@@ -154,9 +154,7 @@ with the wrapper callable.'''
     wrapper = property(_get_wrapper)
     
     def plugin_class(self):
-        '''
-        utility functions.
-        Return the class of the embedded plugin (if available)
+        '''Return the class of the embedded plugin (if available)
         otherwise it returns Null
         '''
         if self.plugin:

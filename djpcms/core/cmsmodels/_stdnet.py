@@ -5,7 +5,7 @@ from stdnet import orm
 from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin,\
                              BlockContentManager
-from djpcms.utils import html
+from djpcms import html
 
 
 ModelBase = orm.StdModel
@@ -137,7 +137,7 @@ class Page(TimeStamp, PageInterface):
     
     def save(self, commit = True):
         self.level = self.get_level()
-        super(Page,self).save(commit = commit)
+        return super(Page,self).save(commit = commit)
 
     def published(self):
         return self in Page.objects.published()
@@ -187,6 +187,9 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
     requires_login = field.BooleanField(default = False, index = False)
     
     objects = BlockManager()
+    
+    def __unicode__(self):
+        return self.htmlid()
     
     class Meta:
         app_label = 'djpcms'

@@ -1,14 +1,13 @@
-<div{% if id %} id="{{ id }}"{% endif %} class="{% block box-class %}djpcms-html-box{% endblock %}{% if classes %} {{ classes }}{% endif %}">{% if hd %}
- <div class="hd">
+{% if hd %}
+ <div class="hd ui-widget-header">
   <h2>{% if title %}{{ title }}{% endif %}</h2>{% if menulist %}
   <div class="edit-menu">{% for menu in menulist %}
    {{ menu }}{% endfor %}
   </div>{% endif %}
  </div>{% endif %}
- <div class="bd">
+ <div class="bd ui-widget-content">
  {{ bd }}
  </div>{% if ft %}
- <div class="ft">
+ <div class="ft ui-widget-content">
  {{ ft }}
  </div>{% endif %}
-</div>

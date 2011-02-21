@@ -9,8 +9,7 @@ from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.template import loader
 
-from djpcms.models import Page, BlockContent, InnerTemplate
-from djpcms.apps.included.contentedit import ContentSite
+from djpcms.models import Page, InnerTemplate
 
 
 class DummyDjp(object):
@@ -34,8 +33,6 @@ class ApplicationSite(ResolverMixin):
         self.url = url
         self.config = config
         self.settings = config
-        self.editavailable = config.CONTENT_INLINE_EDITING.get('available',False)
-        self.editurl  = config.CONTENT_INLINE_EDITING.get('preurl','/edit/')
         self._registry = {}
         self._nameregistry = OrderedDict()
         self.choices = [('','-----------------')]
@@ -57,10 +54,6 @@ class ApplicationSite(ResolverMixin):
             raise ImproperlyConfigured('A different User class has been already registered')
     User = property(__get_User,__set_User)
     
-    def load_initial(self):
-        baseurl = self.config.CONTENT_INLINE_EDITING.get('pagecontent', '/content/')
-        self.register(ContentSite(baseurl, BlockContent, editavailable = False))
-        
     def count(self):
         return len(self._registry)
         
@@ -74,7 +67,6 @@ to the site. If a model is already registered, this will raise AlreadyRegistered
             appurls = app_module.appurls
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
-        self.load_initial()
         for application in appurls:
             self.register(application)
         url = self.make_url
@@ -221,8 +213,9 @@ returns the application handler. If the appname is not available, it raises a Ke
         self._load_template_processors()
         return self._template_context_processors
     
-    def has_permission(self, request, permission_code, obj = None):
-        return self.root.has_permission(request, permission_code, obj)
+    @property
+    def permissions(self):
+        return self.root.permissions
     
     def add_default_inner_template(self, page):
         template_name = self.settings.DEFAULT_INNER_TEMPLATE

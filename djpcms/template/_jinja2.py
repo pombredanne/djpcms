@@ -22,7 +22,7 @@ class TemplateHandler(LibraryTemplateHandler):
             env = jinja2.Environment(loader=loader)
             envs.append(env)
     
-    def render_to_string(self, template_name, vars = None):
+    def render(self, template_name, data=None, autoescape=False):
         """
         Loads the given template_name and renders it with the given dictionary as
         context. The template_name may be a string to load a single template using
@@ -33,7 +33,7 @@ class TemplateHandler(LibraryTemplateHandler):
             t = self.select_template(template_name)
         else:
             t = self.get_template(template_name)
-        return t.render(vars)
+        return t.render(data)
     
     def get_template(self, template_name):
         for env in self.envs:
@@ -50,3 +50,17 @@ class TemplateHandler(LibraryTemplateHandler):
         # If we get here, none of the templates could be loaded
         raise TemplateDoesNotExist(', '.join(template_name_list))
     
+    def find_template_loader(self, code, args):
+        bits = code.split('.')
+        module, attr = '.'.join(bits[:-1]),bits[-1]
+        try:
+            mod = import_module(module)
+        except ImportError as e:
+            raise ImproperlyConfigured('Error importing template source loader {0}: "{1}"'.format(module, e))
+        try:
+            TemplateLoader = getattr(mod, attr)
+        except AttributeError as e:
+            raise ImproperlyConfigured('No template loader attribute {0} in {1}: "{2}"'.format(attr, module, e))
+
+        fargs = [arg if not hasattr(arg,'__call__') else arg() for arg in args]
+        return TemplateLoader(*fargs)

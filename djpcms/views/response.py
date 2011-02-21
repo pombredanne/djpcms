@@ -183,8 +183,12 @@ return the wrapper with the underlying view.'''
         if not view.has_permission(request, page, self.instance):
             return view.permissionDenied(self)
         
+        # chanse to bail out early
+        re = view.preprocess(self)
+        if isinstance(re,http.HttpResponse):
+            return re
+            
         if not is_ajax:
-            re = view.preget(self)
             if isinstance(re,http.HttpResponse):
                 return re
             # If user not authenticated set a test cookie  
@@ -236,7 +240,7 @@ return the wrapper with the underlying view.'''
             context['breadcrumbs'] = b
         
         context = loader.context(context, self.request)
-        html = loader.render_to_string(self.template_file,context)
+        html = loader.render(self.template_file,context)
         return self.http.HttpResponse(html)
         
     def redirect(self, url):

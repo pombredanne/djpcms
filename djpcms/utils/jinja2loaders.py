@@ -12,7 +12,7 @@ def application_directories(package_path):
     for app in sites.settings.INSTALLED_APPS:
         try:
             mod = import_module(app)
-        except ImportError, e:
+        except ImportError as e:
             raise ImproperlyConfigured('ImportError %s: %s' % (app, e.args[0]))
         template_dir = os.path.join(os.path.dirname(mod.__file__), package_path)
         if os.path.isdir(template_dir):
@@ -32,4 +32,4 @@ class ApplicationLoader(loaders.FileSystemLoader):
     def __init__(self, package_path='templates', encoding='utf-8'):
         searchpath = application_directories(package_path)
         super(ApplicationLoader,self).__init__(searchpath,encoding)
-        
+    

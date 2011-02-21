@@ -9,7 +9,7 @@ from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
-from djpcms.utils.html import Paginator
+from djpcms.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
@@ -316,7 +316,7 @@ replaced during initialization.
         else:    
             c['items'] = self.data_generator(djp, p.qs)
             
-        return loader.render_to_string(self.view_template, c)
+        return loader.render(self.view_template, c)
     
     def parentresponse(self, djp):
         '''

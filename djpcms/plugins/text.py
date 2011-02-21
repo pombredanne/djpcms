@@ -36,7 +36,7 @@ class ChangeTextContent(forms.Form):
     Form for changing text content during inline editing
     '''
     site_content = SiteContentField(queryset = SiteContent.objects.all(),
-                                    empty_label=u"New Content",
+                                    empty_label="New Content",
                                     required = False)
     new_content  = NewContentCode(SiteContent,
                                   'code',
@@ -71,7 +71,7 @@ class ChangeTextContent(forms.Form):
         if self.is_valid():
             cd   = self.cleaned_data
             text = cd.get('site_content',None)
-            nc   = cd.get('new_content',u'')
+            nc   = cd.get('new_content','')
             # If new_content is available. A new SiteContent object is created
             if not text:
                 text = SiteContent(code = nc)
@@ -114,7 +114,7 @@ You can use several different markup languages or simply raw HTML.'''
         if self.site_content:
             return self.site_content.bodyhtml()
         else:
-            return u''
+            return ''
             
     def render(self, djp, wrapper, prefix, site_content = None, **kwargs):
         if site_content:
@@ -123,19 +123,19 @@ You can use several different markup languages or simply raw HTML.'''
                 return mark_safe('\n'.join(['<div class="djpcms-text-content">',
                                             site_content.htmlbody(),
                                             '</div>']))
-            except Exception, e:
+            except Exception as e:
                 if djp.settings.DEBUG:
-                    return u'%s' % e 
+                    return str(e) 
                 else:
-                    return u''
+                    return ''
         else:
-            return u''
+            return ''
     
     def edit_form(self, djp, site_content = None, **kwargs):
         if site_content:
             try:
                 obj = SiteContent.objects.get(id = int(site_content))
-            except Exception, e:
+            except Exception as e:
                 return None
             # Check for permissions
             if has_permission(djp.request.user,get_change_permission(obj), obj):

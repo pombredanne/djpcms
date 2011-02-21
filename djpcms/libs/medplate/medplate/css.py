@@ -1,16 +1,17 @@
 from copy import copy
 
 from djpcms import template, nodata
+from djpcms.utils.collections import OrderedDict
 
 
 from .defaults import body_defaults, jqueryui
 
 
 _root = None
-_context_dictionary = {}
+_context_dictionary = OrderedDict()
 
 
-class CssContext(object):
+class _CssContext(object):
     template = 'medplate/elem.css_t'
     
     def __init__(self, name, tag = None, template = None,
@@ -36,7 +37,7 @@ class CssContext(object):
             self.context_dictionary = _context_dictionary
         else:
             name = name.lower()
-            self.context_dictionary = {}
+            self.context_dictionary = OrderedDict()
             self.name = name
             cd = _context_dictionary
             if parent:
@@ -100,7 +101,7 @@ class CssContext(object):
         self.data.update(data)
     
     def add(self, value):
-        if isinstance(value,CssContext):
+        if isinstance(value,_CssContext):
             self.context_dictionary[value.name] = value
             
     def __iter__(self):
@@ -158,8 +159,8 @@ class CssContext(object):
         return obj
            
            
-class CssBody(CssContext):
-    template = 'medplate/base.css_t'
+class CssBody(_CssContext):
+    template = 'medplate/body.css_t'
     
     def __init__(self, data = None):
         super(CssBody,self).__init__(None,'body',
@@ -171,7 +172,7 @@ class CssBody(CssContext):
         data['jquery'] = jqueryui(data,loader,style)
         
 
-class DummyBody(CssContext):
+class DummyBody(_CssContext):
     template = 'medplate/root.css_t'
     
     def __init__(self, data = None):
@@ -183,11 +184,9 @@ class DummyBody(CssContext):
         data['jquery'] = jqueryui(data,loader,style)
         
         
-class CssTheme(object):
+class _CssTheme(object):
     '''Add theme to Context'''    
-    def __init__(self, context, name, data = None):
-        if not isinstance(context,CssContext):
-            context = _context_dictionary[context]
+    def __init__(self, context, name, data):
         context.themes[name] = self
         self.context = context
         self.name = name
@@ -195,7 +194,50 @@ class CssTheme(object):
     
     def __str__(self):
         return '{0}.{1}'.format(self.context,self.name)
+
+
+
+def get_context(name):
+    cts = name.split()
+    context = _context_dictionary[cts[0]]
+    for c in cts[1:]:
+        context = context.context_dictionary[c]
+    return context
+
+
+def CssContext(name, parent = None, **kwargs):
+    cts = name.split()
+    cd = _context_dictionary
+    parent = parent
+    context = None
+    for name in tuple(cts):
+        if name in cd:
+            parent = context
+            context = cd[name]
+            cd = context.context_dictionary
+            cts.pop(0)
+        else:
+            context = None
+            break
+    if context and not cts:
+        return context
     
+    if len(cts) > 1:
+            raise ValueError
+    return _CssContext(cts[0], parent = parent, **kwargs)
+    
+
+def CssTheme(context, name, data = None):
+    if not isinstance(context,_CssContext):
+        context = get_context(context)
+    if not data:
+        data = {}
+    if name in context.themes:
+        theme = context.themes[name]
+        theme.data.update(data)
+    else:
+        _CssTheme(context,name,data)
+ 
     
 def rendercss(style, media_url, template_engine = None):
     '''Entry point for rendering css templates.

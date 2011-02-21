@@ -6,8 +6,6 @@
     margin: 0; padding: 0;
     clear: both;
     overflow: hidden;
-}
-{{ tag }} .ctrlHolder {
     padding: 5px;
 }
 {{ tag }} input[type="text"],
@@ -37,14 +35,23 @@
     width: 98%;
 }
 {{ tag }} .buttonHolder {
-    padding: {{ buttonholder_padding }};
+    padding-top: {{ buttonholder_padding }};
+    padding-bottom: {{ buttonholder_padding }};
 }
-
 {{ tag }} .errorlist {
-    color: {{ error_color }};
     margin: 0 0 6px 0;
     padding: 4px;
-    background: {{ error_background }};
+}
+
+{{ tag }} .field-widget.input {
+    border: {{ input_border }};
+    padding: {{ input_padding }};
+}
+
+/*   Block Labels
+------------------------------------------------ */
+{{ tag }} .blockLabels.buttonHolder {
+	text-align: right;
 }
 
 /*   Inline Labels
@@ -59,9 +66,5 @@
 {{ tag }} .inlineLabels.buttonHolder {
     margin-left: 34%;
     width: auto;
-}
-{{ tag }} .inlineLabels .field-widget.input {
-    border: {{ input_border }};
-    padding: {{ input_padding }};
 }
 {% endblock %}

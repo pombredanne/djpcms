@@ -8,11 +8,12 @@ from djpcms import sites, forms
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _
-from djpcms.utils import force_str, gen_unique_id
+from djpcms.utils import force_str
 from djpcms.utils.dates import format
 from djpcms.utils.ajax import jredirect, jremove
 
 from .html import HiddenInput
+from .globals import generate_prefix
 
 logger = logging.getLogger('djpcms.forms')
 
@@ -139,7 +140,7 @@ def get_form(djp,
     request  = djp.request
     own_view = djp.own_view()
     data = request.data_dict
-    prefix = data.get('_prefixed',None)
+    prefix = data.get('__prefixed__',None)
     save_as_new = data.has_key('_save_as_new')
     submits = form_factory.submits
     if submits:
@@ -150,8 +151,8 @@ def get_form(djp,
         inputs = []
         
     if not prefix and force_prefix:
-        prefix = gen_unique_id()
-        pinput = form_factory.prefixinput(gen_unique_id())
+        prefix = generate_prefix()
+        pinput = forms.HiddenInput(name='__prefixed__',value=prefix)
         inputs.append(pinput)
                 
     # Create the form instance

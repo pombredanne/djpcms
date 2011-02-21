@@ -13,7 +13,7 @@ class TestSimpleForm(test.TestCase):
     def testValidSimpleBound(self):
         prefix = 'sjkdcbksdjcbdf-'
         form = SimpleForm(data = {prefix+'name':'pinco'},
-                         prefix = prefix)
+                          prefix = prefix)
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
         self.assertEqual(form.data['name'],'pinco')
@@ -27,5 +27,11 @@ class TestSimpleForm(test.TestCase):
         self.assertEqual(w.attrs['action'],'/test/')
         self.assertEqual(w.attrs['method'],'post')
         
-        
-        
+    def testInitial(self):
+        f = SimpleForm(initial = {'name':'luca','age':39,'profession':2})
+        hf = forms.HtmlForm(SimpleForm)
+        w = hf.widget(f, action = '/test/')
+        html = w.render()
+        self.assertTrue('luca' in html)
+        self.assertTrue('39' in html)
+    

@@ -25,6 +25,7 @@ class editPageView(appview.ChangeView):
         context = vdjp.view.get_context(vdjp,editing=True)
         context['page_url'] = vdjp.url
         context['editing_panel'] = self.editing_panel(cn = 'djpcms-editing').render(djp)
+        context['bodybits'] = loader.mark_safe(' class="edit"')
         return context
     
 

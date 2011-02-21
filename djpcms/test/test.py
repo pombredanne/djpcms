@@ -35,8 +35,6 @@ Must be used as a base class for TestCase classes'''
     _env = None
     
     def _pre_setup(self):
-        from djpcms.core import api
-        self.api = api
         sites.settings.TESTING = True
         self.SITE_DIRECTORY = sites.settings.SITE_DIRECTORY
         self.INSTALLED_APPS = copy(sites.settings.INSTALLED_APPS)

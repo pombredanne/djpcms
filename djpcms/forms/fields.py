@@ -159,18 +159,19 @@ class ChoiceField(Field):
         self.inline = inline
         self._raise_error(kwargs)
         
+    def get_choices(self):
+        ch = self.choices
+        if hasattr(ch,'__call__'):
+            ch = ch()
+        return dict(ch)
+                
     def _clean(self, value):
         '''Clean the field value'''
+        if value:
+            ch = self.get_choices()
+            if value not in ch:
+                raise ValidationError('{0} is not a valid choice'.format(value))
         return value
-        if value == nodata:
-            ch = self.choices
-            if not hasattr(ch,'__getitem__'):
-                ch = list(ch)
-                self.choices = ch
-            if ch:
-                value = ch[0][0]
-                return value
-        return super(ChoiceField,self).clean(value, bfield)
 
     
     

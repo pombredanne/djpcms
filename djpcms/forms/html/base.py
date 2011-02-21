@@ -1,7 +1,7 @@
 from py2py3 import iteritems
 
 from djpcms.utils import slugify, merge_dict
-from djpcms.template import loader, mark_safe, conditional_escape
+from djpcms.template import loader, mark_safe
 
 from .media import BaseMedia
 
@@ -12,7 +12,7 @@ __all__ = ['flatatt',
 def attrsiter(attrs):
     for k,v in attrs.items():
         if v:
-            yield ' {0}="{1}"'.format(k, conditional_escape(v))
+            yield ' {0}="{1}"'.format(k, v)
                 
                 
 def flatatt(attrs):
@@ -107,8 +107,17 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         else:
             return self.inner(*args, **kwargs)
     
+    def get_context(self, context, *args, **kwargs):
+        pass
+    
     def inner(self, *args, **kwargs):
-        return ''
+        '''Render the inner template'''
+        if self.template:
+            context = {}
+            self.get_context(context,*args,**kwargs)
+            return loader.render(self.template,context)
+        else:
+            return ''
 
     
 class FormWidget(HtmlWidget):
@@ -123,7 +132,7 @@ class FormWidget(HtmlWidget):
         super(FormWidget,self).__init__(**kwargs)
         self.form = form
         self.layout = layout
-        self.inputs = inputs
+        self.inputs = inputs if inputs is not None else []
         self.addClass(self.layout.form_class)
         
     def inner(self, djp = None):

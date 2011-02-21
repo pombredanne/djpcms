@@ -4,7 +4,7 @@ The application derives from the base appsite.ModelApplication
 and defines several ajax enabled sub-views 
 '''
 from djpcms import forms, sites
-from djpcms.forms import SubmitInput
+from djpcms.forms import SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
@@ -17,6 +17,12 @@ from djpcms.views import appsite, appview
 from .forms import ContentBlockHtmlForm
 
 dummy_wrap = lambda d,b,x : x
+
+
+edit_class = 'edit-block'
+movable_class = 'movable'
+edit_movable = edit_class + ' ' + movable_class
+dummy_block = '<div class="hd {0}"></div>'.format(edit_movable)
 
 
 # Content wrapper in editing mode.
@@ -35,9 +41,10 @@ class EditWrapperHandler(CollapsedWrapper):
         return cblock.htmlid()
     
     def _wrap(self, djp, cblock, html):
-        cl = ['edit-block']
         if cblock.plugin_name:
-            cl.append('movable')
+            cl = edit_movable
+        else:
+            cl = edit_class
         return cl,djp.view.appmodel.deleteurl(djp.request, djp.instance)
     
     def footer(self, djp, cblock, html):
@@ -109,6 +116,7 @@ class ChangeContentView(appview.ChangeView):
             initial = None
         fw = super(ChangeContentView,self).get_form(djp,
                                                     initial = initial,
+                                                    force_prefix = True,
                                                     **kwargs)
         if all:
             instance = djp.instance
@@ -264,7 +272,9 @@ The instance.plugin object is maintained but its fields may change.'''
         instance.plugin_name = plugin.name
         
         # Get the full form
-        form  =  self.get_form(djp).form
+        html_form  =  self.get_form(djp)
+        form = html_form.form
+        layout = html_form.layout
         if form.is_valid():
             # save the plugin
             instance   = form.save(commit = False)
@@ -278,8 +288,8 @@ The instance.plugin object is maintained but its fields may change.'''
                 block = instance.block
                 preview = self.get_preview(request, instance, url,  wrapped = False)
                 jquery = jhtmls(identifier = '#%s' % instance.pluginid('preview'), html = preview)
-                form.add_message(request, "Plugin changed to %s" % instance.plugin.description)
-                jquery.update(form.json_message())
+                form.add_message("Plugin changed to %s" % instance.plugin.description)
+                jquery.update(layout.json_messages(form))
                 cblocks = self.model.objects.filter(page = page, block = block)
                 if instance.position == cblocks.count()-1:
                     b = page.get_block(block)
@@ -448,11 +458,12 @@ class ContentSite(appsite.ModelApplication):
             raise ValueError('Block number too high for current page')
         
         if nblocks:
-            cb     = blocks.count()
             # Create new blocks if necessary
-            for bn in range(cb,nblocks):
-                b = self.model(page = page, block = bn)
-                b.save()
+            for bn in range(nblocks):
+                elems = blocks.filter(block = bn)
+                if not elems:
+                    b = self.model(page = page, block = bn)
+                    b.save()
     
             try:
                 instance = self.model.objects.get(page = page, block = blocknumber, position = position)
@@ -473,6 +484,7 @@ class ContentSite(appsite.ModelApplication):
         wrapper  = EditWrapperHandler(url)
         pos = 0
         Tot = blockcontents.count() - 1
+        yield dummy_block        
         for b in blockcontents:
             if not b.plugin_name and b.position < Tot:
                 b.delete()

@@ -145,11 +145,11 @@ class ModelFilter(DJPplugin):
             return appmodel
         filters = appmodel.search_fields
         if not filters:
-            return u''
+            return ''
         request = djp.request
         search_url = appmodel.searchurl(request)
         if not search_url:
-            return u''
+            return ''
         model = appmodel.model
         initial = dict((request.GET or request.POST).items())
         form = forms.modelform_factory(model, appmodel.form, fields = filters, exclude = [])
@@ -184,9 +184,9 @@ class ObjectLinks(DJPplugin):
                                                 'djpcms/bits/editlinks.html'],
                                                 links)
             else:
-                return u''
+                return ''
         except:
-            return u''
+            return ''
     
     
 class ModelLinks(DJPplugin):
@@ -203,7 +203,7 @@ class ModelLinks(DJPplugin):
                                             'djpcms/bits/editlinks.html'],
                                             links)
         except:
-            return u''
+            return ''
         
 
 class LatestItems(DJPplugin):

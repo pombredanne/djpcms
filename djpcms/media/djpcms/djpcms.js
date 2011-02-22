@@ -21,6 +21,35 @@
  * @param options_, Object page-specific options
  */
 (function($) {
+    
+    
+    $.fn.commonAncestor = function() {
+        var parents = [],
+            minlen = Infinity;
+
+        $(this).each(function() {
+            var curparents = $(this).parents();
+            parents.push(curparents);
+            minlen = Math.min(minlen, curparents.length);
+        });
+
+        for(var i in parents) {
+            parents[i] = parents[i].slice(parents[i].length - minlen);
+        }
+
+        // Iterate until equality is found
+        for (var i in parents[0]) {
+            var equal = true;
+            for (var j in parents) {
+                if (parents[j][i] != parents[0][i]) {
+                    equal = false;
+                    break;
+                }
+            }
+            if (equal) return $(parents[0][i]);
+        }
+        return $([]);
+    };
 	
     $.djpcms = (function() {
         
@@ -33,6 +62,7 @@
         		confirm_actions:   {'delete': 'Please confirm delete',
         							'flush': 'Please confirm flush'},
         		autoload_class:	   "autoload",
+        		post_view_key:     "xhr",
         		ajax_server_error: "ajax-server-error",
         		errorlist:		   "errorlist",
         		formmessages:	   "form-messages",
@@ -799,73 +829,93 @@
 		description: "Drag and drop functionalities in editing mode",
 		decorate: function($this,config) {
 			// The selectors
-			var columns = 'div.sortable-block';
-			var editblock = 'div.edit-block'
-			var divpaceholder = 'djpcms-placeholder';
-			var holderelem = 'div#content';
-			var sortableItems = $(editblock+'.movable');
+		    if(!$('body.edit').length) {
+		        if(!$.djpcms.content_edit) {
+		            return;
+		        }
+		    }
+		    $.djpcms.content_edit = (function() {
+		        
+		        var sortblock = '.sortable-block',
+		            divpaceholder = 'djpcms-placeholder',
+		            editblock = 'div.edit-block',
+		            columns = $(sortblock),
+		            holderelem = columns.commonAncestor(),
+		            curposition = null;
+		        
+		        
+		        columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
+		            curposition = position($(this).parent(editblock));
+		            $.djpcms.log('selected item to move');
+		            var elem = $(this).parent();
+                    elem.css({
+                        width: elem.width() + 'px'
+                    });
+		        });
+		        
+		        function position(elem) {
+		            var neighbour = elem.prev(editblock),
+		                data = {};
+                    if(neighbour.length) {
+                        data.previous = neighbour.attr('id');
+                    }
+                    else {
+                        neighbour = elem.next(editblock);
+                        if(neighbour.length) {
+                            data.next = neighbour.attr('id');
+                        }
+                    }
+                    return data;
+		        }
+		        
+    			function moveblock(elem, pos, callback) {
+    				var data = $.extend($.djpcms.postparam('rearrange'),pos);
+    				var form = $('form.djpcms-blockcontent',elem);
+    				function movedone(e,s) {
+    					$.djpcms.jsonCallBack(e,s);
+    					callback();
+    				}
+    				if(form) {
+    					var url = form.attr('action');
+    					$.post(url,
+    						   data,
+    						   movedone,
+    						   'json');
+    				}
+    			}
 			
-			// Start the code
-			sortableItems.mousedown(function (e) {
-			    $.djpcms.log('selected item to move');
-	            sortableItems.css({width:''});
-	            $(this).parent().css({
-	                width: $(this).parent().width() + 'px'
-	            });
-	        }).mouseup(function () {
-	            if(!$(this).parent().hasClass('dragging')) {
-	                $(this).parent().css({width:''});
-	            } else {
-	                $(columns).sortable('disable');
-	            }
-	        });
-			
-			function moveblock(elem, callback) {
-				var data = $.djpcms.postparam('rearrange');
-				var neighbour = elem.prev(editblock);
-				if(neighbour.length) {
-					data.previous = neighbour.attr('id');
-				}
-				else {
-					neighbour = elem.next(editblock);
-					if(neighbour.length) {
-						data.next = neighbour.attr('id');
-					}
-				}
-				var form = $('form.djpcms-blockcontent',elem);
-				function movedone(e,s) {
-					$.djpcms.jsonCallBack(e,s);
-					callback();
-				}
-				if(form) {
-					var url = form.attr('action');
-					$.post(url,
-						   data,
-						   movedone,
-						   'json');
-				}
-			}
-			
-			$(columns).sortable({
-				items: sortableItems,
-				handle: 'div.hd',
-	            forcePlaceholderSize: true,
-				revert: 300,
-	            delay: 100,
-	            opacity: 0.8,
-	            containment: holderelem,
-	            placeholder: divpaceholder,
-	            start: function (e,ui) {
-	                $(ui.helper).addClass('dragging');
-	            },
-	            stop: function (e,ui) {
-	                $(ui.item).css({width:''}).removeClass('dragging');
-	                function updatedone() {
-	                	$(columns).sortable('enable');
-	                }
-	                moveblock(ui.item,updatedone);
-	            }
-			});
+    			columns.sortable({
+    				items: editblock,
+    				cancel: "div.edit-block:not(.movable)",
+    				handle: 'div.hd',
+    	            forcePlaceholderSize: true,
+    	            connectWith: sortblock,
+    				revert: 300,
+    	            delay: 100,
+    	            opacity: 0.8,
+    	            containment: holderelem,
+    	            placeholder: divpaceholder,
+    	            start: function (e,ui) {
+    	                $(ui.helper).addClass('dragging');
+    	            },
+    	            stop: function (e,ui) {
+    	                var elem = ui.item;
+    	                elem.css({width:''}).removeClass('dragging');
+    	                function updatedone() {
+    	                	columns.sortable('enable');
+    	                }
+    	                var pos = position(elem);
+    	                if(pos.previous) {
+    	                    if(pos.previous == curposition.previous) {return;}
+    	                }
+    	                else {
+    	                    if(pos.next == curposition.next) {return;}
+    	                }
+    	                columns.sortable('disable');
+    	                moveblock(ui.item,pos,updatedone);
+    	            }
+    			});
+		    }());
 		}
 	});
 	

@@ -143,8 +143,17 @@ with the wrapper callable.'''
         return p
             
     def htmlid(self):
-        return 'block-%s-%s-%s' % (self.page.id,self.block,self.position)
+        return 'block-{0}'.format(self.id)
     
+    @classmethod
+    def block_from_html_id(cls, htmlid):
+        id = htmlid.split('-')
+        if len(id) == 2:
+            id = id[1]
+            return cls.objects.get(id = id)
+        else:
+            return None
+        
     def __get_plugin(self):
         return get_plugin(self.plugin_name)
     plugin = property(__get_plugin)
@@ -161,6 +170,7 @@ with the wrapper callable.'''
             return self.plugin.__class__
         else:
             return None
+    
     
     
 class BlockContentManager(object):

@@ -11,6 +11,7 @@ __all__ = ['string_type',
            'is_string',
            'iteritems',
            'itervalues',
+           'range',
            'zip',
            'map']
 
@@ -26,6 +27,7 @@ if ispy3k(): # Python 3
     int_type = int
     zip = zip
     map = map
+    range = range
         
 else: # Python 2
     string_type = unicode
@@ -34,6 +36,7 @@ else: # Python 2
     is_string = lambda x : isinstance(x,basestring)
     int_type = (types.IntType, types.LongType)
     from itertools import izip as zip, imap as map
+    range = xrange
     
     
 def to_bytestring(s, encoding='utf-8', errors='strict'):

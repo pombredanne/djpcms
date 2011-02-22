@@ -1,9 +1,6 @@
 import logging
 
-try:
-    range = xrange
-except:
-    pass
+from py2py3 import range
 
 import djpcms
 from djpcms.utils.ajax import jservererror, jredirect

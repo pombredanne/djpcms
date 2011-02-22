@@ -52,7 +52,7 @@
 <script type="text/javascript">
 (function($) {
   $(document).ready(function() {
-	{% if cssajax %}var options = {{ cssajax.tojson }};{% else %}var options = {};{% endif %}
+	{% if djp %}var options = {{ djp.css.tojson }};{% else %}var options = {};{% endif %}
 	options.media_url = "{{ MEDIA_URL }}";
 	options.debug     = {{ jsdebug }};
 	$.djpcms.set_options(options);

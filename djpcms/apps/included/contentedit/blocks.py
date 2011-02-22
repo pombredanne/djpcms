@@ -3,6 +3,8 @@ Application for handling inline editing of blocks
 The application derives from the base appsite.ModelApplication
 and defines several ajax enabled sub-views 
 '''
+from py2py3 import range
+
 from djpcms import forms, sites
 from djpcms.forms import SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
@@ -22,7 +24,6 @@ dummy_wrap = lambda d,b,x : x
 edit_class = 'edit-block'
 movable_class = 'movable'
 edit_movable = edit_class + ' ' + movable_class
-dummy_block = '<div class="hd {0}"></div>'.format(edit_movable)
 
 
 # Content wrapper in editing mode.
@@ -49,45 +50,15 @@ class EditWrapperHandler(CollapsedWrapper):
     
     def footer(self, djp, cblock, html):
         return djp.view.get_preview(djp.request, djp.instance, self.url)
-
-
-def update_contentblock(djp, cblock, block, position, jattr):
-        '''Update a contentblock by changing its ``block`` and ``position`` values.'''
-        view = djp.view
-        if cblock.block == block and cblock.position == position:
-            return 
-        id = 'id'
-        oldid = cblock.htmlid()
-        plgid1 = cblock.pluginid('options')
-        plgid2 = cblock.pluginid('preview')
-        plgid3 = cblock.pluginid('edit')
-        cblock.block = block
-        cblock.position = position
-        cblock.save()
-        cdjp = view(djp.request, instance = cblock)
-        jattr.add('div#{0} form.djpcms-blockcontent'.format(oldid),'action',cdjp.url)
-        durl = view.appmodel.deleteurl(djp.request, cblock)
-        jattr.add('div#{0} div.hd a.deletable'.format(oldid),'href',durl)
-        jattr.add('#'+oldid, id,cblock.htmlid())
-        jattr.add('#'+plgid1,id,cblock.pluginid('options'))
-        jattr.add('#'+plgid2,id,cblock.pluginid('preview'))
-        jattr.add('#'+plgid3,id,cblock.pluginid('edit'))
-        
+             
         
 # Application view for handling change in content block internal plugin
 # It handles two different Ajax interaction with the browser 
 class ChangeContentView(appview.ChangeView):
-    '''
-    View class for managing inline editing of a content block.
+    '''View class for managing inline editing of a content block.
     The url is given by the ContentBlocks models
     '''
     _methods = ('post',)
-    
-    def __init__(self, regex = '(?P<pageid>\d+)/(?P<blocknumber>\d+)/(?P<position>\d+)',
-                 isapp = False, **kwargs):
-        super(ChangeContentView,self).__init__(regex = regex,
-                                               isapp = isapp,
-                                               **kwargs)
         
     def render(self, djp, url = None):
         return self.get_form(djp, url = url).render(djp)
@@ -186,68 +157,42 @@ class ChangeContentView(appview.ChangeView):
         
     def ajax__container_type(self, djp):
         return self.ajax__plugin_name(djp)
-    
-    def _blockpos(self, id):
-        pageid, block, pos = (id.split('-')[-3:])
-        return int(block),int(pos)
         
     def ajax__rearrange(self, djp):
         '''Move the content block to a new position and updates all html attributes'''
+        request = djp.request
         contentblock = djp.instance
-        page   = contentblock.page
-        oldposition = contentblock.position
-        oldblock = contentblock.block
-        data   = dict(djp.request.POST.items())
+        data   = request.data_dict
         try:            
             previous = data.get('previous',None)
             if previous:
-                block, pos = self._blockpos(previous)
+                block = self.model.block_from_html_id(previous)
+                pos = block.position
                 newposition = pos + 1
             else:
                 nextv = data.get('next',None)
                 if nextv:
-                    block, pos = self._blockpos(nextv)
+                    block = self.model.block_from_html_id(nextv)
+                    pos = block.position
                 else:
                     return jempty()
                 newposition = pos if not pos else pos-1
             
-            if block == contentblock.block and contentblock.position == newposition:
-                # Nothing to do
-                return jempty()
-            else:
-                filter = self.model.objects.filter
-                jattr = jattribute()
-                
-                if block == oldblock:
-                    # On the same block
-                    contentblock.position = 1000
-                    contentblock.save()
-                    mblocks = filter(page = page, block = block)
-                    step = -1
-                    if newposition > oldposition:
-                        newposition -= 1
-                        step = 1
-                    for position in range(oldposition,newposition,step):
-                        iblock = mblocks.get(position = position+step)
-                        update_contentblock(djp,iblock,block,position,jattr)
-                    contentblock.position = oldposition
-                    update_contentblock(djp,contentblock,block,newposition,jattr)                    
-                else:
-                    # On a different block
-                    cmp = lambda x,y : 1 if y.position > x.position else -1
-                    # First move to the new block
-                    for cblock in sorted(filter(page = page, block = block),cmp):
-                        if cblock.position >= newposition:
-                            update_contentblock(djp,cblock,block,cblock.position+1,jattr)
-                    update_contentblock(djp,contentblock,block,newposition,jattr)
-                    # Second rearrange old block
-                    for cblock in filter(page = page, block = oldblock):
-                        if cblock.position > oldposition:
-                            update_contentblock(djp,cblock,oldblock,cblock.position-1,jattr)                
-                return jattr
+            block = block.block
+            if block != contentblock.block or contentblock.position != newposition:
+                # modify positions in the drop box
+                for bc in self.model.objects.filter(page = contentblock.page, block = block):
+                    if bc.position < newposition:
+                        continue
+                    bc.position += 1
+                    bc.save()
+                contentblock.position = newposition
+                contentblock.block = block
+                contentblock.save()
+                #update_page(self.model,page)
+            return jempty()
         except Exception as e:
             return jerror('Could not find target block. {0}'.format(e))
-        
     
     def default_post(self, djp):
         '''View called when changing the content plugin values.
@@ -331,7 +276,8 @@ class DeleteContentView(appview.DeleteView):
                 b.delete()
                 continue
             if b.position != pos:
-                update_contentblock(djp, b, block, pos, jatt)
+                b.position = pos
+                b.save()
             pos += 1
         jquery.append(jatt)
 
@@ -406,17 +352,12 @@ class ContentSite(appsite.ModelApplication):
     '''AJAX enabled applications for changing content of a page.'''
     hidden      = True
     
-    edit        = ChangeContentView(form = ContentBlockHtmlForm, parent = None)
+    edit        = ChangeContentView(form = ContentBlockHtmlForm, regex = '(?P<id>\d+)', parent = None)
     delete      = DeleteContentView(parent = 'edit')
     plugin      = EditPluginView(regex = 'plugin', parent = 'edit')
     
     def submit(self, *args, **kwargs):
         return [SubmitInput(value = "save", name = '_save')]
-    
-    def objectbits(self, obj):
-        return {'pageid': obj.page.id,
-                'blocknumber': obj.block,
-                'position': obj.position}
     
     def remove_object(self, obj):
         bid = obj.htmlid()
@@ -431,70 +372,44 @@ class ContentSite(appsite.ModelApplication):
         if view and self.has_change_permission(request, obj):
             djp = view(request, instance = obj)
             return djp.url
-        
-    def get_object(self, request, pageid = 1, blocknumber = 1, position = 1):
-        '''
-        Override superclass function.
-        This function get the information needed for performing in-line editing.
-        @param request: django HttpRequest instance
-        @param pageid:  a page id (a string to be converted into an integer)
-        @param blocknumber:  block number within the page (a string to be converted into an integer)
-        @param position:  position number within the block (a string to be converted into an integer)
-        @return None
-        '''
-        pageid       = int(pageid)
-        blocknumber  = int(blocknumber)
-        position     = int(position)
-        page         = request.site.get_page(id = pageid)
-        blocks       = self.model.objects.filter(page = page)
-        inner        = page.inner_template
-        if inner:
-            nblocks     = inner.numblocks()
-        else:
-            nblocks     = 0
-            
-        if blocknumber >= nblocks:
-            # TODO Remove blocks
-            raise ValueError('Block number too high for current page')
-        
-        if nblocks:
-            # Create new blocks if necessary
-            for bn in range(nblocks):
-                elems = blocks.filter(block = bn)
-                if not elems:
-                    b = self.model(page = page, block = bn)
-                    b.save()
-    
-            try:
-                instance = self.model.objects.get(page = page, block = blocknumber, position = position)
-            except:
-                raise request.http.Http404('Position %s not available in content block %s' % (position,blocknumber))
-        
-            return instance
-        else:
-            return None
 
-    def blocks(self, djp, page, b):
+    def blockhtml(self, djp, instance, editview, wrapper):
+        editdjp = editview(djp.request, instance = instance)
+        djp.media += editdjp.media
+        editdjp.media = djp.media
+        html = editview.render(editdjp, url = djp.url)
+        return wrapper(editdjp,instance,html)
+            
+    def blocks(self, djp, page, blocknum):
         '''Return a generator of edit blocks.
         '''
-        blockcontents = self.model.objects.for_page_block(page, b)
+        blockcontents = self.model.objects.for_page_block(page, blocknum)
         request  = djp.request
         url      = djp.url
         editview = self.getview('edit')
         wrapper  = EditWrapperHandler(url)
-        pos = 0
         Tot = blockcontents.count() - 1
-        yield dummy_block        
+        # Clean blocks
+        pos = 0
+        t = 0
+        last = None
         for b in blockcontents:
-            if not b.plugin_name and b.position < Tot:
+            last = b
+            if not b.plugin_name and t < Tot:
                 b.delete()
-                continue  
-            if b.position != pos:
-                b.position = pos
-                b.save()
-            pos += 1
-            editdjp = editview(request, instance = b)
-            djp.media += editdjp.media
-            editdjp.media = djp.media
-            html = editview.render(editdjp, url = url)
-            yield wrapper(editdjp,b,html)
+                last = None
+                continue
+            else:
+                if b.position != pos:
+                    b.position = pos
+                    b.save()
+                if b.plugin_name:
+                    last = None
+                pos += 1
+            yield self.blockhtml(djp, b, editview, wrapper)
+            
+        # Create last block
+        if last == None:
+            last = self.model(page = page, block = blocknum, position = pos)
+            last.save()
+            yield self.blockhtml(djp, last, editview, wrapper)

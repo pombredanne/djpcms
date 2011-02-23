@@ -131,9 +131,11 @@ class Page(TimeStamp, PageInterface):
     class Meta:
         app_label = 'djpcms'
 
-    def __repr__(self):
-        return '{0}{1}'.format(self.site.domain,self.url)
-    __str__ = __repr__
+    def __unicode__(self):
+        if self.site:
+            return '{0}{1}'.format(self.site.domain,self.url or '')
+        else:
+            return self.url or ''
     
     def save(self, commit = True):
         self.level = self.get_level()
@@ -204,7 +206,7 @@ class SiteContent(TimeStamp,MarkupMixin):
     markup        = field.CharField()
     '''Markup type. If not specified it will be treated as raw HTML.'''
     
-    def __str__(self):
+    def __unicode__(self):
         return self.code
     
     class Meta:
@@ -224,7 +226,7 @@ class AdditionalPageData(ModelBase):
     where   = field.IntegerField(default = 1)
     body    = field.CharField()
     
-    def __str__(self):
+    def __unicode__(self):
         return self.body
     
     class Meta:

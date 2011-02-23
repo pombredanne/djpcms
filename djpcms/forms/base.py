@@ -106,6 +106,8 @@ class Form(BaseForm):
             self.mapper = mapper(model)
         if self.instance:
             self.form_data()
+        elif model:
+            self.instance = model()
     
     @property
     def data(self):

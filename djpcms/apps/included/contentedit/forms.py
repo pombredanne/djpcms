@@ -4,6 +4,10 @@ from djpcms.utils import force_str, slugify
 from djpcms.plugins import get_plugin, plugingenerator, wrappergenerator
 
 
+def allsites():
+    from djpcms.models import Site
+    return Site.objects.all()
+
 def siteapp_choices():
     return sites.get_site().choices
 
@@ -92,7 +96,7 @@ def application_view_for_parent(bfield):
 
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
-    site = forms.ModelChoiceField(widget = forms.HiddenInput, required = False)
+    site = forms.ModelChoiceField(choices = allsites, widget = forms.HiddenInput, required = False)
     link = forms.CharField(required = False)
     url_pattern = forms.CharField(required = False)
     application_view = forms.ChoiceField(choices = application_view_for_parent,
@@ -106,9 +110,10 @@ class PageForm(forms.Form):
         if self.parent:
             return {'parent': self.parent.id}
         
-    def clean_application_view(self, app):
+    def get_application_view(self, app):
         '''If application type is specified, than it must be unique
         '''
+        cd = self.cleaned_data
         site = sites.get_site()
         if app:
             try:
@@ -142,7 +147,7 @@ class PageForm(forms.Form):
             parent = self.get_parent()
             if not parent:
                 # No parent specified. Let's check that a root is not available
-                root = Page.objects.root(self.clean_site())
+                root = self.model.objects.filter(site = cd['site'], url = '/')
                 if root and root != self.instance:
                     # We assume the page to be child of root. Lets check it is not already avialble
                     self.data['parent'] = root.id
@@ -156,32 +161,30 @@ class PageForm(forms.Form):
         else:
             return None
         
-    def clean_url_pattern(self):
-        '''
-        Check for url patterns
-            No need if:
-                1 - it is the root page
-                2 - oit is an application page
-            Otherwise it is required
-        '''
-        data     = self.data
-        value    = data.get('url_pattern',None)
+    def clean_url_pattern(self, value):
         if value:
             value = slugify(force_str(value))
-        if data.get('application_view',None):
-            return value
-        parent = self.get_parent()
-        if parent:
-            if not value:
-                raise forms.ValidationError('url_pattern or application view must be provided if not a root page')
-            page = parent.children.filter(url_pattern = value)
-            if page and page[0].id != self.instance.id:
-                raise forms.ValidationError("page %s already available" % page)
         return value
         
     def clean(self):
-        '''Further cleaning'''
+        '''\
+Check for url patterns
+    No need if:
+        1 - it is the root page
+        2 - oit is an application page
+    Otherwise it is required
+        '''
         cd = self.cleaned_data
+        app = self.get_application_view(cd.get('application_view',None))
+        url = cd['url_pattern']
+        parent = self.get_parent()
+        if app is None:
+            if parent:
+                if not value:
+                    raise forms.ValidationError('url_pattern or application view must be provided if not a root page')
+                page = parent.children.filter(url_pattern = value)
+                if page and page[0].id != self.instance.id:
+                    raise forms.ValidationError("page %s already available" % page)
         cd['parent'] = self.parent
         cd['url'] = CalculatePageUrl(cd,self.mapper,self.instance)
         return cd

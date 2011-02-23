@@ -1,3 +1,5 @@
+import json
+
 from djpcms import sites
 from djpcms.models import Page, Site
 from djpcms.forms import ValidationError
@@ -36,7 +38,7 @@ def create_page(parent = None, user = None,
         else:
             return f
     else:
-        raise ValidationError(' '.join(f.errors))
+        raise ValidationError(json.dumps(f.errors))
 
 
 def get_current_site(request = None):

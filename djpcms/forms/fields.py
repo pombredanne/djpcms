@@ -163,7 +163,10 @@ class ChoiceField(Field):
         ch = self.choices
         if hasattr(ch,'__call__'):
             ch = ch()
-        return dict(ch)
+        if ch:
+            return dict(ch)
+        else:
+            return {}
                 
     def _clean(self, value):
         '''Clean the field value'''
@@ -177,7 +180,25 @@ class ChoiceField(Field):
     
 class ModelChoiceField(ChoiceField):
     #auto_class = AutocompleteForeignKeyInput
-        
+    
+    def get_choices(self):
+        ch = self.choices
+        if hasattr(ch,'__call__'):
+            ch = ch()
+        return ch
+    
+    def _clean(self, value):
+        '''Clean the field value'''
+        if value:
+            ch = self.get_choices()
+            model = ch.model
+            if isinstance(value,model):
+                value = value.id
+            if value in ch:
+                return model.objects.get(id = value)
+            raise ValidationError('{0} is not a valid choice'.format(value))
+        return value
+            
     def __deepcopy__(self, memo):
         result = super(ModelChoiceField,self).__deepcopy__(memo)
         qs = result.queryset

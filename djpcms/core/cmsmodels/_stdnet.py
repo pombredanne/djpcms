@@ -178,10 +178,10 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
     '''
     page           = field.ForeignKey(Page, related_name = 'blockcontents')
     block          = field.IntegerField()
-    position       = field.IntegerField(default = 0)
-    plugin_name    = field.SymbolField(required = False)
+    position       = field.IntegerField(default = 0, index = False)
     arguments      = field.CharField()
-    container_type = field.SymbolField(required = False)
+    plugin_name    = field.SymbolField(required = False, index = False)
+    container_type = field.SymbolField(required = False, index = False)
     title          = field.CharField(required = False)
     for_not_authenticated = field.BooleanField(default = False, index = False)
     requires_login = field.BooleanField(default = False, index = False)

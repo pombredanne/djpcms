@@ -177,7 +177,6 @@ class ChoiceField(Field):
         return value
 
     
-    
 class ModelChoiceField(ChoiceField):
     #auto_class = AutocompleteForeignKeyInput
     

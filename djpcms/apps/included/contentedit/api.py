@@ -62,8 +62,17 @@ def get_root(request):
         return pages[0]
 
 
-def get_for_application(djp, code):
-    '''Obtain a Page from an application code'''
-    site = get_current_site(djp)    
-    pages = mapper(Page).filter(site = site, application_view = code)
+def get_for_application(djp, code, view_url = None):
+    '''Obtain a Page from an application code. If pages are not found check for consistency'''
+    site = get_current_site(djp)
+    filter = mapper(Page).filter
+    pages = filter(site = site, application_view = code)
+    if not pages:
+        url = view_url or djp.url
+        pages = filter(site = site, url = url)
+        if pages:
+            page = pages[0]
+            page.application_view = code
+            page.save
+            return [page]
     return pages

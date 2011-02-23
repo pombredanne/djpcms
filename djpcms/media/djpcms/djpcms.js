@@ -181,6 +181,8 @@
 		    decorator: addDecorator,
 		    set_options: setOptions,
 		    postparam: _postparam,
+		    set_inrequest: function(v){inrequest=v;},
+		    'inrequest': function(){return inrequest;},
 		    'log': log
 		};
 	}());
@@ -416,10 +418,10 @@
 			}
 			function deco(event,elem) {
 				event.preventDefault();
-				if($.djpcms.inrequest) {
+				if($.djpcms.inrequest()) {
 					return;
 				}
-				$.djpcms.inrequest = true;
+				$.djpcms.set_inrequest(true);
 				var a = $(elem);
 				var name = a.attr('name');
 				var conf = confirm[name]
@@ -435,7 +437,7 @@
 								   },
 								   Cancel: function() {
 									   $(this).dialog( "close" );
-									   $.djpcms.inrequest = false;
+									   $.djpcms.set_inrequest(false);
 								   }
 						}});
 				}

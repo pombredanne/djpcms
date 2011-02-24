@@ -179,9 +179,6 @@ class DummyBody(_CssContext):
         super(DummyBody,self).__init__(None,None,
                                       ineritable_tag = False,
                                       data = data)
-    
-    def extra_data(self, loader, data, style):
-        data['jquery'] = jqueryui(data,loader,style)
         
         
 class _CssTheme(object):

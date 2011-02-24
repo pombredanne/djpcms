@@ -47,7 +47,7 @@ class InnerTemplate(TimeStamp,TemplateInterface):
     blocks   = field.CharField()
         
     def __unicode__(self):
-        return u'%s' % self.name
+        return self.name
     
     def save(self):
         if not self.blocks:
@@ -72,7 +72,7 @@ class CssPageInfo(TimeStamp):
         
     def __unicode__(self):
         if self.body_class_name:
-            return u'%s - %s' % (self.body_class_name,self.conteiner_class())
+            return '%s - %s' % (self.body_class_name,self.conteiner_class())
         else:
             return self.conteiner_class()
         

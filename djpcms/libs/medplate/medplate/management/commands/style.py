@@ -7,13 +7,12 @@ from djpcms.apps.management.base import BaseCommand
 
 from medplate import rendercss
 
-default_style = 'allwhite'
 
-
-def render(style, target, apps, template_engine = None):
+def render(style, target, apps, mediaurl = None, template_engine = None):
     module = None
     applications = apps or sites.settings.INSTALLED_APPS 
     imported = {}
+    mediaurl = mediaurl or sites.settings.MEDIA_URL
     
     # Import applications styles if available
     for app in applications:
@@ -40,9 +39,7 @@ def render(style, target, apps, template_engine = None):
             except:
                 pass
     
-    data = rendercss(style,
-                     sites.settings.MEDIA_URL,
-                     template_engine)
+    data = rendercss(style,mediaurl,template_engine)
     f = open(target,'w')
     f.write(data)
     f.close()
@@ -62,26 +59,23 @@ class Command(BaseCommand):
                     default='',
                     help='Target path of css file. For example media/site/site.css. If\
  not provided, a local file called style.css will be created.'),
-        make_option('-a','--applications',
+        make_option('-m','--media',
                     action='store',
-                    dest='apps',
+                    dest='mediaurl',
                     default='',
-                    help='Target applications (space separated).\
- If not provided all applications will be processed.'),
+                    help='Specify the media url. Override settings value.')
     )
     help = "Creates a css file from a template css."
+    args = '[appname appname ...]'
     
     def handle(self, *args, **options):
         style = options['style']
         target = options['target']
-        apps = options['apps']
+        mediaurl = options['mediaurl']
+        apps = args
         if not target:
             target = 'style.css'
-        if apps:
-            apps = apps.split()
-        else:
-            apps = None
-        render(style,target,apps)
+        render(style,target,apps,mediaurl)
         
         
         

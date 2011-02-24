@@ -1,8 +1,3 @@
-import datetime
-import re
-import sys
-import logging
-
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes import generic
@@ -10,10 +5,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 
+from djpcms import html
 from djpcms.core.page import PageInterface, BlockInterface,\
                              TemplateInterface, MarkupMixin
 from djpcms.apps.djangosite.fields import SlugCode
-from djpcms.utils import html
 from djpcms.uploads import uploader, storage_manager
 
 from .djmanagers import PageManager, BlockContentManager, SiteContentManager, PermissionManager
@@ -30,7 +25,7 @@ class TimeStamp(models.Model):
         abstract = True
     
 
-class InnerTemplate(TimeStamp):
+class InnerTemplate(TimeStamp, TemplateInterface):
     '''Page Inner template'''
     name     = models.CharField(max_length = 200)
     image    = models.ImageField(upload_to = uploader('template'),
@@ -272,7 +267,7 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
             return f.jerrors
 
 
-class SiteContent(models.Model):
+class SiteContent(models.Model, MarkupMixin):
     '''Store content for your web site. It can store markup or raw HTML.'''
     last_modified = models.DateTimeField(auto_now = True, editable = False)
     user_last     = models.ForeignKey(User, null = True, blank = True)

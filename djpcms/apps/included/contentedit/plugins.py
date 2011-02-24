@@ -1,48 +1,30 @@
 import json
 
 from djpcms import sites, forms
-from djpcms.template import RequestContext, mark_safe
-from djpcms.core.exceptions import PermissionDenied
-from djpcms.forms import form_kwargs
-from djpcms.forms.cms import EditingForm
-from djpcms.models import SiteContent
 from djpcms.plugins import DJPplugin
-from djpcms.utils.uniforms import FormLayout, Fieldset, blockLabels2, inlineLabels
-from djpcms.markup import markuplib
-from djpcms.permissions import has_permission, get_change_permission
-from djpcms.utils import uniforms
+from djpcms.forms.utils import form_kwargs
+from djpcms.forms.layout import uniforms
+from djpcms.template import mark_safe
+from djpcms.core.exceptions import PermissionDenied
+from djpcms.models import SiteContent
+from djpcms.utils import markups
 
 
-class NewContentCode(forms.SlugField):
-    
-    def __init__(self, *args, **kwargs):
-        super(NewContentCode,self).__init__(*args,**kwargs)
-        
-    def clean(self, value):
-        return value
-    
-    def clean2(self, value):
-        return super(NewContentCode,self).clean(value)
-
-
-class SiteContentField(forms.ModelChoiceField):
-    
-    def widget_attrs(self, widget):
-        return {'class': sites.settings.HTML_CLASSES.ajax}
+class EditingForm(forms.Form):
+    pass
 
 
 class ChangeTextContent(forms.Form):
     '''
     Form for changing text content during inline editing
     '''
-    site_content = SiteContentField(queryset = SiteContent.objects.all(),
-                                    empty_label="New Content",
-                                    required = False)
-    new_content  = NewContentCode(SiteContent,
-                                  'code',
-                                  label = 'New content unique code',
-                                  help_text = 'When creating a new content give a unique name you like',
-                                  required = False)
+    site_content = forms.ModelChoiceField(choices = SiteContent.objects.all,
+                                          empty_label="New Content",
+                                          required = False,
+                                          widget = forms.Select(cn = sites.settings.HTML_CLASSES.ajax))
+    new_content  = forms.CharField(label = 'New content unique title',
+                                   help_text = 'When creating a new content give a unique name you like',
+                                   required = False)
     
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request',None)
@@ -82,12 +64,12 @@ class ChangeTextContent(forms.Form):
 
 
 class EditContentForm(EditingForm):
-    markup       = forms.OldChoiceField(choices = markuplib.choices,
-                                        initial = markuplib.default,
-                                        required = False)
+    markup       = forms.ChoiceField(choices = markups.choices,
+                                     initial = markups.default,
+                                     required = False)
     
-    layout = FormLayout(Fieldset('markup',css_class=inlineLabels),
-                        Fieldset('body',css_class='%s editing' % blockLabels2))
+    #layout = uniforms.FormLayout(uniforms.Fieldset('markup',elem_css=uniforms.inlineLabels),
+    #                            uniforms.Fieldset('body',elem_css='%s editing' % uniforms.blockLabels2))
     
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request',None)
@@ -96,9 +78,6 @@ class EditContentForm(EditingForm):
         self.user = request.user
         super(EditContentForm,self).__init__(*args,**kwargs)
         
-    class Meta:
-        model = SiteContent
-        fields = ('body','markup','url')
 
     
 class Text(DJPplugin):

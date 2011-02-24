@@ -8,7 +8,7 @@ from djpcms.utils import force_str
 from djpcms.template import loader, escape
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
-import djpcms.contrib.flowrepo.markups as markuplib
+from djpcms.utils import markups
 
 
 contentre = re.compile('{{ content\d }}')
@@ -208,7 +208,7 @@ class MarkupMixin(object):
         text = self.body
         if not text:
             return ''
-        mkp = markuplib.get(self.markup)
+        mkp = markups.get(self.markup)
         if mkp:
             handler = mkp.get('handler')
             text = handler(text)

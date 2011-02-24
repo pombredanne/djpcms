@@ -42,6 +42,8 @@ def build():
                     CMS_ORM = 'stdnet',
                     TEMPLATE_ENGINE = 'django',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
+                    DJPCMS_PLUGINS = ('djpcms.plugins.*',
+                                      'djpcms.apps.included.contentedit.plugins'),
                     INSTALLED_APPS = ('djpcms',
                                       'stdnet.contrib.monitor',
                                       'stdnet.contrib.sessions',

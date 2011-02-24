@@ -1,6 +1,6 @@
 import os
 import sys
-import copy
+import traceback
 import logging
 
 import djpcms
@@ -8,7 +8,7 @@ from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured
 from djpcms.utils.importer import import_module, import_modules
-from djpcms.utils import logerror
+from djpcms.utils import logtrace
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 
@@ -57,6 +57,30 @@ class SimplePermissionBackend(object):
         else:
             return request.user.is_superuser
         
+        
+def standard_exception_handle(self, request, e, status = None):
+    from djpcms.template import loader
+    status = status or 500
+    if not request.site:
+        request.site = self.get_site()
+    site = request.site
+    if site:
+        for middleware_method in site.exception_middleware():
+            response = middleware_method(request, e, status)
+            if response:
+                break
+    exc_info = sys.exc_info()
+    template = '{0}.html'.format(status)
+    logtrace(logger, request, exc_info, status)
+    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
+    ctx  = loader.context({'status':status,
+                           'stack_trace':stack_trace,
+                           'request':request,
+                           'settings':site.settings},request)
+    html = loader.render((template,'djpcms/errors/'+template),
+                         ctx)
+    return self.http.HttpResponse(html, status = status)
+        
 
 
 class ApplicationSites(ResolverMixin):
@@ -68,6 +92,7 @@ of djpcms routes'''
         self.modelwrappers = {}
         self.clear()
         self.permissions = SimplePermissionBackend()
+        self.handle_exception = standard_exception_handle
         
     def clear(self):
         self._sites.clear()
@@ -274,9 +299,6 @@ of djpcms routes'''
     def view_from_page(self, page):
         site = self.get_site(page.url)
         
-    def has_permission(user, permission_code, obj):
-        '''Check for user and object permissions'''
-        
     def wsgi(self, environ, start_response):
         '''DJPCMS WSGI handler'''
         http = self.http
@@ -289,7 +311,7 @@ of djpcms routes'''
                 return http.finish_response(cleaned_path, environ, start_response)
             path = cleaned_path[1:]
             request = http.make_request(environ)
-            request.site = self
+            request.site = site
             site,view,kwargs = self.resolve(path)
             request.site = site
             djp = view(request, **kwargs)
@@ -307,19 +329,12 @@ of djpcms routes'''
                     middleware_method(request,response)
             else:
                 response = djp
-        except PermissionDenied:
-            response = http.HttpResponse(status = 403)
+        except PermissionDenied as e:
+            response = self.handle_exception(self, request, e, status = 403)
         except http.Http404 as e:
-            response = http.HttpResponse(status = 404)
+            response = self.handle_exception(self, request, e, status = 404)
         except Exception as e:
-            logerror(logger, request, sys.exc_info())
-            if site:
-                for middleware_method in site.exception_middleware():
-                    response = middleware_method(request, e)
-                    if response:
-                        break
-            if not response:
-                response = http.HttpResponse(status = 500)
+            response = self.handle_exception(self, request, e)
         return http.finish_response(response, environ, start_response)
     
     def djp(self, request, path):

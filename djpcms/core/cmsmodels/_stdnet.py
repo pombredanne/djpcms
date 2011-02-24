@@ -94,7 +94,7 @@ class Site(ModelBase):
     class Meta:
         app_label = 'djpcms'
         
-    def __str__(self):
+    def __unicode__(self):
         return self.name
     
     

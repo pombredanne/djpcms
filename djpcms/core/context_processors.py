@@ -1,14 +1,19 @@
 from datetime import datetime
+
+from djpcms import sites
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 
 
 def djpcms(request):
     site = request.site
-    settings = site.settings
+    if site:
+        settings = site.settings
+    else:
+        settings = sites.settings
     ctx = {'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
-           'user': request.user,
+           'user': getattr(request,'user',None),
            'debug': settings.DEBUG,
            'release': not settings.DEBUG,
            'now': datetime.now,

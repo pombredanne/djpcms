@@ -69,6 +69,7 @@ def table(headers, queryset_or_list, djp, model = None, nd = 3):
 class BaseOrmWrapper(object):
     '''Base class for Object relational mappers'''
     orm = None
+    DoesNotExist = None
     '''Object Relational Mapper name'''
     
     def __init__(self, model):

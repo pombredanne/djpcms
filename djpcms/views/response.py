@@ -4,7 +4,7 @@ from copy import copy
 
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
-from djpcms.utils import lazyattr, logerror
+from djpcms.utils import lazyattr, logtrace
 from djpcms.utils.navigation import Navigator, Breadcrumbs
 from djpcms.core.exceptions import ViewDoesNotExist
 

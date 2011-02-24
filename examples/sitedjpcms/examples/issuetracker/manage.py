@@ -43,6 +43,7 @@ def build():
                     TEMPLATE_ENGINE = 'django',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
                     INSTALLED_APPS = ('djpcms',
+                                      'stdnet.contrib.monitor',
                                       'stdnet.contrib.sessions',
                                       'medplate',
                                       'issuetracker'),   # issuetracker must be last for styling

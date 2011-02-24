@@ -1,4 +1,5 @@
 import re
+import logging
 import json
 import unicodedata
 from uuid import uuid4
@@ -118,11 +119,16 @@ and converts spaces to hyphens *rtx* character'''
     return re.sub('[-\s]+', rtx, value)
 
 
-def logerror(logger, request, exc_info, status_code = 500):
-    logger.error('Internal Server Error: %s' % request.path,
-                 exc_info=exc_info,
-                 extra={
-                        'status_code': status_code,
-                        'request':request
-                        }
-                 )
+def logtrace(logger, request, exc_info, status = 500):
+    '''Log a stack trace'''
+    if status == 404:
+        msg = 'URL not found: %s' % request.path
+        log = logger.warn
+    else:
+        status = status or 500
+        msg = 'Internal Server Error at url "%s"' % request.path
+        log = logger.error
+    log(msg, exc_info=exc_info, extra={
+                                       'status_code': status,
+                                       'request':request
+                                       })

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+<title>{% block title %}{{ status }} Error{% endblock %}</title>
+
+{% block page-body %}
+<div id="error-{{ status }}" class="server-exception ui-state-error">{% block error-body %}{% endblock %}
+</div>
+{% endblock %}

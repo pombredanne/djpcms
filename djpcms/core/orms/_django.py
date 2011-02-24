@@ -28,6 +28,7 @@ class OrmWrapper(BaseOrmWrapper):
         self.meta = meta = self.model._meta
         self.module_name = meta.module_name
         self.app_label   = meta.app_label
+        self.DoesNotExist = self.model.DoesNotExist
         #
         #Calculate the Hash id of metaclass `meta`
         self.model_to_dict = model_to_dict

@@ -25,6 +25,7 @@ class OrmWrapper(BaseOrmWrapper):
         self.get = self.objects.get
         self.all = self.objects.all
         self.filter = self.objects.filter
+        self.DoesNotExist = self.model.DoesNotExist
         
     def test(self):
         from stdnet.orm import StdNetType
@@ -57,7 +58,9 @@ class OrmWrapper(BaseOrmWrapper):
     @classmethod
     def setup_environment(cls):
         from stdnet.orm import register_applications
-        register_applications(sites.settings.INSTALLED_APPS)
+        settings = sites.settings
+        register_applications(settings.INSTALLED_APPS,
+                              app_defaults = settings.DATASTORE)
     
 
 

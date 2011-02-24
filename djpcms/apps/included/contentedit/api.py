@@ -4,6 +4,7 @@ from djpcms import sites
 from djpcms.models import Page, Site
 from djpcms.forms import ValidationError
 from djpcms.core.orms import mapper, getid
+from djpcms.core.exceptions import ImproperlyConfigured
 
 from .forms import PageForm
 
@@ -42,17 +43,25 @@ def create_page(parent = None, user = None,
 
 
 def get_current_site(request = None):
+    '''Retrive the current site object from settings file'''
     if request:
         site_id = request.site.settings.SITE_ID
     else:
         site_id = sites.settings.SITE_ID
+    mp = mapper(Site)
     try:
-        return mapper(Site).get(id = site_id)
-    except:
-        if not mapper(Site).all() and site_id == 1:
+        return mp.get(id = site_id)
+    except mp.DoesNotExist:
+        all_sites = mp.all()
+        if all_sites:
+            ids = ', '.join((str(s.id) for s in all_sites))
+            raise ImproperlyConfigured('Site ID {0} not available. Available site ids are: {1}'.format(site_id,ids))
+        elif site_id == 1:
             site = Site(name = 'example.com', domain = 'example.com')
             site.save()
-        return site
+            return site
+        else:
+            raise ImproperlyConfigured('No Sites available. Cannot choose site ID {0}'.format(site_id))
     
     
 def get_root(request):

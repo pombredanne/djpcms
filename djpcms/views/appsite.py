@@ -5,7 +5,7 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems
+from py2py3 import iteritems, is_string
 
 import djpcms
 from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
@@ -25,8 +25,8 @@ def get_declared_application_views(bases, attrs):
     """Create a list of Application views instances from the passed in 'attrs', plus any
 similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit',False)
-    apps = [(app_name, attrs.pop(app_name)) for app_name, obj in attrs.items() if isinstance(obj, View)]      
-    apps.sort(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter))
+    apps = ((app_name, attrs.pop(app_name)) for app_name, obj in list(attrs.items()) if isinstance(obj, View))
+    apps = sorted(apps, key=lambda x: x[1].creation_counter)
 
     # If this class is subclassing another Application, and inherit is True add that Application's views.
     # Note that we loop over the bases in *reverse*. This is necessary in
@@ -45,12 +45,16 @@ class ApplicationMetaClass(MediaDefiningClass):
         attrs['base_views'] = get_declared_application_views(bases, attrs)
         new_class = super(ApplicationMetaClass, cls).__new__(cls, name, bases, attrs)
         return new_class
+    
+
+# Needed for Python 2 and python 3 compatibility
+ApplicationBase = ApplicationMetaClass('ApplicationBase', (object,), {})
 
 
 def process_views(view,views,app):
     pkey = view.parent
     if pkey:
-        if isinstance(pkey,basestring):
+        if is_string(pkey):
             parent  = app.views.get(pkey,None)
             if not parent:
                 raise ApplicationUrlException('Parent %s for %s not in children tree' % (pkey,view))
@@ -70,7 +74,7 @@ def process_views(view,views,app):
         return view
 
 
-class Application(ResolverMixin):
+class Application(ApplicationBase,ResolverMixin):
     '''Base class for djpcms applications.
     
 .. attribute:: baseurl
@@ -85,9 +89,7 @@ class Application(ResolverMixin):
 
     ``True`` if :ref:`inline editing <inline-editing>`
     is available for the application.
-'''
-    __metaclass__ = ApplicationMetaClass
-    
+'''    
     inherit          = False
     '''Flag indicating if application views are inherited from base class. Default ``False``.'''
     name             = None
@@ -250,7 +252,7 @@ No reason to change this default unless you really don't want to see the views i
                 raise ApplicationUrlException("Could not define root application for %s." % self)
         
         # Pre-process urls
-        views = self.views.values()
+        views = list(self.views.values())
         while views:
             view = process_views(views[0],views,self)
             view.processurlbits(self)

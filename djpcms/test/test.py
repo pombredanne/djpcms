@@ -35,6 +35,8 @@ Must be used as a base class for TestCase classes'''
     _env = None
     
     def _pre_setup(self):
+        from djpcms.apps.included.contentedit import api
+        self.api = api
         sites.settings.TESTING = True
         self.SITE_DIRECTORY = sites.settings.SITE_DIRECTORY
         self.INSTALLED_APPS = copy(sites.settings.INSTALLED_APPS)
@@ -87,17 +89,11 @@ Must be used as a base class for TestCase classes'''
         else:
             sites.clear()
 
-    def makepage(self, view = None, model = None, bit = '', parent = None, fail = False, **kwargs):
+    def makepage(self, view = None, model = None, bit = '', parent = None,
+                 fail = False, **kwargs):
+        '''Utility method for creating page objects during testing'''
         create_page = self.api.create_page
-        if fail:
-            self.assertRaises(forms.ValidationError, create_page)
-        else:
-            page = create_page()
-            self.assertTrue(page.pk)
-            return page
-        #data = model_to_dict(form.instance, form._meta.fields, form._meta.exclude)
-        data = {}
-        data.update(**kwargs)
+        data = kwargs
         data.update({'url_pattern': bit,
                      'parent': None if not parent else parent.id})
         if view:
@@ -107,10 +103,10 @@ Must be used as a base class for TestCase classes'''
             else:
                 view = self.site.getapp(view)
             data['application_view'] = view.code
-        form = cms.PageForm(data = data)
         if fail:
-            self.assertFalse(form.is_valid())
+            self.assertRaises(forms.ValidationError, create_page, **data)
         else:
+            instance = create_page(**kwargs)
             self.assertTrue(form.is_valid())
             instance = form.save()
             self.assertTrue(instance.pk)

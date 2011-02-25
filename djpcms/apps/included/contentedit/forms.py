@@ -147,17 +147,17 @@ class PageForm(forms.Form):
             parent = self.get_parent()
             if not parent:
                 # No parent specified. Let's check that a root is not available
-                root = self.model.objects.filter(site = cd['site'], url = '/')
+                root = self.mapper.filter(site = cd['site'], url = '/')
                 if root and root != self.instance:
                     # We assume the page to be child of root. Lets check it is not already avialble
-                    self.data['parent'] = root.id
+                    self.data['parent'] = root[0].id
                     #raise forms.ValidationError('Page root already avaiable')
         return app
 
     def get_parent(self):
         pid = self.data.get('parent',None)
         if pid:
-            return Page.objects.get(id = int(pid))
+            return self.mapper.get(id = int(pid))
         else:
             return None
         
@@ -175,12 +175,12 @@ Check for url patterns
     Otherwise it is required
         '''
         cd = self.cleaned_data
-        app = self.get_application_view(cd.get('application_view',None))
-        url = cd['url_pattern']
+        app = self.get_application_view(cd['application_view'])
+        url_pattern = cd['url_pattern']
         parent = self.get_parent()
         if app is None:
             if parent:
-                if not value:
+                if not url_pattern:
                     raise forms.ValidationError('url_pattern or application view must be provided if not a root page')
                 page = parent.children.filter(url_pattern = value)
                 if page and page[0].id != self.instance.id:

@@ -5,4 +5,4 @@ class Application(appsite.ModelApplication):
     search = appview.SearchView()
     add    = appview.AddView()
     view   = appview.ViewView()
-    edit   = appview.EditView()
+    edit   = appview.ChangeView()

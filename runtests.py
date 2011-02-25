@@ -53,7 +53,7 @@ def addpath():
 addpath()
 
 
-if __name__ == '__main__':
+def run():
     options, tags = makeoptions().parse_args()
     from testsrunner import run
     run(tags,
@@ -62,3 +62,8 @@ if __name__ == '__main__':
         verbosity=options.verbosity,
         show_list=options.show_list,
         orm=options.model)
+    
+
+if __name__ == '__main__':
+    run()
+    

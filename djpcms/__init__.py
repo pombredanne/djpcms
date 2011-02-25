@@ -43,6 +43,7 @@ def install_libs():
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(this_dir,'libs')
+    install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'django-tagging', 'tagging')
     install_lib(dlibs, 'djpadmin', 'djpadmin')
     install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')

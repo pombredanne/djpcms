@@ -1,24 +1,28 @@
+{% extends "medplate/root.css_t" %}
+
+{% block include-media %}{% endblock %}
+
+{% block description %}
 /*
 -----------------------------------------------
 {{ description }}
------------------------------------------------ */
-{% block include-media %}{% endblock %}
+----------------------------------------------- */{% endblock %}
 
 {% block main-properties %}
-{{ tag }} {
-	background: {{ background }};
-	color: {{ color }};
-	-x-system-font:none;	
-	font-family:{{ font_family }};
-	font-size:{{ font_size }};
-	font-size-adjust:none;
-	font-stretch:normal;
-	font-style:{{ font_style }};
-	font-variant:normal;
-	font-weight:{{ font_weight }};
-	line-height: {{ line_height }};
-	text-align: {{ text_align }};{% if text_transform %}
-	text-transform: {{ text_transform }};{% endif %}{% if overflow %}
+{{ tag }} {{% if background %}
+	background: {{ background }};{% endif %}{% if color %}
+	color: {{ color }};{% endif %}{% if font_family %}
+	font-family:{{ font_family }};{% endif %}{% if font_size %}
+	font-size:{{ font_size }};{% endif %}{% if font_size_adjust %}
+	font-size-adjust:{{ font_size_adjust }};{% endif %}{% if font_stretch %}
+	font-stretch:{{ font_stretch }};{% endif %}{% if font_style %}
+	font-style:{{ font_style }};{% endif %}{% if font_variant %}
+	font-variant:{{ font_variant }};{% endif %}{% if font_weight %}
+	font-weight:{{ font_weight }};{% endif %}{% if line_height %}
+	line-height: {{ line_height }};{% endif %}{% if text_align %}
+	text-align: {{ text_align }};{% endif %}{% if text_transform %}
+	text-transform: {{ text_transform }};{% endif %}{% if text_decoration %}
+	text-decoration: {{ text_decoration }};{% endif %}{% if overflow %}
 	overflow: {{ overflow }};{% endif %}{% if display %}
 	display: {{ display }};{% endif %}{% if height %}
 	height: {{ height }};{% endif %}{% if width %}
@@ -47,12 +51,3 @@
 	text-shadow: {{ text_shadow }};{% endif %}
 }
 {% endblock %}
-
-{% block body %}
-{% endblock %}
-
-{% for elem in elems %}
-{{ elem }}
-{% endfor %}
-
-{% block end-layout %}{% endblock %}

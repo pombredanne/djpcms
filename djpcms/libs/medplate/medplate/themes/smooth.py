@@ -1,4 +1,4 @@
-from djpcms.contrib.medplate.allwhite import base_context
+from djpcms.contrib.medplate.themes.allwhite import base_context
 
 
 context = base_context.copy()
@@ -11,4 +11,8 @@ context.update({
     'box': {'hd': {'background':'transparent'},
             'bd': {'background':'transparent'},
             'ft': {'background':'transparent'}},
-    }) 
+    })
+
+
+# Uniforms
+context.uniform.update({'input_border':'2px solid #dfdfdf'})

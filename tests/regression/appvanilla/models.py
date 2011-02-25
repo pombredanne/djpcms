@@ -1,4 +1,4 @@
-from django.db import models
+from regression import models
 
 class Strategy(models.Model):
     name     = models.CharField(unique = True, max_length = 200)

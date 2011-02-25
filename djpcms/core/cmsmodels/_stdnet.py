@@ -82,7 +82,7 @@ class CssPageInfo(TimeStamp):
         If not specified it return container_gridsize for 960 grid templates
         '''
         if not self.container_class_name:
-            return u'container_%s' % self.gridsize
+            return 'container_%s' % self.gridsize
         else:
             return self.container_class_name
     

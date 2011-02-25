@@ -24,6 +24,11 @@ def makeoptions():
                       dest="can_fail",
                       default=False,
                       help="If set, the tests will run even if there is an import error in tests")
+    parser.add_option("-m", "--model",
+                      action="store",
+                      dest="model",
+                      default='',
+                      help="The object relational mapper to use. One of django, stdnet or nothing (sqlalchemy)")
     parser.add_option("-t", "--type",
                       action="store",
                       dest="test_type",
@@ -55,4 +60,5 @@ if __name__ == '__main__':
         test_type = options.test_type,
         can_fail=options.can_fail,
         verbosity=options.verbosity,
-        show_list=options.show_list)
+        show_list=options.show_list,
+        orm=options.model)

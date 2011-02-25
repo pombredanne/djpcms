@@ -12,6 +12,7 @@ class NoValue(object):
     
     
 _novalue = NoValue()
+nodata = _novalue
 
 
 class DjpcmsConfig(object):

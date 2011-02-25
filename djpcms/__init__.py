@@ -43,10 +43,15 @@ def install_libs():
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(this_dir,'libs')
+    install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'django-tagging', 'tagging')
     install_lib(dlibs, 'djpadmin', 'djpadmin')
     install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
     
+
+install_libs()
+from .conf import nodata
+
     
 def init_logging(clear_all = False):
     '''Initialise logging'''
@@ -59,6 +64,5 @@ def init_logging(clear_all = False):
     if sites.settings.LOGGING:
         dictConfig(sites.settings.LOGGING)
         
-    
-install_libs()
+
 

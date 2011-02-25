@@ -15,6 +15,7 @@ __all__ = ['IntegerField',
            'RegexField',
            'EmailField',
            'ChoiceField',
+           'MultipleChoiceField',
            'LazyAjaxChoice',
            'ModelCharField',
            'SlugField',
@@ -30,6 +31,7 @@ CharField = forms.CharField
 FileField = forms.FileField
 RegexField = forms.RegexField
 EmailField = forms.EmailField
+MultipleChoiceField = forms.MultipleChoiceField
 
 
 class ChoiceField(forms.ChoiceField):

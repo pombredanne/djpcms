@@ -1,6 +1,24 @@
 .. _intro-tutorial01:
 
-=====================================
+============
+Tutorial
+============
+
+
+What is Djpcms?
+=====================
+
+Djpcms is python framework which facilitates the interaction of
+server side web applications with browser-side javascript code.
+It provides some building blocks over which complex dynamic
+web apps can be written.
+
+
+What Djpcms is NOT?
+=====================
+
+
+
 Writing your first site, part 1
 =====================================
 

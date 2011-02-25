@@ -18,7 +18,10 @@ from djpcms.views.baseview import djpcmsview
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
     '''Default redirect for a model view is the View url for that model
 if an instance is available'''
-    if instance:
+    if self.redirect_to_view:
+        view = self.appmodel.getview(self.redirect_to_view)
+        next = view(request, instance = instance).url
+    elif instance:
         next = self.appmodel.viewurl(request,instance) or next
     return super(ModelView,self).defaultredirect(request,
                                                  next = next,
@@ -31,20 +34,23 @@ class View(djpcmsview):
 and used for handling views which belongs to
 :ref:`djpcms applications <topics-applications-index>`.
 
-They are specified as class attributes of
-:class:`djpcms.views.appsite.ApplicationBase` and therefore initialised
+Application views are specified as class attributes of
+:class:`djpcms.views.appsite.Application` and therefore initialised
 at start up.
 
-Views which derives from class are special in the sense that they can also
+Views which derives from this class are special in the sense that they can also
 appear as content of :class:`djpcms.plugins.DJPplugin` if
-the :attr:`isplugin` is set to ``True``.
+the :attr:`isplugin` attribute is set to ``True`` during construction.
+In other words, application views can automagically be turned into plugins
+so that they can be rendered in any page of your site.
 
 All parameters are optionals and usually a small subset of them needs to be used.
 
-:keyword parent: Parent application name. If not supplied, ``djpcms`` will calculate it
-                 during validation of applications at startup. It is used to
+:keyword parent: A string indicating the closest parent application view.
+                 If not supplied, ``djpcms`` will calculate it
+                 during validation of the applications during startup. It is used to
                  assign a value to the :attr:`parent` attribute. Default ``None``.
-:keyword regex: Regular expression for view-specific url.
+:keyword regex: Regular expression string indicating the view relative url.
                 This is the url which the view add to its parent url. Default ``None``.
 :keyword isapp: If ``True`` the view will be treated as an application view and therefore added to the list
                 of applications which can be associated with a :class:`djpcms.models.Page` object.
@@ -73,6 +79,14 @@ All parameters are optionals and usually a small subset of them needs to be used
                      ``obj`` is an instance of model or ``None``.
 :keyword headers: List of string to display as table header when the
                   view display a table. Default ``None``.
+
+:keyword force_redirect: Boolean used to force redirect after form submission.
+                         Check :attr:`force_redirect` for more information. Default: ``False``.
+:keyword redirect_to_view: String indicating a redirection to another view within
+                           the same application. Check :attr:`redirect_to_view`
+                           for more information. Default: ``None``.
+    
+    
 Usage::
 
     from djpcms.views import appview, appsite
@@ -95,20 +109,53 @@ Usage::
     
 .. attribute:: isplugin
 
-    if ``True`` the view can be rendered as :class:`djpcms.plugins.ApplicationPlugin`. Default ``False``.
+    if ``True`` the view can be rendered as :class:`djpcms.plugins.ApplicationPlugin`.
+    
+    Default ``False``.
 
 .. attribute:: in_navigation
 
     If ``0`` the view won't appear in :ref:`Navigation <topics-included-navigator>`.
     
+    Default: ``0``
+    
 .. attribute:: view_template
 
     Template file or list of template files used to render
-    the view (not the whole page). Default ``djpcms/components/pagination.html``.
+    the view (not the whole page).
+    
+    Default ``djpcms/components/pagination.html``.
     
 .. attribute:: plugin_form
 
-    The :attr:`djpcms.plugins.DJPplugin.form` for this view. Default ``None``.
+    The :attr:`djpcms.plugins.DJPplugin.form` for this view.
+    
+    Default ``None``.
+    
+.. attribute:: redirect_to_view
+
+    String indicating a redirection to another view within the same application.
+    Used in view with forms to define the behavior after a form has been subbmitted.
+    It is used in :meth:`djpcms.views.basevew.djpcmsview.defaultredirect`
+    to calculate the redirect url.
+    
+    See also :attr:`force_redirect`.
+    
+    Default: ``None``.
+    
+.. attribute:: force_redirect
+
+    This flag is used often used in conjunction with :attr:`redirect_to_view`
+    to force a redirect after a form submission. For example::
+    
+        class MyApp(appsite.ModelApplication):
+            search = ...
+            add = appview.AddView(redirect_to_view = 'search',
+                                  force_redirect = True) 
+    
+    This attribute is used to fine-tune the response of your web site.
+    
+    Default: ``False``.
 '''
     creation_counter = 0
     plugin_form    = None
@@ -142,6 +189,7 @@ Usage::
                  astable        = None,
                  table_generator = None,
                  success_message = None,
+                 redirect_to_view = None,
                  append_slash = True):
         self.name        = None
         self.description = description
@@ -156,6 +204,7 @@ Usage::
         self.func      = None
         self.code      = None
         self.editurl   = None
+        self.redirect_to_view = redirect_to_view
         self.headers   = headers or self.headers
         self.astable   = astable if astable is not None else self.astable
         self.template_name = template_name or self.template_name
@@ -394,7 +443,7 @@ By default it calls the :func:`djpcms.views.appsite.ModelApplication.basequery` 
 
     
 class SearchView(ModelView):
-    '''A :class:`ModelView` class for searching objects in model.
+    '''A :class:`ModelView` class for searching objects in a model.
 By default :attr:`View.in_navigation` is set to ``True``.
 There are three additional parameters that can be set:
 

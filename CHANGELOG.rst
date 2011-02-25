@@ -1,4 +1,3 @@
-
 Version 0.9.0 - Development
 =======================================
 * **BACKWARD INCOMPATIBLE CHANGES**
@@ -9,10 +8,6 @@ Version 0.9.0 - Development
     from djpcms import sites   
     sites.register_orm('path.to.my.ormwrapper')
     
-    
-Version 0.8.6 - Developemnt
-==============================
-* LAST VERSION BASED ON DJANGO
 * Introduced new Ajax decorator ``rearrange`` which adds drag & drop
   functionalities during page editing.
 * Added abstraction for ``User``, ``Request`` and ``Response`` classes.

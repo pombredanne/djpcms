@@ -45,7 +45,7 @@ Contents
    :maxdepth: 1
    
    topics/application/index
-   topics/views/index
+   topics/views
    topics/plugins/index
    topics/design
    topics/models

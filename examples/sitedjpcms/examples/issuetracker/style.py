@@ -3,7 +3,10 @@
 from medplate import CssContext, CssBody, CssTheme
 from djpcms.style import boxradius
 
-root = CssBody(data = {'text_shadow': '4px 4px 4px #ddd'})
+root = CssBody(data = {
+                       'font_size': '13px',
+                       'font_family': 'helvetica,arial,freesans,clean,sans-serif',
+                       'text_shadow': '4px 4px 4px #ddd'})
 
 
 CssTheme('nav',

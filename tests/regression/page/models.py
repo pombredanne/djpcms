@@ -1,9 +1,9 @@
-from django.db import models
+from regression import models
 
 
 class Strategy(models.Model):
     name     = models.CharField(unique = True, max_length = 200)
-    description = models.TextField(blank = True)
+    description = models.TextField()
     
     def __unicode__(self):
-        return u'%s' % self.name
+        return self.name

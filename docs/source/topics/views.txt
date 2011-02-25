@@ -1,0 +1,139 @@
+.. _views-index:
+
+.. module:: djpcms.views
+
+=================
+View handlers
+=================
+
+As soon as a client requests a url, the primary job of ``djpcms`` is to find and invoke
+a ``view handler``. These view handlers are instances of
+:class:`djpcms.views.baseview.djpcmsview` the ``djpcms`` base class
+for handling user requests.
+
+
+Overview
+=====================
+If your web-site does not have any application, there is no need
+for you to write any view handler since flat pages are always processed by
+instances of the :class:`djpcms.views.baseview.pageview` class. 
+On the other hand if you have dynamic application, the chances are you are going to
+write some code.
+
+As an example lets take the included application in :mod:`djpcms.apps.included.vanilla` ::
+
+    from djpcms.views import appsite, appview
+    
+    class Application(appsite.ModelApplication):
+        search = appview.SearchView()
+        add    = appview.AddView()
+        view   = appview.ViewView()
+        edit   = appview.ChangeView() 
+   
+
+API
+===========
+
+.. module:: djpcms.views.baseview
+
+View Base Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.baseview.djpcmsview
+   :members:
+   :member-order: bysource
+   
+   
+.. module:: djpcms.views.baseview
+
+Flat Page View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.baseview.pageview
+   :members:
+   :member-order: bysource
+
+   
+.. module:: djpcms.views.appview
+
+Application View
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.View
+   :members:
+   :member-order: bysource
+   
+
+.. module:: djpcms.views.appview
+   
+Model Application Views
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Views associated with database models are handled by subclasses of
+:class:`djpcms.views.appview.View`.
+
+.. autoclass:: djpcms.views.appview.ModelView
+   :members:
+   :member-order: bysource
+   
+Search View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.SearchView
+   :members:
+   :member-order: bysource
+
+
+Add View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.AddView
+   :members:
+   :member-order: bysource
+
+
+Object View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.ObjectView
+   :members:
+   :member-order: bysource
+
+
+View View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.ViewView
+   :members:
+   :member-order: bysource
+
+
+Change View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.ChangeView
+   :members:
+   :member-order: bysource
+
+
+Delete View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.DeleteView
+   :members:
+   :member-order: bysource
+
+
+Autocomplete View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.appview.AutocompleteView
+   :members:
+   :member-order: bysource
+   
+.. admonition:: Rember the four points to have autocomplete out of the box:
+
+    * When using the model in Forms, import from ``djpcms.forms`` and not ``django.forms``.
+    * Your model application must have a ``search_fields`` list
+    * Your model application must have the :class:`djpcms.views.appview.AutocompleteView`.
+    * Register your application as usual.

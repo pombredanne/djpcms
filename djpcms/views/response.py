@@ -189,14 +189,13 @@ return the wrapper with the underlying view.'''
             return re
             
         if not is_ajax:
-            if isinstance(re,http.HttpResponse):
-                return re
             # If user not authenticated set a test cookie  
             if not http.is_authenticated(request) and method == 'get':
                 request.session.set_test_cookie()
 
             if method not in (m.lower() for m in view.methods(request)):
-                return http.HttpResponseNotAllowed(method)
+                raise http.HttpException(405,
+                                         msg='method {0} is not allowed'.format(method))
         
             return getattr(view,'%s_response' % method)(self)
         else:

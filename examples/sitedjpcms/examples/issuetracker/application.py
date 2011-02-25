@@ -11,11 +11,10 @@ class AddEditIssueForm(forms.Form):
     body = forms.CharField(widget = forms.TextArea)
     tags = forms.CharField(required = False)
     
-    def save(self, commit = True):
+    def before_save(self, commit = True):
         cd = self.cleaned_data
         tags = cd.pop('tags')
         cd['user'] = self.request.user
-        super(AddEditIssueForm,self).save(commit = commit)
 
 hform = forms.HtmlForm(AddEditIssueForm,
                        layout = Layout(default_style = blockLabels))
@@ -36,9 +35,17 @@ class IssueTraker(archive.ArchiveApplication):
                       (4, 'Medimu'),
                       (5, 'Low'),
                       )
-    add = appview.AddView(form = hform)
+    add = appview.AddView(form = hform,
+                          redirect_to_view = 'search',
+                          force_redirect = True)
     view = appview.ViewView()
-    edit = appview.ChangeView(form = hform)
+    edit = appview.ChangeView(form = hform,
+                              redirect_to_view = 'search',
+                              force_redirect = True)
+    delete = appview.DeleteView()
+    
+    
+
     
 
     

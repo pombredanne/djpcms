@@ -3,6 +3,7 @@ from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout
 
 from djpcms import sites
+from djpcms.core.exceptions import HttpException
 
 Request = wsgi.WSGIRequest
 

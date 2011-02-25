@@ -1,15 +1,16 @@
 .. _glossary:
 
-========
+==========
 Glossary
-========
+==========
 
 .. glossary::
 		
     plugin
-		A class responsible for rendering applications and static content.
+		A class responsible for rendering applications and static content across any page
+		in the web site.
 		
-		See :ref:`plugins-index`.
+		See :ref:`plugins <plugins-index>`.
 		
     template
         A chunk of text that acts as formatting for representing data. A
@@ -19,7 +20,9 @@ Glossary
         See :ref:`topics-templates-index`.
         
     view
-        A class responsible for rending a page.
+        A class responsible for handling requests. Each view class
+        is associated with a url, or set of urls. Each view can have several
+        response method, post, get, etc ...
         
-        See :ref:`views-index`.
+        See :ref:`views handlers <views-index>`.
       

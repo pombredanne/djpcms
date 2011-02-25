@@ -328,7 +328,8 @@ By default it is ``djp.url``'''
 
 
 class pageview(djpcmsview):
-    
+    '''A :class:`djpcmsview` for flat pages. A flat page does not mean
+    static data, it means there is not a specific application associate with it.'''
     def __init__(self, page):
         self.page    = page
         self.editurl = None  

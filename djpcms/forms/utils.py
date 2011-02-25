@@ -178,7 +178,9 @@ def get_form(djp,
 
     
 def saveform(djp, editing = False, force_redirect = False):
-    '''Comprehensive save method for forms.'''
+    '''Comprehensive save method for forms.
+This method try to deal with all possible events occurring after a form
+has been submitted.'''
     view = djp.view
     request = djp.request
     http = djp.http
@@ -205,6 +207,7 @@ def saveform(djp, editing = False, force_redirect = False):
         else:
             return http.HttpResponseRedirect(redirect_url)
     
+    # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing  = editing if not POST.has_key('_save_as_new') else False
         instance = view.save(request, f)

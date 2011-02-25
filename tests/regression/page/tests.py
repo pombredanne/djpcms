@@ -1,6 +1,4 @@
-from django.contrib.auth.models import User
-
-from djpcms.test import TestCase
+from djpcms import test
 from djpcms.apps.included import vanilla
 
 from regression.page.models import Strategy
@@ -8,7 +6,7 @@ from regression.page.models import Strategy
 appurls = vanilla.Application('/strategies/',Strategy),
 
 
-class TestPage(TestCase):
+class TestPage(test.TestCase):
     appurls = 'regression.page.tests'
     
     def testRoot(self):
@@ -74,5 +72,4 @@ class TestPage(TestCase):
         vp1 = self.makepage('view',Strategy,'2')
         ep = self.makepage('edit',Strategy)
         #self.assertEqual(ep.parent,vp)
-        
-        
+    

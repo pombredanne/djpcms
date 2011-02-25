@@ -1,6 +1,0 @@
-{% extends "djpcms/errors/error.html" %}
-
-{% block error-body %}{% if settings.DEBUG %}
-{{ stack_trace }}{% else %}
-<p>Whoops! Server error. Something did not quite work right, sorry.</p>{% endif %}
-{% endblock %}

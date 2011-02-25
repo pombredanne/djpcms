@@ -77,7 +77,9 @@ def standard_exception_handle(self, request, e, status = None):
                            'stack_trace':stack_trace,
                            'request':request,
                            'settings':site.settings},request)
-    html = loader.render((template,'djpcms/errors/'+template),
+    html = loader.render((template,
+                          'djpcms/errors/'+template,
+                          'djpcms/errors/error.html'),
                          ctx)
     return self.http.HttpResponse(html, status = status)
         
@@ -333,6 +335,8 @@ of djpcms routes'''
             response = self.handle_exception(self, request, e, status = 403)
         except http.Http404 as e:
             response = self.handle_exception(self, request, e, status = 404)
+        except http.HttpException as e:
+            response = self.handle_exception(self, request, e, status = e.status)
         except Exception as e:
             response = self.handle_exception(self, request, e)
         return http.finish_response(response, environ, start_response)

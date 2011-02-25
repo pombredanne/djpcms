@@ -17,7 +17,21 @@ the dependencies are met. No settings involved.
 
 .. _included-archiveapplication:
 
-.. module:: djpcms.views.apps.archive
+
+.. module:: djpcms.views.apps.included.vanilla
+
+Vanilla
+======================
+
+The most basic application, it is form by the four standard views: 
+
+* search (:class:`djpcms.views.appview.SearchView`)
+* add (:class:`djpcms.views.appview.AddView`)
+* view (:class:`djpcms.views.appview.ViewView`)
+* change (:class:`djpcms.views.appview.ChangeView`)
+
+
+.. module:: djpcms.views.apps.included.archive
 
 Archive
 ======================

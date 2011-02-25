@@ -8,22 +8,26 @@ import warnings
 from py2py3 import ispy3k
 if ispy3k():
     from io import StringIO
-    from urllib.parse import urlparse, urlunparse, urlsplit
+    from urllib.parse import urlparse, urlunparse, urlsplit, unquote,\
+                             urlencode
     from http.cookies import SimpleCookie
 else:
     from Cookie import SimpleCookie
     from cStringIO import StringIO
-    from urlparse import urlparse, urlunparse, urlsplit
+    from urlparse import urlparse, urlunparse, urlsplit, unquote
+    from urllib import urlencode
     
 from djpcms import sites
 
 
-__all__ = ('Client', 'RequestFactory', 'encode_file', 'encode_multipart')
+__all__ = ('Client', 'RequestFactory',
+           'encode_file', 'encode_multipart')
 
 
 BOUNDARY = 'BoUnDaRyStRiNg'
 MULTIPART_CONTENT = 'multipart/form-data; boundary=%s' % BOUNDARY
 CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
+
 
 class FakePayload(object):
     """
@@ -167,7 +171,7 @@ class RequestFactory(object):
         parsed = urlparse(path)
         r = {
             'CONTENT_TYPE':    'text/html; charset=utf-8',
-            'PATH_INFO':       urllib.unquote(parsed[2]),
+            'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'GET',
             'wsgi.input':      FakePayload('')
@@ -194,7 +198,7 @@ class RequestFactory(object):
         r = {
             'CONTENT_LENGTH': len(post_data),
             'CONTENT_TYPE':   content_type,
-            'PATH_INFO':      urllib.unquote(parsed[2]),
+            'PATH_INFO':      unquote(parsed[2]),
             'QUERY_STRING':   parsed[4],
             'REQUEST_METHOD': 'POST',
             'wsgi.input':     FakePayload(post_data),
@@ -208,7 +212,7 @@ class RequestFactory(object):
         parsed = urlparse(path)
         r = {
             'CONTENT_TYPE':    'text/html; charset=utf-8',
-            'PATH_INFO':       urllib.unquote(parsed[2]),
+            'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'HEAD',
             'wsgi.input':      FakePayload('')
@@ -221,7 +225,7 @@ class RequestFactory(object):
 
         parsed = urlparse(path)
         r = {
-            'PATH_INFO':       urllib.unquote(parsed[2]),
+            'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'OPTIONS',
             'wsgi.input':      FakePayload('')
@@ -248,7 +252,7 @@ class RequestFactory(object):
         r = {
             'CONTENT_LENGTH': len(post_data),
             'CONTENT_TYPE':   content_type,
-            'PATH_INFO':      urllib.unquote(parsed[2]),
+            'PATH_INFO':      unquote(parsed[2]),
             'QUERY_STRING':   query_string or parsed[4],
             'REQUEST_METHOD': 'PUT',
             'wsgi.input':     FakePayload(post_data),
@@ -261,7 +265,7 @@ class RequestFactory(object):
 
         parsed = urlparse(path)
         r = {
-            'PATH_INFO':       urllib.unquote(parsed[2]),
+            'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'DELETE',
             'wsgi.input':      FakePayload('')
@@ -298,18 +302,6 @@ class Client(RequestFactory):
         """
         self.exc_info = sys.exc_info()
 
-    def _session(self):
-        """
-        Obtains the current session variables.
-        """
-        if 'django.contrib.sessions' in settings.INSTALLED_APPS:
-            engine = import_module(settings.SESSION_ENGINE)
-            cookie = self.cookies.get(settings.SESSION_COOKIE_NAME, None)
-            if cookie:
-                return engine.SessionStore(cookie.value)
-        return {}
-    session = property(_session)
-
     def request(self, **request):
         """
         The master request method. Composes the environment dictionary
@@ -318,7 +310,7 @@ class Client(RequestFactory):
         using the arguments to the request.
         """
         environ = self._base_environ(**request)
-
+        sites.
         # Curry a data dictionary into an instance of the template renderer
         # callback function.
         data = {}

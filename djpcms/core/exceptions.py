@@ -68,3 +68,10 @@ class BlockOutOfBound(PageException):
     '''A :class:`PageException` raised when requesting a block not available in page.'''
     pass
     
+    
+class HttpException(Exception):
+    status = 404
+    def __init__(self, status = None, msg = ''):
+        self.status = status or self.status
+        super(HttpException,self).__init__(msg)
+

@@ -2,8 +2,8 @@ from werkzeug import wrappers
 from werkzeug import exceptions
 from werkzeug.serving import run_simple
 
-
 from djpcms import sites
+from djpcms.core.exceptions import HttpException
 
 
 Request = wrappers.Request

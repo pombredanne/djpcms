@@ -2,7 +2,7 @@ import os
 import sys
 
 
-def uplevel(path,lev):
+def uplevel(path,lev=1):
     if lev:
         return uplevel(os.path.split(path)[0],lev-1)
     else:

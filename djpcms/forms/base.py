@@ -249,7 +249,13 @@ Messages can be errors or not.
     
     def save(self, commit = True):
         '''Save the form. This method works if an instance or a model is available'''
+        self.before_save(commit)
         return self.mapper.save(self.cleaned_data, self.instance, commit)
+    
+    def before_save(self, commit=True):
+        '''Hook to modify/manipulate data before saving.
+        It is advised to override this function rather than the save method.'''
+        pass
         
 
 class HtmlForm(object):

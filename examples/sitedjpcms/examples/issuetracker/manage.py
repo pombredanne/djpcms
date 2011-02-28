@@ -1,7 +1,14 @@
 '''
 Script for running a stand-alone IssueTracker application
 
-Requires python-stdnet
+Requires python-stdnet https://github.com/lsbardel/python-stdnet
+
+To install it just type::
+
+    pip install python-stdnet
+    or
+    easy_install python-stdnet
+    
 
 To run the server simply::
 

@@ -1,10 +1,13 @@
+from py2py3 import UnicodeMixin
+
 from djpcms.utils import force_str
 from djpcms.template import mark_safe
 from djpcms.core.page import block_htmlid
 from djpcms.models import BlockContent
+from djpcms.html import EMPTY_VALUE
 
 
-class BlockContentGen(object):
+class BlockContentGen(UnicodeMixin):
     '''Block Content Generator is responsible for generating contents within a ``block``.
 A page is associated with a given url and a page has a certain number
 of ``blocks`` depending on the template chosen for the pages: anything between 1 and 10 is highly possible.
@@ -32,8 +35,8 @@ and *b* is an integer indicating the ``block`` number in the page.'''
             for ht in self.blocks():
                 if ht:
                     yield ht
-            yield self.empty() + '</div>'
-        return mark_safe(force_str('\n'.join(stream())))
+            yield EMPTY_VALUE + '</div>'
+        return force_str('\n'.join(stream()))
     
     def __unicode__(self):
         return self.render()
@@ -58,7 +61,4 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         '''
         for b in blockcontents:
             yield b.render(self.djp)
-
-    def empty(self):
-        return '&nbsp;'
 

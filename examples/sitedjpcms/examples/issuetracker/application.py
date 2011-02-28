@@ -43,11 +43,4 @@ class IssueTraker(archive.ArchiveApplication):
                               redirect_to_view = 'search',
                               force_redirect = True)
     delete = appview.DeleteView()
-    
-    
 
-    
-
-    
-
-    

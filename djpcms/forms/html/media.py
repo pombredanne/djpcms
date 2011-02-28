@@ -6,6 +6,8 @@ from itertools import chain
 
 from djpcms.template import loader
 
+mark_safe = loader.mark_safe
+
 __all__ = ['MEDIA_TYPES',
            'Media',
            'media_property',
@@ -35,17 +37,19 @@ class Media(object):
     def render(self):
         return '\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES]))
 
+    @property
     def render_js(self):
-        return ['<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js]
+        return ('<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js)
 
+    @property
     def render_css(self):
         # To keep rendering order consistent, we can't just iterate over items().
         # We need to sort the keys, and iterate over the sorted list.
         media = self._css.keys()
         media.sort()
         return chain(*[
-            ['<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium)
-                    for path in self._css[medium]]
+            ('<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium)
+                    for path in self._css[medium])
                 for medium in media])
 
     def absolute_path(self, path, prefix=None):

@@ -1,5 +1,4 @@
-from django.utils.dates import MONTHS
-
+from djpcms.utils.dates import MONTHS
 from djpcms.utils import force_str
 from djpcms.views.appview import SearchView
 

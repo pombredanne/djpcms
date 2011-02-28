@@ -1,4 +1,3 @@
-
 from djpcms.template import mark_safe
 
 __all__ = ['htmldefaultdoc',
@@ -18,6 +17,7 @@ class HTMLdoc(object):
     def __str__(self):
         return self.name
     
+    @property
     def html(self):
         return mark_safe(self._html)
     
@@ -33,7 +33,6 @@ class HTMLdoc(object):
     
     def validator(self):
         return self._validatorsrc()
-
 
 def htmldoc(code = None):
     global _htmldict, htmldefaultdoc

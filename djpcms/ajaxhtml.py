@@ -35,6 +35,7 @@ class ajaxhtml(object):
     def __setitem__(self, k, v):
         self._dict[k] = v
 
+    @property
     def tojson(self):
         from djpcms.template import json_dump_safe
         return json_dump_safe(self._dict)

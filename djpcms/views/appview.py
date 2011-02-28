@@ -13,6 +13,7 @@ from djpcms.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
+from djpcms.core.orms import table
 
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -351,6 +352,8 @@ replaced during initialization.
         if callable(headers):
             headers = headers(djp)
         astable = headers and self.astable
+        if astable:
+            astable = table(headers, queryset, djp, appmodel, nd)
         c.update({'paginator': p,
                   'astable': astable,
                   'djp': djp,
@@ -361,7 +364,8 @@ replaced during initialization.
                   'headers': headers})
         
         if astable:
-            c['items'] = self.table_generator(djp, p.qs)
+            items = self.table_generator(djp, p.qs)
+            c['astable'] = table(headers, items, djp, appmodel)
         else:    
             c['items'] = self.data_generator(djp, p.qs)
             

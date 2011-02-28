@@ -13,4 +13,3 @@ class Issue(orm.StdModel):
     
     def __unicode__(self):
         return self.description
-    

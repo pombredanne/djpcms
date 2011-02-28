@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 <title>{% block title %}Error {{ status }}{% endblock %}</title>
 
-{% block page-body %}
+{% block page_body %}
 <div id="error-{{ status }}" class="server-exception ui-state-error">
 {% if settings.DEBUG %}
 <h2>ERROR {{status }}</h2>
 <h3>path: {{ request.path }}</h3>
 <br>
-{{ stack_trace }}{% else %}{% block error-body %}
+{{ stack_trace }}{% else %}{% block error_body %}
 <p>Whoops! Server error. Something did not quite work right, sorry.</p>
 {% endblock %}{% endif %}
 </div>

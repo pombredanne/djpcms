@@ -3,9 +3,9 @@
  <li class="secondary"><a href="{{ page_url }}" class="exit-edit-inline" title="Exit inline editing">exit</a></li>{% endif %}{% endif %}{% if user.is_authenticated %}
 {% block authenticated %}{% if user_url %}
  <li class="secondary"><a href="{% block userlink %}{{ user_url }}{% endblock %}">{{ user.username }}</a></li>{% endif %}
- <li class="secondary"><a href="{{ logout_url }}?next={{ djp.url }}">logout</a></li>{% endblock %}{% else %}
- {% block not-authenticated %}{% if login_url %}
- <li class="secondary"><a href="{{ login_url }}?next={{ djp.url }}">login</a></li>{% if register_url %} 
+ <li class="secondary"><a href="{{ logout_url }}?next={{ request.path }}">logout</a></li>{% endblock %}{% else %}
+ {% block not_authenticated %}{% if login_url %}
+ <li class="secondary"><a href="{{ login_url }}?next={{ request.path }}">login</a></li>{% if register_url %} 
  <li class="secondary"><a href="{{ register_url }}">register</a></li>{% endif %}{% endif %}
  {% endblock %}{% endif %}
 </ul>

@@ -41,11 +41,16 @@ class BaseTemplateHandler(object):
                 autoescape=False):
         c = self.context_class(dict, current_app=current_app, autoescape=autoescape)
         if request:
-            site_processors = request.site.template_context()
-            if processors is not None:
-                site_processors += tuple(processors)
-            for processor in site_processors:
-                c.update(processor(request))
+            if hasattr(request,'_context_cache'):
+                c.update(request._context_cache)
+            else:
+                request._context_cache = context_cache = {}
+                site_processors = request.site.template_context()
+                if processors is not None:
+                    site_processors += tuple(processors)
+                for processor in site_processors:
+                    context_cache.update(processor(request))
+            c.update(request._context_cache)
         return c
     
     def loaders(self):

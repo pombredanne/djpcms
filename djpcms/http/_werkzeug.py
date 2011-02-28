@@ -8,12 +8,27 @@ from djpcms.core.exceptions import HttpException
 
 Request = wrappers.Request
 HttpResponse = wrappers.Response
+Http404 = exceptions.NotFound
 
 
 def make_request(environ):
     request = Request(environ)
     request.COOKIES = request.cookies
+    request.META = request.environ
+    request.FILES = request.files
+    if request.method == 'POST':
+        request.POST = request.form
+        request.GET = {}
+        request.data_dict = dict(request.form.items())
+    else:
+        request.POST = {}
+        request.GET = {}
+        request.data_dict = {}
     return request
+    
+
+def set_header(self, key, value):
+    self.headers[key] = value
     
 
 def finish_response(response, environ, start_response):

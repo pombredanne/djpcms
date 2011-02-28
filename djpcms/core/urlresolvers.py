@@ -9,6 +9,8 @@
 import re
 from inspect import isclass
 
+from py2py3 import is_bytes_or_string, iteritems
+
 from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist
 from djpcms.http import get_http
 from djpcms.utils import force_str
@@ -198,7 +200,7 @@ Adapted for djpcms
         # urlconf_name is a string representing the module containing URLconfs.
         self.regex = re.compile(regex, re.UNICODE)
         self.urlconf_name = urlconf_name
-        if not isinstance(urlconf_name, basestring):
+        if not is_bytes_or_string(urlconf_name):
             self._urlconf_module = self.urlconf_name
         self.callback = None
         self.default_kwargs = default_kwargs or {}
@@ -235,7 +237,7 @@ Adapted for djpcms
                     if sub_match:
                         sub_match_dict = dict([(force_str(k), v) for k, v in match.groupdict().items()])
                         sub_match_dict.update(self.default_kwargs)
-                        for k, v in sub_match[2].iteritems():
+                        for k, v in iteritems(sub_match[2]):
                             sub_match_dict[force_str(k)] = v
                         return sub_match[0], sub_match[1], sub_match_dict
                     tried.append(pattern.regex.pattern)

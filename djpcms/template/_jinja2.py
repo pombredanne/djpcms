@@ -2,15 +2,23 @@ from djpcms.utils.importer import import_module
 from djpcms.core.exceptions import ImproperlyConfigured
 
 import jinja2
+TemplateNotFound = jinja2.TemplateNotFound
 
 from .base import LibraryTemplateHandler
+
+AUTOESCAPE_EXTENSION = ('html', 'htm', 'xml')
+
+def guess_autoescape(template_name):
+    if template_name is None or '.' not in template_name:
+        return False
+    ext = template_name.rsplit('.', 1)[1]
+    return ext in AUTOESCAPE_EXTENSION
 
 
 class TemplateHandler(LibraryTemplateHandler):
     
     def setup(self):
         self.template_class = jinja2.Template
-        self.context_class = jinja2.runtime.Context
         self.mark_safe = jinja2.Markup
         self.escape    = jinja2.escape
         self.conditional_escape = jinja2.escape
@@ -21,6 +29,9 @@ class TemplateHandler(LibraryTemplateHandler):
             loader = self.find_template_loader(code,args)
             env = jinja2.Environment(loader=loader)
             envs.append(env)
+    
+    def context_class(self, dict, autoescape=False, **kwargs):
+        return dict
     
     def render(self, template_name, data=None, autoescape=False):
         """
@@ -33,6 +44,7 @@ class TemplateHandler(LibraryTemplateHandler):
             t = self.select_template(template_name)
         else:
             t = self.get_template(template_name)
+        t.environment.autoescape = autoescape
         return t.render(data)
     
     def get_template(self, template_name):
@@ -45,10 +57,10 @@ class TemplateHandler(LibraryTemplateHandler):
         for template_name in template_name_list:
             try:
                 return self.get_template(template_name)
-            except TemplateDoesNotExist:
+            except TemplateNotFound:
                 continue
         # If we get here, none of the templates could be loaded
-        raise TemplateDoesNotExist(', '.join(template_name_list))
+        raise TemplateNotFound(', '.join(template_name_list))
     
     def find_template_loader(self, code, args):
         bits = code.split('.')

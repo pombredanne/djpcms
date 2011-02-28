@@ -39,7 +39,8 @@ class LoginView(appview.ModelView):
                                        isplugin = isplugin,
                                        **kwargs)
         
-    def title(self, page, **kwargs):
+    def title(self, djp):
+        page = djp.page
         if page:
             return 'Sign in to %s' % page.site.name
         else:

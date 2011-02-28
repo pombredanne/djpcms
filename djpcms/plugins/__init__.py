@@ -6,10 +6,11 @@ from djpcms import forms
 from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str
 from djpcms.utils.text import capfirst, nicename
-#from djpcms.utils.formjson import form2json
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
+
+CLOSE_DIV = '\n</div>'
 
 
 def ordered_generator(di):
@@ -99,7 +100,7 @@ This function should be implemented by derived classes.
         id    = cblock.htmlid()
         head  = '<div id="{0}" class="djpcms-block-element plugin-{1}">\n'.format(id,name)
         inner = self.wrap(djp, cblock, html)
-        return head + inner + '\n</div>'
+        return force_str(head + inner + CLOSE_DIV)
     
     def _register(self):
         global _wrapper_dictionary

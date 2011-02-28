@@ -141,7 +141,7 @@ def get_form(djp,
     own_view = djp.own_view()
     data = request.data_dict
     prefix = data.get('__prefixed__',None)
-    save_as_new = data.has_key('_save_as_new')
+    save_as_new = '_save_as_new' in data
     submits = form_factory.submits
     if submits:
         inputs = [forms.SubmitInput(value = val, name = nam) for val,nam in submits]

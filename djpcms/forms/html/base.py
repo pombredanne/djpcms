@@ -1,7 +1,7 @@
 from py2py3 import iteritems
 
 from djpcms.utils import slugify, merge_dict
-from djpcms.template import loader, mark_safe
+from djpcms.template import loader
 
 from .media import BaseMedia
 
@@ -100,10 +100,10 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     
     def _render(self, fattr, *args, **kwargs):
         if self.inline:
-            return mark_safe('<{0}{1}/>'.format(self.tag,fattr))
+            return '<{0}{1}/>'.format(self.tag,fattr)
         elif self.tag:
-            return mark_safe('<{0}{1}>\n{2}\n</{0}>'.format(self.tag,fattr,
-                                                            self.inner(*args, **kwargs)))
+            return '<{0}{1}>\n{2}\n</{0}>'.format(self.tag,fattr,
+                                                  self.inner(*args, **kwargs))
         else:
             return self.inner(*args, **kwargs)
     

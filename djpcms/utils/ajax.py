@@ -97,10 +97,10 @@ class jservererror(HeaderBody):
     
     def __init__(self, err, url = None):
         loader = handle()
-        self.html = loader.render_to_string(['bits/post-error.html',
-                                             'djpcms/bits/post-error.html'],
-                                            {'error':loader.mark_safe(err),
-                                             'url': url})
+        self.html = loader.render(['bits/post-error.html',
+                                   'djpcms/bits/post-error.html'],
+                                   {'error':loader.mark_safe(err),
+                                    'url': url})
     
     def header(self):
         return 'servererror'

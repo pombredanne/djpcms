@@ -25,6 +25,7 @@ class TemplateHandler(LibraryTemplateHandler):
             return loader.get_template(template_name)
         
     def render_to_string(self, template_name, dictionary=None, context_instance=None):
+        raise NotImplementedError
         dictionary = dictionary or {}
         t = self.get_template(template_name)
         if context_instance:

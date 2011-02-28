@@ -21,7 +21,8 @@ To create style sheet::
 '''
 from vws import virtual
 virtual(('djpcms','djpcms'),
-        ('stdnet','python-stdnet'))
+        ('stdnet','python-stdnet'),
+        ('werkzeug','werkzeug'))
 
 import djpcms
 from djpcms.apps.management import execute
@@ -47,6 +48,7 @@ def build():
     djpcms.MakeSite(__file__,
                     APPLICATION_URL_MODULE = 'issuetracker.manage',
                     CMS_ORM = 'stdnet',
+                    HTTP_LIBRARY = 'werkzeug',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
                     DJPCMS_PLUGINS = ('djpcms.plugins.*',
                                       'djpcms.apps.included.contentedit.plugins'),

@@ -3,9 +3,8 @@ Define some application urls templates as example
 '''
 import copy
 
-from django.template import loader, Context
-from django.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
-
+from djpcms.template import loader
+from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
 from djpcms.utils import force_str
 from djpcms.views.appsite import ModelApplication
 from djpcms.apps.included.archive import views 
@@ -66,6 +65,8 @@ class ArchiveApplication(ModelApplication):
         prefix   = djp.prefix
         wrapper  = djp.wrapper
         date     = None
+        render   = loader.render
+        Context  = loader.context_class
     
         for obj in data:
             content = self.object_content(djp, obj)
@@ -84,7 +85,7 @@ class ArchiveApplication(ModelApplication):
                                     'value': dt.day}
                 content['wday']  = force_str(WEEKDAYS_ABBR[dt.weekday()])
                 date = ddate
-            yield loader.render_to_string(template_name    = self.get_item_template(obj, wrapper),
-                                          context_instance = Context(content))
+            yield render(self.get_item_template(obj, wrapper),
+                         Context(content))
     
     

@@ -81,7 +81,9 @@ def standard_exception_handle(self, request, e, status = None):
                           'djpcms/errors/'+template,
                           'djpcms/errors/error.html'),
                          ctx)
-    return self.http.HttpResponse(html, status = status)
+    return self.http.HttpResponse(html,
+                                  status = status,
+                                  mimetype = 'text/html')
         
 
 
@@ -318,7 +320,6 @@ of djpcms routes'''
             request.site = site
             djp = view(request, **kwargs)
             if not isinstance(djp,HttpResponse):
-                request.data_dict = dict(request.args.items())
                 #signals.request_started.send(sender=self.__class__)
                 # Request middleware
                 for middleware_method in site.request_middleware():

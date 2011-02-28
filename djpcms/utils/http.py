@@ -1,4 +1,4 @@
-from email.Utils import formatdate
+from email.utils import formatdate
 
 
 def http_date(epoch_seconds=None):

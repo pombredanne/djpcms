@@ -5,7 +5,7 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems, is_string
+from py2py3 import iteritems, is_string, is_bytes_or_string
 
 import djpcms
 from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
@@ -34,7 +34,7 @@ similar fields on the base classes (in 'bases')."""
     if inherit:
         for base in bases[::-1]:
             if hasattr(base, 'base_views'):
-                apps = base.base_views.items() + apps
+                apps = list(base.base_views.items()) + apps
                 
     return OrderedDict(apps)
 
@@ -54,7 +54,7 @@ ApplicationBase = ApplicationMetaClass('ApplicationBase', (object,), {})
 def process_views(view,views,app):
     pkey = view.parent
     if pkey:
-        if is_string(pkey):
+        if is_bytes_or_string(pkey):
             parent  = app.views.get(pkey,None)
             if not parent:
                 raise ApplicationUrlException('Parent %s for %s not in children tree' % (pkey,view))

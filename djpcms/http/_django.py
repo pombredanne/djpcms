@@ -23,6 +23,9 @@ def make_request(environ):
     return request
     
 
+def set_header(self, key, value):
+    self[key] = value
+
 def is_authenticated(request):
     return request.user.is_authenticated()
 

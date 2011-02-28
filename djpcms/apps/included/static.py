@@ -2,7 +2,7 @@ import os
 import re
 import stat
 import mimetypes
-from email.Utils import parsedate_tz, mktime_tz
+from email.utils import parsedate_tz, mktime_tz
 
 from djpcms.views import appview, appsite
 from djpcms.utils.importer import import_module
@@ -33,12 +33,15 @@ class StaticFileRoot(StaticFileView):
         appmodel = self.appmodel
         mapping = appmodel.loadapps(request.site)
         http = request.site.http
+        directory = request.path
+        notroot = directory != '/'
         if appmodel.show_indexes:
-            html = loader.render_to_string(appmodel.template,
-                                           {'names':sorted(mapping),
-                                            'files':[],
-                                            'directory':request.path})
-            return http.HttpResponse(html)
+            html = loader.render(appmodel.template,
+                                {'names':sorted(mapping),
+                                 'files':[],
+                                 'directory':directory,
+                                 'notroot':notroot})
+            return http.HttpResponse(html, mimetype = 'text/html')
         else:
             raise request.http.Http404
 
@@ -75,11 +78,12 @@ class StaticFileApp(StaticFileView):
                     names.append(f)
                 else:
                     files.append(f)
-        html = loader.render_to_string(self.appmodel.template,
-                                           {'names':names,
-                                            'files':files,
-                                            'directory':request.path})
-        return request.site.http.HttpResponse(html)
+        html = loader.render(self.appmodel.template,
+                             {'names':names,
+                              'files':files,
+                              'directory':request.path})
+        return request.site.http.HttpResponse(html,
+                                              mimetype = 'text/html')
         
     def serve_file(self, request, fullpath):
         http = request.site.http
@@ -90,13 +94,15 @@ class StaticFileApp(StaticFileView):
         if not self.was_modified_since(request.META.get('HTTP_IF_MODIFIED_SINCE'),
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
-            return http.HttpResponseNotModified(mimetype=mimetype)
+            return http.HttpResponse(status = 304,
+                                     mimetype=mimetype)
         contents = open(fullpath, 'rb').read()
-        response = http.HttpResponse(contents, mimetype=mimetype)
-        response["Last-Modified"] = http_date(statobj[stat.ST_MTIME])
-        response["Content-Length"] = len(contents)
+        response = http.HttpResponse(contents,
+                                     mimetype=mimetype)
+        http.set_header(response, "Last-Modified", http_date(statobj[stat.ST_MTIME]))
+        http.set_header(response, "Content-Length", len(contents))
         if encoding:
-            response["Content-Encoding"] = encoding
+            http.set_header(response, "Content-Encoding", encoding)
         return response
     
     def was_modified_since(self, header=None, mtime=0, size=0):

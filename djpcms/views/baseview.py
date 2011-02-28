@@ -4,7 +4,6 @@ from py2py3 import range
 
 import djpcms
 from djpcms.utils.ajax import jservererror, jredirect
-from djpcms.html import grid960, box, htmldoc
 from djpcms.forms import Media
 from djpcms.forms.utils import saveform, get_form
 from djpcms.views.response import DjpResponse
@@ -154,12 +153,10 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         site    = request.site
         http    = request.site.http
         page    = djp.page
+        request._page = page
         inner_template  = None
-        grid    = self.grid960(page)
-        
-        context = {'grid': grid,
-                   'htmldoc': htmldoc(None if not page else page.doctype)}
-            
+        context = {'title':djp.title}
+                    
         if page:
             inner_template = page.inner_template
             if not inner_template:
@@ -168,11 +165,10 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
                 context['edit_content_url'] = page_edit_url(djp)
             
         if inner_template:
-            cb = {'djp':  djp,
-                  'grid': grid}
+            cb = {'djp':  djp}
             for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(djp, b, editing)
-            inner = page.inner_template.render(loader.context(cb, autoescape=False))
+            inner = page.inner_template.render(loader.context(cb, request=request, autoescape=False))
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)
@@ -224,13 +220,6 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
                 ajax_view_function = self.default_post;
         
             return ajax_view_function(djp)
-
-    def grid960(self, page = None):
-        #TODO Need to move this out of here
-        if page and page.cssinfo:
-            return grid960(columns = page.cssinfo.gridsize, fixed = page.cssinfo.fixed)
-        else:
-            return grid960()
     
     def has_permission(self, request, page = None, obj = None):
         '''Check for page view permissions.'''
@@ -300,8 +289,8 @@ If we didn't do that, test_navigation.testMultiPageApplication would fail.'''
             return views
         
         site      = djp.site
-        pagecache = djp.pagecache
-        pchildren = pagecache.get_children(page)
+        pchildren = ()
+        #pchildren = pagecache.get_children(page)
         
         for child in pchildren:
             try:

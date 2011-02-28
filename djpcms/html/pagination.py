@@ -23,6 +23,7 @@ class Paginator(object):
         if self.per_page*tp < self.total:
             tp += 1
         self.pages      = tp
+        self.multiple   = self.pages > 1
         self.page       = self.pagenumber(request)
         end             = self.page*self.per_page
         start           = end - self.per_page

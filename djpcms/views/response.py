@@ -210,11 +210,12 @@ return the wrapper with the underlying view.'''
                 if site.settings.DEBUG:
                     exc_info = sys.exc_info()
                     stack_trace = '\n'.join(traceback.format_exception(*exc_info))
-                    logerror(self.view.logger, request, exc_info)
+                    logtrace(self.view.logger, request, exc_info)
                     res = jservererror(stack_trace, url = self.url)
                 else:
                     raise e
-            return self.http.HttpResponse(res.dumps(),res.mimetype())
+            return self.http.HttpResponse(res.dumps(),
+                                          mimetype = res.mimetype())
     
     def render_to_response(self, context):
         css = self.css
@@ -227,11 +228,9 @@ return the wrapper with the underlying view.'''
                             classes = css.main_nav,
                             levels = self.settings.SITE_NAVIGATION_LEVELS)
         
-        context.update({'djp':        self,
-                  'media':      media,
-                  'page':       self.page,
-                  'is_popup':   False,
-                  'sitenav':    sitenav})
+        context.update({'robots':     self.robots,
+                        'media':      media,
+                        'sitenav':    sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
@@ -239,8 +238,10 @@ return the wrapper with the underlying view.'''
             context['breadcrumbs'] = b
         
         context = loader.context(context, self.request)
-        html = loader.render(self.template_file,context)
-        return self.http.HttpResponse(html)
+        html = loader.mark_safe(loader.render(self.template_file,
+                                              context))
+        return self.http.HttpResponse(html,
+                                      mimetype = 'text/html')
         
     def redirect(self, url):
         if self.is_xhr:

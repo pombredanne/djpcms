@@ -3,20 +3,35 @@ from datetime import datetime
 from djpcms import sites
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
+from djpcms.html import grid960, htmldoc
+
+
+def get_grid960(page):
+    if page and page.cssinfo:
+        return grid960(columns = page.cssinfo.gridsize,
+                       fixed = page.cssinfo.fixed)
+    else:
+        return grid960()
 
 
 def djpcms(request):
     site = request.site
+    page = getattr(request,'page',None)
     if site:
         settings = site.settings
     else:
         settings = sites.settings
-    ctx = {'jsdebug': 'true' if settings.DEBUG else 'false',
+        
+    ctx = {'page':page,
+           'css':settings.HTML_CLASSES,
+           'grid': get_grid960(page),
+           'htmldoc': htmldoc(None if not page else page.doctype),
+           'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
            'user': getattr(request,'user',None),
            'debug': settings.DEBUG,
            'release': not settings.DEBUG,
-           'now': datetime.now,
+           'now': datetime.now(),
            'MEDIA_URL': settings.MEDIA_URL}
     
     # lets check if there is a user application. The likelihood is that there is one :)

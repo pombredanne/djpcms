@@ -9,11 +9,13 @@ __all__ = ['string_type',
            'to_string',
            'ispy3k',
            'is_string',
+           'is_bytes_or_string',
            'iteritems',
            'itervalues',
            'range',
            'zip',
-           'map']
+           'map',
+           'UnicodeMixin']
 
 def ispy3k():
     return int(sys.version[0]) >= 3
@@ -24,19 +26,43 @@ if ispy3k(): # Python 3
     itervalues = lambda d : d.values()
     iteritems = lambda d : d.items()
     is_string = lambda x : isinstance(x,str)
+    is_bytes_or_string = lambda x : isinstance(x,str) or isinstance(x,bytes) 
     int_type = int
     zip = zip
     map = map
     range = range
+    
+    class UnicodeMixin(object):
+        
+        def __unicode__(self):
+            return '{0} object'.format(self.__class__.__name__)
+        
+        def __str__(self):
+            return self.__unicode__()
+        
+        def __repr__(self):
+            return '%s: %s' % (self.__class__.__name__,self)
         
 else: # Python 2
     string_type = unicode
     itervalues = lambda d : d.itervalues()
     iteritems = lambda d : d.iteritems()
-    is_string = lambda x : isinstance(x,basestring)
+    is_string = lambda x : isinstance(x,unicode)
+    is_bytes_or_string = lambda x : isinstance(x,basestring)
     int_type = (types.IntType, types.LongType)
     from itertools import izip as zip, imap as map
     range = xrange
+    
+    class UnicodeMixin(object):
+        
+        def __unicode__(self):
+            return unicode('{0} object'.format(self.__class__.__name__))
+        
+        def __str__(self):
+            return self.__unicode__().encode()
+        
+        def __repr__(self):
+            return '%s: %s' % (self.__class__.__name__,self)
     
     
 def to_bytestring(s, encoding='utf-8', errors='strict'):
@@ -88,13 +114,3 @@ class Platform(object):
     
     def symlink(self, filename, linkname):
         os.symlink(filename, linkname)
-
-
-class UnicodeMixin(object):
-        
-    def __str__(self):
-        return '{0} object'.format(self.__class__.__name__)
-    
-    def __unicode__(self):
-        return to_string(str(self))
-    

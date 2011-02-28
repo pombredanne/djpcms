@@ -21,14 +21,16 @@ def djpcms(request):
         settings = site.settings
     else:
         settings = sites.settings
-        
+    
+    user = getattr(request,'user',None)
     ctx = {'page':page,
            'css':settings.HTML_CLASSES,
            'grid': get_grid960(page),
            'htmldoc': htmldoc(None if not page else page.doctype),
            'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
-           'user': getattr(request,'user',None),
+           'user': user,
+           'is_authenticated': False if not user else user.is_authenticated(),
            'debug': settings.DEBUG,
            'release': not settings.DEBUG,
            'now': datetime.now(),

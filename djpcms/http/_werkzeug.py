@@ -1,5 +1,10 @@
+import re
+
+from py2py3 import urlparse
+
 from werkzeug import wrappers
 from werkzeug import exceptions
+from werkzeug.urls import iri_to_uri
 from werkzeug.serving import run_simple
 
 from djpcms import sites
@@ -11,8 +16,23 @@ HttpResponse = wrappers.Response
 Http404 = exceptions.NotFound
 
 
+absolute_http_url_re = re.compile(r"^https?://", re.I)
+
+def build_absolute_uri(self, location):
+    """Builds an absolute URI from the location and the variables available in
+    this request. If no location is specified, the absolute URI is built on
+    ``request.get_full_path()``.
+    """
+    if not location:
+        location = self.get_full_path()
+    if not absolute_http_url_re.match(location):
+        location = urlparse.urljoin(self.host_url, location)
+    return iri_to_uri(location)
+    
+
 def make_request(environ):
     request = Request(environ)
+    request.build_absolute_uri = lambda url : build_absolute_uri(request,url)
     request.COOKIES = request.cookies
     request.META = request.environ
     request.FILES = request.files

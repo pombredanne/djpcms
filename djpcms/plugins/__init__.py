@@ -14,9 +14,8 @@ CLOSE_DIV = '\n</div>'
 
 
 def ordered_generator(di):
-    cmp = lambda x,y : 1 if x.description > y.description else -1
     def _():
-        return ((c.name,c.description) for c in sorted(di.values(),cmp))
+        return ((c.name,c.description) for c in sorted(di.values(), key=lambda x: x.description))
     return _
 
 
@@ -64,22 +63,14 @@ class DJPpluginMetaBase(forms.MediaDefiningClass):
         return pcls
 
 
-class DJPpluginMeta(DJPpluginMetaBase):
-    '''
-    Just a metaclass to differentiate plugins from other classes
-    '''
-
-class DJPwrapperMeta(DJPpluginMetaBase):
-    '''
-    Just a metaclass to differentiate wrapper from other classes
-    '''
+DJPpluginBase = DJPpluginMetaBase('DJPpluginBase',(object,),{'virtual':True})
+DJPwrapperBase = DJPpluginMetaBase('DJPwrapperBase',(object,),{'virtual':True})
 
 
-class DJPwrapper(object):
+
+class DJPwrapper(DJPwrapperBase):
     '''Class responsible for wrapping :ref:`djpcms plugins <plugins-index>`.
     '''
-    __metaclass__ = DJPwrapperMeta
-    
     virtual       = True
     
     name          = None
@@ -107,7 +98,7 @@ This function should be implemented by derived classes.
         _wrapper_dictionary[self.name] = self
 
 
-class DJPplugin(object):
+class DJPplugin(DJPpluginBase):
     '''Base class for Plugins. These classes are used to display contents on a ``djpcms`` powered site.
 The basics:
     
@@ -115,7 +106,6 @@ The basics:
 * It is rendered within a :class:`DJPwrapper` and each :class:`DJPwrapper` displays a plugin.
 * It can define style and javascript to include in the page, in a static way (as a ``meta`` property of the class) or in a dynamic way by member functions.
 * It can have parameters to control its behaviour.'''
-    __metaclass__ = DJPpluginMeta
     
     virtual       = True
     '''If set to true, the class won't be registered with the plugin's dictionary. Default ``False``.'''

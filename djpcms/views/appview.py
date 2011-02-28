@@ -349,7 +349,7 @@ replaced during initialization.
         p  = Paginator(djp.request, query, per_page = appmodel.list_per_page)
         c  = copy(djp.kwargs)
         headers = self.headers or appmodel.list_display
-        if callable(headers):
+        if hasattr(headers,'__call__'):
             headers = headers(djp)
         astable = headers and self.astable
         if astable:

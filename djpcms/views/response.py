@@ -190,7 +190,7 @@ return the wrapper with the underlying view.'''
             
         if not is_ajax:
             # If user not authenticated set a test cookie  
-            if not http.is_authenticated(request) and method == 'get':
+            if not request.user.is_authenticated() and method == 'get':
                 request.session.set_test_cookie()
 
             if method not in (m.lower() for m in view.methods(request)):
@@ -219,10 +219,6 @@ return the wrapper with the underlying view.'''
     
     def render_to_response(self, context):
         css = self.css
-        #context  = loader.context(self.request)
-        #d = context.push()
-        #if more_context:
-        #    d.update(more_context)
         media = self.media
         sitenav = Navigator(self,
                             classes = css.main_nav,

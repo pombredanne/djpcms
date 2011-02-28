@@ -15,7 +15,8 @@ __all__ = ['string_type',
            'range',
            'zip',
            'map',
-           'UnicodeMixin']
+           'UnicodeMixin',
+           'urlparse']
 
 def ispy3k():
     return int(sys.version[0]) >= 3
@@ -31,6 +32,8 @@ if ispy3k(): # Python 3
     zip = zip
     map = map
     range = range
+    
+    from urllib import parse as urlparse
     
     class UnicodeMixin(object):
         
@@ -52,6 +55,8 @@ else: # Python 2
     int_type = (types.IntType, types.LongType)
     from itertools import izip as zip, imap as map
     range = xrange
+    
+    import urlparse
     
     class UnicodeMixin(object):
         

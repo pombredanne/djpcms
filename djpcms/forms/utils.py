@@ -20,6 +20,10 @@ logger = logging.getLogger('djpcms.forms')
 get_next = lambda request, name = "next" : request.POST.get(name,request.GET.get(name,None))
 
 
+SAVE_AS_NEW = '_save_as_new'
+SAVE_AND_CONTINUE = '_save_and_continue'
+
+
 def next_and_current(request):
     next = get_next(request)
     curr = request.environ.get('HTTP_REFERER')
@@ -185,6 +189,7 @@ has been submitted.'''
     request = djp.request
     http = djp.http
     is_ajax = request.is_xhr
+    data = request.data_dict
     POST = request.POST
     GET = request.GET
     curr = request.environ.get('HTTP_REFERER')
@@ -194,7 +199,7 @@ has been submitted.'''
     layout = fhtml.layout
     f = fhtml.form
     
-    if POST.has_key("_cancel"):
+    if "_cancel" in data:
         redirect_url = next
         if not redirect_url:
             if djp.instance:
@@ -209,14 +214,14 @@ has been submitted.'''
     
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
-        editing  = editing if not POST.has_key('_save_as_new') else False
+        editing  = editing if not SAVE_AS_NEW in data else False
         instance = view.save(request, f)
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)
         
         # Save and continue. Redirect to referer if not AJAX or send messages 
-        if POST.has_key('_save_and_continue'):
+        if SAVE_AND_CONTINUE in data:
             if is_ajax:
                 return layout.json_messages(f)
             else:

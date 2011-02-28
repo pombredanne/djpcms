@@ -6,7 +6,7 @@ def get_http(lib):
     elif lib == 'werkzeug':
         from djpcms.http import _werkzeug as mod
     else:
-        from djpcms.http import cherrypy_wsgi as mod
+        raise NotImplementedError
     return mod
 
 

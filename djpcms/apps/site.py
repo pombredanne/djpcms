@@ -318,6 +318,7 @@ of djpcms routes'''
             request.site = site
             site,view,kwargs = self.resolve(path)
             request.site = site
+            post = request.form
             djp = view(request, **kwargs)
             if not isinstance(djp,HttpResponse):
                 #signals.request_started.send(sender=self.__class__)

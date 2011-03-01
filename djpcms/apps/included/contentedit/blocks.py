@@ -198,7 +198,7 @@ class ChangeContentView(appview.ChangeView):
         '''View called when changing the content plugin values.
 The instance.plugin object is maintained but its fields may change.'''
         # First get the plugin name
-        is_ajax = djp.request.is_ajax()
+        is_ajax = djp.request.is_xhr
         fhtml = self.get_form(djp, all = False)
         form = fhtml.form
         layout = fhtml.layout

@@ -191,6 +191,7 @@ Check for url patterns
 
 
 class PluginChoice(forms.ChoiceField):
+    widget = forms.Select(cn = sites.settings.HTML_CLASSES.ajax)
     
     def __init__(self, *args, **kwargs):
         super(PluginChoice,self).__init__(*args, **kwargs)

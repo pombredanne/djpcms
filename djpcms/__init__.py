@@ -47,6 +47,7 @@ def install_libs():
     install_lib(dlibs, 'django-tagging', 'tagging')
     install_lib(dlibs, 'djpadmin', 'djpadmin')
     install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
+    install_lib(dlibs, 'py2py3', 'py2py3')
     
 
 install_libs()

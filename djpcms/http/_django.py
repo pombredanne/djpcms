@@ -6,6 +6,7 @@ from django.http import *
 from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout
 
+from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.core.exceptions import HttpException
 
 Request = wsgi.WSGIRequest
@@ -56,5 +57,5 @@ def finish_response(res, environ, start_response):
 
 def serve(port = 0, use_reloader = False):
     from django.core.servers.basehttp import run
-    run('localhost', port, sites.wsgi)
+    run('localhost', port, DjpCmsHandler())
     

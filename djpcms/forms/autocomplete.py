@@ -6,7 +6,7 @@ from .html import TextInput
 from .fields import ChoiceField
 
 
-__all__ = ['autocomplete',
+__all__ = ['register',
            'AutocompleteForeignKeyInput',
            'AutocompleteManyToManyInput',
            'ModelChoiceField',
@@ -32,8 +32,6 @@ class Autocomplete(object):
     
     def get(self, model):
         return self._register.get(model,None)
-
-autocomplete = Autocomplete()
 
 
 class BaseAutocompleteInput(TextInput):
@@ -168,3 +166,8 @@ class ModelMultipleChoiceField(ModelChoiceField):
         if hasattr(qs,'__call__'):
             result.queryset = qs()
         return set_autocomplete(result)
+
+
+
+autocomplete = Autocomplete()
+register = autocomplete.register

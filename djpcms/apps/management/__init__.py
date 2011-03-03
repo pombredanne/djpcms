@@ -54,9 +54,10 @@ def get_commands():
                 command_module = 'djpcms.apps'
             try:
                 mod = import_module(command_module+'.management')
-                path = mod.__path__[0]
-                global_commands.update(dict([(name, command_module)
-                                       for name in find_commands(path)]))
+                if hasattr(mod,'__path__'):
+                    path = mod.__path__[0]
+                    global_commands.update(dict([(name, command_module)
+                                           for name in find_commands(path)]))
             except ImportError:
                 pass # No management module
 

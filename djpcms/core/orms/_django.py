@@ -1,5 +1,7 @@
 import hashlib
 
+from py2py3 import iteritems
+
 import django
 #from django.db import models
 #from django.core.exceptions import ObjectDoesNotExist
@@ -9,7 +11,6 @@ import django
 #from django.utils.text import smart_split
 
 from djpcms import sites
-from djpcms.core.permissions import has_permission
 from djpcms.utils import force_str
 from djpcms.template import loader
 
@@ -28,6 +29,11 @@ class OrmWrapper(BaseOrmWrapper):
         self.meta = meta = self.model._meta
         self.module_name = meta.module_name
         self.app_label   = meta.app_label
+        #
+        self.objects = self.model.objects
+        self.get = self.objects.get
+        self.all = self.objects.all
+        self.filter = self.objects.filter
         self.DoesNotExist = self.model.DoesNotExist
         #
         #Calculate the Hash id of metaclass `meta`
@@ -137,3 +143,13 @@ class OrmWrapper(BaseOrmWrapper):
         d['nesting_level'] = 0
         d['_get_models_cache'].clear()
     
+    def save(self, data, instance = None, commit = True):
+        if not instance:
+            instance = self.model(**data)
+        else:
+            for name,value in iteritems(data):
+                setattr(instance,name,value)
+        if commit:
+            instance.save()
+        return instance
+            

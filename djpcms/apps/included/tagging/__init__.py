@@ -1,5 +1,5 @@
 from djpcms.views import appsite, appview
-from djpcms.forms import AutocompleteManyToManyInput, set_autocomplete
+#from djpcms.forms import AutocompleteManyToManyInput, set_autocomplete
 from djpcms.apps.included.archive import ArchiveApplication, views as archive
 
 from tagging.models import Tag, TaggedItem
@@ -135,7 +135,7 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
     
     
 class TagField(TagFieldBase):
-    auto_class = AutocompleteManyToManyInput
+    #auto_class = AutocompleteManyToManyInput
     model      = Tag
     
     def __init__(self, *args, **kwargs):

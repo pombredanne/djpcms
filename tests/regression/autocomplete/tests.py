@@ -1,28 +1,26 @@
-from djpcms.test import TestCase
+from djpcms import test, forms
 from djpcms.views import appsite, appview
 
-from regression.autocomplete.models import Strategy
+from djpcms.models import SiteContent
 
-# RULE 1 import forms from djpcms
-from djpcms import forms
 
 class TestForm(forms.Form):
-    strategy = forms.ModelChoiceField(Strategy.objects.all())
+    content = forms.ChoiceField(SiteContent.objects.all)
     
     
 class TestFormMulti(forms.Form):
-    strategy = forms.ModelMultipleChoiceField(Strategy.objects.all())
+    strategy = forms.MultipleChoiceField(SiteContent.objects.all)
 
 
 class ApplicationWithAutocomplete(appsite.ModelApplication):
-    # RULE 2 the search_fields list
-    search_fields = ['name','description']
-    # RULE 3 the autocomplete view
+    # RULE 1 the search_fields list
+    search_fields = ['code','description']
+    # RULE 2 the autocomplete view
     autocomplete = appview.AutocompleteView(regex = 'autocompletetest',
                                             display = 'name')     
 
 # RULE 4 register as usual
-appurls = ApplicationWithAutocomplete('/strategies/', Strategy),
+appurls = ApplicationWithAutocomplete('/strategies/', SiteContent),
     
 
 class TestAutocomplete(TestCase):

@@ -35,15 +35,10 @@ class BaseTemplateHandler(object):
     def setup(self):
         raise NotImplementedError
     
-    def context(self,
-                dict=None, request = None,
-                processors=None, current_app=None,
-                autoescape=False):
-        c = self.context_class(dict, current_app=current_app, autoescape=autoescape)
+    def context(self, dict=None, request = None, processors=None):
+        c = dict
         if request:
-            if hasattr(request,'_context_cache'):
-                c.update(request._context_cache)
-            else:
+            if not hasattr(request,'_context_cache'):
                 request._context_cache = context_cache = {}
                 site_processors = request.site.template_context()
                 if processors is not None:

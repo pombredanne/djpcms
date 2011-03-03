@@ -9,6 +9,8 @@ from djpcms.utils.importer import import_module
 from djpcms.utils.http import http_date
 from djpcms.template import loader
 
+third_party_applications = []
+
 
 class pathHandler(object):
     
@@ -19,6 +21,53 @@ class pathHandler(object):
         self.absolute_path = os.path.join(self.mpath,name)
         self.exists   = os.path.exists(self.mpath)
 
+
+class DjangoAdmin(object):
+    
+    def check(self, app):
+        return app.startswith('django.')
+    
+    def handler(self, app):
+        if app == 'django.contrib.admin':
+            return self
+        
+    def __call__(self, name, path):
+        h = pathHandler(name,path)
+        h.absolute_path = h.mpath
+        return h
+
+third_party_applications.append(DjangoAdmin())
+
+
+def application_map(applications):
+    '''Very very useful function for finding static media directories.
+It looks for the ``media`` directory in each installed application.'''
+    map = {}
+    for app in applications:
+        processed = False
+        for tp in third_party_applications:
+            if tp.check(app):
+                processed = True
+                handler = tp.handler(app)
+                break
+        
+        if not processed:
+            handler = pathHandler
+        
+        if not handler:
+            continue
+        
+        sapp = app.split('.')
+        name = sapp[-1]
+            
+        try:
+            module = import_module(app)
+        except:
+            continue
+
+        path   = module.__path__[0]
+        map[name] = handler(name,path)
+    return map
 
 class StaticFileView(appview.View):
     
@@ -154,24 +203,7 @@ class Static(appsite.Application):
     def loadapps(self, site):
         '''Load application media.'''
         if self._media is None:
-            self._media = mapping = {}
-            for app in site.settings.INSTALLED_APPS:
-                sapp = app.split('.')
-                name = sapp[-1]
-                if app.startswith('django.'):
-                    # we skip any django contrib application
-                    continue
-                else:
-                    handler = pathHandler
-                
-                try:
-                    module = import_module(app)
-                except ImportError:
-                    continue
-    
-                hd = handler(name,module.__path__[0])
-                if hd.exists:
-                    mapping[name] = hd
+            self._media = application_map(site.settings.INSTALLED_APPS)
             if self.site_name:
                 hd = handler(self.site_name,site.settings.SITE_DIRECTORY)
                 if hd.exists:

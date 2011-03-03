@@ -12,7 +12,7 @@ from tagging.utils import calculate_cloud, LOGARITHMIC, LINEAR
 
 
 class CloudForm(forms.Form):
-    for_model = forms.ModelChoiceField(queryset = ContentType.objects.all(), empty_label=None)
+    #for_model = forms.ModelChoiceField(queryset = ContentType.objects.all(), empty_label=None)
     steps     = forms.IntegerField(initial = 4)
     min_count = forms.IntegerField(initial = 0)
     type      = forms.ChoiceField(choices = ((LOGARITHMIC,"LOGARITHMIC"),(LINEAR,"LINEAR")), initial = LOGARITHMIC)
@@ -38,7 +38,7 @@ class tagcloud(DJPplugin):
         try:
             formodel = ContentType.objects.get(id = int(for_model)).model_class()
         except:
-            return u''
+            return ''
         
         steps     = int(steps)
         if min_count:
@@ -94,6 +94,6 @@ class TagForObject(DJPplugin):
                 return loader.render_to_string(['bits/object_tags.html',
                                                 'djpcms/bits/object_tags.html'],c)
             else:
-                return u''
+                return ''
         except:
-            return u''
+            return ''

@@ -1,6 +1,7 @@
 from copy import copy, deepcopy
 
 from djpcms import sites, nodata
+from djpcms.core.orms import mapper
 
 from .globals import *
 from .html import TextInput, CheckboxInput, Select
@@ -9,6 +10,7 @@ __all__ = ['Field',
            'CharField',
            'BooleanField',
            'DateField',
+           'DateTimeField',
            'ChoiceField',
            'IntegerField',
            'FloatField',
@@ -29,20 +31,22 @@ class Field(object):
     def __init__(self,
                  required = None,
                  default = None,
+                 initial = None,
                  validation_error = None,
                  help_text = None,
                  label = None,
                  widget = None,
-                 widget_classes = None,
+                 widget_attrs = None,
                  **kwargs):
         self.name = None
         self.default = default or self.default
+        self.initial = initial
         self.required = required if required is not None else self.required
         self.validation_error = validation_error or standard_validation_error
         self.help_text = help_text
         self.label = label
         self.widget = widget or self.widget
-        self.widget_classes = widget_classes
+        self.widget_attrs = widget_attrs
         self._handle_params(**kwargs)
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
@@ -148,6 +152,17 @@ class DateField(Field):
             raise ValidationError
     
 
+class DateTimeField(DateField):
+    
+    def _clean(self, value):
+        try:
+            value = int(value)
+            if self.validator:
+                return self.validator(value)
+            return value
+        except:
+            raise ValidationError
+
     
 class BooleanField(Field):
     default = False
@@ -208,12 +223,15 @@ class ModelChoiceField(ChoiceField):
     def _clean(self, value):
         '''Clean the field value'''
         if value:
-            ch = self.get_choices()
-            model = ch.model
-            if isinstance(value,model):
-                value = value.id
-            if value in ch:
-                return model.objects.get(id = value)
+            try:
+                ch = self.get_choices()
+                mp = mapper(ch.model)
+                if not isinstance(value,mp.model):
+                    value = mp.get(id = value)
+                if value in ch:
+                    return value
+            except:
+                pass
             raise ValidationError('{0} is not a valid choice'.format(value))
         return value
             

@@ -406,6 +406,8 @@ functionality when searching for model instances.'''
     
     def __init__(self, baseurl, model, **kwargs):
         super(ModelApplication,self).__init__(baseurl, **kwargs)
+        if not model:
+            raise ValueError('Model is null not defined in application {0}'.format(self))
         self.model  = model
         
     def register(self, application_site):

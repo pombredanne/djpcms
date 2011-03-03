@@ -3,13 +3,16 @@ from threading import Lock
 
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
-from djpcms.views.appsite import Application, ModelApplication
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
+
+from djpcms.views.appsite import Application, ModelApplication
 from djpcms.template import loader
 
 from djpcms.models import Page, InnerTemplate
+
+from .handlers import WSGI
 
 
 class DummyDjp(object):
@@ -21,12 +24,11 @@ class DummyDjp(object):
 
 
 class ApplicationSite(ResolverMixin):
-    '''
-    Application site manager
+    '''Application site manager
     An instance of this class is used to handle url of
     registered applications.
     '''
-    def __init__(self, root, url, config):
+    def __init__(self, root, url, config, handler):
         self.lock = Lock()
         self.root = root
         self.route = url
@@ -40,6 +42,8 @@ class ApplicationSite(ResolverMixin):
         self._response_middleware = None
         self._template_context_processors = None
         self.ModelApplication = ModelApplication
+        handler = handler or WSGI
+        self.handle = handler(self)
         
     def __repr__(self):
         return '{0} - {1}'.format(self.route,'loaded' if self.isloaded else 'not loaded')

@@ -58,17 +58,16 @@ class SimplePermissionBackend(object):
             return request.user.is_superuser
         
         
-def standard_exception_handle(self, request, e, status = None):
+def standard_exception_handle(request, e, status = None):
     from djpcms.template import loader
     status = status or 500
-    if not request.site:
-        request.site = self.get_site()
     site = request.site
-    if site:
-        for middleware_method in site.exception_middleware():
-            response = middleware_method(request, e, status)
-            if response:
-                break
+    if not site or not hasattr(site,'exception_middleware'):
+        raise
+    for middleware_method in site.exception_middleware():
+        response = middleware_method(request, e, status)
+        if response:
+            break
     exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
     logtrace(logger, request, exc_info, status)
@@ -81,7 +80,7 @@ def standard_exception_handle(self, request, e, status = None):
                           'djpcms/errors/'+template,
                           'djpcms/errors/error.html'),
                          ctx)
-    return self.http.HttpResponse(html,
+    return site.http.HttpResponse(html,
                                   status = status,
                                   mimetype = 'text/html')
         
@@ -89,8 +88,7 @@ def standard_exception_handle(self, request, e, status = None):
 
 class ApplicationSites(ResolverMixin):
     '''This class is used as a singletone and holds information
-of djpcms routes'''
-    
+of djpcms application routes as well as general configuration parameters.'''
     def __init__(self):
         self._sites = {}
         self.modelwrappers = {}
@@ -181,8 +179,16 @@ of djpcms routes'''
                         site),
         return urls
     
-    def make(self, name, settings = None, route = None, clearlog = True, **kwargs):
-        '''Create a new DjpCms site from a directory or a file'''
+    def make(self, name, settings = None, route = None,
+             handler = None, clearlog = True, **kwargs):
+        '''Create a new DjpCms application site from a directory or a file.
+Configuration parameters can be passed as key-value pairs:
+
+:parameter name: a file or directory name where which specifies the application root-directory.
+:parameter settings: optional settings file name.
+:parameter route: a ``url`` which form defines the base route for the application.
+:parameter handler: an optional string defining the wsgi handler class for the application.
+:parameter kwargs: a dictionary ok key-value pairs which override the values in the settings file.'''
         # if not a directory it may be a file
         if os.path.isdir(name):
             appdir = name
@@ -210,7 +216,6 @@ of djpcms routes'''
             else:
                 settings_module_name = None
         
-        # IMPORTANT! NEED TO IMPORT HERE TO PREVENT DJANGO TO IMPORT FIRST
         settings = get_settings(settings_module_name,
                                 SITE_DIRECTORY = path,
                                 SITE_MODULE = name,
@@ -231,15 +236,25 @@ of djpcms routes'''
         
         self.logger = logging.getLogger('ApplicationSites')
         
-        return self._create_site(route,settings)
+        return self._create_site(route,settings,handler)
     
-    def _create_site(self,route,settings):
+    def get_or_create(self, name, settings = None, route = None, **kwargs):
+        '''Same as :meth:`make` but does nothing if an application
+site is already registered at ``route``.'''
+        route = self.makeurl(route)
+        site = self.get(route,None)
+        if site:
+            return site
+        else:
+            return self.make(name,settings,route,**kwargs)
+    
+    def _create_site(self,route,settings,handler):
         from djpcms.apps import appsites
         route = self.makeurl(route)
         self.logger.info('Creating new site at route "{0}"'.format(route))
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0} already avalable "{1}"'.format(route,site))
-        site = appsites.ApplicationSite(self, route, settings)
+        site = appsites.ApplicationSite(self, route, settings, handler)
         self._sites[site.route] = site
         self._osites = None
         self._urls = None
@@ -247,14 +262,6 @@ of djpcms routes'''
     
     def get(self, name, default = None):
         return self._sites.get(name,default)
-    
-    def get_or_create(self, name, settings = None, route = None):
-        route = self.makeurl(route)
-        site = self.get(route,None)
-        if site:
-            return site
-        else:
-            return self.make(name,settings,route)
     
     def makeurl(self, url = None):
         url = url or '/'
@@ -271,7 +278,7 @@ of djpcms routes'''
             try:
                 res = self.resolve(url[1:])
                 return res[0]
-            except:
+            except self.http.Http404:
                 return None
         else:
             return site

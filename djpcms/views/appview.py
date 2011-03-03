@@ -624,7 +624,8 @@ class ChangeView(ObjectView):
     
     
 class AutocompleteView(SearchView):
-    '''This is an interesting view. It is an **AJAX Get only** view for :ref:`auto-complete <autocomplete>` functionalities.
+    '''This is an interesting :class:View` class.
+It is an **AJAX Get only** view for :ref:`auto-complete <autocomplete>` functionalities.
 To use it, add it to a :class:`djpcms.views.appsite.ModelApplication` declaration.
 
 Let's say you have a model::

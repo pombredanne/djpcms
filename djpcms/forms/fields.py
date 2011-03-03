@@ -19,6 +19,7 @@ def standard_validation_error(field,value):
     
 
 class Field(object):
+    '''Base class for all :class:`stdnet.forms.Form` fields.'''
     default = None
     widget = None
     required = True
@@ -31,6 +32,7 @@ class Field(object):
                  help_text = None,
                  label = None,
                  widget = None,
+                 widget_classes = None,
                  **kwargs):
         self.name = None
         self.default = default or self.default
@@ -39,6 +41,7 @@ class Field(object):
         self.help_text = help_text
         self.label = label
         self.widget = widget or self.widget
+        self.widget_classes = widget_classes
         self._handle_params(**kwargs)
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter

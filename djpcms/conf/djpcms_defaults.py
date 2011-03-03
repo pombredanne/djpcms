@@ -19,7 +19,6 @@ MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
 
-DJPCMS_WEB_FRAMEWORK = None
 HTTP_LIBRARY = None # django, werkzeug
 CMS_ORM = None # django, stdnet
 TEMPLATE_ENGINE = 'jinja2' # django, jinja2

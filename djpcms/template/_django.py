@@ -35,7 +35,7 @@ class TemplateHandler(LibraryTemplateHandler):
         return t.render(context_instance)
 
     def loaders(self):
-        '''Django sucks, since it does not have a function to return theloaders'''
+        '''Django sucks, since it does not have a function to return the loaders'''
         if loader.template_source_loaders is None:
             try:
                 loader.find_template('')

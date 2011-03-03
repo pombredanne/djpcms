@@ -1,8 +1,11 @@
+from djpcms import sites
+from djpcms.conf import setup_django
+setup_django(sites.settings,True)
+
 from django.http import *
 from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout
 
-from djpcms import sites
 from djpcms.core.exceptions import HttpException
 
 Request = wsgi.WSGIRequest
@@ -14,20 +17,15 @@ STATUS_CODE_TEXT = wsgi.STATUS_CODE_TEXT
 def make_request(environ):
     request = Request(environ)
     request.is_xhr = request.is_ajax()
-    if request.method == 'GET':
-        request.args = request.GET
-    elif request.method == 'POST':
-        request.args = request.POST
+    if request.method == 'POST':
+        request.data_dict = dict(request.POST.items())
     else:
-        request.args = {}
+        request.data_dict = {}
     return request
     
 
 def set_header(self, key, value):
     self[key] = value
-
-def is_authenticated(request):
-    return request.user.is_authenticated()
 
 
 def delete_test_cookie(request):

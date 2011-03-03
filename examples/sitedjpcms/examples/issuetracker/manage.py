@@ -48,7 +48,7 @@ def build():
     djpcms.MakeSite(__file__,
                     APPLICATION_URL_MODULE = 'issuetracker.manage',
                     CMS_ORM = 'stdnet',
-                    HTTP_LIBRARY = 'werkzeug',
+                    #TEMPLATE_ENGINE = 'django',
                     DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols3_25_50_25.html',
                     DJPCMS_PLUGINS = ('djpcms.plugins.*',
                                       'djpcms.apps.included.contentedit.plugins'),

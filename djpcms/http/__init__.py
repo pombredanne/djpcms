@@ -6,7 +6,7 @@ def get_http(lib):
     elif lib == 'werkzeug':
         from djpcms.http import _werkzeug as mod
     else:
-        raise NotImplementedError
+        from djpcms.http import simple as mod
     return mod
 
 

@@ -233,10 +233,8 @@ class RequestFactory(object):
         r.update(extra)
         return self.request(**r)
 
-    def put(self, path, data={}, content_type=MULTIPART_CONTENT,
-            **extra):
+    def put(self, path, data={}, content_type=MULTIPART_CONTENT, **extra):
         "Construct a PUT request."
-
         if content_type is MULTIPART_CONTENT:
             post_data = encode_multipart(BOUNDARY, data)
         else:
@@ -262,7 +260,6 @@ class RequestFactory(object):
 
     def delete(self, path, data={}, **extra):
         "Construct a DELETE request."
-
         parsed = urlparse(path)
         r = {
             'PATH_INFO':       unquote(parsed[2]),
@@ -303,25 +300,12 @@ class Client(RequestFactory):
         self.exc_info = sys.exc_info()
 
     def request(self, **request):
-        """
-        The master request method. Composes the environment dictionary
-        and passes to the handler, returning the result of the handler.
-        Assumes defaults for the query environment, which can be overridden
-        using the arguments to the request.
-        """
+        """The master request method. Composes the environment dictionary
+and passes to the handler, returning the result of the handler."""
         environ = self._base_environ(**request)
-        sites.
-        # Curry a data dictionary into an instance of the template renderer
-        # callback function.
-        data = {}
-        on_template_render = curry(store_rendered_templates, data)
-        signals.template_rendered.connect(on_template_render, dispatch_uid="template-render")
-        # Capture exceptions created by the handler.
-        got_request_exception.connect(self.store_exc_info, dispatch_uid="request-exception")
         try:
-
             try:
-                response = self.handler(environ)
+                response = sites.wsgi(environ)
             except TemplateDoesNotExist as e:
                 # If the view raises an exception, Django will attempt to show
                 # the 500.html template. If that template is not available,

@@ -8,6 +8,12 @@ def allsites():
     from djpcms.models import Site
     return Site.objects.all()
 
+
+def get_templates():
+    from djpcms.models import Site
+    return InnerTemplate.objects.all()
+
+
 def siteapp_choices():
     return sites.get_site().choices
 
@@ -243,6 +249,7 @@ class ShortPageForm(forms.Form):
     link = forms.CharField(label = 'Text to display in links', required = False)
     in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.',
                                        required = False)
+    template = forms.ChoiceField(choices = get_templates)   
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
     #inner_template = 

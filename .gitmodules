@@ -1,4 +1,0 @@
-
-[submodule "djpcms/libs/py2py3"]
-	path = djpcms/libs/py2py3
-	url = https://github.com/lsbardel/py2py3.git

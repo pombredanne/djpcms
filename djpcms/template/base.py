@@ -29,7 +29,7 @@ def get_engine(engine, config = None):
 
 
 class BaseTemplateHandler(object):
-    '''Base class for template handlers'''
+    '''Base class which wraps third-parties template handlers'''
     TemplateDoesNotExist = None
     
     def setup(self):
@@ -54,6 +54,10 @@ class BaseTemplateHandler(object):
     
     def render(self, template_name, dictionary, autoescape=False):
         '''Render a template name'''
+        raise NotImplementedError
+    
+    def render_from_string(self, template, ctx):
+        '''Render a template string using a context dictionary ``ctx``.'''
         raise NotImplementedError
     
     def template_variables(self, template_name):
@@ -103,10 +107,8 @@ class TemplateHandler(BaseTemplateHandler):
                                dictionary,
                                autoescape=autoescape)
         
-    #def render_to_string(self, template_name, dictionary=None, context_instance=None):
-    #    return handle().render_to_string(template_name,
-    #                                     dictionary=dictionary,
-    #                                     context_instance=context_instance)
+    def render_from_string(self, template, ctx):
+        return handle().render_from_string(template,ctx)
         
     def load_template_source(self, template_name, dirs=None):
         return handle().load_template_source(template_name, dirs)

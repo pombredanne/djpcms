@@ -66,8 +66,8 @@ class tagcloud(DJPplugin):
             else:
                 tag.times = 'times'
         c = {'tags': tags}
-        return loader.render_to_string(['bits/tag_cloud.html',
-                                        'djpcms/bits/tag_cloud.html'],c)
+        return loader.render(['bits/tag_cloud.html',
+                              'djpcms/bits/tag_cloud.html'],c)
 
 
 class TagForObject(DJPplugin):

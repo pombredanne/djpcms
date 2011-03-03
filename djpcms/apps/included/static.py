@@ -1,3 +1,6 @@
+'''Useful application for serving static files.
+To be used during development.
+'''
 import os
 import re
 import stat
@@ -9,6 +12,7 @@ from djpcms.utils.importer import import_module
 from djpcms.utils.http import http_date
 from djpcms.template import loader
 
+# Third party application list.
 third_party_applications = []
 
 
@@ -23,7 +27,7 @@ class pathHandler(object):
 
 
 class DjangoAdmin(object):
-    
+    '''A django admin static application'''
     def check(self, app):
         return app.startswith('django.')
     
@@ -114,9 +118,11 @@ class StaticFileApp(StaticFileView):
             elif os.path.exists(fullpath):
                 return self.serve_file(request, fullpath)
             else:
-                raise http.Http404
+                raise http.Http404('No file "{0}" in application "{1}".\
+ Could not render {1}'.format(paths,app))
         else:
-            raise http.Http404
+            raise http.Http404('Static application "{0}" not available.\
+ Could not render "{1}"'.format(app,paths))
         
     def directory_index(self, request, fullpath):
         files = []
@@ -204,11 +210,5 @@ class Static(appsite.Application):
         '''Load application media.'''
         if self._media is None:
             self._media = application_map(site.settings.INSTALLED_APPS)
-            if self.site_name:
-                hd = handler(self.site_name,site.settings.SITE_DIRECTORY)
-                if hd.exists:
-                    mapping[self.site_name] = hd
-                
-                
         return self._media
     

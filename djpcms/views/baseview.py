@@ -168,7 +168,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
             cb = {'djp':  djp}
             for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(djp, b, editing)
-            inner = page.inner_template.render(loader.context(cb, request=request, autoescape=False))
+            inner = page.inner_template.render(loader.context(cb, request=request))
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)

@@ -24,15 +24,8 @@ class TemplateHandler(LibraryTemplateHandler):
         else:
             return loader.get_template(template_name)
         
-    def render_to_string(self, template_name, dictionary=None, context_instance=None):
-        raise NotImplementedError
-        dictionary = dictionary or {}
-        t = self.get_template(template_name)
-        if context_instance:
-            context_instance.update(dictionary)
-        else:
-            context_instance = Context(dictionary)
-        return t.render(context_instance)
+    def render_from_string(self, template, ctx):
+        return Template(template).render(Context(ctx))
 
     def loaders(self):
         '''Django sucks, since it does not have a function to return the loaders'''

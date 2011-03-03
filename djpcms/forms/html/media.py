@@ -4,9 +4,13 @@ Originally from django
 '''
 from itertools import chain
 
+from py2py3 import urlparse
+
+from djpcms import sites
 from djpcms.template import loader
 
 mark_safe = loader.mark_safe
+urljoin = urlparse.urljoin
 
 __all__ = ['MEDIA_TYPES',
            'Media',
@@ -56,11 +60,7 @@ class Media(object):
         if path.startswith('http://') or path.startswith('https://') or path.startswith('/'):
             return path
         if prefix is None:
-            if settings.STATIC_URL is None:
-                 # backwards compatibility
-                prefix = settings.MEDIA_URL
-            else:
-                prefix = settings.STATIC_URL
+            prefix = sites.settings.MEDIA_URL
         return urljoin(prefix, path)
 
     def __getitem__(self, name):

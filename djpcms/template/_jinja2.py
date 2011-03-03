@@ -6,6 +6,9 @@ TemplateNotFound = jinja2.TemplateNotFound
 
 from .base import LibraryTemplateHandler
 
+
+Template = jinja2.Template
+
 AUTOESCAPE_EXTENSION = ('html', 'htm', 'xml')
 
 def guess_autoescape(template_name):
@@ -18,7 +21,7 @@ def guess_autoescape(template_name):
 class TemplateHandler(LibraryTemplateHandler):
     
     def setup(self):
-        self.template_class = jinja2.Template
+        self.template_class = Template
         self.mark_safe = jinja2.Markup
         self.escape    = jinja2.escape
         self.conditional_escape = jinja2.escape
@@ -46,6 +49,9 @@ class TemplateHandler(LibraryTemplateHandler):
             t = self.get_template(template_name)
         t.environment.autoescape = autoescape
         return t.render(data)
+    
+    def render_from_string(self, template, ctx):
+        return Template(template).render(ctx)
     
     def get_template(self, template_name):
         for env in self.envs:

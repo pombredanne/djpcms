@@ -259,7 +259,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         #kwargs may be an input from a possible plugin form
         app  = self.app
         request = djp.request
-        html = u''
+        html = ''
         if app.has_permission(request):
             if djp.view != app or kwargs:
                 args = djp.kwargs.copy()

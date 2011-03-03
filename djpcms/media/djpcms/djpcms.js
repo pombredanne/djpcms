@@ -194,21 +194,28 @@
         djpcms: $.djpcms.construct
 	});
 	
+	$.djpcms.errorDialog = function(html,title) {
+	    var title = title || 'Something did not work',
+	        el = $('<div title="'+title+'"></div>').html(html);
+	    width = Math.max(15*Math.sqrt(html.length),200);
+        el.dialog({modal:true,
+                   dialogClass: 'ui-state-error',
+                   'width': width});
+	};
+	
 	/**
 	 * ERROR and SERVER ERROR callback
 	 */
 	$.djpcms.addJsonCallBack({
 		id: "error",
 		handle: function(data, elem) {
-			var el = $('<div title="Something did not work."></div>').html('<p>'+data+'</p>');
-			el.dialog({modal:true});
+			$.djpcms.errorDialog(data)
 		}
 	});
 	$.djpcms.addJsonCallBack({
 		id: "servererror",
 		handle: function(data, elem) {
-			var el = $('<div title="Unhandled Server Error"></div>').html('<p>'+data+'</p>');
-			el.dialog({modal:true});
+		    $.djpcms.errorDialog(data,"Unhandled Server Error");
 		}
 	});
 	

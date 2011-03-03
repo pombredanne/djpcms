@@ -207,8 +207,8 @@ return the wrapper with the underlying view.'''
             except Exception as e:
                 if site.settings.DEBUG:
                     exc_info = sys.exc_info()
-                    stack_trace = '\n'.join(traceback.format_exception(*exc_info))
                     logerror(self.view.logger, request, exc_info)
+                    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
                     res = jservererror(stack_trace, url = self.url)
                 else:
                     raise e

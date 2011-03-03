@@ -295,9 +295,9 @@ It can be overridden to twick its behaviour.
         form_ajax = form_ajax if form_ajax is not None else self.form_ajax
         
         form_class = form_class or self.form or forms.ModelForm
-        
+        mform = form_class 
         if isinstance(form_class,type):
-            if forceform or not hasattr(form_class,'_meta'):
+            if not hasattr(form_class,'_meta'):
                 mform = form_class
             else:
                 if form_class._meta.model == model:

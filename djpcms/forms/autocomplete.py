@@ -63,10 +63,10 @@ class AutocompleteForeignKeyInput(BaseAutocompleteInput):
         attrs = attrs or {}
         if value:
             key = self.search_fields[0].split('__')[0]  
-            obj = self.model.objects.get(pk = value)
+            obj = self.model.objects.get(id = value)
             label = getattr(obj,key)
         else:
-            label = u''
+            label = ''
         
         ctx = {'name': name,
                'value': value,

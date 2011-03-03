@@ -115,7 +115,8 @@ def get_form(djp,
              form_withrequest = None,
              template = None,
              form_ajax = False,
-             withinputs = False):
+             withinputs = False,
+             force_prefixed = False):
     '''Comprehensive method for building a
 :class:`djpcms.utils.uniforms.UniForm` instance:
     
@@ -146,7 +147,7 @@ def get_form(djp,
     elif addinputs:
         inputs = addinputs(instance, own_view)
         
-    if not prefix:
+    if not prefix and force_prefixed:
         prefix = gen_unique_id()
         inputs.append(input(value = prefix, name = '_prefixed', type = 'hidden'))
                 
@@ -208,7 +209,7 @@ def saveform(djp, editing = False, force_redirect = False):
             smsg     = getattr(view,'success_message',success_message)
             msg      = smsg(instance, 'changed' if editing else 'added')
             f.add_message(request, msg)
-        except Exception, e:
+        except Exception as e:
             exc_info = sys.exc_info()
             logger.error('Form Error: %s' % request.path,
                          exc_info=exc_info,

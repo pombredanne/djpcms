@@ -11,6 +11,7 @@ __all__ = ['Field',
            'DateField',
            'ChoiceField',
            'IntegerField',
+           'FloatField',
            'ModelChoiceField']
 
 
@@ -116,8 +117,20 @@ class IntegerField(Field):
                 return self.validator(value)
             return value
         except:
-            raise ValidationError
+            raise ValidationError('Could not convert {0} to an integer'.format(value))
         
+
+class FloatField(IntegerField):
+    '''A field which normalises to a Python float value'''
+    def _clean(self, value):
+        try:
+            value = float(value)
+            if self.validator:
+                return self.validator(value)
+            return value
+        except:
+            raise ValidationError('Could not convert {0} to an float value'.format(value))
+    
         
 class DateField(Field):
     widget = TextInput

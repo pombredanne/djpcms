@@ -138,8 +138,9 @@ class FormLayoutElement(BaseFormLayout):
 class Html(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to `self`.'''
     def __init__(self, html, **kwargs):
-        self.html = loader.mark_safe(html)
+        super(Html,self).__init__(**kwargs)
+        self.html = html
 
-    def inner(self, djp, layout):
+    def inner(self, *args, **kwargs):
         return self.html
     

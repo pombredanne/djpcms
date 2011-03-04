@@ -4,9 +4,15 @@ import json
 import unicodedata
 from uuid import uuid4
 
+from djpcms import ispy3k
 from .strings import *
 from .jsontools import *
 from .numbers import *
+
+if ispy3k:
+    import pickle
+else:
+    import cPickle as pickle
 
 
 def gen_unique_id():

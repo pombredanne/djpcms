@@ -4,7 +4,7 @@ Several parts are originally from django
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems
+from py2py3 import iteritems, UnicodeMixin
 
 from djpcms import nodata
 from djpcms.utils.collections import OrderedDict
@@ -17,7 +17,8 @@ from .fields import Field
 from .html import media_property, FormWidget, List
 
 
-__all__ = ['Form',
+__all__ = ['FormType',
+           'Form',
            'HtmlForm',
            'BoundField',
            'FormSet']
@@ -62,7 +63,7 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
     return OrderedDict(fields),OrderedDict(inlines)
 
 
-class DeclarativeFieldsMetaclass(type):
+class FormType(type):
     """
     Metaclass that converts Field attributes to a dictionary called
     'base_fields', taking into account parent class 'base_fields' as well.
@@ -71,19 +72,41 @@ class DeclarativeFieldsMetaclass(type):
         fields,inlines = get_form_meta_data(bases, attrs)
         attrs['base_fields'] = fields
         attrs['base_inlines'] = inlines
-        new_class = super(DeclarativeFieldsMetaclass,cls).__new__(cls, name, bases, attrs)
+        new_class = super(FormType,cls).__new__(cls, name, bases, attrs)
         if 'media' not in attrs:
             new_class.media = media_property(new_class)
         return new_class
     
 
 # Base class for forms. Hack taht works for python 2 and python 3
-BaseForm = DeclarativeFieldsMetaclass('BaseForm',(object,),{})    
+BaseForm = FormType('BaseForm',(UnicodeMixin,),{})    
 
 
 class Form(BaseForm):
     '''Base class for forms with JSON messages. This class can be used for both
-browser based application as well as remote procedure calls valiadtion.'''
+browser based application as well as remote procedure calls valiadtion.
+
+.. attribute:: widget_attrs
+
+    dictionary of widget attributes. Used for midifying widget html attributes.
+    
+    Default: ``None``.
+    
+.. attribute:: forms
+
+    A list of :class:`Form` classes. If available, the forms are used to
+    create sub-forms which are included in the current form.
+    
+    Default: ``[]``.
+    
+.. attribute:: form_sets
+
+    A list of :class:`djpcms.forms.FormSet` instances. If available, the formsets are used to
+    create a given number of sub-forms which are included in the current form.
+    
+    Default: ``[]``.
+    
+'''
     prefix_input = '_prefixed'
     auto_id='id_{0[html_name]}'
     
@@ -110,6 +133,8 @@ browser based application as well as remote procedure calls valiadtion.'''
             self.form_data()
         elif model:
             self.instance = model()
+        self.form_sets = []
+        self.forms = []
     
     @property
     def data(self):

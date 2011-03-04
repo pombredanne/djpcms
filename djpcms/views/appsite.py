@@ -8,7 +8,7 @@ from copy import deepcopy
 from py2py3 import iteritems, is_string, is_bytes_or_string
 
 import djpcms
-from djpcms.forms import Form, HtmlForm, SubmitInput, MediaDefiningClass
+from djpcms.forms import FormType, HtmlForm, SubmitInput, MediaDefiningClass
 from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -282,8 +282,8 @@ No reason to change this default unless you really don't want to see the views i
         form_class = form_class or self.form
         if not form_class:
             raise ValueError("Form class not defined in {0}".format(self))
-        elif isinstance(form_class,Form):
-            form_class = HtmlForm(Form)
+        elif isinstance(form_class,FormType):
+            form_class = HtmlForm(form_class)
         
         # Check instance and model    
         if instance == False:

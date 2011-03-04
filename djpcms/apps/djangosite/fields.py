@@ -6,12 +6,7 @@ from django.db import models
 
 from py2py3 import ispy3k
 
-from djpcms.utils import JSONDateDecimalEncoder, date_decimal_hook, slugify
-
-if ispy3k():
-    import pickle
-else:
-    import cPickle as pickle
+from djpcms.utils import JSONDateDecimalEncoder, date_decimal_hook, slugify, pickle
     
 
 

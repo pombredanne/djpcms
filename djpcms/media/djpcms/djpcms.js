@@ -25,7 +25,8 @@
     
     $.fn.commonAncestor = function() {
         var parents = [],
-            minlen = Infinity;
+            minlen = Infinity,
+            j;
 
         $(this).each(function() {
             var curparents = $(this).parents();
@@ -33,21 +34,23 @@
             minlen = Math.min(minlen, curparents.length);
         });
 
-        for(var i in parents) {
-            parents[i] = parents[i].slice(parents[i].length - minlen);
-        }
+        $.each(parents, function(i,p) {
+            parents[i] = p.slice(p.length - minlen);
+        });
 
         // Iterate until equality is found
-        for (var i in parents[0]) {
+        $.each(parents[0], function(i,p) {
             var equal = true;
-            for (var j in parents) {
-                if (parents[j][i] != parents[0][i]) {
+            for(j=0;j<parents.length;j++) {
+                if(parents[j][i] !== p) {
                     equal = false;
                     break;
                 }
             }
-            if (equal) return $(parents[0][i]);
-        }
+            if(equal) {
+                return $(p);
+            }
+        });
         return $([]);
     };
 	
@@ -59,24 +62,26 @@
             inrequest = false,
             defaults = {
 		        media_url:		   "/media-site/",
-        		confirm_actions:   {'delete': 'Please confirm delete',
-        							'flush': 'Please confirm flush'},
-        		autoload_class:	   "autoload",
-        		post_view_key:     "xhr",
-        		ajax_server_error: "ajax-server-error",
-        		errorlist:		   "errorlist",
-        		formmessages:	   "form-messages",
-        		date_format:       "d M yy",
-        		box_effect:		   {type:"blind",duration:500},
-        		remove_effect:	   {type:"drop",duration:500},
-        		bitly_key:		   null,
-        		twitter_user:	   null,
-        		fadetime:		   200,
-        		ajaxtimeout:	   30,
-        		//tabs:			   {cookie: {expiry: 7}},
-        		tablesorter:	   {widgets:['zebra','hovering']},
-        		debug:			   false
-        	};
+    	        confirm_actions:{
+    	            'delete': 'Please confirm delete',
+    	            'flush': 'Please confirm flush'
+    	                },
+    	        autoload_class: "autoload",
+    	        post_view_key: "xhr",
+    	        ajax_server_error: "ajax-server-error",
+    	        errorlist: "errorlist",
+    	        formmessages: "form-messages",
+    	        date_format: "d M yy",
+    	        box_effect:		   {type:"blind",duration:500},
+    	        remove_effect:	   {type:"drop",duration:500},
+    	        bitly_key:		   null,
+    	        twitter_user:	   null,
+    	        fadetime:		   200,
+    	        ajaxtimeout:	   30,
+    	        //tabs:			   {cookie: {expiry: 7}},
+    	        tablesorter:	   {widgets:['zebra','hovering']},
+    	        debug:			   false
+    	        };
 		
 		function set_logging_pannel(panel) {
 			logging_pannel = panel;
@@ -91,7 +96,7 @@
 					}
 				} 
 			}
-		};
+		}
 		
 		function _postparam(name) {
 			var reqdata = {submitkey: defaults.post_view_key};
@@ -99,26 +104,27 @@
 				reqdata[defaults.post_view_key] = name;
 			}
 			return reqdata;
-		};
+		}
 		
 		// Set options
 		function setOptions(options_) {
 			$.extend(true, defaults, options_);
-		};
+		}
 		
 		// Add a new decorator
 		function addDecorator(deco) {
 			decorators[deco.id] = deco;
-		};
+		}
+		
 		// Add a new decorator
 		function addJsonCallBack(jcb) {
 			jsonCallBacks[jcb.id] = jcb;
-		};
+		}
 		
 		// Remove a decorator
 		function removeDecorator(rid) {
 			if(decorators.hasOwnMethod(rid)) {
-			    delete decorators[rid]
+			    delete decorators[rid];
 			}
 		}
 		
@@ -150,7 +156,7 @@
 			}
 			inrequest = false;
 			return v;
-		};
+		}
 		
 		/**
 		 * DJPCMS Handler constructor
@@ -169,14 +175,14 @@
 					decorator.decorate(me,config);
 				});						
 			});
-		};
+		}
 		
 		//    API
 		return {
 		    construct: _construct,
 		    options: defaults,
 		    jsonParse: _jsonParse,
-		    jsoncallback: addJsonCallBack,
+		    'addJsonCallBack': addJsonCallBack,
 		    jsonCallBack: _jsonCallBack,
 		    decorator: addDecorator,
 		    set_options: setOptions,
@@ -195,14 +201,14 @@
 	/**
 	 * ERROR and SERVER ERROR callback
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "error",
 		handle: function(data, elem) {
 			var el = $('<div title="Something did not work."></div>').html('<p>'+data+'</p>');
 			el.dialog({modal:true});
 		}
 	});
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "servererror",
 		handle: function(data, elem) {
 			var el = $('<div title="Unhandled Server Error"></div>').html('<p>'+data+'</p>');
@@ -213,7 +219,7 @@
 	/**
 	 * collection callback
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "collection",
 		handle: function(data, elem) {
 			$.each(data, function(i,component) {
@@ -226,7 +232,7 @@
 	/**
 	 * html JSON callback
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "htmls",
 		handle: function(data, elem) {
 			$.each(data, function(i,b) {
@@ -235,24 +241,24 @@
 					el = $(b.identifier);
 				}
 				if(el.length) {
-					if(b.type == 'hide') {
+					if(b.type === 'hide') {
 						el.hide();
 					}
-					else if(b.type == 'show') {
+					else if(b.type === 'show') {
 						el.show();
 					}
-					else if(b.type == 'value') {
+					else if(b.type === 'value') {
 						el.val(b.html);
 					}
-					else if(b.type == 'append') {
+					else if(b.type === 'append') {
 						var nel = $(b.html).appendTo(el);
 						nel.djpcms();
 					}
 					else {
-						if(b.type == 'addto') {
+						if(b.type === 'addto') {
 							el.html(el.html() + b.html);
 						}
-						else if(b.type == 'replacewith') {
+						else if(b.type === 'replacewith') {
 							el.replaceWith(b.html);
 						}
 						else {
@@ -270,10 +276,10 @@
 	/**
 	 * attribute JSON callback
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "attribute",
 		handle: function(data, elem) {
-			var selected = []
+			var selected = [];
 			$.each(data, function(i,b) {
 				var el;
 				if(b.alldocument) {
@@ -297,7 +303,7 @@
 	/**
 	 * Remove html elements
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "remove",
 		handle: function(data, elem) {
 			$.each(data, function(i,b) {
@@ -307,7 +313,7 @@
 				}
 				if(el) {
 					var be = $.djpcms.options.remove_effect;
-					el.hide(be.type,{},be.duration,function() {el.remove()});
+					el.hide(be.type,{},be.duration,function() {el.remove();});
 				}
 			});
 			return true;
@@ -317,7 +323,7 @@
 	/**
 	 * Redirect
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "redirect",
 		handle: function(data, elem) {
 			window.location = data;
@@ -327,7 +333,7 @@
 	/**
 	 * Popup
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "popup",
 		handle: function(data, elem) {
 			$.popupWindow({windowURL:data,centerBrowser:1});
@@ -339,7 +345,7 @@
 	 * 
 	 * Create a jQuery dialog from JSON data
 	 */
-	$.djpcms.jsoncallback({
+	$.djpcms.addJsonCallBack({
 		id: "dialog",
 		handle: function(data, elem) {
 			var el = $('<div></div>').html(data.html);
@@ -395,18 +401,18 @@
 	/**
 	 * Ajax links, buttons and select 
 	 */
-	$.djpcms.decorator({
-		id:	"ajax_widgets",
-		description: "add ajax functionality to links, buttons and selects",
-		decorate: function($this,config) {
-			var ajaxclass = config.ajaxclass ? config.ajaxclass : 'ajax';
-			var confirm = config.confirm_actions;
-			
-			function callback(o,s,e) {
-				$.djpcms.jsonCallBack(o,s,e);
-			}
-			
-			function sendrequest(elem,name) {
+    $.djpcms.decorator({
+        id:	"ajax_widgets",
+        description: "add ajax functionality to links, buttons and selects",
+        decorate: function($this,config) {
+            var ajaxclass = config.ajaxclass ? config.ajaxclass : 'ajax';
+            var confirm = config.confirm_actions;
+            
+            function callback(o,s,e) {
+                $.djpcms.jsonCallBack(o,s,e);
+            }
+            
+            function sendrequest(elem,name) {
 				var url = elem.attr('href');
 				if(url) {
 					var p = $.djpcms.postparam(name);
@@ -424,7 +430,7 @@
 				$.djpcms.set_inrequest(true);
 				var a = $(elem);
 				var name = a.attr('name');
-				var conf = confirm[name]
+				var conf = confirm[name];
 				if(conf) {
 					var el = $('<div></div>').html(conf);
 					el.dialog({modal: true,
@@ -451,7 +457,7 @@
 				var a    = $(this);
 				var _url = a.attr('href');
 				var f    = a.parents('form');
-				if(f.length == 1 && !_url) {
+				if(f.length === 1 && !_url) {
 					_url = f.attr('action');
 				}
 				if(!_url) {
@@ -468,7 +474,7 @@
 							type:      'post',
 							success:   callback,
 							submitkey: config.post_view_key,
-							dataType: "json",
+							dataType: "json"
 							};
 					f[0].clk = this;
 					f.ajaxSubmit(opts);
@@ -486,9 +492,10 @@
 				jform.css({'opacity':'1'});
 			};
 			$('form.'+ajaxclass,$this).each(function() {
-				var f = $(this);
-				var opts = {url:      	 this.action,
-					   		type:     	 this.method,
+			    var f = $(this);
+			    var opts = {
+			            url:      	 this.action,
+			            type:     	 this.method,
 					   		success:  	 success_form,
 					   		submitkey: 	 config.post_view_key,
 					   		dataType:    "json",
@@ -988,7 +995,7 @@
 		return {value:cs,negative:isneg};
 	}
 		
-})(jQuery);
+}(jQuery));
 
 
 
@@ -1044,4 +1051,4 @@
 			window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + settings.left +',top=' + settings.top).focus();	
 		}
 	};
-})(jQuery);
+}(jQuery));

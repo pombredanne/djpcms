@@ -621,6 +621,15 @@ class ChangeView(ObjectView):
         return saveform(djp, True, force_redirect = self.force_redirect)
     
     
+class RelatedView(ObjectView):
+    
+    '''An :class:`ObjectView` used as based class for related model views.
+    '''
+    def __init__(self, model, regex = 'edit', parent = 'view', **kwargs):
+        self.relmodel = model
+        super(RelatedView,self).__init__(regex = regex, parent = parent, **kwargs)
+
+
 class AutocompleteView(SearchView):
     '''This is an interesting :class:View` class.
 It is an **AJAX Get only** view for :ref:`auto-complete <autocomplete>` functionalities.

@@ -52,7 +52,7 @@ def install_libs():
 install_libs()
 
 import py2py3
-ispy3k = py2py3.ispy3k()
+ispy3k = py2py3.ispy3k
 
 from .apps import *
 from .http import serve

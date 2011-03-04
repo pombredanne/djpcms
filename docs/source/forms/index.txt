@@ -1,0 +1,11 @@
+.. _forms:
+
+.. module:: djpcms.forms
+
+
+=========
+Forms
+=========
+
+Forms are crucial not only for browser driven application, but also for
+rpc, command line, driven applications. This is way djpcms has its hown from library.

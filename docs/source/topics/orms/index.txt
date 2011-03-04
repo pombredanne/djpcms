@@ -1,0 +1,21 @@
+.. _orms-index:
+
+==================================
+Object Relational Mapping
+==================================
+
+`Object Relational Mapping <http://en.wikipedia.org/wiki/Object-relational_mapping>`_ (ORM) in
+computer software is a programming technique for converting data between incompatible
+type systems in databases and object-oriented programming languages.
+
+There are two famous ORM for Python: SQLAlchemy_ and django_ models.
+Both of them are fully feature open-source libraries with an incredible community
+of users and developers.
+
+
+
+
+
+.. _SQLAlchemy: http://www.sqlalchemy.org/   
+.. _django: http://docs.djangoproject.com/en/dev/ref/models/instances/
+.. _nosql: http://nosql-database.org/

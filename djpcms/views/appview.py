@@ -352,8 +352,6 @@ replaced during initialization.
         if hasattr(headers,'__call__'):
             headers = headers(djp)
         astable = headers and self.astable
-        if astable:
-            astable = table(headers, queryset, djp, appmodel, nd)
         c.update({'paginator': p,
                   'astable': astable,
                   'djp': djp,

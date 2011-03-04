@@ -7,20 +7,39 @@ A djpcms_ library for creating media files from templates and compress them.
 Creating css files
 ==========================
 
-* Add a ``style.py`` python module within your site directory and
+* Add a ``style`` python module within your site directory and
   add the context::
 
-	from djpcms.contrib.medplate.themes.allwhite import context as base_context
-
-	context = base_context.copy()
+	from medplate import CssContext, CssBody
+    
+    root = CssBody(data = {
+                           'font_size': '13px',
+                           'line_height': '18px',
+                           'font_family': "'Lucida Grande',Arial,sans-serif",
+                           'block_spacing': '15px'
+                           }
+    )
+    
+    CssContext('anchor',
+               data = {'color':'#36566B',
+                       'color_hover':'#e17009',
+                       'font_weight':'bold'
+                       }
+               )
 	
-	# Edit your context
 
-* Add a ``layout.css`` file within your site templates directory.
+* Add a ``body.css_t`` file within your site templates directory and add::
+
+    {% extends "medplate/body.css_t" %}
+
+    {% block body %}
+    ..... your stuff here
+    {% endblock %}
+    
 
 Run::
 
-	python manage.py style
+	python manage.py style -s <yourstylename>
 	
 
 Compress

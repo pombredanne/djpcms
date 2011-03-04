@@ -224,7 +224,7 @@ return the wrapper with the underlying view.'''
                             classes = css.main_nav,
                             levels = self.settings.SITE_NAVIGATION_LEVELS)
         
-        context.update({'robots':     self.robots,
+        context.update({'robots':     self.robots(),
                         'media':      media,
                         'sitenav':    sitenav})
         if self.settings.ENABLE_BREADCRUMBS:

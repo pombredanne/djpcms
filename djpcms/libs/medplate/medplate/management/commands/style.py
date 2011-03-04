@@ -7,6 +7,7 @@ from djpcms.apps.management.base import BaseCommand
 
 from medplate import rendercss
 
+default_style = 'smooth'
 
 def render(style, target, apps, mediaurl = None, template_engine = None):
     module = None
@@ -57,8 +58,9 @@ class Command(BaseCommand):
                     action='store',
                     dest='target',
                     default='',
-                    help='Target path of css file. For example media/site/site.css. If\
- not provided, a local file called style.css will be created.'),
+                    help='Target path of css file. For example "media/site/site.css". If\
+ not provided, a file called style.css will be created and put in "media/<sitename>/<stylename>.css",\
+ if the directory "media/<sitename>/" is available, otherwise in the local directory.'),
         make_option('-m','--media',
                     action='store',
                     dest='mediaurl',
@@ -74,7 +76,12 @@ class Command(BaseCommand):
         mediaurl = options['mediaurl']
         apps = args
         if not target:
-            target = 'style.css'
+            target = style + '.css'
+            mdir = os.path.join(sites.settings.SITE_DIRECTORY,
+                                'media',
+                                sites.settings.SITE_MODULE)
+            if os.path.isdir(mdir):
+                target = os.path.join(mdir,target)
         render(style,target,apps,mediaurl)
         
         

@@ -23,9 +23,6 @@ class TemplateHandler(LibraryTemplateHandler):
             return loader.select_template(template_name)
         else:
             return loader.get_template(template_name)
-        
-    def render_from_string(self, template, ctx):
-        return Template(template).render(Context(ctx))
 
     def loaders(self):
         '''Django sucks, since it does not have a function to return the loaders'''
@@ -40,6 +37,10 @@ class TemplateHandler(LibraryTemplateHandler):
         context_instance = Context(dictionary, autoescape = autoescape)
         t = self.get_template(template_name)
         return t.render(context_instance)
+    
+    def render_from_string(self, template, dictionary=None, autoescape = False):
+        context_instance = Context(dictionary, autoescape = autoescape)
+        return Template(template).render(context_instance)
     
     def template_variables(self, template_name):
         t = self.get_template(template_name)

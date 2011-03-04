@@ -50,8 +50,10 @@ class TemplateHandler(LibraryTemplateHandler):
         t.environment.autoescape = autoescape
         return t.render(data)
     
-    def render_from_string(self, template, ctx):
-        return Template(template).render(ctx)
+    def render_from_string(self, template, dictionary=None, autoescape = False):
+        t = Template(template)
+        t.environment.autoescape = autoescape
+        return t.render(dictionary)
     
     def get_template(self, template_name):
         for env in self.envs:

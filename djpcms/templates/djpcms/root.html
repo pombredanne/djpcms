@@ -13,7 +13,7 @@
 <!--  STYLING -->{% block style_reset %}
 {% include "djpcms/bits/reset.html" %}{% endblock %}{% block extrastyle %}
 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}djpcms/jquery-autocomplete/jquery.autocomplete.css"/>{% if media %}{% for css in media.render_css %}
-{{ css|safe }}{% endfor %}{% endif %}{% endblock %}
+{{ css }}{% endfor %}{% endif %}{% endblock %}
 <style type="text/css">{% block body_extra_style %}{% endblock %}
 </style>
 <!-- END OF STYLING -->

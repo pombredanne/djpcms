@@ -2,7 +2,7 @@
 {# YOU NEED TO DEFINE YOUR root.html TEMPLATE TO USE THIS #}
 {% extends "root.html" %}{% block html_container %}{% if not is_popup %}
 <div id="page-header">
-<div id="site-header" {% block site_header_class %} class="{{ grid.container_class }}"{% endblock %}>
+<div id="site-header"{% block site_header_class %} class="{{ grid.container_class }}"{% endblock %}>
 {% block site_header %}{% endblock %}</div>
 </div>{% endif %}
 
@@ -30,8 +30,9 @@
 </div>
  
 <div id="page-footer">
-<div id="site-footer" {% block site_footer_class %} class="{{ grid.container_class }}"{% endblock %}>
-{% block site_footer %}{% endblock %}</div>
+ <div id="site-footer"{% block site_footer_class %} class="{{ grid.container_class }}"{% endblock %}>
+ {% block site_footer %}{% endblock %}
+ </div>
 </div>{% endblock %}
 
 

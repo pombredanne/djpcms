@@ -29,14 +29,19 @@ def get_engine(engine, config = None):
 
 
 class BaseTemplateHandler(object):
-    '''Base class which wraps third-parties template handlers'''
+    '''Base class which wraps third-parties template libraries.'''
     TemplateDoesNotExist = None
     
     def setup(self):
+        '''Called when the handler is initialized and therefore it is not
+relevant for end-user but for developers wanting to add additional libraries.'''
         raise NotImplementedError
     
-    def context(self, dict=None, request = None, processors=None):
-        c = dict
+    def context(self, dictionary=None, request = None, processors=None):
+        '''Evaluate the context for the template. It returns a dictionary
+which updates the input ``dictionary`` with library dependent information.
+        '''
+        c = dictionary
         if request:
             if not hasattr(request,'_context_cache'):
                 request._context_cache = context_cache = {}
@@ -53,11 +58,19 @@ class BaseTemplateHandler(object):
         raise NotImplementedError
     
     def render(self, template_name, dictionary, autoescape=False):
-        '''Render a template name'''
+        '''Render a template form a file name:
+        
+:parameter template_name: template file name.
+:parameter dictionary: a dictionary of context variables.
+:parameter autoescape: if ``True`` the resulting string will be escaped.'''
         raise NotImplementedError
     
-    def render_from_string(self, template, ctx):
-        '''Render a template string using a context dictionary ``ctx``.'''
+    def render_from_string(self, template_string, dictionary, autoescape = False):
+        '''Render a template form a file:
+
+:parameter template_string: a string defining the template to render.
+:parameter dictionary: a dictionary of context variables.
+:parameter autoescape: if ``True`` the resulting string will be escaped.'''
         raise NotImplementedError
     
     def template_variables(self, template_name):
@@ -107,8 +120,10 @@ class TemplateHandler(BaseTemplateHandler):
                                dictionary,
                                autoescape=autoescape)
         
-    def render_from_string(self, template, ctx):
-        return handle().render_from_string(template,ctx)
+    def render_from_string(self, template_string, dictionary, autoescape=False):
+        return handle().render_from_string(template_string,
+                                           dictionary,
+                                           autoescape=autoescape)
         
     def load_template_source(self, template_name, dirs=None):
         return handle().load_template_source(template_name, dirs)

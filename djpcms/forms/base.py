@@ -77,11 +77,13 @@ class DeclarativeFieldsMetaclass(type):
         return new_class
     
 
+# Base class for forms. Hack taht works for python 2 and python 3
 BaseForm = DeclarativeFieldsMetaclass('BaseForm',(object,),{})    
 
 
 class Form(BaseForm):
-    '''Base class for forms with JSON messages.'''
+    '''Base class for forms with JSON messages. This class can be used for both
+browser based application as well as remote procedure calls valiadtion.'''
     prefix_input = '_prefixed'
     auto_id='id_{0[html_name]}'
     

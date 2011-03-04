@@ -22,7 +22,32 @@ def standard_validation_error(field,value):
     
 
 class Field(object):
-    '''Base class for all :class:`stdnet.forms.Form` fields.'''
+    '''Base class for all :class:`stdnet.forms.Form` fields.
+Field are specified as attribute of a form::
+
+    from djpcms import forms
+    
+    class MyForm(forms.Form):
+        name = forms.CharField()
+        age = forms.IntegerField()
+    
+very similar to django forms API.
+    
+.. attribute:: required
+
+    boolean specifying if the field is required or not. If a field is required and
+    it is not available or empty it will fail validation.
+    
+    Default: ``None``.
+    
+.. attribute:: widget_attrs
+
+    dictionary of widget attributes. Used for midifying widget html attributes.
+    
+    Default: ``None``.
+
+    instance of :class:`View` or None.
+    '''
     default = None
     widget = None
     required = True

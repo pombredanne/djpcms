@@ -4,7 +4,7 @@ from djpcms import template, nodata
 from djpcms.utils.collections import OrderedDict
 
 
-from .defaults import body_defaults, jqueryui
+from .defaults import body_defaults, jqueryui, jquery_style_mapping
 
 
 _root = None
@@ -160,7 +160,7 @@ class _CssContext(object):
            
            
 class CssBody(_CssContext):
-    template = 'medplate/body.css_t'
+    template = ('body.css_t','medplate/body.css_t')
     
     def __init__(self, data = None):
         super(CssBody,self).__init__(None,'body',
@@ -216,11 +216,13 @@ def CssContext(name, parent = None, **kwargs):
         else:
             context = None
             break
+        
     if context and not cts:
+        context.data.update(kwargs)
         return context
     
     if len(cts) > 1:
-            raise ValueError
+        raise ValueError
     return _CssContext(cts[0], parent = parent, **kwargs)
     
 
@@ -245,6 +247,7 @@ def rendercss(style, media_url, template_engine = None):
     return root.render(style, media_url, template_engine)
     
     
-         
-         
-        
+def jQueryTheme(theme_name,jquery_theme):
+    '''Associate a theme name with a jquery theme name'''
+    jquery_style_mapping[theme_name] = jquery_theme
+ 

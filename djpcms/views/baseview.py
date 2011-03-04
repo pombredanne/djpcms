@@ -5,13 +5,12 @@ from py2py3 import range
 import djpcms
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.forms import Media
-from djpcms.forms.utils import saveform, get_form
-from djpcms.views.response import DjpResponse
-from djpcms.views.contentgenerator import BlockContentGen
 from djpcms.template import loader
-from djpcms.core.exceptions import PermissionDenied
 
+from .response import DjpResponse
+from .contentgenerator import BlockContentGen
     
+
 def response_from_page(djp, page):
     '''Given a :class:`djpcms.views.DjpResponse` object
 and a Page instance, it calculates a new response object.'''
@@ -256,9 +255,6 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
             if css and css.container_class_name:
                 b = ' class="%s"' % css.container_class_name
         return mark_safe(b)
-    
-    def permissionDenied(self, djp):
-        raise PermissionDenied
     
     def defaultredirect(self, request, next = None,
                         instance = None, **kwargs):

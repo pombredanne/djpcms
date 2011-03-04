@@ -1,0 +1,72 @@
+.. _contrib-monitor:
+
+.. module:: djpcms.contrib.monitor
+
+================
+Admin monitors
+================
+
+
+
+.. _contrib-stdlink:
+
+StdNet Link
+============================
+
+This module avaiable is useful for django_ based sites
+needing to use a *smart cache* or adding extra in memory data
+to their relational database models.
+
+To use this module you need to have django_ and stdnet_ installed.
+
+
+Stdnet as django model cache
+===========================================
+
+The first example is simple, we create a link so that objects of 
+specific django models are cached using stdnet::
+
+    from django.db import models
+    from stdnet import orm
+    
+    class Article(models.Model):
+        title = models.CharField(max_length = 200):
+        published = models.DateTime()
+        body = models.TextField()
+        
+    class ArticleCache(orm.StdNet):
+        pass
+
+And now we link them together using the :func:`stdnet.contrib.djangolink.link_models` function::
+
+    stdnet.contrib.djangolink import link_models
+    
+    link_models(Article,ArticleCache)
+    
+
+We can do more. Create ``stdnet`` filters by adding fields to our ``stdnet`` model::
+
+    class ArticleCache(orm.StdNet):
+        title = orm.SymbolField()
+        
+    link_models(Article,ArticleCache)
+    
+
+    
+
+
+Adding Extra Data
+=====================
+
+
+    
+
+API
+===========
+
+
+.. autofunction:: stdnet.contrib.djangolink.link_models
+
+
+.. stdnet: http://lsbardel.github.com/python-stdnet/
+.. _django: http://www.djangoproject.com/

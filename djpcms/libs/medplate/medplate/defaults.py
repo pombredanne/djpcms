@@ -12,11 +12,13 @@ body_defaults = {
     #
     'block_spacing': '15px'
     }
-   
+
+jquery_style_mapping = {}   
 
 def jqueryui(context, loader, style):
     style = style or 'smooth'
-    base  = 'jquery-ui-css/{0}/'.format(style)
+    jstyle = jquery_style_mapping.get(style,style)
+    base  = 'jquery-ui-css/{0}/'.format(jstyle)
     data = loader.render(base + 'jquery-ui.css')
     toreplace = 'url(images'
     media_url = context['MEDIA_URL']

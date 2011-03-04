@@ -83,9 +83,6 @@ class RegisterForm(forms.Form):
 #    your_email = forms.EmailField()
     
 
-class PasswordChangeForm(forms.Form):
-    
-    def __init__(self, instance = None, save_as_new=False, *args, **kwargs):
-        self.instance = instance
-        super(PasswordChangeForm,self).__init__(user = instance, *args, **kwargs)
+class PasswordChangeForm(RegisterForm):
+    pass
     

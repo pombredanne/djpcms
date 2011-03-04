@@ -1,7 +1,7 @@
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
 
-from .base import FormLayout, FormLayoutElement
+from .base import FormLayout, FormLayoutElement, Html
 
 
 inlineLabels   = 'inlineLabels'

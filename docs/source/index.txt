@@ -37,7 +37,8 @@ First steps
 **Managing Content:**
 :ref:`Plugins <plugins-index>` |
 :ref:`Inline editing <inline-editing>` |
-:ref:`Autocomplete <autocomplete>`
+:ref:`Autocomplete <autocomplete>` |
+:ref:`Object Relational Mapping <orms-index>`
 
 Contents
 =====================
@@ -48,13 +49,14 @@ Contents
    topics/views
    topics/plugins/index
    topics/design
-   topics/models
-   topics/templates/index
+   topics/orms/index
+   forms/index
+   templates/index
    topics/javascript/index
    topics/settings
    topics/utils/index
-   topics/contrib/index
    topics/patterns/index
+   contrib/index
    authors
    changelog
 

@@ -11,6 +11,7 @@ Introductions to all the key parts of Djpcms you'll need to know:
    views
    application/index
    plugins/index
+   orms
    design
    templates/index
    javascript/index

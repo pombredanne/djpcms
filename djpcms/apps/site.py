@@ -309,44 +309,6 @@ site is already registered at ``route``.'''
     
     def view_from_page(self, page):
         site = self.get_site(page.url)
-        
-    def wsgi(self, environ, start_response):
-        '''DJPCMS WSGI handler'''
-        http = self.http
-        HttpResponse = http.HttpResponse
-        response = None
-        site = None
-        try:
-            cleaned_path = self.clean_path(environ)
-            if isinstance(cleaned_path,HttpResponse):
-                return http.finish_response(cleaned_path, environ, start_response)
-            path = cleaned_path[1:]
-            site,view,kwargs = self.resolve(path)
-            request = http.make_request(environ)
-            request.site = site
-            djp = view(request, **kwargs)
-            if not isinstance(djp,HttpResponse):
-                #signals.request_started.send(sender=self.__class__)
-                # Request middleware
-                for middleware_method in site.request_middleware():
-                    response = middleware_method(request)
-                    if response:
-                        return http.finish_response(response, environ, start_response)
-                response = djp.response()
-                # Response middleware
-                for middleware_method in site.response_middleware():
-                    middleware_method(request,response)
-            else:
-                response = djp
-        except PermissionDenied as e:
-            response = self.handle_exception(self, request, e, status = 403)
-        except http.Http404 as e:
-            response = self.handle_exception(self, request, e, status = 404)
-        except http.HttpException as e:
-            response = self.handle_exception(self, request, e, status = e.status)
-        except Exception as e:
-            response = self.handle_exception(self, request, e)
-        return http.finish_response(response, environ, start_response)
     
     def djp(self, request, path):
         '''Entry points for requests'''

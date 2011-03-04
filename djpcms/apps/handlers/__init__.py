@@ -24,6 +24,7 @@ delegate the handling to them.'''
         
     def _handle_response(self, environ, start_response):
         site = self.site
+        site.load()
         http = site.http
         try:
             cleaned_path = site.clean_path(environ)

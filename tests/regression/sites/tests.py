@@ -17,17 +17,6 @@ class TestSites(test.TestCase):
         '''No sites created. Load should raise an ImproperlyConfigured
         error'''
         self.assertRaises(ImproperlyConfigured,self.sites.load)
-        
-    @test.skipIf('stdnet' not in sites.modelwrappers,
-                 'python-stdnet is not installed')
-    def testStdnetApp(self):
-        site = self.MakeSite(__file__,
-                             APPLICATION_URLS = 'regression.sites.stdnet_urls')
-        self.assertEqual(len(sites),1)
-        self.assertEqual(sites[0],site)
-        self.assertFalse(sites.isloaded)
-        for s in sites:
-            self.assertEqual(s,site)
 
     def testMultipleSitesOrdering(self):
         MakeSite = self.MakeSite

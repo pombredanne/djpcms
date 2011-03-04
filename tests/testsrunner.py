@@ -5,6 +5,7 @@ import sys
 from djpcms import sites, MakeSite
 from djpcms.test import TEST_TYPES
 import djpcms.contrib as contrib
+import examples
 from djpcms.utils.importer import import_module
 
 logger = logging.getLogger()
@@ -14,8 +15,29 @@ CUR_DIR = os.path.split(os.path.abspath(__file__))[0]
 if CUR_DIR not in sys.path:
     sys.path.insert(0,CUR_DIR)
 CONTRIB_DIR = os.path.dirname(contrib.__file__)
+EXEMPLE_DIR = os.path.join(os.path.dirname(examples.__file__),'sitedjpcms')
+sys.path.insert(0,EXEMPLE_DIR)
+
+
+class exempledir:
+    def __init__(self, d):
+        self.d = d
+    def __call__(self,test_type):
+        return self.d
+    
+def all_test_dirs():
+    yield lambda test_type : os.path.join(CUR_DIR,test_type)
+    yield lambda test_type : CONTRIB_DIR
+    for name in os.listdir(EXEMPLE_DIR):
+        edir = os.path.join(EXEMPLE_DIR,name)
+        if os.path.isdir(edir):
+            yield exempledir(edir)
+    
+ALL_TEST_PATHS = tuple(all_test_dirs())
+
 ALL_TEST_PATHS = (lambda test_type : os.path.join(CUR_DIR,test_type),
-                  lambda test_type : CONTRIB_DIR) 
+                  lambda test_type : CONTRIB_DIR,
+                  lambda test_type : os.path.join(EXEMPLE_DIR,'exampleapps'))
 
 
 def get_tests(test_type):

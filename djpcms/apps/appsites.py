@@ -62,8 +62,7 @@ class ApplicationSite(ResolverMixin):
         return len(self._registry)
         
     def _load(self):
-        """Registers an instance of :class:`djpcms.views.appsite.Application`
-to the site. If a model is already registered, this will raise AlreadyRegistered."""
+        """Registers applications to the application site."""
         name = self.settings.APPLICATION_URL_MODULE
         appurls = ()
         if name:
@@ -71,7 +70,8 @@ to the site. If a model is already registered, this will raise AlreadyRegistered
             appurls = app_module.appurls
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
-        for application in appurls:
+        # loop over reversed sorted applications
+        for application in reversed(sorted(appurls, key = lambda x : x.baseurl)):
             self.register(application)
         url = self.make_url
         urls = ()

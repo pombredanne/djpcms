@@ -41,7 +41,7 @@ def makeoptions():
 
 
 def addpath():
-    # add the tests directory to the Python Path
+    # add this directory to the Python Path so that tests and examples are visible
     p = os.path
     path = p.split(p.abspath(__file__))[0]
     if path not in sys.path:

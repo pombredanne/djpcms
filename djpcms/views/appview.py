@@ -16,6 +16,17 @@ from djpcms.views.baseview import djpcmsview
 from djpcms.core.orms import table
 
 
+__all__ = ['View',
+           'ModelView',
+           'SearchView',
+           'AddView',
+           'ObjectView',
+           'ViewView',
+           'DeleteView',
+           'ChangeView',
+           'AutocompleteView']
+
+
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
     '''Default redirect for a model view is the View url for that model
 if an instance is available'''
@@ -157,6 +168,12 @@ Usage::
     This attribute is used to fine-tune the response of your web site.
     
     Default: ``False``.
+    
+.. attribute:: inherit_page
+
+    If ``True`` and a page is not available for the view, the parent view page will be used (recursive).
+    
+    Default ``True``.
 '''
     creation_counter = 0
     plugin_form    = None
@@ -191,6 +208,7 @@ Usage::
                  table_generator = None,
                  success_message = None,
                  redirect_to_view = None,
+                 inherit_page = True,
                  append_slash = True):
         self.name        = None
         self.description = description
@@ -205,6 +223,7 @@ Usage::
         self.func      = None
         self.code      = None
         self.editurl   = None
+        self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view
         self.headers   = headers or self.headers
         self.astable   = astable if astable is not None else self.astable
@@ -241,7 +260,8 @@ Usage::
     baseurl = property(__get_baseurl)
     
     def get_url(self, djp):
-        purl = self.baseurl + self.regex.get_url(**djp.kwargs)
+        site = self.appmodel.application_site
+        purl = site.route[:-1] + self.baseurl + self.regex.get_url(**djp.kwargs)
         if '//' in purl:
             return re.sub("/+" , "/", purl)
         else:
@@ -311,7 +331,7 @@ Usage::
                     except:
                         pass
                     return page
-        if self.parent:
+        if self.parent and self.inherit_page:
             return self.parent.get_page(djp)
         
     def specialkwargs(self, page, kwargs):
@@ -327,8 +347,8 @@ Usage::
                         kwargs.pop(name,None)
         return kwargs
     
-    def has_permission(self, request = None, page = None, obj = None):
-        if super(View,self).has_permission(request, page, obj):
+    def has_permission(self, request = None, page = None, obj = None, user = None):
+        if super(View,self).has_permission(request, page, obj, user = user):
             return self._has_permission(request, obj)
         else:
             return False
@@ -363,7 +383,8 @@ replaced during initialization.
         
         if astable:
             items = self.table_generator(djp, p.qs)
-            c['astable'] = table(headers, items, djp, appmodel)
+            ctx = table(headers, items, djp, appmodel)
+            c['astable'] = loader.render('djpcms/tablesorter.html',ctx)
         else:    
             c['items'] = self.data_generator(djp, p.qs)
             
@@ -470,7 +491,7 @@ It returns a queryset.
         '''
         qs = super(SearchView,self).appquery(djp)
         request = djp.request
-        slist = self.appmodel.mapper.search_fields
+        slist = self.appmodel.search_fields
         search_string = request.data_dict.get(self.search_text,None)
         if slist and search_string:
             bits  = smart_split(search_string)

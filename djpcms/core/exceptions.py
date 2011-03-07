@@ -2,7 +2,9 @@
 
 class DjpcmsException(Exception):
     '''Base class for ``djpcms`` related exceptions.'''
-    pass
+    def __init__(self, *args,**kwargs):
+        self.site = kwargs.pop('site',None)
+        super(DjpcmsException,self).__init__(*args,**kwargs)
 
 
 class ImproperlyConfigured(DjpcmsException):
@@ -12,11 +14,6 @@ class ImproperlyConfigured(DjpcmsException):
 
 class ViewDoesNotExist(DjpcmsException):
     '''A :class:`DjpcmsException` raised when a view instance does not exist.'''
-    pass
-
-
-class PermissionDenied(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when permission is not met.'''
     pass
 
 
@@ -69,9 +66,18 @@ class BlockOutOfBound(PageException):
     pass
     
     
+class PermissionDenied(DjpcmsException):
+    '''A :class:`DjpcmsException` raised when permission is not met.'''
+    status = 403
+
+
 class HttpException(Exception):
-    status = 404
-    def __init__(self, status = None, msg = ''):
+    status = 500
+    def __init__(self, msg = '', status = None, site = None):
         self.status = status or self.status
+        self.site = site
         super(HttpException,self).__init__(msg)
 
+
+class Http404(HttpException):
+    status = 404

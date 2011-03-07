@@ -31,6 +31,7 @@ VIEW = 10
 ADD = 20
 CHANGE = 30
 DELETE = 40
+SLASH = '/'
 
 
 logger = logging.getLogger('sites')
@@ -51,7 +52,7 @@ class editHandler(ResolverMixin):
     
 class SimplePermissionBackend(object):
     
-    def has(self, request, permission_code, obj):
+    def has(self, request, permission_code, obj, user = None):
         if permission_code <= VIEW:
             return True
         else:
@@ -60,7 +61,7 @@ class SimplePermissionBackend(object):
         
 def standard_exception_handle(request, e, status = None):
     from djpcms.template import loader
-    status = status or 500
+    status = status or getattr(e,'status',None) or 500
     site = request.site
     if not site or not hasattr(site,'exception_middleware'):
         raise
@@ -251,9 +252,9 @@ site is already registered at ``route``.'''
     def _create_site(self,route,settings,handler):
         from djpcms.apps import appsites
         route = self.makeurl(route)
-        self.logger.info('Creating new site at route "{0}"'.format(route))
+        self.logger.debug('Creating new site at route "{0}"'.format(route))
         if route in self._sites:
-            raise AlreadyRegistered('Site with route {0} already avalable "{1}"'.format(route,site))
+            raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
         site = appsites.ApplicationSite(self, route, settings, handler)
         self._sites[site.route] = site
         self._osites = None
@@ -264,7 +265,7 @@ site is already registered at ``route``.'''
         return self._sites.get(name,default)
     
     def makeurl(self, url = None):
-        url = url or '/'
+        url = url or SLASH
         if not url.endswith('/'):
             url += '/'
         if not url.startswith('/'):
@@ -272,7 +273,7 @@ site is already registered at ``route``.'''
         return url
             
     def get_site(self, url = None):
-        url = self.makeurl(url)
+        url = url or SLASH
         site = self.get(url,None)
         if not site:
             try:

@@ -1,6 +1,6 @@
 from djpcms.utils.dates import MONTHS
 from djpcms.utils import force_str
-from djpcms.views.appview import SearchView
+from djpcms.views import *
 
 
 

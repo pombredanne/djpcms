@@ -12,10 +12,9 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 
 from tagging.fields import TagField
 
-from djpcms.utils import slugify
+from djpcms.utils import slugify, markups
 from djpcms.uploads import uploader, storage_manager
 from djpcms.template import mark_safe
-from djpcms.contrib.flowrepo import markups
 from djpcms.contrib.flowrepo.managers import FlowManager, SlugManager, RepoManager 
 from djpcms.contrib.flowrepo.managers import source_interactive
 from djpcms.contrib.flowrepo.utils import encrypt, decrypt, nicetimedelta

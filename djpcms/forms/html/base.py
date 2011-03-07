@@ -29,8 +29,10 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     template = None
     attributes = {'id':None}
     
-    def __init__(self, tag = None, cn = None, template = None, **kwargs):
+    def __init__(self, tag = None, cn = None, template = None, js = None,
+                 renderer = None, css = None, **kwargs):
         attrs = {}
+        self.renderer = renderer
         self.tag = tag or self.tag
         self.template = template or self.template
         for attr,value in iteritems(self.attributes):
@@ -44,6 +46,9 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         self.__attrs = attrs
         self.__classes = set()
         self.addClass(cn)
+        media = self.media
+        media.add_js(js)
+        media.add_css(css)
         
     def flatatt(self, **attrs):
         '''Return a string with atributes to add to the tag'''
@@ -92,7 +97,11 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     
     def render(self, *args, **kwargs):
         fattr = self.flatatt()
-        return self._render(fattr, *args, **kwargs)
+        html = self._render(fattr, *args, **kwargs)
+        if self.renderer:
+            return self.renderer(html)
+        else:
+            return html
     
     def render_from_field(self, djp, field):
         fattr = self.flatatt(name = field.html_name, id = field.id, value = field.value)

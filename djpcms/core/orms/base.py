@@ -3,8 +3,8 @@ from datetime import date, datetime
 from djpcms import sites, nodata
 from djpcms.utils.dates import format as date_format
 from djpcms.utils import force_str, significant_format
-from djpcms.template import loader, mark_safe, conditional_escape
-
+from djpcms.template import loader, conditional_escape
+from djpcms.html import EMPTY_VALUE
 
 __all__ = ['BaseOrmWrapper',
            'nicerepr',
@@ -19,7 +19,7 @@ BOOLEAN_MAPPING = {True: {'icon':'ui-icon-check','name':'yes'},
 
 def _boolean_icon(val):
     v = BOOLEAN_MAPPING.get(val,'unknown')
-    return mark_safe('<span class="ui-icon %(icon)s" title="%(name)s">%(name)s</span>' % v)
+    return '<span class="ui-icon %(icon)s" title="%(name)s">%(name)s</span>' % v
 
 
 def nicerepr(val, nd = 3):
@@ -54,7 +54,7 @@ def table(headers, queryset_or_list, djp, model = None, nd = 3):
             model = queryset_or_list.model
         except AttributeError:
             pass
-    cl = getattr(model,'opts',None)
+    cl = getattr(model,'mapper',None)
     if not cl:
         labels = headers
         items  = (nice_items_id(items,nd=nd) for items in queryset_or_list)
@@ -167,6 +167,11 @@ class BaseOrmWrapper(object):
     def result_for_item(self, headers, result, djp, nd = 3):
         if isinstance(result, self.model):
             request = djp.request
+            appmodel = request.site.for_model(self.model)
+            if appmodel:
+                list_display_links = appmodel.list_display_links
+            else:
+                list_display_links = []
             path  = djp.http.path_with_query(request)
             first = True
             id    = ('%s-%s') % (self.module_name,result.id)
@@ -175,19 +180,22 @@ class BaseOrmWrapper(object):
             for field_name in headers:
                 result_repr = self.getrepr(field_name, result, nd)
                 if force_str(result_repr) == '':
-                    result_repr = mark_safe('&nbsp;')
-                if (first and not self.list_display_links) or field_name in self.list_display_links:
+                    result_repr = EMPTY_VALUE
+                if (first and not list_display_links) or field_name in list_display_links:
                     first = False
-                    url = self.url_for_result(request, result, field_name)
+                    if appmodel:
+                        url = appmodel.viewurl(request, result, field_name)
+                    else:
+                        url = None
                 else:
                     url = None
                 
                 var = conditional_escape(result_repr)
                 if url:
                     if url != path:
-                        var = mark_safe('<a href="{0}" title="{1}">{1}</a>'.format(url, var))
+                        var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)
                     else:
-                        var = mark_safe('<a>{0}</a>'.format(var))
+                        var = '<a>{0}</a>'.format(var)
                 display.append(var)
             return item
         else:
@@ -199,12 +207,6 @@ class BaseOrmWrapper(object):
     
     def _getrepr(self, name, instance):
         raise NotImplementedError
-    
-    def url_for_result(self, request, instance, field_name):
-        if self.appmodel:
-            return self.appmodel.viewurl(request, instance, field_name)
-        else:
-            return None
         
     def has_add_permission(self, user, obj=None):
         return user.is_superuser

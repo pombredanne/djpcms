@@ -30,7 +30,7 @@ def get_upload_model(file):
 
 
 
-class FlowForm(forms.ModelForm):
+class FlowForm(forms.Form):
     '''General form for a flowitem'''
     _underlying = None
     timestamp = forms.DateTimeField(required = False)
@@ -70,7 +70,7 @@ class FlowForm(forms.ModelForm):
 
 class FlowFormRelated(FlowForm):
     '''handle related items as multiple choice field'''
-    related_items = forms.ModelMultipleChoiceField(queryset = models.FlowItem.objects.all(), required = False)
+    #related_items = forms.ModelMultipleChoiceField(queryset = models.FlowItem.objects.all(), required = False)
     
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance',None)
@@ -93,8 +93,8 @@ class ReportForm(FlowFormRelated):
     '''The Report Form'''
     _underlying = models.Report
     title = forms.CharField()
-    abstract = forms.CharField(widget = forms.Textarea(attrs = {'class':'taboverride'}), required = False)
-    body  = forms.CharField(widget = forms.Textarea(attrs = {'class':'taboverride'}), required = False)
+    abstract = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
+    body  = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
     slug  = forms.CharField(required = False)
     
     class Meta:
@@ -148,13 +148,13 @@ class UploadForm(FlowForm):
         return file
 
 
-class FlowItemSelector(forms.ModelForm):
+class FlowItemSelector(forms.Form):
     '''
     Form for selecting items to display
     '''
-    content_type = forms.ModelMultipleChoiceField(queryset = models.FlowItem.objects.allmodels,
-                                                  label = 'types',
-                                                  required = False)
+    #content_type = forms.ModelMultipleChoiceField(queryset = models.FlowItem.objects.allmodels,
+    #                                              label = 'types',
+    #                                              required = False)
     item_per_page = forms.IntegerField(initial = 10)
     
     class Meta:
@@ -165,7 +165,7 @@ class FlowItemSelector(forms.ModelForm):
         pass
 
         
-class WebAccountForm(forms.ModelForm):
+class WebAccountForm(forms.Form):
     '''A form to add/edit web accounts.
     '''
     user     = forms.CharField(widget=forms.HiddenInput, required = False)
@@ -187,10 +187,6 @@ class WebAccountForm(forms.ModelForm):
                 initial.update(json.loads(data))
                 kwargs['initial'] = initial
         super(WebAccountForm,self).__init__(**kwargs)
-        
-    class Meta:
-        model   = models.WebAccount
-        exclude = ['e_data']
     
     def clean_user(self):
         return self._user
@@ -224,12 +220,12 @@ class WebAccountForm(forms.ModelForm):
     
 
 class ChangeCategory(forms.Form):
-    category_name = forms.ModelChoiceField(queryset = models.CategoryType.objects.all(),
+    category_name = forms.ModelChoiceField(choices = models.CategoryType.objects.all,
                                            empty_label=None)
     
     
 class ChangeImage(forms.Form):
-    image   = forms.ModelChoiceField(queryset = models.Image.objects.all(), empty_label=None)
+    image   = forms.ModelChoiceField(choices = models.Image.objects.all, empty_label=None)
     class_name = forms.CharField(max_length = 100, required = False)
     
     

@@ -101,10 +101,13 @@ CssContext('tablesorter',
            template='djpcms/style/tablesorter.css_t',
            data = {
                    'width':'100%',
+                   'text_align': 'left',
                    'margin': '10px 0 15px',
                    'background': 'transparent',
                    # head/tail
-                   'head_background': 'transparent',
+                   'odd_background_color':'#ccc',
+                   'head_border_color':'#fff',
+                   'body_border_color':'#a6c9e2',
                    'head_border': 'none',
                    'head_padding': '4px',
                    }

@@ -6,75 +6,84 @@ class BaseSiteHandler(object):
     
     def __init__(self, site):
         self.site = site
+        self.http = site.http
         self.handle_exception = sites.handle_exception
         
     def __call__(self, environ, start_response):
-        return self._handle_response(environ, start_response)
-    
-    def _handle_response(self, environ, start_response):
         raise NotImplementedError
+    
+    def get_request(self, environ, site = None):
+        request = self.http.make_request(environ)
+        request.site = site if site is not None else self.site
+        return request            
+    
+    
+def response_error(f):
+    
+    def _(self, environ, start_response):
+        site = self.site
+        http = site.http
+        try:
+            return f(self, environ, start_response)
+        except Exception as e:
+            site = getattr(e,'site',None)
+            return self.handle_exception(self.get_request(environ,site), e)
+    
+    return _
     
     
 class DjpCmsHandler(BaseSiteHandler):
     '''Base DjpCms wsgi handler. It looks for application sites and
 delegate the handling to them.'''
+    
     def __init__(self):
-        from djpcms import sites
         super(DjpCmsHandler,self).__init__(sites)
         
-    def _handle_response(self, environ, start_response):
-        site = self.site
-        site.load()
-        http = site.http
-        try:
-            cleaned_path = site.clean_path(environ)
-            if isinstance(cleaned_path,http.HttpResponse):
-                return cleaned_path
-            application = site.get_site(environ['PATH_INFO'][1:])
-        except Exception as e:
-            request = http.make_request(environ)
-            request.site = site
-            res = self.handle_exception(request, e)
+    def __call__(self, environ, start_response):
+        res = self._handle(environ, start_response)
+        if 'site-view-kwargs' in environ:
+            site = environ['site-view-kwargs'][0]
         else:
-            res = application.handle(environ, start_response)
-        return http.finish_response(res, environ, start_response)
+            site = self.site
+        return site.http.finish_response(res, environ, start_response)
+        
+    @response_error
+    def _handle(self, environ, start_response):
+        sites.load()
+        http = sites.http
+        cleaned_path = sites.clean_path(environ)
+        if isinstance(cleaned_path,http.HttpResponse):
+            return cleaned_path
+        appsite,view,kwargs = sites.resolve(environ['PATH_INFO'][1:])
+        environ['site-view-kwargs'] = (appsite,view,kwargs)
+        return appsite.handle(environ, start_response)
             
     
 class WSGI(BaseSiteHandler):
     '''Box standard wsgi response handler'''
-    def _handle_response(self, environ, start_response):
-        site = self.site
+    @response_error
+    def __call__(self, environ, start_response):
+        site, view, kwargs = environ['site-view-kwargs']
         http = site.http
         HttpResponse = http.HttpResponse
         response = None
         path     = environ['PATH_INFO']
-        try:
-            request = http.make_request(environ)
-            request.site = site
-            site,view,kwargs = site.resolve(path[1:])
-            djp = view(request, **kwargs)
-            if isinstance(djp,HttpResponse):
-                return djp
-            #signals.request_started.send(sender=self.__class__)
-            # Request middleware
-            for middleware_method in site.request_middleware():
-                response = middleware_method(request)
-                if response:
-                    return http.finish_response(response, environ, start_response)
-            response = djp.response()
-            # Response middleware
-            for middleware_method in site.response_middleware():
-                middleware_method(request,response)
-            return response
-        except PermissionDenied as e:
-            return self.handle_exception(request, e, status = 403)
-        except http.Http404 as e:
-            return self.handle_exception(request, e, status = 404)
-        except http.HttpException as e:
-            return self.handle_exception(request, e, status = e.status)
-        except Exception as e:
-            return self.handle_exception(request, e)
-
+        request  = self.get_request(environ)
+        djp = view(request, **kwargs)
+        if isinstance(djp,HttpResponse):
+            return djp
+        #signals.request_started.send(sender=self.__class__)
+        # Request middleware
+        for middleware_method in site.request_middleware():
+            response = middleware_method(request)
+            if response:
+                return http.finish_response(response, environ, start_response)
+        response = djp.response()
+        # Response middleware
+        for middleware_method in site.response_middleware():
+            middleware_method(request,response)
+        return response
+    
 
 class WebSocketWSGI(object):
     

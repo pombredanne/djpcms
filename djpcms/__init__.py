@@ -1,4 +1,4 @@
-'''Dynamic content management system using Javascript and Python'''
+'''A dynamic content management system using jQuery and Python'''
 
 VERSION = (0, 9, 'dev')
 
@@ -53,6 +53,7 @@ install_libs()
 
 import py2py3
 ispy3k = py2py3.ispy3k
+UnicodeMixin = py2py3.UnicodeMixin
 
 from .apps import *
 from .http import serve

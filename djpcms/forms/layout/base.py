@@ -137,7 +137,7 @@ class FormLayoutElement(BaseFormLayout):
 
 class Html(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to `self`.'''
-    def __init__(self, html, **kwargs):
+    def __init__(self, html, renderer = None, **kwargs):
         super(Html,self).__init__(**kwargs)
         self.html = html
 

@@ -77,7 +77,8 @@ class SettingImporter(object):
     def setup_django(self, config, force = False):
         '''Set up django if needed'''
         if force or config.HTTP_LIBRARY == 'django' or \
-            config.CMS_ORM == 'django' or config.TEMPLATE_ENGINE == 'django':
+            config.CMS_ORM == 'django' or config.TEMPLATE_ENGINE == 'django' or \
+            config.DJANGO:
             ENVIRONMENT_VARIABLE = "DJANGO_SETTINGS_MODULE"
             settings_file = os.environ.get(ENVIRONMENT_VARIABLE,None)
             if not settings_file:
@@ -86,6 +87,7 @@ class SettingImporter(object):
             
             from django.conf import settings as framework_settings
             config.addsetting(framework_settings)
+            config.DJANGO = True
 
 
 _importer = SettingImporter()

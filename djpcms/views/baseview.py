@@ -220,10 +220,10 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
         
             return ajax_view_function(djp)
     
-    def has_permission(self, request, page = None, obj = None):
+    def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''
         if page:
-            return request.site.permissions.has(request,djpcms.VIEW,page)
+            return request.site.permissions.has(request,djpcms.VIEW,page,user=user)
         else:
             return True
     

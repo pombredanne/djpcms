@@ -10,3 +10,5 @@ MANIFEST
 .settings/*
 examples/runfab.py
 examples/sitedjpcms/settings.py
+examples/logs
+examples/sitedjpcms/sitedjpcms.sqlite

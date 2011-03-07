@@ -5,7 +5,7 @@ from datetime import datetime
 import djpcms
 import djpcms.contrib.social.providers
 from djpcms.plugins import DJPplugin, get_plugin
-from djpcms.contrib import messages
+from djpcms.core import messages
 from djpcms.views import appview
 from djpcms.template import loader
 from djpcms.utils.ajax import jpopup
@@ -277,9 +277,7 @@ class SocialUserApplication(UserApplication):
     social_action = SocialActionView(regex = '(?P<action>[-\.\w]+)',
                                      parent = 'social_home',
                                      isapp = False,
-                                     isplugin = False,
-                                     form_withrequest = True,
-                                     form_ajax = True)
+                                     isplugin = False)
     
 
 class SocialActionPlugin(DJPplugin):

@@ -21,3 +21,11 @@ CssTheme('box',
          data = {
                  'background':'#aaa'
                  })
+
+
+CssTheme('tablesorter',
+         theme_name,
+         data = {
+                 'head_border_color':'#fff',
+                 'body_border_color':'#aaa'
+                 })

@@ -7,11 +7,10 @@ from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout
 
 from djpcms.apps.handlers import DjpCmsHandler
-from djpcms.core.exceptions import HttpException
+from djpcms.core.exceptions import *
 
 Request = wsgi.WSGIRequest
 
-HTTPException = Http404
 STATUS_CODE_TEXT = wsgi.STATUS_CODE_TEXT
 
 

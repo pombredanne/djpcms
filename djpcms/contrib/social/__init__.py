@@ -5,7 +5,7 @@ import oauth2 as oauth
 
 import djpcms
 from djpcms import http, sites
-from djpcms.contrib import messages
+from djpcms.core import messages
 
 provider_handles = {}
 

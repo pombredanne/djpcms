@@ -3,19 +3,10 @@ import sys
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
 from djpcms import sites
-from .utils import parse_cookie    
+from djpcms.core.exceptions import *
 
-
-class HttpException(Exception):
-    status = 500
-    def __init__(self, msg = '', status = None):
-        self.status = status or self.status
-        super(HttpException,self).__init__(msg)
+from .utils import parse_cookie
         
-        
-class Http404(HttpException):
-    status = 404
-    
 
 def serve(port = 0, use_reloader = False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""

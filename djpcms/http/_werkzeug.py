@@ -8,12 +8,11 @@ from werkzeug.urls import iri_to_uri
 from werkzeug.serving import run_simple
 
 from djpcms import sites
-from djpcms.core.exceptions import HttpException
+from djpcms.core.exceptions import *
 
 
 Request = wrappers.Request
 HttpResponse = wrappers.Response
-Http404 = exceptions.NotFound
 
 
 absolute_http_url_re = re.compile(r"^https?://", re.I)

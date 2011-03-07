@@ -46,7 +46,7 @@ def module_attribute(dotpath, default = None):
         try:
             module = import_module('.'.join(bits[:-1]))
             return getattr(module,bits[-1],default)
-        except Exception as e:
+        except ImportError as e:
             return default
     else:
         return default

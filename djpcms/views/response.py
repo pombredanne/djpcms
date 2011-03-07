@@ -8,6 +8,8 @@ from djpcms.utils import lazyattr, logtrace
 from djpcms.utils.navigation import Navigator, Breadcrumbs
 from djpcms.core.exceptions import ViewDoesNotExist
 
+__all__ = ['DjpResponse']
+
 
 class DjpResponse(object):
     '''Djpcms Http Response class. It contains information associated with a given url.
@@ -163,7 +165,7 @@ return the wrapper with the underlying view.'''
     def robots(self):
         '''Robots
         '''
-        if self.view.has_permission(None, self.instance):
+        if self.view.has_permission(self.request, self.page, user = None):
             if not self.page or self.page.insitemap:
                 return 'ALL'
         return 'NONE,NOARCHIVE'

@@ -1,28 +1,30 @@
-from djpcms.views import appsite, appview
 from djpcms.forms import HtmlForm
 
 from .forms import LoginForm, PasswordChangeForm, RegisterForm
 from .views import *
 
+from djpcms import views
+
 permission = lambda self, request, obj: False if not request else request.user.is_authenticated()
 
 
-class UserApplication(appsite.ModelApplication):
+class UserApplication(views.ModelApplication):
     '''This is a special Application since it deals with users and therefore is everywhere.
 No assumption has been taken over which model is used for storing user data.'''
     name     = 'account'
     userpage = False
     
-    home   = appview.ModelView()
+    home   = views.ModelView()
     login  = LoginView(parent = 'home',
                        template_name = 'login.html',
+                       inherit_page = False,
                        form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
-    change = appview.ChangeView(regex = 'change',
+    change = views.ChangeView(regex = 'change',
                                 isplugin = True,
                                 parent = 'home',
                                 form = HtmlForm(PasswordChangeForm))
-    add = appview.AddView(regex = 'create',
+    add = views.AddView(regex = 'create',
                           isplugin = True,
                           parent = 'home',
                           form = HtmlForm(RegisterForm,

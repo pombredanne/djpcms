@@ -7,7 +7,7 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
 
-from djpcms.views.appsite import Application, ModelApplication
+from djpcms.views import Application, ModelApplication
 from djpcms.template import loader
 
 from djpcms.models import Page, InnerTemplate
@@ -41,7 +41,7 @@ class ApplicationSite(ResolverMixin):
         self._request_middleware = None
         self._response_middleware = None
         self._template_context_processors = None
-        self.ModelApplication = ModelApplication
+        #self.ModelApplication = ModelApplication
         handler = handler or WSGI
         self.handle = handler(self)
         
@@ -63,16 +63,16 @@ class ApplicationSite(ResolverMixin):
         
     def _load(self):
         """Registers applications to the application site."""
-        name = self.settings.APPLICATION_URL_MODULE
+        name = self.settings.APPLICATION_URLS
         appurls = ()
         if name:
-            app_module = import_module(name)
-            appurls = app_module.appurls
+            appurls = module_attribute(name)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
         # loop over reversed sorted applications
-        for application in reversed(sorted(appurls, key = lambda x : x.baseurl)):
-            self.register(application)
+        if appurls:
+            for application in reversed(sorted(appurls, key = lambda x : x.baseurl)):
+                self.register(application)
         url = self.make_url
         urls = ()
         # Add in each model's views.
@@ -239,5 +239,7 @@ returns the application handler. If the appname is not available, it raises a Ke
     def get_page(self, **kwargs):
         return Page.objects.get(**kwargs)
         
+    def handle_exception(self, *args, **kwargs):
+        return self.root.handle_exception(*args, **kwargs)
             
     

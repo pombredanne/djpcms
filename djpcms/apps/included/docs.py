@@ -1,14 +1,12 @@
 import datetime
 import json
 
+from djpcms import views
 from djpcms.template import loader, mark_safe
 from djpcms.utils.unipath import FSPath as Path
-from djpcms.views.appsite import Application
-from djpcms.views.appview import View
-from djpcms.views.regex import RegExUrl
 
     
-class DocView(View):
+class DocView(views.View):
     '''Sphinx documentation view.'''
     editurl          = None
     
@@ -104,7 +102,7 @@ class DocView(View):
         return b
 
 
-class DocApplication(Application):
+class DocApplication(views.Application):
     deflang          = 'en'
     '''Default language. Default ``en``.'''
     defversion       = 'dev'

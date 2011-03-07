@@ -21,6 +21,10 @@ from djpcms.views.appview import View, ViewView
 from djpcms.utils.collections import OrderedDict
 
 
+__all__ = ['Application',
+           'ModelApplication']
+
+
 def get_declared_application_views(bases, attrs):
     """Create a list of Application views instances from the passed in 'attrs', plus any
 similar fields on the base classes (in 'bases')."""
@@ -103,13 +107,11 @@ class Application(ApplicationBase,ResolverMixin):
     hidden           = False
     '''If ``True`` the application is only used internally. Default ``False``.'''
     form             = None
-    '''A form factory used in the application. Default ``None``.'''
+    '''Default form class used in the application. Default ``None``.'''
     form_method      ='post'
     '''Form submit method, ``get`` or ``post``. Default ``post``.'''
-    form_withrequest = False
-    '''If set to True, the request instance is passed to the form constructor. Default is ``False``.'''
     form_ajax        = True
-    '''If True the form submits are performed using ajax. Default ``True``.'''
+    '''The default interaction in forms. If True the default form submmission is performed using ajax. Default ``True``.'''
     form_template    = None
     '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
     in_navigation    = True
@@ -118,6 +120,9 @@ No reason to change this default unless you really don't want to see the views i
     list_per_page    = 30
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = []
+    list_display     = []
+    '''List of object's field to display. If available, the search view will display a sortable table
+of objects. Default is ``None``.'''
 
     # Submit buton customization
     _form_add        = 'add'
@@ -129,7 +134,7 @@ No reason to change this default unless you really don't want to see the views i
     '''Set to a value if you want to include a save as new submit input when editing an instance.'''
     
     def __init__(self, baseurl, editavailable = None, name = None,
-                 list_per_page = None, form = None):
+                 list_per_page = None, form = None, list_display = None):
         self.application_site = None
         self.editavailable    = editavailable
         if not baseurl.endswith('/'):
@@ -138,6 +143,7 @@ No reason to change this default unless you really don't want to see the views i
             baseurl = '/%s' % baseurl
         self.__baseurl        = baseurl
         self.list_per_page    = list_per_page or self.list_per_page
+        self.list_display = list_display or self.list_display
         self.form             = form or self.form
         self.name             = self._makename(name)
         
@@ -386,15 +392,12 @@ User should subclass this for full control on the model application.
 
     Instance of :class:`djpcms.core.orms.BaseOrmWrapper`. Created from :attr:`model`
 '''
-    list_display     = None
-    '''List of object's field to display. If available, the search view will display a sortable table
-of objects. Default is ``None``.'''
     object_display   = None
     '''Same as :attr:`list_display` attribute at object level. The field list is used to display
 the object definition. If not available, :attr:`list_display` is used. Default ``None``.'''
-    filter_fields    = None
+    filter_fields    = []
     '''List of model fields which can be used to filter'''
-    search_fields    = None
+    search_fields    = []
     '''List of model field's names which are searchable. Default ``None``.
 This attribute is used by :class:`djpcms.views.appview.SearchView` views
 and by the :ref:`auto-complete <autocomplete>`
@@ -402,17 +405,23 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     #
-    list_display_links = None
+    list_display_links = []
     
     def __init__(self, baseurl, model, **kwargs):
-        super(ModelApplication,self).__init__(baseurl, **kwargs)
         if not model:
             raise ValueError('Model is null not defined in application {0}'.format(self))
         self.model  = model
+        super(ModelApplication,self).__init__(baseurl, **kwargs)
         
+    def _makename(self, name):
+        name = name or self.name
+        if not name:
+            name = self.model.__name__
+        name = name.replace('-','_').lower()
+        return str(slugify(name,rtx='_'))
+    
     def register(self, application_site):
         self.mapper = mapper(self.model)
-        self.mapper.set_application(self)
         return super(ModelApplication,self).register(application_site)
         
     def get_root_code(self):

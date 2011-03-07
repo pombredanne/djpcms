@@ -4,7 +4,7 @@ Django model for linked accounts
 from django.db import models
 #from django.db.models import signals
 
-from djpcms.fields import JSONField
+from djpcms.apps.djangosite.fields import JSONField
 from .defaults import User
 
 

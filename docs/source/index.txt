@@ -10,7 +10,7 @@ DJPCMS
 Get it
 =============
 
-Djpcms is available as an easy-installable package on the
+Djpcms is an opensource python library available as an easy-installable package on the
 `Python Package Index <http://pypi.python.org/pypi?:action=display&name=djpcms>`_. ::
 	
 	easy_install djpcms
@@ -59,6 +59,7 @@ Contents
    contrib/index
    authors
    changelog
+   license
 
 
 Indices, glossary and tables

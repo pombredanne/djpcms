@@ -14,7 +14,9 @@ __all__ = ['Field',
            'ChoiceField',
            'IntegerField',
            'FloatField',
-           'ModelChoiceField']
+           'EmailField',
+           'ModelChoiceField',
+           'FileField']
 
 
 def standard_validation_error(field,value):
@@ -267,3 +269,10 @@ class ModelChoiceField(ChoiceField):
             result.queryset = qs()
         return set_autocomplete(result)
 
+
+class EmailField(CharField):
+    pass
+
+
+class FileField(CharField):
+    pass

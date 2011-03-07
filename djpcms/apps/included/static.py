@@ -7,7 +7,7 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms.views import appview, appsite
+from djpcms import views
 from djpcms.utils.importer import import_module
 from djpcms.utils.http import http_date
 from djpcms.template import loader
@@ -73,7 +73,8 @@ It looks for the ``media`` directory in each installed application.'''
         map[name] = handler(name,path)
     return map
 
-class StaticFileView(appview.View):
+
+class StaticFileView(views.View):
     
     def __init__(self, show_indexes=False, **kwargs):
         self.show_indexes = show_indexes
@@ -191,13 +192,13 @@ class StaticFileApp(StaticFileView):
 
 
 
-class Static(appsite.Application):
+class Static(views.Application):
     '''A simple application for handling static files.
     This application should be only used during development while
     leaving the task of serving media files to other servers in production.'''
     _media = None
     site_name = 'site'
-    show_indexes = False
+    show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticFileRoot()
     app  = StaticFileApp(parent = 'main', regex = '(?P<path>[\w./-]*)', append_slash = False)

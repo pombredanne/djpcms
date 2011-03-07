@@ -1,6 +1,4 @@
-from djpcms import sites
-
-from djpcms.views import appview
+from djpcms import sites, views
 from djpcms.forms.utils import saveform
 
 from .orm import logout
@@ -10,7 +8,7 @@ __all__ = ['LogoutView',
 
 
 
-class LogoutView(appview.ModelView):
+class LogoutView(views.ModelView):
     '''
     Logs out a user, if there is an authenticated user :)
     '''
@@ -30,9 +28,11 @@ class LogoutView(appview.ModelView):
 
 
 
-class LoginView(appview.ModelView):
-    '''A Battery included Login view.
+class LoginView(views.ModelView):
+    '''A Battery included Login view. You need to
+    create a login.html file in your site template directory.
     '''
+    template_name = 'login.html'
     def __init__(self, regex = 'login', insitemap = False, isplugin = True, **kwargs):
         super(LoginView,self).__init__(regex = regex,
                                        insitemap = insitemap,

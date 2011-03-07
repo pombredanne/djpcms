@@ -42,7 +42,7 @@ class InnerTemplate(TimeStamp, TemplateInterface):
     
     def save(self):
         if not self.blocks:
-            self.blocks = self.get_blocks()
+            self.blocks_from_content()
         super(InnerTemplate,self).save()
     
     

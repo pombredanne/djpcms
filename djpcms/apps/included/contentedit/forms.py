@@ -9,9 +9,15 @@ def allsites():
     return Site.objects.all()
 
 
-def get_templates():
-    from djpcms.models import Site
-    return InnerTemplate.objects.all()
+class get_templates(object):
+    
+    def __init__(self):
+        from djpcms.models import InnerTemplate
+        self.model = InnerTemplate
+        
+    def __iter__(self):
+        for obj in self.model.objects.all():
+            yield obj.id,force_str(obj)
 
 
 def siteapp_choices():

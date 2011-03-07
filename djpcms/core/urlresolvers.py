@@ -124,12 +124,12 @@ method'''
             try:
                 view, rurl, kwargs = self.resolver.resolve(subpath)
             except Resolver404 as e:
-                raise self.http.Http404(str(e))
+                raise self.http.Http404(str(e),site = site)
             if isinstance(view,ResolverMixin):
                 if len(rurl) == 1:
                     return view.resolve(path, rurl[0], site, numpass+1)
                 else:
-                    raise self.http.Http404
+                    raise self.http.Http404(site = site)
             else:
                 return cachevalue(path, view, site, kwargs)
         else:

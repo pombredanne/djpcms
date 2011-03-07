@@ -855,8 +855,10 @@
                 widgets.push(widget);
             };
             this.formatFloat = function (s) {
-                var i = parseFloat(s.replace(',',''));
-                return (isNaN(i)) ? 0 : i;
+                if(typeof s === 'string') {
+                    s = parseFloat(s.replace(',',''));
+                }
+                return (isNaN(s)) ? 0 : i;
             };
             this.formatInt = function (s) {
                 var i = parseInt(s);

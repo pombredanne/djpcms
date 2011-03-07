@@ -1,11 +1,11 @@
+'''Utility module for creating a navigation list
 '''
-Utility module for creating a navigation list
-'''
+from djpcms import UnicodeMixin
 from djpcms.template import loader
 from djpcms.utils import lazyattr
 
 
-class lazycounter(object):
+class lazycounter(UnicodeMixin):
     '''A lazy view counter used to build navigations type iterators
     '''
     def __new__(cls, djp, **kwargs):
@@ -15,6 +15,12 @@ class lazycounter(object):
         obj.kwargs = kwargs
         return obj
 
+    def __unicode__(self):
+        return self.render()
+    
+    def render(self):
+        raise NotImplementedError
+    
     def __len__(self):
         return len(self.elems())
     
@@ -103,7 +109,7 @@ class Navigator(lazycounter):
 
     def render(self):
         if self.mylevel <= self.levels:
-            return loader.render_to_string('djpcms/bits/navitem.html', {'navigator': self})
+            return loader.render('djpcms/bits/navitem.html', {'navigator': self})
         else:
             return ''         
 
@@ -145,5 +151,4 @@ class Breadcrumbs(lazycounter):
             return []
         else:
             return crumbs
-        
         

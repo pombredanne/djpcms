@@ -6,7 +6,7 @@ INSTALLED_APPS = []
 DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
-APPLICATION_URL_MODULE = None
+APPLICATION_URLS = None
 LANGUAGE_REDIRECT               = False
 HTML_CLASSES                    = None
 MAX_SEARCH_DISPLAY              = 20
@@ -81,7 +81,7 @@ CONTENT_INLINE_EDITING = {'available':True,
 JINJA2_TEMPLATE_LOADERS = [('djpcms.utils.jinja2loaders.ApplicationLoader',)]
 JINJA2_EXTENSIONS = []
 
-
+DJANGO = False
 LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,

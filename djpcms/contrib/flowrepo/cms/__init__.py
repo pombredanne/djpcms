@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 
 from djpcms.views import appview, appsite
-from djpcms.utils.html import htmlwrap, Paginator
+from djpcms.html import Paginator
 from djpcms.apps.included.tagging import ArchiveTaggedApplication, TagApplication
 
 from djpcms.contrib.flowrepo.models import FlowRelated, FlowItem, Report
@@ -60,7 +60,7 @@ class FlowAddView(appview.AddView):
             return t
         
 
-class FlowEditView(appview.EditView):
+class FlowEditView(appview.ChangeView):
     
     def get_url(self, djp, **kwargs):
         url = super(FlowEditView,self).get_url(djp, **kwargs)
@@ -95,9 +95,6 @@ class FlowItemApplication(ArchiveTaggedApplication):
     view             = appview.ViewView(regex = slug_regex, parent = 'applications')
     edit             = FlowEditView()
     delete           = appview.DeleteView()
-
-    class Media:
-        css = {'all': ('flowrepo/flowrepo.css',)}
         
     def __init__(self, *args, **kwargs):
         content_models = {}
@@ -258,7 +255,7 @@ class WebAccountApplication(TagApplication):
     inherit          = True
     
     add       = appview.AddView(regex = 'add', parent = None)
-    edit      = appview.EditView(regex = 'edit/(?P<id>\d+)', parent = None)
+    edit      = appview.ChangeView(regex = 'edit/(?P<id>\d+)', parent = None)
     delete    = appview.DeleteView(regex = 'delete/(?P<id>\d+)', parent = None)
         
     def has_permission(self, request = None, obj = None):

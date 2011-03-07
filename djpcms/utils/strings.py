@@ -6,24 +6,11 @@ from decimal import Decimal
 
 from py2py3 import string_type
 
-__all__ = ['UnicodeMixin',
-           'encode_str',
+__all__ = ['encode_str',
            'force_str']
 
 
 protected_types = (int, datetime, date, time, float, Decimal)
-
-
-class UnicodeMixin(object):
-    """
-    A class whose __str__ returns its __unicode__ as a UTF-8 bytestring.
-
-    Useful as a mix-in.
-    """
-    if sys.version_info[0] >= 3:
-        __str__ = lambda x: x.__unicode__()
-    else:
-        __str__ = lambda x: unicode(x).encode('utf-8')
 
 
 def encode_str(s, encoding='utf-8', strings_only=False, errors='strict'):

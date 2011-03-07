@@ -176,8 +176,7 @@ class ManagementUtility(object):
         return '\n'.join(usage)
 
     def fetch_command(self, subcommand):
-        """
-        Tries to fetch the given subcommand, printing a message with the
+        """Tries to fetch the given subcommand, printing a message with the
         appropriate command called from the command line (usually
         "django-admin.py" or "manage.py") if it can't be found.
         """
@@ -215,8 +214,13 @@ class ManagementUtility(object):
             subcommand = self.argv[1]
         except IndexError:
             subcommand = 'help' # Display help if no arguments were given.
-
-        if subcommand == 'help':
+            
+        if subcommand == 'django':
+            from django.core.management import ManagementUtility
+            argv = sys.argv[:1] + sys.argv[2:]
+            utility = ManagementUtility(argv)
+            utility.execute()
+        elif subcommand == 'help':
             if len(args) > 2:
                 self.fetch_command(args[2]).print_help(self.prog_name, args[2])
             else:

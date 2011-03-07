@@ -1,6 +1,6 @@
 from py2py3 import ispy3k
 
-if ispy3k():
+if ispy3k:
     from http.cookies import SimpleCookie, BaseCookie, CookieError
 else:
     from Cookie import SimpleCookie, BaseCookie, CookieError

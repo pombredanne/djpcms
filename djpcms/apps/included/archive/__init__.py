@@ -6,13 +6,12 @@ import copy
 from djpcms.template import loader
 from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
 from djpcms.utils import force_str
-from djpcms.views.appsite import ModelApplication
 from djpcms.apps.included.archive import views 
 
 __all__ = ['ArchiveApplication']
 
 
-class ArchiveApplication(ModelApplication):
+class ArchiveApplication(views.ModelApplication):
     '''
     An application urls wich define a search and archive views
     '''

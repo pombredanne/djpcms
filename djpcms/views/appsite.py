@@ -5,7 +5,7 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems, is_string, is_bytes_or_string
+from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
 import djpcms
 from djpcms.forms import FormType, HtmlForm, SubmitInput, MediaDefiningClass
@@ -16,9 +16,11 @@ from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException
 from djpcms.utils import slugify
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
-from djpcms.views.baseview import response_from_page
-from djpcms.views.appview import View, ViewView
 from djpcms.utils.collections import OrderedDict
+
+from .baseview import response_from_page, absolute_parent
+from .appview import View, ViewView
+from .utils import ObjectDefinition
 
 
 __all__ = ['Application',
@@ -209,6 +211,8 @@ of objects. Default is ``None``.'''
             page = app.get_page(djp)
             if page:
                 return response_from_page(djp, page.parent)
+            else:
+                return absolute_parent(djp)
         else:
             return parent_view(djp.request, **djp.kwargs)
     
@@ -407,11 +411,12 @@ functionality when searching for model instances.'''
     #
     list_display_links = []
     
-    def __init__(self, baseurl, model, **kwargs):
+    def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
             raise ValueError('Model is null not defined in application {0}'.format(self))
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
+        self.object_display = object_display or self.object_display or self.list_display
         
     def _makename(self, name):
         name = name or self.name
@@ -457,7 +462,7 @@ Re-implement for custom arguments.'''
         
     def object_from_form(self, form):
         '''Save form and return an instance pof self.model'''
-        return form.save()
+        return form.save(commit = True)
     
     # APPLICATION URLS
     #----------------------------------------------------------------
@@ -598,16 +603,11 @@ This dictionary should be used to render an object within a template. It returns
         for obj in pa.qs:
             yield render(template_name, object_content(djp, obj))
     
-    def render_object(self, djp, wrapper = None):
+    def render_object(self, djp):
+        '''Render an object in its object page.
+        This is usually called in the view page of the object.
         '''
-        Render an object.
-        This is usually called in the view page of the object
-        '''
-        obj      = djp.instance
-        request  = djp.request
-        template_name = self.get_object_view_template(obj, wrapper or djp.wrapper)
-        content = self.object_content(djp, obj)
-        return loader.render(template_name, content)
+        return to_string(ObjectDefinition(self, djp))
         
     def title_object(self, obj):
         '''

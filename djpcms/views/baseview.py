@@ -3,9 +3,11 @@ import logging
 from py2py3 import range
 
 import djpcms
+from djpcms import sites
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.forms import Media
 from djpcms.template import loader
+from djpcms.utils import parentpath
 
 from .response import DjpResponse
 from .contentgenerator import BlockContentGen
@@ -22,6 +24,12 @@ and a Page instance, it calculates a new response object.'''
     else:
         return None
     
+    
+def absolute_parent(djp):
+    path = parentpath(djp.url)
+    if path:
+        return sites.djp(djp.request, path[1:])
+
 
 def page_edit_url(djp):
     site = djp.site 
@@ -130,6 +138,7 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
             return 'link'
     
     def parentresponse(self, djp):
+        '''Objtain the parent view response object'''
         return response_from_page(djp, djp.page.parent)
     
     def specialkwargs(self, page, kwargs):

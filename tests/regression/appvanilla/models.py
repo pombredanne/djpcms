@@ -14,6 +14,6 @@ class Trade(models.Model):
     
     
 class StrategyTrade(models.Model):
-    strategy   = models.ForeignKey(Strategy, related_name = 'wines')
-    trade      = models.ForeignKey(Trade, related_name = 'grapes')
+    strategy   = models.ForeignKey(Strategy, related_name = 'trades')
+    trade      = models.ForeignKey(Trade, related_name = 'strategies')
     percentage = models.FloatField(default = 1)

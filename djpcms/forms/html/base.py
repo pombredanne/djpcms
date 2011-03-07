@@ -28,6 +28,7 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     inline = False
     template = None
     attributes = {'id':None}
+    default_class = None
     
     def __init__(self, tag = None, cn = None, template = None, js = None,
                  renderer = None, css = None, **kwargs):
@@ -45,6 +46,8 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         self.default_style = kwargs.get('default_style',self.default_style)
         self.__attrs = attrs
         self.__classes = set()
+        if self.default_class:
+            self.addClass(self.default_class)
         self.addClass(cn)
         media = self.media
         media.add_js(js)

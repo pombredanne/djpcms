@@ -1,16 +1,22 @@
 from djpcms import test
+from djpcms.apps.included.vanilla import Application 
 
 from regression.appvanilla.models import Strategy
 
+def appurls():
+    return Application('/strategies/',Strategy),
+
 
 class TestAppViews(test.TestCase):
-    appurls = 'regression.appvanilla.appurls'
+    appurls = 'regression.appvanilla.tests.appurls'
     
     def testParents(self):
         appmodel = self.site.for_model(Strategy)
         search = appmodel.getview('search')
         view = appmodel.getview('view')
         self.assertEqual(view.parent,search)
+        add_view = appmodel.getview('add')
+        self.assertEqual(add_view.parent,search)
         edit = appmodel.getview('edit')
         self.assertEqual(edit.parent,view)
         

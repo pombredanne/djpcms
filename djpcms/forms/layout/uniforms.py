@@ -78,7 +78,11 @@ class Columns(UniFormElement):
         def _data(column):
             yield '<div>'
             for field in column:
-                yield render_field(djp, dfields[field], layout)
+                if not isinstance(field,FormLayoutElement):
+                    field = dfields[field]
+                    yield render_field(djp, field, layout)
+                else:
+                    yield field.render(djp,form,layout)
             yield '</div>'
             
         for i,column in enumerate(self.columns):

@@ -319,26 +319,6 @@ site is already registered at ``route``.'''
         setattr(request,'instance',djp.instance)
         return djp
         
-    def request_handler(self, request, url):
-        '''Entry points for requests'''
-        cleaned_path = self.clean_path(request.environ)
-        if isinstance(cleaned_path,self.http.HttpResponse):
-            return cleaned_path
-        try:
-            djp = self.djp(request,url)
-            if isinstance(djp,self.http.HttpResponse):
-                return djp
-            else:
-                return djp.response()
-        except PermissionDenied as e:
-            settings = request.site.settings
-            if settings.HTTP_LIBRARY == 'django':
-                from django.core import exceptions
-                raise exceptions.PermissionDenied(e)
-            else:
-                raise           
-        
-        
         
 sites = ApplicationSites()
 

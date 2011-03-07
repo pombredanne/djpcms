@@ -109,8 +109,6 @@ class FormLayoutElement(BaseFormLayout):
         
     def render_field(self, djp, field, layout):
         '''Render a single field'''
-        if isinstance(field,FormLayoutElement):
-            return field.render(djp,layout)
         form = field.form
         rendered_fields = layout.get_rendered_fields(form)
         if not field.name in rendered_fields:

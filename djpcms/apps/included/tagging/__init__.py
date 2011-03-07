@@ -1,9 +1,8 @@
+from djpcms import forms
 from djpcms.views import appsite, appview
-#from djpcms.forms import AutocompleteManyToManyInput, set_autocomplete
 from djpcms.apps.included.archive import ArchiveApplication, views as archive
 
 from tagging.models import Tag, TaggedItem
-from tagging.forms import TagField as TagFieldBase
 
 
 # REGEX FOR A TAG
@@ -15,7 +14,7 @@ def add_tags(self, c, djp, obj):
     tagurls = []
     tagview = self.getview('tag1')
     if obj.tags and tagview:
-        tags = obj.tags.split(u' ')
+        tags = obj.tags.split()
         for tag in tags:
             djp = tagview(request, tag1 = tag)
             tagurls.append({'url':djp.url,
@@ -82,6 +81,7 @@ class TagArchiveView(archive.ArchiveView):
 
 
 class TagsApplication(appsite.ModelApplication):
+    '''An application for anabling tags autocomplete'''
     search_fields = ['name']
     complete = appview.AutocompleteView()
 
@@ -119,13 +119,7 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
     year_archive1  = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
     month_archive1 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive1')
     day_archive1   = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive1')
-    
-    #tagc1          = appview.ModelView(regex = 'tags2/(?P<tag1>%s)' % tag_regex)
-    #tag2           = TagArchiveView(regex = '(?P<tag2>%s)' % tag_regex, parent = 'tagc1')
-    #year_archive2  = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag2')
-    #month_archive2 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive2')
-    #day_archive2   = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive2')
-    
+     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
     
@@ -134,20 +128,10 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
         return add_tags(self, c, djp, obj)
     
     
-class TagField(TagFieldBase):
-    #auto_class = AutocompleteManyToManyInput
-    model      = Tag
+class TagField(forms.CharField):
     
-    def __init__(self, *args, **kwargs):
-        self.separator = kwargs.pop('separator',' ')
-        self.inline = kwargs.pop('inline',True)
-        super(TagField,self).__init__(*args, **kwargs)
-        
-    def __deepcopy__(self, memo):
-        result = super(TagField,self).__deepcopy__(memo)
-        result._basequery()
-        return set_autocomplete(result)
-    
-    def _basequery(self):
-        self.queryset = self.model.objects.all()
-    
+    def _handle_params(self, choices = None, separator = ' ', **kwargs):
+        self.choices = choices
+        self.separator = separator
+        self._raise_error(kwargs)
+

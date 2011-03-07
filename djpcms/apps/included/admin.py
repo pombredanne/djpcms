@@ -47,5 +47,5 @@ class ApplicationList(views.View):
 
 class SiteAdmin(views.Application):
     list_display = ['name','actions']
-    home = ApplicationList()
+    home = ApplicationList(title = lambda djp : 'Admin')
     

@@ -6,7 +6,7 @@ and defines several ajax enabled sub-views
 from py2py3 import range
 
 from djpcms import forms, sites
-from djpcms.forms import SubmitInput, HtmlWidget
+from djpcms.forms import FormType, HtmlForm, SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
@@ -94,9 +94,9 @@ class ChangeContentView(appview.ChangeView):
             pform,purl = self.get_plugin_form(djp, instance.plugin)
             id = instance.pluginid('options')
             if pform:
-                layout = getattr(pform,'layout',None) or FormLayout()
-                layout.id = id
-                pform.layout = layout
+                if isinstance(pform,FormType):
+                    pform = HtmlForm(pform)
+                #layout.id = id
                 fw.add(pform)
             else:
                 # No plugin

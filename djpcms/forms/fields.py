@@ -211,13 +211,12 @@ class ChoiceField(Field):
     widget = Select
     
     def _handle_params(self, choices = None, separator = ' ', inline = True,
-                       empty_label = None, initial = None, **kwargs):
+                       empty_label = None, **kwargs):
         '''Choices is an iterable or a callable which takes the form as only argument'''
         self.choices = choices
         self.empty_label = empty_label
         self.separator = separator
         self.inline = inline
-        self.initial = initial
         self._raise_error(kwargs)
         
     def get_choices(self):

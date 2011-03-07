@@ -1,3 +1,5 @@
+from djpcms.utils import urlquote
+
 __all__ = ['Paginator']
 
 
@@ -8,7 +10,8 @@ class Paginator(object):
     navigate through the search.
     '''
     
-    def __init__(self, request, data = None, per_page = 20, numends = 2, maxentries = 15):
+    def __init__(self, request, data = None, per_page = 20,
+                 numends = 2, maxentries = 15):
         '''
         @param data:       queryset
         @param page:       page to display
@@ -48,11 +51,7 @@ class Paginator(object):
         return max(min(page,self.pages),1)
     
     def datadict(self):
-        s = '?'
-        li = []
-        for k,v in self._datadict.items():
-            li.append('%s=%s' % (k,urlquote(v)))
-        return mark_safe('&'.join(li))
+        return urlquote('?'+'&'.join(('%s=%s' % item for item in self._datadict.items())))
         
     def navigation(self):
         if self.pages == 1:

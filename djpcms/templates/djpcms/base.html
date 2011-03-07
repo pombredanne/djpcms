@@ -8,8 +8,8 @@
 
 <div id="page-body">
  <div id="site-body"{% block site_body_class %} class="{{ grid.container_class }}"{% endblock %}>{% block page_prebody %}
-   <div class="{{ grid.column1 }}">{% block breadcrumbs %}{% if page.level %}
-    {% include "djpcms/bits/breadcrumbs.html" %}{% else %}{% if title %}
+   <div class="{{ grid.column1 }}">{% block breadcrumbs %}{% if breadcrumbs %}
+    {{ breadcrumbs }}{% else %}{% if title %}
     <div class="breadcrumbs">
     {{ title }}
     </div>{% endif %}{% endif %}{% endblock %}

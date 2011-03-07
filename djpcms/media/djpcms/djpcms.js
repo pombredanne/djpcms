@@ -397,6 +397,13 @@
 		}
 	});
 	
+	$.djpcms.decorator({
+	    id:'jquiry-buttons',
+	    decorate: function(obj, config) {
+	       $('input[type="submit"]',obj).button();    
+	    }
+	});
+	
 	
 	/**
 	 * Ajax links, buttons and select 

@@ -858,7 +858,7 @@
                 if(typeof s === 'string') {
                     s = parseFloat(s.replace(',',''));
                 }
-                return (isNaN(s)) ? 0 : i;
+                return (isNaN(s)) ? 0 : s;
             };
             this.formatInt = function (s) {
                 var i = parseInt(s);

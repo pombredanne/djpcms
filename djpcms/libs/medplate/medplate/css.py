@@ -218,7 +218,9 @@ def CssContext(name, parent = None, **kwargs):
             break
         
     if context and not cts:
-        context.data.update(kwargs)
+        data = kwargs.get('data',None)
+        if data:
+            context.data.update(data)
         return context
     
     if len(cts) > 1:

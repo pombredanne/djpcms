@@ -63,17 +63,17 @@ CssContext('uniform',
 
 
 #________________________________________ SUBMITS AND BUTTONS
-CssContext('submit',
-           tag = 'input[type="submit"]',
-           template = 'djpcms/style/submit.css_t',
-           data = {
-                   'background':'#FFFFFF',
-                   'border':'1px solid #aaa',
-                   'text_align':'center',
-                   'padding': '3px 5px',
-                   'min_width': '50px'
-                   }
-           )
+#CssContext('submit',
+#           tag = 'input[type="submit"]',
+#           template = 'djpcms/style/submit.css_t',
+#           data = {
+#                   'background':'#FFFFFF',
+#                   'border':'1px solid #aaa',
+#                   'text_align':'center',
+#                   'padding': '3px 5px',
+#                   'min_width': '50px'
+#                   }
+#           )
 
 #________________________________________ TAGS
 CssContext('tags',

@@ -115,22 +115,6 @@ class BaseOrmWrapper(object):
         else:
             return attr
         
-    def totable(self, obj):
-        '''Render an object as definition list.'''
-        label_for_field = self.label_for_field
-        getrepr = self.getrepr
-        def data():
-            for field in self.object_display:
-                name = label_for_field(field)
-                yield {'name':name,'value':getrepr(field,obj)}
-        content = {'module_name':self.module_name,
-                   'id':self.get_object_id(obj),
-                   'data':data(),
-                   'item':obj}
-        return loader.render(['%s/%s_table.html' % (self.app_label,self.module_name),
-                              'djpcms/components/object_definition.html'],
-                              content)
-            
     def model_to_dict(self, instance, fields = None, exclude = None):
         raise NotImplementedError
     
@@ -190,7 +174,7 @@ class BaseOrmWrapper(object):
                 else:
                     url = None
                 
-                var = conditional_escape(result_repr)
+                var = result_repr
                 if url:
                     if url != path:
                         var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)

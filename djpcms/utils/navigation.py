@@ -18,9 +18,6 @@ class lazycounter(UnicodeMixin):
     def __unicode__(self):
         return self.render()
     
-    def render(self):
-        raise NotImplementedError
-    
     def __len__(self):
         return len(self.elems())
     
@@ -39,10 +36,13 @@ class lazycounter(UnicodeMixin):
         for elem in elems:
             yield elem
             
-    def _items(self, **kwargs):
+    def render(self):
+        '''Render the navigation list
         '''
-        The only function to implement.
-        It should return an iterable object (but not a generator)
+        raise NotImplementedError
+    
+    def _items(self, **kwargs):
+        '''It should return an iterable object (but not a generator)
         '''
         raise NotImplementedError
     
@@ -118,37 +118,41 @@ class Breadcrumbs(lazycounter):
     '''
     Breadcrumbs for current page
     '''
+    template = ("breadcrumbs.html",
+                "djpcms/components/breadcrumbs.html")
     
     def __init__(self, *args, **kwargs):
         self.min_length = self.kwargs.pop('min_length',1)
     
     def make_item(self, djp, classes, first):
-        parent = djp.parent
-        if parent:
-            c = {'name':    djp.title,
-                 'classes': ' '.join(classes)}
-            if not first:
-                try:
-                    c['url'] = djp.url
-                except:
-                    pass
-            return c
+        c = {'name':    djp.title,
+             'classes': ' '.join(classes)}
+        if not first:
+            try:
+                c['url'] = djp.url
+            except:
+                pass
+        return c
         
     def _items(self, **kwargs):
         first   = True
         classes = []
         djp     = self.djp
-        request = djp.request
-        val     = self.make_item(djp,classes,first)
         crumbs  = []
-        while val:
-            crumbs.insert(0, val)
+        while djp:
+            val     = self.make_item(djp,classes,first)
             first = False
             djp   = djp.parent
-            val   = self.make_item(djp, classes, first)
-            
-        if len(crumbs) < self.min_length:
-            return []
-        else:
-            return crumbs
+            crumbs.append(val)
         
+        cutoff = self.min_length
+        if len(crumbs) >= cutoff:
+            cutoff -= 1
+            if cutoff:
+                crumbs = crumbs[:-cutoff]
+            return list(reversed(crumbs))
+        else:
+            return []
+    
+    def render(self):
+        return loader.render(self.template,{'breadcrumbs':self})

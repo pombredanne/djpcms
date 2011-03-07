@@ -1,6 +1,6 @@
 import hashlib
 
-from py2py3 import iteritems
+from py2py3 import iteritems, to_string
 
 import django
 
@@ -32,7 +32,7 @@ class OrmWrapper(BaseOrmWrapper):
         #
         #Calculate the Hash id of metaclass `meta`
         self.model_to_dict = model_to_dict
-        self._label_for_field = lambda name: label_for_field(name, self.model, self.model_admin)
+        self._label_for_field = lambda name: to_string(label_for_field(name, self.model, self.model_admin))
         
     def _hash(self):
         sha = hashlib.sha1('django({0})'.format(self.meta))
@@ -42,31 +42,6 @@ class OrmWrapper(BaseOrmWrapper):
         from django.db.models.base import ModelBase
         if not isinstance(self.model,ModelBase):
             raise ValueError
-        
-    def set_application(self, appmodel):
-        super(OrmWrapper,self).set_application(appmodel)
-        model_admin = self.model_admin
-        list_display = appmodel.list_display
-        list_display_links = appmodel.list_display_links
-        search_fields = appmodel.search_fields
-        if list_display is None:
-            if model_admin:
-                list_display = model_admin.list_display
-            else:
-                list_display = []
-        if list_display_links is None:
-            if model_admin:
-                list_display_links = model_admin.list_display_links
-            else:
-                list_display_links = []
-        if search_fields is None:
-            if model_admin:
-                search_fields = model_admin.search_fields
-            else:
-                search_fields = []
-        self.list_display = list_display
-        self.list_display_links = list_display_links
-        self.search_fields = search_fields
     
     def has_add_permission(self, user, obj=None):
         return has_permission(user, self.get_add_permission(), obj)

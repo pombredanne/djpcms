@@ -188,7 +188,6 @@ Usually, there is no need to override this function. If your plugin needs input 
             initial = self.arguments(args) or None
             return self.form(**form_kwargs(request = djp.request,
                                            initial = initial,
-                                           withrequest = self.form_withrequest,
                                            withdata = withdata,
                                            own_view = djp.own_view()))
             

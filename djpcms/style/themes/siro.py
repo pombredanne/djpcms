@@ -1,6 +1,4 @@
-from djpcms.contrib.medplate.themes.allwhite import context as base_context
-
-context = base_context.copy()
+from medplate import CssTheme
 
 border_color = '#e0e0e0'
 

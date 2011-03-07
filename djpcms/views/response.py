@@ -130,9 +130,8 @@ return the wrapper with the underlying view.'''
     
     @lazyattr
     def _get_parent(self):
-        '''
-        Parent Response object
-        '''
+        '''Parent Response object, that is a response object associated with
+the parent of the embedded view.'''
         return self.view.parentresponse(self)
     parent = property(_get_parent)
     

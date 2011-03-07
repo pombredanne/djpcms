@@ -8,6 +8,7 @@ from djpcms import ispy3k
 from .strings import *
 from .jsontools import *
 from .numbers import *
+from .urls import *
 
 if ispy3k:
     import pickle
@@ -85,36 +86,6 @@ def safepath(path, rtx = '-'):
     for p in path.split('/'):
         if p:
             yield slugify(p, rtx = rtx)
-
-
-def urlbits(url):
-    if url.endswith('/'):
-        url = url[:-1]
-    if url.startswith('/'):
-        url = url[1:]
-    return url.split('/')
-
-
-def urlfrombits(bits):
-    if bits:
-        return '/%s/' % '/'.join(bits)
-    else:
-        return '/'
-    
-
-class UnicodeObject(object):
-    
-    def __repr__(self):
-        try:
-            u = stringtype(self)
-        except:
-            u = '[Bad Unicode data]'
-        return smart_str('<{0}: {1}>'.format(self.__class__.__name__, u))
-
-    def __str__(self):
-        if hasattr(self, '__unicode__'):
-            return force_str(self).encode('utf-8')
-        return '{0} object'.format(self.__class__.__name__)
 
     
 def slugify(value, rtx = '-'):

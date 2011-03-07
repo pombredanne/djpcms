@@ -55,7 +55,7 @@ Must be used as a base class for TestCase classes'''
         return sites.make(self.SITE_DIRECTORY,
                           'conf',
                           route = self.urlbase,
-                          APPLICATION_URL_MODULE = appurls,
+                          APPLICATION_URLS = appurls,
                           INSTALLED_APPS = apps)
         
     def installed_apps(self):

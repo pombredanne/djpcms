@@ -28,14 +28,16 @@ re_escaped = re.compile(r'\\(.)')
 
 
 class Formatter(object):
-    def format(self, formatstr):
-        pieces = []
+    
+    def pieces(self, formatstr):
         for i, piece in enumerate(re_formatchars.split(force_str(formatstr))):
             if i % 2:
-                pieces.append(force_str(getattr(self, piece)()))
+                yield force_str(getattr(self, piece)())
             elif piece:
-                pieces.append(re_escaped.sub(r'\1', piece))
-        return ''.join(pieces)
+                yield re_escaped.sub(r'\1', piece)
+                
+    def format(self, formatstr):
+        return ''.join(self.pieces(formatstr))
 
 
 class TimeFormat(Formatter):
@@ -173,7 +175,7 @@ class DateFormat(TimeFormat):
 
     def M(self):
         "Month, textual, 3 letters; e.g. 'Jan'"
-        return MONTHS_3[self.data.month].title()
+        return MONTHS_3[self.data.month]
 
     def n(self):
         "Month without leading zeros; i.e. '1' to '12'"
@@ -285,7 +287,7 @@ class DateFormat(TimeFormat):
 def format(value, format_string):
     "Convenience function"
     df = DateFormat(value)
-    return df.format(format_string)
+    return force_str(df.format(format_string))
 
 
 def time_format(value, format_string):

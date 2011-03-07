@@ -11,6 +11,7 @@ from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.html import Paginator
 from djpcms.utils import construct_search, isexact
+from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
 from djpcms.core.orms import table
@@ -266,6 +267,13 @@ Usage::
             return re.sub("/+" , "/", purl)
         else:
             return purl
+        
+    def title(self, djp):
+        page = djp.page
+        if page:
+            return page.title
+        else:
+            return nicename(self.appmodel.name)
     
     def names(self):
         return self.regex.names
@@ -279,10 +287,8 @@ Usage::
                 return 0
             else:
                 return page.in_navigation
-        if self.in_nav:
-            return 1
         else:
-            return 0
+            return self.in_nav
         
     def linkname(self, djp):
         page = djp.page
@@ -391,8 +397,7 @@ replaced during initialization.
         return loader.render(self.view_template, c)
     
     def parentresponse(self, djp):
-        '''
-        Retrive the parent response
+        '''Retrive the parent response
         '''
         return self.appmodel.parentresponse(djp, self)
     

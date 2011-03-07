@@ -5,8 +5,8 @@ import re
 import mimetypes
 import warnings
 
-from py2py3 import ispy3k
-if ispy3k():
+from djpcms import ispy3k
+if ispy3k:
     from io import StringIO
     from urllib.parse import urlparse, urlunparse, urlsplit, unquote,\
                              urlencode
@@ -17,7 +17,7 @@ else:
     from urlparse import urlparse, urlunparse, urlsplit, unquote
     from urllib import urlencode
     
-from djpcms import sites
+from djpcms.apps.handlers import DjpCmsHandler
 
 
 __all__ = ('Client', 'RequestFactory',
@@ -135,6 +135,7 @@ class RequestFactory(object):
         self.defaults = defaults
         self.cookies = SimpleCookie()
         self.errors = StringIO()
+        self.handler = DjpCmsHandler()
 
     def _base_environ(self, **request):
         """
@@ -303,62 +304,8 @@ class Client(RequestFactory):
         """The master request method. Composes the environment dictionary
 and passes to the handler, returning the result of the handler."""
         environ = self._base_environ(**request)
-        try:
-            try:
-                response = sites.wsgi(environ)
-            except TemplateDoesNotExist as e:
-                # If the view raises an exception, Django will attempt to show
-                # the 500.html template. If that template is not available,
-                # we should ignore the error in favor of re-raising the
-                # underlying exception that caused the 500 error. Any other
-                # template found to be missing during view error handling
-                # should be reported as-is.
-                if e.args != ('500.html',):
-                    raise
-
-            # Look for a signalled exception, clear the current context
-            # exception data, then re-raise the signalled exception.
-            # Also make sure that the signalled exception is cleared from
-            # the local cache!
-            if self.exc_info:
-                exc_info = self.exc_info
-                self.exc_info = None
-                raise (exc_info[1], None, exc_info[2])
-
-            # Save the client and request that stimulated the response.
-            response.client = self
-            response.request = request
-
-            # Add any rendered template detail to the response.
-            response.templates = data.get("templates", [])
-            response.context = data.get("context")
-
-            # Flatten a single context. Not really necessary anymore thanks to
-            # the __getattr__ flattening in ContextList, but has some edge-case
-            # backwards-compatibility implications.
-            if response.context and len(response.context) == 1:
-                response.context = response.context[0]
-
-            # Provide a backwards-compatible (but pending deprecation) response.template
-            def _get_template(self):
-                warnings.warn("response.template is deprecated; use response.templates instead (which is always a list)",
-                              PendingDeprecationWarning, stacklevel=2)
-                if not self.templates:
-                    return None
-                elif len(self.templates) == 1:
-                    return self.templates[0]
-                return self.templates
-            response.__class__.template = property(_get_template)
-
-            # Update persistent cookie data.
-            if response.cookies:
-                self.cookies.update(response.cookies)
-
-            return response
-        finally:
-            signals.template_rendered.disconnect(dispatch_uid="template-render")
-            got_request_exception.disconnect(dispatch_uid="request-exception")
-
+        return self.handler(environ,None)
+    
     def get(self, path, data={}, follow=False, **extra):
         """
         Requests a response from the server using GET.

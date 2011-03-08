@@ -74,32 +74,65 @@ def process_views(view,views,app):
             views.remove(view)
             return view
     else:
-        if view is not app.root_application:
-            view.parent = app.root_application
+        if view is not app.root_view:
+            view.parent = app.root_view
         views.remove(view)
         return view
 
 
 class Application(ApplicationBase,ResolverMixin):
-    '''Base class for djpcms applications.
+    '''Base class for djpcms
+applications. It defines a set of views which are somehow related to each other
+and shares a common application object ``appmodel`` which is an instance of
+this class. Application views are instances of :class:`djpcms.views.View` and
+are specified as class attributes of :class:`Application`.
     
+:parameter baseurl: the root part of the application views urls.
+                    Check :attr:`baseurl` for more information.
+:parameter editavailable: ``True`` if :ref:`inline editing <inline-editing>`
+                          is available for the application.
+:parameter name: Application name. Check :attr:`name` for more information. Default ``None``.
+:parameter in_navigation: If provided it overrides the :attr:`root_view` ``in_nav``
+                          attribute. Default ``None``. 
+    
+**Attributes**
+
 .. attribute:: baseurl
 
-    the root part of the application views urls. Must be provided with trailing slashes (ex. "/docs/")
+    the root part of the application views urls. It must be provided with trailing slashes::
+    
+        '/docs/'
+        '/myapp/long/path/'
+        '/'
+        
+    and so forth.
+    
+.. attribute:: name
+
+    Application name. Calculated from class name if not provided.
+    
+    Default ``None``
     
 .. attribute:: application_site
 
-    instance of :class:`djpcms.views.appsite.ApplicationSite`, the application site manager.
+    instance of :class:`djpcms.views.ApplicationSite`, the application site manager
+    to which the application is registered with.
     
 .. attribute:: editavailable
 
     ``True`` if :ref:`inline editing <inline-editing>`
     is available for the application.
+    
+.. attribute:: root_view
+
+    An instance of :class:`djpcms.views.View` which represents the root view of the application.
+    This attribute is calculated by djpcms and specified by the user.
 '''    
     inherit          = False
-    '''Flag indicating if application views are inherited from base class. Default ``False``.'''
+    '''Flag indicating if application views are inherited from base class.
+    
+    Default ``False``.'''
     name             = None
-    '''Application name. Default ``None``, calculated from class name.'''
     description      = None
     '''Application description. Default ``None``, calculated from name.'''
     authenticated    = False
@@ -107,24 +140,27 @@ class Application(ApplicationBase,ResolverMixin):
     has_api          = False
     '''Flag indicating if API is available. Default ``False``.'''
     hidden           = False
-    '''If ``True`` the application is only used internally. Default ``False``.'''
+    '''If ``True`` the application is only used internally and it won't
+    appear in any navigation.
+    
+    Default ``False``.'''
     form             = None
     '''Default form class used in the application. Default ``None``.'''
     form_method      ='post'
-    '''Form submit method, ``get`` or ``post``. Default ``post``.'''
+    '''Default form submit method for views, ``get`` or ``post``.
+    
+    Default ``post``.'''
     form_ajax        = True
     '''The default interaction in forms. If True the default form submmission is performed using ajax. Default ``True``.'''
     form_template    = None
     '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
-    in_navigation    = True
-    '''True if application'views can go into site navigation. Default ``True``.
-No reason to change this default unless you really don't want to see the views in the site navigation.'''
-    list_per_page    = 30
+    list_per_page    = 50
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = []
     list_display     = []
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
+    template_name = None
 
     # Submit buton customization
     _form_add        = 'add'
@@ -136,8 +172,10 @@ of objects. Default is ``None``.'''
     '''Set to a value if you want to include a save as new submit input when editing an instance.'''
     
     def __init__(self, baseurl, editavailable = None, name = None,
-                 list_per_page = None, form = None, list_display = None):
+                 list_per_page = None, form = None, list_display = None,
+                 in_navigation = None):
         self.application_site = None
+        self.in_navigation = in_navigation
         self.editavailable    = editavailable
         if not baseurl.endswith('/'):
             baseurl = '%s/' % baseurl
@@ -152,7 +190,7 @@ of objects. Default is ``None``.'''
     def register(self, application_site):
         '''Register application with site'''
         url = self.make_url
-        self.root_application = None
+        self.root_view = None
         self.application_site = application_site
         self.settings = application_site.settings
         if self.editavailable is None:
@@ -196,7 +234,7 @@ of objects. Default is ``None``.'''
         return True
     
     def get_the_view(self):
-        return self.root_application
+        return self.root_view
     
     def has_permission(self, request = None, obj = None):
         '''Return True if the page can be viewed, otherwise False'''
@@ -247,20 +285,24 @@ of objects. Default is ``None``.'''
             view.code = self.name + '-' + view.name
             if not view.parent:
                 if not view.urlbit:
-                    if self.root_application:
+                    if self.root_view:
                         raise ApplicationUrlException('Could not resolve root application for %s' % self)
-                    self.root_application = view
+                    self.root_view = view
                 else:
                     roots.append(view)
         
         # No root application. See if there is one candidate
-        if not self.root_application:
+        if not self.root_view:
             if roots:
                 #just pick one. We should not be here really! need more testing.
-                self.root_application = roots[0]
+                self.root_view = roots[0]
             else:
                 raise ApplicationUrlException("Could not define root application for %s." % self)
         
+        # Set the in_na if required
+        if self.in_navigation is not None:
+            self.root_view.in_nav = self.in_navigation
+            
         # Pre-process urls
         views = list(self.views.values())
         while views:
@@ -381,6 +423,10 @@ of objects. Default is ``None``.'''
         '''Return an iterable for an input iterable :param qs:.'''
         return qs
 
+    def addurl(self, request, name = 'add'):
+        '''Retrive the add view url if it exists and user has the right permissions.'''
+        return None
+
 
 class ModelApplication(Application):
     '''An :class:`Application` class for applications
@@ -430,7 +476,7 @@ functionality when searching for model instances.'''
         return super(ModelApplication,self).register(application_site)
         
     def get_root_code(self):
-        return self.root_application.code
+        return self.root_view.code
     
     def modelsearch(self):
         return self.model
@@ -478,8 +524,8 @@ Re-implement for custom arguments.'''
         except:
             return None
         
-    def addurl(self, request):
-        return self.appviewurl(request,'add',None,self.has_add_permission)
+    def addurl(self, request, name = 'add'):
+        return self.appviewurl(request,name,None,self.has_add_permission)
         
     def deleteurl(self, request, obj):
         return self.appviewurl(request,'delete',obj,self.has_delete_permission,objrequired=True)

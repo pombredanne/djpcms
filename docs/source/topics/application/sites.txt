@@ -1,0 +1,41 @@
+.. _site-managers:
+
+======================
+Application Sites
+======================
+
+Djpcms has the concept of application sites where each application site contains a
+set of urls which serve the applications registered with the site itself.
+For example, most ``djpcms`` apps define only one site::
+
+    from djpcms import MakeSite
+    
+    def get_urls():
+        ...
+    
+    site = MakeSite(__file__, APPLICATION_URLS = get_urls)
+
+
+
+API
+===========
+
+Site Container
+~~~~~~~~~~~~~~~~~~~~
+This class is used as a singletone in djpcms::
+
+    from djpcms import sites
+    
+where ``sites`` is an instance of :class:`ApplicationSites`.
+
+.. autoclass:: djpcms.apps.site.ApplicationSites
+   :members:
+   :member-order: bysource
+   
+   
+Application Site
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.apps.appsites.ApplicationSite
+   :members:
+   :member-order: bysource

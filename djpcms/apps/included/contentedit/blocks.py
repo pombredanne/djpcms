@@ -351,7 +351,6 @@ The url is given by the ContentBlocks models
 class ContentSite(appsite.ModelApplication):
     '''AJAX enabled applications for changing content of a page.'''
     hidden      = True
-    
     edit        = ChangeContentView(form = ContentBlockHtmlForm, regex = '(?P<id>\d+)', parent = None)
     delete      = DeleteContentView(parent = 'edit')
     plugin      = EditPluginView(regex = 'plugin', parent = 'edit')

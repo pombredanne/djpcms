@@ -25,7 +25,11 @@ __all__ = ['View',
            'ViewView',
            'DeleteView',
            'ChangeView',
-           'AutocompleteView']
+           'AutocompleteView',
+           'IDREGEX']
+
+
+IDREGEX = '(?P<id>\d+)'
 
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -43,7 +47,7 @@ if an instance is available'''
     
 
 class View(djpcmsview):
-    '''This is a specialised view class derived from :class:`djpcms.views.baseview.djpcmsview`
+    '''A specialised view class derived from :class:`djpcms.views.baseview.djpcmsview`
 and used for handling views which belongs to
 :ref:`djpcms applications <topics-applications-index>`.
 
@@ -107,6 +111,11 @@ Usage::
     class MyApplication(appsite.ApplicationBase):
         home = appview.View(renderer = lambda s, djp : 'Hello world')
         test = appview.View(regex = 'testview', renderer = lambda s, djp : 'Another view')
+    
+.. attribute:: appmodel
+
+    Instance of :class:`djpcms.views.Application` which defines the view. This attribute
+    is evaluate at runtime and it is not psecified by the user.
     
 .. attribute:: parent
 
@@ -302,7 +311,7 @@ Usage::
     
     def isroot(self):
         '''True if this application view represents the root view of the application.'''
-        return self.appmodel.root_application is self
+        return self.appmodel.root_view is self
     
     def get_form(self, djp,
                  form = None,
@@ -366,13 +375,6 @@ Usage::
     def _has_permission(self, request, obj):
         return self.appmodel.has_permission(request, obj)
     
-    def render(self, djp):
-        '''Render the view. This method is reimplemented by subclasses or
-replaced during initialization.
-
-:keyword djp: instance of :class:`djpcms.views.response.DjpResponse`.'''
-        pass
-    
     def render_query(self, djp, query, appmodel = None):
         '''Render a queryset'''
         appmodel = appmodel or self.appmodel
@@ -401,8 +403,7 @@ replaced during initialization.
         return loader.render(self.view_template, c)
     
     def parentresponse(self, djp):
-        '''Retrive the parent response
-        '''
+        #OBSOLETE. TO BE REMOVED
         return self.appmodel.parentresponse(djp, self)
     
     def table_generator(self, djp, qs):
@@ -580,16 +581,19 @@ A view of this type has an embedded object available which is used to generate t
     
 
 class ViewView(ObjectView):
-    '''An :class:`ObjectView` class specialised for displaying an object.
+    '''An :class:`djpcms.views.ObjectView` class specialised for displaying an object.
     '''
-    def __init__(self, regex = '(?P<id>\d+)', **kwargs):
+    def __init__(self, regex = IDREGEX, **kwargs):
         super(ViewView,self).__init__(regex = regex, **kwargs)
     
     def linkname(self, djp):
         return str(djp.instance)
         
     def render(self, djp):
-        '''Render the view object
+        '''Override the :meth:`djpcms.views.djpcmsview.render` method
+to display a html string for an instance of the application model.
+By default it calls the :meth:`djpcms.views.ModelApplication.render_object`
+method of the :attr:`djpcms.views.View.appmodel` attribute.
         '''
         return self.appmodel.render_object(djp)
     
@@ -621,7 +625,7 @@ class DeleteView(ObjectView):
     def nextviewurl(self, djp):
         view = djp.view
         if view.object_view and getattr(view,'model',None) == self.model:
-            return self.appmodel.root_application(djp).url
+            return self.appmodel.root_view(djp).url
         else: 
             return djp.url
       

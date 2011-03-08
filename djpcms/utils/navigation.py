@@ -94,6 +94,7 @@ class Navigator(lazycounter):
     def buildselects(self, djp, urlselects):
         if self.soft and djp.is_soft():
             return djp
+        #TO BE REMOVED AND REPLACED WITH SITEMAP
         parent = djp.parent
         if parent:
             try:

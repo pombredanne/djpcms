@@ -11,6 +11,7 @@ Applications are subclasses of :class:`djpcms.views.appsite.Application`
 .. toctree::
    :maxdepth: 2
 
+   sites
    base
    model
    documentation

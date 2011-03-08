@@ -24,7 +24,7 @@ class AppList(UnicodeMixin):
         for app in site._nameregistry.values():
             if app is appmodel:
                 continue
-            view = app.root_application
+            view = app.root_view
             vdjp = view(djp.request)
             url = vdjp.url
             if url:
@@ -47,5 +47,6 @@ class ApplicationList(views.View):
 
 class SiteAdmin(views.Application):
     list_display = ['name','actions']
-    home = ApplicationList(title = lambda djp : 'Admin')
+    home = ApplicationList(title = lambda djp : 'Admin',
+                           in_navigation = 1)
     

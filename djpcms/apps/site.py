@@ -11,8 +11,7 @@ from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
-
-from .sitemap import SiteMap
+from djpcms.core.sitemap import SiteMap
 
 
 __all__ = ['MakeSite',

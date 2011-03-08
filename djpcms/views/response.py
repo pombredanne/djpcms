@@ -11,6 +11,38 @@ from djpcms.core.exceptions import ViewDoesNotExist
 __all__ = ['DjpResponse']
 
 
+def handle_ajax_error(self,e):
+    if self.site.settings.DEBUG:
+        exc_info = sys.exc_info()
+        logtrace(self.view.logger, self.request, exc_info)
+        stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
+        return jservererror(stack_trace, url = self.url)
+    else:
+        raise e
+
+
+def get_template(self):
+    page = self.page
+    # First Check if page has a template
+    if page:
+        if page.template:
+            return page.template
+    view = self.view
+    t = view.template_name
+    if not t and hasattr(view,'appmodel'):
+        t = view.appmodel.template_name
+    de = self.site.settings.DEFAULT_TEMPLATE_NAME
+    if t:
+        if de not in t:
+            t += de
+        return t
+    else:
+        if page:
+            return page.get_template()
+        else:
+            return de
+
+
 class DjpResponse(object):
     '''Djpcms Http Response class. It contains information associated with a given url.
         
@@ -125,7 +157,7 @@ return the wrapper with the underlying view.'''
     
     @lazyattr
     def _get_template(self):
-        return self.view.get_template(self.request, self.page)
+        return get_template(self)
     template_file = property(_get_template)
     
     @lazyattr
@@ -208,15 +240,14 @@ the parent of the embedded view.'''
             except ViewDoesNotExist as e:
                 res = jservererror(str(e), url = request.path)
             except Exception as e:
-                if site.settings.DEBUG:
-                    exc_info = sys.exc_info()
-                    stack_trace = '\n'.join(traceback.format_exception(*exc_info))
-                    logtrace(self.view.logger, request, exc_info)
-                    res = jservererror(stack_trace, url = self.url)
-                else:
-                    raise e
-            return self.http.HttpResponse(res.dumps(),
-                                          mimetype = res.mimetype())
+                res = handle_ajax_error(self,e)
+            try:
+                return self.http.HttpResponse(res.dumps(),
+                                              mimetype = res.mimetype())
+            except Exception as e:
+                res = handle_ajax_error(self,e)
+                return self.http.HttpResponse(res.dumps(),
+                                              mimetype = res.mimetype())
     
     def render_to_response(self, context):
         css = self.css

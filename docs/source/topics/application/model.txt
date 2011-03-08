@@ -44,7 +44,7 @@ We can now search and view instances of ``Project``.
 ModelApplication Class
 =========================
 
-.. autoclass:: djpcms.views.appsite.ModelApplication
+.. autoclass:: djpcms.views.ModelApplication
    :members:
    :inherited-members:
    :member-order: bysource

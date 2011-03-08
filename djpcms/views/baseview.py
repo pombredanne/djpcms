@@ -54,12 +54,15 @@ class djpcmsview(object):
         Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
         
             _methods = ('get','post')
+            
+    .. attribute:: template_name
+     
+        Used to specify a template file or a tuple of template files. If the view has a page,
+        the page template will be used instead. 
     '''
     logger = logging.getLogger('djpcmsview')
     
     template_name = None
-    '''Used to override the template name in the :class:`djpcms.models.Page` model instance (if it exists).
-Not used very often but here just in case.'''
     parent        = None
     '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
     purl          = None
@@ -95,32 +98,6 @@ Not used very often but here just in case.'''
         By default it returns :attr:`_methods`.
         '''
         return self._methods
-    
-    def get_template(self, request, page = None):
-        '''Given a :class:`djpcms.models.Page` instance, which may be ``None``,
-returns the template file for rendering the page.
-
-:parameter request: Http Request instance.
-:parameter page: Page instance or ``None``.
-
-If :attr:`template_name` is specified, it uses it, otherwise if ``page`` is available,
-it gets the template from :meth:`djpcms.models.Page.get_template`.
-If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
-        # First Check if page has a template
-        if page:
-            if page.template:
-                return page.template
-        t = self.template_name
-        de = request.site.settings.DEFAULT_TEMPLATE_NAME
-        if t:
-            if de not in t:
-                t += de
-            return t
-        else:
-            if page:
-                return page.get_template()
-            else:
-                return de
         
     def title(self, djp):
         '''View title.'''
@@ -144,10 +121,12 @@ If *page* is ``None`` it returns :setting:`DEFAULT_TEMPLATE_NAME`.'''
     def specialkwargs(self, page, kwargs):
         return kwargs
     
-    def render(self, djp, **kwargs):
-        '''Render the Current View plugin and return safe unicode.
-        This function is implemented by application views
-        '''
+    def render(self, djp):
+        '''Render the Current View and return unicode string.
+This function is implemented by subclasses of :class:`djpcms.views.View`.
+By default it returns an empty string.
+
+:parameter djp: instance of :class:`djpcms.views.DjpResponse`.'''
         return ''
     
     def preprocess(self, djp):

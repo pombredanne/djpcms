@@ -34,12 +34,12 @@ As an example lets take the included application in :mod:`djpcms.apps.included.v
 API
 ===========
 
-.. module:: djpcms.views.baseview
+.. module:: djpcms.views
 
 View Base Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.baseview.djpcmsview
+.. autoclass:: djpcms.views.djpcmsview
    :members:
    :member-order: bysource
    
@@ -49,37 +49,33 @@ View Base Class
 Flat Page View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.baseview.pageview
+.. autoclass:: djpcms.views.pageview
    :members:
    :member-order: bysource
 
    
-.. module:: djpcms.views.appview
-
 Application View
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.View
+.. autoclass:: djpcms.views.View
    :members:
    :member-order: bysource
    
 
-.. module:: djpcms.views.appview
-   
 Model Application Views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Views associated with database models are handled by subclasses of
 :class:`djpcms.views.appview.View`.
 
-.. autoclass:: djpcms.views.appview.ModelView
+.. autoclass:: djpcms.views.ModelView
    :members:
    :member-order: bysource
    
 Search View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.SearchView
+.. autoclass:: djpcms.views.SearchView
    :members:
    :member-order: bysource
 
@@ -87,7 +83,7 @@ Search View
 Add View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.AddView
+.. autoclass:: djpcms.views.AddView
    :members:
    :member-order: bysource
 
@@ -95,7 +91,7 @@ Add View
 Object View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.ObjectView
+.. autoclass:: djpcms.views.ObjectView
    :members:
    :member-order: bysource
 
@@ -103,7 +99,7 @@ Object View
 View View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.ViewView
+.. autoclass:: djpcms.views.ViewView
    :members:
    :member-order: bysource
 
@@ -111,7 +107,7 @@ View View
 Change View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.ChangeView
+.. autoclass:: djpcms.views.ChangeView
    :members:
    :member-order: bysource
 
@@ -119,7 +115,7 @@ Change View
 Delete View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.DeleteView
+.. autoclass:: djpcms.views.DeleteView
    :members:
    :member-order: bysource
 
@@ -127,7 +123,7 @@ Delete View
 Autocomplete View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.appview.AutocompleteView
+.. autoclass:: djpcms.views.AutocompleteView
    :members:
    :member-order: bysource
    
@@ -135,5 +131,5 @@ Autocomplete View
 
     * When using the model in Forms, import from ``djpcms.forms`` and not ``django.forms``.
     * Your model application must have a ``search_fields`` list
-    * Your model application must have the :class:`djpcms.views.appview.AutocompleteView`.
+    * Your model application must have the :class:`djpcms.views.AutocompleteView`.
     * Register your application as usual.

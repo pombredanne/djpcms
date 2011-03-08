@@ -2,7 +2,6 @@
 interaction with ``djpcms.js``
 '''
 import json
-from djpcms.template import handle
 from djpcms.utils import force_str
 from djpcms.utils.collections import OrderedDict
 
@@ -28,18 +27,29 @@ as JSON string.
     def mimetype(self):
         return 'application/javascript'
     
-    def tojson(self, autoescape = True):
-        t = handle()
+    def render(self, template, ctx, autoescape = False):
+        from djpcms.template import loader
+        return loader.render(template,ctx,autoescape)
+        
+    def mark_safe(self, s):
+        from djpcms.template import loader
+        return loader.mark_safe(s)
+    
+    def tojson(self, autoescape = False):
+        '''Convert the object to a json string autoescaping context if required.'''
         try:
             s = force_str(self.dumps())
-            return s if not autoescape else t.mark_safe(s)
+            if autoescape:
+                s = self.mark_safe(s)
+            return s
         except Exception as e:
             return self.handleError(e, autoescape)
     
-    def handleError(self, e, autoescape = True):
-        t = handle()
+    def handleError(self, e, autoescape = False):
         s = force_str(e)
-        return s if not autoescape else t.mark_safe(s)
+        if autoescape:
+            s = self.mark_safe(s)
+        return s
     
     def error(self):
         return False
@@ -94,13 +104,12 @@ class jempty(HeaderBody):
 
 
 class jservererror(HeaderBody):
-    
+    template_name = ('bits/post-error.html',
+                     'djpcms/bits/post-error.html')
     def __init__(self, err, url = None):
-        loader = handle()
-        self.html = loader.render(['bits/post-error.html',
-                                   'djpcms/bits/post-error.html'],
-                                   {'error':loader.mark_safe(err),
-                                    'url': url})
+        self.html = self.render(self.template_name,
+                                 {'error':err,
+                                  'url': url})
     
     def header(self):
         return 'servererror'

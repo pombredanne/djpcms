@@ -4,7 +4,8 @@ import json
 import unicodedata
 from uuid import uuid4
 
-from djpcms import ispy3k
+from py2py3 import ispy3k
+
 from .strings import *
 from .jsontools import *
 from .numbers import *

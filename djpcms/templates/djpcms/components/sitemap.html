@@ -1,0 +1,9 @@
+<div id="{{ id }}"></div>
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+        if(!$.djpcms.sitemap) {return;}
+        $.djpcms.sitemap("#{{ id }}","{{ url }}");
+    });
+}(jQuery));
+</script>

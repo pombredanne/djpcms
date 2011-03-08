@@ -4,7 +4,7 @@
 Application
 ======================
 
-.. autoclass:: djpcms.views.appsite.Application
+.. autoclass:: djpcms.views.Application
    :members:
    :member-order: bysource
    

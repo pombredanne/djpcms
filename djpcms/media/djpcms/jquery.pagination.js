@@ -133,14 +133,20 @@
 			}
 			
 			// Extract current_page from options
-			var current_page = opts.current_page;
+			var current_page = opts.current_page,
+			    holder = $(this),
+			    panel = $('.navigator',holder)
+			    info  = $('.information',holder);
 			// Create a sane value for maxentries and items_per_page
 			maxentries = (!maxentries || maxentries < 0)?1:maxentries;
 			opts.items_per_page = (!opts.items_per_page || opts.items_per_page < 0)?1:opts.items_per_page;
 			// Store DOM element for easy access from all inner functions
-			var holder = $(this).empty();
-			var panel = $('<div class="navigator"></div>').appendTo(holder);
-			var info  = $('<div class="information"></div>').appendTo(holder);
+			if(!panel.length) {
+			    panel = $('<div class="navigator"></div>').prependTo(holder);
+			}
+			if(!info.length) {
+			    info  = $('<div class="information"></div>').appendTo(holder);
+			}
 			info.html(opts.info());
 			// Attach control functions to the DOM element 
 			this.selectPage = function(page_id){ pageSelected(page_id);};
@@ -168,4 +174,4 @@
 	        //opts.callback(current_page, this);
 		});
 	};
-})(jQuery);
+}(jQuery));

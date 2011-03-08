@@ -4,7 +4,8 @@ __all__ = ['urlparse',
            'urlbits',
            'urlfrombits',
            'urlquote',
-           'parentpath']
+           'parentpath',
+           'SLASH']
 
 if ispy3k:
     urlquote = urlparse.quote

@@ -20,7 +20,7 @@ def make_request(environ):
     if request.method == 'POST':
         request.data_dict = dict(request.POST.items())
     else:
-        request.data_dict = {}
+        request.data_dict = dict(request.GET.items())
     return request
     
 

@@ -8,9 +8,11 @@ from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured
 from djpcms.utils.importer import import_module, import_modules
-from djpcms.utils import logtrace
+from djpcms.utils import logtrace, SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
+
+from .sitemap import SiteMap
 
 
 __all__ = ['MakeSite',
@@ -164,20 +166,19 @@ of djpcms application routes as well as general configuration parameters.'''
         self.setup_environment()
         settings = self.settings
         sites = self.all()
-        for site in sites:
+        if sites[-1].route is not SLASH:
+            raise ImproperlyConfigured('There must be a root site available.')
+        self.tree = tree = SiteMap()
+        for site in reversed(sites):
             site.load()
+            node = tree.node(site.route)
+            node.addapplications(site._nameregistry.values())
         import_modules(settings.DJPCMS_PLUGINS)
         import_modules(settings.DJPCMS_WRAPPERS)
         url = self.make_url
         urls = ()
-        if settings.CONTENT_INLINE_EDITING['available']:
-            edit = settings.CONTENT_INLINE_EDITING['preurl']
-            for site in sites:
-                urls += url(r'^{0}/{1}(.*)'.format(edit,site.route[1:]),
-                            editHandler(site)),
         for site in sites:
-            urls += url(r'^{0}(.*)'.format(site.route[1:]),
-                        site),
+            urls += url(r'^{0}(.*)'.format(site.route[1:]), site),
         return urls
     
     def make(self, name, settings = None, route = None,

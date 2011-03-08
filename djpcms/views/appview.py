@@ -216,7 +216,7 @@ Usage::
         self.parent    = parent
         self.isapp     = isapp
         self.isplugin  = isplugin
-        self.in_nav    = in_navigation
+        self.in_nav    = int(in_navigation)
         self.appmodel  = None
         self.insitemap = insitemap
         self.urlbit    = RegExUrl(regex,splitregex,append_slash)
@@ -282,13 +282,16 @@ Usage::
         return self.appmodel.media
     
     def in_navigation(self, request, page):
-        if page:
-            if self.regex.names and not page.url_pattern:
-                return 0
+        if not self.appmodel.hidden:
+            if page:
+                if self.regex.names and not page.url_pattern:
+                    return 0
+                else:
+                    return page.in_navigation
             else:
-                return page.in_navigation
+                return self.in_nav
         else:
-            return self.in_nav
+            return 0
         
     def linkname(self, djp):
         page = djp.page
@@ -339,6 +342,7 @@ Usage::
                     return page
         if self.parent and self.inherit_page:
             return self.parent.get_page(djp)
+            
         
     def specialkwargs(self, page, kwargs):
         if page:
@@ -446,8 +450,7 @@ class ModelView(View):
             return None
     
     def modelparent(self):
-        '''
-        Return a parent with same model if it exists
+        '''Return a parent with same model if it exists
         '''
         p = self.parent
         if p:
@@ -482,7 +485,7 @@ There are three additional parameters that can be set:
     search_text = 'q'
     '''identifier for queries. Default ``q``.'''
     
-    def __init__(self, in_navigation = True, astable = True, search_text = None, **kwargs):
+    def __init__(self, in_navigation = 1, astable = True, search_text = None, **kwargs):
         self.search_text = search_text or self.search_text
         super(SearchView,self).__init__(in_navigation=in_navigation,
                                         astable=astable,
@@ -523,7 +526,7 @@ class AddView(ModelView):
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
     def __init__(self, regex = 'add', isplugin = True,
-                 in_navigation = True, **kwargs):
+                 in_navigation = 1, **kwargs):
         super(AddView,self).__init__(regex  = regex,
                                      isplugin = isplugin,
                                      in_navigation = in_navigation,

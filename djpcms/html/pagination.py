@@ -51,7 +51,7 @@ class Paginator(object):
         return max(min(page,self.pages),1)
     
     def datadict(self):
-        return urlquote('?'+'&'.join(('%s=%s' % item for item in self._datadict.items())))
+        return urlquote('&'.join(('%s=%s' % item for item in self._datadict.items())))
         
     def navigation(self):
         if self.pages == 1:

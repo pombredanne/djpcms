@@ -1,8 +1,30 @@
 '''Utility module for creating a navigation list
 '''
-from djpcms import UnicodeMixin
+from py2py3 import itervalues
+
+from djpcms import sites, UnicodeMixin
 from djpcms.template import loader
-from djpcms.utils import lazyattr
+from djpcms.utils import lazyattr, SLASH
+
+
+def children_responses(djp):
+    request = djp.request
+    page = djp.page
+    view = djp.view
+    url = djp.url
+    root = sites.tree.node(url)
+    for node in itervalues(root.children):
+        cview = node.view
+        if cview:
+            cdjp = cview(request,**djp.kwargs)
+            try:
+                cdjp.url
+            except:
+                continue
+            if hasattr(cdjp,'in_navigation'):
+                nav = cdjp.in_navigation()
+                if nav:
+                    yield cdjp,nav
 
 
 class lazycounter(UnicodeMixin):
@@ -90,17 +112,12 @@ class Navigator(lazycounter):
             urlselects = []
             djp = self.buildselects(djp,urlselects)
             self.kwargs['urlselects'] = urlselects
-        scn        = css.secondary_in_list
-        request    = djp.request
-        children   = djp.children
-        items      = []
-        for djp in children:
-            nav = djp.in_navigation()
-            if not nav:
-                continue
-            url     = djp.url
+        scn = css.secondary_in_list                
+        items = []
+        for djp,nav in sorted(children_responses(djp), key = lambda x : x[1]):
+            url = djp.url
             classes = []
-            if djp.in_navigation() > secondary_after:
+            if nav > secondary_after:
                 classes.append(scn)
             if url in urlselects:
                 classes.append(css.link_selected)

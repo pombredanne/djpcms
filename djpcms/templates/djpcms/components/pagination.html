@@ -1,7 +1,10 @@
 {% if form %}<div class="search-form">
 {{ form }}
 </div>{% endif %}{% if paginator.total %}{% if paginator.multiple %}
-<div id="{% if id %}{{ id }}{% else %}Pagination{% endif %}" class="jquery-pagination"></div>
+<div id="{% if id %}{{ id }}{% else %}Pagination{% endif %}" class="jquery-pagination">
+ <div class='navigator'></div>
+ <div class='information'></div>
+</div>
 <script type="text/javascript">
 $(document).ready(function(){
     // Create pagination element with options from form
@@ -14,7 +17,7 @@ $(document).ready(function(){
     			  var data = "{{ paginator.datadict }}";
     			  var url = "{{ url }}?page=" + cp;
     			  if(data) {
-        			  url += "&amp;" + data;
+        			  url += "&" + data;
     			  }
     			  window.location = url;
     		}

@@ -389,19 +389,19 @@
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	$.djpcms.decorator({
+        id:'jquery-buttons',
+        decorate: function(obj, config) {
+           $('input[type="submit"]',obj).button();    
+        }
+    });
+	
+	$.djpcms.decorator({
 	    id:'ui-state-hover',
 		decorate: function(obj, config) {
 		    $('.edit-menu a',obj).addClass('ui-corner-all')
 		        .mouseenter(function(){$(this).addClass('ui-state-hover');})
 		        .mouseleave(function(){$(this).removeClass('ui-state-hover');});
 		}
-	});
-	
-	$.djpcms.decorator({
-	    id:'jquiry-buttons',
-	    decorate: function(obj, config) {
-	       $('input[type="submit"]',obj).button();    
-	    }
 	});
 	
 	

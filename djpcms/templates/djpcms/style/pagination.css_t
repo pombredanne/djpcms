@@ -5,10 +5,12 @@
 {{ tag }} .navigator {
     text-align: {{ navigator_float }};
     overflow: hidden;
+    height: {{ navigator_height }};
 }
-.jquery-pagination .information {
+{{ tag }} .information {
     text-align: {{ information_float }};
     overflow: hidden;
+    height: {{ information_height }};
 }
         
 .jquery-pagination a {

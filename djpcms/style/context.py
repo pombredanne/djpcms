@@ -40,7 +40,9 @@ CssContext('paginator',
            template = 'djpcms/style/pagination.css_t',
            data = {
                    'navigator_float':'left',
+                   'navigator_height':'30px',
                    'information_float':'right',
+                   'information_height':'20px',
                    'margin':'0 0 10px 0'
                    }
            )

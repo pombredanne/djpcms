@@ -13,7 +13,7 @@ from py2py3 import is_bytes_or_string, iteritems
 
 from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist
 from djpcms.http import get_http
-from djpcms.utils import force_str
+from djpcms.utils import force_str, SLASH
 
 _view_cache = {}
 
@@ -81,7 +81,7 @@ method'''
         if url:
             modified = False
             if '//' in path:
-                url = re.sub("/+" , "/", url)
+                url = re.sub("/+" , SLASH, url)
                 modified = True
         
             #if not url.endswith('/'):
@@ -89,7 +89,7 @@ method'''
             #    url = '%s/' % url
                 
             if modified:
-                if not url.startswith('/'):
+                if not url.startswith(SLASH):
                     url = '/%s' % url
                 qs = environ['QUERY_STRING']
                 if qs and environ['method'] == 'GET':

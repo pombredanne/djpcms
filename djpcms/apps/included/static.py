@@ -198,6 +198,7 @@ class Static(views.Application):
     leaving the task of serving media files to other servers in production.'''
     _media = None
     site_name = 'site'
+    hidden = True
     show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticFileRoot()

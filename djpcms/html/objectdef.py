@@ -3,8 +3,22 @@ from djpcms.template import loader
 
 OBJECT_DEF_TEMPLATE = 'djpcms/object_definition.html'
 
+__all__ = ['ObjectDefinition']
+
+
 class ObjectDefinition(UnicodeMixin):
+    '''Utility class for displaying an
+object instance as html.
+
+:parameter appmodel: instance of :class:`djpcms.views.ModelApplication`.
+:parameter djp: instance of :class:`djpcms.views.DjpResponse`.
+
+Usage::
+
+    >>> d = ObjectDefinition(myapp, djp)
+    >>> str(d)
     
+'''    
     def __init__(self, appmodel, djp):
         self.appmodel = appmodel
         self.djp = djp

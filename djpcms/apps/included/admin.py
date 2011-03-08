@@ -1,3 +1,6 @@
+'''An application which displays a table with all applications
+registered in the same ApplicationSite
+'''
 from djpcms import views, UnicodeMixin
 from djpcms.template import loader
 from djpcms.core.orms import table
@@ -47,6 +50,5 @@ class ApplicationList(views.View):
 
 class SiteAdmin(views.Application):
     list_display = ['name','actions']
-    home = ApplicationList(title = lambda djp : 'Admin',
-                           in_navigation = 1)
+    home = ApplicationList(title = lambda djp : 'Admin', in_navigation = 1)
     

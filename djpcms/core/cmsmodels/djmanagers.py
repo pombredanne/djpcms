@@ -27,7 +27,7 @@ class PageManager(models.Manager):
         return [(page, self.hierarchy(page)) for page in filter]
     
     def applications(self):
-        return self.sitepages().exclude(app_type = u'')
+        return self.sitepages().exclude(app_type = '')
     
     def create_for_site(self, site = None, **kwargs):
         site = site or Site.objects.get_current()

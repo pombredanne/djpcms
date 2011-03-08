@@ -1,5 +1,4 @@
-from py2py3 import UnicodeMixin
-
+from djpcms import UnicodeMixin
 from djpcms.utils import force_str
 from djpcms.template import mark_safe
 from djpcms.core.page import block_htmlid

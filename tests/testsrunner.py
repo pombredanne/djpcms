@@ -92,7 +92,7 @@ def import_tests(tags, test_type, can_fail):
         
 def run(tags = None, test_type = None,
         verbosity = 1, can_fail = True,
-        show_list = False, orm = ''):
+        show_list = False, config = None):
     '''Run tests'''
     test_type = test_type or 'regression'
     if test_type not in TEST_TYPES:
@@ -111,8 +111,9 @@ def run(tags = None, test_type = None,
             print(("'{1}' (from {0})".format(*name)))
         print(('\nYou can run {0} different test labels'.format(n)))
     else:
-        # Create the testing Site   
-        MakeSite(test_type,'conf',CMS_ORM=orm)
+        # Create the testing Site
+        config = config or {}
+        MakeSite(test_type,'conf',**config)
         modules = import_tests(tags, test_type, can_fail)
         runner  = TestSuiteRunner(verbosity = verbosity)
         runner.run_tests(modules)

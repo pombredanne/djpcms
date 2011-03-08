@@ -8,10 +8,12 @@ from djpcms.utils import lazyattr, logtrace
 from djpcms.utils.navigation import Navigator, Breadcrumbs
 from djpcms.core.exceptions import ViewDoesNotExist
 
-__all__ = ['DjpResponse']
+__all__ = ['DjpResponse',
+           'DummyDjp']
 
 
 def handle_ajax_error(self,e):
+    #Internal function for handling AJAX server errors
     if self.site.settings.DEBUG:
         exc_info = sys.exc_info()
         logtrace(self.view.logger, self.request, exc_info)
@@ -44,35 +46,40 @@ def get_template(self):
 
 
 class DjpResponse(object):
-    '''Djpcms Http Response class. It contains information associated with a given url.
+    '''Djpcms response class. It contains information associated with a given url
+which can and often is different from the current request path. Usually is initialized as::
+
+    djp = view(request, **kwargs)
+    
+where ``kwargs`` is a fictionary of arguments used to build the ``url`` (including 
+model instances).
         
-        .. attribute: request
-        
-            a HttpRequest instance
-            
-        .. attribute: view
-        
-            instance of :class:`djpcms.views.baseview.djpcmsview`
-            
-        .. attribute: url
-        
-            url associated with response. Note this url is not always the same as request.path.
-        
-        .. attribute: media
-        
-            Object carrying information about the media to be added to the HTML page.
-            It is filled during rendering of all plugins and views.
-    '''
+.. attribute:: request
+
+    a HttpRequest instance containing the request environment information.
+    
+.. attribute:: view
+
+    An instance of :class:`djpcms.views.baseview.djpcmsview` responsible for
+    handling the request.
+    
+.. attribute:: url
+
+    url associated with response. Note this url is not always the same as request.path.
+
+.. attribute:: media
+
+    Object carrying information about the media to be added to the HTML page.
+    It is filled during rendering of all plugins and views.
+'''
     def __init__(self, request, view, wrapper = None, prefix = None, **kwargs):
         self.request    = request
         self.view       = view
         self.kwargs     = kwargs
         site            = request.site
-        self.is_xhr     = request.is_xhr
         self.site       = site
         self.settings   = site.settings
         self.http       = site.http
-        self.css        = self.settings.HTML_CLASSES
         self.wrapper    = wrapper
         self.prefix     = prefix
     
@@ -88,8 +95,9 @@ class DjpResponse(object):
         djp.wrapper = wrapper
         return djp
     
-    def is_ajax(self):
-        return self.request.is_ajax()
+    @property
+    def css(self):
+        return self.settings.HTML_CLASSES
     
     def is_soft(self):
         return self.view.is_soft(self)
@@ -166,12 +174,6 @@ return the wrapper with the underlying view.'''
 the parent of the embedded view.'''
         return self.view.parentresponse(self)
     parent = property(_get_parent)
-    
-    @lazyattr
-    def get_children(self):
-        self.instance
-        return self.view.children(self, **self.kwargs) or []
-    children = property(get_children)
     
     @property
     def instance(self):
@@ -287,4 +289,20 @@ the parent of the embedded view.'''
             return appmodel.instancecode(self.request, instance)
         else:
             return '%s:%s' % (instance._meta,instance.id)
+
+
+class DummyDjp(object):
+    '''A dummy :class:`djpcms.views.DjpResponse` class'''
+    __slots__ = ('kwargs','page','url')
+    def __init__(self, instance = None, kwargs = None, page = None, url = None):
+        kwargs = kwargs if kwargs is not None else {}
+        if instance:
+            kwargs['instance'] = instance
+        self.kwargs = kwargs
+        self.page = page
+        self.url = url
+        
+    @property
+    def request(self):
+        return None
     

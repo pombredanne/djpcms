@@ -20,7 +20,7 @@ class SiteMapView(views.View):
 class SiteMapApplication(views.Application):
     '''Application to use for admin sitemaps'''
     list_display = ('url','application','application_view',
-                    'parent','level','template','inner_template')
+                    'template','inner_template')
     main = SiteMapView(in_navigation = 1)
     
     if Page:

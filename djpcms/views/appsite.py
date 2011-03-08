@@ -17,11 +17,10 @@ from djpcms.utils import slugify
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.collections import OrderedDict
+from djpcms.html import ObjectDefinition
 
 from .baseview import response_from_page, absolute_parent
 from .appview import View, ViewView
-from .utils import ObjectDefinition
-
 
 __all__ = ['Application',
            'ModelApplication']

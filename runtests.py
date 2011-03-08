@@ -27,16 +27,26 @@ def makeoptions():
     parser.add_option("-m", "--model",
                       action="store",
                       dest="model",
-                      default='',
-                      help="The object relational mapper to use. One of django, stdnet or nothing (sqlalchemy)")
+                      default='django',
+                      help="The object relational mapper to use. One of django, stdnet (default django)")
+    parser.add_option('-p', '--template',
+                      action="store",
+                      dest="template",
+                      default='django',
+                      help="Template library to use. One of django or jinja2 (default django).")
+    parser.add_option('-g', '--httplib',
+                      action="store",
+                      dest="httplib",
+                      default='django',
+                      help="HTTP library to use One of django or werkzeug (default django).")
     parser.add_option("-t", "--type",
                       action="store",
                       dest="test_type",
                       default='regression',
-                      help="Test type, possible choices are:\n\
-                      * regression (default)\n\
-                      * bench\n\
-                      * profile")
+                      help="Test type, possible choices are:\
+ regression (default)\
+ bench\
+ profile")
     return parser
 
 
@@ -56,12 +66,15 @@ addpath()
 def run():
     options, tags = makeoptions().parse_args()
     from testsrunner import run
+    config = {'CMS_ORM':options.model,
+              'TEMPLATE_ENGINE':options.template,
+              'HTTP_LIBRARY':options.httplib}
     run(tags,
         test_type = options.test_type,
         can_fail=options.can_fail,
         verbosity=options.verbosity,
         show_list=options.show_list,
-        orm=options.model)
+        config = config)
     
 
 if __name__ == '__main__':

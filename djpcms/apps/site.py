@@ -11,7 +11,6 @@ from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.sitemap import SiteMap
 
 
 __all__ = ['MakeSite',
@@ -104,6 +103,7 @@ of djpcms application routes as well as general configuration parameters.'''
         self._settings = None
         self._default_settings = None
         self.route = None
+        self.tree = None
         self.model_from_hash = {}
         self.User = None
         ResolverMixin.clear(self)
@@ -158,6 +158,7 @@ of djpcms application routes as well as general configuration parameters.'''
         
     def _load(self):
         '''Load sites'''
+        from djpcms.views import SiteMap
         #from djpcms.apps.cache import PageCache
         #self.pagecache = PageCache()
         if not self._sites:
@@ -170,7 +171,7 @@ of djpcms application routes as well as general configuration parameters.'''
         self.tree = tree = SiteMap()
         for site in reversed(sites):
             site.load()
-            node = tree.node(site.route)
+            node = tree.make_sitenode(site.route,site)
             node.addapplications(site._nameregistry.values())
         import_modules(settings.DJPCMS_PLUGINS)
         import_modules(settings.DJPCMS_WRAPPERS)

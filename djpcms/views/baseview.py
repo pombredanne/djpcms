@@ -12,6 +12,8 @@ from djpcms.utils import parentpath
 from .response import DjpResponse
 from .contentgenerator import BlockContentGen
     
+__all__ = ['djpcmsview',
+           'pageview']
 
 def response_from_page(djp, page):
     '''Given a :class:`djpcms.views.DjpResponse` object
@@ -44,7 +46,6 @@ def page_edit_url(djp):
             return site.get_url(page.__class__,'add',**kwargs)
         
 
-
 # THE DJPCMS BASE CLASS for handling views
 class djpcmsview(object):
     '''Base class for handling http requests.
@@ -61,12 +62,10 @@ class djpcmsview(object):
         the page template will be used instead. 
     '''
     logger = logging.getLogger('djpcmsview')
-    
     template_name = None
     parent        = None
     '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
     purl          = None
-    
     name          = 'flat'
     '''Name of view. Default ``"flat"``.'''
     object_view = False
@@ -290,10 +289,6 @@ If we didn't do that, test_navigation.testMultiPageApplication would fail.'''
                 views.append(cdjp)
         return views
     
-#    def redirect(self, url):
-#        '''Shortcut function for redirecting to *url*.'''
-#        return http.HttpResponseRedirect(url)
-
     def nextviewurl(self, djp):
         '''Calculate the best possible url for a possible next view.
 By default it is ``djp.url``'''
@@ -304,8 +299,7 @@ class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
     static data, it means there is not a specific application associate with it.'''
     def __init__(self, page):
-        self.page    = page
-        self.editurl = None  
+        self.page    = page  
 
     def __unicode__(self):
         return self.page.url
@@ -318,34 +312,3 @@ class pageview(djpcmsview):
     
     def is_soft(self, djp):
         return self.page.soft_root
-
-
-class wrapview(djpcmsview):
-    '''
-    Create a view object that wrap another view object  
-    '''
-    def __init__(self, view, prefix):
-        '''
-        @param view: instance of djpcmsview
-        @param prefix: String defining the prefix to the view url
-        
-            let's say view.url = '/some/url/' and prefix = 'edit'
-            than the wrpview instance will have a url given by
-             '/edit/some/url/'
-        '''
-        self._view   = view
-        self.prefix  = prefix
-        self.editurl = None
-        
-    def __unicode__(self):
-        return '%s: %s' % (self.prefix,self._view)
-    
-    def get_page(self, djp):
-        return self._view.get_page(djp)
-    
-    def get_template(self, request, page):
-        return self._view.get_template(request, page)
-    
-    def grid960(self, page):
-        return self._view.grid960(page)
-

@@ -15,14 +15,6 @@ from djpcms.models import Page, InnerTemplate
 from .handlers import WSGI
 
 
-class DummyDjp(object):
-    __slots__ = ('kwargs',)
-    def __init__(self,instance,kwargs):
-        if instance:
-            kwargs['instance'] = instance
-        self.kwargs = kwargs
-
-
 class ApplicationSite(ResolverMixin):
     '''Application site manager
     An instance of this class is used to handle url of

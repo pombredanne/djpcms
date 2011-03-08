@@ -47,6 +47,7 @@ Contents
    
    topics/application/index
    topics/views
+   topics/response
    topics/plugins/index
    topics/design
    topics/orms/index

@@ -2,9 +2,9 @@
 
 .. module:: djpcms.views
 
-=================
+================
 Djp Response
-=================
+================
 
 Throughout the library there is constant reference to the :class:`djpcms.views.DjpResponse`
 class as first arguments of several functions.

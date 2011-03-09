@@ -6,7 +6,7 @@ class Strategy(models.Model):
     description = models.TextField(blank = True)
     
     def __unicode__(self):
-        return u'%s' % self.name
+        return '%s' % self.name
     
     
 class Trade(models.Model):

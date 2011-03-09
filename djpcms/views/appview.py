@@ -26,11 +26,12 @@ __all__ = ['View',
            'DeleteView',
            'ChangeView',
            'AutocompleteView',
-           'IDREGEX']
+           'IDREGEX',
+           'SLUG_REGEX']
 
 
 IDREGEX = '(?P<id>\d+)'
-
+SLUG_REGEX = '[-\.\+\#\'\:\w]+'
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
     '''Default redirect for a model view is the View url for that model
@@ -269,6 +270,12 @@ Usage::
         return self.appmodel.baseurl
     baseurl = property(__get_baseurl)
     
+    def appsite(self):
+        return self.appmodel
+    
+    def path(self):
+        return self.appmodel.path() + self.regex.purl
+    
     def get_url(self, djp):
         site = self.appmodel.application_site
         purl = site.route[:-1] + self.baseurl + self.regex.get_url(**djp.kwargs)
@@ -282,7 +289,7 @@ Usage::
         if page:
             return page.title
         else:
-            return nicename(self.appmodel.name)
+            return self.appmodel.description
     
     def names(self):
         return self.regex.names
@@ -306,7 +313,7 @@ Usage::
         page = djp.page
         link = '' if not page else page.link
         if not link:
-            link = self.appmodel.name
+            link = self.appmodel.description
         return link
     
     def isroot(self):
@@ -419,7 +426,6 @@ when :attr:`View.astable` attribute is set to ``True``.'''
         '''Process url bits and store information for navigation and urls
         '''
         self.appmodel = appmodel
-        self.css      = appmodel.ajax
         if self.parent:
             self.regex = self.parent.regex + self.urlbit
         else:
@@ -653,15 +659,6 @@ class ChangeView(ObjectView):
     def default_post(self, djp):
         return saveform(djp, True, force_redirect = self.force_redirect)
     
-    
-class RelatedView(ObjectView):
-    
-    '''An :class:`ObjectView` used as based class for related model views.
-    '''
-    def __init__(self, model, regex = 'edit', parent = 'view', **kwargs):
-        self.relmodel = model
-        super(RelatedView,self).__init__(regex = regex, parent = parent, **kwargs)
-
 
 class AutocompleteView(SearchView):
     '''This is an interesting :class:View` class.

@@ -10,6 +10,7 @@ from .serialize import *
 __all__ = ['Node',
            'SiteMap']
     
+    
 class DummyRequest(object):
     
     def __init__(self,site):
@@ -17,7 +18,7 @@ class DummyRequest(object):
         
 
 class Node(UnicodeMixin):
-    '''Sitemap Node'''
+    '''a :class:`Sitemap` Node'''
     def __init__(self, urlmap, url = SLASH, view = None, ancestor = None):
         self.urlmap = urlmap
         self.url = url
@@ -57,6 +58,11 @@ class Node(UnicodeMixin):
                     return node
     
     def addapplications(self, apps):
+        '''Add a new list of applications
+to ``self`` in a recursive fashion.
+
+:parameter apps: list of :class:`djpcms.views.Application`
+'''
         burl = self.url[:-1]
         urlmap = self.urlmap
         unprocessed = []
@@ -69,7 +75,10 @@ class Node(UnicodeMixin):
                 self.view = app.root_view
             elif purl == SLASH:
                 url = burl + url
-                urlmap[url] = Node(urlmap, url = url, view = app.root_view, ancestor = self)
+                node = urlmap[url] = Node(urlmap,
+                                          url = url,
+                                          view = app.root_view,
+                                          ancestor = self)
             else:
                 unprocessed.append(app)
         if unprocessed:
@@ -97,10 +106,10 @@ for json serialization.'''
         return node
 
     
-class SiteMap(object):
-    
+class SiteMap(dict):
+    '''Djpcms sitemap'''
     def __init__(self):
-        self._nodes = {}
+        super(SiteMap,self).__init__()
         self.root = r = Node(self)
         self[r.url] = r
         
@@ -110,19 +119,10 @@ class SiteMap(object):
         return node
         
     def node(self, url):
-        if url not in self._nodes:
+        if url not in self:
             return self.root.child(url)
         else:
-            return self._nodes[url]
-        
-    def __len__(self):
-        return len(self._nodes)
-    
-    def __setitem__(self, url, node):
-        self._nodes[url] = node
-        
-    def __getitem__(self, url):
-        return self._nodes[url]
+            return self[url]
     
     def get_sitemap(self, Page, refresh = False):
         if Page:

@@ -2,9 +2,22 @@ from py2py3 import zip
 
 from djpcms import test
 from djpcms.apps.site import ApplicationSites
+from djpcms.views import Application, View 
 from djpcms.utils import SLASH
 from djpcms.core.exceptions import ImproperlyConfigured
 
+def get_simpleapps():
+    return (
+            Application('/',
+                        name = 'app1',
+                        home = View(renderer = lambda djp : 'ciao')),
+            Application('/bla/',
+                        name = 'app2',
+                        home = View(renderer = lambda djp : 'ciao bla'),
+                        view2 = View(regex = 'pluto',
+                                     parent = 'home',
+                                     renderer = lambda djp : 'ciao bla view2')),
+            )
 
 class TestSites(test.TestCase):
     '''Tests the sites singletone'''    
@@ -50,3 +63,20 @@ class TestSites(test.TestCase):
     def testUser(self):
         sites = self.sites
         self.assertEqual(sites.User,None)
+        
+    def testTreeWithApps(self):
+        sites = self.sites
+        MakeSite = sites.make
+        tsites = ['']*3
+        site = MakeSite(__file__, APPLICATION_URLS = get_simpleapps)
+        sites.load()
+        self.assertEqual(len(site),2)
+        tree = sites.tree
+        self.assertTrue('/' in tree)
+        self.assertTrue('/bla/' in tree)
+        node = tree['/']
+        self.assertTrue(node.children)
+        node = tree['/bla/']
+        self.assertTrue(node.children)
+        
+        

@@ -16,7 +16,7 @@ from djpcms.utils.ajax import jerror, jattribute, jcollection
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.views import appsite, appview
 
-from .forms import ContentBlockHtmlForm
+from .layout import ContentBlockHtmlForm
 
 dummy_wrap = lambda d,b,x : x
 

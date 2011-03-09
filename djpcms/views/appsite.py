@@ -13,24 +13,46 @@ from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException
-from djpcms.utils import slugify
+from djpcms.utils import slugify, closedurl, openedurl, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
+from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
 from djpcms.html import ObjectDefinition
 
-from .baseview import response_from_page, absolute_parent
+from .baseview import RendererMixin, response_from_page, absolute_parent
 from .appview import View, ViewView
 
 __all__ = ['Application',
            'ModelApplication']
 
+SPLITTER = '-'
+
+
+def makename(self, name, description):
+    name = name or self.name
+    if not name:
+        name = openedurl(self.baseurl)
+        if not name:
+            name = self.__class__.__name__
+    name = name.replace(SPLITTER,'_').replace(SLASH,'_')
+    self.description = description or self.description or nicename(name)
+    self.name = str(slugify(name.lower(),rtx='_'))
 
 def get_declared_application_views(bases, attrs):
     """Create a list of Application views instances from the passed in 'attrs', plus any
 similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit',False)
-    apps = ((app_name, attrs.pop(app_name)) for app_name, obj in list(attrs.items()) if isinstance(obj, View))
+    views = []
+    apps = []
+    for app_name,obj in list(attrs.items()):
+        if hasattr(obj,'__class__'):
+            if isinstance(obj, View):
+                views.append((app_name, attrs.pop(app_name)))
+            elif isinstance(obj.__class__,ApplicationMetaClass):
+                apps.append((app_name, attrs.pop(app_name)))
+    
+    views = sorted(views, key=lambda x: x[1].creation_counter)                     
     apps = sorted(apps, key=lambda x: x[1].creation_counter)
 
     # If this class is subclassing another Application, and inherit is True add that Application's views.
@@ -39,15 +61,17 @@ similar fields on the base classes (in 'bases')."""
     if inherit:
         for base in bases[::-1]:
             if hasattr(base, 'base_views'):
-                apps = list(base.base_views.items()) + apps
+                views = list(base.base_views.items()) + views
                 
-    return OrderedDict(apps)
+    return OrderedDict(views),OrderedDict(apps)
 
 
 class ApplicationMetaClass(MediaDefiningClass):
     
     def __new__(cls, name, bases, attrs):
-        attrs['base_views'] = get_declared_application_views(bases, attrs)
+        views,apps = get_declared_application_views(bases, attrs)
+        attrs['base_views'] = views
+        attrs['base_apps'] = apps
         new_class = super(ApplicationMetaClass, cls).__new__(cls, name, bases, attrs)
         return new_class
     
@@ -79,12 +103,15 @@ def process_views(view,views,app):
         return view
 
 
-class Application(ApplicationBase,ResolverMixin):
+class Application(ApplicationBase,ResolverMixin,RendererMixin):
     '''Base class for djpcms
 applications. It defines a set of views which are somehow related to each other
 and shares a common application object ``appmodel`` which is an instance of
-this class. Application views are instances of :class:`djpcms.views.View` and
-are specified as class attributes of :class:`Application`.
+this class.
+
+Application views are instances of :class:`djpcms.views.View` class and
+are specified as class attributes of a :class:`Application` class
+or in the constructor.
     
 :parameter baseurl: the root part of the application views urls.
                     Check :attr:`baseurl` for more information.
@@ -92,7 +119,11 @@ are specified as class attributes of :class:`Application`.
                           is available for the application.
 :parameter name: Application name. Check :attr:`name` for more information. Default ``None``.
 :parameter in_navigation: If provided it overrides the :attr:`root_view` ``in_nav``
-                          attribute. Default ``None``. 
+                          attribute. Default ``None``.
+:parameter views: Dictionary of :class:`djpcms.views.View` instances.
+                    Default: ``None``
+                    
+
     
 **Attributes**
 
@@ -132,7 +163,14 @@ are specified as class attributes of :class:`Application`.
     The default form class used in the application.
     
     Default ``None``.
-'''    
+    
+.. attribute:: template_name
+
+    default inner template template
+    
+    Default ``None``
+'''
+    creation_counter = 0
     inherit          = False
     '''Flag indicating if application views are inherited from base class.
     
@@ -165,6 +203,8 @@ are specified as class attributes of :class:`Application`.
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
     template_name = None
+    application_list_template = ('admin/applications.html',
+                                 'djpcms/admin/applications.html')
 
     # Submit buton customization
     _form_add        = 'add'
@@ -177,32 +217,42 @@ of objects. Default is ``None``.'''
     
     def __init__(self, baseurl, editavailable = None, name = None,
                  list_per_page = None, form = None, list_display = None,
-                 in_navigation = None):
+                 in_navigation = None, description = None,
+                 template_name = None, parent = None,
+                 apps = None, **views):
+        self.parent = parent
+        self.views = deepcopy(self.base_views)
+        self.apps = deepcopy(self.base_apps)
         self.application_site = None
+        self.root_view = None
+        self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation
-        self.editavailable    = editavailable
-        if not baseurl.endswith('/'):
-            baseurl = '%s/' % baseurl
-        if not baseurl.startswith('/'):
-            baseurl = '/%s' % baseurl
-        self.__baseurl        = baseurl
-        self.list_per_page    = list_per_page or self.list_per_page
+        self.editavailable = editavailable
+        self.__baseurl = closedurl(baseurl)
+        self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
-        self.form             = form or self.form
-        self.name             = self._makename(name)
-        
+        self.form = form or self.form
+        makename(self,name,description)
+        self.creation_counter = Application.creation_counter
+        Application.creation_counter += 1
+        if views:
+            for name,view in views.items():
+                if name in self.views:
+                    raise ApplicationUrlException("Could not define add \
+view {0}. Already available." % name)
+                    self.views[name] = view
+        if apps:
+            for app in apps:
+                name = app.name
+                if name in self.apps:
+                    raise ApplicationUrlException("Could not define add \
+application {0}. Already available." % name)
+                self.apps[name] = app
+                
     def register(self, application_site):
         '''Register application with site'''
         url = self.make_url
-        self.root_view = None
         self.application_site = application_site
-        self.settings = application_site.settings
-        if self.editavailable is None:
-            self.editavailable = self.settings.CONTENT_INLINE_EDITING.get('available',False)
-        self.ajax             = self.settings.HTML_CLASSES
-        self.description      = self._makedescription()
-        self.views            = deepcopy(self.base_views)
-        self.object_views     = []
         self._create_views()
         urls = []
         for app in self.views.values():
@@ -220,12 +270,31 @@ of objects. Default is ``None``.'''
     def __str__(self):
         return self.__repr__()
     
+    def appsite(self):
+        return self.parent_app
+    
+    def path(self):
+        rurl = self.__baseurl[1:]
+        if self.parent:
+            return self.parent.path() + rurl
+        else:
+            return self.application_site.route + rurl
+        
     def registration_done(self):
         pass
     
     def getview(self, code):
-        '''Get an application view from the view code.'''
-        return self.views.get(code, None)
+        '''Get an application view from the view code.
+Return ``None`` if the view is not available.'''
+        if code in self.views:
+            return self.views[code]
+        else:
+            codes = code.split(SPLITTER)
+            code = codes[0]
+            if code in self.apps:
+                app = self.apps[code]
+                if len(codes) > 1:
+                    return app.getview(SPLITTER.join(codes[1:]))
     
     def get_root_code(self):
         raise NotImplementedError
@@ -258,16 +327,6 @@ of objects. Default is ``None``.'''
         else:
             return parent_view(djp.request, **djp.kwargs)
     
-    def _makename(self, name):
-        name = name or self.name
-        if not name:
-            name = self.__class__.__name__
-        name = name.replace('-','_').lower()
-        return str(slugify(name,rtx='_'))
-    
-    def _makedescription(self):
-        return self.description or self.name
-    
     def _get_view_name(self, name):
         if not self.baseurl:
             raise ApplicationUrlException('Application without baseurl')
@@ -281,12 +340,14 @@ of objects. Default is ``None``.'''
         if not self.views:
             raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
         
+        self.object_views = []
+        parentname = '' if not self.parent else self.parent.name + SPLITTER
         # Find the root view
         for name,view in iteritems(self.views):
             if view.object_view:
                 self.object_views.append(view)
-            view.name = name
-            view.code = self.name + '-' + view.name
+            view.name = parentname + name
+            view.code = self.name + SPLITTER + view.name
             if not view.parent:
                 if not view.urlbit:
                     if self.root_view:
@@ -312,11 +373,24 @@ of objects. Default is ``None``.'''
         while views:
             view = process_views(views[0],views,self)
             view.processurlbits(self)
-            if view.isapp:
-                name = self.name + ' ' + view.name.replace('_',' ')
+            if view.isapp and not self.parent:
+                name = self.description + ' ' + nicename(view.name)
                 self.application_site.choices.append((view.code,name))
             if view.isplugin:
                 register_application(view)
+    
+        # Loop over child applications to build nested views
+        for app in self.apps.values():
+            parent = app.parent
+            if parent is None:
+                parent = self.root_view
+            else:
+                if parent not in self.views:
+                    raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
+                parent = self.views[parent]
+            app.parent = parent
+            app._create_views()
+            
     
     def get_form(self, djp,
                  form_class,
@@ -430,6 +504,15 @@ of objects. Default is ``None``.'''
     def addurl(self, request, name = 'add'):
         '''Retrive the add view url if it exists and user has the right permissions.'''
         return None
+        
+    def render_applications(self,djp):
+        '''Render children application as a list'''
+        site = djp.site
+        headers = self.headers or self.list_display
+        if hasattr(headers,'__call__'):
+            headers = headers(djp)
+        ctx = table(headers, AppList(self,djp), djp, appmodel)
+        return loader.render('djpcms/tablesorter.html',ctx)
 
 
 class ModelApplication(Application):
@@ -467,13 +550,6 @@ functionality when searching for model instances.'''
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
         self.object_display = object_display or self.object_display or self.list_display
-        
-    def _makename(self, name):
-        name = name or self.name
-        if not name:
-            name = self.model.__name__
-        name = name.replace('-','_').lower()
-        return str(slugify(name,rtx='_'))
     
     def register(self, application_site):
         self.mapper = mapper(self.model)

@@ -1,8 +1,9 @@
-from djpcms.views import appsite, appview
+from djpcms import views
 
 
-class Application(appsite.ModelApplication):
-    search = appview.SearchView()
-    add    = appview.AddView()
-    view   = appview.ViewView()
-    edit   = appview.ChangeView()
+class Application(views.ModelApplication):
+    search = views.SearchView()
+    add    = views.AddView()
+    view   = views.ViewView()
+    edit   = views.ChangeView()
+    delete = views.DeleteView()

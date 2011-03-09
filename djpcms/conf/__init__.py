@@ -27,6 +27,16 @@ class DjpcmsConfig(object):
         ajax = self.HTML_CLASSES
         if not ajax:
             self.HTML_CLASSES = ajaxhtml()
+        de = self.DEFAULT_TEMPLATE_NAME
+        if de:
+            if not hasattr(de,'__iter__'):
+                de = (de,)
+            else:
+                de = tuple(de)
+        else:
+            de = ()
+        self.DEFAULT_TEMPLATE_NAME = de
+        
         
     def __repr__(self):
         return self._values.__repr__()

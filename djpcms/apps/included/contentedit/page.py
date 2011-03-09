@@ -2,7 +2,7 @@ from djpcms.template import loader
 from djpcms.forms import HtmlForm, HtmlWidget
 from djpcms import views
 
-from .forms import ShortPageForm 
+from .layout import HtmlPageForm 
     
 
 class EditingPanel(HtmlWidget):
@@ -14,7 +14,6 @@ class EditingPanel(HtmlWidget):
         context = {'form': view.get_form(djp).render(djp)}
         return loader.render(self.template,context)
         
-
 
 class editPageView(views.ChangeView):
     editing_panel = EditingPanel
@@ -28,19 +27,16 @@ class editPageView(views.ChangeView):
         return context
     
 
-PageForm = HtmlForm(ShortPageForm)    
-
-
 class PageApplication(views.ModelApplication):
     '''Application for inline editing of pages'''
     hidden = True  
     main = views.SearchView()
     changeroot = editPageView(regex = 'route',
                               parent = 'main',
-                              form = PageForm)
+                              form = HtmlPageForm)
     change = editPageView(regex = '(?P<path>[\w./-]*)', splitregex = False,
                           parent = 'changeroot',
-                          form = PageForm)
+                          form = HtmlPageForm)
     
     def get_object(self, request, **kwargs):
         url = '/'

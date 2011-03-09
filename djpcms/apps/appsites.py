@@ -50,15 +50,26 @@ class ApplicationSite(ResolverMixin):
             raise ImproperlyConfigured('A different User class has been already registered')
     User = property(__get_User,__set_User)
     
+    @property
+    def tree(self):
+        return self.root.tree
+    
     def count(self):
         return len(self._registry)
+    
+    def __len__(self):
+        return len(self._nameregistry)
+    
+    def __iter__(self):
+        return self._nameregistry.__iter__()
         
     def _load(self):
         """Registers applications to the application site."""
-        name = self.settings.APPLICATION_URLS
-        appurls = ()
-        if name:
-            appurls = module_attribute(name,safe=False)
+        appurls = self.settings.APPLICATION_URLS
+        if appurls:
+            if not hasattr(appurls,'__call__'):
+                if not hasattr(appurls,'__iter__'):
+                    appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
         # loop over reversed sorted applications
@@ -68,12 +79,15 @@ class ApplicationSite(ResolverMixin):
         url = self.make_url
         urls = ()
         # Add in each model's views.
-        for app in self._nameregistry.values():
+        applications = list(self._nameregistry.values())
+        for app in applications:
             baseurl = app.baseurl
             if baseurl:
                 urls += url('^{0}(.*)'.format(baseurl[1:]),
                             app,
                             name = app.name),
+        node = self.tree.make_sitenode(self.route,self)
+        node.addapplications(applications)
         return urls
         
     def register(self, application):
@@ -131,7 +145,7 @@ returns the application handler. If the appname is not available, it raises a Ke
         appmodel = self._nameregistry.get(appname,None)
         if appmodel is None:
             raise ApplicationNotAvailable('Application {0} not available.'.format(appname))
-        return appmodel.root_application
+        return appmodel.root_view
     
     def get_instanceurl(self, instance, view_name = 'view', **kwargs):
         '''Calculate a url given a instance'''
@@ -168,7 +182,7 @@ returns the application handler. If the appname is not available, it raises a Ke
             self.lock.acquire()
             try:
                 for middleware_path in self.settings.MIDDLEWARE_CLASSES:
-                    mwcls = module_attribute(middleware_path)
+                    mwcls = module_attribute(middleware_path,safe=True)
                     if mwcls:
                         mwobj = mwcls()
                         if hasattr(mwobj,'process_request'):
@@ -186,7 +200,7 @@ returns the application handler. If the appname is not available, it raises a Ke
             mw = []
             try:
                 for p_path in self.settings.TEMPLATE_CONTEXT_PROCESSORS:
-                    func = module_attribute(p_path)
+                    func = module_attribute(p_path,safe=True)
                     if func:
                         mw.append(func)
                 self._template_context_processors = tuple(mw)

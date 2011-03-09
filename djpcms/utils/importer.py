@@ -35,7 +35,7 @@ def import_modules(modules):
                 pass
             
 
-def module_attribute(dotpath, default = None, safe = True):
+def module_attribute(dotpath, default = None, safe = False):
     '''
     Load an attribute from a module.
     If the module or the attriubute is not available,

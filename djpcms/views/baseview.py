@@ -12,7 +12,8 @@ from djpcms.utils import parentpath
 from .response import DjpResponse
 from .contentgenerator import BlockContentGen
     
-__all__ = ['djpcmsview',
+__all__ = ['RendererMixin',
+           'djpcmsview',
            'pageview']
 
 def response_from_page(djp, page):
@@ -44,10 +45,32 @@ def page_edit_url(djp):
     else:
         if djp.site.permissions.has(djp.request,djpcms.ADD,page):
             return site.get_url(page.__class__,'add',**kwargs)
+
+
+class RendererMixin(object):
+    appmodel = None
+    
+    def render(self, djp):
+        '''Render the Current View and return unicode string.
+This function is implemented by subclasses of :class:`djpcms.views.View`.
+By default it returns an empty string.
+
+:parameter djp: instance of :class:`djpcms.views.DjpResponse`.'''
+        if self.appmodel:
+            return self.appmodel.render(djp)
+        else:
+            return ''
+    
+    def path(self):
+        raise NotImplementedError
+    
+    def appsite(self):
+        '''Application site holding ``self'''
+        return None
         
 
 # THE DJPCMS BASE CLASS for handling views
-class djpcmsview(object):
+class djpcmsview(RendererMixin):
     '''Base class for handling http requests.
     
     .. attribute:: _methods
@@ -119,14 +142,6 @@ class djpcmsview(object):
     
     def specialkwargs(self, page, kwargs):
         return kwargs
-    
-    def render(self, djp):
-        '''Render the Current View and return unicode string.
-This function is implemented by subclasses of :class:`djpcms.views.View`.
-By default it returns an empty string.
-
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`.'''
-        return ''
     
     def preprocess(self, djp):
         pass
@@ -304,6 +319,9 @@ class pageview(djpcmsview):
     def __unicode__(self):
         return self.page.url
         
+    def path(self):
+        return self.page.url
+    
     def get_url(self, djp, **urlargs):
         return self.page.url
     

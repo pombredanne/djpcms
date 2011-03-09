@@ -1,75 +1,40 @@
-'''An application which displays a table with all applications
-registered in the same ApplicationSite::
-
-    from djpcms.apps.included.admin import SiteAdmin
-    from djpcms.apps.included.sitemap import SiteMapView
-    
-    admin_urls = (
-                  SiteAdmin('/', name = 'admin'),
-                  SiteMapView('/sitemap/', name = 'sitemap'),
-                  .
-                  .
-                  .
-                 )
-                  
-'''
 from djpcms import views, UnicodeMixin
 from djpcms.template import loader
 from djpcms.core.orms import table
-from djpcms.utils import force_str
+from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.html import ObjectDefinition
+from djpcms.core.exceptions import ImproperlyConfigured
 
-__all__ = ['SiteAdmin',
-           'ApplicationList',
+__all__ = ['AdminSite',
+           'ApplicationGroup',
            'AdminApplication']
-
-
-def jqueryicon(url,icon_class):
-    if not url:
-        return ''
-    return '<a class="icon {0}"></a>'.format(icon_class)
-
-
-class AppList(UnicodeMixin):
-    
-    def __init__(self, app, djp):
-        self.app = app
-        self.djp = djp
         
-    def __iter__(self):
-        djp = self.djp
-        request = djp.request
-        site = djp.site
-        appmodel = self.app.appmodel
-        for app in site._nameregistry.values():
-            if app is appmodel:
-                continue
-            view = app.root_view
-            vdjp = view(djp.request)
-            url = vdjp.url
-            if url:
-                name = nicename(app.name)
-                addurl = jqueryicon(app.addurl(request),'ui-icon-circle-plus')
-                yield ('<a href="{0}">{1}</a>'.format(url,name),addurl)
 
-
-class ApplicationList(views.View):
+class ApplicationGroup(views.Application):
+    '''An :class:`djpcms.views.Application` class for
+administer a group of :class:`djpcms.views.Applications`.'''
+    list_display = ['name','actions']
+    template_name = ('admin/applications.html',
+                     'djpcms/admin/applications.html')
+    home = views.View(in_navigation = 1)
     
     def render(self, djp):
-        site = djp.site
-        appmodel = self.appmodel
-        headers = self.headers or appmodel.list_display
-        if hasattr(headers,'__call__'):
-            headers = headers(djp)
-        ctx = table(headers, AppList(self,djp), djp, appmodel)
-        return loader.render('djpcms/tablesorter.html',ctx)
-        
+        url = djp.url
+        ctx = {}
+        return loader.render(self.template_name,ctx)
 
-class SiteAdmin(views.Application):
-    list_display = ['name','actions']
-    home = ApplicationList(title = lambda djp : 'Admin', in_navigation = 1)
+class AdminSite(views.Application):
+    '''An :class:`djpcms.views.Application` class for
+administer models in groups.'''
+    template_name = ('admin/groups.html',
+                     'djpcms/admin/groups.html')
+    home = views.View(in_navigation = 1)
     
+    def render(self, djp):
+        url = djp.url
+        ctx = {'items':djp.children()}
+        return loader.render(self.template_name,ctx)
     
     
 class AdminApplication(views.ModelApplication):

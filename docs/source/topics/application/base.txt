@@ -1,8 +1,8 @@
 .. _application-base:
 
-======================
+================
 Application
-======================
+================
 
 .. autoclass:: djpcms.views.Application
    :members:

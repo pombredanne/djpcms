@@ -31,7 +31,7 @@ def get_template(self):
             return page.template
     view = self.view
     t = view.template_name
-    if not t and hasattr(view,'appmodel'):
+    if not t and view.appmodel:
         t = view.appmodel.template_name
     de = self.site.settings.DEFAULT_TEMPLATE_NAME
     if t:
@@ -276,7 +276,15 @@ the parent of the embedded view.'''
                                               context))
         return self.http.HttpResponse(html,
                                       mimetype = 'text/html')
-        
+
+    def children(self):
+        '''return a generator over children responses'''
+        path = self.view.path()
+        tree = self.site.tree
+        if path in tree:
+            for node in tree[path].children:
+                yield node
+                
     def redirect(self, url):
         if self.is_xhr:
             return jredirect(url = url)

@@ -37,24 +37,25 @@ Must be used as a base class for TestCase classes'''
     def _pre_setup(self):
         from djpcms.apps.included.contentedit import api
         self.api = api
+        self.tests = sites.tests
         sites.settings.TESTING = True
-        self.SITE_DIRECTORY = sites.settings.SITE_DIRECTORY
-        self.INSTALLED_APPS = copy(sites.settings.INSTALLED_APPS)
+        self.SITE_DIRECTORY = self.tests.SITE_DIRECTORY
+        self.INSTALLED_APPS = copy(self.tests.INSTALLED_APPS)
+        self.sites.clear()
         self.site = self.makesite()
-        if self.site:
+        if self.site is not None:
             self.settings = self.site.settings
             sites.load()
         if self._env:
             self._env.pre_setup()
         
-    def makesite(self):
+    def makesite(self, route = None, appurls = None):
         '''Setup the site'''
-        appurls = getattr(self,'appurls',None)
-        apps = sites.settings.INSTALLED_APPS + self.installed_apps()
-        self.sites.clear()
+        appurls = getattr(self,'appurls',appurls)
+        apps = self.INSTALLED_APPS + self.installed_apps()
         return sites.make(self.SITE_DIRECTORY,
                           'conf',
-                          route = self.urlbase,
+                          route = route or self.urlbase,
                           APPLICATION_URLS = appurls,
                           INSTALLED_APPS = apps)
         

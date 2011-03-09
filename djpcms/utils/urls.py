@@ -1,10 +1,15 @@
 from py2py3 import ispy3k, urlparse, map, to_string
 
+import re
+
 __all__ = ['urlparse',
            'urlbits',
            'urlfrombits',
            'urlquote',
            'parentpath',
+           'closedurl',
+           'openedurl',
+           'routejoin',
            'SLASH']
 
 if ispy3k:
@@ -14,6 +19,8 @@ else:
 
 
 SLASH = '/'
+
+SLASH2 = SLASH+SLASH
 #: list of characters that are always safe in URLs.
 _always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                 'abcdefghijklmnopqrstuvwxyz'
@@ -45,6 +52,41 @@ def urlfrombits(bits):
         return '/%s/' % '/'.join(bits)
     else:
         return '/'
+
+
+def remove_double_slash(route):
+    if SLASH2 in route:
+        route = re.sub(SLASH+"+" , SLASH, route)
+    return route
+
+
+def closedurl(url):
+    '''Close a url with SLASHes::
+    
+    >>> closedurl('bla')
+    >>> '/bla/'
+    >>> closedurl('/bla')
+    >>> '/bla/'
+    '''
+    url = remove_double_slash(url)
+    if not url.endswith(SLASH):
+        url += SLASH
+    if not url.startswith(SLASH):
+        url = SLASH + url
+    return url
+
+
+def openedurl(url):
+    url = remove_double_slash(url)
+    if url.endswith(SLASH):
+        url = url[:-1]
+    if url.startswith(SLASH):
+        url = url[1:]
+    return url
+
+def routejoin(*routes):
+    route = SLASH.join(routes)
+    return remove_double_slash(route)
 
 
 def parentpath(url):

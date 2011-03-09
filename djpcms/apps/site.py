@@ -8,7 +8,7 @@ from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured
 from djpcms.utils.importer import import_module, import_modules
-from djpcms.utils import logtrace, SLASH
+from djpcms.utils import logtrace, SLASH, closedurl
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 
@@ -31,24 +31,15 @@ VIEW = 10
 ADD = 20
 CHANGE = 30
 DELETE = 40
-SLASH = '/'
 
 
 logger = logging.getLogger('sites')
 
 
-class editHandler(ResolverMixin):
+def make_site(self, route, *args):
+    from djpcms.apps import appsites
+    return appsites.ApplicationSite(self, route, *args)
     
-    def __init__(self, site):
-        self.site = site
-        self.settings = site.settings
-        
-    def _load(self):
-        return self.site.urls()
-    
-    def editsite(self):
-        return self.site
-        
     
 class SimplePermissionBackend(object):
     
@@ -99,6 +90,7 @@ of djpcms application routes as well as general configuration parameters.'''
         
     def clear(self):
         self._sites.clear()
+        self.admins = []
         self._osites = None
         self._settings = None
         self._default_settings = None
@@ -153,8 +145,24 @@ of djpcms application routes as well as general configuration parameters.'''
     settings = property(__get_settings)
     
     def setup_environment(self):
+        '''Called just before loading :class:`djpcms.apps.appsites.ApplicationSite` instances
+registered. It loops over the objecr relational mappers registered and setup models.
+It also initialise admin for models.'''
         for wrapper in self.modelwrappers.values():
             wrapper.setup_environment()
+        self.admins = admins = []
+        for apps in self.settings.INSTALLED_APPS:
+            try:
+                mname = apps.split('.')[-1]
+                admin = import_module(apps+'.admin')
+                urls  = getattr(admin,'admin_urls',None)
+                if not urls:
+                    continue
+                name = getattr(admin,'NAME',mname)
+                route  = closedurl(getattr(admin,'ROUTE',mname))
+                admins.append((name,route,urls))
+            except ImportError:
+                continue            
         
     def _load(self):
         '''Load sites'''
@@ -163,6 +171,7 @@ of djpcms application routes as well as general configuration parameters.'''
         #self.pagecache = PageCache()
         if not self._sites:
             raise ImproperlyConfigured('No sites registered.')
+        # setup the environment
         self.setup_environment()
         settings = self.settings
         sites = self.all()
@@ -171,8 +180,6 @@ of djpcms application routes as well as general configuration parameters.'''
         self.tree = tree = SiteMap()
         for site in reversed(sites):
             site.load()
-            node = tree.make_sitenode(site.route,site)
-            node.addapplications(site._nameregistry.values())
         import_modules(settings.DJPCMS_PLUGINS)
         import_modules(settings.DJPCMS_WRAPPERS)
         url = self.make_url
@@ -243,16 +250,16 @@ Configuration parameters can be passed as key-value pairs:
     def get_or_create(self, name, settings = None, route = None, **kwargs):
         '''Same as :meth:`make` but does nothing if an application
 site is already registered at ``route``.'''
-        route = self.makeurl(route)
+        route = closedurl(route or '')
         site = self.get(route,None)
-        if site:
-            return site
-        else:
+        if site is None:
             return self.make(name,settings,route,**kwargs)
+        else:
+            return site
     
     def _create_site(self,route,settings,handler):
         from djpcms.apps import appsites
-        route = self.makeurl(route)
+        route = closedurl(route or '')
         self.logger.debug('Creating new site at route "{0}"'.format(route))
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
@@ -264,14 +271,6 @@ site is already registered at ``route``.'''
     
     def get(self, name, default = None):
         return self._sites.get(name,default)
-    
-    def makeurl(self, url = None):
-        url = url or SLASH
-        if not url.endswith('/'):
-            url += '/'
-        if not url.startswith('/'):
-            url = '/' + url
-        return url
             
     def get_site(self, url = None):
         url = url or SLASH
@@ -319,7 +318,18 @@ site is already registered at ``route``.'''
         djp = view(request, **kwargs)
         setattr(request,'instance',djp.instance)
         return djp
-        
+
+    def make_admin_urls(self, **kwargs):
+        from djpcms.apps.included.admin import AdminSite, ApplicationGroup
+        groups = []
+        for name,route,urls in self.admins:
+            if urls:
+                groups.append(ApplicationGroup(route,
+                                               name = name,
+                                               apps = urls))
+        # Create the admin application
+        admin = AdminSite('/', apps = groups, **kwargs)
+        return (admin,)
         
 sites = ApplicationSites()
 

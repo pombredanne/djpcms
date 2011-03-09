@@ -2,9 +2,9 @@
 
 .. module:: djpcms.views.apps
 
-====================================
+==========================
 Included Applications
-====================================
+==========================
 
 The application framework ``djpcms.views.appsite`` is flexible and powerful enough to handle most
 uses one can think of. It also comes with few ``battery-included`` implementations.
@@ -32,6 +32,15 @@ The most basic application, it is form by the four standard views:
 
 
 .. module:: djpcms.views.apps.included.archive
+
+
+Admin
+===================
+
+.. automodule:: djpcms.apps.included.admin
+   :members:
+   
+
 
 Archive
 ======================

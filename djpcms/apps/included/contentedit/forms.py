@@ -1,7 +1,11 @@
 from djpcms import sites, forms, empty_choice
-from djpcms.forms.layout import uniforms
 from djpcms.utils import force_str, slugify
 from djpcms.plugins import get_plugin, plugingenerator, wrappergenerator
+
+__all__ = ['TemplateForm',
+           'PageForm',
+           'ChildPageForm',
+           'ContentBlockForm']
 
 
 def allsites():
@@ -28,8 +32,6 @@ class TemplateForm(forms.Form):
     name = forms.CharField()
     template = forms.CharField(widget = forms.TextArea)
 
-
-HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 def CalculatePageUrl(data, mapper, page):
     '''Calculate url for a page'''
@@ -115,7 +117,6 @@ def application_view_for_parent(bfield):
 
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
-    site = forms.ModelChoiceField(choices = allsites, widget = forms.HiddenInput, required = False)
     link = forms.CharField(required = False)
     url_pattern = forms.CharField(required = False)
     application_view = forms.ChoiceField(choices = application_view_for_parent,
@@ -277,7 +278,7 @@ class ShortPageForm(forms.Form):
         return page
 
 
-class NewChildForm(forms.Form):
+class ChildPageForm(forms.Form):
     #url_pattern = forms.CharField(label = 'New child page url', required = True)
    # 
     #layout = FormLayout(Fieldset('url_pattern', css_class = inlineLabels))
@@ -320,26 +321,3 @@ def _getid(obj):
     else:
         return obj
         
-
-ChildFormHtml = forms.HtmlForm(
-    NewChildForm,
-    submits = (('create', '_child'),)
-)
-
-
-PageFormHtml = forms.HtmlForm(
-    ShortPageForm,
-    submits = (('change', '_save'),)
-)
-
-
-ContentBlockHtmlForm = forms.HtmlForm(
-    ContentBlockForm,
-    layout = uniforms.Layout(
-                          uniforms.Fieldset('plugin_name','container_type','title',
-                                            'view_permission'),
-                          uniforms.Columns(('for_not_authenticated',),
-                                           ('requires_login',),
-                                           default_style=uniforms.inlineLabels3)
-                           )
-)

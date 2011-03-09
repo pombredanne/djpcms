@@ -2,11 +2,11 @@ import logging
 import os
 import sys
 
-from djpcms import sites, MakeSite
+from djpcms import sites
 from djpcms.test import TEST_TYPES
 import djpcms.contrib as contrib
-import examples
 from djpcms.utils.importer import import_module
+import examples
 
 logger = logging.getLogger()
 
@@ -24,6 +24,7 @@ class exempledir:
         self.d = d
     def __call__(self,test_type):
         return self.d
+    
     
 def all_test_dirs():
     yield lambda test_type : os.path.join(CUR_DIR,test_type)
@@ -113,7 +114,9 @@ def run(tags = None, test_type = None,
     else:
         # Create the testing Site
         config = config or {}
-        MakeSite(test_type,'conf',**config)
+        testsite = sites.make(test_type,'conf',**config)
+        # Inject the test settings to sites global variable
+        sites.tests = testsite.settings 
         modules = import_tests(tags, test_type, can_fail)
         runner  = TestSuiteRunner(verbosity = verbosity)
         runner.run_tests(modules)

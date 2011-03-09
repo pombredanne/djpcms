@@ -22,7 +22,9 @@
  */
 (function($) {
     
-    
+    /**
+     * Common Ancestor jQuery plugin
+     */
     $.fn.commonAncestor = function() {
         var parents = [],
             minlen = Infinity,
@@ -54,6 +56,9 @@
         return $([]);
     };
 	
+    /**
+     * djpcms site manager
+     */
     $.djpcms = (function() {
         
         var decorators = {},
@@ -113,7 +118,10 @@
 		
 		// Add a new decorator
 		function addDecorator(deco) {
-			decorators[deco.id] = deco;
+			decorators[deco.id] = deco.decorate;
+			if(deco.config) {
+                defaults[deco.id] = deco.config;
+            }
 		}
 		
 		// Add a new decorator
@@ -171,8 +179,8 @@
 				}
 				
 				$.each(decorators,function(id,decorator) {
-					log(this + ' - adding decorator ' + decorator.id);
-					decorator.decorate(me,config);
+					log(this + ' - adding decorator ' + id);
+					decorator(me,config);
 				});						
 			});
 		}
@@ -193,6 +201,11 @@
 		};
 	}());
 	
+    
+    /**
+     * _____________________________________________ PLUGINS CALLBAKS AND DECORATORS
+     * 
+     */
 	// extend plugin scope
 	$.fn.extend({
         djpcms: $.djpcms.construct
@@ -399,6 +412,56 @@
         id:'jquery-buttons',
         decorate: function(obj, config) {
            $('input[type="submit"]',obj).button();    
+        }
+    });
+	
+	   /**
+     * Accordion menu
+     */
+    $.djpcms.decorator({
+        id:"accordion_menu",
+        decorate: function($this,config) {
+            $('ul.accordionmenu',$this).each(function() {
+                var menu = $(this);
+                var act = $('li.selected a',menu);
+                if(!act.length) {
+                    act = 0;
+                }
+                var el = menu.accordion({header: "a.menuitem",
+                                         event: "mouseover",
+                                         active: act});
+                menu.fadeTo(config.fadetime,1);
+            });
+        }
+    });
+    
+    
+    /**
+     * Table-sorter decorator
+     * decorate tables with jquery.tablesorter plugin
+     * Plugin can be found at http://tablesorter.com/
+     */
+    $.djpcms.decorator({
+        id:"tablesorter",
+        decorate: function($this,config) {
+            $('table.tablesorter',$this).each(function() {
+                $(this).tablesorter(config.tablesorter);
+            });
+        }
+    });
+    
+    /**
+     * jQuery UI Tabs
+     */
+    $.djpcms.decorator({
+        id:"ui_tabs",
+        config:{
+            effect:'drop',
+            fadetime: 500
+            },
+        decorate: function($this, config) {
+            var c = config.ui_tabs;
+            $('.ui-tabs',$this).tabs(config.tabs).show(c.effect,{},c.fadetime);
         }
     });
 	
@@ -617,43 +680,6 @@
 		}
 	});
 	
-	
-	/**
-	 * Accordion menu
-	 */
-	$.djpcms.decorator({
-		id:"accordion_menu",
-		decorate: function($this,config) {
-			$('ul.accordionmenu',$this).each(function() {
-				var menu = $(this);
-				var act = $('li.selected a',menu);
-				if(!act.length) {
-					act = 0;
-				}
-				var el = menu.accordion({header: "a.menuitem",
-										 event: "mouseover",
-										 active: act});
-				menu.fadeTo(config.fadetime,1);
-			});
-		}
-	});
-	
-	
-	/**
-	 * Table-sorter decorator
-	 * decorate tables with jquery.tablesorter plugin
-	 * Plugin can be found at http://tablesorter.com/
-	 */
-	$.djpcms.decorator({
-		id:"tablesorter",
-		decorate: function($this,config) {
-			$('table.tablesorter',$this).each(function() {
-				$(this).tablesorter(config.tablesorter);
-			});
-		}
-	});
-	
-	
 	// Calendar Date Picker Decorator
 	$.djpcms.decorator({
 		id:"Date_Picker",
@@ -662,16 +688,6 @@
 			$('input.'+ajaxclass,$this).each(function() {
 				$(this).datepicker({dateFormat: config.date_format});
 			});
-		}
-	});
-	
-	/**
-	 * jQuery UI Tabs
-	 */
-	$.djpcms.decorator({
-		id:"ui_tabs",
-		decorate: function($this, config) {
-			$('.ui-tabs',$this).tabs(config.tabs);
 		}
 	});
 	

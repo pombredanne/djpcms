@@ -31,6 +31,8 @@
     
     $.djpcms.sitemap = function(selector,url) {
         
+        if(!$.mtree) {return;}
+        
         function sitemap_loader() {
             
             function callBack(e,s) {

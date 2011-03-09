@@ -126,6 +126,12 @@ are specified as class attributes of :class:`Application`.
 
     An instance of :class:`djpcms.views.View` which represents the root view of the application.
     This attribute is calculated by djpcms and specified by the user.
+    
+.. attribute:: form
+
+    The default form class used in the application.
+    
+    Default ``None``.
 '''    
     inherit          = False
     '''Flag indicating if application views are inherited from base class.
@@ -144,7 +150,6 @@ are specified as class attributes of :class:`Application`.
     
     Default ``False``.'''
     form             = None
-    '''Default form class used in the application. Default ``None``.'''
     form_method      ='post'
     '''Default form submit method for views, ``get`` or ``post``.
     
@@ -505,9 +510,9 @@ Re-implement for custom arguments.'''
         except:
             return None
         
-    def object_from_form(self, form):
+    def object_from_form(self, form, commit = True):
         '''Save form and return an instance pof self.model'''
-        return form.save(commit = True)
+        return form.save(commit = commit)
     
     # APPLICATION URLS
     #----------------------------------------------------------------

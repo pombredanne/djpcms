@@ -329,6 +329,7 @@ Usage::
         
     def get_page(self, djp):
         from djpcms.apps.included.contentedit import api
+        return None
         pages = api.get_for_application(djp,self.code)
         if pages:
             if len(pages) == 1:
@@ -646,9 +647,8 @@ class ChangeView(ObjectView):
     def render(self, djp):
         return self.get_form(djp).render(djp)
     
-    def save(self, request, f):
-        as_new = request.POST.has_key("_save_as_new")
-        return self.appmodel.object_from_form(f)
+    def save(self, request, f, commit = True):
+        return self.appmodel.object_from_form(f, commit)
     
     def default_post(self, djp):
         return saveform(djp, True, force_redirect = self.force_redirect)

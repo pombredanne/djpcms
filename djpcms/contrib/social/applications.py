@@ -6,10 +6,9 @@ import djpcms
 import djpcms.contrib.social.providers
 from djpcms.plugins import DJPplugin, get_plugin
 from djpcms.core import messages
-from djpcms.views import appview
 from djpcms.template import loader
 from djpcms.utils.ajax import jpopup
-from djpcms.views.decorators import deleteview
+from djpcms import views
 from djpcms.contrib.social import provider_handles
 from djpcms.contrib.social.models import LinkedAccount
 from djpcms.apps.included.user import UserApplication
@@ -23,7 +22,7 @@ def getprovider(djp):
     return provider_handles.get(djp.kwargs.get('provider',None),None)       
 
 
-class SocialView(appview.ModelView):
+class SocialView(views.ModelView):
     '''Model View class for handling social providers'''
     
     def provider(self, djp):
@@ -259,9 +258,11 @@ class SocialActionView(SocialView):
             return self.handle_response(djp)
 
 
-def deletesocial(djp):
-    c = client(djp.request.user,getprovider(djp))
-    c.delete()
+class DeleteSocial(views.DeleteView):
+
+    def default_post(self,djp):
+        c = client(djp.request.user,getprovider(djp))
+        c.delete()
         
 
 class SocialUserApplication(UserApplication):
@@ -273,7 +274,7 @@ class SocialUserApplication(UserApplication):
                                isplugin = True)
     social_login  = SocialLoginView(regex = 'login', parent = 'social_home')
     social_done   = SocialLoginDoneView(regex = 'done', parent = 'social_login')
-    social_delete = deleteview(deletesocial, parent = 'social_home')
+    social_delete = DeleteSocial(parent = 'social_home')
     social_action = SocialActionView(regex = '(?P<action>[-\.\w]+)',
                                      parent = 'social_home',
                                      isapp = False,

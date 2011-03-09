@@ -1,3 +1,8 @@
+'''An application for displaying the sitemap as a table tree. To use add the
+following to your application urls tuple::
+
+    SiteMapApplication('/sitemap/', name = 'sitemap', in_navigation = 100)
+'''
 from djpcms import views, sites
 from djpcms.template import loader
 from djpcms.models import Page
@@ -37,4 +42,4 @@ class SiteMapApplication(views.Application):
               'jquery_mtree/mtree.dnd.js',
               'jquery_mtree/mtree.contextmenu.js',
               'jquery_mtree/mtree.types.js',
-              'djpcms/sitemap.js')
+              'djpcms/apps/sitemap.js')

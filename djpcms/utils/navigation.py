@@ -107,6 +107,7 @@ class Navigator(lazycounter):
         return djp
         
     def _items(self, urlselects = None, secondary_after = 100, **kwargs):
+        return []
         djp = self.djp
         css = djp.css
         if urlselects is None:
@@ -126,6 +127,7 @@ class Navigator(lazycounter):
         return items
 
     def render(self):
+        return ''
         if self.mylevel <= self.levels:
             return loader.render('djpcms/bits/navitem.html', {'navigator': self})
         else:
@@ -153,6 +155,7 @@ class Breadcrumbs(lazycounter):
         return c
         
     def _items(self, **kwargs):
+        return []
         first   = True
         classes = []
         djp     = self.djp
@@ -174,3 +177,4 @@ class Breadcrumbs(lazycounter):
     
     def render(self):
         return loader.render(self.template,{'breadcrumbs':self})
+

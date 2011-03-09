@@ -37,7 +37,7 @@ class TimeStamp(ModelBase):
         
     def save(self, commit = True):
         self.last_modified = datetime.now()
-        super(TimeStamp,self).save(commit = commit)
+        return super(TimeStamp,self).save(commit = commit)
     
 
 class InnerTemplate(TimeStamp,TemplateInterface):
@@ -49,10 +49,9 @@ class InnerTemplate(TimeStamp,TemplateInterface):
     def __unicode__(self):
         return self.name
     
-    def save(self):
-        if not self.blocks:
-            self.blocks_from_content()
-        return super(InnerTemplate,self).save()        
+    def save(self, commit = True):
+        self.blocks_from_content()
+        return super(InnerTemplate,self).save(commit = commit)        
     
     class Meta:
         app_label = 'djpcms'
@@ -100,25 +99,18 @@ class Site(ModelBase):
     
 class Page(TimeStamp, PageInterface):
     '''The page model holds several information regarding pages in the sitemap.'''
-    site        = field.ForeignKey(Site, required = False)
     application_view = field.SymbolField(required = False)
-    redirect_to = field.ForeignKey('self',
-                                   required  = False,
-                                   related_name = 'redirected_from')
-    title       = field.CharField()
+    title = field.CharField()
+    link = field.CharField()
     url_pattern = field.SymbolField(required = False)
-    link        = field.CharField()
     inner_template = field.ForeignKey(InnerTemplate, required = False)
-    template    = field.CharField()
+    template = field.CharField()
     in_navigation = field.IntegerField(default=1)
-    cssinfo     = field.ForeignKey(CssPageInfo, required = False)
+    cssinfo = field.ForeignKey(CssPageInfo, required = False)
     is_published = field.BooleanField(default=True)
     # Access
     requires_login = field.BooleanField(default = False)
     soft_root = field.BooleanField(default=False)
-    parent    = field.ForeignKey('self',
-                                  required = False,
-                                  related_name = 'children')
     doctype = field.IntegerField(default = html.htmldefaultdoc)
     insitemap = field.BooleanField(default = True)
     

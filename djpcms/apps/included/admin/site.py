@@ -1,10 +1,28 @@
 '''An application which displays a table with all applications
-registered in the same ApplicationSite
+registered in the same ApplicationSite::
+
+    from djpcms.apps.included.admin import SiteAdmin
+    from djpcms.apps.included.sitemap import SiteMapView
+    
+    admin_urls = (
+                  SiteAdmin('/', name = 'admin'),
+                  SiteMapView('/sitemap/', name = 'sitemap'),
+                  .
+                  .
+                  .
+                 )
+                  
 '''
 from djpcms import views, UnicodeMixin
 from djpcms.template import loader
 from djpcms.core.orms import table
+from djpcms.utils import force_str
 from djpcms.utils.text import nicename
+from djpcms.html import ObjectDefinition
+
+__all__ = ['SiteAdmin',
+           'ApplicationList',
+           'AdminApplication']
 
 
 def jqueryicon(url,icon_class):
@@ -51,4 +69,24 @@ class ApplicationList(views.View):
 class SiteAdmin(views.Application):
     list_display = ['name','actions']
     home = ApplicationList(title = lambda djp : 'Admin', in_navigation = 1)
+    
+    
+    
+class AdminApplication(views.ModelApplication):
+    view_template = 'djpcms/admin/viewtemplate.html'
+    
+    search = views.SearchView()
+    add    = views.AddView()
+    view   = views.ViewView()
+    change = views.ChangeView()
+    delete = views.DeleteView()
+    
+    def render_object(self, djp):
+        '''Render an object in its object page.
+        This is usually called in the view page of the object.
+        '''
+        change = self.getview('change')(djp.request, **djp.kwargs)
+        ctx = {'view':force_str(ObjectDefinition(self, djp)),
+               'change':change.render()}
+        return loader.render(self.view_template,ctx)
     

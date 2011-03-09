@@ -29,7 +29,7 @@ class Node(UnicodeMixin):
         if ancestor:
             self.site = ancestor.site 
             ancestor.children[url] = self
-            
+        
     def __unicode__(self):
         return self.url
     

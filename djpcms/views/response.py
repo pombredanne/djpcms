@@ -202,6 +202,10 @@ the parent of the embedded view.'''
             if not self.page or self.page.insitemap:
                 return 'ALL'
         return 'NONE,NOARCHIVE'
+    
+    def render(self):
+        '''Render itself'''
+        return self.view.render(self)
         
     def response(self):
         '''return the type of response or an instance of HttpResponse

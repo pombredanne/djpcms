@@ -29,10 +29,11 @@ Usage::
         mapper = self.appmodel.mapper
         label_for_field = mapper.label_for_field
         getrepr = mapper.getrepr
+        mark_safe = loader.mark_safe
         for field in self.appmodel.object_display:
             name = label_for_field(field)
             yield {'name':name,
-                   'value':getrepr(field,obj)}
+                   'value':mark_safe(getrepr(field,obj))}
                 
     def __unicode__(self):
         '''Render an object as definition list.'''

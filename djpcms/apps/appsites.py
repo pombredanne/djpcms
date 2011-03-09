@@ -7,7 +7,7 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.urlresolvers import ResolverMixin
 
-from djpcms.views import Application, ModelApplication
+from djpcms.views import Application, ModelApplication, DummyDjp
 from djpcms.template import loader
 
 from djpcms.models import Page, InnerTemplate
@@ -58,7 +58,7 @@ class ApplicationSite(ResolverMixin):
         name = self.settings.APPLICATION_URLS
         appurls = ()
         if name:
-            appurls = module_attribute(name)
+            appurls = module_attribute(name,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
         # loop over reversed sorted applications

@@ -25,7 +25,8 @@
 	text-decoration: {{ text_decoration }};{% endif %}{% if overflow %}
 	overflow: {{ overflow }};{% endif %}{% if display %}
 	display: {{ display }};{% endif %}{% if height %}
-	height: {{ height }};{% endif %}{% if width %}
+	height: {{ height }};{% endif %}{% if min_height %}
+    min-height: {{ min_height }};{% endif %}{% if width %}
 	width: {{ width }};{% endif %}{% if min_width %}
     min-width: {{ min_width }};{% endif %}{% if padding %}
 	padding: {{ padding }};{% endif %}{% if float %}

@@ -24,6 +24,13 @@ def siteapp_choices():
     return sites.get_site().choices
 
 
+class TemplateForm(forms.Form):
+    name = forms.CharField()
+    template = forms.CharField(widget = forms.TextArea)
+
+
+HtmlTemplateForm = forms.HtmlForm(TemplateForm)
+
 def CalculatePageUrl(data, mapper, page):
     '''Calculate url for a page'''
     site = sites.get_site()

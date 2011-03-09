@@ -190,7 +190,13 @@ class BaseOrmWrapper(object):
         return nicerepr(self._getrepr(name,instance),nd)
     
     def _getrepr(self, name, instance):
-        raise NotImplementedError
+        attr = getattr(instance,name,None)
+        if hasattr(attr,'__call__'):
+            attr = attr()
+        if attr:
+            return force_str(attr)
+        else:
+            return sites.settings.DJPCMS_EMPTY_VALUE
         
     def has_add_permission(self, user, obj=None):
         return user.is_superuser

@@ -48,12 +48,13 @@ CssContext('paginator',
            )
 
 
-#________________________________________ UNIFORM
+#________________________________________ UNIFORMS
 CssContext('uniform',
            tag = 'form.uniForm',
            template = 'djpcms/style/uniform.css_t',
            data = {
                    'background':'transparent',
+                   'text_align':'left',
                    'input_border':'1px solid #ccc',
                    'input_padding': '3px 3px',
                    'table_padding': '2px 5px 2px 0',
@@ -92,7 +93,7 @@ CssContext('object_definitions',
            tag='div.object-definition',
            template='djpcms/style/object-definition.css_t',
            data = {
-                   'background': 'transparent'
+                   'text_align':'left'
                    }
            )
 
@@ -248,3 +249,7 @@ CssContext('breadcrumbs',
                    'font_size': '130%',
                    'padding': '10px 0'}
            )
+
+#________________________________________ SPECIAL IDS AND CLASSES
+CssContext('content',tag='#content',data={'min_height':'500px'})
+CssContext('hidecontent',tag='.djph',data={'display':'none'})

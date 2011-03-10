@@ -9,7 +9,7 @@
 {% block blockbots %}{%if robots %}<meta name="ROBOTS" content="{{ robots }}" />{% endif %}{% endblock %}
 {% block blockkeywords %}<meta name="keywords" content="{% block site_keywords %}{% endblock %}"/>{% endblock %}
 {% block blockdescriptions %}<meta name="description" content="{% block site_description %}{% endblock %}"/>{% endblock %}{% if page %}{% for head in page.additional_head %}
-{{ head|safe }}{% endfor %}{% endif %}
+{{ head }}{% endfor %}{% endif %}{% block head_content %}
 <!--  STYLING -->{% block style_reset %}
 {% include "djpcms/bits/reset.html" %}{% endblock %}{% block extrastyle %}
 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}djpcms/jquery-autocomplete/jquery.autocomplete.css"/>{% if media %}{% for css in media.render_css %}
@@ -19,7 +19,7 @@
 <!-- END OF STYLING -->
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/modernizr-1.6.min.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.min.js"></script>
-{% block extra_head %}{% endblock %}
+{% block extra_head %}{% endblock %}{% endblock %}
 </head>
 
 <body{% block bodybits %}{% if bodybits %} {{ bodybits }}{% endif %}{% endblock %}>{% block pre_body %}{% if prebody %}
@@ -32,7 +32,8 @@
 </div>
 <!-- END OF BODY CONTAINER -->
 
-<!-- START OF END-BODY SCRIPTS -->{% block end_page_scripts %}{% if debug %}
+{% block body_scripts %}<!-- START OF END-BODY SCRIPTS -->
+{% block defaults_body_scripts %}{% if debug %}
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.metadata.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.cookie.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery-ui-1.8.4.min.js"></script>
@@ -45,21 +46,23 @@
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery-autocomplete/jquery.autocomplete.min.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.pagination.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/form.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/tablesorter/jquery.tablesorter.js"></script>{% endif %}{% endblock %}{% block decorator_scripts %}
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/djpcms.js"></script>{% endblock %}{% if media %}{% for js in media.render_js %}
-{{ js }}{% endfor %}{% endif %}{% block body_scripts %}
+<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/tablesorter/jquery.tablesorter.js"></script>{% endif %}
+{% endblock %}{% block decorator_scripts %}
+<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/djpcms.js"></script>
+{% if media %}{% for js in media.render_js %}
+{{ js }}{% endfor %}{% endif %}{% block body_onready_scripts %}
 <script type="text/javascript">
 (function($) {
-  $(document).ready(function() {
-	var options = {{ css.tojson }};
-	options.media_url = "{{ MEDIA_URL }}";
-	options.debug     = {{ jsdebug }};
-	$.djpcms.set_options(options);
-	$(document).djpcms();{% block body_extra_scripts %}{% endblock %}
-	});
-})(jQuery);
-</script>{% endblock %}
-<!-- END OF END-BODY SCRIPTS -->
+    $(document).ready(function() {
+        var options = {{ css.tojson }};
+        options.media_url = "{{ MEDIA_URL }}";
+        options.debug     = {{ jsdebug }};
+        $.djpcms.set_options(options);
+        $(document).djpcms();
+    });
+}(jQuery));
+</script>{% endblock %}{% endblock %}
+<!-- END OF END-BODY SCRIPTS -->{% endblock %}
 {% block ads_scripts %}{% endblock %}
 {% if release %}
 {% block analytics_scripts %}{% endblock %}{% endif %} 

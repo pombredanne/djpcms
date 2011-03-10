@@ -240,7 +240,7 @@ of objects. Default is ``None``.'''
                 if name in self.views:
                     raise ApplicationUrlException("Could not define add \
 view {0}. Already available." % name)
-                    self.views[name] = view
+                self.views[name] = view
         if apps:
             for app in apps:
                 name = app.name
@@ -248,6 +248,13 @@ view {0}. Already available." % name)
                     raise ApplicationUrlException("Could not define add \
 application {0}. Already available." % name)
                 self.apps[name] = app
+    
+    @property            
+    def settings(self):
+        if self.application_site:
+            return self.application_site.settings
+        else:
+            return self.parent.appsite.settings
                 
     def register(self, application_site):
         '''Register application with site'''

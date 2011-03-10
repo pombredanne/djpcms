@@ -1,0 +1,20 @@
+{% extends "djpcms/root.html" %}
+{% block body_scripts %}{% endblock %}{% block head_content %}
+<style type="text/css">
+    body {padding:0;margin:0;}
+    #header {
+        padding: 10px;
+        background: #2191c0;
+        color: #eaf5f7;
+        font-weight: bold;
+    }
+    #content {
+        padding: 10px;
+    }
+</style>{% endblock %}
+{% block html_container %}
+<div id="header">{% block site_header %}djpcms Examples{% endblock %}
+</div>
+<div id="content">{% block page_body %}{{ inner }}{% endblock %}
+</div>
+{% endblock %}

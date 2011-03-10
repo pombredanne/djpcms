@@ -21,9 +21,12 @@ def djpcms(request):
         settings = site.settings
     else:
         settings = sites.settings
+        
+    base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     
     user = getattr(request,'user',None)
     ctx = {'page':page,
+           'base_template': base_template,
            'css':settings.HTML_CLASSES,
            'grid': get_grid960(page),
            'htmldoc': htmldoc(None if not page else page.doctype),

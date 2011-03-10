@@ -1,7 +1,7 @@
 .. _intro-tutorial02:
 
 =====================================
-Writing your first site, part 2
+Writing a IssueTraker Application
 =====================================
 
 We assume you succesfully created a new django project with djpcms installed as explained in tutorial

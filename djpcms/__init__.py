@@ -56,6 +56,7 @@ ispy3k = py2py3.ispy3k
 UnicodeMixin = py2py3.UnicodeMixin
 
 from .apps import *
+from .apps.management import execute
 from .http import serve
 from .conf import nodata
 

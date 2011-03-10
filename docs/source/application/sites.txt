@@ -1,8 +1,21 @@
 .. _site-managers:
 
 ======================
-Application Sites
+Sites
 ======================
+
+The first concept to get familiar with is the application site.
+To use ``djpcms`` to manage a web application, you need to create a 
+at least one site.
+A site is an instance of :class:`djpcms.apps.appsites.ApplicationSite`
+and it is created simply using the high-level function
+API :func:`djpcms.MakeSite`.
+
+This is the simplest possible site you can build
+
+.. include:: ../commons/helloworld
+
+
 
 Djpcms has the concept of application sites where each application site contains a
 set of urls which serve the applications registered with the site itself.

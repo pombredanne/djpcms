@@ -1,0 +1,26 @@
+.. _api:
+
+================
+High Level API
+================
+
+
+MakeSite
+=================
+
+.. autofunction:: djpcms.MakeSite
+
+
+.. seealso::
+
+    djpcms `Sites <site-managers>`_
+
+
+RegisterORM
+================
+
+.. autofunction:: djpcms.RegisterORM
+
+.. seealso::
+
+    djpcms `Sites <djpcms-orm>`_

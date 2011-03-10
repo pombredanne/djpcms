@@ -228,9 +228,10 @@ the parent of the embedded view.'''
             return re
             
         if not is_ajax:
-            # If user not authenticated set a test cookie  
-            if not request.user.is_authenticated() and method == 'get':
-                request.session.set_test_cookie()
+            # If user not authenticated set a test cookie
+            if hasattr(request,'user'):
+                if not request.user.is_authenticated() and method == 'get':
+                    request.session.set_test_cookie()
 
             if method not in (m.lower() for m in view.methods(request)):
                 raise http.HttpException(405,

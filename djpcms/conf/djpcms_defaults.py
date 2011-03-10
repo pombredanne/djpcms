@@ -2,7 +2,7 @@ import logging
 
 DEBUG = False
 # List of installed application. These must be dotted python paths
-INSTALLED_APPS = []
+INSTALLED_APPS = ['djpcms']
 DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
@@ -19,7 +19,7 @@ MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
 
-HTTP_LIBRARY = None # django, werkzeug
+HTTP_LIBRARY = 'django' # django, werkzeug
 CMS_ORM = None # django, stdnet
 TEMPLATE_ENGINE = 'jinja2' # django, jinja2
 

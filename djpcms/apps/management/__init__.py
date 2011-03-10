@@ -170,10 +170,7 @@ class ManagementUtility(object):
         usage = ['',"Type '%s help <subcommand>' for help on a specific subcommand." % self.prog_name,'']
         usage.append('Available subcommands:')
         commands = get_commands().keys()
-        commands.sort()
-        for cmd in commands:
-            usage.append('  %s' % cmd)
-        return '\n'.join(usage)
+        return '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
 
     def fetch_command(self, subcommand):
         """Tries to fetch the given subcommand, printing a message with the

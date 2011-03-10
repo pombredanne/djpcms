@@ -15,6 +15,7 @@ from djpcms.core.urlresolvers import ResolverMixin
 
 __all__ = ['MakeSite',
            'GetOrCreate',
+           'RegisterORM',
            'get_site',
            'get_url',
            'get_urls',
@@ -187,15 +188,22 @@ It also initialise admin for models.'''
         return urls
     
     def make(self, name, settings = None, route = None,
-             handler = None, clearlog = True, **kwargs):
-        '''Create a new DjpCms application site from a directory or a file.
-Configuration parameters can be passed as key-value pairs:
+             handler = None, clearlog = True, 
+             **kwargs):
+        '''Create a new ``djpcms`` :class:`djpcms.apps.appsites.ApplicationSite`
+from a directory or a file name. Extra configuration parameters,
+can be passed as key-value pairs:
 
 :parameter name: a file or directory name where which specifies the application root-directory.
 :parameter settings: optional settings file name.
-:parameter route: a ``url`` which form defines the base route for the application.
+:parameter route: the base ``url`` for the site applications.
 :parameter handler: an optional string defining the wsgi handler class for the application.
-:parameter kwargs: a dictionary ok key-value pairs which override the values in the settings file.'''
+:parameter kwargs: key-value pairs which override the values in the settings file.
+
+The function return s an instance of
+:class:`djpcms.apps.appsites.ApplicationSite`.
+'''
+
         # if not a directory it may be a file
         if os.path.isdir(name):
             appdir = name
@@ -245,7 +253,8 @@ Configuration parameters can be passed as key-value pairs:
         
         return self._create_site(route,settings,handler)
     
-    def get_or_create(self, name, settings = None, route = None, **kwargs):
+    def get_or_create(self, name, settings = None,
+                      route = None, **kwargs):
         '''Same as :meth:`make` but does nothing if an application
 site is already registered at ``route``.'''
         route = closedurl(route or '')

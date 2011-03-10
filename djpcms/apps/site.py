@@ -16,6 +16,7 @@ from djpcms.core.urlresolvers import ResolverMixin
 __all__ = ['MakeSite',
            'GetOrCreate',
            'RegisterORM',
+           'adminurls',
            'get_site',
            'get_url',
            'get_urls',
@@ -60,7 +61,11 @@ def standard_exception_handle(request, e, status = None):
     for middleware_method in site.exception_middleware():
         response = middleware_method(request, e, status)
         if response:
-            break
+            return response
+    for middleware_method in site.request_middleware():
+        response = middleware_method(request)
+        if response:
+            return response
     exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
     logtrace(logger, request, exc_info, status)
@@ -189,7 +194,7 @@ It also initialise admin for models.'''
     
     def make(self, name, settings = None, route = None,
              handler = None, clearlog = True, 
-             **kwargs):
+             **params):
         '''Create a new ``djpcms`` :class:`djpcms.apps.appsites.ApplicationSite`
 from a directory or a file name. Extra configuration parameters,
 can be passed as key-value pairs:
@@ -198,9 +203,9 @@ can be passed as key-value pairs:
 :parameter settings: optional settings file name.
 :parameter route: the base ``url`` for the site applications.
 :parameter handler: an optional string defining the wsgi handler class for the application.
-:parameter kwargs: key-value pairs which override the values in the settings file.
+:parameter params: key-value pairs which override the values in the settings file.
 
-The function return s an instance of
+The function returns an instance of
 :class:`djpcms.apps.appsites.ApplicationSite`.
 '''
 
@@ -234,7 +239,7 @@ The function return s an instance of
         settings = get_settings(settings_module_name,
                                 SITE_DIRECTORY = path,
                                 SITE_MODULE = name,
-                                **kwargs)
+                                **params)
         
         # If no settings available get the current one
         if self._settings is None:
@@ -254,13 +259,13 @@ The function return s an instance of
         return self._create_site(route,settings,handler)
     
     def get_or_create(self, name, settings = None,
-                      route = None, **kwargs):
+                      route = None, **params):
         '''Same as :meth:`make` but does nothing if an application
 site is already registered at ``route``.'''
         route = closedurl(route or '')
         site = self.get(route,None)
         if site is None:
-            return self.make(name,settings,route,**kwargs)
+            return self.make(name,settings,route,**params)
         else:
             return site
     
@@ -326,7 +331,13 @@ site is already registered at ``route``.'''
         setattr(request,'instance',djp.instance)
         return djp
         
-    def make_admin_urls(self, **kwargs):
+    def make_admin_urls(self, **params):
+        '''Return a one element tuple containing an :class:`djpcms.apps.included.admin.AdminSite`
+application for displaying the admin site. All application with an ``admin`` module specifying the
+admin application will be included.
+
+:parameter params: key-value pairs of extra parameters for input in the
+                   :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
         from djpcms.apps.included.admin import AdminSite, ApplicationGroup
         groups = []
         for name,route,urls in self.admins:
@@ -335,13 +346,14 @@ site is already registered at ``route``.'''
                                                name = name,
                                                apps = urls))
         # Create the admin application
-        admin = AdminSite('/', apps = groups, **kwargs)
+        admin = AdminSite('/', apps = groups, **params)
         return (admin,)
         
 sites = ApplicationSites()
 
 MakeSite = sites.make
 RegisterORM = sites.register_orm
+adminurls = sites.make_admin_urls
 GetOrCreate = sites.get_or_create
 get_site = sites.get_site
 get_url  = sites.get_url

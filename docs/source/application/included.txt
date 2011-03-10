@@ -17,22 +17,22 @@ the dependencies are met. No settings involved.
 
 .. _included-archiveapplication:
 
-
-.. module:: djpcms.views.apps.included.vanilla
-
 Vanilla
 ======================
 
-The most basic application, it is form by the four standard views: 
+.. automodule:: djpcms.apps.included.vanilla
 
-* search (:class:`djpcms.views.appview.SearchView`)
-* add (:class:`djpcms.views.appview.AddView`)
-* view (:class:`djpcms.views.appview.ViewView`)
-* change (:class:`djpcms.views.appview.ChangeView`)
+To use it::
+
+    from djpcms.apps.included.vanilla import Application
+    
+    urls = (Application('/bla/',MyModel),...)
 
 
 .. module:: djpcms.views.apps.included.archive
 
+
+.. _included-admin:
 
 Admin
 ===================
@@ -41,6 +41,11 @@ Admin
    :members:
    
 
+.. autoclass:: djpcms.apps.included.admin.AdminSite
+   :members:
+   
+
+.. _included-archiveapplication:
 
 Archive
 ======================

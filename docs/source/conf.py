@@ -65,7 +65,7 @@ html_theme_path = ["_theme"]
 exclude_trees = ['_build']
 html_sidebars = {
     'index': ['sidebarintro.html', 'sourcelink.html', 'searchbox.html'],
-    '**': ['sidebarlogo.html', 'localtoc.html', 'relations.html',
+    '**': ['sidebarintro.html', 'localtoc.html', 'relations.html',
            'sourcelink.html', 'searchbox.html'],
 }
 exclude_trees = []

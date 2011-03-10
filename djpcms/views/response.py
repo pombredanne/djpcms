@@ -52,12 +52,12 @@ def response_from_node(request, node, **kwargs):
     if node.view:
         return node.view(request,**kwargs)
     else:
-        page = self.page
+        page = node.page
         if page:
             return pageview(page)(request)
 
 
-class DjpResponse(object):
+class DjpResponse(djpcms.UnicodeMixin):
     '''Djpcms response class. It contains information associated with a given url
 which can and often is different from the current request path. Usually is initialized as::
 
@@ -95,17 +95,17 @@ model instances).
         self.wrapper    = wrapper
         self.prefix     = prefix
     
-    def __repr__(self):
-        return self.url
+    def __unicode__(self):
+        try:
+            return self.url
+        except:
+            return self.view.__unicode__()
     
-    def __str__(self):
-        return self.__repr__()
-    
-    def __call__(self, prefix = None, wrapper = None):
-        djp = copy.copy(self)
-        djp.prefix  = prefix
-        djp.wrapper = wrapper
-        return djp
+    #def __call__(self, prefix = None, wrapper = None):
+    #    djp = copy.copy(self)
+    #    djp.prefix  = prefix
+    #    djp.wrapper = wrapper
+    #    return djp
     
     @property
     def css(self):

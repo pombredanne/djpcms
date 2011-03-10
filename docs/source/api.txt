@@ -5,6 +5,18 @@ High Level API
 ================
 
 
+adminurls
+==============
+
+.. autofunction:: djpcms.adminurls
+
+
+.. seealso::
+
+    djpcms :ref:`Admin application <included-admin>`
+
+
+
 MakeSite
 =================
 

@@ -1,9 +1,9 @@
 .. _jdep:
 
-.. module:: djpcms.contrib.jdep
-
 ==============================
 djpcms.contrib.jdep
 ==============================
 
-.. include:: ../../../../djpcms/contrib/jdep/README.rst
+
+.. automodule:: djpcms.contrib.jdep
+   :members:

@@ -45,19 +45,10 @@ Contents
 .. toctree::
    :maxdepth: 1
    
-   topics/application/index
-   topics/views
-   topics/response
-   topics/plugins/index
-   topics/design
-   topics/orms/index
+   application/index
    forms/index
-   templates/index
-   topics/javascript/index
-   topics/settings
-   topics/utils/index
-   topics/patterns/index
    contrib/index
+   internals/index
    authors
    changelog
    license

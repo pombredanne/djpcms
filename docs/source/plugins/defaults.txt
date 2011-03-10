@@ -25,12 +25,6 @@ ApplicationPlugin
 
 .. module:: djpcms.plugins
 
-Text Plugin
---------------------
-
-.. autoclass:: djpcms.plugins.text.Text
-   :members:   
-
 
 Soft Navigation
 ----------------------
@@ -38,3 +32,13 @@ Soft Navigation
 .. autoclass:: djpcms.plugins.defaults.SoftNavigation
    :members:
 
+
+=================
+Contents
+=================
+
+Text Plugin
+--------------------
+
+.. autoclass:: djpcms.apps.included.contentedit.plugins.Text
+   :members:   

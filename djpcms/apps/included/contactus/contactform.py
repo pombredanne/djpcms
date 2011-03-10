@@ -4,13 +4,9 @@ a web interface, and a subclass demonstrating useful functionality.
 
 """
 
-from django import forms
-from django.conf import settings
+from djpcms import forms
 from django.core.mail import send_mail
-from django.template import loader, RequestContext
-from django.contrib.sites.models import Site
-
-from djpcms.utils.uniforms import Fieldset, FormLayout, blockLabels2
+from djpcms.template import loader
 
 
 class ContactForm(forms.Form):
@@ -133,22 +129,17 @@ class ContactForm(forms.Form):
             raise TypeError("Keyword argument 'request' must be supplied")
         super(ContactForm, self).__init__(*args, **kwargs)
    
-    name  = forms.CharField(max_length=100, label=u'Name')
-    email = forms.EmailField(max_length=200, label=u'E-mail')
+    name  = forms.CharField(max_length=100, label='Name')
+    email = forms.EmailField(max_length=200, label='E-mail')
     #subj  = forms.CharField(max_length=100, required = False, label=u'Subject')
-    body  = forms.CharField(widget=forms.Textarea(), label=u'Message')
+    body  = forms.CharField(widget=forms.Textarea(), label='Message')
    
     from_email = settings.DEFAULT_FROM_EMAIL
    
     recipient_list = [mail_tuple[1] for mail_tuple in settings.MANAGERS]
 
     _context = None
-    
-    submits = (('Send message','contact'),)
-    
-    layout = FormLayout(Fieldset('name','email'),
-                        Fieldset('body',css_class = blockLabels2))
-    
+        
     template_name = ['bits/contact_form_message.txt',
                      'djpcms/bits/contact_form_message.txt']
     

@@ -1,4 +1,4 @@
-from django import forms
+from djpcms import forms
 from djpcms.plugins import DJPplugin
 from djpcms.utils.navigation import Navigator
 

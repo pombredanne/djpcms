@@ -17,4 +17,5 @@ else:
     Page = None
     Site = None
     InnerTemplate = None
+    SiteContent = None
 

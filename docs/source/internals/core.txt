@@ -1,0 +1,9 @@
+.. _djpcms-core:
+
+=================
+Core module
+=================
+
+.. automodule:: djpcms.core
+   :members:
+   :member-order: bysource

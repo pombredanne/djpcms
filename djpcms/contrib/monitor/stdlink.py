@@ -1,11 +1,6 @@
 import logging
 
-from stdnet import orm
-from stdnet.orm.query import Manager
-
 logger = logging.getLogger('djpcms.contrib.stdlink')
-
-
 
 
 def remove_linked(sender, instance = None, **kwargs):
@@ -160,6 +155,8 @@ This function injects methods to both model1 and model2:
     from django.db import models
     from django.db.models.base import ModelBase
     from django.db.models import signals
+    from stdnet import orm
+    from stdnet.orm.query import Manager
     
     if isinstance(model1,ModelBase) and isinstance(model2,orm.StdNetType):
         django_linked = '%s_linked' % model2._meta.name

@@ -10,6 +10,13 @@ from djpcms.models import SiteContent
 from djpcms.utils import markups
 
 
+def get_site_content():
+    if SiteContent:
+        return SiteContent.objects.all()
+    else:
+        return ()
+    
+
 class EditingForm(forms.Form):
     pass
 
@@ -18,7 +25,7 @@ class ChangeTextContent(forms.Form):
     '''
     Form for changing text content during inline editing
     '''
-    site_content = forms.ModelChoiceField(choices = SiteContent.objects.all,
+    site_content = forms.ModelChoiceField(choices = get_site_content,
                                           empty_label="New Content",
                                           required = False,
                                           widget = forms.Select(cn = sites.settings.HTML_CLASSES.ajax))
@@ -99,9 +106,9 @@ You can use several different markup languages or simply raw HTML.'''
         if site_content:
             try:
                 site_content = SiteContent.objects.get(id = int(site_content))
-                return mark_safe('\n'.join(['<div class="djpcms-text-content">',
-                                            site_content.htmlbody(),
-                                            '</div>']))
+                return '\n'.join(('<div class="djpcms-text-content">',
+                                  site_content.htmlbody(),
+                                  '</div>'))
             except Exception as e:
                 if djp.settings.DEBUG:
                     return str(e) 

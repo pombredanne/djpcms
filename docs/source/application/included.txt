@@ -116,6 +116,6 @@ where ``pagename`` is the sphinx page name (*index*, *contents*, and so forth).
 To get started quickly,
 cut and past the entire ``docs`` directory in :file:`djpcms/templates/djpcms`.
 
-.. autoclass:: djpcms.views.apps.docs.DocApplication
+.. autoclass:: djpcms.apps.included.docs.DocApplication
    :members:
    :member-order: bysource

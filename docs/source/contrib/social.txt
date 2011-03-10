@@ -1,9 +1,8 @@
 .. _social:
 
-.. module:: djpcms.contrib.social
-
 ==============================
 djpcms.contrib.social
 ==============================
 
-.. include:: ../../../../djpcms/contrib/social/README.rst
+.. automodule:: djpcms.contrib.jdep
+   :members:

@@ -167,8 +167,6 @@ It also initialise admin for models.'''
     def _load(self):
         '''Load sites'''
         from djpcms.views import SiteMap
-        #from djpcms.apps.cache import PageCache
-        #self.pagecache = PageCache()
         if not self._sites:
             raise ImproperlyConfigured('No sites registered.')
         # setup the environment
@@ -334,6 +332,7 @@ site is already registered at ``route``.'''
 sites = ApplicationSites()
 
 MakeSite = sites.make
+RegisterORM = sites.register_orm
 GetOrCreate = sites.get_or_create
 get_site = sites.get_site
 get_url  = sites.get_url

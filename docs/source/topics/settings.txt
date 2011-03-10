@@ -185,8 +185,10 @@ TEMPLATE_ENGINE
 
 Default: ``django``
 
-The template engine to use when rendering pages. Currently only ``django`` is
-available but plan to add jinja_ are in place.
+The template engine to use when rendering pages. Available
+
+* ``django``
+* jinja2_
 
 
-.. jinja: http://jinja.pocoo.org/
+.. _jinja2: http://jinja.pocoo.org/

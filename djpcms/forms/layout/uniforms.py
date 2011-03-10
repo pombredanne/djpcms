@@ -1,3 +1,29 @@
+'''\
+This module complements the django forms library by adding ajax functionality,
+inline forms, and custom layout based on uni-form_ style.
+
+Using uniforms to render form is easy::
+
+    from djpcms import forms
+    from djcms.forms.layout.uniforms import Layout, Fieldset, blockLabels2
+    
+    class MyForm(forms.Form):
+        name = forms.CharField()
+
+    HtmlMyForm = forms.HtmlForm(
+       MyForm,
+       layout = Layout(Fieldset('name'))
+    )
+
+
+There are three types of layout:
+
+* ``inlineLabels``
+* ``blockLabels``
+* ``blockLabels2`` (default)   
+
+.. _uni-form: http://sprawsm.com/uni-form/
+'''
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
 

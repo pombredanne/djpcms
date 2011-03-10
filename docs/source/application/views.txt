@@ -22,19 +22,17 @@ write some code.
 
 As an example lets take the included application in :mod:`djpcms.apps.included.vanilla` ::
 
-    from djpcms.views import appsite, appview
+    from djpcms import views
     
-    class Application(appsite.ModelApplication):
-        search = appview.SearchView()
-        add    = appview.AddView()
-        view   = appview.ViewView()
-        edit   = appview.ChangeView() 
+    class Application(views.ModelApplication):
+        search = views.SearchView()
+        add    = views.AddView()
+        view   = views.ViewView()
+        edit   = views.ChangeView() 
    
 
 API
 ===========
-
-.. module:: djpcms.views
 
 View Base Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,8 +42,6 @@ View Base Class
    :member-order: bysource
    
    
-.. module:: djpcms.views.baseview
-
 Flat Page View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -66,7 +62,7 @@ Model Application Views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Views associated with database models are handled by subclasses of
-:class:`djpcms.views.appview.View`.
+:class:`djpcms.views.View`.
 
 .. autoclass:: djpcms.views.ModelView
    :members:

@@ -107,8 +107,9 @@ class ApplicationSite(ResolverMixin):
             pass
     
     def unregister(self, model):
-        '''Unregister the :class:`djpcms.views.appsite.ModelApplication registered for *model*. Return the
-application class which has been unregistered.'''
+        '''Unregister the :class:`djpcms.views.ModelApplication` registered
+for ``model``. Return the application class which has been unregistered.
+If the ``model`` does not have an application it return ``None``.'''
         appmodel = self._registry.pop(model,None)
         if appmodel:
             self._nameregistry.pop(appmodel.name,None)

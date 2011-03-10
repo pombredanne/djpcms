@@ -1,10 +1,10 @@
-.. _applications-model:
+.. _applications:
 
 .. module:: djpcms.views.appsite
 
-====================
-Model Application
-====================
+===============
+Applications
+===============
 
 The Basics
 =========================
@@ -39,10 +39,23 @@ Here is an ``app`` which can be used for something meaningful::
 We can now search and view instances of ``Project``.
 
 
-.. _modelapplication-class:
+API
+================
+
+As discussed there are two application classes, the first one defines all
+the main functionalities and it is very general. The second one is a specific
+implementation for ``models``.
+
+Application
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.Application
+   :members:
+   :member-order: bysource
+   
 
 ModelApplication Class
-=========================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: djpcms.views.ModelApplication
    :members:

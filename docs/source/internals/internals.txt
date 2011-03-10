@@ -7,4 +7,4 @@ Internals
 Functions
 ===================
 
-.. autofunction:: djpcms.utils.form_kwargs
+.. autofunction:: djpcms.forms.utils.form_kwargs

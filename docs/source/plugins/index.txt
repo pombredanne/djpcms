@@ -24,7 +24,6 @@ in a page and how users can interact with them. Thats it!
    
    main
    defaults
-   others
    extending
 
 

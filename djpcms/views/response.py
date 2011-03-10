@@ -2,11 +2,14 @@ import sys
 import traceback
 from copy import copy
 
+import djpcms
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, logtrace
-from djpcms.utils.navigation import Navigator, Breadcrumbs
 from djpcms.core.exceptions import ViewDoesNotExist
+
+from .navigation import Navigator, Breadcrumbs
+
 
 __all__ = ['DjpResponse',
            'DummyDjp']
@@ -43,6 +46,15 @@ def get_template(self):
             return page.get_template()
         else:
             return de
+
+
+def response_from_node(request, node, **kwargs):
+    if node.view:
+        return node.view(request,**kwargs)
+    else:
+        page = self.page
+        if page:
+            return pageview(page)(request)
 
 
 class DjpResponse(object):
@@ -98,6 +110,11 @@ model instances).
     @property
     def css(self):
         return self.settings.HTML_CLASSES
+    
+    @property
+    def urldata(self):
+        self.url
+        return self.kwargs
     
     def is_soft(self):
         return self.view.is_soft(self)
@@ -172,7 +189,9 @@ return the wrapper with the underlying view.'''
     def _get_parent(self):
         '''Parent Response object, that is a response object associated with
 the parent of the embedded view.'''
-        return self.view.parentresponse(self)
+        node = self.node().ancestor
+        if node:
+            return response_from_node(self.request, node, **self.urldata)
     parent = property(_get_parent)
     
     @property
@@ -278,13 +297,33 @@ the parent of the embedded view.'''
         return self.http.HttpResponse(html,
                                       mimetype = 'text/html')
 
+    @lazyattr
+    def node(self):
+        '''Get the :class:`djpcms.views.sitemap.Node` in the global sitemap
+which corresponds to ``self``'''
+        url = self.url
+        try:
+            return djpcms.node(url)
+        except KeyError:
+            if self.view:
+                return djpcms.node(self.view.path())
+            else:
+                raise
+        
+    @lazyattr
     def children(self):
-        '''return a generator over children responses'''
-        path = self.view.path()
-        tree = self.site.tree
-        if path in tree:
-            for node in tree[path].children:
-                yield node
+        '''return a generator over children responses. It uses the
+:func:`djpcms.node` to retrive the node in the sitemap and cosequently its children.'''
+        node = self.node()
+        request = self.request
+        kwargs = self.kwargs
+        for node in node.children():
+            try:
+                cdjp = response_from_node(request,node,**kwargs)
+                cdjp.url
+                yield cdjp
+            except:
+                continue
                 
     def redirect(self, url):
         if self.is_xhr:

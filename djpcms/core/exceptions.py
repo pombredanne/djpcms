@@ -65,6 +65,11 @@ class BlockOutOfBound(PageException):
     '''A :class:`PageException` raised when requesting a block not available in page.'''
     pass
     
+
+class PathException(DjpcmsException):
+    '''A :class:`DjpcmsException` raised when a path is not available.'''
+    status = 404
+
     
 class PermissionDenied(DjpcmsException):
     '''A :class:`DjpcmsException` raised when permission is not met.'''

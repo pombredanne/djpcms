@@ -79,17 +79,20 @@ class ApplicationSite(ResolverMixin):
         url = self.make_url
         urls = ()
         # Add in each model's views.
-        applications = list(self._nameregistry.values())
-        for app in applications:
+        for app in self.applications:
             baseurl = app.baseurl
             if baseurl:
                 urls += url('^{0}(.*)'.format(baseurl[1:]),
                             app,
                             name = app.name),
-        node = self.tree.make_sitenode(self.route,self)
-        node.addapplications(applications)
+        self.tree.addsite(self)
         return urls
-        
+    
+    @property
+    def applications(self):
+        '''The list of registered applications'''
+        return self._nameregistry.values()
+    
     def register(self, application):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application. Is is not a valid one.')

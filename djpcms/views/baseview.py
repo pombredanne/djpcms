@@ -3,7 +3,7 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import sites
+from djpcms import sites, UnicodeMixin
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.forms import Media
 from djpcms.template import loader
@@ -15,17 +15,6 @@ from .contentgenerator import BlockContentGen
 __all__ = ['RendererMixin',
            'djpcmsview',
            'pageview']
-
-def response_from_page(djp, page):
-    '''Given a :class:`djpcms.views.DjpResponse` object
-and a Page instance, it calculates a new response object.'''
-    from djpcms import sites
-    if page:
-        url = page.url.format(**djp.kwargs)
-        site, view, kwargs = sites.resolve(url[1:])
-        return view(djp.request)
-    else:
-        return None
     
     
 def absolute_parent(djp):
@@ -70,7 +59,7 @@ By default it returns an empty string.
         
 
 # THE DJPCMS BASE CLASS for handling views
-class djpcmsview(RendererMixin):
+class djpcmsview(RendererMixin,UnicodeMixin):
     '''Base class for handling http requests.
     
     .. attribute:: _methods
@@ -88,7 +77,6 @@ class djpcmsview(RendererMixin):
     template_name = None
     parent        = None
     '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
-    purl          = None
     name          = 'flat'
     '''Name of view. Default ``"flat"``.'''
     object_view = False
@@ -99,6 +87,12 @@ class djpcmsview(RendererMixin):
     def get_media(self):
         return Media()
     
+    def __unicode__(self):
+        try:
+            return self.path()
+        except:
+            return self.name
+    
     def names(self):
         return None
     
@@ -108,9 +102,6 @@ class djpcmsview(RendererMixin):
     def get_page(self, djp):
         '''The :class:`djpcms.models.Page` instances associated with this view.'''
         return None
-    
-    def is_soft(self, djp):
-        return not self.parentresponse(djp)
     
     def __call__(self, request, **kwargs):
         return DjpResponse(request, self, **kwargs)
@@ -135,10 +126,6 @@ class djpcmsview(RendererMixin):
             return page.link
         else:
             return 'link'
-    
-    def parentresponse(self, djp):
-        '''Objtain the parent view response object'''
-        return response_from_page(djp, djp.page.parent)
     
     def specialkwargs(self, page, kwargs):
         return kwargs
@@ -275,35 +262,6 @@ By default it returns ``next`` if available, otherwise ``request.path``.
         else:
             return request.environ.get('HTTP_REFERER')
     
-    def children(self, djp, instance = None, **kwargs):
-        '''Return children permitted views for self.
-It includes views not in navigation. In scanning for children we porposefully
-leave a possible object instance out of the key-values arguments.
-If we didn't do that, test_navigation.testMultiPageApplication would fail.'''
-        views = []
-        page  = djp.page
-        request = djp.request
-        if not page:
-            return views
-        
-        site      = djp.site
-        pchildren = ()
-        #pchildren = pagecache.get_children(page)
-        
-        for child in pchildren:
-            try:
-                cview = pagecache.view_from_page(child, site = site)
-            except djp.http.Http404:
-                continue
-            if cview.has_permission(request, child, instance):
-                cdjp = cview(request, **cview.specialkwargs(child,kwargs))
-                try:
-                    cdjp.url
-                except:
-                    continue
-                views.append(cdjp)
-        return views
-    
     def nextviewurl(self, djp):
         '''Calculate the best possible url for a possible next view.
 By default it is ``djp.url``'''
@@ -315,9 +273,6 @@ class pageview(djpcmsview):
     static data, it means there is not a specific application associate with it.'''
     def __init__(self, page):
         self.page    = page  
-
-    def __unicode__(self):
-        return self.page.url
         
     def path(self):
         return self.page.url

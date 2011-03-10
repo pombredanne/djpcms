@@ -2,9 +2,8 @@ from datetime import date, datetime
 
 from djpcms import sites, nodata
 from djpcms.utils.dates import format as date_format
-from djpcms.utils import force_str, significant_format
+from djpcms.utils import force_str, significant_format, EMPTY_VALUE
 from djpcms.template import loader, conditional_escape
-from djpcms.html import EMPTY_VALUE
 
 __all__ = ['BaseOrmWrapper',
            'nicerepr',
@@ -67,10 +66,21 @@ def table(headers, queryset_or_list, djp, model = None, nd = 3):
 
 
 class BaseOrmWrapper(object):
-    '''Base class for Object relational mappers'''
+    '''Base class for classes used to
+wrap existing object relational mappers.
+
+:parameter model: The ORM model class (for example a django model class).
+
+
+.. attribute:: model
+
+    The model class.
+
+'''
     orm = None
-    DoesNotExist = None
     '''Object Relational Mapper name'''
+    DoesNotExist = None
+    '''Exception raise when an object is not available'''
     
     def __init__(self, model):
         self.model = model

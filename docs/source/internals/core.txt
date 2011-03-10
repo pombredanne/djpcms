@@ -7,3 +7,13 @@ Core module
 .. automodule:: djpcms.core
    :members:
    :member-order: bysource
+   
+   
+.. _djpcms-core-orms:
+
+Object Relational Mapper
+===============================
+
+.. autoclass:: djpcms.core.orms.BaseOrmWrapper
+   :members:
+   :member-order: bysource

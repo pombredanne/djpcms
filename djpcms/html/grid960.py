@@ -4,12 +4,11 @@
 from py2py3 import to_string
 
 from djpcms import sites
-from djpcms.template import mark_safe
+from djpcms.utils import EMPTY_VALUE
 
 __all__ = ['grid960','EMPTY_VALUE','CLEAR_GRID']
 
 CLEAR_GRID = to_string('<div class="clear"></div>')
-EMPTY_VALUE = '&nbsp;'
 
 
 def grid960(columns = None, fixed = None):

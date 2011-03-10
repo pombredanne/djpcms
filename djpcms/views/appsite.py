@@ -20,7 +20,7 @@ from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
 from djpcms.html import ObjectDefinition
 
-from .baseview import RendererMixin, response_from_page, absolute_parent
+from .baseview import RendererMixin, absolute_parent
 from .appview import View, ViewView
 
 __all__ = ['Application',
@@ -319,20 +319,6 @@ Return ``None`` if the view is not available.'''
     def has_permission(self, request = None, obj = None):
         '''Return True if the page can be viewed, otherwise False'''
         return True
-    
-    def parentresponse(self, djp, app):
-        '''Retrieve the parent :class:`djpcms.views.response.DjpResponse` instance
-        '''
-        parent_view = app.parent
-        kwargs = djp.kwargs
-        if not parent_view:
-            page = app.get_page(djp)
-            if page:
-                return response_from_page(djp, page.parent)
-            else:
-                return absolute_parent(djp)
-        else:
-            return parent_view(djp.request, **djp.kwargs)
     
     def _get_view_name(self, name):
         if not self.baseurl:

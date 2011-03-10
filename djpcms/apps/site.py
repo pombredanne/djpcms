@@ -325,7 +325,7 @@ site is already registered at ``route``.'''
         djp = view(request, **kwargs)
         setattr(request,'instance',djp.instance)
         return djp
-
+        
     def make_admin_urls(self, **kwargs):
         from djpcms.apps.included.admin import AdminSite, ApplicationGroup
         groups = []

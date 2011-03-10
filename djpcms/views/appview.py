@@ -277,12 +277,7 @@ Usage::
         return self.appmodel.path() + self.regex.purl
     
     def get_url(self, djp):
-        site = self.appmodel.application_site
-        purl = site.route[:-1] + self.baseurl + self.regex.get_url(**djp.kwargs)
-        if '//' in purl:
-            return re.sub("/+" , "/", purl)
-        else:
-            return purl
+        return self.appmodel.path() + self.regex.get_url(**djp.kwargs)
         
     def title(self, djp):
         page = djp.page
@@ -409,10 +404,6 @@ Usage::
             c['items'] = self.data_generator(djp, p.qs)
             
         return loader.render(self.view_template, c)
-    
-    def parentresponse(self, djp):
-        #OBSOLETE. TO BE REMOVED
-        return self.appmodel.parentresponse(djp, self)
     
     def table_generator(self, djp, qs):
         '''Generator of a table view. This function is invoked by :meth:`View.render_query`

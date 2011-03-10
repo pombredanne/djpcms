@@ -11,5 +11,6 @@ Internals
    core
    navigation
    html
+   sitemap
    internals
    exceptions

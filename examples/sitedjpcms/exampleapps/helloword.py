@@ -12,7 +12,8 @@ def urls():
     '''Create a tuple with one application containg one view'''
     return (
         Application('/',
-            home = View(renderer = lambda djp : 'Hello World')
+            name = 'Hello world!',
+            home = View(renderer = lambda djp : 'Hello world!')
         ),)
              
 djpcms.MakeSite(__file__,

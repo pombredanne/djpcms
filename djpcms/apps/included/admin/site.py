@@ -24,6 +24,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
         ctx = {}
         return loader.render(self.template_name,ctx)
 
+
 class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''

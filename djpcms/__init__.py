@@ -60,6 +60,12 @@ from .apps.management import execute
 from .http import serve
 from .conf import nodata
 
+
+def node(path):
+    '''Return a :class:`djpcms.views.sitemap.Node` instance at ``path`` in the
+the global of :class:`djpcms.views.sitemap.SiteMap` instance.'''
+    return sites.tree[path]
+
     
 def init_logging(clear_all = False):
     '''Initialise logging'''

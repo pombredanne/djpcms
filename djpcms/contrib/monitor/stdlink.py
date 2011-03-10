@@ -42,50 +42,6 @@ class PostSave(object):
 post_save_default = PostSave()
 
 
-class LinkedManager(Manager):
-    '''Manager which will replace the standard manager for stdnet models
-linked with django models.'''
-    def __init__(self,djmodel,model):
-        self.djmodel = djmodel
-        self._setmodel(model)
-        self.dj      = djmodel.objects
-        
-    def _get(self, **kwargs):
-        return super(LinkedManager,self).get(**kwargs)
-        
-    def get(self, **kwargs):
-        try:
-            return self._get(**kwargs)
-        except self.model.DoesNotExist:
-            pass
-        from django.core.exceptions import ObjectDoesNotExist
-        try:
-            dobj = self.djmodel.objects.get(**kwargs)
-        except ObjectDoesNotExist:
-            raise self.model.DoesNotExist
-        return self.update_from_django(dobj)
-        
-    def update_from_django(self, dobj, instance = None):
-        if instance is None:
-            instance = self.model(id = dobj.id)
-        for field in instance._meta.scalarfields:
-            name = field.name
-            if name is not 'djobject':
-                val = getattr(dobj,name,None)
-                if val is not None:
-                    setattr(instance,name,val)
-        instance.djobject = dobj
-        instance.save()
-        logger.debug('Updated linked stdmodel %s' % instance)
-        return instance
-        
-    def sync(self):
-        all = self.all()
-        for obj in self.dj.all():
-            if not id in all: 
-                pass
-
-
 def get_djobject(self):
     obj = getattr(self,'djobject',None)
     if not obj and self.id:
@@ -156,7 +112,7 @@ This function injects methods to both model1 and model2:
     from django.db.models.base import ModelBase
     from django.db.models import signals
     from stdnet import orm
-    from stdnet.orm.query import Manager
+    from .managers import LinkedManager
     
     if isinstance(model1,ModelBase) and isinstance(model2,orm.StdNetType):
         django_linked = '%s_linked' % model2._meta.name

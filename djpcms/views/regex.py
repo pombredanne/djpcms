@@ -86,6 +86,9 @@ class RegExUrl(object):
         if kwargs:
             return iri_to_uri(self.purl % kwargs)
         else:
+            if self.names:
+                raise ApplicationUrlException('Missing key-value\
+ arguments for {0} regex'.format(self.purl))
             return self.purl
     
     def __process(self):

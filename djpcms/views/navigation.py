@@ -7,26 +7,6 @@ from djpcms.template import loader
 from djpcms.utils import lazyattr, SLASH
 
 
-def children_responses(djp):
-    request = djp.request
-    page = djp.page
-    view = djp.view
-    url = djp.url
-    root = sites.tree.node(url)
-    for node in itervalues(root.children):
-        cview = node.view
-        if cview:
-            cdjp = cview(request,**djp.kwargs)
-            try:
-                cdjp.url
-            except:
-                continue
-            if hasattr(cdjp,'in_navigation'):
-                nav = cdjp.in_navigation()
-                if nav:
-                    yield cdjp,nav
-
-
 class lazycounter(UnicodeMixin):
     '''A lazy view counter used to build navigations type iterators
     '''
@@ -94,7 +74,6 @@ class Navigator(lazycounter):
     def buildselects(self, djp, urlselects):
         if self.soft and djp.is_soft():
             return djp
-        #TO BE REMOVED AND REPLACED WITH SITEMAP
         parent = djp.parent
         if parent:
             try:
@@ -107,7 +86,6 @@ class Navigator(lazycounter):
         return djp
         
     def _items(self, urlselects = None, secondary_after = 100, **kwargs):
-        return []
         djp = self.djp
         css = djp.css
         if urlselects is None:
@@ -116,7 +94,9 @@ class Navigator(lazycounter):
             self.kwargs['urlselects'] = urlselects
         scn = css.secondary_in_list                
         items = []
-        for djp,nav in sorted(children_responses(djp), key = lambda x : x[1]):
+        for djp,nav in sorted(((c,c.in_navigation()) for c in djp.children()), key = lambda x : x[1]):
+            if not nav:
+                continue
             url = djp.url
             classes = []
             if nav > secondary_after:
@@ -127,7 +107,6 @@ class Navigator(lazycounter):
         return items
 
     def render(self):
-        return ''
         if self.mylevel <= self.levels:
             return loader.render('djpcms/bits/navitem.html', {'navigator': self})
         else:

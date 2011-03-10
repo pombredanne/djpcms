@@ -3,7 +3,7 @@ from py2py3 import itervalues
 from djpcms import UnicodeMixin
 from djpcms.utils import parentpath, SLASH
 from djpcms.views import DjpResponse, pageview
-from djpcms.core.exceptions import ImproperlyConfigured
+from djpcms.core.exceptions import ImproperlyConfigured, PathException
 
 from .serialize import *
 
@@ -19,20 +19,40 @@ class DummyRequest(object):
 
 class Node(UnicodeMixin):
     '''a :class:`Sitemap` Node'''
-    def __init__(self, urlmap, url = SLASH, view = None, ancestor = None):
+    def __init__(self, urlmap, path = SLASH, view = None):
         self.urlmap = urlmap
-        self.url = url
-        self.site = None
+        self.path = path
+        self._site = None
         self.view = view
         self.page = None
-        self.children = {}
-        self.ancestor = ancestor
-        if ancestor:
-            self.site = ancestor.site 
-            ancestor.children[url] = self
+        
+    def children(self, strict = True):
+        '''Return a generator of child nodes.
+
+:parameter strict: If ``True`` only direct children will be included. Default ``True``.'''
+        path = self.path
+        mp   = self.urlmap
+        for p in mp:
+            if p.startswith(path):
+                if strict:
+                    if parentpath(p) == path:
+                        yield mp[p]
+                else:
+                    yield mp[p] 
+        
+    @property
+    def site(self):
+        return self._site if self._site else self.ancestor.site
+            
+    @property
+    def ancestor(self):
+        if self.path == SLASH:
+            return None
+        else:
+            return self.urlmap[parentpath(self.path)]
         
     def __unicode__(self):
-        return self.url
+        return self.path
     
     def djp(self, request = None):
         '''Create a :class:`djpcms.views.DjpResponse` object with a dummy request if not available'''
@@ -40,53 +60,6 @@ class Node(UnicodeMixin):
             request = DummyRequest(self.site)
         view = self.view or pageview(self.page)
         return DjpResponse(request, view)
-    
-    def child(self, url):
-        urlmap = self.urlmap
-        purl = parentpath(url)
-        if purl is None:
-            if self.view:
-                raise ImproperlyConfigured('There seems to be a problem in sitemap.')
-            self.view = app.root_view
-        elif purl == self.url:
-            urlmap[url] = node = Node(urlmap, url = url, ancestor = self)
-            return node
-        else:
-            for child in itervalues(self.children):
-                node = child.child(url)
-                if node:
-                    return node
-    
-    def addapplications(self, apps):
-        '''Add a new list of applications
-to ``self`` in a recursive fashion.
-
-:parameter apps: list of :class:`djpcms.views.Application`
-'''
-        burl = self.url[:-1]
-        urlmap = self.urlmap
-        unprocessed = []
-        for app in apps:
-            url = app.baseurl
-            purl = parentpath(url)
-            if purl is None:
-                if self.view:
-                    raise ImproperlyConfigured('There seems to be a problem in sitemap.')
-                self.view = app.root_view
-            elif purl == SLASH:
-                url = burl + url
-                node = urlmap[url] = Node(urlmap,
-                                          url = url,
-                                          view = app.root_view,
-                                          ancestor = self)
-            else:
-                unprocessed.append(app)
-        if unprocessed:
-            for child in itervalues(self.children):
-                unprocessed = child.addapplications(unprocessed)
-                if not unprocessed:
-                    return unprocessed
-        return unprocessed
     
     def tojson(self, fields):
         '''Convert ``self`` into an instance of :class:`JsonTreeNode`
@@ -111,18 +84,50 @@ class SiteMap(dict):
     def __init__(self):
         super(SiteMap,self).__init__()
         self.root = r = Node(self)
-        self[r.url] = r
+        self[r.path] = r
         
-    def make_sitenode(self, url, site):
-        node = self.node(url)
-        node.site = site
+    def addsite(self, site):
+        '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
+to the sitemap.'''
+        node = self.node(site.route, force = True)
+        node._site = site
+        self.addapplications(site.applications)
         return node
         
-    def node(self, url):
-        if url not in self:
-            return self.root.child(url)
+    def node(self, path, force = False):
+        '''Retrive a :class:`Node` in the sitemap from a ``path`` input.
+If the path is not available but its parent path is,
+it returns a new node without storing it in the sitemap.
+Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
+
+:parameter path: node path.
+:parameter force: if ``True`` and ``path`` is not in the sitemap,
+                  a new :class:`Node` is created and added
+                  regardless if its ancestor is available.'''
+        if path not in self:
+            if force:
+                node = self[path] = Node(self, path = path)
+                return node
+            else:
+                ppath = parentpath(path)
+                if ppath not in self:
+                    raise PathException(path)
+                return Node(self, path = path)
         else:
-            return self[url]
+            return self[path]
+    
+    def addapplications(self, apps):
+        for app in apps:
+            for view in itervalues(app.views):
+                node = self.node(view.path(),force=True)
+                if node.view:
+                    raise ImproperlyConfigured('Node {0} has already \
+a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
+                node.view = view
+                
+            # And the application sub-applications
+            if app.apps:
+                self.addapplications(itervalues(app.apps))
     
     def get_sitemap(self, Page, refresh = False):
         if Page:
@@ -130,6 +135,7 @@ class SiteMap(dict):
         return self.root
     
     def tojson(self, fields, refresh = True):
+        '''Serialize as a JSON string.'''
         data = JsonData(fields = fields)
         root = self.root.tojson(fields)
         data.add(root)

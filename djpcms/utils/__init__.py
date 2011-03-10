@@ -16,6 +16,7 @@ if ispy3k:
 else:
     import cPickle as pickle
 
+EMPTY_VALUE = '&nbsp;'
 
 def gen_unique_id():
     return str(uuid4())

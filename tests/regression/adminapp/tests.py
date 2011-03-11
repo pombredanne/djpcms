@@ -19,30 +19,23 @@ class TestAdmin(test.TestCase):
     
     def testAdminSimple(self):
         '''Tests that the global sites collects admins'''
-        sites = self.sites
-        admins = sites.admins
+        self.sites.load()
+        admins = self.sites.admins
         self.assertTrue(admins)
-
-    def testAdminSimple2(self):
-        sites = self.sites
-        admin = sites.make_admin_urls(name = 'Great Admin')[0]
-        self.assertTrue(isinstance(admin,AdminSite))
-        self.assertEqual(admin.description,'Great Admin')
-        self.assertEqual(admin.name,'great_admin')
-        self.assertEqual(len(admin.views),1)
-        self.assertEqual(admin.baseurl,'/')
-        self.assertEqual(admin.application_site,None)
         
     def testAdminUrls(self):
         '''Add admins urls to sites and check the sitemap'''
         # admin is an instance of ApplicationsSite
         ap = self.admin_route
         admin = self.makeadmin()
-        admin.load()
+        # Load sites
+        self.sites.load()
         self.assertEqual(admin.route,ap)
-        self.assertEqual(len(admin),1)
-        node = djpcms.node(ap)
+        self.assertTrue(len(admin)) # number of admin applications positive
+        node = djpcms.node(ap) # get the sitemap node at the admin route
         self.assertEqual(node.path,ap)
+        self.assertTrue(node.view)
+        self.assertTrue(node.ancestor) # The admin has an ancestor (the root node)
         children = dict(((c.path,c) for c in node.children()))
         self.assertTrue(len(children)>=2)
         a = children[ap+'djpcms/']

@@ -56,6 +56,13 @@ Application View
 .. autoclass:: djpcms.views.View
    :members:
    :member-order: bysource
+
+Application Group View
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.GroupView
+   :members:
+   :member-order: bysource
    
 
 Model Application Views

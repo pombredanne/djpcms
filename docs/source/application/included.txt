@@ -6,16 +6,16 @@
 Included Applications
 ==========================
 
-The application framework ``djpcms.views.appsite`` is flexible and powerful enough to handle most
-uses one can think of. It also comes with few ``battery-included`` implementations.
-These implementations are located in the ``djpcms.views.apps`` module since
-they may depend on external libraries and therefore are not part of the core
-``djpcms.views.appsite`` module.
-If you want to use them, all you need to do is to make sure
+The :ref:`application framework <applications>` is flexible and powerful enough to handle most
+uses one can think of.
+To illustrate how it can be used and to provide common building blocks, djpcms
+ships with few ``battery-included`` implementations which can be used out of the box.
+
+These implementations are located in the :mod:`djpcms.apps.included` module.
+Some of these implementations may depend on external libraries,
+therefore, if you want to use them, all you need to do is to make sure
 the dependencies are met. No settings involved.
 
-
-.. _included-archiveapplication:
 
 Vanilla
 ======================
@@ -50,16 +50,29 @@ Admin
 Archive
 ======================
 
-Application which creates several views for models with a date field.
+.. automodule:: djpcms.apps.included.archive
+   :members:
 
 
-.. _included-taggingapplication:
-   
-.. module:: djpcms.views.apps.tagging
+.. _included-user:
+
+User
+============
+
+.. automodule:: djpcms.apps.included.user
+   :members:
+
+.. autoclass:: djpcms.apps.included.user.UserApplication
+   :members:
+
+.. _included-taggingapplication:   
 
 Tagging
 ======================
 
+.. automodule:: djpcms.apps.included.tagging
+   :members:
+   
 The tagging application module contains three different applications which can be used
 for different projects:
 
@@ -124,3 +137,5 @@ cut and past the entire ``docs`` directory in :file:`djpcms/templates/djpcms`.
 .. autoclass:: djpcms.apps.included.docs.DocApplication
    :members:
    :member-order: bysource
+   
+   

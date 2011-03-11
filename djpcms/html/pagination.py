@@ -20,7 +20,7 @@ class Paginator(object):
         '''
         self.hentries   = max(int(maxentries)/2,2)
         self.numends    = numends
-        self.total      = data.count()
+        self.total      = len(data)
         self.per_page   = max(int(per_page),1)
         tp              = self.total/self.per_page
         if self.per_page*tp < self.total:

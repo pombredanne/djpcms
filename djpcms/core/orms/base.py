@@ -8,8 +8,7 @@ from djpcms.template import loader, conditional_escape
 __all__ = ['BaseOrmWrapper',
            'nicerepr',
            '_boolean_icon',
-           'nicerepr',
-           'table']
+           'nicerepr']
 
 
 BOOLEAN_MAPPING = {True: {'icon':'ui-icon-check','name':'yes'},
@@ -39,30 +38,6 @@ def nicerepr(val, nd = 3):
             return significant_format(val, n = nd)
         except TypeError:
             return val
-
-
-def nice_items_id(items, id = None, nd = 3):
-    return {'id': id,
-            'display': (nicerepr(c,nd) for c in items)}
-
-
-def table(headers, queryset_or_list, djp, model = None, nd = 3):
-    '''Render a table'''
-    if not model:
-        try:
-            model = queryset_or_list.model
-        except AttributeError:
-            pass
-    cl = getattr(model,'mapper',None)
-    if not cl:
-        labels = headers
-        items  = (nice_items_id(items,nd=nd) for items in queryset_or_list)
-    else:
-        labels = (cl.label_for_field(name) for name in headers)
-        items  = (cl.result_for_item(headers, items, djp, nd) for items in queryset_or_list)
-    
-    return {'labels': labels,
-            'items': items}
 
 
 class BaseOrmWrapper(object):
@@ -172,6 +147,8 @@ wrap existing object relational mappers.
             display = []
             item = {'id':id,'display':display}
             for field_name in headers:
+                if not field_name:
+                    return ''
                 result_repr = self.getrepr(field_name, result, nd)
                 if force_str(result_repr) == '':
                     result_repr = EMPTY_VALUE
@@ -221,6 +198,10 @@ wrap existing object relational mappers.
         return user.is_superuser
     
     def get_object_id(self, obj):
+        return '%s-%s' % (self.module_name,obj.id)
+    
+    def unique_id(self, obj):
+        '''Create a unique ID for the object'''
         return '%s-%s' % (self.module_name,obj.id)
     
     def save(self, data, instance = None, commit = True):

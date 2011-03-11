@@ -45,7 +45,6 @@ Must be used as a base class for TestCase classes'''
         self.site = self.makesite()
         if self.site is not None:
             self.settings = self.site.settings
-            sites.load()
         if self._env:
             self._env.pre_setup()
         

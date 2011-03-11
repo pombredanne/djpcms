@@ -5,23 +5,47 @@ from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 from djpcms.html import grid960, htmldoc
+from djpcms.html import icons
 
 
 class PageLink(UnicodeMixin):
-    
+    '''Utility for displaying links for page editing/creation.'''
     def __init__(self, request, page):
         self.request = request
         self.page = page
     
     def __unicode__(self):
-        site = request.site
-        if not self.page:
-            if Page and site.permissions.has(self.request, ADD, Page):
-                return self.addlink()
-        elif site.permissions.has(self.request, CHANGE, self.page):
-            return self.editlink()
+        if not hasattr(self,'_html'):
+            self._html = self.render()
+        return self._html
+    
+    def __len__(self):
+        return len(self.__unicode__())
+    
+    def render(self):
+        app = sites.for_model(Page)
+        if app: 
+            site = self.request.site
+            if not self.page:
+                if Page and site.permissions.has(self.request, ADD, Page):
+                    return self.addlink(app)
+            elif site.permissions.has(self.request, CHANGE, self.page):
+                return self.changelink(app)
         return ''
-            
+    
+    def addlink(self, app):
+        addurl = app.addurl(self.request)
+        if addurl:
+            return icons.circle_plus(addurl,'add page',title="add page contents")
+        else:
+            return ''
+    
+    def changelink(self, app):
+        changeurl = app.changeurl(self.request, self.page)
+        if changeurl:
+            return icons.pencil(changeurl,'edit page',title="edit page contents")
+        else:
+            return ''
 
 
 def get_grid960(page):
@@ -43,8 +67,7 @@ def djpcms(request):
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     
     user = getattr(request,'user',None)
-    ctx = {'page':page,
-           'pagelink':PageLink(request,page),
+    ctx = {'pagelink':PageLink(request,page),
            'base_template': base_template,
            'css':settings.HTML_CLASSES,
            'grid': get_grid960(page),

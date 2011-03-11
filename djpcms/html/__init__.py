@@ -5,6 +5,7 @@ from .grid960 import *
 from .htmltype import *
 from .box import *
 from .objectdef import *
+from .table import *
 
 
 class HtmlWrap(HtmlWidget):

@@ -1,3 +1,16 @@
+'''\
+Dependencies: a **User model** from an external library.
+
+For example, lets say you want to use ``django.contrib.auth``
+as your user model, than you can define the application::
+
+    from django.contrib.auth.models import User
+    from djpcms.apps.included.user import UserApplication
+    
+    UserApplication('/accounts/',User)
+     
+'''
+
 from djpcms.forms import HtmlForm
 
 from .forms import LoginForm, PasswordChangeForm, RegisterForm
@@ -33,7 +46,7 @@ No assumption has been taken over which model is used for storing user data.'''
     
     def registration_done(self):
         '''Set the user model in the application site'''
-        self.application_site.User = self.mapper
+        self.site.User = self.mapper
     
     def objectbits(self, obj):
         if self.userpage:

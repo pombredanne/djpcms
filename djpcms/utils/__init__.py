@@ -17,6 +17,7 @@ else:
     import cPickle as pickle
 
 EMPTY_VALUE = '&nbsp;'
+EMPTY_TUPLE = ()
 
 def gen_unique_id():
     return str(uuid4())
@@ -53,17 +54,43 @@ def isexact(bit):
     
     
 def lazyattr(f):
+    '''Decorator which can be used on a member function.
+It stores the result for futures uses.
+    '''
+    name = '_lazy_%s' % f.__name__
     
-    def wrapper(obj, *args, **kwargs):
-        name = '_lazy_%s' % f.__name__
-        try:
-            return getattr(obj,name)
-        except:
-            v = f(obj, *args, **kwargs)
-            setattr(obj,name,v)
-            return v
-    return wrapper
+    def _(self, *args, **kwargs):
+        if not hasattr(self,name):
+            v = f(self, *args, **kwargs)
+            setattr(self,name,v)
+        return getattr(self,name)
+        
+    _.__doc__ = f.__doc__
+    
+    return _
 
+
+def storegenarator(f):
+    '''Decorator which can be used on a member function
+returning a generator. It stores the generated results for future use.
+    '''
+    name = '_generated_%s' % f.__name__
+    def _(self, *args, **kwargs):
+        if not hasattr(self,name):
+            items = []
+            setattr(self,name,items)
+            append = items.append
+            for g in f(self, *args, **kwargs):
+                append(g)
+                yield g
+        else:
+            for g in getattr(self,name):
+                yield g
+                
+    _.__doc__ = f.__doc__
+    
+    return _
+        
 
 class lazyjoin(object):
     

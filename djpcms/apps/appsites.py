@@ -5,17 +5,15 @@ from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
-from djpcms.core.urlresolvers import ResolverMixin
-
 from djpcms.views import Application, ModelApplication, DummyDjp
 from djpcms.template import loader
-
 from djpcms.models import Page, InnerTemplate
 
+from .site import SiteMixin
 from .handlers import WSGI
 
 
-class ApplicationSite(ResolverMixin):
+class ApplicationSite(SiteMixin):
     '''Application site manager
     An instance of this class is used to handle url of
     registered applications.
@@ -108,6 +106,9 @@ class ApplicationSite(ResolverMixin):
             self._registry[model] = application
         else:
             pass
+        
+        for app in application.apps.values():
+            self.register(app)
     
     def unregister(self, model):
         '''Unregister the :class:`djpcms.views.ModelApplication` registered
@@ -129,6 +130,8 @@ If the ``model`` does not have an application it return ``None``.'''
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for model *model*.
 If the application is not available, it returns ``None``. Never fails.'''
         #Allow for OrmWrapper
+        if not model:
+            return
         if hasattr(model,'model'):
             model = model.model
         try:

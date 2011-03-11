@@ -1,4 +1,6 @@
-'''
+'''\
+Dependencies: **None**
+
 Define some application urls templates as example
 '''
 import copy

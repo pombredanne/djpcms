@@ -4,6 +4,7 @@ This module define the base class for implementing Dynamic Page views based on d
 The main object handle several subviews used for searching, adding and manipulating objects
 '''
 from copy import deepcopy
+from inspect import isgenerator
 
 from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
@@ -18,7 +19,7 @@ from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
-from djpcms.html import ObjectDefinition
+from djpcms.html import ObjectDefinition, Paginator, table
 
 from .baseview import RendererMixin, absolute_parent
 from .appview import View, ViewView
@@ -143,7 +144,7 @@ or in the constructor.
     
     Default ``None``
     
-.. attribute:: application_site
+.. attribute:: site
 
     instance of :class:`djpcms.views.ApplicationSite`, the application site manager
     to which the application is registered with.
@@ -203,8 +204,9 @@ or in the constructor.
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
     template_name = None
-    application_list_template = ('admin/applications.html',
-                                 'djpcms/admin/applications.html')
+    model = None
+    pagination_template_name = ('components/pagination.html',
+                                'djpcms/components/pagination.html')
 
     # Submit buton customization
     _form_add        = 'add'
@@ -223,7 +225,7 @@ of objects. Default is ``None``.'''
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
-        self.application_site = None
+        self._application_site = None
         self.root_view = None
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation
@@ -249,26 +251,32 @@ view {0}. Already available." % name)
 application {0}. Already available." % name)
                 self.apps[name] = app
     
+    @property
+    def site(self):
+        if self._application_site:
+            return self._application_site
+        else:
+            return self.parent.site
+            
     @property            
     def settings(self):
-        if self.application_site:
-            return self.application_site.settings
-        else:
-            return self.parent.appsite.settings
-                
+        return self.site.settings
+    
     def register(self, application_site):
-        '''Register application with site'''
-        url = self.make_url
-        self.application_site = application_site
-        self._create_views()
-        urls = []
-        for app in self.views.values():
-            view_name  = self._get_view_name(app.name)
-            nurl = url(regex = str(app.regex),
-                       view  = app,
-                       name  = view_name)
-            urls.append(nurl)
-        self._urls = tuple(urls)
+        '''Register application with :class:`djpcms.apps.appsites.ApplicationSite`
+*application_site*.'''
+        if not self.parent:
+            url = self.make_url
+            self._application_site = application_site
+            self._create_views()
+            urls = []
+            for app in self.views.values():
+                view_name  = self._get_view_name(app.name)
+                nurl = url(regex = str(app.regex),
+                           view  = app,
+                           name  = view_name)
+                urls.append(nurl)
+            self._urls = tuple(urls)
         self.registration_done()
     
     def __repr__(self):
@@ -285,7 +293,7 @@ application {0}. Already available." % name)
         if self.parent:
             return self.parent.path() + rurl
         else:
-            return self.application_site.route + rurl
+            return self.site.route + rurl
         
     def registration_done(self):
         pass
@@ -368,7 +376,7 @@ Return ``None`` if the view is not available.'''
             view.processurlbits(self)
             if view.isapp and not self.parent:
                 name = self.description + ' ' + nicename(view.name)
-                self.application_site.choices.append((view.code,name))
+                self.site.choices.append((view.code,name))
             if view.isplugin:
                 register_application(view)
     
@@ -490,22 +498,47 @@ Return ``None`` if the view is not available.'''
                 content['%surl' % name] = url
         return content
     
-    def table_generator(self, djp, qs):
-        '''Return an iterable for an input iterable :param qs:.'''
+    def table_generator(self, djp, headers, qs):
+        '''Return an generator from an iterable to be used
+to render a table.'''
         return qs
 
     def addurl(self, request, name = 'add'):
         '''Retrive the add view url if it exists and user has the right permissions.'''
         return None
-        
-    def render_applications(self,djp):
-        '''Render children application as a list'''
-        site = djp.site
-        headers = self.headers or self.list_display
+    
+    def basequery(self, djp, **kwargs):
+        '''The base query for the application.
+By default it return a generator of children pages.'''
+        return djp.auth_children()        
+    
+    def render_query(self, djp, query, appmodel = None):
+        '''Render a query as a table or a list of items.'''
+        view = djp.view
+        appmodel = appmodel or self
+        if isgenerator(query):
+            query = list(query)
+        p  = Paginator(djp.request, query, per_page = appmodel.list_per_page)
+        c  = djp.kwargs.copy()
+        headers = view.headers or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
-        ctx = table(headers, AppList(self,djp), djp, appmodel)
-        return loader.render('djpcms/tablesorter.html',ctx)
+        astable = headers and view.astable
+        c.update({'paginator': p,
+                  'astable': astable,
+                  'djp': djp,
+                  'url': djp.url,
+                  'css': djp.css,
+                  'appmodel': appmodel,
+                  'headers': headers})
+        
+        if astable:
+            items = self.table_generator(djp, headers, p.qs)
+            c['astable'] = table(djp, headers, items, appmodel.model)
+        else:    
+            c['items'] = self.data_generator(djp, p.qs)
+            
+        return loader.render(self.pagination_template_name, c)
 
 
 class ModelApplication(Application):
@@ -603,7 +636,7 @@ Re-implement for custom arguments.'''
     def deleteurl(self, request, obj):
         return self.appviewurl(request,'delete',obj,self.has_delete_permission,objrequired=True)
         
-    def editurl(self, request, obj):
+    def changeurl(self, request, obj):
         return self.appviewurl(request,'edit',obj,self.has_change_permission,objrequired=True)
     
     def viewurl(self, request, obj, field_name = None):
@@ -664,9 +697,9 @@ Re-implement for custom arguments.'''
         '''Utility function for getting content out of an instance of a model.
 This dictionary should be used to render an object within a template. It returns a dictionary.'''
         request = djp.request
-        editurl = self.editurl(request, obj)
-        if editurl:
-            editurl = '%s?next=%s' % (editurl,djp.url)
+        changeurl = self.changeurl(request, obj)
+        if changeurl:
+            changeurl = '%s?next=%s' % (changeurl,djp.url)
         content = {'item':      obj,
                    'mapper':    self.mapper,
                    'djp':       djp,
@@ -711,7 +744,7 @@ This dictionary should be used to render an object within a template. It returns
                 return self
         except:
             pass
-        return self.application_site.for_model(obj.__class__)
+        return self.site.for_model(obj.__class__)
     
     def paginate(self, request, data, prefix, wrapper):
         '''Paginate data'''

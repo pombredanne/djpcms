@@ -22,7 +22,7 @@ class SiteMapView(views.View):
         return sites.tree.tojson(fields, refresh = True)        
     
     
-class SiteMapApplication(views.Application):
+class SiteMapApplication(views.ModelApplication):
     '''Application to use for admin sitemaps'''
     list_display = ('url','application','application_view',
                     'template','inner_template')
@@ -31,6 +31,14 @@ class SiteMapApplication(views.Application):
     if Page:
         add = views.AddView(parent = 'main')
         edit = views.AddView(regex = views.IDREGEX, parent = 'main')
+        
+        def __init__(self, baseurl, **kwargs):
+            super(SiteMapApplication,self).__init__(baseurl,Page,**kwargs)
+    
+    else:
+        def __init__(self, baseurl, **kwargs):
+            views.Application.__init__(self,baseurl,**kwargs)
+            
     
     class Media:
         js = ('djpkit/djpkit.js',

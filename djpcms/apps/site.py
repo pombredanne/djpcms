@@ -6,7 +6,7 @@ import logging
 import djpcms
 from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
-                                   ImproperlyConfigured
+                                   ImproperlyConfigured, DjpcmsException
 from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, SLASH, closedurl
 from djpcms.utils.collections import OrderedDict
@@ -83,8 +83,15 @@ def standard_exception_handle(request, e, status = None):
                                   mimetype = 'text/html')
         
 
+class SiteMixin(ResolverMixin):
+    
+    def for_model(self, model):
+        '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
+If the application is not available, it returns ``None``. It never fails.'''
+        return None
+    
 
-class ApplicationSites(ResolverMixin):
+class ApplicationSites(SiteMixin):
     '''This class is used as a singletone and holds information
 of djpcms application routes as well as general configuration parameters.'''
     def __init__(self):
@@ -348,6 +355,19 @@ admin application will be included.
         # Create the admin application
         admin = AdminSite('/', apps = groups, **params)
         return (admin,)
+    
+    def for_model(self, model):
+        if not model:
+            return
+        r = None
+        for site in self.all():
+            r2 = site.for_model(model)
+            if r2:
+                if r:
+                    raise DjpcmsException('Model {0} is registered with \
+more than one site. Cannot resolve.'.format(model))
+                r = r2
+        return r            
         
 sites = ApplicationSites()
 

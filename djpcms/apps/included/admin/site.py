@@ -1,6 +1,5 @@
-from djpcms import views, UnicodeMixin
+from djpcms import views
 from djpcms.template import loader
-from djpcms.core.orms import table
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.html import ObjectDefinition
@@ -9,34 +8,40 @@ from djpcms.core.exceptions import ImproperlyConfigured
 __all__ = ['AdminSite',
            'ApplicationGroup',
            'AdminApplication']
-        
+
+ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
+                        'djpcms/admin/groups.html')
+
+ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
+                              'djpcms/admin/groups.html')
+
 
 class ApplicationGroup(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer a group of :class:`djpcms.views.Applications`.'''
     list_display = ['name','actions']
-    template_name = ('admin/applications.html',
-                     'djpcms/admin/applications.html')
-    home = views.View(in_navigation = 1)
+    home = views.GroupView(in_navigation = 1,
+                           view_template = ADMIN_APPLICATION_TEMPLATE)
     
-    def render(self, djp):
-        url = djp.url
-        ctx = {}
-        return loader.render(self.template_name,ctx)
-
 
 class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''
-    template_name = ('admin/groups.html',
-                     'djpcms/admin/groups.html')
-    home = views.View(in_navigation = 1)
+    query_template = ADMIN_GROUP_TEMPLATE
+    home = views.GroupView(in_navigation = 1)
     
-    def render(self, djp):
-        url = djp.url
-        ctx = {'items':djp.children()}
-        return loader.render(self.template_name,ctx)
+    def groups(self, djp):
+        for child in djp.auth_children():
+            yield {'body':child.html(),
+                   'title':child.title,
+                   'url': child.url}
+            
+    def basequery(self, djp):
+        return sorted(self.groups(djp), key = lambda x : x['title'])
     
+    def render_query(self, djp, qs):
+        return loader.render(self.query_template, {'items':qs})
+      
     
 class AdminApplication(views.ModelApplication):
     view_template = 'djpcms/admin/viewtemplate.html'

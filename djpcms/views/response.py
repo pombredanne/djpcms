@@ -5,8 +5,9 @@ from copy import copy
 import djpcms
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
-from djpcms.utils import lazyattr, logtrace
+from djpcms.utils import lazyattr, storegenarator, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist
+from djpcms.html.lazy import LazyRender
 
 from .navigation import Navigator, Breadcrumbs
 
@@ -167,6 +168,10 @@ return the wrapper with the underlying view.'''
     def in_navigation(self):
         return self.view.in_navigation(self.request, self.page)
     
+    def render(self):
+        '''Render itself'''
+        return self.view.render(self)
+        
     @lazyattr
     def _get_page(self):
         '''Get the page object
@@ -202,6 +207,10 @@ the parent of the embedded view.'''
                 self.url
             return kwargs['instance']
         
+    def html(self):
+        '''Render itself'''
+        return LazyRender(self)
+        
     def has_own_page(self):
         '''Return ``True`` if the response has its own :class:djpcms.models.Page` object.
         '''
@@ -222,10 +231,6 @@ the parent of the embedded view.'''
                 return 'ALL'
         return 'NONE,NOARCHIVE'
     
-    def render(self):
-        '''Render itself'''
-        return self.view.render(self)
-        
     def response(self):
         '''return the type of response or an instance of HttpResponse
         '''
@@ -310,7 +315,7 @@ which corresponds to ``self``'''
             else:
                 raise
         
-    @lazyattr
+    @storegenarator
     def children(self):
         '''return a generator over children responses. It uses the
 :func:`djpcms.node` to retrive the node in the sitemap and cosequently its children.'''
@@ -324,6 +329,13 @@ which corresponds to ``self``'''
                 yield cdjp
             except:
                 continue
+            
+    @storegenarator
+    def auth_children(self):
+        request = self.request
+        for c in self.children():
+            if c.view.has_permission(request, c.page):
+                yield c
                 
     def redirect(self, url):
         if self.is_xhr:

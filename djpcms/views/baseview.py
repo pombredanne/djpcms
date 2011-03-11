@@ -53,9 +53,6 @@ By default it returns an empty string.
     def path(self):
         raise NotImplementedError
     
-    def appsite(self):
-        '''Application site holding ``self'''
-        return None
         
 
 # THE DJPCMS BASE CLASS for handling views
@@ -89,7 +86,7 @@ class djpcmsview(RendererMixin,UnicodeMixin):
     
     def __unicode__(self):
         try:
-            return self.path()
+            return '%s: %s' % (self.name,self.path())
         except:
             return self.name
     
@@ -271,8 +268,9 @@ By default it is ``djp.url``'''
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
     static data, it means there is not a specific application associate with it.'''
-    def __init__(self, page):
-        self.page    = page  
+    def __init__(self, page, site):
+        self.site = site
+        self.page = page  
         
     def path(self):
         return self.page.url

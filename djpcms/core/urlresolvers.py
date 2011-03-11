@@ -11,6 +11,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string, iteritems
 
+import djpcms
 from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist
 from djpcms.http import get_http
 from djpcms.utils import force_str, SLASH
@@ -105,10 +106,18 @@ method'''
         return RegexURLPattern(regex, view, kwargs, name)
     
     def resolve(self, path, subpath = None, site = None, numpass = 0):
-        global _view_cache
-        subpath = subpath if subpath is not None else path
-        cached = _view_cache.get(path,None)
-        if not cached:
+        # try our luck
+        try:
+            node = djpcms.node(SLASH+path)
+        except KeyError:
+            node = None
+        if node:
+            # lucky
+            site = node.site
+            view = node.get_view()
+            return view.site,view,{}
+        else:
+            subpath = subpath if subpath is not None else path
             if not getattr(self,'resolver',None):
                 urls = self.urls()
                 self.resolver = RegexURLResolver(r'^', urls)
@@ -132,8 +141,6 @@ method'''
                     raise self.http.Http404(site = site)
             else:
                 return cachevalue(path, view, site, kwargs)
-        else:
-            return cached
         
     def resolve_flat(self, path):
         '''Resolve flat pages'''

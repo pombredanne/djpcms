@@ -1,4 +1,7 @@
-'''This is the plain vanilla of all applications. It has the standard five views
+'''\
+Dependcies: **None**
+
+This is the plain vanilla of all applications. It has the standard five views
 
 * search (:class:`djpcms.views.SearchView`)
 * add (:class:`djpcms.views.AddView`)

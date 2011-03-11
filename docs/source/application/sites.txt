@@ -4,30 +4,17 @@
 Sites
 ======================
 
-The first concept to get familiar with is the application site.
-To use ``djpcms`` to manage a web application, you need to create a 
-at least one site.
-A site is an instance of :class:`djpcms.apps.appsites.ApplicationSite`
-and it is created simply using the high-level function
-API :func:`djpcms.MakeSite`.
+The first concept to get familiar when using djpcms is the application site.
+
+.. note::
+
+    When using ``djpcms`` to manage a web application, you need to create a 
+    at least one application site. This is easy to do using the
+    :func:`djpcms.MakeSite` high level function.
 
 This is the simplest possible site you can build
 
 .. include:: ../commons/helloworld
-
-
-
-Djpcms has the concept of application sites where each application site contains a
-set of urls which serve the applications registered with the site itself.
-For example, most ``djpcms`` apps define only one site::
-
-    from djpcms import MakeSite
-    
-    def get_urls():
-        ...
-    
-    site = MakeSite(__file__, APPLICATION_URLS = get_urls)
-
 
 
 API

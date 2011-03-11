@@ -10,7 +10,6 @@ Throughout the library there is constant reference to the :class:`djpcms.views.D
 class as first arguments of several functions.
 Indeed instances of this class carry around information about views, request and responses.
 
-
 API
 ==============
 

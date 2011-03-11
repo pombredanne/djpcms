@@ -9,15 +9,14 @@ from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
-from djpcms.html import Paginator
 from djpcms.utils import construct_search, isexact
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
-from djpcms.core.orms import table
 
 
 __all__ = ['View',
+           'GroupView',
            'ModelView',
            'SearchView',
            'AddView',
@@ -270,8 +269,13 @@ Usage::
         return self.appmodel.baseurl
     baseurl = property(__get_baseurl)
     
-    def appsite(self):
-        return self.appmodel
+    def __get_model(self):
+        return getattr(self.appmodel,'model',None)
+    model = property(fget = __get_model)
+    
+    @property
+    def site(self):
+        return self.appmodel.site
     
     def path(self):
         return self.appmodel.path() + self.regex.purl
@@ -378,32 +382,10 @@ Usage::
     def _has_permission(self, request, obj):
         return self.appmodel.has_permission(request, obj)
     
-    def render_query(self, djp, query, appmodel = None):
-        '''Render a queryset'''
-        appmodel = appmodel or self.appmodel
-        p  = Paginator(djp.request, query, per_page = appmodel.list_per_page)
-        c  = copy(djp.kwargs)
-        headers = self.headers or appmodel.list_display
-        if hasattr(headers,'__call__'):
-            headers = headers(djp)
-        astable = headers and self.astable
-        c.update({'paginator': p,
-                  'astable': astable,
-                  'djp': djp,
-                  'url': djp.url,
-                  'model': appmodel.model,
-                  'css': djp.css,
-                  'appmodel': appmodel,
-                  'headers': headers})
-        
-        if astable:
-            items = self.table_generator(djp, p.qs)
-            ctx = table(headers, items, djp, appmodel)
-            c['astable'] = loader.render('djpcms/tablesorter.html',ctx)
-        else:    
-            c['items'] = self.data_generator(djp, p.qs)
-            
-        return loader.render(self.view_template, c)
+    def appquery(self, djp):
+        '''This function implements the query, based on url entries.
+By default it calls the :func:`djpcms.views.appsite.Application.basequery` function.'''
+        return self.appmodel.basequery(djp)
     
     def table_generator(self, djp, qs):
         '''Generator of a table view. This function is invoked by :meth:`View.render_query`
@@ -426,6 +408,16 @@ when :attr:`View.astable` attribute is set to ``True``.'''
         return copy(self)  
     
     
+class GroupView(View):
+    '''An application to display list of children applications.
+It is the equivalent of :class:`SearchView` for :class:`djpcms.views.Application`
+without a model.'''
+    astable = True # Table view by default
+    def render(self, djp):
+        qs = self.appquery(djp)
+        return self.appmodel.render_query(djp, qs)
+    
+    
 class ModelView(View):
     '''A :class:`View` class for views in :class:`djpcms.views.appsite.ModelApplication`.
     '''
@@ -433,40 +425,6 @@ class ModelView(View):
         super(ModelView,self).__init__(isapp = isapp,
                                        splitregex = splitregex,
                                        **kwargs)
-        
-    def __str__(self):
-        return '%s: %s' % (self.name,self.regex)
-    
-    def __get_model(self):
-        return self.appmodel.model
-    model = property(fget = __get_model)
-    
-    def edit_regex(self, edit):
-        baseurl = self.baseurl
-        if baseurl:
-            return r'^%s/%s%s$' % (edit,baseurl[1:],self.regex)
-        else:
-            return None
-    
-    def modelparent(self):
-        '''Return a parent with same model if it exists
-        '''
-        p = self.parent
-        if p:
-            if getattr(p,'model',None) == self.model:
-                return p
-        return None
-    
-    def appquery(self, djp):
-        '''This function implements the query to the database, based on url entries.
-By default it calls the :func:`djpcms.views.appsite.ModelApplication.basequery` function.'''
-        return self.appmodel.basequery(djp)
-    
-    def permissionDenied(self, djp):
-        return self.appmodel.permissionDenied(djp)
-    
-    def sitemapchildren(self):
-        return []
     
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
@@ -517,8 +475,8 @@ It returns a queryset.
     def render(self, djp):
         '''Perform the custom query over the model objects and return a paginated result
         '''
-        query = self.appquery(djp)
-        return self.render_query(djp, query)  
+        qs = self.appquery(djp)
+        return self.appmodel.render_query(djp, qs)  
 
 
 class AddView(ModelView):

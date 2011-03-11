@@ -1,4 +1,7 @@
-'''Useful application for serving static files.
+'''\
+Dependcies: **None**
+
+Useful application for serving static files.
 To be used during development.
 '''
 import os

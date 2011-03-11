@@ -51,13 +51,16 @@ class TestSites(test.TestCase):
         self.assertEqual(sites.tree,None)
         sites.load()
         root = sites.tree.root
-        self.assertEqual(root.url,SLASH)
-        self.assertEqual(len(root.children),1)
-        self.assertTrue('/admin/' in root.children)
-        node = root.children['/admin/']
-        self.assertTrue('/admin/secret/' in node.children)
-        node = node.children['/admin/secret/']
-        self.assertEqual(len(node.children),0)
+        self.assertEqual(root.path,SLASH)
+        children = root.children_map()
+        self.assertEqual(len(children),1)
+        self.assertTrue('/admin/' in children)
+        node = children['/admin/']
+        children = node.children_map()
+        self.assertTrue('/admin/secret/' in children)
+        node = children['/admin/secret/']
+        children = node.children_map()
+        self.assertEqual(len(children),0)
         self.assertEqual(len(sites.tree),3)
         
     def testUser(self):

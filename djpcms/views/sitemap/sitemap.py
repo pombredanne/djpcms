@@ -40,9 +40,15 @@ class Node(UnicodeMixin):
                 else:
                     yield mp[p] 
         
+    def children_map(self, strict = True):
+        '''Utility method which returns a dictionary of children, where
+        the key is given by the children path.
+        '''
+        return dict((c.path,c) for c in self.children(strict))
+    
     @property
     def site(self):
-        return self._site if self._site else self.ancestor.site
+        return self._site if self._site is not None else self.ancestor.site
             
     @property
     def ancestor(self):
@@ -61,6 +67,15 @@ class Node(UnicodeMixin):
         view = self.view or pageview(self.page)
         return DjpResponse(request, view)
     
+    def get_view(self):
+        '''Return an instance of `:class:`djpcms.views.djpcmsview` at node.'''
+        if self.view:
+            return self.view
+        elif self.page:
+            return pageview(self.page)
+        else:
+            raise PathException('Cannot get view for node {0}'.format(self))
+        
     def tojson(self, fields):
         '''Convert ``self`` into an instance of :class:`JsonTreeNode`
 for json serialization.'''
@@ -124,10 +139,6 @@ Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
                     raise ImproperlyConfigured('Node {0} has already \
 a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
                 node.view = view
-                
-            # And the application sub-applications
-            if app.apps:
-                self.addapplications(itervalues(app.apps))
     
     def get_sitemap(self, Page, refresh = False):
         if Page:

@@ -418,6 +418,7 @@
 	   /**
      * Accordion menu
      */
+	/*
     $.djpcms.decorator({
         id:"accordion_menu",
         decorate: function($this,config) {
@@ -433,9 +434,8 @@
                 menu.fadeTo(config.fadetime,1);
             });
         }
-    });
-    
-    
+    });*/
+	
     /**
      * Table-sorter decorator
      * decorate tables with jquery.tablesorter plugin
@@ -447,6 +447,23 @@
             $('table.tablesorter',$this).each(function() {
                 $(this).tablesorter(config.tablesorter);
             });
+        }
+    });
+    
+    $.djpcms.decorator({
+        id:"accordion",
+        config:{
+            effect:'drop',
+            fadetime: 500,
+            accordion : {
+                autoHeight:false,
+                fillSpace:false
+                }
+            },
+        decorate: function($this,config) {
+            var c = config.accordion;
+            $('.ui-accordion',$this).accordion(c.accordion)
+                                    .show(c.effect,{},c.fadetime);
         }
     });
     

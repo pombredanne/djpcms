@@ -1,9 +1,27 @@
 from datetime import datetime
 
-from djpcms import sites
+from djpcms import sites, UnicodeMixin, CHANGE, ADD
+from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 from djpcms.html import grid960, htmldoc
+
+
+class PageLink(UnicodeMixin):
+    
+    def __init__(self, request, page):
+        self.request = request
+        self.page = page
+    
+    def __unicode__(self):
+        site = request.site
+        if not self.page:
+            if Page and site.permissions.has(self.request, ADD, Page):
+                return self.addlink()
+        elif site.permissions.has(self.request, CHANGE, self.page):
+            return self.editlink()
+        return ''
+            
 
 
 def get_grid960(page):
@@ -26,6 +44,7 @@ def djpcms(request):
     
     user = getattr(request,'user',None)
     ctx = {'page':page,
+           'pagelink':PageLink(request,page),
            'base_template': base_template,
            'css':settings.HTML_CLASSES,
            'grid': get_grid960(page),

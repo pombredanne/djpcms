@@ -26,29 +26,36 @@ class PageLink(UnicodeMixin):
     def render(self):
         app = sites.for_model(Page)
         if app:
-            site = app.site
-            if not self.page:
-                if Page and site.permissions.has(self.request, ADD, Page):
-                    return self.addlink(app)
-            elif site.permissions.has(self.request, CHANGE, self.page):
-                return self.changelink(app)
+            cdjp = self.request.DJPCMS.djp(self.request)
+            if isinstance(cdjp.instance,Page):
+                return self.exitlink(cdjp.instance.url)
+            else:
+                site = app.site
+                if not self.page:
+                    if Page and site.permissions.has(self.request, ADD, Page):
+                        return self.addlink(app)
+                elif site.permissions.has(self.request, CHANGE, self.page):
+                    return self.changelink(app)
         return ''
     
     def addlink(self, app):
-        addurl = app.addurl(self.request)
-        if addurl:
-            addurl = iri_to_uri(addurl+'?url='+self.request.path)
-            return icons.circle_plus(addurl,'add page',title="add page contents")
+        path = app.addurl(self.request)
+        if path:
+            path = iri_to_uri(path+'?url='+self.request.path)
+            return icons.circle_plus(path,'add page',title="add page contents",button=False)
         else:
             return ''
     
     def changelink(self, app):
-        changeurl = app.changeurl(self.request, self.page)
-        if changeurl:
-            return icons.pencil(changeurl,'edit page',title="edit page contents")
+        path = app.changeurl(self.request, self.page)
+        if path:
+            return icons.pencil(path,'edit',title = 'Edit page contents',button=False)
         else:
             return ''
 
+    def exitlink(self, path):
+        return icons.circle_close(path,'exit edit',title = 'Exit page editing',button=False)
+        
 
 def get_grid960(page):
     return grid960()

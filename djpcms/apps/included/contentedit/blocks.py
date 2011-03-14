@@ -344,8 +344,8 @@ The url is given by the ContentBlocks models
 
 
 class ContentSite(views.ModelApplication):
-    '''AJAX enabled applications for changing content of a page.'''
-    hidden      = True
+    '''AJAX enabled :class:`djpcms.views.ModelApplication` for changing
+content in a content block.'''
     search      = views.SearchView()
     view        = views.ViewView()
     change      = ChangeContentView()
@@ -382,7 +382,7 @@ class ContentSite(views.ModelApplication):
         blockcontents = self.model.objects.for_page_block(page, blocknum)
         request  = djp.request
         url      = djp.url
-        editview = self.getview('edit')
+        editview = self.getview('change')
         wrapper  = EditWrapperHandler(url)
         Tot = blockcontents.count() - 1
         # Clean blocks

@@ -26,3 +26,11 @@ def horizontal_navigation(data):
         data['secondary_border'] = '{0}px solid {1}'.format(secondary_border_with,
                                                             border_color)
     return data
+
+
+def object_definition(data):
+    left = data['left_width']
+    right = 100 - left
+    data['left_width'] = '{0}%'.format(left)
+    data['right_width'] = '{0}%'.format(right)
+    return data

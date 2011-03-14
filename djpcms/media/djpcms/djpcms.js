@@ -426,7 +426,21 @@
 	$.djpcms.decorator({
         id:'jquery-buttons',
         decorate: function(obj, config) {
-           $('input[type="submit"]',obj).button();    
+           $('input[type="submit"]',obj).button();
+           $('a.button').each(function() {
+               var a = $(this),
+                   sp = a.children('span'),
+                   opts,ico;
+               if(sp.length) {
+                   ico = sp[0].className;
+                   sp.remove();
+               }
+               if(ico) {
+                   opts = {icons:{primary:ico}};
+                   if(!a.html()) {opts.text = false;}
+               }
+               a.button(opts).removeClass('djph');
+           });
         }
     });
 	
@@ -929,10 +943,13 @@
 	
 	$.djpcms.decorator({
 		id: "rearrange",
+		config: {
+		    body_selector: 'body.admin',
+		},
 		description: "Drag and drop functionalities in editing mode",
 		decorate: function($this,config) {
 			// The selectors
-		    if(!$('body.edit').length) {
+		    if(!$(config.rearrange.body_selector).length) {
 		        if(!$.djpcms.content_edit) {
 		            return;
 		        }

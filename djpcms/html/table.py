@@ -1,12 +1,14 @@
 from djpcms.template import loader
 from djpcms.core import orms
 from djpcms.utils import force_str
-from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH
+from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND
 from djpcms.utils.text import nicename
+from djpcms.forms import Select, CheckboxInput
+from djpcms.html import icons
 
 nicerepr = orms.nicerepr
 
-from .lazy import LazyRender
+from .utils import LazyRender
 
 __all__ = ['Table','table','nicerepr']
 
@@ -20,9 +22,11 @@ def response_table_row(headers,item,path=SLASH):
         
 
 class get_result(object):
-    __slots__ = ['first']
+    divchk = '<div class="action-check">'
+    spvval = '<span class="value">'
     
-    def __init__(self):
+    def __init__(self, actions = False):
+        self.actions = actions
         self.first = True
         
     def __call__(self, field_name, result, mapper, nd):
@@ -34,32 +38,36 @@ class get_result(object):
         else:
             return result_repr
     
-class get_app_result(object):
+class get_app_result(get_result):
     '''Representation for an instance field'''
-    __slots__ = ['first']
-    
-    def __init__(self):
-        self.first = True
         
     def __call__(self, request, field_name, result, mapper, nd, appmodel, path):
-        if not field_name:
-            return ''
-        result_repr = mapper.getrepr(field_name, result, nd)
-        if force_str(result_repr) == '':
-            result_repr = EMPTY_VALUE
-        if(self.first and not appmodel.list_display_links) or \
-                field_name in appmodel.list_display_links:
-            self.first = False
-            url = None
-        else:
-            url = None
-        
-        var = result_repr
-        if url:
-            if url != path:
-                var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)
+        first = self.first
+        if field_name:
+            result_repr = mapper.getrepr(field_name, result, nd)
+            if force_str(result_repr) == '':
+                result_repr = EMPTY_VALUE
+            if(self.first and not appmodel.list_display_links) or \
+                    field_name in appmodel.list_display_links:
+                first = False
+                url = appmodel.viewurl(request, result, field_name = field_name)
             else:
-                var = '<a>{0}</a>'.format(var)
+                url = None
+            
+            var = result_repr
+            if url:
+                if url != path:
+                    var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)
+                else:
+                    var = '<a>{0}</a>'.format(var)
+        else:
+            var = ''
+        if self.first and self.actions:
+            first = False
+            chk = CheckboxInput(value = var, name = 'action-item').render()
+            if var:
+                var = self.divchk+chk+self.spvval+var+SPANEND+DIVEND
+        self.first = first
         return var
 
 
@@ -70,13 +78,37 @@ def nice_items_id(headers, result, path, nd, id = None):
             'display': (nicerepr(c,nd) for c in result)}
     
     
+def table_toolbox(appmodel, djp, headers):
+    '''Create a toolbox for the table if possible'''
+    request = djp.request
+    site = djp.site
+    addurl = appmodel.addurl(djp.request)
+    action_url = djp.url
+    has = site.permissions.has
+    choices = [('','Actions')]
+    for name,description,pcode in appmodel.actions:
+        if has(request, pcode, None):
+            choices.append((name,description))
+    toolbox = {}
+    if len(choices) > 1:
+        s = Select(choices = choices, cn = 'ajax actions').addAttr('href',action_url)
+        toolbox['actions'] = s.render(djp)
+        toolbox['cols'] = len(headers)
+    if addurl:
+        toolbox['links'] = [icons.circle_plus(addurl,'add')]
+    return toolbox
+        
+        
 def result_for_item(djp, headers, result, nd,
-                    mapper, appmodel, path):
+                    mapper, appmodel, path,
+                    actions = False):
     '''Return a dictionary containing a unique id and a
 generator over values to display for each header value.
-This function generate a row in the table
+This function can be used to generate a row in table with entries given by
+*headers*.
 
-:parameter result: the data element to process
+:parameter headers: iterable over attribute names to extract from ``result``.
+:parameter result: the data element to process.
 '''
     view = djp.view
     site = view.site
@@ -84,10 +116,10 @@ This function generate a row in the table
         request = djp.request
         if appmodel:
             #links = appmodel.object_links(mapper.model)
-            getr = get_app_result()
+            getr = get_app_result(actions)
             display = (getr(request,name,result,mapper,nd,appmodel,path) for name in headers)
         else:
-            getr = get_result()
+            getr = get_result(actions)
             display = (getr(name,result,mapper,nd) for name in headers)
         return {'id':mapper.unique_id(result),
                 'display':display}
@@ -125,14 +157,22 @@ Render a table
         else:
             mapper = None
             appmodel = None
+        
+        toolbox = None
+        actions = False
+        if appmodel:
+            toolbox = table_toolbox(appmodel, djp, headers)
+            actions = 'actions' in toolbox
             
         if not mapper:
             labels = (nicename(name) for name in headers)
         else:
             labels = (mapper.label_for_field(name) for name in headers)
-        items  = (result_for_item(djp, headers, d, nd, mapper, appmodel, path) for d in data)
+        items  = (result_for_item(djp, headers, d, nd, mapper, appmodel,\
+ path, actions = actions) for d in data)
         self.ctx = {'labels': labels,
-                    'items': items}
+                    'items': items,
+                    'toolbox':toolbox}
             
     def render(self):
         return loader.render(self.template_name,self.ctx)

@@ -7,7 +7,9 @@ from decimal import Decimal
 from py2py3 import string_type
 
 __all__ = ['encode_str',
-           'force_str']
+           'force_str',
+           'escape',
+           'smart_escape']
 
 
 protected_types = (int, datetime, date, time, float, Decimal)
@@ -58,3 +60,22 @@ try:
 except:
     DEFAULT_LOCALE_ENCODING = 'ascii'
     
+
+def escape(html):
+    """
+    Returns the given HTML with ampersands, quotes and angle brackets encoded.
+    """
+    if html:
+        return force_str(html).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
+    else:
+        return ''
+
+
+def smart_escape(text):
+    lines = force_str(text).split('\n')
+    if len(lines) > 1:
+        r = len(lines)
+        return '<textarea rows="{0}" readonly="readonly">{1}</textarea>'.format(r,escape(text))
+        #return '<p>{0}</p>'.format('</p><p>'.join((escape(text) for text in lines)))
+    else:
+        return escape(text)

@@ -1,0 +1,26 @@
+{% extends base_template %}
+{% block body_extra_style %}
+h2.layout-separator {
+    padding: 10px 0;
+    margin: 10px 0 5px 0;
+    text-align: center;
+}
+{% endblock %}
+{% block page_body %}
+<div class="{{ grid.column_1_2 }}">
+<div class="djpcms-block">
+{{ inner }}
+</div>
+</div>
+<div class="{{ grid.column_1_2 }}">
+{{ grid.empty }}
+</div>
+{{ grid.clear }}
+<div class="{{ grid.column1 }}">
+<h2 class="layout-separator">Page layout</h2>
+</div>
+{{ grid.clear }}
+<div class="page-editing">
+{{ underlying }}
+</div>
+{% endblock %}

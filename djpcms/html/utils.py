@@ -1,8 +1,9 @@
 import djpcms
-from djpcms.utils import lazyattr
+from djpcms.utils import lazyattr, force_str
 
 
-__all__ = ['LazyRender','LazyUnicode']
+__all__ = ['LazyRender',
+           'LazyUnicode']
 
 
 class LazyUnicode(djpcms.UnicodeMixin):
@@ -32,5 +33,5 @@ class LazyRender(djpcms.UnicodeMixin):
     
     def __unicode__(self):
         return self.render()
-    
+
     

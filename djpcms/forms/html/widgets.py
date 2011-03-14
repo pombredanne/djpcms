@@ -1,4 +1,4 @@
-from djpcms.utils import merge_dict
+from djpcms.utils import merge_dict, escape
 from djpcms.utils.const import *
 
 from .base import HtmlWidget
@@ -43,11 +43,21 @@ class CheckboxInput(TextInput):
     
 class TextArea(HtmlWidget):
     tag = 'textarea'
+    inline = False
+    _value = ''
     attributes = merge_dict(HtmlWidget.attributes, {
                                                     'name': None,
                                                     'rows': 10,
                                                     'cols': 40
                                                     })
+
+    def render_from_field(self, djp, field):
+        fattr = self.flatatt(name = field.html_name, id = field.id)
+        self._value = escape(field.value)
+        return self._render(fattr, djp, field)
+        
+    def inner(self, *args, **kwargs):
+        return self._value
     
     
 class Select(HtmlWidget):
@@ -55,18 +65,22 @@ class Select(HtmlWidget):
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
     
-    def __init__(self, **kwargs):
+    def __init__(self, choices = None, **kwargs):
+        self.choices = choices
         super(Select,self).__init__(**kwargs)
         
-    def inner(self, djp, field):
-        return '\n'.join(self.render_options(djp, field))
+    def inner(self, djp, bfield = None):
+        return '\n'.join(self.render_options(djp, bfield))
 
     def render_options(self, djp, bfield):
-        field = bfield.field
-        choices,model = field.choices_and_model()
         selected_choices = []
-        if bfield.value:
-            selected_choices.append(bfield.value)
+        if bfield:
+            field = bfield.field
+            choices,model = field.choices_and_model()
+            if bfield.value:
+                selected_choices.append(bfield.value)
+        else:
+            choices,model = self.choices,None
         option = self._option
         selected = self._selected
         if model:

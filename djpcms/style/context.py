@@ -1,11 +1,11 @@
 from medplate import CssContext
 
-from .elements import horizontal_navigation
+from .elements import *
 
 #________________________________________ ANCHOR
 CssContext('anchor',
            tag = 'a',
-           template = 'medplate/anchor.css_t',
+           template = 'djpcms/style/anchor.css_t',
            data = {
                    'text_decoration': 'none',
                    'weight':'normal',
@@ -15,7 +15,6 @@ CssContext('anchor',
                    'background_hover':None
                    }
            )
-
                     
 #________________________________________ MAIN NAVIGATION
 CssContext('nav',
@@ -70,17 +69,14 @@ CssContext('uniformHint',
            )
 
 #________________________________________ SUBMITS AND BUTTONS
-#CssContext('submit',
-#           tag = 'input[type="submit"]',
-#           template = 'djpcms/style/submit.css_t',
-#           data = {
-#                   'background':'#FFFFFF',
-#                   'border':'1px solid #aaa',
-#                   'text_align':'center',
-#                   'padding': '3px 5px',
-#                   'min_width': '50px'
-#                   }
-#           )
+CssContext('button',
+           tag = '.ui-button',
+           template='djpcms/style/button.css_t',
+           data = {
+             'padding':'0.1em 0.3em',
+             'line_height':'1.2em'
+            }
+)
 
 #________________________________________ TAGS
 CssContext('tags',
@@ -96,8 +92,10 @@ CssContext('tags',
 CssContext('object_definitions',
            tag='div.object-definition',
            template='djpcms/style/object-definition.css_t',
+           process = object_definition,
            data = {
-                   'text_align':'left'
+                   'text_align':'left',
+                   'left_width':30
                    }
            )
 
@@ -109,11 +107,12 @@ CssContext('tablesorter',
            data = {
                    'width':'100%',
                    'text_align': 'left',
-                   'margin': '10px 0 15px',
+                   'margin': '0 0 15px',
                    'background': 'transparent',
                    # head/tail
                    'odd_background_color':'#ccc',
                    'head_border_color':'#fff',
+                   'toolbox_background_color':'#fff',
                    'body_border_color':'#a6c9e2',
                    'head_border': 'none',
                    'head_padding': '4px',
@@ -159,7 +158,7 @@ CssContext('ft',
 
 #________________________________________ EDITING
 CssContext('bodyedit',
-           tag = 'body.edit',
+           tag = 'body.admin',
            template='djpcms/style/editing.css_t',
            data = {
                    'background': '#f5f5f5',

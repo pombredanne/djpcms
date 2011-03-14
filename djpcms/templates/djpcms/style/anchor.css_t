@@ -1,0 +1,10 @@
+{% extends "medplate/anchor.css_t" %}
+
+{% block body %}{{ block.super }}
+a.simple-icon {
+    display: inline-block;
+}
+a.simple-icon span {
+    display: inline;
+}
+{% endblock %}

@@ -92,6 +92,11 @@ class SiteMixin(ResolverMixin):
 If the application is not available, it returns ``None``. It never fails.'''
         return None
     
+    def djp(self, request, path):
+        '''Entry points for requests'''
+        site,view,kwargs = self.resolve(path)
+        return view(request, **kwargs)
+    
 
 class ApplicationSites(SiteMixin):
     '''This class is used as a singletone and holds information
@@ -332,14 +337,6 @@ site is already registered at ``route``.'''
     
     def view_from_page(self, page):
         site = self.get_site(page.url)
-    
-    def djp(self, request, path):
-        '''Entry points for requests'''
-        site,view,kwargs = self.resolve(path)
-        request.site = site
-        djp = view(request, **kwargs)
-        setattr(request,'instance',djp.instance)
-        return djp
         
     def make_admin_urls(self, name = 'admin', **params):
         '''Return a one element tuple containing an :class:`djpcms.apps.included.admin.AdminSite`

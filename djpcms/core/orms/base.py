@@ -134,45 +134,6 @@ wrap existing object relational mappers.
         except:
             return name
         
-    def result_for_item(self, headers, result, djp, nd = 3):
-        if isinstance(result, self.model):
-            request = djp.request
-            appmodel = request.site.for_model(self.model)
-            if appmodel:
-                list_display_links = appmodel.list_display_links
-            else:
-                list_display_links = []
-            path  = djp.http.path_with_query(request)
-            first = True
-            id    = ('%s-%s') % (self.module_name,result.id)
-            display = []
-            item = {'id':id,'display':display}
-            for field_name in headers:
-                if not field_name:
-                    return ''
-                result_repr = self.getrepr(field_name, result, nd)
-                if force_str(result_repr) == '':
-                    result_repr = EMPTY_VALUE
-                if (first and not list_display_links) or field_name in list_display_links:
-                    first = False
-                    if appmodel:
-                        url = appmodel.viewurl(request, result, field_name)
-                    else:
-                        url = None
-                else:
-                    url = None
-                
-                var = result_repr
-                if url:
-                    if url != path:
-                        var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)
-                    else:
-                        var = '<a>{0}</a>'.format(var)
-                display.append(var)
-            return item
-        else:
-            return nice_items_id(result, nd = nd)
-        
     def getrepr(self, name, instance, nd = 3):
         '''representation of field *name* for *instance*.'''
         return nicerepr(self._getrepr(name,instance),nd)
@@ -181,7 +142,7 @@ wrap existing object relational mappers.
         attr = getattr(instance,name,None)
         if hasattr(attr,'__call__'):
             attr = attr()
-        if attr:
+        if attr is not None:
             return force_str(attr)
         else:
             return sites.settings.DJPCMS_EMPTY_VALUE

@@ -36,8 +36,25 @@
 {{ tag }} thead tr .headerSortDown, {{ tag }} thead tr .headerSortUp {
 background-color: #8dbdd8;
 }
-{{ tag }} tbody tr.hover td {
-    background-color:#BEDAD7;
+{{ tag }} tbody tr.hover td {{% if row_hover_background %}
+    background-color: {{ row_hover_background }};{% endif %}{% if row_hover_color %}
+    color: {{ row_hover_color }};{% endif %}
+}
+div.toolbox {
+    background: {{ toolbox_background_color }};
+    overflow: hidden;
+    padding: 4px 0;
+    border: 1px solid {{ body_border_color }};
+}
+.action-check .value {
+    margin-left: 5px;
+}
+div.toolbox .selectors {
+    margin-left: 10px;
+}
+div.toolbox .links {
+    float: right;
+    margin-right: 10px;
 }
 {% endblock %}
 

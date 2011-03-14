@@ -108,6 +108,10 @@ model instances).
         self.url
         return self.kwargs
     
+    @property
+    def root(self):
+        return self.site.root
+    
     def is_soft(self):
         return self.view.is_soft(self)
     
@@ -152,7 +156,9 @@ model instances).
         return self.view.in_navigation(self.request, self.page)
     
     def render(self):
-        '''Render itself'''
+        '''\
+Render the underlying view.
+A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         return self.view.render(self)
         
     @lazyattr
@@ -193,18 +199,6 @@ the parent of the embedded view.'''
     def html(self):
         '''Render itself'''
         return LazyRender(self)
-        
-    def has_own_page(self):
-        '''Return ``True`` if the response has its own :class:djpcms.models.Page` object.
-        '''
-        page = self.page
-        if page:
-            appv = getattr(self.view,'code',None)
-            if appv:
-                return page.application_view == appv
-            else:
-                return page.url == self.url
-        return False
             
     def robots(self):
         '''Robots

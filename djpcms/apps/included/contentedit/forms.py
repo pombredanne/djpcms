@@ -60,7 +60,9 @@ class ContentBlockForm(forms.Form):
     url = forms.CharField(widget=forms.HiddenInput, required = False)
     title = forms.CharField(required = False)
     plugin_name = PluginChoice(label = 'Plugin', choices = plugingenerator)
-    container_type = forms.ChoiceField(label = 'Container', choices = wrappergenerator)
+    container_type = forms.ChoiceField(label = 'Container',
+                                       choices = wrappergenerator,
+                                       help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
     for_not_authenticated = forms.BooleanField(default = False)
     view_permission = forms.CharField(required = False)
     requires_login = forms.BooleanField(default = False)

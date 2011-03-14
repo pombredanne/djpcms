@@ -1,3 +1,6 @@
+DIV = '<div>'
+DIVEND = '</div>'
+SPANEND = '</span>'
 UL = '<ul>'
 ULEND = '</ul>'
 LI = '<li>'

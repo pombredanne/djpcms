@@ -23,21 +23,19 @@ def absolute_parent(djp):
         return sites.djp(djp.request, path[1:])
 
 
-def page_edit_url(djp):
-    site = djp.site 
-    page = djp.page
-    request = djp.request
-    kwargs = {'path':request.path[1:]}
-    if djp.has_own_page():
-        if djp.site.permissions.has(djp.request,djpcms.CHANGE,page):
-            return site.get_url(page.__class__,'change',**kwargs)
-    else:
-        if djp.site.permissions.has(djp.request,djpcms.ADD,page):
-            return site.get_url(page.__class__,'add',**kwargs)
-
-
 class RendererMixin(UnicodeMixin):
+    '''\
+Mixin for a class able to render itself
+
+    .. attribute:: template_name
+     
+        Used to specify a template file or a tuple of template files.
+'''
+    parent = None
     appmodel = None
+    template_name = None
+    name = None
+    description = None
     
     def render(self, djp):
         '''Render the Current View and return unicode string.
@@ -64,18 +62,10 @@ class djpcmsview(RendererMixin):
         Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
         
             _methods = ('get','post')
-            
-    .. attribute:: template_name
-     
-        Used to specify a template file or a tuple of template files. If the view has a page,
-        the page template will be used instead. 
+             
     '''
     logger = logging.getLogger('djpcmsview')
-    template_name = None
-    parent        = None
     '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
-    name          = 'flat'
-    '''Name of view. Default ``"flat"``.'''
     object_view = False
     '''Flag indicationg if the view class is used to render or manipulate model instances. Default ``False``.'''
     
@@ -138,7 +128,6 @@ class djpcmsview(RendererMixin):
         site    = self.site
         http    = site.http
         page    = djp.page
-        request._page = page
         inner_template  = None
         context = {'title':djp.title}
                     
@@ -146,8 +135,6 @@ class djpcmsview(RendererMixin):
             inner_template = page.inner_template
             if not inner_template:
                 inner_template = site.add_default_inner_template(page)
-            if not editing:
-                context['edit_content_url'] = page_edit_url(djp)
             
         if inner_template:
             cb = {'djp':  djp}
@@ -268,6 +255,7 @@ By default it is ``djp.url``'''
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
     static data, it means there is not a specific application associate with it.'''
+    name = 'flat'
     def __init__(self, page, site):
         self.site = site
         self.page = page  

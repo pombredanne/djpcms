@@ -3,7 +3,7 @@ Application Model Manager
 This module define the base class for implementing Dynamic Page views based on django models
 The main object handle several subviews used for searching, adding and manipulating objects
 '''
-from copy import deepcopy
+from copy import copy, deepcopy
 from inspect import isgenerator
 
 from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
@@ -176,8 +176,6 @@ or in the constructor.
     '''Flag indicating if application views are inherited from base class.
     
     Default ``False``.'''
-    name             = None
-    description      = None
     '''Application description. Default ``None``, calculated from name.'''
     authenticated    = False
     '''True if authentication is required. Default ``False``.'''
@@ -201,9 +199,9 @@ or in the constructor.
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = []
     list_display     = []
+    list_display_links = []
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
-    template_name = None
     model = None
     pagination_template_name = ('components/pagination.html',
                                 'djpcms/components/pagination.html')
@@ -219,8 +217,8 @@ of objects. Default is ``None``.'''
     
     def __init__(self, baseurl, editavailable = None, name = None,
                  list_per_page = None, form = None, list_display = None,
-                 in_navigation = None, description = None,
-                 template_name = None, parent = None,
+                 list_display_links = None, in_navigation = None,
+                 description = None, template_name = None, parent = None,
                  apps = None, **views):
         self.parent = parent
         self.views = deepcopy(self.base_views)
@@ -233,6 +231,7 @@ of objects. Default is ``None``.'''
         self.__baseurl = closedurl(baseurl)
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
+        self.list_display_links = list_display_links or self.list_display_links
         self.form = form or self.form
         makename(self,name,description)
         self.creation_counter = Application.creation_counter
@@ -250,8 +249,14 @@ view {0}. Already available." % name)
                     raise ApplicationUrlException("Could not define add \
 application {0}. Already available." % name)
                 self.apps[name] = app
-            
-    @property            
+    
+    def __deepcopy__(self,memo):
+        obj = copy(self)
+        obj.views = deepcopy(self.views)
+        obj.apps = deepcopy(self.apps)
+        return obj        
+        
+    @property
     def settings(self):
         return self.site.settings
     
@@ -259,10 +264,7 @@ application {0}. Already available." % name)
         '''Register application with :class:`djpcms.apps.appsites.ApplicationSite`
 *application_site*.'''
         if self.site:
-            if self.site == application_site:
-                return
-            else:
-                raise AlreadyRegistered('Application %s already registered as application' % self)
+            raise AlreadyRegistered('Application %s already registered as application' % self)
         url = self.make_url
         self.site = application_site
         self._create_views()
@@ -277,7 +279,10 @@ application {0}. Already available." % name)
         self.registration_done()
     
     def __unicode__(self):
-        return self.path()
+        if not self.site:
+            return self.baseurl + ' - Not Registered'
+        else:
+            return self.path()
     
     def appsite(self):
         return self.parent_app
@@ -536,6 +541,7 @@ By default it return a generator of children pages.'''
         '''
         return to_string(obj)
 
+
 class ModelApplication(Application):
     '''An :class:`Application` class for applications
 based on a back-end database model.
@@ -562,8 +568,7 @@ and by the :ref:`auto-complete <autocomplete>`
 functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
-    #
-    list_display_links = []
+    actions = [('delete','delete',djpcms.DELETE)]
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:

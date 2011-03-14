@@ -234,7 +234,6 @@ Usage::
         self.regex     = None
         self.func      = None
         self.code      = None
-        self.editurl   = None
         self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view
         self.headers   = headers or self.headers
@@ -498,9 +497,6 @@ A view of this type has an embedded object available which is used to generate t
             raise djp.http.Http404
         
         return super(ObjectView,self).get_url(djp)
-    
-    def title(self, djp):
-        return self.appmodel.title_object(djp.instance)
 
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         return model_defaultredirect(self, request, next = next,
@@ -532,7 +528,7 @@ method of the :attr:`djpcms.views.View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
-    default_title = 'delete'
+    default_title = 'delete {0[instance]}'
     _methods      = ('post',)
     
     def __init__(self, regex = 'delete', parent = 'view', isapp = False, **kwargs):
@@ -560,22 +556,14 @@ class DeleteView(ObjectView):
 
 # Edit/Change an object
 class ChangeView(ObjectView):
-    default_title = 'edit {0}'
+    default_title = 'edit {0[instance]}'
     '''An :class:`ObjectView` class specialised for changing an instance of a model.
     '''
-    def __init__(self, regex = 'edit', parent = 'view', **kwargs):
+    def __init__(self, regex = 'change', parent = 'view', **kwargs):
         super(ChangeView,self).__init__(regex = regex, parent = parent, **kwargs)
     
     def _has_permission(self, request, obj):
         return self.appmodel.has_change_permission(request, obj)
-    
-    def title(self, djp):
-        page = djp.page
-        if page and page.title:
-            title = page.tile
-        else:
-            title = self.default_title
-        return title.format({'instance':self.appmodel.title_object(djp.instance)})
     
     def render(self, djp):
         return self.get_form(djp).render(djp)

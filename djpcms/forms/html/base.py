@@ -1,6 +1,6 @@
 from py2py3 import iteritems
 
-from djpcms.utils import slugify, merge_dict
+from djpcms.utils import slugify, merge_dict, escape
 from djpcms.template import loader
 
 from .media import BaseMedia
@@ -12,7 +12,7 @@ __all__ = ['flatatt',
 def attrsiter(attrs):
     for k,v in attrs.items():
         if v:
-            yield ' {0}="{1}"'.format(k, v)
+            yield ' {0}="{1}"'.format(k, escape(v))
                 
                 
 def flatatt(attrs):
@@ -83,6 +83,10 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
             for cn in cn.split():
                 cn = slugify(cn)
                 add(cn)
+        return self
+    
+    def addAttr(self, name, val):
+        self.__attrs[name] = val
         return self
     
     def hasClass(self, cn):

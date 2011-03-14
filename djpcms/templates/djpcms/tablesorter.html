@@ -1,3 +1,13 @@
+{% if toolbox %}
+<div class="toolbox">{% if toolbox.actions %}
+<span class="selectors">
+ Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
+ </span>
+ {{ toolbox.actions }}{% endif %}{% if toolbox.links %}
+<span class="links">{% for link in toolbox.links %} 
+ {{ link }}{% endfor %}
+</span>{% endif %}
+</div>{% endif %}
 <table class="tablesorter">{% if labels %}
 <thead class="ui-widget-header">
  <tr>{% for label in labels %}

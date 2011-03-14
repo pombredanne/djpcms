@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from threading import Lock
 
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
@@ -90,24 +91,23 @@ class ApplicationSite(SiteMixin):
         '''The list of registered applications'''
         return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path())))
     
-    def register(self, application, safe = False):
+    def register(self, application):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application. Is is not a valid one.')
         
+        application = deepcopy(application)
         if application.name in self._nameregistry:
             raise AlreadyRegistered('Application %s already registered as application' % application)
         self._nameregistry[application.name] = application
         application.register(self)
-        model = getattr(application,'model',None)
+        model = application.model
         if model:
             if model in self._registry:
                 raise AlreadyRegistered('Model %s already registered as application' % model)
             self._registry[model] = application
-        else:
-            pass
         
         for app in application.apps.values():
-            self.register(app,safe)
+            self.register(app)
     
     def unregister(self, model):
         '''Unregister the :class:`djpcms.views.ModelApplication` registered
@@ -246,8 +246,8 @@ returns the application handler. If the appname is not available, it raises a Ke
         page.save()
         return te
     
-    def resolve(self, path, subpath = None, site = None):
-        return super(ApplicationSite,self).resolve(path, subpath, site = self)
+    def resolve(self, path):
+        return self.root.resolve(path)
         
     def get_page(self, **kwargs):
         from djpcms.models import Page

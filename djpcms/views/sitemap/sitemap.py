@@ -2,6 +2,7 @@ from py2py3 import itervalues
 
 from djpcms import UnicodeMixin
 from djpcms.utils import parentpath, SLASH
+from djpcms.utils.text import nicename
 from djpcms.views import DjpResponse, pageview
 from djpcms.core.orms import mapper
 from djpcms.core.exceptions import ImproperlyConfigured, PathException
@@ -16,6 +17,28 @@ class DummyRequest(object):
     
     def __init__(self,site):
         self.site = site
+        
+
+class NodeInfo(object):
+    
+    def __init__(self, node):
+        self.node = node
+        self.djp = node.djp()
+    
+    @property
+    def url(self):
+        return self.node.path
+    
+    @property
+    def template(self):
+        return self.djp.template_file
+    
+    @property
+    def application(self):
+        if self.node.view:
+            return self.node.view.appmodel.name
+        else:
+            return ''
         
 
 class Node(UnicodeMixin):
@@ -84,16 +107,16 @@ class Node(UnicodeMixin):
         '''Convert ``self`` into an instance of :class:`JsonTreeNode`
 for json serialization.'''
         values = []
-        djp = self.djp()
+        info = NodeInfo(self)
         for field in fields:
-            attr = getattr(djp,field,None)
+            attr = getattr(info,field,None)
             if hasattr(attr,'__call__'):
                 attr = attr()
             values.append(attr if attr is not None else '')
-        node = JsonTreeNode(None, self.url,
+        node = JsonTreeNode(None, self.path,
                             values = values,
                             children = [])
-        for child in itervalues(self.children):
+        for child in self.children():
             node.add(child.tojson(fields))
         return node
 
@@ -151,7 +174,8 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
     
     def tojson(self, fields, refresh = True):
         '''Serialize as a JSON string.'''
-        data = JsonData(fields = fields)
+        nice_fields = [{'name':name,'description':nicename(name)} for name in fields]
+        data = JsonData(fields = nice_fields)
         root = self.root.tojson(fields)
         data.add(root)
         return data

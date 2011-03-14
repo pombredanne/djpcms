@@ -1,4 +1,5 @@
 from djpcms import UnicodeMixin
+from djpcms.utils import smart_escape
 from djpcms.template import loader
 
 OBJECT_DEF_TEMPLATE = 'djpcms/object_definition.html'
@@ -33,7 +34,7 @@ Usage::
         for field in self.appmodel.object_display:
             name = label_for_field(field)
             yield {'name':name,
-                   'value':mark_safe(getrepr(field,obj))}
+                   'value':smart_escape(getrepr(field,obj))}
                 
     def __unicode__(self):
         '''Render an object as definition list.'''

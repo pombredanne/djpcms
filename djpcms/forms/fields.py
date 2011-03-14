@@ -255,8 +255,11 @@ class ChoiceField(Field):
                         value = mp.get(id = value)
                 except:
                     raise ValidationError('{0} is not a valid choice'.format(value))
-            if value not in ch:
-                raise ValidationError('{0} is not a valid choice'.format(value))
+            if value:
+                if not isinstance(ch,dict):
+                    ch = dict(ch)
+                if not value in ch:
+                    raise ValidationError('{0} is not a valid choice'.format(value))
         return value
 
     

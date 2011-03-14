@@ -1,6 +1,26 @@
-from djpcms import sites
+from djpcms import sites, UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
 
+DJPCMS = 'DJPCMS'
+
+class djpcmsinfo(UnicodeMixin):
+    
+    def __init__(self,view,kwargs,page=None,site=None):
+        self.view = view
+        self.kwargs = kwargs
+        self.page = page
+        self.context_cache = None
+        if view:
+            self.site = view.site
+        else:
+            self.site = site
+        
+    def __unicode__(self):
+        return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
+    
+    def djp(self, request):
+        return self.view(request, **self.kwargs)
+    
 
 class BaseSiteHandler(object):
     
@@ -14,7 +34,9 @@ class BaseSiteHandler(object):
     
     def get_request(self, environ, site = None):
         request = self.http.make_request(environ)
-        request.site = site if site is not None else self.site
+        if DJPCMS not in environ:
+            environ[DJPCMS] = djpcmsinfo(None,None,site=site)
+        setattr(request,DJPCMS,environ[DJPCMS])
         return request            
     
     
@@ -41,8 +63,8 @@ delegate the handling to them.'''
         
     def __call__(self, environ, start_response):
         res = self._handle(environ, start_response)
-        if 'site-view-kwargs' in environ:
-            site = environ['site-view-kwargs'][0]
+        if DJPCMS in environ:
+            site = environ[DJPCMS].site
         else:
             site = self.site
         return site.http.finish_response(res, environ, start_response)
@@ -55,7 +77,7 @@ delegate the handling to them.'''
         if isinstance(cleaned_path,http.HttpResponse):
             return cleaned_path
         appsite,view,kwargs = sites.resolve(environ['PATH_INFO'][1:])
-        environ['site-view-kwargs'] = (appsite,view,kwargs)
+        environ[DJPCMS] = djpcmsinfo(view,kwargs)
         return appsite.handle(environ, start_response)
             
     
@@ -63,15 +85,17 @@ class WSGI(BaseSiteHandler):
     '''Box standard wsgi response handler'''
     @response_error
     def __call__(self, environ, start_response):
-        site, view, kwargs = environ['site-view-kwargs']
+        info = environ[DJPCMS]
+        site = info.site
         http = site.http
         HttpResponse = http.HttpResponse
         response = None
-        path     = environ['PATH_INFO']
-        request  = self.get_request(environ)
-        djp = view(request, **kwargs)
+        path = environ['PATH_INFO']
+        request = self.get_request(environ)
+        djp = info.djp(request)
         if isinstance(djp,HttpResponse):
             return djp
+        info.page = djp.page
         #signals.request_started.send(sender=self.__class__)
         # Request middleware
         for middleware_method in site.request_middleware():

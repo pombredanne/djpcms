@@ -2,7 +2,6 @@ from djpcms import UnicodeMixin
 from djpcms.utils import force_str
 from djpcms.template import mark_safe
 from djpcms.core.page import block_htmlid
-from djpcms.models import BlockContent
 from djpcms.html import EMPTY_VALUE
 
 
@@ -46,6 +45,7 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         This function produce HTML only if self.view is based on a database Page
         object. Otherwise it does nothing.
         '''
+        from djpcms.models import BlockContent
         if self.editing:
             appmodel = self.djp.site.for_model(BlockContent)
             return appmodel.blocks(self.djp, self.page, self.b)

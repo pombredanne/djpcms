@@ -2,7 +2,7 @@ from djpcms import views
 from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
-from djpcms.html import ObjectDefinition
+from djpcms.html import ObjectDefinition, icons
 from djpcms.core.exceptions import ImproperlyConfigured
 
 __all__ = ['AdminSite',
@@ -22,6 +22,19 @@ administer a group of :class:`djpcms.views.Applications`.'''
     list_display = ['name','actions']
     home = views.GroupView(in_navigation = 1,
                            view_template = ADMIN_APPLICATION_TEMPLATE)
+    
+    def table_generator(self, djp, headers, qs):
+        request = djp.request
+        for r in qs:
+            title = r.title
+            appmodel = r.view.appmodel
+            url = appmodel.root_view(request,**djp.kwargs).url
+            addurl = appmodel.addurl(request)
+            if addurl:
+                a = icons.circle_plus(addurl,'','add {0}'.format(title))
+            else:
+                a = ''
+            yield ('<a href="{0}">{1}</a>'.format(url,title),a)
     
 
 class AdminSite(views.Application):

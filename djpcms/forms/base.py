@@ -4,9 +4,10 @@ Several parts are originally from django
 '''
 from copy import deepcopy
 
-from py2py3 import iteritems, UnicodeMixin
+from py2py3 import iteritems
 
-from djpcms import nodata
+import djpcms
+from djpcms import nodata, UnicodeMixin
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
@@ -83,9 +84,32 @@ BaseForm = FormType('BaseForm',(UnicodeMixin,),{})
 
 
 class Form(BaseForm):
-    '''Base class for forms with JSON messages. This class can be used for both
-browser based application as well as remote procedure calls valiadtion.
+    '''Base class for validation forms with JSON messages. This class can be used for
+browser based application as well as remote procedure calls validation.
 
+:parameter data: dictionary type object containing data to validate.
+:parameter files: dictionary type object containing files to upload.
+:parameter initial: dictionary type object containing initial values for form fields (see  :class:`djpcms.forms.Field`).
+:parameter prefix: Optional string to use as prefix for field keys.
+:parameter model: An optional model class. The model must be registered with the library (see :func:`djpcms.RegisterORM`).
+:parameter instance: An optional instance of a model class. The model must be registered with the library (see :func:`djpcms.RegisterORM`).
+:parameter request: An optional Http Request object of any kind. Not used by the class itself but stored
+                    in the :attr:`request` attribute for convenience.
+
+.. attribute:: is_bound
+
+    If ``True`` the form has data which can be validated.
+    
+.. attribute:: initial
+
+    Dictionary of initial values for fields.
+    
+.. attribute:: request
+
+    An instance of a Http request class stored for convenience. The Form itself does
+    not use it, however user's implementations may want to access it.
+    In custom validation functions for example. Default ``None``.
+    
 .. attribute:: widget_attrs
 
     dictionary of widget attributes. Used for midifying widget html attributes.
@@ -112,13 +136,15 @@ browser based application as well as remote procedure calls valiadtion.
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
-                 factory = None, model = None,
-                 instance = None, request = None):
+                 model = None, instance = None,
+                 request = None):
         self.is_bound = data is not None or files is not None
-        self.factory = factory
         self.rawdata = data
         self._files = files
-        self.initial = initial if initial is not None else {}
+        if initial:
+            self.initial = dict(initial.items())
+        else:
+            self.initial = {}
         self.prefix = prefix or ''
         self.model = model
         self.instance = instance
@@ -135,6 +161,8 @@ browser based application as well as remote procedure calls valiadtion.
             self.instance = model()
         self.form_sets = []
         self.forms = []
+        if not self.is_bound:
+            self._fill_initial()
     
     @property
     def data(self):
@@ -143,11 +171,13 @@ browser based application as well as remote procedure calls valiadtion.
     
     @property
     def cleaned_data(self):
+        '''Form cleaned data, the data after the validation algorithm has been run'''
         self._unwind()
         return self._cleaned_data
         
     @property
     def errors(self):
+        '''Dictionary of errors, if any, after validation.'''
         self._unwind()
         return self._errors
     
@@ -161,6 +191,18 @@ browser based application as well as remote procedure calls valiadtion.
         self._unwind()
         return self._fields_dict
     
+    def _fill_initial(self):
+        # Fill the initial dictionary with data from fields and from the instance if available
+        initial = self.initial
+        instance = self.instance
+        for name,field in iteritems(self.base_fields):
+            if field.initial and name not in initial:
+                initial[name] = field.initial
+            if self.instance:
+                value = getattr(instance,name,None)
+                if value:
+                    initial[name] = value
+        
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:
             return data[self.prefix_input]
@@ -261,13 +303,6 @@ Messages can be errors or not.
             if val != nodata:
                 data[field] = val
     
-    def render(self):
-        layout = self.factory.layout
-        if not layout:
-            layout = DefaultLayout()
-            self.factory.layout = layout
-        return layout.render(self)
-    
     def add_message(self, msg):
         self.form_message(self.messages, '__all__', msg)
         
@@ -286,8 +321,12 @@ Messages can be errors or not.
         
 
 class HtmlForm(object):
-    '''An HTML class Factory Form used for grouping a :class:`Form` class, a
-    form :class:`Layout` instance and a model class.'''
+    '''The :class:`Form` class is designed to be used for validation purposes and therefore it needs this
+wrapper class for web rendering on web pages.
+    
+:parameter form_class: a :class:`Form` class
+:parameter layout: a :class:`djpcms.forms.layout.Layout` instance or ``None``.
+'''
     def __init__(self, form_class, layout = None, model = None, submits = None):
         self.form_class = form_class
         self._layout = layout

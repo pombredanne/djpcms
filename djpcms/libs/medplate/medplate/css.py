@@ -19,7 +19,7 @@ class _CssContext(object):
                  data = None, ineritable_tag = True,
                  defaults = None, process = None,
                  parent = None, same_as_parent = False):
-        global _root, _context_dictionary
+        global _context_dictionary
         self.parent = None
         self.themes = {}
         self._tag = tag or ''
@@ -31,9 +31,6 @@ class _CssContext(object):
         self.data = data or {}
         self.defaults = defaults or {}
         if not name:
-            if _root:
-                raise KeyError('Body css template already defined')
-            _root = self
             self.context_dictionary = _context_dictionary
         else:
             name = name.lower()
@@ -159,11 +156,11 @@ class _CssContext(object):
         return obj
            
            
-class CssBody(_CssContext):
+class _CssBody(_CssContext):
     template = ('body.css_t','medplate/body.css_t')
     
     def __init__(self, data = None):
-        super(CssBody,self).__init__(None,'body',
+        super(_CssBody,self).__init__(None,'body',
                                      ineritable_tag = False,
                                      defaults = body_defaults,
                                      data = data)
@@ -193,8 +190,21 @@ class _CssTheme(object):
         return '{0}.{1}'.format(self.context,self.name)
 
 
+def CssBody(data = None):
+    global _root
+    if not _root:
+        _root = _CssBody(data = data)
+    elif data:
+        _root.data.update(data)
+    return _root
+
 
 def get_context(name):
+    '''Get the context dictionary for a name.
+    
+:paramater name: a space separated name, for example "box hd"'''
+    if name == 'body':
+        return CssBody()
     cts = name.split()
     context = _context_dictionary[cts[0]]
     for c in cts[1:]:

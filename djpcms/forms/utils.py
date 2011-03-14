@@ -47,6 +47,7 @@ def form_kwargs(request,
                 method = 'POST',
                 own_view = True,
                 inputs = None,
+                initial = None,
                 **kwargs):
     '''Form arguments aggregator.
 Usage::
@@ -54,18 +55,28 @@ Usage::
     form = MyForm(**form_kwargs(request))
 
 '''
-    if request and withdata and request.method == method and own_view:
-        data = dict(getattr(request,method).items())
-        if inputs:
-            bind = False
-            for input in inputs:
-                if input._attrs['name'] in data:
-                    bind = True
+    #if request and withdata and request.method == method and own_view:
+    data = getattr(request,request.method)
+    if request.method == method:
+        kwargs['data'] = data
+        kwargs['files'] = request.FILES
+        #data = dict(data.items())
+        #if inputs:
+        #    bind = False
+        #    for input in inputs:
+        #        if input._attrs['name'] in data:
+        #            bind = True
+        #else:
+        #    bind = True
+        #if bind:
+        #    kwargs['data'] = data
+        #    kwargs['files'] = request.FILES
+    elif data:
+        if initial is None:
+            initial = data
         else:
-            bind = True
-        if bind:
-            kwargs['data'] = data
-            kwargs['files'] = request.FILES
+            initial.update(data)
+    kwargs['initial'] = initial
     kwargs['request'] = request
     if instance:
         kwargs['instance'] = instance

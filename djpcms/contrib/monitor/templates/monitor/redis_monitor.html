@@ -1,9 +1,9 @@
-{% extends "djpcms/yui/yui-g.html" %}{% block left-column %}
+{% extends "djpcms/yui/yui-g.html" %}{% block left_column %}
 <h2>Server</h2>		
 <div class="object-definition w40">{% for data in info1 %}
 <dl><dt>{{ data.name }}</dt><dd>{{ data.value }}</dd></dl>{% endfor %}{% for data in info2 %}
 <dl><dt>{{ data.name }}</dt><dd>{{ data.value }}</dd></dl>{% endfor %}
-</div>{% endblock %}{% block right-column %}
+</div>{% endblock %}{% block right_column %}
 <h2>Databases</h2>
 <table class="tablesorter">
 <thead>

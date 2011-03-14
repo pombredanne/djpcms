@@ -14,7 +14,7 @@ from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls, jremove, dialog, jempty
 from djpcms.utils.ajax import jerror, jattribute, jcollection
 from djpcms.plugins.extrawrappers import CollapsedWrapper
-from djpcms.views import appsite, appview
+from djpcms import views
 
 from .layout import ContentBlockHtmlForm
 
@@ -54,7 +54,7 @@ class EditWrapperHandler(CollapsedWrapper):
         
 # Application view for handling change in content block internal plugin
 # It handles two different Ajax interaction with the browser 
-class ChangeContentView(appview.ChangeView):
+class ChangeContentView(views.ChangeView):
     '''View class for managing inline editing of a content block.
     The url is given by the ContentBlocks models
     '''
@@ -258,7 +258,7 @@ The instance.plugin object is maintained but its fields may change.'''
         return jhtmls(identifier = '#%s' % instance.pluginid('preview'), html = preview)
         
         
-class DeleteContentView(appview.DeleteView):
+class DeleteContentView(views.DeleteView):
     
     def default_post(self, djp):
         instance = djp.instance
@@ -288,16 +288,11 @@ class DeleteContentView(appview.DeleteView):
             return self.redirect(refer)
     
 
-class EditPluginView(appview.ChangeView):
+class EditPluginView(views.ChangeView):
     '''View class for editing the content of a plugin. Not all plugins have an editing view.
 The url is given by the ContentBlocks models
     '''
     _methods = ('post',)
-    
-    def __init__(self, regex = 'plugin', parent = 'edit'):
-        super(EditPluginView,self).__init__(regex = regex,
-                                            parent = parent,
-                                            isapp = False)
     
     def get_form(self, djp, withdata = True, initial = None, **kwargs):
         instance = djp.instance
@@ -348,12 +343,14 @@ The url is given by the ContentBlocks models
         
 
 
-class ContentSite(appsite.ModelApplication):
+class ContentSite(views.ModelApplication):
     '''AJAX enabled applications for changing content of a page.'''
     hidden      = True
-    edit        = ChangeContentView(form = ContentBlockHtmlForm, regex = '(?P<id>\d+)', parent = None)
-    delete      = DeleteContentView(parent = 'edit')
-    plugin      = EditPluginView(regex = 'plugin', parent = 'edit')
+    search      = views.SearchView()
+    view        = views.ViewView()
+    change      = ChangeContentView()
+    delete      = DeleteContentView()
+    plugin      = EditPluginView(regex = 'plugin', parent = 'change')
     
     def submit(self, *args, **kwargs):
         return [SubmitInput(value = "save", name = '_save')]

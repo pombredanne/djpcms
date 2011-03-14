@@ -2,6 +2,22 @@ import djpcms
 from djpcms.utils import lazyattr
 
 
+__all__ = ['LazyRender','LazyUnicode']
+
+
+class LazyUnicode(djpcms.UnicodeMixin):
+    
+    def __len__(self):
+        return len(self.__unicode__())
+    
+    @lazyattr
+    def __unicode__(self):
+        return self.render()
+    
+    def render(self):
+        raise NotImplementedError
+    
+    
 class LazyRender(djpcms.UnicodeMixin):
     
     def __init__(self, elem):
@@ -16,3 +32,5 @@ class LazyRender(djpcms.UnicodeMixin):
     
     def __unicode__(self):
         return self.render()
+    
+    

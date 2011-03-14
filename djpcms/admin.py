@@ -13,14 +13,16 @@ if Page:
                   AdminApplication('/templates/',
                                    InnerTemplate,
                                    description = 'inner templates',
-                                   form = HtmlTemplateForm),
+                                   form = HtmlTemplateForm,
+                                   list_display = ('id','name','numblocks')),
                   ContentSite('/blocks/',
                               BlockContent,
-                              form = ContentBlockHtmlForm),
+                              form = ContentBlockHtmlForm,
+                              list_display = ('id','page','block','position')),
                   )
 
 else:
     admin_urls = (
                   SiteMapApplication('/pages/',
-                                     description = 'site map')
+                                     description = 'site map'),
                   )

@@ -2,8 +2,6 @@ import stdnet
 
 from py2py3 import iteritems
 
-from djpcms import sites
-
 from .base import BaseOrmWrapper
 
 
@@ -56,9 +54,9 @@ class OrmWrapper(BaseOrmWrapper):
         return instance.save(commit = commit)
     
     @classmethod
-    def setup_environment(cls):
+    def setup_environment(cls, sites_):
         from stdnet.orm import register_applications
-        settings = sites.settings
+        settings = sites_.settings
         register_applications(settings.INSTALLED_APPS,
                               app_defaults = settings.DATASTORE)
     

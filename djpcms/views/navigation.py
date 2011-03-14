@@ -1,56 +1,27 @@
-'''Utility module for creating a navigation list
+'''Utility module for creating a navigations and breadcrumbs
 '''
-from py2py3 import itervalues
+from py2py3 import itervalues, to_string
 
 from djpcms import sites, UnicodeMixin
+from djpcms.html import LazyUnicode
+from djpcms.utils.const import *
 from djpcms.template import loader
-from djpcms.utils import lazyattr, SLASH
+from djpcms.utils import lazyattr
+    
 
-
-class lazycounter(UnicodeMixin):
+class LazyCounter(LazyUnicode):
     '''A lazy view counter used to build navigations type iterators
     '''
     def __new__(cls, djp, **kwargs):
-        obj = super(lazycounter, cls).__new__(cls)
-        obj.djp = djp.underlying()
+        obj = super(LazyCounter, cls).__new__(cls)
+        obj.djp = djp
         obj.classes = kwargs.pop('classes',None)
         obj.kwargs = kwargs
         return obj
 
-    def __unicode__(self):
-        return self.render()
-    
-    def __len__(self):
-        return len(self.elems())
-    
-    def count(self):
-        return len(self)
-    
-    def __iter__(self):
-        return self.items()
-
-    @lazyattr
-    def elems(self):
-        return self._items(**self.kwargs)
-    
-    def items(self):
-        elems = self.elems()
-        for elem in elems:
-            yield elem
-            
-    def render(self):
-        '''Render the navigation list
-        '''
-        raise NotImplementedError
-    
-    def _items(self, **kwargs):
-        '''It should return an iterable object (but not a generator)
-        '''
-        raise NotImplementedError
-    
 
 
-class Navigator(lazycounter):
+class Navigator(LazyCounter):
     '''A navigator for the web site
     '''
     def __init__(self, *args, **kwargs):
@@ -84,8 +55,8 @@ class Navigator(lazycounter):
                 pass
             return self.buildselects(parent, urlselects)
         return djp
-        
-    def _items(self, urlselects = None, secondary_after = 100, **kwargs):
+    
+    def items(self, urlselects = None, secondary_after = 100, **kwargs):
         djp = self.djp
         css = djp.css
         if urlselects is None:
@@ -101,19 +72,38 @@ class Navigator(lazycounter):
             classes = []
             if nav > secondary_after:
                 classes.append(scn)
-            if url in urlselects:
-                classes.append(css.link_selected)
+            if url in urlselects and css.link_active:
+                classes.append(css.link_active)
+            elif css.link_default:
+                classes.append(css.link_default)
             items.append(self.make_item(djp, ' '.join(classes)))
         return items
 
     def render(self):
         if self.mylevel <= self.levels:
-            return loader.render('djpcms/bits/navitem.html', {'navigator': self})
+            return '\n'.join(self.lines())
         else:
-            return ''         
+            return ''
+    
+    def lines(self):
+        items = self.items(**self.kwargs)
+        if not items:
+            raise StopIteration
+        if self.classes:
+            yield '<ul class="{0}">'.format(self.classes)
+        else:
+            yield UL
+        for item in items:
+            if item.liclass:
+                yield '<li class="{0}">'.format(item.liclass)
+            else:
+                yield LI
+            yield '<a href="{0}">{1}</a>'.format(item.url,item.name)
+            yield to_string(item)
+        yield LIEND
+        yield ULEND
 
-
-class Breadcrumbs(lazycounter):
+class Breadcrumbs(LazyCounter):
     '''
     Breadcrumbs for current page
     '''
@@ -133,8 +123,7 @@ class Breadcrumbs(lazycounter):
                 pass
         return c
         
-    def _items(self, **kwargs):
-        return []
+    def items(self):
         first   = True
         classes = []
         djp     = self.djp
@@ -155,5 +144,5 @@ class Breadcrumbs(lazycounter):
             return []
     
     def render(self):
-        return loader.render(self.template,{'breadcrumbs':self})
+        return loader.render(self.template,{'breadcrumbs':self.items()})
 

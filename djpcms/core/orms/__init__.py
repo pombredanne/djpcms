@@ -37,6 +37,7 @@ def getmodel(appmodel):
             setattr(model,'_djpcms_orm_wrapper',wrapper)
     return wrapper
 
+
 def getid(obj):
     '''If ``obj`` is an instance of a ORM it returns its id'''
     if obj:

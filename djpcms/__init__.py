@@ -53,6 +53,7 @@ install_libs()
 
 import py2py3
 ispy3k = py2py3.ispy3k
+to_string = py2py3.to_string
 UnicodeMixin = py2py3.UnicodeMixin
 
 from .apps import *
@@ -62,9 +63,18 @@ from .conf import nodata
 
 
 def node(path):
-    '''Return a :class:`djpcms.views.sitemap.Node` instance at ``path`` in the
-the global of :class:`djpcms.views.sitemap.SiteMap` instance.'''
+    '''Retrive a :class:`Node` from the global sitemap from a ``path`` input.
+If the path is not available but its parent path is,
+it returns a new node without storing it in the sitemap.
+Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
+
+:parameter path: node path.
+'''
     return sites.tree[path]
+
+
+def get_page(path):
+    return sites.tree.get_page(path)
 
     
 def init_logging(clear_all = False):

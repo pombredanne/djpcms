@@ -21,9 +21,12 @@ class ajaxhtml(object):
         d['edit']                     = 'editable'
         d['delete']                   = 'deletable'
         d['secondary_in_list']        = 'secondary'
-        d['link_selected']            = 'selected'
         d['nicebutton']               = 'nice-button'
         d['main_nav']                 = 'main-nav'      # Main navigation class
+        
+        # classes for links
+        d['link_active'] = 'ui-state-active'
+        d['link_default'] = '' # 'ui-state-default'
         
         return obj
     

@@ -1,0 +1,30 @@
+.. _djpcms-fields:
+
+.. module:: djpcms.forms
+
+=========
+Fields
+=========
+
+.. automodule:: djpcms.forms.fields
+
+
+
+API
+=======
+
+Field
+~~~~~~~~
+
+.. autoclass:: djpcms.forms.Field
+   :members:
+   :member-order: bysource
+   
+   
+   
+ChoiceField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.ChoiceField
+   :members:
+   :member-order: bysource

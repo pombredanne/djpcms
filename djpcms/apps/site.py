@@ -8,7 +8,8 @@ from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured, DjpcmsException
 from djpcms.utils.importer import import_module, import_modules
-from djpcms.utils import logtrace, SLASH, closedurl
+from djpcms.utils import logtrace, closedurl
+from djpcms.utils.const import SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 
@@ -55,7 +56,8 @@ class SimplePermissionBackend(object):
 def standard_exception_handle(request, e, status = None):
     from djpcms.template import loader
     status = status or getattr(e,'status',None) or 500
-    site = request.site
+    info = request.DJPCMS
+    site = info.site
     if not site or not hasattr(site,'exception_middleware'):
         raise
     for middleware_method in site.exception_middleware():
@@ -94,9 +96,10 @@ If the application is not available, it returns ``None``. It never fails.'''
 class ApplicationSites(SiteMixin):
     '''This class is used as a singletone and holds information
 of djpcms application routes as well as general configuration parameters.'''
+    modelwrappers = {}
+    
     def __init__(self):
         self._sites = {}
-        self.modelwrappers = {}
         self.clear()
         self.permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
@@ -162,7 +165,7 @@ of djpcms application routes as well as general configuration parameters.'''
 registered. It loops over the objecr relational mappers registered and setup models.
 It also initialise admin for models.'''
         for wrapper in self.modelwrappers.values():
-            wrapper.setup_environment()
+            wrapper.setup_environment(self)
         self.admins = admins = []
         for apps in self.settings.INSTALLED_APPS:
             try:
@@ -338,7 +341,7 @@ site is already registered at ``route``.'''
         setattr(request,'instance',djp.instance)
         return djp
         
-    def make_admin_urls(self, **params):
+    def make_admin_urls(self, name = 'admin', **params):
         '''Return a one element tuple containing an :class:`djpcms.apps.included.admin.AdminSite`
 application for displaying the admin site. All application with an ``admin`` module specifying the
 admin application will be included.
@@ -347,13 +350,13 @@ admin application will be included.
                    :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
         from djpcms.apps.included.admin import AdminSite, ApplicationGroup
         groups = []
-        for name,route,urls in self.admins:
+        for name_,route,urls in self.admins:
             if urls:
                 groups.append(ApplicationGroup(route,
-                                               name = name,
+                                               name = name_,
                                                apps = urls))
         # Create the admin application
-        admin = AdminSite('/', apps = groups, **params)
+        admin = AdminSite('/', apps = groups, name = name, **params)
         return (admin,)
     
     def for_model(self, model):

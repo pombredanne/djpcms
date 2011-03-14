@@ -43,14 +43,15 @@ which updates the input ``dictionary`` with library dependent information.
         '''
         c = dictionary
         if request:
-            if not hasattr(request,'_context_cache'):
-                request._context_cache = context_cache = {}
-                site_processors = request.site.template_context()
+            info = request.DJPCMS
+            if info.context_cache is None:
+                info.context_cache = context_cache = {}
+                site_processors = info.site.template_context()
                 if processors is not None:
                     site_processors += tuple(processors)
                 for processor in site_processors:
                     context_cache.update(processor(request))
-            c.update(request._context_cache)
+            c.update(info.context_cache)
         return c
     
     def loaders(self):

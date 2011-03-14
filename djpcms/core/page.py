@@ -33,14 +33,10 @@ class PageInterface(object):
         self.save()
         
     def get_template(self, djp = None):
-        '''Returns the name of the ``HTML`` template file for the page.
-If not specified we get the template of the :attr:`parent` page.'''
+        '''Returns the name of the ``HTML`` template file for the page.'''
         if not self.template:
-            if self.parent:
-                return self.parent.get_template(djp)
-            else:
-                sett = sites.settings if not djp else djp.settings
-                return sett.DEFAULT_TEMPLATE_NAME
+            sett = sites.settings if not djp else djp.settings
+            return sett.DEFAULT_TEMPLATE_NAME
         else:
             return self.template
     

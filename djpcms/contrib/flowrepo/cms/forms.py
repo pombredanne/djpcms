@@ -4,7 +4,7 @@ from djpcms.utils import markups
 from djpcms.contrib.flowrepo.models import FlowItem, Attachment, Image
 from djpcms.contrib.flowrepo.forms import WebAccountForm, UploadForm, FlowForm, ReportForm
 
-from djpcms.forms import FormWidget
+from djpcms.forms import HtmlForm
 from djpcms.forms.layout.uniforms import Layout, Fieldset, Html, inlineLabels, blockLabels2
 from djpcms.html import HtmlWrap, box
 
@@ -23,7 +23,7 @@ __all__ = ['FlowForm','NiceWebAccountForm','NiceUloaderForm','NiceReportForm']
 
 #_________________________________________________________ UNIFORMS
 
-NiceWebAccountForm = FormWidget(
+NiceWebAccountForm = HtmlForm(
                                 WebAccountForm,
                                 Layout(Fieldset('name', 'url', 'tags', elem_css = blockLabels2),
                                        Fieldset('username', 'password', 'email','pin', elem_css = blockLabels2)
@@ -31,7 +31,7 @@ NiceWebAccountForm = FormWidget(
                                 )
     
     
-NiceUloaderForm = FormWidget(
+NiceUloaderForm = HtmlForm(
                              UploadForm,
                              Layout(Fieldset('visibility', 'tags', 'name', elem_css = inlineLabels),
                                     Fieldset('elem','description', elem_css = blockLabels2),
@@ -39,7 +39,7 @@ NiceUloaderForm = FormWidget(
                              )
     
 
-NiceReportForm = FormWidget(
+NiceReportForm = HtmlForm(
                             ReportForm,
                             Layout(
                                    Fieldset('title', 'abstract', 'body', key = 'body'),
@@ -55,8 +55,8 @@ NiceReportForm = FormWidget(
                                    Html(CRL_HELP, key = 'help',
                                       renderer = lambda html : collapse('Writing Tips',html,True,True)),
                                    template = 'flowrepo/report-form-layout.html'
-                                   ),
-                            js = ('djpcms/taboverride.js',)
+                                   )
+                            #js = ('djpcms/taboverride.js',)
                             )
 
 

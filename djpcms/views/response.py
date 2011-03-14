@@ -6,7 +6,7 @@ import djpcms
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
-from djpcms.core.exceptions import ViewDoesNotExist
+from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied
 from djpcms.html.lazy import LazyRender
 
 from .navigation import Navigator, Breadcrumbs
@@ -49,15 +49,6 @@ def get_template(self):
             return de
 
 
-def response_from_node(request, node, **kwargs):
-    if node.view:
-        return node.view(request,**kwargs)
-    else:
-        page = node.page
-        if page:
-            return pageview(page)(request)
-
-
 class DjpResponse(djpcms.UnicodeMixin):
     '''Djpcms response class. It contains information associated with a given url
 which can and often is different from the current request path. Usually is initialized as::
@@ -89,7 +80,7 @@ model instances).
         self.request    = request
         self.view       = view
         self.kwargs     = kwargs
-        site            = request.site
+        site            = view.site
         self.site       = site
         self.settings   = site.settings
         self.http       = site.http
@@ -122,14 +113,6 @@ model instances).
     
     def own_view(self):
         return self.url == self.request.path
-    
-    def underlying(self):
-        '''If the current wrapper is for an editing view,
-return the wrapper with the underlying view.'''
-        if self.view.editurl:
-            return self.view._view(self.request, **self.kwargs)
-        else:
-            return self
     
     def get_linkname(self):
         return self.view.linkname(self) or self.url
@@ -196,7 +179,7 @@ return the wrapper with the underlying view.'''
 the parent of the embedded view.'''
         node = self.node().ancestor
         if node:
-            return response_from_node(self.request, node, **self.urldata)
+            return node.get_view()(self.request, **self.urldata)
     parent = property(_get_parent)
     
     @property
@@ -238,13 +221,13 @@ the parent of the embedded view.'''
         request = self.request
         is_ajax = request.is_xhr
         page    = self.page
-        site    = request.site
+        site    = self.site
         http    = site.http
         method  = request.method.lower()
         
         # Check for page view permissions
         if not view.has_permission(request, page, self.instance):
-            return view.permissionDenied(self)
+            raise PermissionDenied()
         
         # chanse to bail out early
         re = view.preprocess(self)
@@ -282,13 +265,12 @@ the parent of the embedded view.'''
     
     def render_to_response(self, context):
         css = self.css
-        media = self.media
         sitenav = Navigator(self,
                             classes = css.main_nav,
                             levels = self.settings.SITE_NAVIGATION_LEVELS)
         
         context.update({'robots':     self.robots(),
-                        'media':      media,
+                        'media':      self.media,
                         'sitenav':    sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
@@ -299,8 +281,7 @@ the parent of the embedded view.'''
         context = loader.context(context, self.request)
         html = loader.mark_safe(loader.render(self.template_file,
                                               context))
-        return self.http.HttpResponse(html,
-                                      mimetype = 'text/html')
+        return self.http.HttpResponse(html,mimetype = 'text/html')
 
     @lazyattr
     def node(self):
@@ -324,7 +305,7 @@ which corresponds to ``self``'''
         kwargs = self.kwargs
         for node in node.children():
             try:
-                cdjp = response_from_node(request,node,**kwargs)
+                cdjp = node.get_view()(request,**kwargs)
                 cdjp.url
                 yield cdjp
             except:

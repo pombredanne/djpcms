@@ -3,7 +3,9 @@ import unittest
 from copy import copy
 
 import djpcms
+from djpcms.apps.site import ApplicationSites
 from djpcms import sites, forms
+from djpcms.views import djpcmsview
 from djpcms.forms.utils import fill_form_data
 from djpcms.core.exceptions import *
 
@@ -30,33 +32,27 @@ class TestCase(TestCaseBase):
     '''Implements shortcut functions for testing djpcms.
 Must be used as a base class for TestCase classes'''
     #client_class = Client
-    urlbase   = '/'
-    sites = sites
     _env = None
     
     def _pre_setup(self):
-        from djpcms.apps.included.contentedit import api
-        self.api = api
-        self.tests = sites.tests
+        self.sites = ApplicationSites()
+        self.tests = sites.settings
         sites.settings.TESTING = True
-        self.SITE_DIRECTORY = self.tests.SITE_DIRECTORY
-        self.INSTALLED_APPS = copy(self.tests.INSTALLED_APPS)
-        self.sites.clear()
-        self.site = self.makesite()
-        if self.site is not None:
-            self.settings = self.site.settings
         if self._env:
             self._env.pre_setup()
         
+    def node(self, path):
+        return self.sites.tree[path]
+
     def makesite(self, route = None, appurls = None):
-        '''Setup the site'''
+        '''Utility function for setting up an application site'''
         appurls = getattr(self,'appurls',appurls)
-        apps = self.INSTALLED_APPS + self.installed_apps()
-        return sites.make(self.SITE_DIRECTORY,
-                          'conf',
-                          route = route or self.urlbase,
-                          APPLICATION_URLS = appurls,
-                          INSTALLED_APPS = apps)
+        apps = self.tests.INSTALLED_APPS + self.installed_apps()
+        return self.sites.make(self.tests.SITE_DIRECTORY,
+                               'conf',
+                               route = route or '/',
+                               APPLICATION_URLS = appurls,
+                               INSTALLED_APPS = apps)
         
     def installed_apps(self):
         return []
@@ -80,37 +76,14 @@ Must be used as a base class for TestCase classes'''
     def _post_teardown(self):
         if self._env:
             self._env.post_teardown()
-        sites.settings.INSTALLED_APPS = self.INSTALLED_APPS
-    
-    def clear(self, db = False):
-        '''If db is set to True it clears the database pages'''
-        if db:
-            self.api.all().delete()
-        else:
-            sites.clear()
-
-    def makepage(self, view = None, model = None, bit = '', parent = None,
-                 fail = False, **kwargs):
-        '''Utility method for creating page objects during testing'''
-        create_page = self.api.create_page
-        data = kwargs
-        data.update({'url_pattern': bit,
-                     'parent': None if not parent else parent.id})
-        if view:
-            if model:
-                appmodel = self.site.for_model(model)
-                view = appmodel.getview(view)
-            else:
-                view = self.site.getapp(view)
-            data['application_view'] = view.code
-        if fail:
-            self.assertRaises(forms.ValidationError, create_page, **data)
-        else:
-            instance = create_page(**kwargs)
-            self.assertTrue(form.is_valid())
-            instance = form.save()
-            self.assertTrue(instance.pk)
-            return instance
+        
+    def resolve_test(self, path):
+        '''Utility function for testing url resolver'''
+        self.sites.load()
+        res  = self.sites.resolve(path)        
+        self.assertTrue(len(res),3)
+        self.assertTrue(isinstance(res[1],djpcmsview))
+        return res
 
     def post(self, url = '/', data = {}, status = 200,
              response = False, ajax = False):

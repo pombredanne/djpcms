@@ -2,7 +2,8 @@ from datetime import date, datetime
 
 from djpcms import sites, nodata
 from djpcms.utils.dates import format as date_format
-from djpcms.utils import force_str, significant_format, EMPTY_VALUE
+from djpcms.utils import force_str, significant_format
+from djpcms.utils.const import EMPTY_VALUE
 from djpcms.template import loader, conditional_escape
 
 __all__ = ['BaseOrmWrapper',
@@ -208,5 +209,5 @@ wrap existing object relational mappers.
         raise NotImplementedError
 
     @classmethod
-    def setup_environment(cls):
+    def setup_environment(cls,sites_):
         pass

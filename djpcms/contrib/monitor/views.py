@@ -1,13 +1,16 @@
 from urllib import urlencode
 from datetime import datetime, timedelta
+from distutils.version import StrictVersion
+
+from py2py3 import iteritems
 
 from djpcms import forms
-from djpcms.views import appview
 from djpcms.html import Paginator
 from djpcms.utils.ajax import jhtmls, jredirect
 from djpcms.utils import lazyattr, gen_unique_id
 from djpcms.template import loader, mark_safe
 from django.utils.dateformat import format, time_format
+from djpcms.views import *
 
 from stdnet import orm
 from stdnet.utils.format import format_number
@@ -68,10 +71,83 @@ def getint(v):
     except:
         return None
 
+
+def get_version(info):
+    if 'redis_version' in info:
+        return info['redis_version']
+    else:
+        return info['Server']['redis_version']
+
+
+class RedisInfo(object):
+    
+    def __init__(self, version, info):
+        self.version = version
+        self.info = info
+        
+    def _dbs(self):
+        info = self.info
+        for k in info:
+            if k[:2] == 'db':
+                yield k,info[k]
+                
+    def dbs(self):
+        return sorted(self._dbs(), key = lambda x : x[0])
+            
+    def db(self,n):
+        return self.info['db{0}'.format(n)]
+    
+    def fill(self, info1, keys):
+        info = self.info
+        niceadd(info1, 'Redis version', self.version)
+        niceadd(info1, 'Process id', info['process_id'])
+        niceadd(info1, 'Total keys', format_number(keys))
+        niceadd(info1, 'Memory used', info['used_memory_human'])
+        niceadd(info1, 'Up time', nicetimedelta(info['uptime_in_seconds']))
+        niceadd(info1, 'Virtual Memory enabled', 'yes' if info['vm_enabled'] else 'no')
+        niceadd(info1, 'Last save', nicedate(info['last_save_time']))
+        niceadd(info1, 'Commands processed', format_number(info['total_commands_processed']))
+        niceadd(info1, 'Connections received', format_number(info['total_connections_received']))
+    
+
+class RedisInfo22(RedisInfo):
+    
+    def _dbs(self):
+        return iteritems(self.info['Keyspace'])
+                
+    def db(self,n):
+        return self.info['Keyspace']['db{0}'.format(n)]
+    
+    def fill(self, info1, keys):
+        info = self.info
+        server = info['Server']
+        memory = info['Memory']
+        disk = info['Diskstore']
+        persistence = info['Persistence']
+        stats = info['Stats']
+        niceadd(info1, 'Redis version', self.version)
+        niceadd(info1, 'Process id', server['process_id'])
+        niceadd(info1, 'Up time', nicetimedelta(server['uptime_in_seconds']))
+        niceadd(info1, 'Total keys', format_number(keys))
+        niceadd(info1, 'Memory used', memory['used_memory_human'])
+        niceadd(info1, 'Memory fragmentation ratio', memory['mem_fragmentation_ratio'])
+        niceadd(info1, 'Diskstore enabled', 'yes' if disk['ds_enabled'] else 'no')
+        niceadd(info1, 'Last save', nicedate(persistence['last_save_time']))
+        niceadd(info1, 'Commands processed', format_number(stats['total_commands_processed']))
+        niceadd(info1, 'Connections received', format_number(stats['total_connections_received']))
+            
+            
+def redis_info(info):
+    version = get_version(info)
+    if StrictVersion(version) >= StrictVersion('2.2.0'):
+        return RedisInfo22(version,info)
+    else:
+        return RedisInfo(version,info)
     
 
 class RedisHomeView(appview.View):
     plugin_form = RedisForm
+    template_view = ('monitor/redis_monitor.html',)
     
     def render(self, djp):
         kwargs = djp.kwargs
@@ -80,7 +156,7 @@ class RedisHomeView(appview.View):
         db     = kwargs.get('db', 0)
         r = redis.Redis(host = server, port = port, db = db)
         urldata = urlencode({'server':server,'port':port})
-        info = r.info()
+        info = redis_info(r.info())
         info1 = []
         info2 = []
         databases = {}
@@ -92,29 +168,19 @@ class RedisHomeView(appview.View):
         dd  = {'baseurl':djp.url,
                'server': urldata,
                'cl': 'class="%(ajax)s %(nicebutton)s"' % djp.css._dict}
+        
         # Databases
-        for k in info:
-            if k[:2] == 'db':
-                num = getint(k[2:])
-                if num is not None:
-                    dbs[num] = info[k]
-        for n in sorted(dbs.keys()):
+        dbs = info.dbs()
+                
+        for n,data in dbs:
             dd['db'] = n
-            data = dbs[n]
             keydb = data['keys']
             link  = mark_safe('<a href="%(baseurl)s%(db)s/?%(server)s" title="database %(db)s">%(db)s</a>' % dd)
             flush = mark_safe('<a %(cl)s href="%(baseurl)s%(db)s/flush/?%(server)s" title="flush database %(db)s">flush</a>' % dd)
             info2.append((link,{'class':'redisdb%s keys' % n, 'value':format_number(keydb)},data['expires'],flush))
             keys += keydb
-        niceadd(info1, 'Redis version', info['redis_version'])
-        niceadd(info1, 'Process id', info['process_id'])
-        niceadd(info1, 'Total keys', format_number(keys))
-        niceadd(info1, 'Memory used', info['used_memory_human'])
-        niceadd(info1, 'Up time', nicetimedelta(info['uptime_in_seconds']))
-        niceadd(info1, 'Virtual Memory enabled', 'yes' if info['vm_enabled'] else 'no')
-        niceadd(info1, 'Last save', nicedate(info['last_save_time']))
-        niceadd(info1, 'Commands processed', format_number(info['total_commands_processed']))
-        niceadd(info1, 'Connections received', format_number(info['total_connections_received']))
+        
+        info.fill(info1,keys)
         
         model_header = ['name','db','base key']
         for model in orm.mapper._registry:
@@ -122,7 +188,7 @@ class RedisHomeView(appview.View):
             cursor = meta.cursor
             if cursor.name == 'redis':
                 model_info.append([meta, cursor.db, meta.basekey()])
-        return loader.render_to_string('monitor/redis_monitor.html',
+        return loader.render(self.template_view,
                                        {'info1':info1,
                                         'databases':databases,
                                         'model_header':model_header,
@@ -161,7 +227,7 @@ class DbQuery(object):
             yield key,typ,len,r.ttl(key),''
         
         
-class RedisDbView(appview.View):
+class RedisDbView(View):
     '''Display information about keys in one database.'''
     def get_db(self, djp):
         db = djp.kwargs.get('db',0)
@@ -186,7 +252,7 @@ class RedisDbView(appview.View):
              'appmodel': appmodel,
              'headers': ('name','type','length','time to expiry','delete'),
              'items':p.qs}
-        return loader.render_to_string(['monitor/pagination.html',
+        return loader.render(['monitor/pagination.html',
                                         'djpcms/components/pagination.html'],c)
         
 
@@ -200,7 +266,7 @@ class RedisDbFlushView(RedisDbView):
         return jhtmls(identifier = 'td.redisdb%s.keys' % r.db, html = format_number(keys))
 
 
-class StdModelInformationView(appview.ModelView):
+class StdModelInformationView(ModelView):
     
     def __init__(self, **kwargs):
         kwargs['isplugin'] = True
@@ -210,10 +276,10 @@ class StdModelInformationView(appview.ModelView):
     :class:`stdnet.orm.StdModel` registered with a backend database.'''
     def render(self, djp, **kwargs):
         meta = self.model._meta
-        return loader.render_to_string('monitor/stdmodel.html',{'meta':meta})
+        return loader.render('monitor/stdmodel.html',{'meta':meta})
 
 
-class StdModelDeleteAllView(appview.ModelView):
+class StdModelDeleteAllView(ModelView):
     _methods = ('post',)
     
     def default_post(self, djp):

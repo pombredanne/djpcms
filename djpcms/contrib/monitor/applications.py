@@ -1,9 +1,7 @@
-from djpcms.views import appsite, appview
-
 from djpcms.contrib.monitor import views
 
 
-class StdnetMonitorApplication(appsite.Application):
+class StdnetMonitorApplication(views.Application):
     name = 'Stdnet Monitor'
     list_per_page = 100
     
@@ -17,7 +15,7 @@ class StdnetMonitorApplication(appsite.Application):
         return djp.url
     
     
-class StdModelApplication(appsite.ModelApplication):
-    search      = appview.SearchView()
+class StdModelApplication(views.ModelApplication):
+    search      = views.SearchView()
     information = views.StdModelInformationView(regex = 'info')
     flush       = views.StdModelDeleteAllView(regex = 'flush')

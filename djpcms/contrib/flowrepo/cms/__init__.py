@@ -262,7 +262,7 @@ class WebAccountApplication(TagApplication):
         if not request:
             return False
         try:
-            return request.user.id == getattr(request.site.settings,'FOR_USER_ID',None)
+            return request.user.id == getattr(self.settings,'FOR_USER_ID',None)
         except:
             False
     

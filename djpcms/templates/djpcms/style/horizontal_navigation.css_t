@@ -13,16 +13,17 @@
 }
 {{ tag }} li a {
 	text-decoration:none;{% if main_text_shadow %}
-	text-shadow: {{ main_text_shadow }};{% endif %}
-	display:block;
-	float: left;
+	text-shadow: {{ main_text_shadow }};{% endif %}{% if nav_float %}
+	float: {{ nav_float }};
+	display:block;{% endif %}
 	color: {{ color }};
 	font-weight: {{ font_weight }};
 	padding:{{ anchor_padding }};
 }
 {{ tag }} li {
-    cursor:pointer;
-    float:left;
+    cursor:pointer;{% if nav_float %}
+    float:{{ nav_float }};{% endif %}{% if li_display %}
+    display:{{ li_display }};{% endif %}
     text-align:center;
     position:relative;
     top:0;

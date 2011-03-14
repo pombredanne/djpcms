@@ -1,10 +1,7 @@
 '''\
-An utility for displaying admin panels of models and linking
-sql models with stdnet models.
-It is useful for django_ based sites
-needing to use a *smart cache* or adding extra in memory data
+An utility for displaying admin panels of stdnet_ models and for linking django_ models with stdnet models.
+It is useful for django_ based sites needing to use a *smart cache* or adding extra in memory data
 to their relational database models.
-
 
 Requires:
 

@@ -63,7 +63,11 @@ CssContext('uniform',
                    'error_background': '#ffbfbf'
                    }
            )
-
+CssContext('uniformHint',
+           tag = '.formHint',
+           parent = 'uniform',
+           data = {'display':'none'}
+           )
 
 #________________________________________ SUBMITS AND BUTTONS
 #CssContext('submit',

@@ -1,6 +1,6 @@
 from copy import copy, deepcopy
 
-from djpcms import sites, nodata
+from djpcms import sites, nodata, to_string
 from djpcms.core.orms import mapper
 
 from .globals import *
@@ -24,8 +24,8 @@ def standard_validation_error(field,value):
     
 
 class Field(object):
-    '''Base class for all :class:`stdnet.forms.Form` fields.
-Field are specified as attribute of a form::
+    '''Base class for all :class:`djpcms.forms.Form` fields.
+Field are specified as attribute of a form, for example::
 
     from djpcms import forms
     
@@ -117,6 +117,9 @@ very similar to django forms API.
         result.widget = deepcopy(self.widget)
         return result
 
+    def model(self):
+        return None
+    
 
 class CharField(Field):
     default = ''
@@ -208,30 +211,50 @@ class BooleanField(Field):
     
     
 class ChoiceField(Field):
+    '''A :class:`Field` which validates against a set of choices.'''
     widget = Select
     
-    def _handle_params(self, choices = None, separator = ' ', inline = True,
+    def _handle_params(self, choices = None, model = None,
+                       separator = ' ', inline = True,
                        empty_label = None, **kwargs):
         '''Choices is an iterable or a callable which takes the form as only argument'''
         self.choices = choices
+        self._model = model
         self.empty_label = empty_label
         self.separator = separator
         self.inline = inline
         self._raise_error(kwargs)
         
+    def choices_and_model(self):
+        ch = self.choices
+        if hasattr(ch,'__call__'):
+            ch = ch()
+        model = self._model
+        if not model and hasattr(ch,'model'):
+            model = ch.model
+        return ch,model
+            
     def get_choices(self):
         ch = self.choices
         if hasattr(ch,'__call__'):
             ch = ch()
         if ch:
-            return dict(ch)
+            return dict(((to_string(k),v) for k,v in ch))
         else:
             return {}
                 
     def _clean(self, value):
         '''Clean the field value'''
+        model = self.model
         if value:
-            ch = self.get_choices()
+            ch,model = self.choices_and_model()
+            if model:
+                try:
+                    mp = mapper(model)
+                    if not isinstance(value,mp.model):
+                        value = mp.get(id = value)
+                except:
+                    raise ValidationError('{0} is not a valid choice'.format(value))
             if value not in ch:
                 raise ValidationError('{0} is not a valid choice'.format(value))
         return value

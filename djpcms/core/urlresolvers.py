@@ -1,47 +1,21 @@
-#
-# MODULE ADAPTED FROM DJANGO
-#
-# Original file in django.core.urlresolvers
-#
-#
-#
-
 import re
 from inspect import isclass
 
 from py2py3 import is_bytes_or_string, iteritems
 
 import djpcms
-from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist
+from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist, PathException
 from djpcms.http import get_http
 from djpcms.utils import force_str, SLASH
-
-_view_cache = {}
 
 
 class Resolver404(Exception):
     pass
 
-    
-def cachevalue(path, view, site, kwargs):
-    '''add a path in the cache dictionary. The value is composed by
-    
-    (site,view,kwargs)
-    
-The parameters are:
-
-:parameter path: absolute path to view (excluding leading slash).
-:parameter view: instance of :class:`djpcms.views.baseview.djpcmsview`.
-:parameter site: instance of the application site containing the ``view``
-:parameter kwargs: dictionary of view parameters.'''
-    cached = (site,view,kwargs)
-    _view_cache[path] = cached
-    return cached
-
 
 class ResolverMixin(object):
-    '''A lazy mixin class for resolving urls. The main function here is the ``resolve``
-method'''
+    '''A lazy class for resolving urls.
+The main function here is the ``resolve`` method'''
     
     def load(self):
         '''Load urls and set-up sites'''
@@ -58,21 +32,9 @@ method'''
     
     def _load(self):
         pass
-    
-    def editsite(self):
-        return False
-    
-    def clearcache(self):
-        global _view_cache
-        self.resolver = None
-        self._urls = None
-        _view_cache.clear()
-        pagecache = getattr(self,'pagecache',None)
-        if pagecache:
-            pagecache.clear()
         
     def clear(self):
-        self.clearcache()
+        pass
     
     def clean_path(self, environ):
         '''Clean url and redirect if needed
@@ -105,54 +67,41 @@ method'''
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)
     
-    def resolve(self, path, subpath = None, site = None, numpass = 0):
-        # try our luck
+    def resolve(self, path):
+        # try sitemap first
         try:
-            node = djpcms.node(SLASH+path)
+            node = self.tree[SLASH+path]
+            return self.resolve_from_node(node)
         except KeyError:
-            node = None
-        if node:
-            # lucky
-            site = node.site
-            view = node.get_view()
-            return view.site,view,{}
-        else:
-            subpath = subpath if subpath is not None else path
-            if not getattr(self,'resolver',None):
-                urls = self.urls()
-                self.resolver = RegexURLResolver(r'^', urls)
-            
-            if not numpass:
-                view = self.resolve_flat(subpath)
-                if view:
-                    try:
-                        site = self.get_site()
-                    except:
-                        site = self
-                    return cachevalue(path, view, site, {})
+            pass
+        
+        view = self
+        rurl = (path,)
+        site = None
+        while isinstance(view,ResolverMixin):
+            if len(rurl) != 1:
+                raise self.http.Http404(site = site)
+            if not getattr(view,'resolver',None):
+                urls = view.urls()
+                view.resolver = RegexURLResolver(r'^', urls)
+
             try:
-                view, rurl, kwargs = self.resolver.resolve(subpath)
+                view, rurl, kwargs = view.resolver.resolve(rurl[0])
             except Resolver404 as e:
                 raise self.http.Http404(str(e),site = site)
-            if isinstance(view,ResolverMixin):
-                if len(rurl) == 1:
-                    return view.resolve(path, rurl[0], site, numpass+1)
-                else:
-                    raise self.http.Http404(site = site)
-            else:
-                return cachevalue(path, view, site, kwargs)
+            
+            if site is None:
+                site = view
         
-    def resolve_flat(self, path):
-        '''Resolve flat pages'''
-        from djpcms.models import Page
-        from djpcms.views.baseview import pageview
+        return site, view, kwargs
+            
+    def resolve_from_node(self, node):
+        site = node.site
         try:
-            page = Page.objects.sitepage(url = '/'+path)
-        except:
-            return None
-        if not page.application_view:
-            return pageview(page)
-
+            view = node.get_view()
+            return view.site,view,{}
+        except PathException as e:
+            raise self.http.Http404(str(e),site = site)
     
 
 class RegexURLPattern(object):
@@ -193,38 +142,20 @@ Adapted for djpcms
 
 
 class RegexURLResolver(object):
-    """This class ``resolve`` method takes a URL (as
-a string) and returns a tuple in this format:
+    """\
+This class ``resolve`` method takes a URL (as a string) and returns a tuple in this format:
 
     (view_function, function_args, function_kwargs)
     
-ORIGINAL CLASS FROM DJANGO    www.djangoproject.com
-
-Adapted for djpcms
+Adapted from django for djpcms
 """
-    def __init__(self, regex, urlconf_name, default_kwargs=None, app_name=None, namespace=None):
+    def __init__(self, regex, url_patterns, default_kwargs=None):
         # regex is a string representing a regular expression.
         # urlconf_name is a string representing the module containing URLconfs.
         self.regex = re.compile(regex, re.UNICODE)
-        self.urlconf_name = urlconf_name
-        if not is_bytes_or_string(urlconf_name):
-            self._urlconf_module = self.urlconf_name
+        self.url_patterns = url_patterns
         self.callback = None
         self.default_kwargs = default_kwargs or {}
-        self.namespace = namespace
-        self.app_name = app_name
-        self._reverse_dict = None
-        self._namespace_dict = None
-        self._app_dict = None
-
-    def __repr__(self):
-        return '<%s %s (%s:%s) %s>' % (self.__class__.__name__, self.urlconf_name, self.app_name, self.namespace, self.regex.pattern)
-
-    def _get_app_dict(self):
-        if self._app_dict is None:
-            self._populate()
-        return self._app_dict
-    app_dict = property(_get_app_dict)
 
     def resolve(self, path):
         tried = []
@@ -251,35 +182,6 @@ Adapted for djpcms
             raise Resolver404({'tried': tried, 'path': new_path})
         raise Resolver404({'path' : path})
 
-    def _get_urlconf_module(self):
-        try:
-            return self._urlconf_module
-        except AttributeError:
-            self._urlconf_module = import_module(self.urlconf_name)
-            return self._urlconf_module
-    urlconf_module = property(_get_urlconf_module)
-
-    def _get_url_patterns(self):
-        patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
-        try:
-            iter(patterns)
-        except TypeError:
-            raise ImproperlyConfigured("The included urlconf %s doesn't have any patterns in it" % self.urlconf_name)
-        return patterns
-    url_patterns = property(_get_url_patterns)
-
-    def _resolve_special(self, view_type):
-        callback = getattr(self.urlconf_module, 'handler%s' % view_type)
-        try:
-            return get_callable(callback), {}
-        except (ImportError, AttributeError) as e:
-            raise ViewDoesNotExist("Tried %s. Error was: %s" % (callback, str(e)))
-
-    def resolve404(self):
-        return self._resolve_special('404')
-
-    def resolve500(self):
-        return self._resolve_special('500')
 
 
 

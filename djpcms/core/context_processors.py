@@ -4,6 +4,7 @@ from djpcms import sites, UnicodeMixin, CHANGE, ADD
 from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
+from djpcms.utils import iri_to_uri
 from djpcms.html import grid960, htmldoc
 from djpcms.html import icons
 
@@ -24,8 +25,8 @@ class PageLink(UnicodeMixin):
     
     def render(self):
         app = sites.for_model(Page)
-        if app: 
-            site = self.request.site
+        if app:
+            site = app.site
             if not self.page:
                 if Page and site.permissions.has(self.request, ADD, Page):
                     return self.addlink(app)
@@ -36,6 +37,7 @@ class PageLink(UnicodeMixin):
     def addlink(self, app):
         addurl = app.addurl(self.request)
         if addurl:
+            addurl = iri_to_uri(addurl+'?url='+self.request.path)
             return icons.circle_plus(addurl,'add page',title="add page contents")
         else:
             return ''
@@ -49,6 +51,7 @@ class PageLink(UnicodeMixin):
 
 
 def get_grid960(page):
+    return grid960()
     if page and page.cssinfo:
         return grid960(columns = page.cssinfo.gridsize,
                        fixed = page.cssinfo.fixed)
@@ -57,13 +60,10 @@ def get_grid960(page):
 
 
 def djpcms(request):
-    site = request.site
-    page = getattr(request,'page',None)
-    if site:
-        settings = site.settings
-    else:
-        settings = sites.settings
-        
+    info = request.DJPCMS
+    site = info.site
+    page = info.page
+    settings = site.settings    
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     
     user = getattr(request,'user',None)

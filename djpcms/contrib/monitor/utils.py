@@ -4,6 +4,7 @@ from stdnet import orm
 
 
 def register_models(apps,**kwargs):
+    '''Register models defined in application list ``apps``.'''
     all_apps = {}
     for app in sites.settings.INSTALLED_APPS:
         names = app.split('.')
@@ -14,7 +15,7 @@ def register_models(apps,**kwargs):
             raise ValueError('multiple application name {0}'.format(name))
         all_apps[name] = app
         
-    models = []
+    registered_models = []
     for name in apps:
         pm = name.split('.')
         models = None
@@ -26,7 +27,7 @@ def register_models(apps,**kwargs):
         if name not in all_apps:
             raise Valuerror('Application {0} not available'.format(app))
         app = all_apps[name]
-        models.extend(orm.register_application_models(name,
-                                                      models = models,
-                                                      **kwargs))
-    return models
+        registered_models.extend(orm.register_application_models(name,
+                                                                 models = models,
+                                                                 **kwargs))
+    return registered_models

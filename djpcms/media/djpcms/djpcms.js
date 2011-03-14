@@ -65,6 +65,7 @@
             jsonCallBacks = {},
             logging_pannel = null,
             inrequest = false,
+            panel = null,
             defaults = {
 		        media_url:		   "/media-site/",
     	        confirm_actions:{
@@ -179,7 +180,7 @@
 				}
 				
 				$.each(decorators,function(id,decorator) {
-					log(this + ' - adding decorator ' + id);
+					log(me.toString() + ' - adding decorator ' + id);
 					decorator(me,config);
 				});						
 			});
@@ -197,7 +198,21 @@
 		    postparam: _postparam,
 		    set_inrequest: function(v){inrequest=v;},
 		    'inrequest': function(){return inrequest;},
-		    'log': log
+		    'log': log,
+		    'panel': function() {
+		        // A floating panel
+		        if(!panel) {
+	                panel = $('<div>').hide().appendTo($('body'))
+	                                .addClass('ui-widget ui-widget-content ui-corner-all')
+	                                .css({position:'absolute',
+	                                     'text-align':'left',
+	                                      padding:'5px'});
+	            }
+		        return panel;
+		    },
+		    smartwidth: function(html) {
+		        return Math.max(15*Math.sqrt(html.length),200);
+		    }
 		};
 	}());
 	
@@ -214,7 +229,7 @@
 	$.djpcms.errorDialog = function(html,title) {
 	    title = title || 'Something did not work';
 	    var el = $('<div title="'+title+'"></div>').html(html+'');
-	    width = Math.max(15*Math.sqrt(html.length),200);
+	    width = $.djpcms.smartwidth(html);
 	            el.dialog({modal:true,
 	                       dialogClass: 'ui-state-error',
 	                       'width': width});
@@ -794,6 +809,38 @@
 				$('textarea.taboverride',$this).tabOverride(true);
 			}
 		}
+	});
+	
+	$.djpcms.decorator({
+	    id:"uniforms",
+	    config: {
+	        tooltip:{x:10,y:30,effect:'clip',fadetime:200}
+	    },
+	    decorate: function($this,config) {
+	        $('.uniForm .formHint',$this).each(function(){
+	            var el = $(this);
+	                c = config.uniforms,
+	                html = el.html(),
+	                label = $('label',el.parent());
+	            if(label.length && html) {
+	                $.data(label[0],'panel-html',html);
+    	            label.css({cursor:'help'})
+    	                 .mouseenter(function(e){
+    	                     var t = c.tooltip,
+    	                         p = $.djpcms.panel(),
+        	                     x = e.pageX + c.tooltip.x,
+        	                     y = e.pageY - c.tooltip.y,
+        	                     text = $.data(this,'panel-html'),
+        	                     width = $.djpcms.smartwidth(text),
+    	                         height = p.width(width).html($.data(this,'panel-html')).height(),
+    	                         y = Math.max(e.pageY - height - t.y,10);
+        	                 p.css({'left':x,'top':y}).show(t.effect,{},t.fadetime);})
+        	             .mouseleave(function() {
+        	                 $.djpcms.panel().hide();
+        	             });
+	            }
+	        });
+	    }
 	});
 	
 	$.djpcms.decorator({

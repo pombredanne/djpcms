@@ -5,15 +5,17 @@ DJPCMS
 ====================
 
 .. rubric:: A dynamic Content Management System using Javascript and Python.
+            Pluggable, easy to use and no ideological prejudice.
 
 
 Get it
 =============
 
-Djpcms is an opensource python library available as an easy-installable package on the
+Djpcms is an opensource python library available as an easy-installable package at the
 `Python Package Index <http://pypi.python.org/pypi?:action=display&name=djpcms>`_. ::
 	
-	easy_install djpcms
+    easy_install djpcms
+    pip install djpcms
 
 Development is hosted at github__ and there is a user `mailing list`__.
 

@@ -1,21 +1,16 @@
-#
-#    Utility for managing grid 960 css templates
-#
+'''\
+Utility for managing grid 960 css templates
+'''
 from py2py3 import to_string
 
-from djpcms import sites
-from djpcms.utils import EMPTY_VALUE
+from djpcms.utils.const import EMPTY_VALUE
 
 __all__ = ['grid960','EMPTY_VALUE','CLEAR_GRID']
 
 CLEAR_GRID = to_string('<div class="clear"></div>')
 
 
-def grid960(columns = None, fixed = None):
-    if fixed is None:
-        fixed = sites.settings.GRID960_DEFAULT_FIXED
-    columns = columns or sites.settings.GRID960_DEFAULT_COLUMNS
-        
+def grid960(columns = None, fixed = True):        
     if columns == 16:
         return grid960_16(fixed)
     else:

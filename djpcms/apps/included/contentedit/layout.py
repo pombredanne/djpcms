@@ -10,13 +10,10 @@ HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 HtmlPageForm = forms.HtmlForm(
     PageForm,
-    submits = (('change', '_save'),)
-)
-    
-
-ChildFormHtml = forms.HtmlForm(
-    ChildPageForm,
-    submits = (('create', '_child'),)
+    layout = uniforms.Layout(
+                          uniforms.Fieldset('url','title','link','in_navigation','inner_template'),
+                          uniforms.Row('requires_login','soft_root')
+                          )
 )
 
 

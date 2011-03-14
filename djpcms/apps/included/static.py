@@ -88,8 +88,9 @@ class StaticFileRoot(StaticFileView):
     
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
-        mapping = appmodel.loadapps(request.site)
-        http = request.site.http
+        site = self.site
+        mapping = appmodel.loadapps(site)
+        http = site.http
         directory = request.path
         notroot = directory != '/'
         if appmodel.show_indexes:
@@ -107,8 +108,9 @@ class StaticFileApp(StaticFileView):
     
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
-        http = request.site.http
-        mapping = appmodel.loadapps(request.site)
+        site = self.site
+        http = site.http
+        mapping = appmodel.loadapps(site)
         paths = kwargs['path'].split('/')
         app = paths.pop(0)
         if app in mapping:
@@ -141,11 +143,10 @@ class StaticFileApp(StaticFileView):
                              {'names':names,
                               'files':files,
                               'directory':request.path})
-        return request.site.http.HttpResponse(html,
-                                              mimetype = 'text/html')
+        return self.site.http.HttpResponse(html, mimetype = 'text/html')
         
     def serve_file(self, request, fullpath):
-        http = request.site.http
+        http = self.site.http
         # Respect the If-Modified-Since header.
         statobj = os.stat(fullpath)
         mimetype, encoding = mimetypes.guess_type(fullpath)

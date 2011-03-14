@@ -1,6 +1,7 @@
 from djpcms.template import loader
 from djpcms.core import orms
-from djpcms.utils import EMPTY_VALUE, EMPTY_TUPLE, SLASH, force_str
+from djpcms.utils import force_str
+from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH
 from djpcms.utils.text import nicename
 
 nicerepr = orms.nicerepr

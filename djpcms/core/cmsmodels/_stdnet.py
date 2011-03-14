@@ -57,35 +57,6 @@ class InnerTemplate(TimeStamp,TemplateInterface):
         app_label = 'djpcms'
     
     
-class CssPageInfo(TimeStamp):
-    '''
-    Css information for the Page
-    '''
-    body_class_name      = field.CharField()
-    container_class_name = field.CharField()
-    fixed    = field.BooleanField(default = True)
-    gridsize = field.IntegerField(default = 12)
-    
-    class Meta:
-        app_label = 'djpcms'
-        
-    def __unicode__(self):
-        if self.body_class_name:
-            return '%s - %s' % (self.body_class_name,self.conteiner_class())
-        else:
-            return self.conteiner_class()
-        
-    def conteiner_class(self):
-        '''
-        Get the container class-name.
-        If not specified it return container_gridsize for 960 grid templates
-        '''
-        if not self.container_class_name:
-            return 'container_%s' % self.gridsize
-        else:
-            return self.container_class_name
-    
-    
 class Site(ModelBase):
     domain = field.SymbolField(unique = True)
     name = field.SymbolField(unique = True)
@@ -99,35 +70,24 @@ class Site(ModelBase):
     
 class Page(TimeStamp, PageInterface):
     '''The page model holds several information regarding pages in the sitemap.'''
-    application_view = field.SymbolField(required = False)
     title = field.CharField()
     link = field.CharField()
-    url_pattern = field.SymbolField(required = False)
+    url = field.SymbolField()
     inner_template = field.ForeignKey(InnerTemplate, required = False)
     template = field.CharField()
     in_navigation = field.IntegerField(default=1)
-    cssinfo = field.ForeignKey(CssPageInfo, required = False)
-    is_published = field.BooleanField(default=True)
+    body_class = field.CharField(required = False)
     # Access
     requires_login = field.BooleanField(default = False)
     soft_root = field.BooleanField(default=False)
     doctype = field.IntegerField(default = html.htmldefaultdoc)
     insitemap = field.BooleanField(default = True)
-    
-    # Denormalized level in the tree and url, for performance 
-    level       = field.IntegerField(default = 0)
-    url         = field.SymbolField()
-    application = field.SymbolField(required = False)
-    user        = field.SymbolField(required = False)
 
     class Meta:
         app_label = 'djpcms'
 
     def __unicode__(self):
-        if self.site:
-            return '{0}{1}'.format(self.site.domain,self.url or '')
-        else:
-            return self.url or ''
+        return self.url or ''
     
     def save(self, commit = True):
         self.level = self.get_level()

@@ -1,4 +1,5 @@
 from djpcms import test, forms
+from djpcms.apps.included.contentedit.forms import PageForm
 from .forms import SimpleForm
 
 
@@ -34,4 +35,10 @@ class TestSimpleForm(test.TestCase):
         html = w.render()
         self.assertTrue('luca' in html)
         self.assertTrue('39' in html)
-    
+        
+    def testPageForm(self):
+        p = PageForm()
+        self.assertFalse(p.is_bound)
+        initial = p.initial
+        self.assertEqual(initial['in_navigation'],1)
+        

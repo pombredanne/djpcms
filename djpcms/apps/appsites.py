@@ -7,7 +7,6 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.views import Application, ModelApplication, DummyDjp
 from djpcms.template import loader
-from djpcms.models import Page, InnerTemplate
 
 from .site import SiteMixin
 from .handlers import WSGI
@@ -89,9 +88,9 @@ class ApplicationSite(SiteMixin):
     @property
     def applications(self):
         '''The list of registered applications'''
-        return self._nameregistry.values()
+        return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path())))
     
-    def register(self, application):
+    def register(self, application, safe = False):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application. Is is not a valid one.')
         
@@ -108,7 +107,7 @@ class ApplicationSite(SiteMixin):
             pass
         
         for app in application.apps.values():
-            self.register(app)
+            self.register(app,safe)
     
     def unregister(self, model):
         '''Unregister the :class:`djpcms.views.ModelApplication` registered
@@ -235,6 +234,7 @@ returns the application handler. If the appname is not available, it raises a Ke
         return self.root.permissions
     
     def add_default_inner_template(self, page):
+        from djpcms.models import InnerTemplate
         template_name = self.settings.DEFAULT_INNER_TEMPLATE
         if not template_name:
             return
@@ -246,10 +246,11 @@ returns the application handler. If the appname is not available, it raises a Ke
         page.save()
         return te
     
-    def resolve(self, path, subpath = None, site = None, numpass = 0):
-        return super(ApplicationSite,self).resolve(path, subpath, site = self, numpass = numpass)
+    def resolve(self, path, subpath = None, site = None):
+        return super(ApplicationSite,self).resolve(path, subpath, site = self)
         
     def get_page(self, **kwargs):
+        from djpcms.models import Page
         return Page.objects.get(**kwargs)
         
     def handle_exception(self, *args, **kwargs):

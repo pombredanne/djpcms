@@ -36,7 +36,7 @@ def page_edit_url(djp):
             return site.get_url(page.__class__,'add',**kwargs)
 
 
-class RendererMixin(object):
+class RendererMixin(UnicodeMixin):
     appmodel = None
     
     def render(self, djp):
@@ -56,7 +56,7 @@ By default it returns an empty string.
         
 
 # THE DJPCMS BASE CLASS for handling views
-class djpcmsview(RendererMixin,UnicodeMixin):
+class djpcmsview(RendererMixin):
     '''Base class for handling http requests.
     
     .. attribute:: _methods
@@ -135,8 +135,8 @@ class djpcmsview(RendererMixin,UnicodeMixin):
     
     def get_context(self, djp, editing = False):
         request = djp.request
-        site    = request.site
-        http    = request.site.http
+        site    = self.site
+        http    = site.http
         page    = djp.page
         request._page = page
         inner_template  = None
@@ -209,7 +209,7 @@ class djpcmsview(RendererMixin,UnicodeMixin):
     def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''
         if page:
-            return request.site.permissions.has(request,djpcms.VIEW,page,user=user)
+            return self.site.permissions.has(request,djpcms.VIEW,page,user=user)
         else:
             return True
     
@@ -278,7 +278,7 @@ class pageview(djpcmsview):
     def get_url(self, djp, **urlargs):
         return self.page.url
     
-    def get_page(self, djp, **kwargs):
+    def get_page(self, djp):
         return self.page
     
     def is_soft(self, djp):

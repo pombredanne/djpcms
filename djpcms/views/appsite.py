@@ -13,7 +13,7 @@ from djpcms.forms import FormType, HtmlForm, SubmitInput, MediaDefiningClass
 from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException
+from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException, AlreadyRegistered
 from djpcms.utils import slugify, closedurl, openedurl, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
@@ -225,7 +225,7 @@ of objects. Default is ``None``.'''
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
-        self._application_site = None
+        self.site = None
         self.root_view = None
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation
@@ -250,13 +250,6 @@ view {0}. Already available." % name)
                     raise ApplicationUrlException("Could not define add \
 application {0}. Already available." % name)
                 self.apps[name] = app
-    
-    @property
-    def site(self):
-        if self._application_site:
-            return self._application_site
-        else:
-            return self.parent.site
             
     @property            
     def settings(self):
@@ -265,35 +258,32 @@ application {0}. Already available." % name)
     def register(self, application_site):
         '''Register application with :class:`djpcms.apps.appsites.ApplicationSite`
 *application_site*.'''
-        if not self.parent:
-            url = self.make_url
-            self._application_site = application_site
-            self._create_views()
-            urls = []
-            for app in self.views.values():
-                view_name  = self._get_view_name(app.name)
-                nurl = url(regex = str(app.regex),
-                           view  = app,
-                           name  = view_name)
-                urls.append(nurl)
-            self._urls = tuple(urls)
+        if self.site:
+            if self.site == application_site:
+                return
+            else:
+                raise AlreadyRegistered('Application %s already registered as application' % self)
+        url = self.make_url
+        self.site = application_site
+        self._create_views()
+        urls = []
+        for app in self.views.values():
+            view_name  = self._get_view_name(app.name)
+            nurl = url(regex = str(app.regex),
+                       view  = app,
+                       name  = view_name)
+            urls.append(nurl)
+        self._urls = tuple(urls)
         self.registration_done()
     
-    def __repr__(self):
-        return '%s: %s' % (self.__class__.__name__,self.baseurl)
-    
-    def __str__(self):
-        return self.__repr__()
+    def __unicode__(self):
+        return self.path()
     
     def appsite(self):
         return self.parent_app
     
     def path(self):
-        rurl = self.__baseurl[1:]
-        if self.parent:
-            return self.parent.path() + rurl
-        else:
-            return self.site.route + rurl
+        return self.site.route + self.baseurl[1:]
         
     def registration_done(self):
         pass
@@ -315,7 +305,10 @@ Return ``None`` if the view is not available.'''
         raise NotImplementedError
     
     def __get_baseurl(self):
-        return self.__baseurl
+        if self.parent:
+            return self.parent.baseurl + self.__baseurl[1:]
+        else:
+            return self.__baseurl
     baseurl = property(__get_baseurl)
     
     def isroot(self):
@@ -390,8 +383,6 @@ Return ``None`` if the view is not available.'''
                     raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
                 parent = self.views[parent]
             app.parent = parent
-            app._create_views()
-            
     
     def get_form(self, djp,
                  form_class,
@@ -540,6 +531,10 @@ By default it return a generator of children pages.'''
             
         return loader.render(self.pagination_template_name, c)
 
+    def title_object(self, obj):
+        '''Return the title of a object-based view
+        '''
+        return to_string(obj)
 
 class ModelApplication(Application):
     '''An :class:`Application` class for applications
@@ -633,14 +628,14 @@ Re-implement for custom arguments.'''
     def addurl(self, request, name = 'add'):
         return self.appviewurl(request,name,None,self.has_add_permission)
         
-    def deleteurl(self, request, obj):
-        return self.appviewurl(request,'delete',obj,self.has_delete_permission,objrequired=True)
+    def deleteurl(self, request, obj, name = 'delete'):
+        return self.appviewurl(request,name,obj,self.has_delete_permission,objrequired=True)
         
-    def changeurl(self, request, obj):
-        return self.appviewurl(request,'edit',obj,self.has_change_permission,objrequired=True)
+    def changeurl(self, request, obj, name = 'change'):
+        return self.appviewurl(request,name,obj,self.has_change_permission,objrequired=True)
     
-    def viewurl(self, request, obj, field_name = None):
-        return self.appviewurl(request,'view',obj,objrequired=True)
+    def viewurl(self, request, obj, name = 'view', field_name = None):
+        return self.appviewurl(request,name,obj,objrequired=True)
     
     def searchurl(self, request):
         return self.appviewurl(request,'search')
@@ -665,16 +660,16 @@ Re-implement for custom arguments.'''
     # STANDARD PERMISSIONS
     #-----------------------------------------------------------------------------------------
     def has_view_permission(self, request, obj = None):
-        return request.site.permissions.has(request,djpcms.VIEW,obj)
+        return self.site.permissions.has(request,djpcms.VIEW,obj)
     
     def has_add_permission(self, request, obj=None):
-        return request.site.permissions.has(request,djpcms.ADD,obj)
+        return self.site.permissions.has(request,djpcms.ADD,obj)
     
     def has_change_permission(self, request, obj=None):
-        return request.site.permissions.has(request,djpcms.CHANGE,obj)
+        return self.site.permissions.has(request,djpcms.CHANGE,obj)
     
     def has_delete_permission(self, request, obj=None):
-        return request.site.permissions.has(request,djpcms.DELETE,obj)
+        return self.site.permissions.has(request,djpcms.DELETE,obj)
     #-----------------------------------------------------------------------------------------------
     
     def basequery(self, djp, **kwargs):
@@ -760,12 +755,6 @@ This dictionary should be used to render an object within a template. It returns
         This is usually called in the view page of the object.
         '''
         return to_string(ObjectDefinition(self, djp))
-        
-    def title_object(self, obj):
-        '''
-        Return the title of a object-based view
-        '''
-        return '%s' % obj
         
     def remove_object(self, obj):
         id = obj.id

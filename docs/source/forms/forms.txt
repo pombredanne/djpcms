@@ -5,4 +5,26 @@
 =======
 Forms
 =======
-        
+
+.. automodule:: djpcms.forms
+
+
+API
+=======
+
+Form
+~~~~~~~~
+
+.. autoclass:: djpcms.forms.Form
+   :members:
+   :member-order: bysource
+
+
+
+HtmlForm
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.HtmlForm
+   :members:
+   :member-order: bysource
+   

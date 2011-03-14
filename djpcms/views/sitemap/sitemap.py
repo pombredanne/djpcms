@@ -3,6 +3,7 @@ from py2py3 import itervalues
 from djpcms import UnicodeMixin
 from djpcms.utils import parentpath, SLASH
 from djpcms.views import DjpResponse, pageview
+from djpcms.core.orms import mapper
 from djpcms.core.exceptions import ImproperlyConfigured, PathException
 
 from .serialize import *
@@ -24,7 +25,10 @@ class Node(UnicodeMixin):
         self.path = path
         self._site = None
         self.view = view
-        self.page = None
+        
+    @property
+    def page(self):
+        return self.urlmap.get_page(self.path)
         
     def children(self, strict = True):
         '''Return a generator of child nodes.
@@ -64,7 +68,7 @@ class Node(UnicodeMixin):
         '''Create a :class:`djpcms.views.DjpResponse` object with a dummy request if not available'''
         if not request:
             request = DummyRequest(self.site)
-        view = self.view or pageview(self.page)
+        view = self.get_view()
         return DjpResponse(request, view)
     
     def get_view(self):
@@ -72,7 +76,7 @@ class Node(UnicodeMixin):
         if self.view:
             return self.view
         elif self.page:
-            return pageview(self.page)
+            return pageview(self.page,self.site)
         else:
             raise PathException('Cannot get view for node {0}'.format(self))
         
@@ -151,5 +155,15 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
         root = self.root.tojson(fields)
         data.add(root)
         return data
+    
+    def get_page(self,path):
+        from djpcms.models import Page
+        if Page:
+            mp = mapper(Page)
+            try:
+                return mp.get(url = path)
+            except mp.DoesNotExist:
+                return None
+        
         
         

@@ -1,9 +1,3 @@
-
-.. rubric:: Plugins-based content management System for
-    dynamic applications written in Python and Javascript
-
---
-
 :Web: http://djpcms.com/
 :Documentation: http://djpcms.com/docs/
 :Dowloads: http://pypi.python.org/pypi/djpcms/

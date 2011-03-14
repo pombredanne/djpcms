@@ -1,4 +1,5 @@
 from djpcms.utils import merge_dict
+from djpcms.utils.const import *
 
 from .base import HtmlWidget
 
@@ -51,6 +52,8 @@ class TextArea(HtmlWidget):
     
 class Select(HtmlWidget):
     tag = 'select'
+    _option = '<option value="{0}"{1}>{2}</option>'
+    _selected = ' selected="selected"'
     
     def __init__(self, **kwargs):
         super(Select,self).__init__(**kwargs)
@@ -58,16 +61,22 @@ class Select(HtmlWidget):
     def inner(self, djp, field):
         return '\n'.join(self.render_options(djp, field))
 
-    def render_options(self, djp, field):
-        choices = field.field.choices
+    def render_options(self, djp, bfield):
+        field = bfield.field
+        choices,model = field.choices_and_model()
         selected_choices = []
-        if field.value:
-            selected_choices.append(field.value)
-        if hasattr(choices,'__call__'):
-            choices = choices()
-        for val,des in choices:
-            sel = (val in selected_choices) and ' selected="selected"' or ''
-            yield '<option value="{0}"{1}>{2}</option>'.format(val,sel,des)
+        if bfield.value:
+            selected_choices.append(bfield.value)
+        option = self._option
+        selected = self._selected
+        if model:
+            for val in choices:
+                sel = (val in selected_choices) and selected or EMPTY
+                yield option.format(val.id,sel,val)
+        else:
+            for val,des in choices:
+                sel = (val in selected_choices) and selected or EMPTY
+                yield option.format(val,sel,des)
 
 
 class List(HtmlWidget,list):
@@ -81,6 +90,6 @@ class List(HtmlWidget,list):
             list.__init__(self)
     
     def inner(self):
-        return '\n'.join(('<li>' + elem + '</li>' for elem in self))
+        return '\n'.join((LI + elem + LIEND for elem in self))
     
     

@@ -1,5 +1,6 @@
 from py2py3 import to_string
 
+from .lazy import *
 from .pagination import *
 from .grid960 import *
 from .htmltype import *

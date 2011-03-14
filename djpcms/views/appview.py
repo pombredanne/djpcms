@@ -5,6 +5,7 @@ from datetime import datetime
 
 from py2py3 import zip
 
+from djpcms import get_page
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
@@ -185,6 +186,7 @@ Usage::
     
     Default ``True``.
 '''
+    default_title = None
     creation_counter = 0
     plugin_form    = None
     view_template  = 'djpcms/components/pagination.html'
@@ -286,9 +288,18 @@ Usage::
     def title(self, djp):
         page = djp.page
         if page:
-            return page.title
+            title = page.title
         else:
-            return self.appmodel.description
+            title = self.default_title or self.appmodel.description
+        return title.format({'instance':self.appmodel.title_object(djp.instance)})
+    
+    def linkname(self, djp):
+        page = djp.page
+        if page:
+            link = page.link
+        else:
+            link = self.default_title or self.appmodel.name
+        return link.format({'instance':self.appmodel.title_object(djp.instance)})
     
     def names(self):
         return self.regex.names
@@ -307,13 +318,6 @@ Usage::
                 return self.in_nav
         else:
             return 0
-        
-    def linkname(self, djp):
-        page = djp.page
-        link = '' if not page else page.link
-        if not link:
-            link = self.appmodel.description
-        return link
     
     def isroot(self):
         '''True if this application view represents the root view of the application.'''
@@ -334,45 +338,11 @@ Usage::
         return False if not page else page.soft_root
         
     def get_page(self, djp):
-        from djpcms.apps.included.contentedit import api
-        return None
-        pages = api.get_for_application(djp,self.code)
-        if pages:
-            if len(pages) == 1:
-                return pages[0]
-            else:
-                request = djp.request
-                kwargs = djp.kwargs.copy()
-                kwargs.pop('instance',None)
-                page   = pages.filter(url_pattern = '')
-                if page:
-                    page = page[0]
-                    try:
-                        url  = self.get_url(djp, **kwargs)
-                        for p in pages:
-                            if p.url == url:
-                                page = p
-                                break
-                    except:
-                        pass
-                    return page
-        if self.parent and self.inherit_page:
-            return self.parent.get_page(djp)
-            
+        page = get_page(djp.url)
+        if not page and djp.url != self.path():
+            page = get_page(djp.url)
+        return page            
         
-    def specialkwargs(self, page, kwargs):
-        if page:
-            names = self.regex.names
-            if names:
-                kwargs = kwargs.copy()
-                if page.url_pattern:
-                    bits = page.url_pattern.split('/')
-                    kwargs.update(dict(zip(self.regex.names,bits)))
-                else:
-                    for name in names:
-                        kwargs.pop(name,None)
-        return kwargs
-    
     def has_permission(self, request = None, page = None, obj = None, user = None):
         if super(View,self).has_permission(request, page, obj, user = user):
             return self._has_permission(request, obj)
@@ -480,6 +450,7 @@ It returns a queryset.
 
 
 class AddView(ModelView):
+    default_title = 'add'
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
     def __init__(self, regex = 'add', isplugin = True,
@@ -561,6 +532,7 @@ method of the :attr:`djpcms.views.View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
+    default_title = 'delete'
     _methods      = ('post',)
     
     def __init__(self, regex = 'delete', parent = 'view', isapp = False, **kwargs):
@@ -588,6 +560,7 @@ class DeleteView(ObjectView):
 
 # Edit/Change an object
 class ChangeView(ObjectView):
+    default_title = 'edit {0}'
     '''An :class:`ObjectView` class specialised for changing an instance of a model.
     '''
     def __init__(self, regex = 'edit', parent = 'view', **kwargs):
@@ -597,7 +570,12 @@ class ChangeView(ObjectView):
         return self.appmodel.has_change_permission(request, obj)
     
     def title(self, djp):
-        return 'Edit %s' % self.appmodel.title_object(djp.instance)
+        page = djp.page
+        if page and page.title:
+            title = page.tile
+        else:
+            title = self.default_title
+        return title.format({'instance':self.appmodel.title_object(djp.instance)})
     
     def render(self, djp):
         return self.get_form(djp).render(djp)

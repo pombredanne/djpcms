@@ -123,7 +123,7 @@ class FormLayoutElement(BaseFormLayout):
                'required_tag': self.required_tag or layout.required_tag,
                'field':field,
                'error': form.errors.get(field.name,''), 
-               'widget':widget.render_from_field(djp, field),
+               'widget':widget.render(djp, field),
                'is_hidden': widget.is_hidden,
                'ischeckbox':widget.ischeckbox()}
         field_template = self.field_template or layout.field_template

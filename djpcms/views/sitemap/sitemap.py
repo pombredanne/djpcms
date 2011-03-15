@@ -30,10 +30,6 @@ class NodeInfo(object):
         return self.node.path
     
     @property
-    def template(self):
-        return self.djp.template_file
-    
-    @property
     def application(self):
         if self.node.view:
             return self.node.view.appmodel.name

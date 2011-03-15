@@ -9,10 +9,10 @@ CssContext('anchor',
            data = {
                    'text_decoration': 'none',
                    'weight':'normal',
-                   'color':'#33789C',
+#                   'color':'#33789C',
                    'background': 'transparent',
-                   'color_hover':'#204C64',
-                   'background_hover':None
+#                   'color_hover':'#204C64',
+#                   'background_hover':None
                    }
            )
                     
@@ -112,7 +112,7 @@ CssContext('tablesorter',
                    # head/tail
                    'odd_background_color':'#ccc',
                    'head_border_color':'#fff',
-                   'toolbox_background_color':'#fff',
+                   #'toolbox_background_color':'#fff',
                    'body_border_color':'#a6c9e2',
                    'head_border': 'none',
                    'head_padding': '4px',
@@ -254,5 +254,8 @@ CssContext('breadcrumbs',
            )
 
 #________________________________________ SPECIAL IDS AND CLASSES
-CssContext('content',tag='#content',data={'min_height':'500px'})
+CssContext('content',tag='#content',
+           data={'min_height':'500px',
+                 'overflow':'hidden',
+                 'padding':'0 0 20px 0'})
 CssContext('hidecontent',tag='.djph',data={'display':'none'})

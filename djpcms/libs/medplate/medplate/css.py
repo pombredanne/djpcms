@@ -190,12 +190,14 @@ class _CssTheme(object):
         return '{0}.{1}'.format(self.context,self.name)
 
 
-def CssBody(data = None):
+def CssBody(data = None, template = None):
     global _root
     if not _root:
         _root = _CssBody(data = data)
     elif data:
         _root.data.update(data)
+    if template:
+        _root.template = template
     return _root
 
 

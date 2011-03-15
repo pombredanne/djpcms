@@ -33,7 +33,8 @@ CssTheme('tablesorter',
          data = {
                  'head_border_color':'#fff',
                  'body_border_color':'#a6c9e2',
-                 'odd_background_color':'#dbebeb'
+                 'odd_background_color':'#dbebeb',
+                 'row_hover_background':'#d0e5f5',
                  })
 
 

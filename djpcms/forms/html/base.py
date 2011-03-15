@@ -1,3 +1,5 @@
+from inspect import isclass
+
 from py2py3 import iteritems
 
 from djpcms.utils import slugify, merge_dict, escape
@@ -39,7 +41,11 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
         for attr,value in iteritems(self.attributes):
             if attr in kwargs:
                 value = kwargs.pop(attr)
-            attrs[attr] = value
+            attrp = 'process_{0}'.format(attr)
+            if hasattr(self,attrp):
+                value = getattr(self,attrp)(value)
+            if value is not None:
+                attrs[attr] = value
         if kwargs:
             keys = list(kwargs.keys())
             raise TypeError("__init__() got an unexpected keyword argument '{0}'".format(keys[0]))
@@ -109,10 +115,6 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
             return self.renderer(html)
         else:
             return html
-    
-    def render_from_field(self, djp, field):
-        fattr = self.flatatt(name = field.html_name, id = field.id, value = field.value)
-        return self._render(fattr, djp, field)
     
     def _render(self, fattr, *args, **kwargs):
         if self.inline:

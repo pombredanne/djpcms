@@ -33,18 +33,6 @@ blockquote div.body-quote {
 	font-size: 100%;
 	font-family: Georgia,"Times New Roman",Times,serif;
 }
-
-div#content {
-    overflow: hidden;
-}
-
-#site-navigation ul {
-	font-size: 150%;
-}
-#footer {
-	font-size:90%;
-	line-height:1.5em;
-}
 .topnav {
 	font-size: 90%;
 }
@@ -193,42 +181,6 @@ ul.edit-links.vertical a {
 {% endblock %}
 
 
-
-{% block special-classes %}
-
-/* SPECIAL CLASSES
---------------------------------------------------------*/
-
-.djphide {
-	display: none;
-}
-{% endblock %}
-
-
-
-{% block footer %}
-/*	FOOTER
--------------------------------------------------*/
-#page-footer {
-	overflow: hidden;
-	font-size:80%;
-	padding: 20px 0;
-}
-#footer-promos {
-	padding: 20px 0;
-	text-align: center;
-}
-#footer-social {
-	padding: 10px 0;
-	text-align: center;
-}
-#footer-technology {
-	text-align: right;
-}
-#footer-technology a {
-	margin: 10px 0 10px 10px;
-}
-{% endblock %}
 
 {% endblock %}
 

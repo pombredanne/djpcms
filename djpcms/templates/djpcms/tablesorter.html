@@ -1,5 +1,6 @@
 {% if toolbox %}
-<div class="toolbox">{% if toolbox.actions %}
+<div class="tablesorter-with-actions">
+<div class="toolbox ui-widget-header">{% if toolbox.actions %}
 <span class="selectors">
  Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
  </span>
@@ -19,4 +20,5 @@
    <td>{{ val }}</td>{% endfor %}
  </tr>{% endfor %}
 </tbody>
-</table>
+</table>{% if toolbox %}
+</div>{% endif %}

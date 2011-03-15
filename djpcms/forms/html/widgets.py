@@ -22,6 +22,20 @@ class TextInput(HtmlWidget):
                                                     'name': None
                                                     })
     
+    def render(self, djp = None, bfield = None):
+        if bfield:
+            attrs = self.attrs
+            attrs['id'] = bfield.id
+            attrs['name'] = bfield.html_name
+            value = self.get_value(bfield.value)
+            if value:
+                attrs['value'] = value
+        return super(TextInput,self).render(djp,bfield)
+    
+    def get_value(self, value):
+        return value
+    
+    
 class SubmitInput(TextInput):
     attributes = merge_dict(TextInput.attributes, {'type':'submit'})
     
@@ -38,10 +52,15 @@ class PasswordInput(TextInput):
 class CheckboxInput(TextInput):
     attributes = merge_dict(TextInput.attributes, {'type':'checkbox'})
     
+    def get_value(self, val):
+        if val:
+            self.attrs['checked'] = 'checked'
+        
     def ischeckbox(self):
         return True
     
-class TextArea(HtmlWidget):
+    
+class TextArea(TextInput):
     tag = 'textarea'
     inline = False
     _value = ''
@@ -51,17 +70,16 @@ class TextArea(HtmlWidget):
                                                     'cols': 40
                                                     })
 
-    def render_from_field(self, djp, field):
-        fattr = self.flatatt(name = field.html_name, id = field.id)
-        self._value = escape(field.value)
-        return self._render(fattr, djp, field)
+    def get_value(self, value):
+        self._value = escape(value)
         
     def inner(self, *args, **kwargs):
         return self._value
     
     
-class Select(HtmlWidget):
+class Select(TextInput):
     tag = 'select'
+    inline = False
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
     
@@ -69,6 +87,9 @@ class Select(HtmlWidget):
         self.choices = choices
         super(Select,self).__init__(**kwargs)
         
+    def get_value(self, val):
+        pass
+    
     def inner(self, djp, bfield = None):
         return '\n'.join(self.render_options(djp, bfield))
 

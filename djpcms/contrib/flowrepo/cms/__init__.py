@@ -249,14 +249,16 @@ class FlowItemApplication(ArchiveTaggedApplication):
 
 
 class WebAccountApplication(TagApplication):
+    list_display_links = ('name',)
     name             = 'webaccount'
     form             = NiceWebAccountForm
     form_withrequest = True
     inherit          = True
     
-    add       = appview.AddView(regex = 'add', parent = None)
-    edit      = appview.ChangeView(regex = 'edit/(?P<id>\d+)', parent = None)
-    delete    = appview.DeleteView(regex = 'delete/(?P<id>\d+)', parent = None)
+    add       = appview.AddView()
+    view      = appview.ViewView()
+    edit      = appview.ChangeView()
+    delete    = appview.DeleteView()
         
     def has_permission(self, request = None, obj = None):
         if not request:

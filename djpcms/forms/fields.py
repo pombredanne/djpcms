@@ -244,8 +244,6 @@ class ChoiceField(Field):
             return {}
                 
     def _clean(self, value):
-        '''Clean the field value'''
-        model = self.model
         if value:
             ch,model = self.choices_and_model()
             if model:
@@ -256,7 +254,7 @@ class ChoiceField(Field):
                 except:
                     raise ValidationError('{0} is not a valid choice'.format(value))
             if value:
-                if not isinstance(ch,dict):
+                if not model and not isinstance(ch,dict):
                     ch = dict(ch)
                 if not value in ch:
                     raise ValidationError('{0} is not a valid choice'.format(value))

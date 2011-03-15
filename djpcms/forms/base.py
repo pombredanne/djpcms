@@ -3,6 +3,7 @@
 Several parts are originally from django
 '''
 from copy import deepcopy
+import json
 
 from py2py3 import iteritems
 
@@ -150,15 +151,17 @@ browser based application as well as remote procedure calls validation.
         self.instance = instance
         self.messages = {}
         self.request = request
+        if request:
+            self.user = getattr(request,'user',None)
+        else:
+            self.user = None 
         if self.instance:
             model = self.instance.__class__
         self.model = model
         if model:
             self.mapper = mapper(model)
-        if self.instance:
-            self.form_data()
-        elif model:
-            self.instance = model()
+            if not self.instance:
+                self.instance = model()
         self.form_sets = []
         self.forms = []
         if not self.is_bound:
@@ -199,8 +202,8 @@ browser based application as well as remote procedure calls validation.
             if field.initial and name not in initial:
                 initial[name] = field.initial
             if self.instance:
-                value = getattr(instance,name,None)
-                if value:
+                value = getattr(instance,name,nodata)
+                if value != nodata:
                     initial[name] = value
         
     def get_prefix(self, prefix, data):
@@ -295,14 +298,6 @@ Messages can be errors or not.
         '''The form clean method. Called last in the validation algorithm.'''
         pass
     
-    def form_data(self):
-        data = self.initial
-        instance = self.instance
-        for field in self.base_fields:
-            val = getattr(instance,field,nodata)
-            if val != nodata:
-                data[field] = val
-    
     def add_message(self, msg):
         self.form_message(self.messages, '__all__', msg)
         
@@ -318,6 +313,12 @@ Messages can be errors or not.
         '''Hook to modify/manipulate data before saving.
         It is advised to override this function rather than the save method.'''
         pass
+    
+    def tojson(self):
+        if self.is_valid():
+            return json.dumps(self.cleaned_data)
+        else:
+            return u''
         
 
 class HtmlForm(object):

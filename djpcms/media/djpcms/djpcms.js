@@ -476,6 +476,19 @@
             $('table.tablesorter',$this).each(function() {
                 $(this).tablesorter(config.tablesorter);
             });
+            $('.tablesorter-with-actions').each(function() {
+                var me = $(this),
+                    all = $('.action-check input',me),
+                    tr = $('tbody tr',me);
+                $('.select_all',me).click(function() {
+                    all.attr({'checked':'checked'});
+                    tr.addClass('ui-state-highlight');
+                });
+                $('.select_none',me).click(function() {
+                    all.removeAttr('checked');
+                    tr.removeClass('ui-state-highlight');
+                });
+            });
         }
     });
     

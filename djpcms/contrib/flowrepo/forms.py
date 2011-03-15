@@ -168,47 +168,38 @@ class FlowItemSelector(forms.Form):
 class WebAccountForm(forms.Form):
     '''A form to add/edit web accounts.
     '''
-    user     = forms.CharField(widget=forms.HiddenInput, required = False)
-    username = forms.CharField(required = False, max_length = 200)
-    password = forms.CharField(required = False, max_length = 200)
+    name = forms.CharField()
+    url = forms.CharField()
+    username = forms.CharField(required = False)
+    password = forms.CharField(required = False)
     email    = forms.EmailField(required = False)
-    pin      = forms.CharField(required = False, max_length = 200)
+    pin      = forms.CharField(required = False)
     extended = forms.CharField(required = False)
     tags     = TagField(required = False)
     
-    def __init__(self, **kwargs):
-        request = kwargs.get('request',None)
-        instance = kwargs.get('instance',None)
-        self._user = request.user
-        if instance:
-            data = instance.data
-            if data:
-                initial = kwargs.get('initial',None) or {}
-                initial.update(json.loads(data))
-                kwargs['initial'] = initial
-        super(WebAccountForm,self).__init__(**kwargs)
+    def get_user(self):
+        if not self.user or self.user.is_authenticated():
+            return None
+        else:
+            return self.user
+        
+    def clean(self):
+        user = self.get_user()
+        if not user:
+            raise forms.ValidationError('Not authenticated')
     
-    def clean_user(self):
-        return self._user
-    
-    def clean_name(self):
-        user = self._user
-        name = self.cleaned_data['name']
-        if name:
-            acc = self._meta.model.objects.filter(user = user, name = name)
-            if acc:
-                acc = acc[0]
-                if acc.id != self.instance.id:
-                    raise forms.ValidationError('Account %s already available' % name)
+    def clean_name(self, name):
+        user = self.get_user()
+        if not user:
+            return name
+        acc = self.mapper.filter(user = user, name = name)
+        if acc:
+            acc = acc[0]
+            if acc.id != self.instance.id:
+                raise forms.ValidationError('Account %s already available' % name)
             return name
         else:
-            raise forms.ValidationError('Account name is required')
-        
-    def tojson(self):
-        if self.is_valid():
-            return json.dumps(self.cleaned_data)
-        else:
-            return u''
+            return name
         
     def save(self, commit = True):
         if commit:

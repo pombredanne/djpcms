@@ -101,7 +101,7 @@ class ChangeContentView(views.ChangeView):
             else:
                 # No plugin
                 fw.add('<div id="%s"></div>' % id)
-            sub = SubmitInput(value = "edit", name = 'edit_content').render()
+            sub = SubmitInput(value = "edit", name = 'edit_content').render(djp)
             id = instance.pluginid('edit')
             cl = '' if purl else ' class="djphide"'
             #fw.inputs.append('<span id="{0}"{1}>{2}</span>'.format(id,cl,sub))

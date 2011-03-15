@@ -2,6 +2,11 @@ from djpcms import sites
 
 from stdnet import orm
 
+__all__ = ['register_models',
+           'LINKED_OBJECT_ATTRIBUTE']
+
+LINKED_OBJECT_ATTRIBUTE = 'djobject'
+
 
 def register_models(apps,**kwargs):
     '''Register models defined in application list ``apps``.'''

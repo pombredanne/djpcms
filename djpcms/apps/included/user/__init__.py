@@ -34,9 +34,9 @@ No assumption has been taken over which model is used for storing user data.'''
                        form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
     change = views.ChangeView(regex = 'change',
-                                isplugin = True,
-                                parent = 'home',
-                                form = HtmlForm(PasswordChangeForm))
+                              isplugin = True,
+                              parent = 'home',
+                              form = HtmlForm(PasswordChangeForm))
     add = views.AddView(regex = 'create',
                           isplugin = True,
                           parent = 'home',

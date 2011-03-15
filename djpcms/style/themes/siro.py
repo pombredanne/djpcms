@@ -14,7 +14,6 @@ CssTheme('bodyedit',
 CssTheme('tablesorter',
          theme_name,
          data = {
-            'toolbox_background_color':'#d0e5f5',
             'odd_background_color':'#dfeffc',
             'row_hover_background':'#d0e5f5',
         }

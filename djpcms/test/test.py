@@ -1,12 +1,15 @@
 import json
+import os
+import sys
 import unittest
 from copy import copy
 
 import djpcms
 from djpcms.apps.site import ApplicationSites
-from djpcms import sites, forms
+from djpcms import sites, forms, UnicodeMixin
 from djpcms.views import djpcmsview
 from djpcms.forms.utils import fill_form_data
+from djpcms.utils.importer import import_module
 from djpcms.core.exceptions import *
 
 try:
@@ -27,6 +30,58 @@ except AttributeError:
     
 #from .client import Client
 
+
+class TestDirectory(UnicodeMixin):
+    
+    def __init__(self,path):
+        self.path = path
+        
+    def __unicode__(self):
+        return self.path
+    
+    def app_label(self,test_type,app):
+        return '{0}.{1}'.format(test_type,app)
+    
+    def all_model_labels(self, test_type, app):
+        return (self.app_label(app),)
+    
+    def dirpath(self, test_name):
+        return os.path.join(self.path,test_name)
+        
+    def test_module(self, test_name, mod):
+        return '{0}.tests'.format(mod)
+
+
+class ContribTestDirectory(TestDirectory):
+
+    def __init__(self, lib, contrib):
+        self.lib = lib
+        self.contrib = contrib
+        module = import_module('{0}.{1}'.format(lib,contrib))
+        self.path = os.path.dirname(module.__file__)
+        
+    def dirpath(self, test_name):
+        return self.path
+
+    def app_label(self, test_type, app):
+        return '{0}.{1}'.format(self.contrib,app)
+    
+    def all_model_labels(self, test_type, app):
+        yield '{0}.{1}'.format(self.lib,self.app_label(test_type,app))
+        test_model = os.path.join(self.path,app,'tests','testmodels')
+        if os.path.isdir(test_model):
+            if test_model not in sys.path:
+                sys.path.insert(0,test_model)
+            for d in os.listdir(test_model):
+                if os.path.isdir(os.path.join(test_model,d)):
+                    yield d
+            
+        
+    def test_module(self, test_name, mod):
+        return '{0}.tests.{1}'.format(mod,test_name)
+
+def SiteTestDirectory(TestDirectory):
+    pass
 
 class TestCase(TestCaseBase):
     '''Implements shortcut functions for testing djpcms.
@@ -58,14 +113,12 @@ Must be used as a base class for TestCase classes'''
         return []
     
     def __call__(self, result=None):
-        """
-        Wrapper around default __call__ method to perform common Django test
-        set up. This means that user-defined Test Cases aren't required to
-        include a call to super().setUp().
+        """Wrapper around default __call__ method to perform common test
+        set up.
         """
         #self.client = self.client_class()
-        from .client import Client
-        self.client = Client()
+        #from .client import Client
+        #self.client = Client()
         skipping = getattr(self.__class__, "__unittest_skip__", False)
         if not skipping:
             self._pre_setup()
@@ -80,7 +133,7 @@ Must be used as a base class for TestCase classes'''
     def resolve_test(self, path):
         '''Utility function for testing url resolver'''
         self.sites.load()
-        res  = self.sites.resolve(path)        
+        res  = self.sites.resolve(path)  
         self.assertTrue(len(res),3)
         self.assertTrue(isinstance(res[1],djpcmsview))
         return res

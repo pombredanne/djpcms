@@ -2,6 +2,13 @@ from djpcms import sites
 from djpcms.utils.importer import import_module
 
 
+def clear_stdnet():
+    '''Utility for stdnet'''
+    from stdnet.orm import model_iterator
+    for model in model_iterator(sites.settings.INSTALLED_APPS):
+        model.flush()
+
+
 class TestEnvironment(object):
     '''Set up the test environment by checking which 3rd party
 package is available'''
@@ -11,6 +18,7 @@ package is available'''
         self.check('django')
         self.check('werkzeug')
         self.check('sqlalchemy')
+        self.check('stdnet')
         self.setup()
         
     def check(self, name):
@@ -54,11 +62,6 @@ package is available'''
         from django.core.management import call_command
         for db in connections:
             call_command('flush', verbosity=0, interactive=False, database=db)
-
-            if hasattr(self, 'fixtures'):
-                # We have to use this slightly awkward syntax due to the fact
-                # that we're using *args and **kwargs together.
-                call_command('loaddata', *self.fixtures, **{'verbosity': 0, 'database': db})
         mail.outbox = []
                 
     def post_teardown_django(self):
@@ -69,23 +72,13 @@ package is available'''
     def setupdb_django(self):
         '''If django is available, setup django tests'''
         from django.db import connections
-        old_names = []
-        mirrors = []
+        from django.db.models.loading import cache
         suite = self.suite
-        for alias in connections:
-            connection = connections[alias]
-            # If the database is a test mirror, redirect it's connection
-            # instead of creating a test database.
-            if connection.settings_dict['TEST_MIRROR']:
-                mirrors.append((alias, connection))
-                mirror_alias = connection.settings_dict['TEST_MIRROR']
-                connections._connections[alias] = connections[mirror_alias]
-            else:
-                old_names.append((connection, connection.settings_dict['NAME']))
-                connection.creation.create_test_db(suite.verbosity, autoclobber=not suite.interactive)
-        self.django_old_config = old_names, mirrors
+        for db in connections.all():
+            db.creation.create_test_db(suite.verbosity,
+                                       autoclobber=not suite.interactive)
         
-    def teardown_django(self):
+    def _teardown_django(self):
         '''If django is available, teardown django tests'''
         from django.test.utils import teardown_test_environment
         from django.db import connections
@@ -99,3 +92,8 @@ package is available'''
         for connection, old_name in old_names:
             connection.creation.destroy_test_db(old_name, suite.verbosity)
         
+    def pre_setup_stdnet(self):
+        clear_stdnet()
+        
+    def post_teardown_stdnet(self):
+        clear_stdnet()

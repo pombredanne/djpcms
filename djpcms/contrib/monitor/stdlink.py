@@ -1,5 +1,9 @@
 import logging
 
+from djpcms.utils.importer import import_module
+
+from .utils import LINKED_OBJECT_ATTRIBUTE
+
 logger = logging.getLogger('djpcms.contrib.stdlink')
 
 
@@ -7,7 +11,7 @@ def remove_linked(sender, instance = None, **kwargs):
     linked = getattr(sender._meta,'linked',None)
     if linked:
         try:
-            instance = linked.objects._get(id = instance.id)
+            instance = linked.objects.get(id = instance.id)
             logger.debug('Deleting linked stdmodel %s' % instance)
             instance.delete()
         except linked.DoesNotExist:
@@ -20,12 +24,12 @@ class PostSave(object):
     
     def __call__(self, sender, instance, **kwargs):
         '''Default django model post save call back method.
-    It updates an existing linked ``stdmodel`` instance
-    or create a new one.'''
+It updates an existing linked ``stdmodel`` instance
+or create a new one.'''
         linked = getattr(sender._meta,'linked',None)
         if linked:
             try:
-                obj = linked.objects._get(id = instance.id)
+                obj = linked.objects.get(id = instance.id)
             except linked.DoesNotExist:
                 obj = None
             if obj:
@@ -42,20 +46,20 @@ class PostSave(object):
 post_save_default = PostSave()
 
 
-def get_djobject(self):
-    obj = getattr(self,'djobject',None)
+def get_object_attribute(self):
+    obj = getattr(self,LINKED_OBJECT_ATTRIBUTE,None)
     if not obj and self.id:
         try:
             obj = self._meta.linked.objects.get(id = self.id)
-            self.djobject = obj
+            setattr(self,LINKED_OBJECT_ATTRIBUTE,obj)
             self.save()
         except:
             obj = None
-            self.djobject = obj
+            setattr(self,LINKED_OBJECT_ATTRIBUTE,obj)
     return obj
 
 def get_djfield(self, name):
-    obj = self.get_djobject()
+    obj = self.get_object_attribute()
     if obj:
         attr = getattr(obj,name,None)
         if callable(attr):
@@ -124,13 +128,21 @@ This function injects methods to both model1 and model2:
             pre_delete_callback = pre_delete_callback or remove_linked
             post_save_callback  = post_save_callback or post_save_default
             djfield = orm.PickleObjectField()
-            djfield.register_with_model('djobject',model2)
+            djfield.register_with_model(LINKED_OBJECT_ATTRIBUTE,model2)
             model2.objects = LinkedManager(model1, model2)
-            setattr(model2,'get_djobject',get_djobject)
+            setattr(model2,'get_object_attribute',get_object_attribute)
             setattr(model1,django_linked,StdNetDjangoLink(django_linked))
             for field in field_map:
                 setattr(model2,field,add_djfield(field))
                 
             signals.pre_delete.connect(pre_delete_callback, sender=model1)
             signals.post_save.connect(post_save_callback, sender=model1)
+        
+
+def linked(apps):
+    '''An iterator over linked models in a list of applications'''
+    from stdnet.orm import model_iterator
+    for model in model_iterator(apps):
+        if hasattr(model._meta,'linked'):
+            yield model
         

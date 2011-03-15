@@ -104,13 +104,12 @@ of djpcms application routes as well as general configuration parameters.'''
     modelwrappers = {}
     
     def __init__(self):
-        self._sites = {}
         self.clear()
         self.permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
         
     def clear(self):
-        self._sites.clear()
+        self._sites = {}
         self.admins = []
         self._osites = None
         self._settings = None
@@ -119,9 +118,6 @@ of djpcms application routes as well as general configuration parameters.'''
         self.tree = None
         self.model_from_hash = {}
         self.User = None
-        ResolverMixin.clear(self)
-        for wrapper in self.modelwrappers.values():
-            wrapper.clear()
         
     def register_orm(self, name):
         '''Register a new Object Relational Mapper to Djpcms. ``name`` is the

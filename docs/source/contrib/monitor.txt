@@ -58,5 +58,5 @@ Adding Extra Data
 API
 ~~~~~~~~~~~~
 
-.. autofunction:: django.contrib.monitor.link_models
+.. autofunction:: djpcms.contrib.monitor.link_models
 

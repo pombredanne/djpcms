@@ -7,7 +7,7 @@ from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied
-from djpcms.html.lazy import LazyRender
+from djpcms.html.utils import LazyRender
 
 from .navigation import Navigator, Breadcrumbs
 

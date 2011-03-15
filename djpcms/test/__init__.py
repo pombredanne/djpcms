@@ -1,5 +1,7 @@
-from .test import TestCase, TestCaseWithUser, PluginTest
-from .test import skip, skipIf, skipUnless, SkipTest
+from .test import TestCase, TestCaseWithUser, PluginTest,\
+                  skip, skipIf, skipUnless, SkipTest,\
+                  TestDirectory, ContribTestDirectory,\
+                  SiteTestDirectory
 from .runner import build_suite, TestLoader, TestSuiteRunner
 
 

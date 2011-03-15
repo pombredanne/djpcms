@@ -6,12 +6,7 @@ SITE_ID = 1
 
 
 # Required if testing django Integration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(CUR_DIR,'testdjpcms.sqlite')
-    }
-}
+DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3'}}
 
 try:
     import django

@@ -17,6 +17,7 @@ __contact__   = "luca.sbardella@gmail.com"
 __homepage__  = "http://djpcms.com/"
 __docformat__ = "restructuredtext"
 
+LIBRARY_NAME = 'djpcms'
 
 import os
 import sys

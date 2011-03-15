@@ -318,7 +318,7 @@ Messages can be errors or not.
         if self.is_valid():
             return json.dumps(self.cleaned_data)
         else:
-            return u''
+            return ''
         
 
 class HtmlForm(object):

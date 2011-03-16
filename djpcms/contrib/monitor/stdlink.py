@@ -80,7 +80,10 @@ class StdNetDjangoLink(object):
         if not val:
             linked = getattr(instance._meta,'linked', None)
             if linked:
-                val = linked.objects.get(id = instance.id)
+                try:
+                    val = linked.objects.get(id = instance.id)
+                except linked.DoesNotExist:
+                    val = linked.objects.update_from_django(instance)
                 setattr(instance,self.cache_name,val)
             else:
                 val = None

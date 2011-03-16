@@ -1,7 +1,6 @@
-from djpcms import sites
-
 
 def handle(engine = None):
+    from djpcms import sites
     engine = engine or sites.settings.TEMPLATE_ENGINE
     if engine not in _handlers:
         handle = get_engine(engine)
@@ -12,6 +11,7 @@ def handle(engine = None):
         
         
 def get_engine(engine, config = None):
+    from djpcms import sites
     config = config or sites.settings
     if engine == 'django':
         from ._django import TemplateHandler

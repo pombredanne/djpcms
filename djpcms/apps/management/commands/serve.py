@@ -16,7 +16,7 @@ class Command(BaseCommand):
     )
     help = "Serve the application."
     
-    def handle(self, *args, **options):
+    def handle(self, sites, *args, **options):
         if args:
             port = int(args[0])
         else:
@@ -26,4 +26,4 @@ class Command(BaseCommand):
             print('No sites installed, cannot serve the aplication')
         elif using:
             sites.settings.HTTP_LIBRARY = using
-        http.serve(port = port)
+        http.serve(port = port, sites = sites)

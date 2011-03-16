@@ -107,23 +107,30 @@ class FormLayoutElement(BaseFormLayout):
     def make_classes(self):
         self.addClass(self.elem_css).addClass(self.default_style)
         
-    def render_field(self, djp, field, layout):
-        '''Render a single field'''
-        form = field.form
+    def render_field(self, djp, bfield, layout):
+        '''\
+Render a single bound field using a layout.
+
+:parameter djp: instance of :class:`djpcms.views.Djpresponse`.
+:parameter bfield: instance of bound field.
+:parameter layout: instance of :class:`djpcms.forms.layout.Layout`.
+        '''
+        form = bfield.form
+        name = bfield.name
         rendered_fields = layout.get_rendered_fields(form)
-        if not field.name in rendered_fields:
-            rendered_fields[field.name] = field
+        if not bfield.name in rendered_fields:
+            rendered_fields[bfield.name] = bfield
         else:
-            raise Exception("A field should only be rendered once: %s" % field)
-        widget = field.field.widget
+            raise Exception("A field should only be rendered once: %s" % bfield)
+        widget = bfield.field.widget
         if isclass(widget):
             widget = widget()
-        self.add_widget_classes(field,widget)
-        ctx = {'label': None if self.default_style == nolabel else field.label,
+        self.add_widget_classes(bfield,widget)
+        ctx = {'label': None if self.default_style == nolabel else bfield.label,
                'required_tag': self.required_tag or layout.required_tag,
-               'field':field,
-               'error': form.errors.get(field.name,''), 
-               'widget':widget.render(djp, field),
+               'field':bfield,
+               'error': form.errors.get(name,''), 
+               'widget':widget.render(djp, bfield),
                'is_hidden': widget.is_hidden,
                'ischeckbox':widget.ischeckbox()}
         field_template = self.field_template or layout.field_template

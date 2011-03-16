@@ -5,3 +5,4 @@ interface and it is used to build real web-based
 dynamic applications.
 '''
 from .site import *
+from .permissions import *

@@ -1,6 +1,6 @@
-from djpcms import sites
+from djpcms import sites as global_sites
 from djpcms.conf import setup_django
-setup_django(sites.settings,True)
+setup_django(global_sites.settings,True)
 
 from django.http import *
 from django.core.handlers import wsgi
@@ -55,7 +55,8 @@ def finish_response(res, environ, start_response):
     return res
         
 
-def serve(port = 0, use_reloader = False):
+def serve(port = 0, sites = None, use_reloader = False):
+    sites = sites or gloabl_sites
     from django.core.servers.basehttp import run
     run('localhost', port, DjpCmsHandler(sites))
     

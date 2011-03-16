@@ -10,7 +10,7 @@ nicerepr = orms.nicerepr
 
 from .utils import LazyRender
 
-__all__ = ['Table','table','nicerepr']
+__all__ = ['Table','table','nicerepr','table_checkbox']
 
 
 def response_table_row(headers,item,path=SLASH):
@@ -21,9 +21,17 @@ def response_table_row(headers,item,path=SLASH):
         yield v
         
 
+divchk = '<div class="action-check">'
+spvval = '<span class="value">'
+
+def table_checkbox(val):
+    chk = CheckboxInput(value = val, name = 'action-item').render()
+    if val:
+        val = divchk+chk+spvval+val+SPANEND+DIVEND
+    return val
+        
+
 class get_result(object):
-    divchk = '<div class="action-check">'
-    spvval = '<span class="value">'
     
     def __init__(self, actions = False):
         self.actions = actions
@@ -64,9 +72,7 @@ class get_app_result(get_result):
             var = ''
         if self.first and self.actions:
             first = False
-            chk = CheckboxInput(value = var, name = 'action-item').render()
-            if var:
-                var = self.divchk+chk+self.spvval+var+SPANEND+DIVEND
+            var = table_checkbox(var)
         self.first = first
         return var
 

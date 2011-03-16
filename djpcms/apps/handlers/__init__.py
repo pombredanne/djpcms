@@ -7,7 +7,7 @@ class djpcmsinfo(UnicodeMixin):
     
     def __init__(self,view,kwargs,page=None,site=None):
         self.view = view
-        self.kwargs = kwargs
+        self.kwargs = kwargs if kwargs is not None else {}
         self.page = page
         self.context_cache = None
         if view:

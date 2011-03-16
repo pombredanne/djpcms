@@ -102,8 +102,6 @@ class BaseCommand(object):
         make_option('-v', '--verbosity', action='store', dest='verbosity', default='1',
             type='choice', choices=['0', '1', '2', '3'],
             help='Verbosity level; 0=minimal output, 1=normal output, 2=all output'),
-        make_option('--settings',
-            help='The Python path to a settings module, e.g. "myproject.settings.main". If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment variable will be used.'),
         make_option('--pythonpath',
             help='A directory to add to the Python path, e.g. "/home/djangoprojects/myproject".'),
         make_option('--traceback', action='store_true',
@@ -158,7 +156,7 @@ class BaseCommand(object):
         parser = self.create_parser(prog_name, subcommand)
         parser.print_help()
 
-    def run_from_argv(self, argv):
+    def run_from_argv(self, sites, argv):
         """
         Set up any environment changes requested (e.g., Python path
         and Django settings), then run this command.
@@ -167,9 +165,9 @@ class BaseCommand(object):
         parser = self.create_parser(argv[0], argv[1])
         options, args = parser.parse_args(argv[2:])
         handle_default_options(options)
-        self.execute(*args, **options.__dict__)
+        self.execute(sites, *args, **options.__dict__)
 
-    def execute(self, *args, **options):
+    def execute(self, sites, *args, **options):
         """
         Try to execute this command, performing model validation if
         needed (as controlled by the attribute
@@ -181,7 +179,7 @@ class BaseCommand(object):
         try:
             self.stdout = options.get('stdout', sys.stdout)
             self.stderr = options.get('stderr', sys.stderr)
-            output = self.handle(*args, **options)
+            output = self.handle(sites, *args, **options)
             if output:
                 if self.output_transaction:
                     # This needs to be imported here, because it relies on

@@ -57,17 +57,6 @@ class InnerTemplate(TimeStamp,TemplateInterface):
         app_label = 'djpcms'
     
     
-class Site(ModelBase):
-    domain = field.SymbolField(unique = True)
-    name = field.SymbolField(unique = True)
-    
-    class Meta:
-        app_label = 'djpcms'
-        
-    def __unicode__(self):
-        return self.name
-    
-    
 class Page(TimeStamp, PageInterface):
     '''The page model holds several information regarding pages in the sitemap.'''
     title = field.CharField()
@@ -82,6 +71,7 @@ class Page(TimeStamp, PageInterface):
     soft_root = field.BooleanField(default=False)
     doctype = field.IntegerField(default = html.htmldefaultdoc)
     insitemap = field.BooleanField(default = True)
+    layout = field.IntegerField(default = 0, required = False)
 
     class Meta:
         app_label = 'djpcms'

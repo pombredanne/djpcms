@@ -254,8 +254,8 @@ class ChoiceField(Field):
                 except:
                     raise ValidationError('{0} is not a valid choice'.format(value))
             if value:
-                if not model and not isinstance(ch,dict):
-                    ch = dict(ch)
+                if not model:
+                    ch = set((to_string(x[0]) for x in ch))
                 if not value in ch:
                     raise ValidationError('{0} is not a valid choice'.format(value))
         return value

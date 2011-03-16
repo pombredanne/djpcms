@@ -12,6 +12,7 @@ from userprofile.models import UserProfile
 
 
 __all__ = ['DjangoStdNetLinkTest',
+           'TestRedisMonitor',
            'appurls']
 
 def appurls():
@@ -50,6 +51,7 @@ class DjangoStdNetLinkTest(test.TestCase):
         u.save()
         c = UserProfile.objects.get(id = u.id)
         self.assertEqual(c.djobject,u)
+        return u
         
     def _testDerivedManager(self):
         self.assertFalse(isinstance(Environment.objects,LinkedManager))
@@ -60,6 +62,23 @@ class DjangoStdNetLinkTest(test.TestCase):
         self.DjangoUser.objects.all().delete()
         self.assertFalse(UserProfile.objects.all().count())
         
+    def testGet(self):
+        username = self.testCreate().username
+        user = self.DjangoUser.objects.get(username = username)
+        profile = user.userprofile_linked
+        self.assertEqual(profile.djobject,user)
+        # now delete profile
+        profile.delete()
+        # still there
+        profile = user.userprofile_linked
+        self.assertRaises(UserProfile.DoesNotExist,
+                          UserProfile.objects.get,
+                          id = profile.id)
+        user = self.DjangoUser.objects.get(username = username)
+        # the linked object is recreated
+        profile = user.userprofile_linked
+        self.assertEqual(profile.djobject,user)
+        
     def testUpdates(self):
         for nma,psw in zip(names,passw):
             try:
@@ -68,5 +87,17 @@ class DjangoStdNetLinkTest(test.TestCase):
                 continue
         self.assertEqual(self.DjangoUser.objects.all().count(),
                          UserProfile.objects.all().count())
+            
+
+class TestRedisMonitor(test.TestCase,test.UserMixin):
+    
+    def setUp(self):
+        self.makesite()
+        self.makesite('/admin/',appurls = self.sites.make_admin_urls)
+        self.sites.load()
+        self.makeusers()
+        self.login()
         
-        
+    #def testAddServer(self):
+    #    response = self.get('/admin/monitor/redis/add/')
+    #    html = response.content

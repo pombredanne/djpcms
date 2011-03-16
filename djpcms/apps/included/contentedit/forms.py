@@ -33,6 +33,7 @@ class PageForm(forms.Form):
     inner_template = forms.ChoiceField(choices = get_templates)   
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
+    layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')))
     
     def clean_url(self, value):
         node = djpcms.node(value)

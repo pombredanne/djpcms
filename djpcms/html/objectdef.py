@@ -20,10 +20,11 @@ Usage::
     >>> str(d)
     
 '''    
-    def __init__(self, appmodel, djp):
+    def __init__(self, appmodel, djp, data = None):
         self.appmodel = appmodel
         self.djp = djp
         self.obj = djp.instance
+        self.data = data
         
     def _data(self):
         obj = self.obj
@@ -38,7 +39,7 @@ Usage::
                 
     def __unicode__(self):
         '''Render an object as definition list.'''
-        data = self._data()
+        data = self.data or self._data()
         obj = self.obj
         mapper = self.appmodel.mapper
         content = {'module_name':mapper.module_name,

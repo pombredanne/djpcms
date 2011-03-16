@@ -13,6 +13,8 @@ from djpcms.utils.const import SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 
+from .management import find_commands
+from .permissions import SimplePermissionBackend
 
 __all__ = ['MakeSite',
            'GetOrCreate',
@@ -22,18 +24,7 @@ __all__ = ['MakeSite',
            'get_url',
            'get_urls',
            'loadapps',
-           'sites',
-           'VIEW',
-           'ADD',
-           'CHANGE',
-           'DELETE']
-
-
-# Main permission flags
-VIEW = 10
-ADD = 20
-CHANGE = 30
-DELETE = 40
+           'sites']
 
 
 logger = logging.getLogger('sites')
@@ -44,15 +35,6 @@ def make_site(self, route, *args):
     return appsites.ApplicationSite(self, route, *args)
     
     
-class SimplePermissionBackend(object):
-    
-    def has(self, request, permission_code, obj, user = None):
-        if permission_code <= VIEW:
-            return True
-        else:
-            return request.user.is_superuser
-        
-        
 def standard_exception_handle(request, e, status = None):
     from djpcms.template import loader
     status = status or getattr(e,'status',None) or 500
@@ -71,8 +53,9 @@ def standard_exception_handle(request, e, status = None):
     exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
     logtrace(logger, request, exc_info, status)
-    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
-    info.stack_trace = stack_trace
+    #store stack trace in the DJPCMS environment variable
+    info.stack_trace = traceback.format_exception(*exc_info)
+    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info.stack_trace))
     ctx  = loader.context({'status':status,
                            'stack_trace':stack_trace,
                            'request':request,
@@ -117,6 +100,7 @@ of djpcms application routes as well as general configuration parameters.'''
         self._default_settings = None
         self.route = None
         self.tree = None
+        self._commands = None
         self.model_from_hash = {}
         self.User = None
         
@@ -364,7 +348,27 @@ admin application will be included.
                     raise DjpcmsException('Model {0} is registered with \
 more than one site. Cannot resolve.'.format(model))
                 r = r2
-        return r            
+        return r
+    
+    def get_commands(self):
+        gc = self._commands
+        if gc is None:
+            gc = self._commands = {}
+            # Find and load the management module for each installed app.
+            for app_name in self.settings.INSTALLED_APPS:
+                command_module = app_name
+                if app_name == 'djpcms':
+                    command_module = 'djpcms.apps'
+                try:
+                    mod = import_module(command_module+'.management')
+                    if hasattr(mod,'__path__'):
+                        path = mod.__path__[0]
+                        gc.update(dict(((name, command_module)
+                                        for name in find_commands(path))))
+                except ImportError:
+                    pass # No management module
+    
+        return gc            
         
 sites = ApplicationSites()
 

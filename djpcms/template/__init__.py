@@ -19,11 +19,19 @@ def make_default_inners():
     '''Default inner templates are located in the djpcms/templates/djpcms/inner directory'''
     from djpcms import DJPCMS_DIR
     from djpcms.models import InnerTemplate
+    from djpcms.core.orms import mapper
     inner_dir = os.path.join(DJPCMS_DIR,'templates','djpcms','inner')
     load = loader.load_template_source
+    mp = mapper(InnerTemplate)
+    added = []
     for d in os.listdir(inner_dir):
         if os.path.isfile(os.path.join(inner_dir,d)):
             t,l = load('djpcms/inner/'+d)
             name = d.split('.')[0]
-            it = InnerTemplate(name = name, template = t)
-            it.save()
+            try:
+                mp.get(name = name)
+            except mp.DoesNotExist:
+                it = InnerTemplate(name = name, template = t)
+                it.save()
+                added.append(it.name)
+    return added

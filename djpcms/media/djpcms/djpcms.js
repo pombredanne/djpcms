@@ -1,5 +1,4 @@
-/*
- * File:         djpcms.js
+/* File:         djpcms.js
  * Description:  djpcms Javascript Site Manager
  * Author:       Luca Sbardella
  * Language:     Javascript
@@ -141,7 +140,7 @@
 		    var id  = data.header;
 		    var jcb = jsonCallBacks[id];
 		    if(jcb) {
-		        return jcb.handle(data.body, elem) & data.error;
+		        return jcb.handle(data.body, elem, defaults) & data.error;
 		    }
 		    else {
 		        log('Could not find callback ' + id);
@@ -156,12 +155,9 @@
 		 * @param elem (Optional) jQuery object or HTMLObject
 		 */
 		function _jsonCallBack(data, status, elem) {
-			var v;
+			var v = false;
 			if(status === "success") {
 				v = _jsonParse(data,elem);
-			}
-			else {
-				v = false;
 			}
 			inrequest = false;
 			return v;
@@ -269,9 +265,10 @@
 	 */
 	$.djpcms.addJsonCallBack({
 		id: "htmls",
-		handle: function(data, elem) {
+		handle: function(data, elem, config) {
 			$.each(data, function(i,b) {
-				var el = $(b.identifier,elem);
+				var el = $(b.identifier,elem),
+				    fade = config.fadetime;
 				if(!el.length & b.alldocument) {
 					el = $(b.identifier);
 				}
@@ -297,7 +294,9 @@
 							el.replaceWith(b.html);
 						}
 						else {
-							el.html(b.html);
+							el.fadeOut(fade,function(){
+							    el.html(b.html).fadeIn(fade);
+							});
 						}
 						el.djpcms();
 						el.show();

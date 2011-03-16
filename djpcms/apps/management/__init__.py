@@ -8,12 +8,9 @@ from optparse import OptionParser, NO_DEFAULT
 import imp
 
 import djpcms
-from djpcms import sites
 from djpcms.utils.importer import import_module
 
 from .base import BaseCommand, CommandError, handle_default_options
-
-global_commands = None
 
 
 def find_commands(management_dir):
@@ -39,29 +36,6 @@ def load_command_class(app_name, name):
     """
     module = import_module('%s.management.commands.%s' % (app_name, name))
     return module.Command()
-
-
-def get_commands():
-    global global_commands
-    if global_commands is None:
-        global_commands = {}
-        apps = sites.settings.INSTALLED_APPS
-
-        # Find and load the management module for each installed app.
-        for app_name in apps:
-            command_module = app_name
-            if app_name == 'djpcms':
-                command_module = 'djpcms.apps'
-            try:
-                mod = import_module(command_module+'.management')
-                if hasattr(mod,'__path__'):
-                    path = mod.__path__[0]
-                    global_commands.update(dict([(name, command_module)
-                                           for name in find_commands(path)]))
-            except ImportError:
-                pass # No management module
-
-    return global_commands
 
 
 def call_command(name, *args, **options):
@@ -96,6 +70,7 @@ def call_command(name, *args, **options):
     defaults.update(options)
 
     return klass.execute(*args, **defaults)
+
 
 class LaxOptionParser(OptionParser):
     """
@@ -159,9 +134,10 @@ class ManagementUtility(object):
     A ManagementUtility has a number of commands, which can be manipulated
     by editing the self.commands dictionary.
     """
-    def __init__(self, argv=None):
+    def __init__(self, sites, argv=None):
         self.argv = argv or sys.argv[:]
         self.prog_name = os.path.basename(self.argv[0])
+        self.sites = sites
 
     def main_help_text(self):
         """
@@ -169,7 +145,7 @@ class ManagementUtility(object):
         """
         usage = ['',"Type '%s help <subcommand>' for help on a specific subcommand." % self.prog_name,'']
         usage.append('Available subcommands:')
-        commands = get_commands().keys()
+        commands = self.sites.get_commands().keys()
         return '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
 
     def fetch_command(self, subcommand):
@@ -178,7 +154,7 @@ class ManagementUtility(object):
         "django-admin.py" or "manage.py") if it can't be found.
         """
         try:
-            app_name = get_commands()[subcommand]
+            app_name = self.sites.get_commands()[subcommand]
         except KeyError:
             sys.stderr.write("Unknown command: %r\nType '%s help' for usage.\n" % \
                 (subcommand, self.prog_name))
@@ -212,6 +188,7 @@ class ManagementUtility(object):
         except IndexError:
             subcommand = 'help' # Display help if no arguments were given.
             
+        # Allow for django commands
         if subcommand == 'django':
             from django.core.management import ManagementUtility
             argv = sys.argv[:1] + sys.argv[2:]
@@ -233,12 +210,16 @@ class ManagementUtility(object):
             parser.print_lax_help()
             sys.stderr.write(self.main_help_text() + '\n')
         else:
-            self.fetch_command(subcommand).run_from_argv(self.argv)
+            self.fetch_command(subcommand).run_from_argv(self.sites, self.argv)
 
 
-def execute(argv=None):
-    utility = ManagementUtility(argv)
+def execute(argv=None, sites = None):
+    #If no sites provided use the global one. This may be removed in the future
+    if not sites:
+        from djpcms import sites
+    utility = ManagementUtility(sites,argv)
     utility.execute()
-        
+
+
         
 

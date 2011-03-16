@@ -29,7 +29,9 @@ class PageChangeView(views.ChangeView):
     def get_context(self, djp):
         c = super(PageChangeView,self).get_context(djp)
         page = djp.instance
-        cdjp = djp.site.djp(djp.request, page.url[1:])
+        kwargs = dict(djp.request.GET.items())
+        url = page.url % kwargs
+        cdjp = djp.site.djp(djp.request, url[1:])
         inner = c['inner']
         c['inner'] = box(collapsed = True, bd = inner, hd = 'Page properties')
         c['underlying'] = cdjp.view.get_context(cdjp, editing = True)['inner']

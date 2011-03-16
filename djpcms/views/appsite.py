@@ -536,11 +536,6 @@ By default it return a generator of children pages.'''
             
         return loader.render(self.pagination_template_name, c)
 
-    def title_object(self, obj):
-        '''Return the title of a object-based view
-        '''
-        return to_string(obj)
-
 
 class ModelApplication(Application):
     '''An :class:`Application` class for applications

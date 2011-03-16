@@ -41,6 +41,7 @@ class TestPage(test.TestCase,test.PageMixin):
         self.assertRaises(PathException, root.get_view)
         
     def testObjectView(self):
+        '''Test an object view with a page'''
         self.model(name = 'test').save()
         view = self.appmodel.getview('view')
         self.assertEqual(view.path(),'/strategies/%(id)s/')

@@ -57,8 +57,10 @@ class OrmWrapper(BaseOrmWrapper):
     def setup_environment(cls, sites_):
         from stdnet.orm import register_applications
         settings = sites_.settings
+        default = settings.DATASTORE.get('default',None)
         register_applications(settings.INSTALLED_APPS,
-                              app_defaults = settings.DATASTORE)
+                              app_defaults = settings.DATASTORE,
+                              default = default)
     
 
 

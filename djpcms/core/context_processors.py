@@ -49,6 +49,9 @@ class PageLink(UnicodeMixin):
     def changelink(self, app):
         path = app.changeurl(self.request, self.page)
         if path:
+            kwargs = self.request.DJPCMS.kwargs
+            if kwargs:
+                path = iri_to_uri(path+'?'+'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
             return icons.pencil(path,'edit',title = 'Edit page contents',button=False)
         else:
             return ''

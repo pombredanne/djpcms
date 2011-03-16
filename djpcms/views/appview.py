@@ -289,7 +289,7 @@ Usage::
             title = page.title
         else:
             title = self.default_title or self.appmodel.description
-        return title.format({'instance':self.appmodel.title_object(djp.instance)})
+        return title.format(djp.kwargs)
     
     def linkname(self, djp):
         page = djp.page
@@ -297,7 +297,7 @@ Usage::
             link = page.link
         else:
             link = self.default_title or self.appmodel.name
-        return link.format({'instance':self.appmodel.title_object(djp.instance)})
+        return link.format(djp.kwargs)
     
     def names(self):
         return self.regex.names
@@ -308,7 +308,7 @@ Usage::
     def in_navigation(self, request, page):
         if not self.appmodel.hidden:
             if page:
-                if self.regex.names and not page.url_pattern:
+                if self.regex.names and page.url != self.path():
                     return 0
                 else:
                     return page.in_navigation
@@ -499,6 +499,7 @@ A view of this type has an embedded object available which is used to generate t
 class ViewView(ObjectView):
     '''An :class:`djpcms.views.ObjectView` class specialised for displaying an object.
     '''
+    default_title = '{0[instance]}'
     def __init__(self, regex = IDREGEX, **kwargs):
         super(ViewView,self).__init__(regex = regex, **kwargs)
     

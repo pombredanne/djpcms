@@ -26,7 +26,18 @@ linked with django models.'''
     #    except ObjectDoesNotExist:
     #        raise self.model.DoesNotExist
     #    return self.update_from_django(dobj)
-        
+    
+    def get_from_linked(self, **kwargs):
+        try:
+            obj = self.djmodel.objects.get(**kwargs)
+        except self.djmodel.DoesNotExist:
+            raise self.model.DoesNotExist
+        try:
+            instance = self.get(id = obj.id)
+        except self.model.DoesNotExist:
+            instance = None
+        return self.update_from_django(obj,instance)
+    
     def update_from_django(self, dobj, instance = None):
         if instance is None:
             instance = self.model(id = dobj.id)

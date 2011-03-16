@@ -69,14 +69,14 @@ CssContext('uniformHint',
            )
 
 #________________________________________ SUBMITS AND BUTTONS
-CssContext('button',
-           tag = '.ui-button',
-           template='djpcms/style/button.css_t',
-           data = {
-             'padding':'0.1em 0.3em',
-             'line_height':'1.2em'
-            }
-)
+#CssContext('button',
+#           tag = '.ui-button',
+#           template='djpcms/style/button.css_t',
+#           data = {
+#             'padding':'0.1em 0.3em',
+#             'line_height':'1.2em'
+#            }
+#)
 
 #________________________________________ TAGS
 CssContext('tags',

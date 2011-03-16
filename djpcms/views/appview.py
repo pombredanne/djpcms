@@ -5,7 +5,6 @@ from datetime import datetime
 
 from py2py3 import zip
 
-from djpcms import get_page
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
@@ -334,13 +333,7 @@ Usage::
         
     def is_soft(self, djp):
         page = djp.page
-        return False if not page else page.soft_root
-        
-    def get_page(self, djp):
-        page = get_page(djp.url)
-        if not page and djp.url != self.path():
-            page = get_page(djp.url)
-        return page            
+        return False if not page else page.soft_root       
         
     def has_permission(self, request = None, page = None, obj = None, user = None):
         if super(View,self).has_permission(request, page, obj, user = user):

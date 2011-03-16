@@ -29,12 +29,12 @@ class TestAdmin(test.TestCase):
         self.assertTrue(node.ancestor) # The admin has an ancestor (the root node)
         children = dict(((c.path,c) for c in node.children()))
         self.assertTrue(len(children)>=2)
-        a = children['/admin/djpcms/']
+        a = children['/admin/layout/']
         b = children['/admin/adminapp/']
         
     def testResolver1(self):
         self.resolve_test('admin/')
-        self.resolve_test('admin/djpcms/')
-        self.resolve_test('admin/djpcms/templates/')
+        self.resolve_test('admin/layout/')
+        self.resolve_test('admin/layout/templates/')
     
     

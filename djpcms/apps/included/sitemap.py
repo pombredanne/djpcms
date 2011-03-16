@@ -43,6 +43,7 @@ class SiteMapApplication(views.ModelApplication):
     main = SiteMapView(in_navigation = 1)
     
     if Page:
+        search = views.SearchView(regex = 'pages', parent = 'main')
         add = views.AddView(parent = 'main', force_redirect = True)
         change = PageChangeView(regex = views.IDREGEX,
                                 parent = 'main',

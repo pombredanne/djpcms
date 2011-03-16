@@ -199,11 +199,13 @@ browser based application as well as remote procedure calls validation.
         initial = self.initial
         instance = self.instance
         for name,field in iteritems(self.base_fields):
+            if name in initial:
+                continue
             if field.initial and name not in initial:
                 initial[name] = field.initial
             if self.instance:
-                value = getattr(instance,name,nodata)
-                if value != nodata:
+                value = getattr(instance,name,None)
+                if value:
                     initial[name] = value
         
     def get_prefix(self, prefix, data):

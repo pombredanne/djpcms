@@ -6,6 +6,7 @@ from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
+from djpcms.core.orms import mapper
 from djpcms.views import Application, ModelApplication, DummyDjp
 from djpcms.template import loader
 
@@ -239,9 +240,13 @@ returns the application handler. If the appname is not available, it raises a Ke
         if not template_name:
             return
         name = os.path.split(template_name)[1].split('.')[0]
-        source, loc = loader.load_template_source(template_name)
-        te = InnerTemplate(name = name, template = source)
-        te.save()
+        mp = mapper(InnerTemplate)
+        try:
+            te = mp.get(name = name)
+        except mp.DoesNotExist:
+            source, loc = loader.load_template_source(template_name)
+            te = InnerTemplate(name = name, template = source)
+            te.save()
         page.inner_template = te
         page.save()
         return te

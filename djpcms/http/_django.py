@@ -50,11 +50,12 @@ def finish_response(res, environ, start_response):
     response_headers = [(str(k), str(v)) for k, v in res.items()]
     for c in res.cookies.values():
         response_headers.append(('Set-Cookie', str(c.output(header=''))))
-    start_response(status, response_headers)
+    if start_response is not None:
+        start_response(status, response_headers)
     return res
         
 
 def serve(port = 0, use_reloader = False):
     from django.core.servers.basehttp import run
-    run('localhost', port, DjpCmsHandler())
+    run('localhost', port, DjpCmsHandler(sites))
     

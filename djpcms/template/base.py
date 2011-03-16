@@ -80,7 +80,7 @@ which updates the input ``dictionary`` with library dependent information.
     
     def load_template_source(self, template_name, dirs=None):
         '''Load the template source and return a tuple containing the
-        template content and the template location'''
+        template content as string and the template location'''
         for loader in self.loaders():
             try:
                 return loader.load_template_source(template_name, dirs)

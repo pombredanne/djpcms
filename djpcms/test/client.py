@@ -16,8 +16,6 @@ else:
     from cStringIO import StringIO
     from urlparse import urlparse, urlunparse, urlsplit, unquote
     from urllib import urlencode
-    
-from djpcms.apps.handlers import DjpCmsHandler
 
 
 __all__ = ('Client', 'RequestFactory',
@@ -131,11 +129,11 @@ class RequestFactory(object):
     Once you have a request object you can pass it to any view function,
     just as if that view had been hooked up using a URLconf.
     """
-    def __init__(self, **defaults):
+    def __init__(self, handler, **defaults):
         self.defaults = defaults
         self.cookies = SimpleCookie()
         self.errors = StringIO()
-        self.handler = DjpCmsHandler()
+        self.handler = handler
 
     def _base_environ(self, **request):
         """
@@ -290,8 +288,8 @@ class Client(RequestFactory):
     contexts and templates produced by a view, rather than the
     HTML rendered to the end-user.
     """
-    def __init__(self, **defaults):
-        super(Client, self).__init__(**defaults)
+    def __init__(self, handler, **defaults):
+        super(Client, self).__init__(handler, **defaults)
         self.exc_info = None
 
     def store_exc_info(self, **kwargs):
@@ -304,7 +302,12 @@ class Client(RequestFactory):
         """The master request method. Composes the environment dictionary
 and passes to the handler, returning the result of the handler."""
         environ = self._base_environ(**request)
-        return self.handler(environ,None)
+        response = self.handler(environ,None)
+        response.client = self
+        response.environ = environ
+        response.DJPCMS = environ['DJPCMS']
+        response.context = environ['DJPCMS'].context_cache
+        return response
     
     def get(self, path, data={}, follow=False, **extra):
         """

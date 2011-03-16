@@ -72,6 +72,7 @@ def standard_exception_handle(request, e, status = None):
     template = '{0}.html'.format(status)
     logtrace(logger, request, exc_info, status)
     stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
+    info.stack_trace = stack_trace
     ctx  = loader.context({'status':status,
                            'stack_trace':stack_trace,
                            'request':request,

@@ -42,7 +42,7 @@ class TimeStamp(ModelBase):
 
 class InnerTemplate(TimeStamp,TemplateInterface):
     '''Page Inner template'''
-    name     = field.CharField()
+    name     = field.SymbolField()
     template = field.CharField()
     blocks   = field.CharField()
         

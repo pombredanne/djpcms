@@ -23,8 +23,8 @@ import os
 import sys
 
 parentdir = lambda dir,up=1: dir if not up else parentdir(os.path.split(dir)[0],up-1)
-this_dir = parentdir(os.path.abspath(__file__))
-path_dir = parentdir(this_dir)
+DJPCMS_DIR = parentdir(os.path.abspath(__file__))
+path_dir = parentdir(DJPCMS_DIR)
 libs = []
 
 
@@ -44,7 +44,7 @@ def install_lib(basepath, dirname, module_name):
 def install_libs():
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
-    dlibs = os.path.join(this_dir,'libs')
+    dlibs = os.path.join(DJPCMS_DIR,'libs')
     install_lib(dlibs, 'py2py3', 'py2py3')
     install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'django-tagging', 'tagging')

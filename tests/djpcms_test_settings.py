@@ -17,7 +17,7 @@ try:
 except ImportError:
     INSTALLED_APPS = []
 
-INSTALLED_APPS.append('djpcms')
+INSTALLED_APPS.append('djpcms',)
 
 MEDIA_ROOT = os.path.join(CUR_DIR, 'media')
 TEMPLATE_DIRS = os.path.join(CUR_DIR, 'templates'),

@@ -10,7 +10,10 @@ from djpcms import sites, forms, UnicodeMixin
 from djpcms.views import djpcmsview
 from djpcms.forms.utils import fill_form_data
 from djpcms.utils.importer import import_module
+from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.core.exceptions import *
+
+from .client import Client
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -27,8 +30,6 @@ try:
     TestSuiteBase = unittest.TestSuite
 except AttributeError:
     from .skiptests import *
-    
-#from .client import Client
 
 
 class TestDirectory(UnicodeMixin):
@@ -43,7 +44,7 @@ class TestDirectory(UnicodeMixin):
         return '{0}.{1}'.format(test_type,app)
     
     def all_model_labels(self, test_type, app):
-        return (self.app_label(app),)
+        return (self.app_label(test_type, app),)
     
     def dirpath(self, test_name):
         return os.path.join(self.path,test_name)
@@ -83,6 +84,7 @@ class ContribTestDirectory(TestDirectory):
 def SiteTestDirectory(TestDirectory):
     pass
 
+
 class TestCase(TestCaseBase):
     '''Implements shortcut functions for testing djpcms.
 Must be used as a base class for TestCase classes'''
@@ -90,7 +92,8 @@ Must be used as a base class for TestCase classes'''
     _env = None
     
     def _pre_setup(self):
-        self.sites = ApplicationSites()
+        self.sites = ApplicationSites() # The test sites handler. Used for everything
+        self.handler = DjpCmsHandler(self.sites)
         self.tests = sites.settings
         sites.settings.TESTING = True
         if self._env:
@@ -99,13 +102,16 @@ Must be used as a base class for TestCase classes'''
     def node(self, path):
         return self.sites.tree[path]
 
-    def makesite(self, route = None, appurls = None):
-        '''Utility function for setting up an application site'''
+    def makesite(self, route = None, appurls = None, **kwargs):
+        '''Utility function for setting up an application site. The site is not loaded.'''
         appurls = getattr(self,'appurls',appurls)
         apps = self.tests.INSTALLED_APPS + self.installed_apps()
         return self.sites.make(self.tests.SITE_DIRECTORY,
                                'conf',
                                route = route or '/',
+                               CMS_ORM = self.tests.CMS_ORM,
+                               TEMPLATE_ENGINE = self.tests.TEMPLATE_ENGINE,
+                               HTTP_LIBRARY = self.tests.HTTP_LIBRARY,
                                APPLICATION_URLS = appurls,
                                INSTALLED_APPS = apps)
         
@@ -116,12 +122,10 @@ Must be used as a base class for TestCase classes'''
         """Wrapper around default __call__ method to perform common test
         set up.
         """
-        #self.client = self.client_class()
-        #from .client import Client
-        #self.client = Client()
         skipping = getattr(self.__class__, "__unittest_skip__", False)
         if not skipping:
             self._pre_setup()
+        self.client = Client(self.handler)
         super(TestCase, self).__call__(result)
         if not skipping:
             self._post_teardown()
@@ -159,10 +163,7 @@ Must be used as a base class for TestCase classes'''
         else:
             resp = self.client.get(url)
         self.assertEqual(resp.status_code,status)
-        if response:
-            return resp
-        else:
-            return resp.context
+        return resp
         
     def bs(self, doc):
         return BeautifulSoup(doc)

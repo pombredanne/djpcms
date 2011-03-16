@@ -1,4 +1,4 @@
-from djpcms import sites, UnicodeMixin
+from djpcms import UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
 
 DJPCMS = 'DJPCMS'
@@ -21,13 +21,17 @@ class djpcmsinfo(UnicodeMixin):
     def djp(self, request):
         return self.view(request, **self.kwargs)
     
+    @property
+    def tree(self):
+        return self.site.tree
+    
 
 class BaseSiteHandler(object):
     
     def __init__(self, site):
         self.site = site
         self.http = site.http
-        self.handle_exception = sites.handle_exception
+        self.handle_exception = site.handle_exception
         
     def __call__(self, environ, start_response):
         raise NotImplementedError
@@ -56,11 +60,7 @@ def response_error(f):
     
 class DjpCmsHandler(BaseSiteHandler):
     '''Base DjpCms wsgi handler. It looks for application sites and
-delegate the handling to them.'''
-    
-    def __init__(self):
-        super(DjpCmsHandler,self).__init__(sites)
-        
+delegate the handling to them.'''        
     def __call__(self, environ, start_response):
         res = self._handle(environ, start_response)
         if DJPCMS in environ:
@@ -71,12 +71,13 @@ delegate the handling to them.'''
         
     @response_error
     def _handle(self, environ, start_response):
-        sites.load()
-        http = sites.http
-        cleaned_path = sites.clean_path(environ)
+        site = self.site
+        self.site.load()
+        http = self.http
+        cleaned_path = site.clean_path(environ)
         if isinstance(cleaned_path,http.HttpResponse):
             return cleaned_path
-        appsite,view,kwargs = sites.resolve(environ['PATH_INFO'][1:])
+        appsite,view,kwargs = site.resolve(environ['PATH_INFO'][1:])
         environ[DJPCMS] = djpcmsinfo(view,kwargs)
         return appsite.handle(environ, start_response)
             
@@ -90,7 +91,6 @@ class WSGI(BaseSiteHandler):
         http = site.http
         HttpResponse = http.HttpResponse
         response = None
-        path = environ['PATH_INFO']
         request = self.get_request(environ)
         djp = info.djp(request)
         if isinstance(djp,HttpResponse):

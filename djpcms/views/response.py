@@ -6,7 +6,7 @@ import djpcms
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
-from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied
+from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied, PathException
 from djpcms.html.utils import LazyRender
 
 from .navigation import Navigator, Breadcrumbs
@@ -93,12 +93,6 @@ model instances).
         except:
             return self.view.__unicode__()
     
-    #def __call__(self, prefix = None, wrapper = None):
-    #    djp = copy.copy(self)
-    #    djp.prefix  = prefix
-    #    djp.wrapper = wrapper
-    #    return djp
-    
     @property
     def css(self):
         return self.settings.HTML_CLASSES
@@ -111,6 +105,23 @@ model instances).
     @property
     def root(self):
         return self.site.root
+    
+    @property
+    def tree(self):
+        return self.site.root.tree
+    
+    @lazyattr
+    def node(self):
+        '''Get the :class:`djpcms.views.sitemap.Node` in the global sitemap
+which corresponds to ``self``'''
+        url = self.url
+        try:
+            return self.tree[url]
+        except KeyError:
+            if self.view:
+                return self.tree[self.view.path()]
+            else:
+                raise
     
     def is_soft(self):
         return self.view.is_soft(self)
@@ -165,7 +176,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     def _get_page(self):
         '''Get the page object
         '''
-        return self.view.get_page(self)
+        return self.node().page
     page = property(_get_page)
     
     @lazyattr
@@ -185,7 +196,10 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
 the parent of the embedded view.'''
         node = self.node().ancestor
         if node:
-            return node.get_view()(self.request, **self.urldata)
+            try:
+                return node.get_view()(self.request, **self.urldata)
+            except PathException:
+                return None
     parent = property(_get_parent)
     
     @property
@@ -276,19 +290,6 @@ the parent of the embedded view.'''
         html = loader.mark_safe(loader.render(self.template_file,
                                               context))
         return self.http.HttpResponse(html,mimetype = 'text/html')
-
-    @lazyattr
-    def node(self):
-        '''Get the :class:`djpcms.views.sitemap.Node` in the global sitemap
-which corresponds to ``self``'''
-        url = self.url
-        try:
-            return djpcms.node(url)
-        except KeyError:
-            if self.view:
-                return djpcms.node(self.view.path())
-            else:
-                raise
         
     @storegenarator
     def children(self):

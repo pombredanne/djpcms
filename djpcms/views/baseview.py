@@ -64,6 +64,7 @@ class djpcmsview(RendererMixin):
             _methods = ('get','post')
              
     '''
+    page = None
     logger = logging.getLogger('djpcmsview')
     '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
     object_view = False
@@ -85,10 +86,6 @@ class djpcmsview(RendererMixin):
     
     def get_url(self, djp, **urlargs):
         return djp.request.path
-    
-    def get_page(self, djp):
-        '''The :class:`djpcms.models.Page` instances associated with this view.'''
-        return None
     
     def __call__(self, request, **kwargs):
         return DjpResponse(request, self, **kwargs)
@@ -265,9 +262,6 @@ class pageview(djpcmsview):
     
     def get_url(self, djp, **urlargs):
         return self.page.url
-    
-    def get_page(self, djp):
-        return self.page
     
     def is_soft(self, djp):
         return self.page.soft_root

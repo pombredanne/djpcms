@@ -4,7 +4,7 @@ from djpcms import test
 
 
 class CalendarViewTest(test.TestCase):
-    appurls  = 'regression.apparchive.appurls'
+    appurls  = 'regression.apparchive.appurls.appurls'
         
     def callView(self, url):
         today = datetime.date.today()

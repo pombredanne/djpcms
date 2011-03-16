@@ -1,45 +1,56 @@
-from djpcms import test
+from djpcms import test, sites
 from djpcms.apps.included import vanilla
-
-from regression.page.models import Strategy
-
-appurls = vanilla.Application('/strategies/',Strategy),
+from djpcms.core.exceptions import PathException
 
 
-class TestPage(test.TestCase):
-    appurls = 'regression.page.tests'
+def appurls():
+    from .models import Strategy
+    return (vanilla.Application('/strategies/',Strategy),)
+
+
+@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
+class TestPage(test.TestCase,test.PageMixin):
+    appurls = 'regression.page.tests.appurls'
     
-    def testRoot(self):
-        context = self.get()
-        page = context['page']
-        self.assertEqual(page.url,'/')
-        self.assertEqual(page.parent,None)
-    
-    def testApplication(self):
-        context = self.get('/strategies/')
-        page = context['page']
-        self.assertEqual(page,None)
-        self.makepage('search',Strategy)
-        context = self.get('/strategies/')
-        page = context['page']
-        self.assertEqual(page.url,'/strategies/')
-        self.assertEqual(page.parent,self.Page.objects.root_for_site())
+    def setUp(self):
+        # Load up a site to make sure the Page and InnerTemplate models are registered with a backend
+        from .models import Strategy
+        self.model = Strategy
+        self.makesite()
+        self.sites.load()
+        self.inners = self.makeInnerTemplates()
+        self.appmodel = self.sites.for_model(Strategy)
         
-    def testUrlPattern1(self):
-        p = self.makepage('search',Strategy,'blabla')
-        self.assertEqual(p.url_pattern,'')
+    def testRoot(self):
+        self.assertEqual(self.makepage('/').url,'/')
+        response = self.get()
+        page = response.context['pagelink'].page
+        self.assertEqual(page.url,'/')
+        
+    def testModelSearchPage(self):
+        view = self.appmodel.getview('search')
+        p = self.makepage(view.path())
+        self.assertEqual(p.url,view.path())
+        response = self.get('/strategies/')
+        page = response.context['pagelink'].page
+        self.assertEqual(page.url,'/strategies/')
+        node = response.DJPCMS.tree['/strategies/']
+        self.assertEqual(node.path,'/strategies/')
+        root = node.ancestor
+        # There is no parent view, since nothing is defined at root
+        self.assertRaises(PathException, root.get_view)
         
     def testObjectView(self):
-        Strategy(name = 'test').save()
-        self.makepage('search',Strategy)
-        self.makepage('view',Strategy)
-        context = self.get('/strategies/1/')
-        page = context['page']
-        djp = context['djp']
-        view = djp.view
-        self.assertEqual(djp.page,page)
+        self.model(name = 'test').save()
+        view = self.appmodel.getview('view')
+        self.assertEqual(view.path(),'/strategies/%(id)s/')
+        self.assertEqual(self.makepage(view.path()).url,view.path())
+        response = self.get('/strategies/1/')
+        page = response.context['pagelink'].page
+        self.assertTrue(page)
         
-    def testObjectViewSpecial(self):
+    def _testObjectViewSpecial(self):
+        Strategy = self.model
         Strategy(name = 'test1').save()
         Strategy(name = 'test2').save()
         sp = self.makepage('search',Strategy)
@@ -63,7 +74,8 @@ class TestPage(test.TestCase):
         self.assertEqual(djp.view,djp1.view)
         self.assertEqual(djp.view.code,djp1.view.code)
         
-    def testObjectViewSpecialChild(self):
+    def _testObjectViewSpecialChild(self):
+        Strategy = self.model
         Strategy(name = 'test1').save()
         Strategy(name = 'test2').save()
         sp = self.makepage('search',Strategy)

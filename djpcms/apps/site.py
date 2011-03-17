@@ -8,7 +8,7 @@ from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured, DjpcmsException
 from djpcms.utils.importer import import_module, import_modules
-from djpcms.utils import logtrace, closedurl
+from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
@@ -19,6 +19,7 @@ from .permissions import SimplePermissionBackend
 __all__ = ['MakeSite',
            'GetOrCreate',
            'RegisterORM',
+           'ORMS',
            'adminurls',
            'get_site',
            'get_url',
@@ -82,10 +83,10 @@ If the application is not available, it returns ``None``. It never fails.'''
         return view(request, **kwargs)
     
 
-class ApplicationSites(SiteMixin):
+class ApplicationSites(SiteMixin, djpcms.UnicodeMixin):
     '''This class is used as a singletone and holds information
 of djpcms application routes as well as general configuration parameters.'''
-    modelwrappers = {}
+    modelwrappers = OrderedDict()
     
     def __init__(self):
         self.clear()
@@ -96,7 +97,8 @@ of djpcms application routes as well as general configuration parameters.'''
         self._sites = {}
         self.admins = []
         self._osites = None
-        self._settings = None
+        #self._settings = None
+        self.settings = None
         self._default_settings = None
         self.route = None
         self.tree = None
@@ -104,20 +106,8 @@ of djpcms application routes as well as general configuration parameters.'''
         self.model_from_hash = {}
         self.User = None
         
-    def register_orm(self, name):
-        '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
-    dotted path to a python module containing a class named ``OrmWrapper``
-    derived from :class:`BaseOrmWrapper`.'''
-        names = name.split('.')
-        if len(names) == 1:
-            mod_name = 'djpcms.core.orms._' + name
-        else:
-            mod_name = name
-        try:
-            mod = import_module(mod_name)
-        except ImportError:
-            return
-        self.modelwrappers[name] = mod.OrmWrapper
+    def __unicode__(self):
+        return force_str(self._sites)
         
     def __len__(self):
         return len(self._sites)
@@ -137,23 +127,27 @@ of djpcms application routes as well as general configuration parameters.'''
     def __setitem(self, index, val):
         raise TypeError('Site object does not support item assignment')
         
-    def __get_settings(self):
-        if not self._settings:
-            if not self._default_settings:
-                self._default_settings = get_settings()
-            return self._default_settings
-        else:
-            return self._settings
-    settings = property(__get_settings)
+    #def __get_settings(self):
+    #    if not self._settings:
+    #        if not self._default_settings:
+    #            self._default_settings = get_settings()
+    #        return self._default_settings
+    #    else:
+    #        return self._settings
+    #settings = property(__get_settings)
     
     def setup_environment(self):
         '''Called just before loading :class:`djpcms.apps.appsites.ApplicationSite` instances
 registered. It loops over the objecr relational mappers registered and setup models.
 It also initialise admin for models.'''
+        if not self:
+            raise ImproperlyConfigured('Site container has no sites registered. Cannot setup.')
         for wrapper in self.modelwrappers.values():
             wrapper.setup_environment(self)
         self.admins = admins = []
         for apps in self.settings.INSTALLED_APPS:
+            if apps.startswith('django.'):
+                continue
             try:
                 mname = apps.split('.')[-1]
                 admin = import_module(apps+'.admin')
@@ -189,8 +183,7 @@ It also initialise admin for models.'''
         return urls
     
     def make(self, name, settings = None, route = None,
-             handler = None, clearlog = True, 
-             **params):
+             handler = None, **params):
         '''Create a new ``djpcms`` :class:`djpcms.apps.appsites.ApplicationSite`
 from a directory or a file name. Extra configuration parameters,
 can be passed as key-value pairs:
@@ -238,22 +231,27 @@ The function returns an instance of
                                 **params)
         
         # If no settings available get the current one
-        if self._settings is None:
-            self._settings = settings
+        if self.settings is None:
+            self.settings = settings
             sk = getattr(settings,'SECRET_KEY',None)
             if not sk:
                 settings.SECRET_KEY = 'djpcms'
-            djpcms.init_logging(clearlog)
         
         # Add template media directory to template directories
         path = os.path.join(djpcms.__path__[0],'media','djpcms')
         if path not in settings.TEMPLATE_DIRS:
             settings.TEMPLATE_DIRS += path,
         
-        self.logger = logging.getLogger('ApplicationSites')
-        
         return self._create_site(route,settings,handler)
     
+    def loadsettings(self, setting_module):
+        '''Load settings to override existing settings'''
+        if not self:
+            raise ValueError('Cannot load settings. No site installed')
+        setting_module = '{0}.{1}'.format(self.settings.SITE_MODULE,setting_module)
+        setting_module = import_module(setting_module)
+        self.settings.fill(setting_module)
+        
     def get_or_create(self, name, settings = None,
                       route = None, **params):
         '''Same as :meth:`make` but does nothing if an application
@@ -268,7 +266,6 @@ site is already registered at ``route``.'''
     def _create_site(self,route,settings,handler):
         from djpcms.apps import appsites
         route = closedurl(route or '')
-        self.logger.debug('Creating new site at route "{0}"'.format(route))
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
         site = appsites.ApplicationSite(self, route, settings, handler)
@@ -350,12 +347,20 @@ more than one site. Cannot resolve.'.format(model))
                 r = r2
         return r
     
+    def setsettings(self, **kwargs):
+        for k,v in kwargs.items():
+            setattr(self.settings,k,v)
+            for site in self:
+                setattr(site.settings,k,v)
+            
     def get_commands(self):
         gc = self._commands
         if gc is None:
             gc = self._commands = {}
             # Find and load the management module for each installed app.
             for app_name in self.settings.INSTALLED_APPS:
+                if app_name.startswith('django.'):
+                    continue
                 command_module = app_name
                 if app_name == 'djpcms':
                     command_module = 'djpcms.apps'
@@ -372,12 +377,30 @@ more than one site. Cannot resolve.'.format(model))
         
 sites = ApplicationSites()
 
+model_wrappers = sites.modelwrappers
 MakeSite = sites.make
-RegisterORM = sites.register_orm
 adminurls = sites.make_admin_urls
 GetOrCreate = sites.get_or_create
 get_site = sites.get_site
 get_url  = sites.get_url
 get_urls = sites.get_urls
 loadapps = sites.load
+
+ORMS = lambda : model_wrappers.values()
+
+def RegisterORM(name):
+    '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
+dotted path to a python module containing a class named ``OrmWrapper``
+derived from :class:`BaseOrmWrapper`.'''
+    global model_wrappers
+    names = name.split('.')
+    if len(names) == 1:
+        mod_name = 'djpcms.core.orms._' + name
+    else:
+        mod_name = name
+    try:
+        mod = import_module(mod_name)
+    except ImportError:
+        return
+    model_wrappers[name] = mod.OrmWrapper
 

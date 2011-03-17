@@ -1,6 +1,7 @@
+from djpcms.html import HiddenInput
+
 from .base import Form, UnicodeMixin
 from .fields import IntegerField
-from .html import HiddenInput
 
 __all__ = ['FormSet']
         

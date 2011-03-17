@@ -18,6 +18,7 @@ def setup_logging(verbosity):
     settings = djpcms.sites.settings
     LOGGING = settings.LOGGING
     LOGGING['loggers'] = {}
+    LOGGING['handlers']['silent'] = {'class': 'djpcms.utils.log.NullHandler'}
     root = {}
     LOGGING['root'] = root
     level = LOGGING_MAP.get(verbosity,None)
@@ -26,7 +27,7 @@ def setup_logging(verbosity):
     else:
         root['handlers'] = ['console']
         root['level'] = level
-    djpcms.init_logging(True)
+    djpcms.init_logging(settings)
 
 
 def build_suite(app_module):

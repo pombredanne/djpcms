@@ -1,8 +1,36 @@
+import os
+import random
+import hashlib
+import time
+          
+from djpcms import to_bytestring
 from djpcms.template import make_default_inners
+from djpcms.apps.included.user import create_user, create_superuser,\
+                                      login, logout, authenticate
 
 
-__all__ = ['PageMixin',
-           'UserMixin']
+__all__ = ['PageMixin','UserMixin']
+
+
+
+class DummySessionStore(dict):
+    
+    def __init__(self):
+        super(DummySessionStore,self).__init__()
+        pid = os.getpid()
+        val = to_bytestring("%s%s%s" % (random.random(), pid, time.time()))
+        self.session_key = hashlib.sha1(val).hexdigest()
+        
+    def flush(self):
+        self.clear()
+        
+    def cycle_key(self):
+        pass
+    
+    def save(self):
+        pass
+        
+
 
 class PageMixin(object):
     
@@ -19,19 +47,48 @@ class PageMixin(object):
         return list(InnerTemplate.objects.all())
     
     
-class UserMixin(TestCase):
+class UserMixin(object):
+    session_cookie = 'test-session-cookie'
+    session = None
         
     def makeusers(self):
         User = self.sites.User
-        if User:
-            self.superuser = User.create_super('testuser', 'test@testuser.com', 'testuser')
-            self.user = User.create('simpleuser', 'simple@testuser.com', 'simpleuser')
-        else:
-            self.superuser = None
-            self.user = None
+        self.superuser = create_superuser(User, 'testuser', 'testuser', 'test@testuser.com')
+        self.user = create_user(User, 'simpleuser', 'simpleuser', 'simple@testuser.com')
         
     def login(self, username = None, password = None):
-        if not username:
-            return self.client.login(username = 'testuser', password = 'testuser')
+        User = self.sites.User
+        if not username:    
+            user = authenticate(User, username = 'testuser', password = 'testuser')
         else:
-            return self.client.login(username = username,password = password)
+            user = authenticate(User, username = username, password = password)
+        if user and user.is_active:
+            # Create a fake request to store login details.
+            request = self.sites.http.make_request(self.client._base_environ())
+            if not self.session:
+                self.session = DummySessionStore()
+                
+            request.session = self.session
+            
+            login(User, request, user)
+
+            # Save the session values.
+            request.session.save()
+
+            # Set the cookie to represent the session.
+            cookies = self.client.cookies
+            cookies[self.session_cookie] = request.session.session_key
+            cookie_data = {
+                'max-age': None,
+                'path': '/',
+                'domain': 'dummy',
+                'secure': None,
+                'expires': None,
+            }
+            cookies[self.session_cookie].update(cookie_data)
+
+            return user
+        
+    def logout(self):
+        logout(self.sites.User)
+    

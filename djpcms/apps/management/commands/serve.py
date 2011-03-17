@@ -1,7 +1,7 @@
 import os
 from optparse import make_option
 
-from djpcms import sites, http
+import djpcms
 from djpcms.apps.management.base import BaseCommand
 
 DEFAULT_PORT = 8060
@@ -26,4 +26,6 @@ class Command(BaseCommand):
             print('No sites installed, cannot serve the aplication')
         elif using:
             sites.settings.HTTP_LIBRARY = using
-        http.serve(port = port, sites = sites)
+        sites.load()
+        djpcms.init_logging(sites.settings)
+        sites.http.serve(port = port, sites = sites)

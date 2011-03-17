@@ -9,8 +9,8 @@ import imp
 
 import djpcms
 from djpcms.utils.importer import import_module
-
-from .base import BaseCommand, CommandError, handle_default_options
+from djpcms.apps.management.base import BaseCommand, CommandError,\
+                                        handle_default_options
 
 
 def find_commands(management_dir):
@@ -201,8 +201,7 @@ class ManagementUtility(object):
                 parser.print_lax_help()
                 sys.stderr.write(self.main_help_text() + '\n')
                 sys.exit(1)
-        # Special-cases: We want 'django-admin.py --version' and
-        # 'django-admin.py --help' to work, for backwards compatibility.
+        # Special-cases:
         elif self.argv[1:] == ['--version']:
             # LaxOptionParser already takes care of printing the version.
             pass
@@ -213,10 +212,8 @@ class ManagementUtility(object):
             self.fetch_command(subcommand).run_from_argv(self.sites, self.argv)
 
 
-def execute(argv=None, sites = None):
-    #If no sites provided use the global one. This may be removed in the future
-    if not sites:
-        from djpcms import sites
+def execute(sites, argv=None):
+    '''Execute a command against a sites instance'''
     utility = ManagementUtility(sites,argv)
     utility.execute()
 

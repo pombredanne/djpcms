@@ -13,10 +13,11 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
+from djpcms.html import media_property, List
 
 from .globals import *
 from .fields import Field
-from .html import media_property, FormWidget, List
+from .html import FormWidget
 
 
 __all__ = ['FormType',

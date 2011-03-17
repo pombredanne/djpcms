@@ -55,6 +55,8 @@ install_libs()
 import py2py3
 ispy3k = py2py3.ispy3k
 to_string = py2py3.to_string
+to_bytestring = py2py3.to_bytestring
+is_string = py2py3.is_string
 UnicodeMixin = py2py3.UnicodeMixin
 
 from .apps import *
@@ -76,9 +78,9 @@ Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
 
 def get_page(path):
     return sites.tree.get_page(path)
+        
 
-    
-def init_logging(clear_all = False):
+def init_logging(settings, clear_all = True):
     '''Initialise logging'''
     from djpcms.utils.log import dictConfig
     

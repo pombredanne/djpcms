@@ -1,6 +1,5 @@
 from djpcms.utils import merge_dict, escape
 from djpcms.utils.const import *
-
 from .base import HtmlWidget
 
 

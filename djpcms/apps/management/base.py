@@ -1,7 +1,5 @@
-"""
-Base classes for writing management commands (named commands which can
-be executed through ``django-admin.py`` or ``manage.py``).
-
+"""\
+Command management. Originally from django. Modified and reduced.
 """
 
 import os
@@ -168,206 +166,22 @@ class BaseCommand(object):
         self.execute(sites, *args, **options.__dict__)
 
     def execute(self, sites, *args, **options):
-        """
-        Try to execute this command, performing model validation if
-        needed (as controlled by the attribute
-        ``self.requires_model_validation``). If the command raises a
+        """Try to execute this command. If the command raises a
         ``CommandError``, intercept it and print it sensibly to
         stderr.
-
         """
         try:
             self.stdout = options.get('stdout', sys.stdout)
             self.stderr = options.get('stderr', sys.stderr)
             output = self.handle(sites, *args, **options)
             if output:
-                if self.output_transaction:
-                    # This needs to be imported here, because it relies on
-                    # settings.
-                    from django.db import connections, DEFAULT_DB_ALIAS
-                    connection = connections[options.get('database', DEFAULT_DB_ALIAS)]
-                    if connection.ops.start_transaction_sql():
-                        self.stdout.write(self.style.SQL_KEYWORD(connection.ops.start_transaction_sql()) + '\n')
                 self.stdout.write(output)
-                if self.output_transaction:
-                    self.stdout.write('\n' + self.style.SQL_KEYWORD("COMMIT;") + '\n')
         except CommandError as e:
             self.stderr.write(smart_str(self.style.ERROR('Error: %s\n' % e)))
             sys.exit(1)
 
     def handle(self, *args, **options):
-        """
-        The actual logic of the command. Subclasses must implement
+        """The actual logic of the command. Subclasses must implement
         this method.
-
         """
         raise NotImplementedError()
-
-class AppCommand(BaseCommand):
-    """
-    A management command which takes one or more installed application
-    names as arguments, and does something with each of them.
-
-    Rather than implementing ``handle()``, subclasses must implement
-    ``handle_app()``, which will be called once for each application.
-
-    """
-    args = '<appname appname ...>'
-
-    def handle(self, *app_labels, **options):
-        from django.db import models
-        if not app_labels:
-            raise CommandError('Enter at least one appname.')
-        try:
-            app_list = [models.get_app(app_label) for app_label in app_labels]
-        except (ImproperlyConfigured, ImportError) as e:
-            raise CommandError("%s. Are you sure your INSTALLED_APPS setting is correct?" % e)
-        output = []
-        for app in app_list:
-            app_output = self.handle_app(app, **options)
-            if app_output:
-                output.append(app_output)
-        return '\n'.join(output)
-
-    def handle_app(self, app, **options):
-        """
-        Perform the command's actions for ``app``, which will be the
-        Python module corresponding to an application name given on
-        the command line.
-
-        """
-        raise NotImplementedError()
-
-class LabelCommand(BaseCommand):
-    """
-    A management command which takes one or more arbitrary arguments
-    (labels) on the command line, and does something with each of
-    them.
-
-    Rather than implementing ``handle()``, subclasses must implement
-    ``handle_label()``, which will be called once for each label.
-
-    If the arguments should be names of installed applications, use
-    ``AppCommand`` instead.
-
-    """
-    args = '<label label ...>'
-    label = 'label'
-
-    def handle(self, *labels, **options):
-        if not labels:
-            raise CommandError('Enter at least one %s.' % self.label)
-
-        output = []
-        for label in labels:
-            label_output = self.handle_label(label, **options)
-            if label_output:
-                output.append(label_output)
-        return '\n'.join(output)
-
-    def handle_label(self, label, **options):
-        """
-        Perform the command's actions for ``label``, which will be the
-        string as given on the command line.
-
-        """
-        raise NotImplementedError()
-
-class NoArgsCommand(BaseCommand):
-    """
-    A command which takes no arguments on the command line.
-
-    Rather than implementing ``handle()``, subclasses must implement
-    ``handle_noargs()``; ``handle()`` itself is overridden to ensure
-    no arguments are passed to the command.
-
-    Attempting to pass arguments will raise ``CommandError``.
-
-    """
-    args = ''
-
-    def handle(self, *args, **options):
-        if args:
-            raise CommandError("Command doesn't accept any arguments")
-        return self.handle_noargs(**options)
-
-    def handle_noargs(self, **options):
-        """
-        Perform this command's actions.
-
-        """
-        raise NotImplementedError()
-
-def copy_helper(style, app_or_project, name, directory, other_name=''):
-    """
-    Copies either a Django application layout template or a Django project
-    layout template into the specified directory.
-
-    """
-    # style -- A color style object (see django.core.management.color).
-    # app_or_project -- The string 'app' or 'project'.
-    # name -- The name of the application or project.
-    # directory -- The directory to which the layout template should be copied.
-    # other_name -- When copying an application layout, this should be the name
-    #               of the project.
-    import re
-    import shutil
-    other = {'project': 'app', 'app': 'project'}[app_or_project]
-    if not re.search(r'^[_a-zA-Z]\w*$', name): # If it's not a valid directory name.
-        # Provide a smart error message, depending on the error.
-        if not re.search(r'^[_a-zA-Z]', name):
-            message = 'make sure the name begins with a letter or underscore'
-        else:
-            message = 'use only numbers, letters and underscores'
-        raise CommandError("%r is not a valid %s name. Please %s." % (name, app_or_project, message))
-    top_dir = os.path.join(directory, name)
-    try:
-        os.mkdir(top_dir)
-    except OSError as e:
-        raise CommandError(e)
-
-    # Determine where the app or project templates are. Use
-    # django.__path__[0] because we don't know into which directory
-    # django has been installed.
-    template_dir = os.path.join(django.__path__[0], 'conf', '%s_template' % app_or_project)
-
-    for d, subdirs, files in os.walk(template_dir):
-        relative_dir = d[len(template_dir)+1:].replace('%s_name' % app_or_project, name)
-        if relative_dir:
-            os.mkdir(os.path.join(top_dir, relative_dir))
-        for subdir in subdirs[:]:
-            if subdir.startswith('.'):
-                subdirs.remove(subdir)
-        for f in files:
-            if not f.endswith('.py'):
-                # Ignore .pyc, .pyo, .py.class etc, as they cause various
-                # breakages.
-                continue
-            path_old = os.path.join(d, f)
-            path_new = os.path.join(top_dir, relative_dir, f.replace('%s_name' % app_or_project, name))
-            fp_old = open(path_old, 'r')
-            fp_new = open(path_new, 'w')
-            fp_new.write(fp_old.read().replace('{{ %s_name }}' % app_or_project, name).replace('{{ %s_name }}' % other, other_name))
-            fp_old.close()
-            fp_new.close()
-            try:
-                shutil.copymode(path_old, path_new)
-                _make_writeable(path_new)
-            except OSError:
-                sys.stderr.write(style.NOTICE("Notice: Couldn't set permission bits on %s. You're probably using an uncommon filesystem setup. No problem.\n" % path_new))
-
-def _make_writeable(filename):
-    """
-    Make sure that the file is writeable. Useful if our source is
-    read-only.
-
-    """
-    import stat
-    if sys.platform.startswith('java'):
-        # On Jython there is no os.access()
-        return
-    if not os.access(filename, os.W_OK):
-        st = os.stat(filename)
-        new_permissions = stat.S_IMODE(st.st_mode) | stat.S_IWUSR
-        os.chmod(filename, new_permissions)
-

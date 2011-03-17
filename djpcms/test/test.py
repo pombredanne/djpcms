@@ -6,7 +6,7 @@ from copy import copy
 
 import djpcms
 from djpcms.apps.site import ApplicationSites
-from djpcms import sites, forms, UnicodeMixin
+from djpcms import forms, UnicodeMixin
 from djpcms.views import djpcmsview
 from djpcms.forms.utils import fill_form_data
 from djpcms.utils.importer import import_module
@@ -14,6 +14,7 @@ from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.core.exceptions import *
 
 from .client import Client
+from .mixin import UserMixin
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -30,6 +31,13 @@ try:
     TestSuiteBase = unittest.TestSuite
 except AttributeError:
     from .skiptests import *
+
+
+__all__ = ['TestCase','ApplicationTest',
+           'PluginTest','skip', 'skipIf',
+           'skipUnless', 'SkipTest',
+           'TestDirectory', 'ContribTestDirectory',
+           'SiteTestDirectory']
 
 
 class TestDirectory(UnicodeMixin):
@@ -85,39 +93,19 @@ def SiteTestDirectory(TestDirectory):
     pass
 
 
-class TestCase(TestCaseBase):
-    '''Implements shortcut functions for testing djpcms.
-Must be used as a base class for TestCase classes'''
-    #client_class = Client
+class ApplicationTest(TestCaseBase):
+    '''Test Class for djpcms applications'''
     _env = None
     
     def _pre_setup(self):
-        self.sites = ApplicationSites() # The test sites handler. Used for everything
+        self.sites = djpcms.sites
         self.handler = DjpCmsHandler(self.sites)
-        self.tests = sites.settings
-        sites.settings.TESTING = True
         if self._env:
             self._env.pre_setup()
-        
+    
     def node(self, path):
         return self.sites.tree[path]
 
-    def makesite(self, route = None, appurls = None, **kwargs):
-        '''Utility function for setting up an application site. The site is not loaded.'''
-        appurls = getattr(self,'appurls',appurls)
-        apps = self.tests.INSTALLED_APPS + self.installed_apps()
-        return self.sites.make(self.tests.SITE_DIRECTORY,
-                               'conf',
-                               route = route or '/',
-                               CMS_ORM = self.tests.CMS_ORM,
-                               TEMPLATE_ENGINE = self.tests.TEMPLATE_ENGINE,
-                               HTTP_LIBRARY = self.tests.HTTP_LIBRARY,
-                               APPLICATION_URLS = appurls,
-                               INSTALLED_APPS = apps)
-        
-    def installed_apps(self):
-        return []
-    
     def __call__(self, result=None):
         """Wrapper around default __call__ method to perform common test
         set up.
@@ -126,21 +114,13 @@ Must be used as a base class for TestCase classes'''
         if not skipping:
             self._pre_setup()
         self.client = Client(self.handler)
-        super(TestCase, self).__call__(result)
+        super(ApplicationTest, self).__call__(result)
         if not skipping:
             self._post_teardown()
             
     def _post_teardown(self):
         if self._env:
             self._env.post_teardown()
-        
-    def resolve_test(self, path):
-        '''Utility function for testing url resolver'''
-        self.sites.load()
-        res  = self.sites.resolve(path)  
-        self.assertTrue(len(res),3)
-        self.assertTrue(isinstance(res[1],djpcmsview))
-        return res
 
     def post(self, url = '/', data = {}, status = 200,
              response = False, ajax = False):
@@ -164,36 +144,49 @@ Must be used as a base class for TestCase classes'''
             resp = self.client.get(url)
         self.assertEqual(resp.status_code,status)
         return resp
+
+
+class TestCase(ApplicationTest):
+    '''Test class for testing djpcms itself.
+Implements shortcut functions for testing djpcms.
+Must be used as a base class for TestCase classes'''
+    def _pre_setup(self):
+        self.sites = ApplicationSites() # The test sites handler. Used for everything
+        self.handler = DjpCmsHandler(self.sites)
+        self.tests = djpcms.sites.settings
+        self.tests.TESTING = True
+        if self._env:
+            self._env.pre_setup()
+
+    def makesite(self, route = None, appurls = None, **kwargs):
+        '''Utility function for setting up an application site. The site is not loaded.'''
+        appurls = getattr(self,'appurls',appurls)
+        apps = self.tests.INSTALLED_APPS + self.installed_apps()
+        return self.sites.make(self.tests.SITE_DIRECTORY,
+                               'conf',
+                               route = route or '/',
+                               CMS_ORM = self.tests.CMS_ORM,
+                               TEMPLATE_ENGINE = self.tests.TEMPLATE_ENGINE,
+                               HTTP_LIBRARY = self.tests.HTTP_LIBRARY,
+                               APPLICATION_URLS = appurls,
+                               INSTALLED_APPS = apps)
         
+    def installed_apps(self):
+        return []
+        
+    def resolve_test(self, path):
+        '''Utility function for testing url resolver'''
+        self.sites.load()
+        res  = self.sites.resolve(path)  
+        self.assertTrue(len(res),3)
+        self.assertTrue(isinstance(res[1],djpcmsview))
+        return res
+
     def bs(self, doc):
         return BeautifulSoup(doc)
         
         
-class TestCaseWithUser(TestCase):
-        
-    def _pre_setup(self):
-        super(TestCaseWithUser,self)._pre_setup()
-        p = self.get()['page']
-        self.assertEqual(p.url,'/')
-        User = self.site.User
-        if User:
-            self.superuser = User.create_super('testuser', 'test@testuser.com', 'testuser')
-            self.user = User.create('simpleuser', 'simple@testuser.com', 'simpleuser')
-        else:
-            self.superuser = None
-            self.user = None
-            
-    def editurl(self, url):
-        return '/{0}{1}'.format(self.site.settings.CONTENT_INLINE_EDITING['preurl'],url)
-        
-    def login(self, username = None, password = None):
-        if not username:
-            return self.client.login(username = 'testuser', password = 'testuser')
-        else:
-            return self.client.login(username = username,password = password)
-        
-    
-class PluginTest(TestCaseWithUser):
+class PluginTest(TestCase,UserMixin):
     plugin = None
     
     def _pre_setup(self):

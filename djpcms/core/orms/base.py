@@ -4,7 +4,7 @@ from djpcms import sites, nodata
 from djpcms.utils.dates import format as date_format
 from djpcms.utils import force_str, significant_format
 from djpcms.utils.const import EMPTY_VALUE
-from djpcms.template import loader, conditional_escape
+from djpcms.template import loader
 
 __all__ = ['BaseOrmWrapper',
            'nicerepr',

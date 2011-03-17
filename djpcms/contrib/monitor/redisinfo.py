@@ -81,7 +81,7 @@ class RedisInfo(object):
         self.info = info
         self.panels = OrderedDict()
         self.path = path
-        self.makekeys()
+        self.tot_keys = self.makekeys()
         self.fill()
     
     def _dbs(self,keydata):
@@ -116,14 +116,14 @@ class RedisInfo(object):
         return tot
             
     def makekeys(self):
-        self.keys(self.info)
+        return self.keys(self.info)
             
     def fill(self):
         info = self.info
         server = self.panels['Server'] = []
         niceadd(server, 'Redis version', self.version)
         niceadd(server, 'Process id', info['process_id'])
-        niceadd(server, 'Total keys', format_number(keys))
+        niceadd(server, 'Total keys', format_number(self.tot_keys))
         niceadd(server, 'Memory used', info['used_memory_human'])
         niceadd(server, 'Up time', nicetimedelta(info['uptime_in_seconds']))
         niceadd(server, 'Append Only File', 'yes' if info.get('aof_enabled',False) else 'no')
@@ -137,7 +137,7 @@ class RedisInfo22(RedisInfo):
     names = ('Server','Memory','Persistence','Diskstore','Replication','Clients','Stats','CPU')
     
     def makekeys(self):
-        self.keys(self.info['Keyspace'])
+        return self.keys(self.info['Keyspace'])
         
     def makepanel(self, name):
         pa = self.panels[name] = []

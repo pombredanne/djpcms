@@ -1,7 +1,7 @@
 import os
 from optparse import make_option
 
-from djpcms import template
+from djpcms import template, init_logging
 from djpcms.utils.importer import import_module
 from djpcms.apps.management.base import BaseCommand
 
@@ -82,6 +82,8 @@ class Command(BaseCommand):
                                 sites.settings.SITE_MODULE)
             if os.path.isdir(mdir):
                 target = os.path.join(mdir,target)
+        sites.load()
+        init_logging(sites.settings)
         render(sites,style,target,apps,mediaurl)
         
         

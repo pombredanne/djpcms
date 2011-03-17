@@ -14,6 +14,7 @@ nodata = NoData()
 
 
 class DjpcmsConfig(object):
+    django_settings = None
     
     def __init__(self, settings_module_name, **kwargs):
         self.__dict__['_values'] = {}
@@ -37,7 +38,6 @@ class DjpcmsConfig(object):
             de = ()
         self.DEFAULT_TEMPLATE_NAME = de
         
-        
     def __repr__(self):
         return self._values.__repr__()
     __str__  = __repr__
@@ -57,7 +57,9 @@ class DjpcmsConfig(object):
                 if default is nodata or override:
                     v[sett] = val
                     
-            
+    def has(self, name):
+        return name in self._settings
+    
     def addsetting(self, setting):
         self._settings.append(setting)
         self.fill(setting,False)
@@ -74,21 +76,14 @@ class DjpcmsConfig(object):
         self._values[name] = value
         for sett in self._settings:
             setattr(sett,name,value)
-        
-        
-class SettingImporter(object):
-    
-    def get_settings(self, settings_module_name = None, **kwargs):
-        '''Get settings module for a site.'''
-        config = DjpcmsConfig(settings_module_name, **kwargs)
-        self.setup_django(config)
-        return config
-    
-    def setup_django(self, config, force = False):
+            
+    def setup_django(self, force = False):
         '''Set up django if needed'''
-        if force or config.HTTP_LIBRARY == 'django' or \
-            config.CMS_ORM == 'django' or config.TEMPLATE_ENGINE == 'django' or \
-            config.DJANGO:
+        if self.__class__.django_settings:
+            return
+        if force or self.HTTP_LIBRARY == 'django' or \
+            self.CMS_ORM == 'django' or self.TEMPLATE_ENGINE == 'django' or \
+            self.DJANGO:
             ENVIRONMENT_VARIABLE = "DJANGO_SETTINGS_MODULE"
             settings_file = os.environ.get(ENVIRONMENT_VARIABLE,None)
             if not settings_file:
@@ -96,12 +91,10 @@ class SettingImporter(object):
             os.environ[ENVIRONMENT_VARIABLE] = settings_file
             
             from django.conf import settings as framework_settings
-            config.addsetting(framework_settings)
-            config.DJANGO = True
-
-
-_importer = SettingImporter()
-
-get_settings = _importer.get_settings
-
-setup_django = _importer.setup_django
+            self.addsetting(framework_settings)
+            self.DJANGO = True
+            self.__class__.django_settings = framework_settings
+        return self.__class__.django_settings
+        
+    
+get_settings = DjpcmsConfig

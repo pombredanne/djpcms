@@ -49,8 +49,7 @@ def info(request, message, extra_tags=''):
     """
     Adds a message with the ``INFO`` level.
     """
-    add_message(request, logging.INFO, message, extra_tags=extra_tags,
-                fail_silently=fail_silently)
+    add_message(request, logging.INFO, message, extra_tags=extra_tags)
 
 
 def warning(request, message, extra_tags=''):

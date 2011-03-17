@@ -1,6 +1,7 @@
 from inspect import isclass
 
-from djpcms.forms.html import HtmlWidget, List
+from djpcms.html import List
+from djpcms.forms.html import HtmlWidget
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
 

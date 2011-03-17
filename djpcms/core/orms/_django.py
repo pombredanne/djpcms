@@ -98,25 +98,11 @@ class OrmWrapper(BaseOrmWrapper):
         return result_repr
 
     @classmethod
-    def clear(cls):
-        from django.db.models.loading import cache
-        d = cache.__dict__
-        d['app_store'].clear()
-        d['app_models'].clear()
-        d['app_errors'].clear()
-        d['loaded'] = False
-        d['handled'].clear()
-        d['postponed'] = []
-        d['nesting_level'] = 0
-        d['_get_models_cache'].clear()
-    
-    def save(self, data, instance = None, commit = True):
-        if not instance:
-            instance = self.model(**data)
-        else:
-            for name,value in iteritems(data):
-                setattr(instance,name,value)
-        if commit:
-            instance.save()
-        return instance
-            
+    def setup_environment(cls, sites_):
+        sites_.settings.setup_django(True)
+        from django.conf import settings
+        from django.db import models
+        models.get_models()
+        #from django.core.management import call_command
+        #call_command('validate')
+           

@@ -18,9 +18,9 @@ class Log(models.Model):
 
     def abbrev_msg(self, maxlen=500):
         if len(self.msg) > maxlen:
-            return u'%s ...' % self.msg[:maxlen]
+            return '%s ...' % self.msg[:maxlen]
         return self.msg
-    abbrev_msg.short_description = u'abbreviated msg'
+    abbrev_msg.short_description = 'abbreviated msg'
     
     class Meta:
         get_latest_by = 'datetime'

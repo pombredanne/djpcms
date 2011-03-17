@@ -1,10 +1,14 @@
+'''\
+Utilities for displaying interactive table with pagination and actions.
+'''
 from djpcms.template import loader
 from djpcms.core import orms
 from djpcms.utils import force_str
 from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND
 from djpcms.utils.text import nicename
-from djpcms.forms import Select, CheckboxInput
 from djpcms.html import icons
+
+from .widgets import Select, CheckboxInput
 
 nicerepr = orms.nicerepr
 

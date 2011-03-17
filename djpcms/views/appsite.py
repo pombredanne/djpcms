@@ -9,7 +9,9 @@ from inspect import isgenerator
 from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
 import djpcms
-from djpcms.forms import FormType, HtmlForm, SubmitInput, MediaDefiningClass
+from djpcms.html import ObjectDefinition, Paginator, table,\
+                        SubmitInput, MediaDefiningClass
+from djpcms.forms import FormType, HtmlForm
 from djpcms.template import loader, mark_safe
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -19,7 +21,6 @@ from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
-from djpcms.html import ObjectDefinition, Paginator, table
 
 from .baseview import RendererMixin, absolute_parent
 from .appview import View, ViewView

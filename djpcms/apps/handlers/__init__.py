@@ -31,14 +31,13 @@ class BaseSiteHandler(object):
     
     def __init__(self, site):
         self.site = site
-        self.http = site.http
         self.handle_exception = site.handle_exception
         
     def __call__(self, environ, start_response):
         raise NotImplementedError
     
     def get_request(self, environ, site = None):
-        request = self.http.make_request(environ)
+        request = self.site.http.make_request(environ)
         if DJPCMS not in environ:
             environ[DJPCMS] = djpcmsinfo(None,None,site=site)
         setattr(request,DJPCMS,environ[DJPCMS])
@@ -74,7 +73,7 @@ delegate the handling to them.'''
     def _handle(self, environ, start_response):
         site = self.site
         self.site.load()
-        http = self.http
+        http = self.site.http
         cleaned_path = site.clean_path(environ)
         if isinstance(cleaned_path,http.HttpResponse):
             return cleaned_path

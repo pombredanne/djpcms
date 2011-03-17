@@ -2,9 +2,10 @@ from copy import copy, deepcopy
 
 from djpcms import sites, nodata, to_string
 from djpcms.core.orms import mapper
+from djpcms.html import TextInput, CheckboxInput, Select
 
 from .globals import *
-from .html import TextInput, CheckboxInput, Select
+
 
 __all__ = ['Field',
            'CharField',

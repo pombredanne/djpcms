@@ -1,18 +1,147 @@
-from djpcms import sites
+from py2py3 import iteritems
+
+from djpcms import sites, UnicodeMixin
 from djpcms.utils import force_str
+from djpcms.utils import slugify, escape
 from djpcms.utils.collections import OrderedDict
-from djpcms.template import loader, mark_safe, conditional_escape
-from djpcms.forms import Media
+from djpcms.template import loader
+from .media import BaseMedia
 
 
+__all__ = ['flatatt',
+           'HtmlAttrMixin',
+           'HtmlWidget']
+
+def attrsiter(attrs):
+    for k,v in attrs.items():
+        if v:
+            yield ' {0}="{1}"'.format(k, escape(v))
+                
+                
 def flatatt(attrs):
-    """
-    Convert a dictionary of attributes to a single string.
-    The returned string will contain a leading space followed by key="value",
-    XML-style pairs.  It is assumed that the keys do not need to be XML-escaped.
-    If the passed dictionary is empty, then return an empty string.
-    """
-    return ''.join([' {0}="{1}"'.format(k, conditional_escape(v)) for k, v in attrs.items()])
+    return ''.join(attrsiter(attrs))
+
+
+class HtmlAttrMixin(object):
+    '''A mixin class which exposes jQuery alike API for
+handling HTML classes and sttributes'''
+    def flatatt(self, **attrs):
+        '''Return a string with atributes to add to the tag'''
+        cs = ''
+        attrs = self.attrs.copy()
+        if self.classes:
+            cs = ' '.join(self.classes)
+            attrs['class'] = cs
+        if attrs:
+            return flatatt(attrs)
+        else:
+            return ''
+        
+    @property
+    def attrs(self):
+        if not hasattr(self,'_HtmlAttrMixin__attrs'):
+            self.__attrs = {}
+        return self.__attrs
+    
+    @property
+    def classes(self):
+        if not hasattr(self,'_HtmlAttrMixin__classes'):
+            self.__classes = set()
+        return self.__classes
+    
+    def addClass(self, cn):
+        if cn:
+            add = self.classes.add
+            for cn in cn.split():
+                cn = slugify(cn)
+                add(cn)
+        return self
+    
+    def addAttr(self, name, val):
+        self.attrs[name] = val
+        return self
+    
+    def hasClass(self, cn):
+        return cn in self.classes
+                
+    def removeClass(self, cn):
+        '''Remove classes
+        '''
+        if cn:
+            ks = self.classes
+            for cn in cn.split():
+                if cn in ks:
+                    ks.remove(cn)
+        return self
+
+
+class HtmlWidget(BaseMedia,HtmlAttrMixin):
+    '''Base class for HTML components. Anything which is rendered as HTML
+is derived from this class. Any Operation on this class is similar to jQuery.'''
+    tag = None
+    is_hidden = False
+    default_style = None
+    inline = False
+    template = None
+    attributes = {'id':None}
+    default_class = None
+    
+    def __init__(self, tag = None, cn = None, template = None, js = None,
+                 renderer = None, css = None, **kwargs):
+        attrs = self.attrs
+        self.renderer = renderer
+        self.tag = tag or self.tag
+        self.template = template or self.template
+        for attr,value in iteritems(self.attributes):
+            if attr in kwargs:
+                value = kwargs.pop(attr)
+            attrp = 'process_{0}'.format(attr)
+            if hasattr(self,attrp):
+                value = getattr(self,attrp)(value)
+            if value is not None:
+                attrs[attr] = value
+        if kwargs:
+            keys = list(kwargs.keys())
+            raise TypeError("__init__() got an unexpected keyword argument '{0}'".format(keys[0]))
+        self.default_style = kwargs.get('default_style',self.default_style)
+        if self.default_class:
+            self.addClass(self.default_class)
+        self.addClass(cn)
+        media = self.media
+        media.add_js(js)
+        media.add_css(css)
+    
+    def ischeckbox(self):
+        return False
+        
+    def render(self, *args, **kwargs):
+        fattr = self.flatatt()
+        html = self._render(fattr, *args, **kwargs)
+        if self.renderer:
+            return self.renderer(html)
+        else:
+            return html
+    
+    def _render(self, fattr, *args, **kwargs):
+        if self.inline:
+            return '<{0}{1}/>'.format(self.tag,fattr)
+        elif self.tag:
+            return '<{0}{1}>\n{2}\n</{0}>'.format(self.tag,fattr,
+                                                  self.inner(*args, **kwargs))
+        else:
+            return self.inner(*args, **kwargs)
+    
+    def get_context(self, context, *args, **kwargs):
+        pass
+    
+    def inner(self, *args, **kwargs):
+        '''Render the inner template'''
+        if self.template:
+            context = {}
+            self.get_context(context,*args,**kwargs)
+            return loader.render(self.template,context)
+        else:
+            return ''
 
 
 class htmlbase(object):

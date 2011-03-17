@@ -1,4 +1,4 @@
-from djpcms.forms import HtmlWidget
+from .base import HtmlWidget
 
 
 class BoxWidget(HtmlWidget):

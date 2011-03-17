@@ -4,11 +4,10 @@ import logging
 
 import djpcms
 from djpcms import sites
-from djpcms.utils import force_str
-from djpcms.template import loader, escape
+from djpcms.template import loader
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
-from djpcms.utils import markups
+from djpcms.utils import markups, escape, force_str
 
 
 contentre = re.compile('{{ content\d }}')

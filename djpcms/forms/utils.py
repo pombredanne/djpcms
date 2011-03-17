@@ -11,8 +11,8 @@ from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str
 from djpcms.utils.dates import format
 from djpcms.utils.ajax import jredirect, jremove
+from djpcms.html import HiddenInput
 
-from .html import HiddenInput
 from .globals import generate_prefix
 
 logger = logging.getLogger('djpcms.forms')

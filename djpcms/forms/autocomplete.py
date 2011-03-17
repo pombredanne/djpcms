@@ -1,8 +1,8 @@
 from djpcms import sites
 from djpcms.utils import merge_dict
 from djpcms.template import loader
+from djpcms.html import TextInput
 
-from .html import TextInput
 from .fields import ChoiceField
 
 

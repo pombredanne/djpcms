@@ -1,34 +1,46 @@
-from djpcms import test, forms
+from djpcms import test, forms, html
+
+
+class testHtmlTools(test.TestCase):
+    
+    def testAttrMixin(self):
+        c = html.HtmlAttrMixin()
+        c.addClass('ciao').addClass('pippo')
+        self.assertTrue('ciao' in c.classes)
+        self.assertTrue('pippo' in c.classes)
+        f = c.flatatt()
+        self.assertTrue(f in (' class="ciao pippo"',
+                              ' class="pippo ciao"'))
 
 
 class TestInputs(test.TestCase):
     
     def create(self, InputClass, ty, **kwargs):
         ts = InputClass(value='test', name='pippo', **kwargs)
-        html = ts.render()
-        self.assertTrue(html.startswith('<input '))
-        self.assertTrue(html.endswith('/>'))
-        self.assertTrue('type="{0}"'.format(ty) in html)
-        self.assertTrue('value="test"' in html)
-        self.assertTrue('name="pippo"' in html)
+        ht = ts.render()
+        self.assertTrue(ht.startswith('<input '))
+        self.assertTrue(ht.endswith('/>'))
+        self.assertTrue('type="{0}"'.format(ty) in ht)
+        self.assertTrue('value="test"' in ht)
+        self.assertTrue('name="pippo"' in ht)
         return ts
     
     def testTextInput(self):
-        self.create(forms.TextInput, 'text')
+        self.create(html.TextInput, 'text')
         
     def testSubmitInput(self):
-        self.create(forms.SubmitInput, 'submit')
+        self.create(html.SubmitInput, 'submit')
         
     def testPasswordInput(self):
-        self.create(forms.PasswordInput, 'password')
+        self.create(html.PasswordInput, 'password')
         
     def testClasses(self):
-        ts = self.create(forms.TextInput, 'text', cn = 'ciao')
+        ts = self.create(html.TextInput, 'text', cn = 'ciao')
         self.assertTrue(ts.hasClass('ciao'))
-        ts = self.create(forms.TextInput, 'text', cn = 'ciao ciao')
+        ts = self.create(html.TextInput, 'text', cn = 'ciao ciao')
         self.assertTrue(ts.hasClass('ciao'))
-        html = ts.render()
-        self.assertTrue('class="ciao"' in html)
+        ht = ts.render()
+        self.assertTrue('class="ciao"' in ht)
         ts.removeClass('ciao')
         self.assertFalse(ts.hasClass('ciao'))
         #lets try a jQuery type thing
@@ -36,20 +48,20 @@ class TestInputs(test.TestCase):
         self.assertTrue(ts.hasClass('pippo'))
         self.assertTrue(ts.hasClass('another'))
         self.assertFalse(ts.hasClass('bravo'))
-        html = ts.render()
-        self.assertTrue('class="pippo another"' in html or
-                        'class="another pippo"' in html)
+        ht = ts.render()
+        self.assertTrue('class="pippo another"' in ht or
+                        'class="another pippo"' in ht)
         
     def testFailTextInput(self):
-        self.assertRaises(TypeError,forms.TextInput, fake='test')
+        self.assertRaises(TypeError,html.TextInput, fake='test')
         
     def testList(self):
-        li = forms.List()
+        li = html.List()
         self.assertEqual(len(li),0)
-        li = forms.List(['a list item','another one'])
+        li = html.List(['a list item','another one'])
         self.assertEqual(len(li),2)
-        html = li.render()
-        self.assertTrue('<ul>' in html)
-        self.assertTrue('</ul>' in html)
-        self.assertTrue('<li>a list item</li>' in html)
-        self.assertTrue('<li>another one</li>' in html)
+        ht = li.render()
+        self.assertTrue('<ul>' in ht)
+        self.assertTrue('</ul>' in ht)
+        self.assertTrue('<li>a list item</li>' in ht)
+        self.assertTrue('<li>another one</li>' in ht)

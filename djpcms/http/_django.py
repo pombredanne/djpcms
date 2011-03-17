@@ -1,7 +1,3 @@
-from djpcms import sites as global_sites
-from djpcms.conf import setup_django
-setup_django(global_sites.settings,True)
-
 from django.http import *
 from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout

@@ -3,6 +3,7 @@ import logging
 import json
 
 from djpcms import forms
+from djpcms.html import MediaDefiningClass
 from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str
 from djpcms.utils.text import capfirst, nicename
@@ -39,7 +40,7 @@ def register_application(app, name = None, description = None):
     #p.register()
 
 
-class DJPpluginMetaBase(forms.MediaDefiningClass):
+class DJPpluginMetaBase(MediaDefiningClass):
     '''
     Just a metaclass to differentiate plugins from other calsses
     '''

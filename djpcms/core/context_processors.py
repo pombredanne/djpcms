@@ -41,8 +41,10 @@ class PageLink(UnicodeMixin):
     def addlink(self, app):
         path = app.addurl(self.request)
         if path:
-            kwargs = self.request.DJPCMS.kwargs.copy()
-            kwargs['url'] = self.request.path
+            info = self.request.DJPCMS
+            view = info.view
+            kwargs = info.kwargs.copy()
+            kwargs['url'] = self.request.path if not info.view else info.view.path()
             path = iri_to_uri(path+'?'+'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
             return icons.circle_plus(path,'add page',title="add page contents",button=False)
         else:
@@ -59,8 +61,9 @@ class PageLink(UnicodeMixin):
             return ''
 
     def exitlink(self, path):
+        path = path % dict(self.request.GET.items())
         return icons.circle_close(path,'exit edit',title = 'Exit page editing',button=False)
-        
+    
 
 def get_grid960(page):
     return grid960()

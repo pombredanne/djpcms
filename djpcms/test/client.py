@@ -17,7 +17,6 @@ else:
     from urlparse import urlparse, urlunparse, urlsplit, unquote
     from urllib import urlencode
 
-
 __all__ = ('Client', 'RequestFactory',
            'encode_file', 'encode_multipart')
 
@@ -134,6 +133,7 @@ class RequestFactory(object):
         self.cookies = SimpleCookie()
         self.errors = StringIO()
         self.handler = handler
+        self.sites = self.handler.site
 
     def _base_environ(self, **request):
         """
@@ -373,17 +373,14 @@ and passes to the handler, returning the result of the handler."""
         are incorrect, or the user is inactive, or if the sessions framework is
         not available.
         """
-        user = authenticate(**credentials)
+        User = self.sites.User
+        user = authenticate(User, **credentials)
         if user and user.is_active \
                 and 'django.contrib.sessions' in settings.INSTALLED_APPS:
             engine = import_module(settings.SESSION_ENGINE)
 
             # Create a fake request to store login details.
             request = HttpRequest()
-            if self.session:
-                request.session = self.session
-            else:
-                request.session = engine.SessionStore()
             login(request, user)
 
             # Save the session values.

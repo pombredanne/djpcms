@@ -5,7 +5,7 @@ from py2py3 import range
 import djpcms
 from djpcms import sites, UnicodeMixin
 from djpcms.utils.ajax import jservererror, jredirect
-from djpcms.forms import Media
+from djpcms.html import Media
 from djpcms.template import loader
 from djpcms.utils import parentpath
 

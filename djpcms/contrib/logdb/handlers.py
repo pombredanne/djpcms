@@ -3,14 +3,12 @@ import traceback
 import logging
 import platform
 
-from django.contrib.auth.models import User
-from djpcms.contrib.logdb.models import Log
-
 HOST = platform.node()
 
 class DatabaseHandler(logging.Handler):
 
     def emit(self, record):
+        from djpcms.contrib.logdb.models import Log
         if hasattr(record, 'source'):
             source = record.source
         else:
@@ -30,6 +28,7 @@ class DatabaseHandler(logging.Handler):
             pass
         
     def get_user(self, record):
+        from django.contrib.auth.models import User
         try:
             user = record.user
             if not isinstance(user,User):

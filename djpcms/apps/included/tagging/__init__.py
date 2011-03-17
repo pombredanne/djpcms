@@ -2,7 +2,7 @@ from djpcms import forms
 from djpcms.views import appsite, appview
 from djpcms.apps.included.archive import ArchiveApplication, views as archive
 
-from tagging.models import Tag, TaggedItem
+#from tagging.models import Tag, TaggedItem
 
 
 # REGEX FOR A TAG

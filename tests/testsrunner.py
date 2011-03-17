@@ -101,8 +101,10 @@ def run(tags = None, test_type = None,
         # Create the testing Site
         config = config or {}
         testsite = sites.make(test_type,'conf',**config)
+        sites.load()
+        #sites.settings.setup_django(True)
         # Inject the test settings to sites global variable
-        sites.tests = testsite.settings 
+        sites.tests = testsite.settings
         modules = import_tests(tags, test_type, can_fail)
         runner  = TestSuiteRunner(verbosity = verbosity)
         runner.run_tests(modules)

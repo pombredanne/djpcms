@@ -3,7 +3,7 @@ import logging
 
 import django
 import djpcms
-from djpcms.test import TestCase
+from djpcms import test
 from djpcms.conf import settings
 from djpcms.views import appsite, appview
 from djpcms.contrib.logdb.models import Log

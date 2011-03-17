@@ -19,7 +19,8 @@ class djpcmsinfo(UnicodeMixin):
         return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
     
     def djp(self, request):
-        return self.view(request, **self.kwargs)
+        if self.view:
+            return self.view(request, **self.kwargs)
     
     @property
     def tree(self):

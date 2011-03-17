@@ -1,6 +1,6 @@
 from djpcms.apps.included.admin import AdminApplication
 
-from .models import WebAccount
+from .models import WebAccount, Report
 from .forms import WebAccountForm
 
 
@@ -10,4 +10,7 @@ admin_urls = (
                                WebAccount,
                                name = 'web accounts',
                                list_display = ['name','url','user','tags']),
+              ContentApplication('/content/',
+                                 Report,
+                                 list_display = ['name','description','parent'])
             )

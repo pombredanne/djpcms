@@ -1,8 +1,12 @@
 from distutils.version import StrictVersion
 from datetime import datetime, timedelta
 
+from py2py3 import iteritems
+
 from djpcms import forms
+from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
+from djpcms.html import icons
 
 from stdnet.utils.format import format_number
 
@@ -77,30 +81,30 @@ class RedisInfo(object):
         self.info = info
         self.panels = OrderedDict()
         self.path = path
+        self.makekeys()
         self.fill()
-        
-    def _dbs(self):
-        info = self.info
-        for k in info:
+    
+    def _dbs(self,keydata):
+        for k in keydata:
             if k[:2] == 'db':
                 try:
                     n = int(k[2:])
                 except:
                     continue
                 else:
-                    yield k,n,info[k]
+                    yield k,n,keydata[k]
     
-    def dbs(self):
-        return sorted(self._dbs(), key = lambda x : x[1])
+    def dbs(self,keydata):
+        return sorted(self._dbs(keydata), key = lambda x : x[1])
             
     def db(self,n):
         return self.info['db{0}'.format(n)]
     
-    def keys(self):
+    def keys(self, keydata):
         tot = 0
         path = self.path
         databases = []
-        for k,n,data in self.dbs():
+        for k,n,data in self.dbs(keydata):
             keydb = data['keys']
             url = '{0}{1}/'.format(path,n)
             link = '<a href="{0}" title="database {1}">{2}</a>'.format(url,n,k)
@@ -111,10 +115,12 @@ class RedisInfo(object):
                                'data': databases}
         return tot
             
+    def makekeys(self):
+        self.keys(self.info)
+            
     def fill(self):
         info = self.info
         server = self.panels['Server'] = []
-        keys = self.keys()
         niceadd(server, 'Redis version', self.version)
         niceadd(server, 'Process id', info['process_id'])
         niceadd(server, 'Total keys', format_number(keys))
@@ -128,30 +134,34 @@ class RedisInfo(object):
     
 
 class RedisInfo22(RedisInfo):
+    names = ('Server','Memory','Persistence','Diskstore','Replication','Clients','Stats','CPU')
     
-    def _dbs(self):
-        return iteritems(self.info['Keyspace'])
-                
-    def db(self,n):
-        return self.info['Keyspace']['db{0}'.format(n)]
-    
-    def fill(self, info1, keys):
+    def makekeys(self):
+        self.keys(self.info['Keyspace'])
+        
+    def makepanel(self, name):
+        pa = self.panels[name] = []
+        for k,v in iteritems(self.info[name]):
+            if v == 0:
+                v = icons.circle_check()
+            elif v == 1:
+                v = icons.circle_check()
+            pa.append({'name':nicename(k),'value':v})
+            
+    def fill(self):
         info = self.info
-        server = info['Server']
-        memory = info['Memory']
-        disk = info['Diskstore']
-        persistence = info['Persistence']
-        stats = info['Stats']
-        niceadd(info1, 'Redis version', self.version)
-        niceadd(info1, 'Process id', server['process_id'])
-        niceadd(info1, 'Up time', nicetimedelta(server['uptime_in_seconds']))
-        niceadd(info1, 'Total keys', format_number(keys))
-        niceadd(info1, 'Memory used', memory['used_memory_human'])
-        niceadd(info1, 'Memory fragmentation ratio', memory['mem_fragmentation_ratio'])
-        niceadd(info1, 'Diskstore enabled', 'yes' if disk['ds_enabled'] else 'no')
-        niceadd(info1, 'Last save', nicedate(persistence['last_save_time']))
-        niceadd(info1, 'Commands processed', format_number(stats['total_commands_processed']))
-        niceadd(info1, 'Connections received', format_number(stats['total_connections_received']))
+        for name in self.names:
+            self.makepanel(name)
+        #niceadd(server, 'Redis version', self.version)
+        #niceadd(server, 'Process id', server['process_id'])
+        #niceadd(server, 'Up time', nicetimedelta(server['uptime_in_seconds']))
+        #niceadd(memory, 'Total keys', format_number(keys))
+        #niceadd(memory, 'Memory used', memory['used_memory_human'])
+        #niceadd(memory, 'Memory fragmentation ratio', memory['mem_fragmentation_ratio'])
+        #niceadd(server, 'Diskstore enabled', 'yes' if disk['ds_enabled'] else 'no')
+        #niceadd(persistence, 'Last save', nicedate(persistence['last_save_time']))
+        #niceadd(server, 'Commands processed', format_number(stats['total_commands_processed']))
+        #niceadd(server, 'Connections received', format_number(stats['total_connections_received']))
             
             
 def redis_info(info,path):

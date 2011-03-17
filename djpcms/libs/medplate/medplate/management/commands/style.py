@@ -1,7 +1,7 @@
 import os
 from optparse import make_option
 
-from djpcms import sites, template
+from djpcms import template
 from djpcms.utils.importer import import_module
 from djpcms.apps.management.base import BaseCommand
 
@@ -9,7 +9,7 @@ from medplate import rendercss
 
 default_style = 'smooth'
 
-def render(style, target, apps, mediaurl = None, template_engine = None):
+def render(sites, style, target, apps, mediaurl = None, template_engine = None):
     module = None
     applications = apps or sites.settings.INSTALLED_APPS 
     imported = {}
@@ -70,7 +70,7 @@ class Command(BaseCommand):
     help = "Creates a css file from a template css."
     args = '[appname appname ...]'
     
-    def handle(self, *args, **options):
+    def handle(self, sites, *args, **options):
         style = options['style']
         target = options['target']
         mediaurl = options['mediaurl']
@@ -82,7 +82,7 @@ class Command(BaseCommand):
                                 sites.settings.SITE_MODULE)
             if os.path.isdir(mdir):
                 target = os.path.join(mdir,target)
-        render(style,target,apps,mediaurl)
+        render(sites,style,target,apps,mediaurl)
         
         
         

@@ -27,7 +27,7 @@ class PageLink(UnicodeMixin):
         app = sites.for_model(Page)
         if app:
             cdjp = self.request.DJPCMS.djp(self.request)
-            if isinstance(cdjp.instance,Page):
+            if cdjp and isinstance(cdjp.instance,Page):
                 return self.exitlink(cdjp.instance.url)
             else:
                 site = app.site
@@ -41,7 +41,9 @@ class PageLink(UnicodeMixin):
     def addlink(self, app):
         path = app.addurl(self.request)
         if path:
-            path = iri_to_uri(path+'?url='+self.request.path)
+            kwargs = self.request.DJPCMS.kwargs.copy()
+            kwargs['url'] = self.request.path
+            path = iri_to_uri(path+'?'+'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
             return icons.circle_plus(path,'add page',title="add page contents",button=False)
         else:
             return ''

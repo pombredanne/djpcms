@@ -8,7 +8,10 @@ simple_class = ' class="simple-icon"'
 def jqueryicon(url,text,icon_class = None, title='', button = True):
     '''Render an anchor with classes for displaying a jQuery icon'''
     if not url:
-        return ''
+        if icon_class:
+            return '<span class="ui-icon ui-icon-{0}"></span>'.format(icon_class)
+        else:
+            return ''
     title = title or text
     cl = button_class if button else EMPTY
     if icon_class:
@@ -24,11 +27,12 @@ def jqueryicon(url,text,icon_class = None, title='', button = True):
 
 
 def makeicon(icon_class):
-    return lambda url,text='',title='',button=True : jqueryicon(url,text,icon_class,title=title,button=button)
+    return lambda url = None,text='',title='',button=True : jqueryicon(url,text,icon_class,title=title,button=button)
       
 
 circle_plus = makeicon('circle-plus')
 circle_minus = makeicon('circle-minus')
 circle_close = makeicon('circle-close')
+circle_check = makeicon('circle-check')
 
 pencil = makeicon('pencil') # for editing links

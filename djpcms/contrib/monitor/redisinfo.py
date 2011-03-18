@@ -152,16 +152,8 @@ class RedisInfo22(RedisInfo):
         info = self.info
         for name in self.names:
             self.makepanel(name)
-        #niceadd(server, 'Redis version', self.version)
-        #niceadd(server, 'Process id', server['process_id'])
-        #niceadd(server, 'Up time', nicetimedelta(server['uptime_in_seconds']))
-        #niceadd(memory, 'Total keys', format_number(keys))
-        #niceadd(memory, 'Memory used', memory['used_memory_human'])
-        #niceadd(memory, 'Memory fragmentation ratio', memory['mem_fragmentation_ratio'])
-        #niceadd(server, 'Diskstore enabled', 'yes' if disk['ds_enabled'] else 'no')
-        #niceadd(persistence, 'Last save', nicedate(persistence['last_save_time']))
-        #niceadd(server, 'Commands processed', format_number(stats['total_commands_processed']))
-        #niceadd(server, 'Connections received', format_number(stats['total_connections_received']))
+        #nicedate(persistence['last_save_time'])
+        #format_number(stats['total_commands_processed'])
             
             
 def redis_info(info,path):

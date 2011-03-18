@@ -10,6 +10,16 @@ CssTheme('body',
          data = {'color':'#222222'}
          )
 
+CssTheme('widget-anchor',
+         theme_name,
+         data = {
+                   'text_decoration': 'none',
+                   'weight':'normal',
+                   'color':'#026890',
+                   'color_hover':'#6eac2c',
+                   }
+         )
+
 CssTheme('breadcrumbs',
          theme_name,
          data = {})

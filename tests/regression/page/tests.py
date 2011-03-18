@@ -50,7 +50,17 @@ class TestPage(test.TestCase,test.PageMixin):
         page = response.context['pagelink'].page
         self.assertTrue(page)
         
+    def testFlatPageChildOfFlatPage(self):
+        self.assertEqual(self.makepage('/').url,'/')
+        self.assertEqual(self.makepage('/about/').url,'/about/')
+        response = self.get('/about/')
+        response = self.get('/ciao/', status = 404)
+        self.assertEqual(self.makepage('/about/bla/').url,'/about/bla/')
+        response = self.get('/about/bla/')
+        
     def _testObjectViewSpecial(self):
+        self.assertEqual(self.makepage('/').url,'/')
+        self.assertEqual(self.makepage('/about/').url,'/about/')
         Strategy = self.model
         Strategy(name = 'test1').save()
         Strategy(name = 'test2').save()

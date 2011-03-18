@@ -10,18 +10,48 @@ from djpcms.utils.ajax import jhtmls, jredirect
 from djpcms.utils import lazyattr, gen_unique_id
 from djpcms.template import loader
 from djpcms.views import *
-        
 
-def type_length(r, key):
-    typ = r.type(key)
-    l = 1
+
+def redistable():
+    return {'set':{'count':0,'size':0},
+            'zset':{'count':0,'size':0},
+            'list':{'count':0,'size':0},
+            'hash':{'count':0,'size':0},
+            'ts':{'count':0,'size':0},
+            'string':{'count':0,'size':0},
+            'unknow':{'count':0,'size':0}}
+
+def incr_count(table, t, c, s):
+    d = table[t]
+    d['count'] += 1
+    d['size'] += s
+
+
+def type_length(r, key, table):
+    '''Retrive the type and length of a redis key.
+    '''
+    pipe = r.pipeline()
+    pipe.type(key).ttl(key)
+    tt = pipe.execute()
+    typ = tt[0]
     if typ == 'set':
-        l = r.scard(key)
+        cl = pipe.scard(key).srandmember(key).execute()
+        l = cl[0]
+        incr_count(table,typ,l,len(cl[1]))       
+    elif typ =='zset':
+        cl = pipe.zcard(key).zrange(key,0,0).execute()
+        l = cl[0]
     elif typ == 'list':
         l = r.llen(key)
     elif typ == 'hash':
         l = r.hlen(key)
-    return typ,l
+    elif typ == 'ts':
+        l = r.execute_command('TSLEN', key)
+    elif typ == 'string':
+        l = r.strlen(key)
+    else:
+        l = None
+    return typ,l,tt[1]
         
         
 class DbQuery(object):
@@ -43,9 +73,10 @@ class DbQuery(object):
     def __getitem__(self, slic):
         data = self.data()[slic]
         r = self.r
+        t = redistable()
         for key in data:
-            typ,len = type_length(r, key)
-            yield table_checkbox(key),typ,len,r.ttl(key)
+            typ,len,ttl = type_length(r, key, t)
+            yield table_checkbox(key),typ,len,ttl
         
         
 class RedisDbView(ViewView):

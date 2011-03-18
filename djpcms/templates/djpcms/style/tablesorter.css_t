@@ -44,7 +44,8 @@ div.toolbox {
     text-align: left;{% if toolbox_background_color %}
     background: {{ toolbox_background_color }};{% endif %}
     overflow: hidden;
-    padding: 4px 0;
+    padding: 4px 0;{% if toolbox_min_height %}
+    min-height: {{ toolbox_min_height }};{% endif %}
     /*border: 1px solid {{ body_border_color }};*/
 }
 .action-check .value {

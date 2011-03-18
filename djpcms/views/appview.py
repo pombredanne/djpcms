@@ -296,7 +296,7 @@ Usage::
         if page:
             link = page.link
         else:
-            link = self.default_title or self.appmodel.name
+            link = self.default_title or nicename(self.appmodel.name)
         return link.format(djp.kwargs)
     
     def names(self):

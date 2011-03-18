@@ -1,5 +1,5 @@
 {% if toolbox %}
-<div class="tablesorter-with-actions">
+<div class="tablesorter-with-actions ui-widget">
 <div class="toolbox ui-widget-header">{% if toolbox.actions %}
 <span class="selectors">
  Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
@@ -8,14 +8,15 @@
 <span class="links">{% for link in toolbox.links %} 
  {{ link }}{% endfor %}
 </span>{% endif %}
-</div>{% endif %}
-<table class="tablesorter">{% if labels %}
+</div>
+<table class="tablesorter">{% else %}
+<table class="tablesorter ui-widget">{% endif %}{% if labels %}
 <thead class="ui-widget-header">
  <tr>{% for label in labels %}
   <th>{{ label }}</th>{% endfor %}
  </tr>
 </thead>{% endif %}
-<tbody>{% for item in items %}
+<tbody class="ui-widget-content">{% for item in items %}
  <tr{% if item.id %} id="{{ item.id }}"{% endif %}>{% for val in item.display %}
    <td>{{ val }}</td>{% endfor %}
  </tr>{% endfor %}

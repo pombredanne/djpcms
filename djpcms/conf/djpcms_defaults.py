@@ -17,7 +17,8 @@ DJPCMS_EMPTY_VALUE              = '(None)'
 SITE_ID = 1
 MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
-TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",)
+TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
+                               "djpcms.core.context_processors.messages")
 
 HTTP_LIBRARY = 'django' # django, werkzeug
 CMS_ORM = None # django, stdnet
@@ -54,28 +55,6 @@ DJPCMS_WRAPPERS                 = ['djpcms.plugins.extrawrappers']
 DJPCMS_SITE_MAP                 = True
 
 DJPCMS_USER_CAN_EDIT_PAGES      = False
-
-#---------------------------------- Styling
-# Default grid
-GRID960_DEFAULT_COLUMNS  = 12
-GRID960_DEFAULT_FIXED    = True
-
-# Inline editing configuration
-# By default it is switch on
-#
-#    available:    boolean   whether the inline editing is on or off
-#    preurl:       slug      which will be used as initial part of the editing url
-#                            So if a page has the url /some/path/to/page/ its editing url will
-#                            be /preurl/some/path/to/page/
-#    permission:   String    dotted path to a function handling editing permissions
-#    pagecontent:  String    Code of page to be used as root for site content. This page must be
-#                            available in the database.
-CONTENT_INLINE_EDITING = {'available':True,
-                          'preurl': 'edit-content',
-                          'permission': None,
-                          'pagecontent': '/site-content/',
-                          'width': 600,
-                          'height': 400}
 
 #
 JINJA2_TEMPLATE_LOADERS = [('djpcms.utils.jinja2loaders.ApplicationLoader',)]

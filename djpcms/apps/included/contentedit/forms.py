@@ -36,10 +36,13 @@ class PageForm(forms.Form):
     layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')))
     
     def clean_url(self, value):
-        node = djpcms.node(value)
-        if node.page and not self.instance:
-            raise forms.ValidationError('page already available')
-        return node.path
+        try:
+            page = self.mapper.get(url = value)
+        except self.mapper.DoesNotExist:
+            page = None
+        if page and self.instance != page:
+            raise forms.ValidationError('A page with url "{0}" is already available'.format(value))
+        return value
     
 
 class PluginChoice(forms.ChoiceField):

@@ -1,7 +1,13 @@
 {% extends "djpcms/yui/yui-g.html" %}{% block left_column %}
 <div class="redis-panel">{% for panel in panels %}
-<h2>{{ panel.name }}</h2>
-{{ panel.value }}{% endfor %}
+ <div class="flat-panel">
+  <div class="hd">
+   <h2>{{ panel.name }}</h2>
+  </div>
+  <div class="bd">
+   {{ panel.value }}
+  </div>
+ </div>{% endfor %}
 </div>{% endblock %}{% block right_column %}
 <div class="redis-panel">
 <h2>Databases</h2>

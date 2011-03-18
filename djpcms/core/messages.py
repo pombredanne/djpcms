@@ -1,5 +1,6 @@
 import logging
 
+MESSAGE_KEY = 'request-messanges'
 
 __all__ = (
     'add_message',
@@ -16,8 +17,16 @@ class MessageFailure(Exception):
 
 def add_message(request, level, message, extra_tags=''):
     """Add a message to the request using the 'messages' app."""
-    messanges = get_level(request,level)
-    messanges.append(message)
+    if hasattr(request,'session'):
+        session = request.session
+        if MESSAGE_KEY in session:
+            messages = session[MESSAGE_KEY]
+        else:
+            messages = {}
+        if not level in messages:
+            messages[level] = []
+        messages[level].append(message)
+        session[MESSAGE_KEY] = messages
 
 
 def get_messages(request):
@@ -25,10 +34,11 @@ def get_messages(request):
     Returns the message storage on the request if it exists, otherwise returns
     user.message_set.all() as the old auth context processor did.
     """
-    if hasattr(request, '_messages'):
-        return request._messages
-    else:
-        return {}
+    if hasattr(request,'session'):
+        if MESSAGE_KEY in request.session:
+            msg = request.session[MESSAGE_KEY]
+            del request.session[MESSAGE_KEY]
+            return msg
     
 
 def get_level(request,level):

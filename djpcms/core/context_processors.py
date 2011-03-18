@@ -1,12 +1,12 @@
 from datetime import datetime
+import logging
 
 from djpcms import sites, UnicodeMixin, CHANGE, ADD
 from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 from djpcms.utils import iri_to_uri
-from djpcms.html import grid960, htmldoc
-from djpcms.html import icons
+from djpcms.html import grid960, htmldoc, List, icons
 
 
 class PageLink(UnicodeMixin):
@@ -114,5 +114,15 @@ def djpcms(request):
 def messages(request):
     """Returns a lazy 'messages' context variable.
     """
-    return {'messages': get_messages(request)}
+    messages = get_messages(request)
+    lmsg = []
+    if messages:
+        for level in sorted(messages):
+            msg = List(messages[level])
+            if level < logging.ERROR:
+                msg.addClass('ui-state-highlight')
+            else:
+                msg.addClass('ui-state-error')
+            lmsg.append(msg.render())
+    return {'messages': lmsg}
 

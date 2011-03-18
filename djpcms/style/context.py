@@ -15,6 +15,15 @@ CssContext('anchor',
 #                   'background_hover':None
                    }
            )
+
+CssContext('widget-anchor',
+           tag = '.ui-widget-content a',
+           template = 'djpcms/style/anchor.css_t',
+           data = {
+                   'text_decoration': 'none',
+                   'weight':'normal',
+                   }
+           )
                     
 #________________________________________ MAIN NAVIGATION
 CssContext('nav',
@@ -116,6 +125,8 @@ CssContext('tablesorter',
                    'body_border_color':'#a6c9e2',
                    'head_border': 'none',
                    'head_padding': '4px',
+                   #
+                   'toolbox_min_height':'40px'
                    }
            )
 
@@ -234,7 +245,7 @@ CssContext('messagelist',
            tag='ul.messagelist li',
            data = {
                    'margin':'0 0 3px',
-                   'padding':'4px 5px 4px 25px'}
+                   'padding':'4px 0'}
            )
 
 

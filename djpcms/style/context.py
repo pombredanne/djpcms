@@ -245,13 +245,7 @@ CssContext('messagelist',
            tag='ul.messagelist li',
            data = {
                    'margin':'0 0 3px',
-                   'padding':'4px 0'}
-           )
-
-
-#________________________________________ ERROR LIST
-CssContext('errorlist',
-           tag='ul.messagelist li.error'
+                   'padding':'4px 12px'}
            )
 
 

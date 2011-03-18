@@ -4,64 +4,24 @@ from distutils.version import StrictVersion
 
 from py2py3 import iteritems
 
+from stdnet.lib.redisinfo import RedisStats
+
 from djpcms import forms
 from djpcms.html import Paginator, table_checkbox
 from djpcms.utils.ajax import jhtmls, jredirect
 from djpcms.utils import lazyattr, gen_unique_id
 from djpcms.template import loader
 from djpcms.views import *
-
-
-def redistable():
-    return {'set':{'count':0,'size':0},
-            'zset':{'count':0,'size':0},
-            'list':{'count':0,'size':0},
-            'hash':{'count':0,'size':0},
-            'ts':{'count':0,'size':0},
-            'string':{'count':0,'size':0},
-            'unknow':{'count':0,'size':0}}
-
-def incr_count(table, t, c, s):
-    d = table[t]
-    d['count'] += 1
-    d['size'] += s
-
-
-def type_length(r, key, table):
-    '''Retrive the type and length of a redis key.
-    '''
-    pipe = r.pipeline()
-    pipe.type(key).ttl(key)
-    tt = pipe.execute()
-    typ = tt[0]
-    if typ == 'set':
-        cl = pipe.scard(key).srandmember(key).execute()
-        l = cl[0]
-        incr_count(table,typ,l,len(cl[1]))       
-    elif typ =='zset':
-        cl = pipe.zcard(key).zrange(key,0,0).execute()
-        l = cl[0]
-    elif typ == 'list':
-        l = r.llen(key)
-    elif typ == 'hash':
-        l = r.hlen(key)
-    elif typ == 'ts':
-        l = r.execute_command('TSLEN', key)
-    elif typ == 'string':
-        l = r.strlen(key)
-    else:
-        l = None
-    return typ,l,tt[1]
         
         
 class DbQuery(object):
     
     def __init__(self, djp, r):
         self.djp   = djp
-        self.r     = r
+        self.r     = RedisStats(r)
         
     def __len__(self):
-        return self.r.dbsize()
+        return self.r.size()
     
     def __iter__(self):
         return self.data()
@@ -72,10 +32,9 @@ class DbQuery(object):
     
     def __getitem__(self, slic):
         data = self.data()[slic]
-        r = self.r
-        t = redistable()
+        type_length = self.r.type_length
         for key in data:
-            typ,len,ttl = type_length(r, key, t)
+            typ,len,ttl = type_length(key)
             yield table_checkbox(key),typ,len,ttl
         
         

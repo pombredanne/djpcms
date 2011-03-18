@@ -1,3 +1,4 @@
+from regression import models
 from djpcms import sites
 
 
@@ -14,6 +15,11 @@ elif sites.settings.CMS_ORM == 'stdnet':
     
     installed_apps = ('stdnet.contrib.sessions',)
     
-else:
     
-    from djpcms.core.db import *
+class Portfolio(models.Model):
+    user = models.ForeignKey(User)
+    name = models.CharField(max_length = 200)
+    description = models.TextField()
+    
+    def __unicode__(self):
+        return self.name

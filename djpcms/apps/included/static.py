@@ -206,7 +206,9 @@ class Static(views.Application):
     show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticFileRoot()
-    app  = StaticFileApp(parent = 'main', regex = '(?P<path>[\w./-]*)', append_slash = False)
+    app  = StaticFileApp(parent = 'main',
+                         regex = '(?P<path>[\w./-]*)',
+                         append_slash = False)
     
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)

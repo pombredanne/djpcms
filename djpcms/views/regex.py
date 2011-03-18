@@ -1,27 +1,32 @@
 import copy
 
 from djpcms.core.exceptions import ApplicationUrlException
-from djpcms.utils import iri_to_uri
+from djpcms.utils import iri_to_uri, openedurl, SLASH
 from djpcms.utils.strings import force_str
 
 
+__all__ = ['RegExUrl']
+
+
 class RegExUrl(object):
-    '''Helper class for url regular expression manipulation
+    '''Helper class for url regular url expression manipulation
     
     .. attribute: url
     
-        regular expression string
+        a url regular expression string
         
-    .. attribute: split
+    .. attribute: append_slash
+    
+        if ``True`` the url will have a slash appended at the end.
+        If set to ``False`` the url cannot be prepended to other urls
         
-        if True the url will be split using '/' as separator  
+        Default ``True``.
     '''
-    def __init__(self, url = None, split = True, append_slash = True):
-        self.url    = str(url or '')
-        self.purl   = ''
-        self.targs  = 0
-        self.nargs  = 0
-        self._split = split
+    def __init__(self, url = None, append_slash = True):
+        self.url = openedurl(str(url or ''))
+        self.purl = ''
+        self.targs = 0
+        self.nargs = 0
         self.breadcrumbs = []
         self.names = []
         self.append_slash = append_slash
@@ -29,7 +34,7 @@ class RegExUrl(object):
             self.__process()
             if self.append_slash:
                 self.url  = '%s/' % self.url
-        
+    
     def __len__(self):
         return len(self.url)
     
@@ -38,18 +43,12 @@ class RegExUrl(object):
             return self.url == other.url
         else:
             return False
-    
-    def split(self):
-        if self._split:
-            return self.url.split('/')
-        else:
-            return ['%s' % self.url]
         
     def __str__(self):
         if self.append_slash:
-            return '^%s$' % self.url
+            return '^{0}$'.format(self.url)
         else:
-            return self.url
+            return '^{0}'.format(self.url)
 
     def get_url(self, **kwargs):
         if kwargs:
@@ -61,32 +60,53 @@ class RegExUrl(object):
             return self.purl
     
     def __process(self):
-        bits = self.split()
+        names = []
+        front = self.url
+        back = ''
+        star = '*'
+        while front:
+            st = front.find('(') + 1
+            en = front.find(')')
+            if st and en:
+                st -= 1
+                en += 1
+                names.append(front[st:en])
+                back += front[:st] + star
+                front = front[en:]
+            else:
+                back += front
+                front = None
+        
+        bits = back.split(SLASH)
         for bit in bits:
             if not bit:
                 continue
-            if bit.startswith('('):
-                self.targs += 1
+            if bit == star:
+                bit = names.pop(0)
                 st = bit.find('<') + 1
                 en = bit.find('>')
                 if st and en:
                     name = bit[st:en]
                 else:
-                    raise ApplicationUrlException('Regular expression for urls requires a keyworld. %s does not have one.' % bit)             
+                    raise ApplicationUrlException('Regular expression for urls requires a keyworld. %s does not have one.' % bit) 
                 bit  = '%(' + name + ')s'
                 self.names.append(name)
             self.breadcrumbs.append(bit)
-            self.purl  += '%s/' % bit
+        self.purl = SLASH.join(self.breadcrumbs)
+        if self.append_slash:
+            self.purl += SLASH
 
     def __add__(self, other):
-        if not isinstance(other,self.__class__):
-            raise ValueError
-        res = copy.deepcopy(self)
-        res.url  = '%s%s' % (res.url,other.url)
-        res.purl = '%s%s' % (res.purl,other.purl)
-        res.targs += other.targs
-        res.nargs += other.nargs
-        res.names.extend(other.names)
-        return res
+        if not self.append_slash:
+            raise ValueError('Cannot prepend to another url. Append slash is set to false')
+        cls = self.__class__
+        append_slash = True
+        if isinstance(other,cls):
+            append_slash = other.append_slash
+            other = other.url
+        else:
+            other = str(other)
+        return self.__class__(self.url + other,
+                              append_slash = append_slash)
         
         

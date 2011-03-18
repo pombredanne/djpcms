@@ -5,10 +5,11 @@ DJPCMS = 'DJPCMS'
 
 class djpcmsinfo(UnicodeMixin):
     
-    def __init__(self,view,kwargs,page=None,site=None):
+    def __init__(self,view,kwargs,page=None,site=None,instance=None):
         self.view = view
         self.kwargs = kwargs if kwargs is not None else {}
         self.page = page
+        self.instance = instance
         self.context_cache = None
         if view:
             self.site = view.site
@@ -103,6 +104,7 @@ class WSGI(BaseSiteHandler):
             if response:
                 return http.finish_response(response, environ, start_response)
         response = djp.response()
+        info.instance = djp.instance
         # Response middleware
         for middleware_method in site.response_middleware():
             middleware_method(request,response)

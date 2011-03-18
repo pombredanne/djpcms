@@ -74,16 +74,7 @@ The main function here is the ``resolve`` method'''
             node = self.tree[spath]
             return self.resolve_from_node(node)
         except KeyError:
-            pass
-        
-        # No url in sitemap, lets try to see if it is not loaded yet
-        try:
-            node = self.tree.node(spath)
-            view = node.get_view()
-            self.tree[spath] = node
-            return view.site,view,{}
-        except PathException:
-            pass            
+            pass         
         
         view = self
         rurl = (path,)

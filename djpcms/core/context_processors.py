@@ -5,7 +5,7 @@ from djpcms import sites, UnicodeMixin, CHANGE, ADD
 from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
-from djpcms.utils import iri_to_uri
+from djpcms.utils import iri_to_uri, escape
 from djpcms.html import grid960, htmldoc, List, icons
 
 
@@ -45,7 +45,7 @@ class PageLink(UnicodeMixin):
             view = info.view
             kwargs = info.kwargs.copy()
             kwargs['url'] = self.request.path if not info.view else info.view.path()
-            path = iri_to_uri(path+'?'+'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
+            path = iri_to_uri(path,kwargs)
             return icons.circle_plus(path,'add page',title="add page contents",button=False)
         else:
             return ''
@@ -53,9 +53,7 @@ class PageLink(UnicodeMixin):
     def changelink(self, app):
         path = app.changeurl(self.request, self.page)
         if path:
-            kwargs = self.request.DJPCMS.kwargs
-            if kwargs:
-                path = iri_to_uri(path+'?'+'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
+            kwargs = iri_to_uri(path,self.request.DJPCMS.kwargs)
             return icons.pencil(path,'edit',title = 'Edit page contents',button=False)
         else:
             return ''
@@ -66,12 +64,8 @@ class PageLink(UnicodeMixin):
     
 
 def get_grid960(page):
-    return grid960()
-    if page and page.cssinfo:
-        return grid960(columns = page.cssinfo.gridsize,
-                       fixed = page.cssinfo.fixed)
-    else:
-        return grid960()
+    float_layout = 0 if not page else page.layout
+    return grid960(fixed = not float_layout)
 
 
 def djpcms(request):
@@ -118,7 +112,7 @@ def messages(request):
     lmsg = []
     if messages:
         for level in sorted(messages):
-            msg = List(messages[level])
+            msg = List(messages[level], cn = 'messagelist')
             if level < logging.ERROR:
                 msg.addClass('ui-state-highlight')
             else:

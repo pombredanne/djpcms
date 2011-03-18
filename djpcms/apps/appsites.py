@@ -77,13 +77,11 @@ class ApplicationSite(SiteMixin):
                 self.register(application)
         url = self.make_url
         urls = ()
-        # Add in each model's views.
+        # Add application's views.
         for app in self.applications:
-            baseurl = app.baseurl
-            if baseurl:
-                urls += url('^{0}(.*)'.format(baseurl[1:]),
-                            app,
-                            name = app.name),
+            urls += (url('^{0}(.*)'.format(app.baseurl.purl),
+                         app,
+                         name = app.name),)
         self.tree.addsite(self)
         return urls
     
@@ -96,7 +94,10 @@ class ApplicationSite(SiteMixin):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application. Is is not a valid one.')
         
+        apps = application.apps
+        application.apps = None
         application = deepcopy(application)
+        application.apps = apps
         if application.name in self._nameregistry:
             raise AlreadyRegistered('Application %s already registered as application' % application)
         self._nameregistry[application.name] = application
@@ -107,8 +108,13 @@ class ApplicationSite(SiteMixin):
                 raise AlreadyRegistered('Model %s already registered as application' % model)
             self._registry[model] = application
         
-        for app in application.apps.values():
-            self.register(app)
+        napps = OrderedDict()
+        for app in apps.values():
+            app = self.register(app)
+            napps[app.name] = app
+        application.apps = napps
+        
+        return application
     
     def unregister(self, model):
         '''Unregister the :class:`djpcms.views.ModelApplication` registered

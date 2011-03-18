@@ -34,7 +34,7 @@ class PageApplication(views.ModelApplication):
     changeroot = editPageView(regex = 'route',
                               parent = 'main',
                               form = HtmlPageForm)
-    change = editPageView(regex = '(?P<path>[\w./-]*)', splitregex = False,
+    change = editPageView(regex = '(?P<path>[\w./-]*)',
                           parent = 'changeroot',
                           form = HtmlPageForm)
     

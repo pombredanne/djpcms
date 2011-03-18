@@ -13,6 +13,7 @@ __all__ = ['urlparse',
            'openedurl',
            'routejoin',
            'iri_to_uri',
+           'remove_double_slash',
            'SLASH']
 
 if ispy3k:
@@ -125,7 +126,7 @@ def _urlquote(s, safe=SLASH):
     return _join(map(quoter, s))
 
 
-def iri_to_uri(iri):
+def iri_to_uri(iri, kwargs = None):
     """Convert an Internationalized Resource Identifier (IRI) portion to a URI
     portion that is suitable for inclusion in a URL.
 
@@ -149,4 +150,6 @@ def iri_to_uri(iri):
     # converted.
     if iri is None:
         return iri
+    if kwargs:
+        iri = '{0}?{1}'.format(iri,'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
     return urlquote(to_string(iri), safe="/#%[]=:;$&()+,!?*@'~")

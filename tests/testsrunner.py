@@ -100,7 +100,15 @@ def run(tags = None, test_type = None,
     else:
         # Create the testing Site
         config = config or {}
-        testsite = sites.make(test_type,'conf',**config)
+        CMS_ORM = config.get('CMS_ORM', '')
+        if CMS_ORM:
+            conf = 'conf_' + CMS_ORM
+        else:
+            conf = 'conf'
+          
+        testsite = sites.make(test_type,
+                              conf,
+                              **config)
         sites.load()
         #sites.settings.setup_django(True)
         # Inject the test settings to sites global variable

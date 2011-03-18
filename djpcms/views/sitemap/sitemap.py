@@ -1,3 +1,4 @@
+from time import time
 from py2py3 import itervalues
 
 from djpcms import UnicodeMixin
@@ -119,10 +120,12 @@ for json serialization.'''
     
 class SiteMap(dict):
     '''Djpcms sitemap'''
+    refresh_seconds = 3600
     def __init__(self):
         super(SiteMap,self).__init__()
         self.root = r = Node(self)
         self[r.path] = r
+        self.lastload = None
         
     def addsite(self, site):
         '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
@@ -147,6 +150,7 @@ Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
                 node = self[path] = Node(self, path = path)
                 return node
             else:
+                self.load()
                 ppath = parentpath(path)
                 if ppath not in self:
                     raise PathException(path)
@@ -184,6 +188,20 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
                 return mp.get(url = path)
             except mp.DoesNotExist:
                 return None
+        
+    def load(self):
+        if Page:
+            nt = time()
+            if not self.lastload or nt - self.lastload > self.refresh_seconds:
+                self.lastload = nt
+            else:
+                return
+            for p in mapper(Page).all():
+                path = p.url
+                if path not in self:
+                    self[path] = Node(path = path)
+                
+            
         
         
         

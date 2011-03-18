@@ -261,7 +261,7 @@ class htmlwrap(htmltag):
         super(htmlwrap,self).__init__(tag, **attrs)
     
     def render(self):
-        return mark_safe(u'\n'.join(['<%s%s>' % (self.tag,self.flatatt()),
+        return mark_safe('\n'.join(['<%s%s>' % (self.tag,self.flatatt()),
                                      self.inner,
                                      '</%s>' % self.tag]))
     

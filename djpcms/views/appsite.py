@@ -24,6 +24,8 @@ from djpcms.utils.collections import OrderedDict
 
 from .baseview import RendererMixin, absolute_parent
 from .appview import View, ViewView
+from .regex import RegExUrl
+
 
 __all__ = ['Application',
            'ModelApplication']
@@ -34,7 +36,7 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = openedurl(self.baseurl)
+        name = openedurl(self.baseurl.url)
         if not name:
             name = self.__class__.__name__
     name = name.replace(SPLITTER,'_').replace(SLASH,'_')
@@ -131,13 +133,13 @@ or in the constructor.
 
 .. attribute:: baseurl
 
-    the root part of the application views urls. It must be provided with trailing slashes::
+    the root part of the application views urls::
     
         '/docs/'
         '/myapp/long/path/'
         '/'
         
-    and so forth.
+    and so forth. Triling slashes will be appended if missing.
     
 .. attribute:: name
 
@@ -229,14 +231,14 @@ of objects. Default is ``None``.'''
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation
         self.editavailable = editavailable
-        self.__baseurl = closedurl(baseurl)
+        self.baseurl = RegExUrl(baseurl)
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
         self.list_display_links = list_display_links or self.list_display_links
         self.form = form or self.form
-        makename(self,name,description)
         self.creation_counter = Application.creation_counter
         Application.creation_counter += 1
+        makename(self,name,description)
         if views:
             for name,view in views.items():
                 if name in self.views:
@@ -270,10 +272,10 @@ application {0}. Already available." % name)
         self.site = application_site
         self._create_views()
         urls = []
-        for app in self.views.values():
-            view_name  = self._get_view_name(app.name)
-            nurl = url(regex = str(app.regex),
-                       view  = app,
+        for view in self.views.values():
+            view_name  = self._get_view_name(view.name)
+            nurl = url(regex = str(view.regex),
+                       view  = view,
                        name  = view_name)
             urls.append(nurl)
         self._urls = tuple(urls)
@@ -289,7 +291,7 @@ application {0}. Already available." % name)
         return self.parent_app
     
     def path(self):
-        return self.site.route + self.baseurl[1:]
+        return self.site.route + self.baseurl.purl
         
     def registration_done(self):
         pass
@@ -310,13 +312,6 @@ Return ``None`` if the view is not available.'''
     def get_root_code(self):
         raise NotImplementedError
     
-    def __get_baseurl(self):
-        if self.parent:
-            return self.parent.baseurl + self.__baseurl[1:]
-        else:
-            return self.__baseurl
-    baseurl = property(__get_baseurl)
-    
     def isroot(self):
         return True
     
@@ -328,10 +323,7 @@ Return ``None`` if the view is not available.'''
         return True
     
     def _get_view_name(self, name):
-        if not self.baseurl:
-            raise ApplicationUrlException('Application without baseurl')
-        base = self.baseurl[1:-1].replace('/','_')
-        return '%s_%s' % (base,name)
+        return '%s_%s' % (self.name,name)
     
     def _create_views(self):
         #Build views for this application
@@ -341,7 +333,11 @@ Return ``None`` if the view is not available.'''
             raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
         
         self.object_views = []
-        parentname = '' if not self.parent else self.parent.name + SPLITTER
+        parentname = ''
+        if self.parent:
+            self.baseurl = self.parent.regex + self.baseurl
+            parentname = self.parent.name + SPLITTER
+            
         # Find the root view
         for name,view in iteritems(self.views):
             if view.object_view:

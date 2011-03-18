@@ -13,15 +13,10 @@
     <div class="breadcrumbs">
     {{ title }}
     </div>{% endif %}{% endif %}{% endblock %}
-   </div>{{ grid.clear }}{% endblock %}{% block page_messages %}
-    <div id="page-messages" class="{{ grid.column1 }}">{% if messages %}
-     <ul class="messagelist">{% for message in messages %}
-     <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    </div>{{ grid.clear }}{% endblock %}{% if editing_panel %}
-   <div class="edit-block {{ grid.column1 }}">
-   {{ editing_panel }}
-   </div>
-   {{ grid.clear }}{% endif %}
+   </div>{{ grid.clear }}{% endblock %}{% if messages %}{% block page_messages %}
+    <div id="page-messages" class="{{ grid.column1 }}">{% for message in messages %}
+     {{ message }}{% endfor %}
+    </div>{{ grid.clear }}{% endblock %}{% endif %}
    <div id="content">{% block page_body %}
    {{ inner }}{% endblock %}
    </div>

@@ -198,7 +198,6 @@ Usage::
     def __init__(self,
                  parent        = None,
                  regex         = None,
-                 splitregex    = False,
                  insitemap     = True,
                  isapp         = False,
                  isplugin      = False,
@@ -229,7 +228,7 @@ Usage::
         self.in_nav    = int(in_navigation)
         self.appmodel  = None
         self.insitemap = insitemap
-        self.urlbit    = RegExUrl(regex,splitregex,append_slash)
+        self.urlbit    = RegExUrl(regex,append_slash)
         self.regex     = None
         self.func      = None
         self.code      = None
@@ -362,9 +361,12 @@ when :attr:`View.astable` attribute is set to ``True``.'''
         '''
         self.appmodel = appmodel
         if self.parent:
-            self.regex = self.parent.regex + self.urlbit
+            regex = self.parent.regex + self.urlbit
         else:
-            self.regex = self.urlbit
+            regex = self.urlbit
+        if appmodel.parent:
+            regex = appmodel.baseurl + regex
+        self.regex = regex
             
     def __deepcopy__(self, memo):
         return copy(self)  
@@ -383,10 +385,8 @@ without a model.'''
 class ModelView(View):
     '''A :class:`View` class for views in :class:`djpcms.views.appsite.ModelApplication`.
     '''
-    def __init__(self, isapp = True, splitregex = True, **kwargs):
-        super(ModelView,self).__init__(isapp = isapp,
-                                       splitregex = splitregex,
-                                       **kwargs)
+    def __init__(self, isapp = True, **kwargs):
+        super(ModelView,self).__init__(isapp = isapp, **kwargs)
     
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)

@@ -161,15 +161,17 @@ Must be used as a base class for TestCase classes'''
     def makesite(self, route = None, appurls = None, **kwargs):
         '''Utility function for setting up an application site. The site is not loaded.'''
         appurls = getattr(self,'appurls',appurls)
-        apps = self.tests.INSTALLED_APPS + self.installed_apps()
+        tests = self.tests
+        apps = tests.INSTALLED_APPS + self.installed_apps()
         return self.sites.make(self.tests.SITE_DIRECTORY,
                                'conf',
                                route = route or '/',
-                               CMS_ORM = self.tests.CMS_ORM,
-                               TEMPLATE_ENGINE = self.tests.TEMPLATE_ENGINE,
-                               HTTP_LIBRARY = self.tests.HTTP_LIBRARY,
+                               CMS_ORM = tests.CMS_ORM,
+                               TEMPLATE_ENGINE = tests.TEMPLATE_ENGINE,
+                               HTTP_LIBRARY = tests.HTTP_LIBRARY,
                                APPLICATION_URLS = appurls,
-                               INSTALLED_APPS = apps)
+                               INSTALLED_APPS = apps,
+                               MIDDLEWARE_CLASSES = tests.MIDDLEWARE_CLASSES)
         
     def installed_apps(self):
         return []

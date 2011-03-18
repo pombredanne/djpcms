@@ -6,6 +6,7 @@ following to your application urls tuple::
 from djpcms import views, sites
 from djpcms.template import loader
 from djpcms.models import Page
+from djpcms.core import messages
 from djpcms.utils import gen_unique_id
 from djpcms.html import box, table
 
@@ -25,28 +26,36 @@ class SiteMapView(views.View):
     
 
 class PageChangeView(views.ChangeView):
-            
+    '''Change page data'''
     def get_context(self, djp):
         c = super(PageChangeView,self).get_context(djp)
         page = djp.instance
         kwargs = dict(djp.request.GET.items())
         url = page.url % kwargs
-        cdjp = djp.site.djp(djp.request, url[1:])
         inner = c['inner']
         c['inner'] = box(collapsed = True, bd = inner, hd = 'Page properties')
-        c['underlying'] = cdjp.view.get_context(cdjp, editing = True)['inner']
+        try:
+            cdjp = djp.site.djp(djp.request, url[1:])
+        except Exception as e:
+            messages.error(djp.request,
+                           'This page has problems. The url is probably wrong')
+            c['underlying'] = ''
+        else:
+            c['underlying'] = cdjp.view.get_context(cdjp, editing = True)['inner']
         return c     
         
     
 class SiteMapApplication(views.ModelApplication):
     '''Application to use for admin sitemaps'''
-    list_display = ('url','application','application_view',
+    list_display = ('id', 'url','application','application_view',
                     'template','inner_template')
     main = SiteMapView(in_navigation = 1)
     
     if Page:
-        search = views.SearchView(regex = 'pages', parent = 'main')
-        add = views.AddView(parent = 'main', force_redirect = True)
+        search = views.SearchView(regex = 'pages',
+                                  parent = 'main')
+        add = views.AddView(parent = 'main',
+                            force_redirect = True)
         change = PageChangeView(regex = views.IDREGEX,
                                 parent = 'main',
                                 force_redirect = True,

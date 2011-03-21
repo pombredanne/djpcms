@@ -60,6 +60,9 @@ DJPCMS_USER_CAN_EDIT_PAGES      = False
 JINJA2_TEMPLATE_LOADERS = [('djpcms.utils.jinja2loaders.ApplicationLoader',)]
 JINJA2_EXTENSIONS = []
 
+DATE_FORMAT = 'd M y'
+DATETIME_FORMAT = DATE_FORMAT + ' H:i'
+
 DJANGO = False
 LOGGING_CONFIG = None
 LOGGING = {

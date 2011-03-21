@@ -7,23 +7,23 @@ from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper
-from djpcms.views import Application, ModelApplication, DummyDjp
+from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\
+                         RouteMixin, ALL_URLS
 from djpcms.template import loader
 
 from .site import SiteMixin
 from .handlers import WSGI
 
 
-class ApplicationSite(SiteMixin):
+class ApplicationSite(SiteMixin, RouteMixin):
     '''Application site manager
     An instance of this class is used to handle url of
     registered applications.
     '''
-    def __init__(self, root, url, config, handler):
+    def __init__(self, root, route, config, handler):
         self.lock = Lock()
         self.root = root
-        self.route = url
-        self.url = url
+        self._route = RegExUrl(route)
         self.config = config
         self.settings = config
         self._registry = {}
@@ -37,7 +37,7 @@ class ApplicationSite(SiteMixin):
         self.handle = handler(self)
         
     def __repr__(self):
-        return '{0} - {1}'.format(self.route,'loaded' if self.isloaded else 'not loaded')
+        return '{0} - {1}'.format(self.path,'loaded' if self.isloaded else 'not loaded')
     __str__ = __repr__
     
     def __get_User(self):
@@ -48,6 +48,9 @@ class ApplicationSite(SiteMixin):
         elif User is not self.root.User:
             raise ImproperlyConfigured('A different User class has been already registered')
     User = property(__get_User,__set_User)
+    
+    def route(self):
+        return self._route
     
     @property
     def tree(self):
@@ -79,16 +82,15 @@ class ApplicationSite(SiteMixin):
         urls = ()
         # Add application's views.
         for app in self.applications:
-            urls += (url('^{0}(.*)'.format(app.baseurl.purl),
-                         app,
-                         name = app.name),)
+            regex = app.baseurl + ALL_URLS
+            urls += (url(str(regex), app, name = app.name),)
         self.tree.addsite(self)
         return urls
     
     @property
     def applications(self):
         '''The list of registered applications'''
-        return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path())))
+        return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path)))
     
     def _register(self, application, parent = None):
         if not isinstance(application,Application):
@@ -111,12 +113,14 @@ class ApplicationSite(SiteMixin):
             parent_view = registered_application.parent
             if not parent_view:
                 parent_view = parent.root_view
+            elif parent_view not in parent.views:
+                raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
             else:
-                if parent not in self.views:
-                    raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
                 parent_view = parent.views[parent_view]
             registered_application.parent = parent_view
-            registered_application.baseurl = parent_view.appmodel.baseurl + parent_view.regex + registered_application.baseurl 
+            registered_application.baseurl = parent_view.baseurl +\
+                                             parent_view.regex + \
+                                             registered_application.baseurl 
             
         # Create application views
         registered_application._create_views(self)

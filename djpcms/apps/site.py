@@ -103,7 +103,6 @@ of djpcms application routes as well as general configuration parameters.'''
         self._osites = None
         #self._settings = None
         self.settings = None
-        self._default_settings = None
         self.route = None
         self.tree = None
         self._commands = None
@@ -134,15 +133,6 @@ of djpcms application routes as well as general configuration parameters.'''
         return self.all()[index]
     def __setitem(self, index, val):
         raise TypeError('Site object does not support item assignment')
-        
-    #def __get_settings(self):
-    #    if not self._settings:
-    #        if not self._default_settings:
-    #            self._default_settings = get_settings()
-    #        return self._default_settings
-    #    else:
-    #        return self._settings
-    #settings = property(__get_settings)
     
     def setup_environment(self):
         '''Called just before loading :class:`djpcms.apps.appsites.ApplicationSite` instances
@@ -170,14 +160,14 @@ It also initialise admin for models.'''
         
     def _load(self):
         '''Load sites'''
-        from djpcms.views import SiteMap
+        from djpcms.views import SiteMap, ALL_URLS
         if not self._sites:
             raise ImproperlyConfigured('No sites registered.')
         # setup the environment
         self.setup_environment()
         settings = self.settings
         sites = self.all()
-        if sites[-1].route is not SLASH:
+        if sites[-1].path is not SLASH:
             raise ImproperlyConfigured('There must be a root site available.')
         self.tree = tree = SiteMap()
         for site in reversed(sites):
@@ -187,7 +177,8 @@ It also initialise admin for models.'''
         url = self.make_url
         urls = ()
         for site in sites:
-            urls += url(r'^{0}(.*)'.format(site.route[1:]), site),
+            regex = site.route() + ALL_URLS
+            urls += url(str(regex), site),
         return urls
     
     def make(self, name, settings = None, route = None,
@@ -277,7 +268,7 @@ site is already registered at ``route``.'''
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
         site = appsites.ApplicationSite(self, route, settings, handler)
-        self._sites[site.route] = site
+        self._sites[site.path] = site
         self._osites = None
         self._urls = None
         return site

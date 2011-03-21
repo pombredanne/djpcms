@@ -29,7 +29,7 @@ class TestAdmin(test.TestCase):
         # Load sites
         self.sites.load()
         admin = self.sites.get('/admin/')
-        self.assertEqual(admin.route,'/admin/')
+        self.assertEqual(admin.path,'/admin/')
         self.assertTrue(len(admin)) # number of admin applications positive
         node = self.node('/admin/') # get the sitemap node at the admin route
         self.assertEqual(node.path,'/admin/')

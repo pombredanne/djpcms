@@ -51,7 +51,7 @@ class Node(UnicodeMixin):
     @property
     def page(self):
         return self.urlmap.get_page(self.path)
-        
+    
     def children(self, strict = True):
         '''Return a generator of child nodes.
 
@@ -74,31 +74,45 @@ class Node(UnicodeMixin):
     
     @property
     def site(self):
-        return self._site if self._site is not None else self.ancestor.site
+        s = self._site
+        if s is None:
+            view = self.get_view()
+            s = view.site
+        return s
             
     @property
     def ancestor(self):
         if self.path == SLASH:
             return None
         else:
-            return self.urlmap[parentpath(self.path)]
+            p = parentpath(self.path)
+            if p in self.urlmap:
+                return self.urlmap[p]
         
     def __unicode__(self):
         return self.path
     
-    def djp(self, request = None):
+    def djp(self, request = None, **kwargs):
         '''Create a :class:`djpcms.views.DjpResponse` object with a dummy request if not available'''
         if not request:
             request = DummyRequest(self.site)
         view = self.get_view()
-        return DjpResponse(request, view)
+        return DjpResponse(request, view, **kwargs)
     
     def get_view(self):
         '''Return an instance of `:class:`djpcms.views.djpcmsview` at node.'''
         if self.view:
             return self.view
         elif self.page:
-            return pageview(self.page,self.site)
+            site = self._site
+            if site is None:
+                ancestor = self.ancestor
+                if ancestor:
+                    site = ancestor.site
+            if site:
+                return pageview(self.page,self.site)
+            else:
+                raise PathException('Cannot get view for node {0}'.format(self))
         else:
             raise PathException('Cannot get view for node {0}'.format(self))
         
@@ -133,12 +147,11 @@ class SiteMap(dict):
     def addsite(self, site):
         '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
 to the sitemap.'''
-        node = self.node(site.route, force = True)
-        node._site = site
+        node = self.node(site.path, site = site, force = True)
         self.addapplications(site.applications)
         return node
         
-    def node(self, path, force = False):
+    def node(self, path, site = None, force = False):
         '''Retrive a :class:`Node` in the sitemap from a ``path`` input.
 If the path is not available but its parent path is,
 it returns a new node without storing it in the sitemap.
@@ -151,20 +164,26 @@ Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
         if path not in self:
             if force:
                 node = self[path] = Node(self, path = path)
-                return node
             else:
-                self.load()
-                ppath = parentpath(path)
-                if ppath not in self:
-                    raise PathException(path)
-                return Node(self, path = path)
+                node = None
+                if self.load():
+                    if path in self:
+                        node = self[path]
+                if not node:
+                    ppath = parentpath(path)
+                    if ppath not in self:
+                        raise PathException(path)
+                    node = Node(self, path = path)
+            node._site = site
+            return node
         else:
             return self[path]
     
     def addapplications(self, apps):
+        '''Add a list of applications to the sitemap'''
         for app in apps:
             for view in itervalues(app.views):
-                node = self.node(view.path(),force=True)
+                node = self.node(view.path,force=True)
                 if node.view:
                     raise ImproperlyConfigured('Node {0} has already \
 a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
@@ -193,18 +212,22 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
                 return None
         
     def load(self):
+        '''Load flat pages to sitemap'''
         from djpcms.models import Page
         if Page:
             nt = time()
             if not self.lastload or nt - self.lastload > self.refresh_seconds:
                 self.lastload = nt
             else:
-                return
+                return False
             for p in mapper(Page).all():
                 path = p.url
                 if path not in self:
-                    self[path] = Node(path = path)
-                
+                    self[path] = Node(self, path = path)
+            return True
+        else:
+            return False
+    
     def drop_flat_pages(self):
         self.lock.acquire()
         try:

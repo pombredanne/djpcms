@@ -1,13 +1,13 @@
 '''\
 Utility for managing grid 960 css templates
 '''
-from py2py3 import to_string
-
+from djpcms import to_string
+from djpcms.utils import mark_safe
 from djpcms.utils.const import EMPTY_VALUE
 
 __all__ = ['grid960','EMPTY_VALUE','CLEAR_GRID']
 
-CLEAR_GRID = to_string('<div class="clear"></div>')
+CLEAR_GRID = mark_safe('<div class="clear"></div>')
 
 
 def grid960(columns = None, fixed = True):        

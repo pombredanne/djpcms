@@ -77,11 +77,7 @@ class Page(TimeStamp, PageInterface):
         app_label = 'djpcms'
 
     def __unicode__(self):
-        return self.url or ''
-    
-    def save(self, commit = True):
-        self.level = self.get_level()
-        return super(Page,self).save(commit = commit)
+        return self.url
 
     def published(self):
         return self in Page.objects.published()

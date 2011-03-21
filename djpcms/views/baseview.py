@@ -11,6 +11,8 @@ from djpcms.utils import parentpath
 
 from .response import DjpResponse
 from .contentgenerator import BlockContentGen
+from .regex import RegExUrl, RouteMixin
+
     
 __all__ = ['RendererMixin',
            'djpcmsview',
@@ -23,7 +25,7 @@ def absolute_parent(djp):
         return sites.djp(djp.request, path[1:])
 
 
-class RendererMixin(UnicodeMixin):
+class RendererMixin(UnicodeMixin,RouteMixin):
     '''\
 Mixin for a class able to render itself
 
@@ -48,9 +50,8 @@ By default it returns an empty string.
         else:
             return ''
     
-    def path(self):
-        raise NotImplementedError
-    
+    def for_user(self, djp):
+        return None
         
 
 # THE DJPCMS BASE CLASS for handling views
@@ -257,8 +258,8 @@ class pageview(djpcmsview):
         self.site = site
         self.page = page  
         
-    def path(self):
-        return self.page.url
+    def route(self):
+        return RegExUrl(self.page.url)
     
     def get_url(self, djp, **urlargs):
         return self.page.url

@@ -1,44 +1,13 @@
 from datetime import date, datetime
 
 from djpcms import sites, nodata
-from djpcms.utils.dates import format as date_format
-from djpcms.utils import force_str, significant_format
-from djpcms.utils.const import EMPTY_VALUE
+from djpcms.html import icons, nicerepr
+from djpcms.utils import force_str
+from djpcms.utils.text import nicename
 from djpcms.template import loader
 
 __all__ = ['BaseOrmWrapper',
-           'nicerepr',
-           '_boolean_icon',
            'nicerepr']
-
-
-BOOLEAN_MAPPING = {True: {'icon':'ui-icon-check','name':'yes'},
-                   False: {'icon':'ui-icon-close','name':'no'}}
-
-
-def _boolean_icon(val):
-    v = BOOLEAN_MAPPING.get(val,'unknown')
-    return '<span class="ui-icon %(icon)s" title="%(name)s">%(name)s</span>' % v
-
-
-def nicerepr(val, nd = 3):
-    if val is None:
-        return sites.settings.DJPCMS_EMPTY_VALUE
-    elif isinstance(val,datetime):
-        time = val.time()
-        if not time:
-            return date_format(val.date(),sites.settings.DATE_FORMAT)
-        else:
-            return date_format(val,sites.settings.DATETIME_FORMAT)
-    elif isinstance(val,date):
-        return date_format(val,sites.settings.DATE_FORMAT)
-    elif isinstance(val,bool):
-        return _boolean_icon(val)
-    else:
-        try:
-            return significant_format(val, n = nd)
-        except TypeError:
-            return val
 
 
 class BaseOrmWrapper(object):
@@ -105,7 +74,7 @@ wrap existing object relational mappers.
         raise NotImplementedError
     
     def _label_for_field(self, name):
-        return name
+        return nicename(name)
         
     def appfuncname(self, name):
         return 'objectfunction__%s' % name
@@ -143,7 +112,7 @@ wrap existing object relational mappers.
         if hasattr(attr,'__call__'):
             attr = attr()
         if attr is not None:
-            return force_str(attr)
+            return force_str(attr, strings_only = True)
         else:
             return sites.settings.DJPCMS_EMPTY_VALUE
         

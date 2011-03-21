@@ -228,7 +228,7 @@ browser based application as well as remote procedure calls validation.
         for name,field in iteritems(self.base_fields):
             if name in initial:
                 continue
-            if field.initial and name not in initial:
+            if field.initial is not None:
                 initial[name] = field.initial
             if self.instance:
                 value = getattr(instance,name,None)

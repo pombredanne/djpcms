@@ -5,11 +5,14 @@ from djpcms.apps.included.vanilla import Application
 from djpcms.apps.included.user import UserApplication, UserSite
 
 
+# A web site with user pages
 def appurls2():
     from .models import User, Portfolio
     apps = (Application('/portfolio/', Portfolio,
                         parent = 'userhome'),)
-    return (UserSite('/', User, apps = apps),)
+    return (UserSite('/',
+                     User, apps = apps),
+            )
 
 
 @test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
@@ -24,11 +27,7 @@ class TestSiteUser(test.TestCase, test.UserMixin):
         self.sites.load()
         self.makeusers()
         
-    def installed_apps(self):
-        from .models import installed_apps
-        return []
-        
-    def testApps(self):
+    def testAppsViews(self):
         app = self.sites.for_model(self.User)
         site = app.site
         self.assertTrue(len(site),2)
@@ -41,6 +40,12 @@ class TestSiteUser(test.TestCase, test.UserMixin):
         papp = apps['portfolio']
         self.assertEqual(len(papp.views),5)
         self.assertEqual(len(papp._urls),5)
+        
+    def testUserApplications(self):
+        port_app = self.sites.for_model(self.Portfolio)
+        user_app = self.sites.for_model(self.User)
+        self.assertTrue(port_app.parent)
+        self.assertEqual(port_app.parent,user_app.getview('userhome'))
         
     def testHomePage(self):
         response = self.get()

@@ -28,9 +28,6 @@ class TimeStamp(models.Model):
 class InnerTemplate(TimeStamp, TemplateInterface):
     '''Page Inner template'''
     name     = models.CharField(max_length = 200)
-    image    = models.ImageField(upload_to = uploader('template'),
-                                 storage = storage_manager('template'),
-                                 null = True, blank = True)
     template = models.TextField(blank = True)
     blocks   = models.TextField(help_text = _('comma separated strings indicating the content blocks'))
         
@@ -46,65 +43,16 @@ class InnerTemplate(TimeStamp, TemplateInterface):
         super(InnerTemplate,self).save()
     
     
-class CssPageInfo(TimeStamp):
-    '''
-    Css information for the Page
-    '''
-    body_class_name      = models.CharField(max_length = 60, blank = True)
-    container_class_name = models.CharField(max_length = 60, blank = True)
-    fixed    = models.BooleanField(default = True)
-    gridsize = models.PositiveIntegerField(default = 12)
-    
-    class Meta:
-        app_label = 'djpcms'
-        
-    def __unicode__(self):
-        if self.body_class_name:
-            return '%s - %s' % (self.body_class_name,self.conteiner_class())
-        else:
-            return self.conteiner_class()
-        
-    def conteiner_class(self):
-        '''
-        Get the container class-name.
-        If not specified it return container_gridsize for 960 grid templates
-        '''
-        if not self.container_class_name:
-            return 'container_%s' % self.gridsize
-        else:
-            return self.container_class_name
-    
-    
 class Page(TimeStamp, PageInterface):
-    '''The page model holds several information regarding pages in the sitemap.'''
-    site        = models.ForeignKey(Site, null = True, blank = True)
-    '''Site to which the page belongs.'''
-    application_view = models.CharField(max_length = 200, blank = True)
     '''Name of the :class:`djpcms.views.appview.AppViewBase` owner of the page. It can be empty, in which case the page is a ``flat`` page (not part of an application).'''
-    redirect_to = models.ForeignKey('self',
-                                    null  = True,
-                                    blank = True,
-                                    related_name = 'redirected_from')
-    title       = models.CharField(max_length = 60,
-                                   blank = True,
-                                   help_text=_('Optional. Page Title.'))
-    
-    url_pattern = models.CharField(max_length = 200,
-                                   blank = True,
-                                   help_text=_('URL bit. No slashes.'))
-    
-    link        = models.CharField(max_length = 60,
-                                   blank = True,
-                                   help_text=_('Short name to display as link to this page.'),
-                                   verbose_name = 'link name')
-    
+    url         = models.CharField(max_length = 1000)
+    title       = models.CharField(max_length = 60, blank = True)
+    link        = models.CharField(max_length = 60, blank = True)
     inner_template = models.ForeignKey(InnerTemplate,
                                        null = True,
-                                       blank = True,
-                                       verbose_name=_("inner template"))
+                                       blank = True)
     '''Page inner template is an instance of :class:`djpcms.models.InnerTemplate`. It contains information regrading the number of ``blocks`` in the page
 as well as the layout structure.'''
-    
     template    = models.CharField(max_length=200,
                                    verbose_name = 'template file',
                                    null = True,
@@ -117,12 +65,6 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
                                                 verbose_name = _("Position"),
                                                 help_text = _("Position in navigation. If 0 it won't be in navigation. If bigger than 100 it will be a secondary navigation item."))
     '''Integer flag indicating positioning in the site navigation (see :class:`djpcms.utils.navigation.Navigator`). If set to ``0`` the page won't be displayed in the navigation.'''
-    
-    cssinfo     = models.ForeignKey(CssPageInfo,
-                                    null = True,
-                                    blank = True,
-                                    verbose_name='Css classes')
-    
     is_published = models.BooleanField(default=True,
                                        help_text=_('Whether or not the page is accessible from the web.'),
                                        verbose_name='published')
@@ -133,31 +75,12 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
                                     db_index=True,
                                     default=False,
                                     help_text=_("All ancestors will not be displayed in the navigation"))
-    
-    # Navigation
-    parent    = models.ForeignKey('self',
-                                  null  = True,
-                                  blank = True,
-                                  related_name = 'children',
-                                  help_text=_('This page will be appended inside the chosen parent page.'))
-    '''Parent page. If ``None`` the page is the site ``root`` page.'''
-    
-    code_object = models.CharField(max_length=200,
-                                   blank=True,
-                                   verbose_name = 'in sitemap',
-                                   help_text=_('Optional. Dotted path to a python class dealing with requests'))
-    
+      
     doctype = models.PositiveIntegerField(default = html.htmldefaultdoc)
     insitemap = models.BooleanField(default = True,
                                     verbose_name = 'in sitemap',
                                     help_text=_('If the page is public, include it in sidemap or not.'))
-        
-    # Denormalized level in the tree and url, for performance 
-    level       = models.IntegerField(default = 0, editable = False)
-    url         = models.CharField(editable = False, max_length = 1000)
-    application = models.CharField(max_length = 200, blank = True)
-    '''Name of the :class:`djpcms.views.appsite.ApplicationBase` owner of the page. It can be empty, in which case the page is a ``flat`` page (not part of an application).'''
-    user        = models.ForeignKey(User, null = True, blank = True)
+    layout = models.IntegerField(default = 0)
 
     objects = PageManager()
 
@@ -167,11 +90,7 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
         verbose_name_plural = "Sitemap"
 
     def __unicode__(self):
-        return u'%s%s' % (self.site.domain,self.url)
-    
-    def save(self, **kwargs):
-        self.level = self.get_level()
-        super(Page,self).save(**kwargs)
+        return self.url
 
     def published(self):
         return self in Page.objects.published()

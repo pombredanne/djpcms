@@ -41,6 +41,7 @@ class PageMixin(object):
         data = dict(PageForm.initials())
         data.update(kwargs)
         data['url'] = closedurl(url)
+        site = site if site is not None else self.sites
         f = PageForm(model = Page, data = data, site = site)
         self.assertTrue(f.is_valid())
         return f.save()

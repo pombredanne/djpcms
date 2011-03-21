@@ -12,11 +12,11 @@ import djpcms
 from djpcms.html import ObjectDefinition, Paginator, Table,\
                         SubmitInput, MediaDefiningClass
 from djpcms.forms import FormType, HtmlForm
-from djpcms.template import loader, mark_safe
+from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException, AlreadyRegistered
-from djpcms.utils import slugify, closedurl, openedurl, SLASH
+from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
@@ -36,7 +36,7 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = openedurl(self.baseurl.url)
+        name = openedurl(self.baseurl.path)
         if not name:
             name = self.__class__.__name__
     name = name.replace(SPLITTER,'_').replace(SLASH,'_')
@@ -200,9 +200,9 @@ or in the constructor.
     '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
     list_per_page    = 50
     '''Number of objects per page. Default is ``30``.'''
-    exclude_links    = []
-    list_display     = []
-    list_display_links = []
+    exclude_links    = ()
+    list_display     = ()
+    list_display_links = ()
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
     model = None
@@ -263,7 +263,12 @@ application {0}. Already available." % name)
     def settings(self):
         if self.site:
             return self.site.settings
-    
+        
+    @property
+    def tree(self):
+        if self.site:
+            return self.site.tree
+        
     def __unicode__(self):
         if not self.site:
             v = str(self.baseurl) + ' - Not Registered'
@@ -274,8 +279,8 @@ application {0}. Already available." % name)
     def appsite(self):
         return self.parent_app
     
-    def path(self):
-        return self.site.route + self.baseurl.purl
+    def route(self):
+        return self.site.route() + self.baseurl
         
     def registration_done(self):
         pass
@@ -321,16 +326,12 @@ Return ``None`` if the view is not available.'''
             raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
         
         self.object_views = []
-        parentname = ''
-        if self.parent:
-            self.baseurl = self.parent.regex + self.baseurl
-            #parentname = self.parent.name + SPLITTER
-            
+                    
         # Find the root view
         for name,view in iteritems(self.views):
             if view.object_view:
                 self.object_views.append(view)
-            view.name = parentname + name
+            view.name = name
             view.code = self.name + SPLITTER + view.name
             if not view.parent:
                 if not view.urlbit:
@@ -508,6 +509,11 @@ By default it return a generator of children pages.'''
             c['items'] = self.data_generator(djp, p.qs)
             return loader.render(self.pagination_template_name, c)
 
+    def for_user(self, djp):
+        if self.parent:
+            djp = self.tree.djp[self.parent.path()](djp.request,**djp.kwargs)
+            return djp.view.for_user(djp)
+            
 
 class ModelApplication(Application):
     '''An :class:`Application` class for applications
@@ -603,6 +609,12 @@ Re-implement for custom arguments.'''
         return self.appviewurl(request,name,obj,self.has_change_permission,objrequired=True)
     
     def viewurl(self, request, obj, name = 'view', field_name = None):
+        if field_name and self.model:
+            value = getattr(obj,field_name,None)
+            if hasattr(value,'__class__'):
+                appmodel = self.site.for_model(value.__class__)
+                if appmodel:
+                    return appmodel.viewurl(request,value)
         return self.appviewurl(request,name,obj,objrequired=True)
     
     def searchurl(self, request):

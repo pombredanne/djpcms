@@ -1,6 +1,11 @@
+from py2py3 import zip
+
 from djpcms import UnicodeMixin
 from djpcms.utils import smart_escape
 from djpcms.template import loader
+
+from .table import result_for_item
+
 
 OBJECT_DEF_TEMPLATE = 'djpcms/object_definition.html'
 
@@ -39,14 +44,23 @@ Usage::
                 
     def __unicode__(self):
         '''Render an object as definition list.'''
-        data = self.data or self._data()
-        obj = self.obj
-        mapper = self.appmodel.mapper
-        content = {'module_name':mapper.module_name,
-                   'id':mapper.get_object_id(obj),
-                   'data':data,
-                   'item':obj}
+        appmodel = self.appmodel
+        mapper = appmodel.mapper
+        headers = self.appmodel.object_display
+        label_for_field = mapper.label_for_field
+        if self.data:
+            ctx = {'id':mapper.get_object_id(self.obj)}
+            items = self.data
+        else:
+            ctx = result_for_item(self.djp,headers,
+                                  self.obj,mapper,appmodel)
+            display = ctx.pop('display')
+            items = ({'name':label_for_field(name),'value':value}\
+                        for name,value in zip(headers,display))
+        ctx.update({'module_name':mapper.module_name,
+                    'item':self.obj,
+                    'items': items})
         return loader.render(('%s/%s_definition.html' % (mapper.app_label,mapper.module_name),
                               OBJECT_DEF_TEMPLATE),
-                              content)
+                              ctx)
         

@@ -1,6 +1,5 @@
 from djpcms import UnicodeMixin
 from djpcms.utils import force_str
-from djpcms.template import mark_safe
 from djpcms.core.page import block_htmlid
 from djpcms.html import EMPTY_VALUE
 

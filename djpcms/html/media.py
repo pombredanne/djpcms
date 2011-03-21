@@ -6,10 +6,8 @@ from itertools import chain
 
 from py2py3 import urlparse
 
-from djpcms import sites
-from djpcms.template import loader
+from djpcms.utils import mark_safe
 
-mark_safe = loader.mark_safe
 urljoin = urlparse.urljoin
 
 __all__ = ['MEDIA_TYPES',
@@ -35,15 +33,10 @@ class Media(object):
         for name in MEDIA_TYPES:
             getattr(self, 'add_' + name)(media_attrs.get(name, None))
 
-    def html(self):
-        return loader.mark_safe(self.render())
-                                
-    def render(self):
-        return '\n'.join(chain(*[getattr(self, 'render_' + name)() for name in MEDIA_TYPES]))
-
     @property
     def render_js(self):
-        return ('<script type="text/javascript" src="%s"></script>' % self.absolute_path(path) for path in self._js)
+        return (mark_safe('<script type="text/javascript" src="%s"></script>'\
+                 % self.absolute_path(path)) for path in self._js)
 
     @property
     def render_css(self):
@@ -52,7 +45,7 @@ class Media(object):
         media = self._css.keys()
         media.sort()
         return chain(*[
-            ('<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium)
+            (mark_safe('<link href="%s" type="text/css" media="%s" rel="stylesheet" />' % (self.absolute_path(path), medium))
                     for path in self._css[medium])
                 for medium in media])
 
@@ -60,6 +53,7 @@ class Media(object):
         if path.startswith('http://') or path.startswith('https://') or path.startswith('/'):
             return path
         if prefix is None:
+            from djpcms import sites
             prefix = sites.settings.MEDIA_URL
         return urljoin(prefix, path)
 

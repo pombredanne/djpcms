@@ -20,10 +20,7 @@ def get_simpleapps():
             )
 
 class TestSites(test.TestCase):
-    '''Tests the sites singletone'''    
-    def makesite(self):
-        self.sites = ApplicationSites()
-        
+    '''Tests the sites singletone'''
     def testLoadError(self):
         '''No sites created. Load should raise an ImproperlyConfigured
         error'''

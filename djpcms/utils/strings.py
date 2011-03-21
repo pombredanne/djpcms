@@ -9,10 +9,19 @@ from py2py3 import string_type
 __all__ = ['encode_str',
            'force_str',
            'escape',
-           'smart_escape']
+           'smart_escape',
+           'mark_safe']
 
 
-protected_types = (int, datetime, date, time, float, Decimal)
+protected_types = (int, bool, datetime, date, time, float, Decimal)
+
+
+class SafeString(string_type):
+    __html__ = True
+
+    
+def mark_safe(v):
+    return SafeString(v)
 
 
 def encode_str(s, encoding='utf-8', strings_only=False, errors='strict'):
@@ -72,6 +81,8 @@ def escape(html):
 
 
 def smart_escape(text):
+    if hasattr(text,'__html__'):
+        return text
     lines = force_str(text).split('\n')
     if len(lines) > 1:
         r = len(lines)
@@ -79,3 +90,4 @@ def smart_escape(text):
         #return '<p>{0}</p>'.format('</p><p>'.join((escape(text) for text in lines)))
     else:
         return escape(text)
+    

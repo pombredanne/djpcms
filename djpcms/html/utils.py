@@ -1,11 +1,10 @@
 import djpcms
 from djpcms.utils import lazyattr, force_str
 
-
 __all__ = ['LazyRender',
            'LazyUnicode']
-
-
+        
+        
 class LazyUnicode(djpcms.UnicodeMixin):
     
     def __len__(self):

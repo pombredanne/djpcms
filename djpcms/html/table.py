@@ -2,15 +2,13 @@
 Utilities for displaying interactive table with pagination and actions.
 '''
 from djpcms.template import loader
-from djpcms.core import orms
-from djpcms.utils import force_str
+from djpcms.utils import force_str, smart_escape, mark_safe
 from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND
 from djpcms.utils.text import nicename
 from djpcms.html import icons
 
+from .nicerepr import nicerepr
 from .widgets import Select, CheckboxInput
-
-nicerepr = orms.nicerepr
 
 from .utils import LazyRender
 
@@ -28,11 +26,12 @@ def response_table_row(headers,item,path=SLASH):
 divchk = '<div class="action-check">'
 spvval = '<span class="value">'
 
+
 def table_checkbox(val):
     chk = CheckboxInput(value = val, name = 'action-item').render()
     if val:
         val = divchk+chk+spvval+val+SPANEND+DIVEND
-    return val
+    return mark_safe(val)
         
 
 class get_result(object):
@@ -50,11 +49,13 @@ class get_result(object):
         else:
             return result_repr
     
+    
 class get_app_result(get_result):
     '''Representation for an instance field'''
         
     def __call__(self, request, field_name, result, mapper, nd, appmodel, path):
         first = self.first
+        url = None
         if field_name:
             result_repr = mapper.getrepr(field_name, result, nd)
             if force_str(result_repr) == '':
@@ -63,20 +64,21 @@ class get_app_result(get_result):
                     field_name in appmodel.list_display_links:
                 first = False
                 url = appmodel.viewurl(request, result, field_name = field_name)
-            else:
-                url = None
             
             var = result_repr
             if url:
                 if url != path:
-                    var = '<a href="{0}" title="{1}">{1}</a>'.format(url, var)
+                    var = mark_safe('<a href="{0}" title="{1}">{1}</a>'.format(url, var))
                 else:
-                    var = '<a>{0}</a>'.format(var)
+                    var = mark_safe('<a>{0}</a>'.format(var))
         else:
             var = ''
+        
         if self.first and self.actions:
             first = False
             var = table_checkbox(var)
+        
+        var = smart_escape(var)
         self.first = first
         return var
 
@@ -109,8 +111,10 @@ def table_toolbox(appmodel, djp, headers):
     return toolbox
         
         
-def result_for_item(djp, headers, result, nd,
-                    mapper, appmodel, path,
+def result_for_item(djp, headers, result,
+                    mapper, appmodel,
+                    nd = 3,
+                    path = None,
                     actions = False):
     '''Return a dictionary containing a unique id and a
 generator over values to display for each header value.
@@ -120,6 +124,7 @@ This function can be used to generate a row in table with entries given by
 :parameter headers: iterable over attribute names to extract from ``result``.
 :parameter result: the data element to process.
 '''
+    path = path or djp.url
     view = djp.view
     site = view.site
     if mapper and isinstance(result, mapper.model):
@@ -145,7 +150,7 @@ class Table(object):
                  nd = 3, template_name = None,
                  paginator = None):
         '''\
-Render a table
+Render a table given a response object ``djp``.
 
 :parameter djp: instance of :class:`djpcms.views.DjpResponse`.
 :parameter headers: iterable over headers.
@@ -163,7 +168,7 @@ Render a table
                 pass
         path  = djp.http.path_with_query(djp.request)
         if model:
-            mapper = orms.mapper(model)
+            mapper = djp.mapper(model)
             appmodel = djp.view.site.for_model(model)
         else:
             mapper = None
@@ -179,8 +184,8 @@ Render a table
             labels = (nicename(name) for name in headers)
         else:
             labels = (mapper.label_for_field(name) for name in headers)
-        items  = (result_for_item(djp, headers, d, nd, mapper, appmodel,\
-                                  path, actions = actions) for d in data)
+        items  = (result_for_item(djp, headers, d, mapper, appmodel,\
+                                  nd, path, actions = actions) for d in data)
         self.ctx = {'labels': labels,
                     'items': items,
                     'toolbox':toolbox,

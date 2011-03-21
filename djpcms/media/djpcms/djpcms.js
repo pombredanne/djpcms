@@ -25,11 +25,14 @@
      * Common Ancestor jQuery plugin
      */
     $.fn.commonAncestor = function() {
+        if(!this.length) {
+            return $([]);
+        }
         var parents = [],
             minlen = Infinity,
             i,j,p,equal;
 
-        $(this).each(function() {
+        this.each(function() {
             var curparents = $(this).parents();
             parents.push(curparents);
             minlen = Math.min(minlen, curparents.length);

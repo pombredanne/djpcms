@@ -4,11 +4,7 @@ from py2py3 import iteritems, to_string
 
 import django
 
-from djpcms import sites
-from djpcms.utils import force_str
-from djpcms.template import loader
-
-from .base import _boolean_icon, nicerepr, BaseOrmWrapper
+from .base import BaseOrmWrapper
 
 
 class OrmWrapper(BaseOrmWrapper):
@@ -70,39 +66,20 @@ class OrmWrapper(BaseOrmWrapper):
         opts = self.meta
         return opts.app_label + '.' + opts.get_delete_permission()
 
-    def _getrepr(self, name, instance):
-        from django.db import models
-        from django.contrib.admin.util import display_for_field, lookup_field
-        try:
-            f, attr, value = lookup_field(name, instance, self.model_admin)
-        except (AttributeError, self.DoesNotExist):
-            result_repr = self.get_value(instance, name, sites.settings.DJPCMS_EMPTY_VALUE)
+    def save(self, data, instance = None, commit = True):
+        if not instance:
+            instance = self.model(**data)
         else:
-            if f is None:
-                allow_tags = getattr(attr, 'allow_tags', False)
-                boolean = getattr(attr, 'boolean', False)
-                if boolean:
-                    allow_tags = True
-                    result_repr = _boolean_icon(value)
-                else:
-                    result_repr = force_str(value)
-                # Strip HTML tags in the resulting text, except if the
-                # function has an "allow_tags" attribute set to True.
-            else:
-                if value is None:
-                    result_repr = sites.settings.DJPCMS_EMPTY_VALUE
-                if isinstance(f.rel, models.ManyToOneRel):
-                    result_repr = getattr(instance, f.name)
-                else:
-                    result_repr = display_for_field(value, f)
-        return result_repr
-
+            for name,value in iteritems(data):
+                setattr(instance,name,value)
+        if commit:
+            instance.save()
+        return instance
+    
     @classmethod
-    def setup_environment(cls, sites_):
-        sites_.settings.setup_django(True)
+    def setup_environment(cls, sites):
+        sites.settings.setup_django(True)
         from django.conf import settings
         from django.db import models
         models.get_models()
-        #from django.core.management import call_command
-        #call_command('validate')
            

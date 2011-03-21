@@ -25,10 +25,11 @@ __all__ = ['View',
            'DeleteView',
            'ChangeView',
            'AutocompleteView',
+           'ALL_URLS',
            'IDREGEX',
            'SLUG_REGEX']
 
-
+ALL_URLS = RegExUrl('(?P<path>.*)', append_slash = False)
 IDREGEX = '(?P<id>\d+)'
 SLUG_REGEX = '[-\.\+\#\'\:\w]+'
 
@@ -282,14 +283,14 @@ Usage::
         if self.appmodel:
             return self.appmodel.site
     
-    def path(self):
+    def route(self):
         if self.appmodel:
-            return self.appmodel.path() + self.regex.purl
+            return self.appmodel.route() + self.regex
         else:
-            self.regex.purl
+            return self.regex
     
     def get_url(self, djp):
-        return self.appmodel.path() + self.regex.get_url(**djp.kwargs)
+        return self.appmodel.route().get_url(**djp.kwargs)
         
     def title(self, djp):
         page = djp.page
@@ -316,7 +317,7 @@ Usage::
     def in_navigation(self, request, page):
         if not self.appmodel.hidden:
             if page:
-                if self.regex.names and page.url != self.path():
+                if self.regex.names and page.url != self.path:
                     return 0
                 else:
                     return page.in_navigation
@@ -374,6 +375,9 @@ when :attr:`View.astable` attribute is set to ``True``.'''
         else:
             self.regex = self.urlbit
             
+    def for_user(self, djp):
+        return self.appmodel.for_user(djp)
+    
     def __deepcopy__(self, memo):
         return copy(self)  
     
@@ -391,9 +395,6 @@ without a model.'''
 class ModelView(View):
     '''A :class:`View` class for views in :class:`djpcms.views.appsite.ModelApplication`.
     '''
-    def __init__(self, isapp = True, **kwargs):
-        super(ModelView,self).__init__(isapp = isapp, **kwargs)
-    
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
 
@@ -410,10 +411,12 @@ There are three additional parameters that can be set:
     search_text = 'q'
     '''identifier for queries. Default ``q``.'''
     
-    def __init__(self, in_navigation = 1, astable = True, search_text = None, **kwargs):
+    def __init__(self, in_navigation = 1, astable = True,
+                 search_text = None, isplugin = True, **kwargs):
         self.search_text = search_text or self.search_text
         super(SearchView,self).__init__(in_navigation=in_navigation,
                                         astable=astable,
+                                        isplugin = isplugin,
                                         **kwargs)
     
     def appquery(self, djp):

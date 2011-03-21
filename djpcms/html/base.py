@@ -1,8 +1,7 @@
 from py2py3 import iteritems
 
 from djpcms import sites, UnicodeMixin
-from djpcms.utils import force_str
-from djpcms.utils import slugify, escape
+from djpcms.utils import force_str, slugify, escape
 from djpcms.utils.collections import OrderedDict
 from djpcms.template import loader
 from .media import BaseMedia

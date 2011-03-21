@@ -28,9 +28,10 @@ class TestPage(test.TestCase,test.PageMixin):
         self.assertEqual(page.url,'/')
         
     def testModelSearchPage(self):
+        self.testRoot()
         view = self.appmodel.getview('search')
-        p = self.makepage(view.path())
-        self.assertEqual(p.url,view.path())
+        p = self.makepage(view.path)
+        self.assertEqual(p.url,view.path)
         response = self.get('/strategies/')
         page = response.context['pagelink'].page
         self.assertEqual(page.url,'/strategies/')
@@ -44,8 +45,8 @@ class TestPage(test.TestCase,test.PageMixin):
         '''Test an object view with a page'''
         self.model(name = 'test').save()
         view = self.appmodel.getview('view')
-        self.assertEqual(view.path(),'/strategies/%(id)s/')
-        self.assertEqual(self.makepage(view.path()).url,view.path())
+        self.assertEqual(view.path,'/strategies/%(id)s/')
+        self.assertEqual(self.makepage(view.path),view.path)
         response = self.get('/strategies/1/')
         page = response.context['pagelink'].page
         self.assertTrue(page)

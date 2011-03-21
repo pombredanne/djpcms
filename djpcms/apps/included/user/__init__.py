@@ -79,6 +79,8 @@ No assumption has been taken over which model is used for storing user data.'''
 
 
 class UserSite(UserAppBase):
+    '''Application for managing user home pages in the form of "/username/...".
+The userhome view'''
     userpage = True
     home = views.SearchView()
     userhome = views.ViewView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
@@ -88,5 +90,6 @@ class UserSite(UserAppBase):
                        inherit_page = False,
                        form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
     logout = LogoutView(parent = 'home')
-      
-      
+    
+    def for_user(self, djp):
+        return djp.instance

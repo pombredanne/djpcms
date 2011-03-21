@@ -1,4 +1,4 @@
-from djpcms.template import mark_safe
+from djpcms.utils import mark_safe
 
 __all__ = ['htmldefaultdoc',
            'htmldoc']

@@ -12,7 +12,8 @@ if Page:
     admin_urls = (
                   SiteMapApplication('/pages/',
                                      description = 'site map',
-                                     form = HtmlPageForm),
+                                     form = HtmlPageForm,
+                                     list_display_links = ('url','inner_template')),
                   AdminApplication('/templates/',
                                    InnerTemplate,
                                    description = 'inner templates',
@@ -25,6 +26,7 @@ if Page:
                               form = ContentBlockHtmlForm,
                               list_display = ('id','page','block','position',
                                               'plugin_name','title','requires_login'),
+                              list_display_links = ('id','page'),
                               object_display = ('id','page','block','position',
                                               'plugin_name','title','requires_login',
                                               'for_not_authenticated')),

@@ -75,14 +75,17 @@ The main function here is the ``resolve`` method'''
             node = self.tree[spath]
             return self.resolve_from_node(node)
         except KeyError:
-            pass         
+            pass
         
         view = self
         rurl = (path,)
+        urlargs = {}
         site = None
         while isinstance(view,ResolverMixin):
             if len(rurl) != 1:
-                raise self.http.Http404(site = site)
+                if 'path' not in urlargs:
+                    raise self.http.Http404(site = site)
+                rurl = (urlargs.pop('path'),)
             if not getattr(view,'resolver',None):
                 urls = view.urls()
                 view.resolver = RegexURLResolver(r'^', urls)
@@ -94,8 +97,15 @@ The main function here is the ``resolve`` method'''
             
             if site is None:
                 site = view
+                try:
+                    node = self.tree.node(spath, site = site)
+                    return self.resolve_from_node(node)
+                except PathException:
+                    pass
+            else:
+                urlargs.update(kwargs)
         
-        return site, view, kwargs
+        return site, view, urlargs
             
     def resolve_from_node(self, node):
         site = node.site

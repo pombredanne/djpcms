@@ -59,5 +59,4 @@ class LoginView(views.ModelView):
     def success_message(self, instance, mch):
         return ''
 
-
             

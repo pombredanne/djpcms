@@ -56,11 +56,10 @@ class SiteMapApplication(views.ModelApplication):
                                   parent = 'main')
         add = views.AddView(parent = 'main',
                             force_redirect = True)
-        change = PageChangeView(regex = views.IDREGEX,
-                                parent = 'main',
-                                force_redirect = True,
+        view = views.ViewView()
+        change = PageChangeView(force_redirect = True,
                                 template_name = 'djpcms/admin/editpage.html')
-        delete = views.DeleteView(parent = 'change')
+        delete = views.DeleteView()
         
         def __init__(self, baseurl, **kwargs):
             super(SiteMapApplication,self).__init__(baseurl,Page,**kwargs)

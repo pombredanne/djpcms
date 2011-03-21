@@ -93,6 +93,10 @@ model instances).
         except:
             return self.view.__unicode__()
     
+    def mapper(self, model):
+        from djpcms.core.orms import mapper
+        return mapper(model)
+    
     @property
     def css(self):
         return self.settings.HTML_CLASSES

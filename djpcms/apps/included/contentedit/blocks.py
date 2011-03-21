@@ -384,7 +384,7 @@ content in a content block.'''
         url      = djp.url
         editview = self.getview('change')
         wrapper  = EditWrapperHandler(url)
-        Tot = blockcontents.count() - 1
+        Tot = len(blockcontents) - 1
         # Clean blocks
         pos = 0
         t = 0

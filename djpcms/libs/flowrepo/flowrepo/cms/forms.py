@@ -1,13 +1,10 @@
-from django.contrib.auth.models import User
-
 from djpcms.utils import markups
-from djpcms.contrib.flowrepo.models import FlowItem, Attachment, Image
-from djpcms.contrib.flowrepo.forms import WebAccountForm, UploadForm, FlowForm, ReportForm
-
 from djpcms.forms import HtmlForm
 from djpcms.forms.layout.uniforms import Layout, Fieldset, Html, inlineLabels, blockLabels2
 from djpcms.html import HtmlWrap, box
 
+from flowrepo.models import FlowItem, Attachment, Image
+from flowrepo.forms import WebAccountForm, UploadForm, FlowForm, ReportForm
 
 CRL_HELP = HtmlWrap('div', 
                     inner = HtmlWrap('div', inner = markups.help()).addClass('body')

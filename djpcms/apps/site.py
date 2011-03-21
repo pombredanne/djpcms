@@ -12,6 +12,7 @@ from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
+from djpcms.dispatch import Signal
 
 from .management import find_commands
 from .permissions import SimplePermissionBackend
@@ -92,6 +93,9 @@ of djpcms application routes as well as general configuration parameters.'''
         self.clear()
         self.permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
+        self.request_started = Signal()
+        self.start_response = Signal()
+        self.request_finished = Signal()
         
     def clear(self):
         self._sites = {}
@@ -111,6 +115,10 @@ of djpcms application routes as well as general configuration parameters.'''
         
     def __len__(self):
         return len(self._sites)
+    
+    @property
+    def root(self):
+        return self
     
     def all(self):
         s = self._osites

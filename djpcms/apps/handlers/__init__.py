@@ -1,7 +1,9 @@
 from djpcms import UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
 
+
 DJPCMS = 'DJPCMS'
+
 
 class djpcmsinfo(UnicodeMixin):
     
@@ -19,7 +21,7 @@ class djpcmsinfo(UnicodeMixin):
     def __unicode__(self):
         return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
     
-    def djp(self, request):
+    def djp(self, request = None):
         if self.view:
             return self.view(request, **self.kwargs)
     
@@ -33,6 +35,7 @@ class BaseSiteHandler(object):
     def __init__(self, site):
         self.site = site
         self.handle_exception = site.handle_exception
+        self.root = self.site.root
         
     def __call__(self, environ, start_response):
         raise NotImplementedError
@@ -61,14 +64,17 @@ def response_error(f):
     
 class DjpCmsHandler(BaseSiteHandler):
     '''Base DjpCms wsgi handler. It looks for application sites and
-delegate the handling to them.'''        
+delegate the handling to them.'''
     def __call__(self, environ, start_response):
+        self.root.request_started.send(self, environ = environ)
         res = self._handle(environ, start_response)
         if DJPCMS in environ:
             site = environ[DJPCMS].site
         else:
             site = self.site
-        return site.http.finish_response(res, environ, start_response)
+        res = site.http.finish_response(res, environ, start_response)
+        self.root.request_finished.send(self, environ = environ)
+        return res
         
     @response_error
     def _handle(self, environ, start_response):
@@ -103,6 +109,7 @@ class WSGI(BaseSiteHandler):
             response = middleware_method(request)
             if response:
                 return http.finish_response(response, environ, start_response)
+        self.root.start_response.send(sender=self.__class__, request=request)
         response = djp.response()
         info.instance = djp.instance
         # Response middleware

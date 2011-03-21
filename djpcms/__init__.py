@@ -48,6 +48,7 @@ def install_libs():
     install_lib(dlibs, 'py2py3', 'py2py3')
     install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'django-tagging', 'tagging')
+    install_lib(dlibs, 'flowrepo', 'flowrepo')
     #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
 
 install_libs()

@@ -60,9 +60,10 @@ The main function here is the ``resolve`` method'''
                 return self.http.HttpResponseRedirect(url)
         return url
 
-    def __get_http(self):
-        return get_http(self.settings.HTTP_LIBRARY)
-    http = property(__get_http, "Return the http library handle")
+    @property
+    def http(self):
+        if self.settings:
+            return get_http(self.settings.HTTP_LIBRARY)
     
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)

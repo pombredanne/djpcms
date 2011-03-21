@@ -1,18 +1,11 @@
 import os
 
-from djpcms.views import appsite, appview
-from djpcms.utils.pathtool import parentdir
+from djpcms import views
+from djpcms.utils.pathtool import uplevel
 from djpcms.apps.included import archive, vanilla, docs
-
 from djpcms.models import SiteContent
 
-from regression.navigation.models import Strategy
-    
-
-class RandomApplication(appsite.Application):
-    '''A simple application without database model'''
-    name = 'random application'
-    home = appview.View(isapp = True, in_navigation = True)
+from .models import Strategy
 
 
 class ContentArchiveApplication(archive.ArchiveApplication):
@@ -29,7 +22,7 @@ class DocTestApplication(docs.DocApplication):
     deflang    = None
     defversion = None
     name       = 'test_documentation'
-    DOCS_PICKLE_ROOT = parentdir(os.path.abspath(__file__))
+    DOCS_PICKLE_ROOT = uplevel(os.path.abspath(__file__))
     
     def get_path_args(self, lang, version):
         return ('docs',)
@@ -42,6 +35,5 @@ appurls = (
                                       name = 'content',
                                       date_code  = 'last_modified'),
            DocTestApplication('/docs/'),
-           RandomApplication('/random/'),
            vanilla.Application('/strategies/', Strategy),
            )

@@ -5,9 +5,10 @@ from djpcms.views import appview, appsite
 from djpcms.html import Paginator
 from djpcms.apps.included.tagging import ArchiveTaggedApplication, TagApplication
 
-from djpcms.contrib.flowrepo.models import FlowRelated, FlowItem, Report
-from djpcms.contrib.flowrepo.models import Message, Category, Image, Attachment
-from djpcms.contrib.flowrepo.cms.forms import *
+from flowrepo.models import FlowRelated, FlowItem, Report
+from flowrepo.models import Message, Category, Image, Attachment
+
+from .forms import *
 
 
 class FlowMainView(appview.SearchView):

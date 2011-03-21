@@ -37,8 +37,11 @@ class TestSimpleForm(test.TestCase):
         self.assertTrue('39' in html)
         
     def testPageForm(self):
+        d = dict(PageForm.defaults())
+        self.assertTrue(d)
         p = PageForm()
         self.assertFalse(p.is_bound)
         initial = p.initial
         self.assertEqual(initial['in_navigation'],1)
+        self.assertEqual(d,initial)
         

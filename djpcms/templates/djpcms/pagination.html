@@ -1,7 +1,6 @@
-{% if form %}<div class="search-form">
-{{ form }}
-</div>{% endif %}{% if paginator.total %}{% if paginator.multiple %}
-<div id="{% if id %}{{ id }}{% else %}Pagination{% endif %}" class="jquery-pagination">
+<div{% block pagination_class %} class="pagination"{% endblock %}>{% if paginator %}
+{% if paginator.total %}{% if paginator.multiple %}
+<div id="{% if id %}{{ id }}{% else %}Pagination{% endif %}" class="jquery-pagination{% block header_class %}{% endblock %}">
  <div class='navigator'></div>
  <div class='information'></div>
 </div>
@@ -25,6 +24,6 @@ $(document).ready(function(){
     $("#{% if id %}{{ id }}{% else %}Pagination{% endif %}").pagination({{ paginator.total }}, optInit);
 });
 </script>{% endif %}{% else %}
-<div class="information">No entries</div>{% endif %}
-{% if astable %}{{ astable }}{% else %}{% for item in items %}
-{{ item }}{% endfor %}{% endif %}
+<div class="information">No entries</div>{% endif %}{% endif %}{% block pagination_body %}{% for item in items %}
+{{ item }}{% endfor %}{% endblock %}
+</div>

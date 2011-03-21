@@ -1,4 +1,4 @@
-from djpcms import test, forms, html
+from djpcms import test, forms, html, to_string
 
 
 class testHtmlTools(test.TestCase):
@@ -11,6 +11,12 @@ class testHtmlTools(test.TestCase):
         f = c.flatatt()
         self.assertTrue(f in (' class="ciao pippo"',
                               ' class="pippo ciao"'))
+        c = html.HtmlAttrMixin().addClass('ciao pippo bla')
+        self.assertTrue(c.hasClass('bla'))
+    
+    #def testLazyRender(self):
+    #    a = html.LazyRender('ciao')
+    #    self.assertEqual(to_string('a'),'ciao')
 
 
 class TestInputs(test.TestCase):

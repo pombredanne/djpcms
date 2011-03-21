@@ -2,7 +2,7 @@ from djpcms.template import loader
 from djpcms.html import LazyRender
 from djpcms.contrib.monitor import views
 from djpcms.apps.included.admin import AdminApplication
-from djpcms.html import table, ObjectDefinition
+from djpcms.html import Table, ObjectDefinition
 
 from stdnet.lib import redis
 
@@ -36,7 +36,7 @@ class RedisMonitorApplication(AdminApplication):
             panels = [{'name':'Server','value':'No Connection'}]
             databases = ''
         else:
-            databases = table(djp, **info.pop('keys'))
+            databases = Table(djp, **info.pop('keys')).render()
             panels = ({'name':k,'value':ObjectDefinition(self,djp,v)} for k,v in info.items())
         view = loader.render(self.template_view,
                             {'panels':panels,

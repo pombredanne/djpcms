@@ -1,4 +1,6 @@
 from time import time
+from threading import Lock
+
 from py2py3 import itervalues
 
 from djpcms import UnicodeMixin
@@ -126,6 +128,7 @@ class SiteMap(dict):
         self.root = r = Node(self)
         self[r.path] = r
         self.lastload = None
+        self.lock = Lock()
         
     def addsite(self, site):
         '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
@@ -190,6 +193,7 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
                 return None
         
     def load(self):
+        from djpcms.models import Page
         if Page:
             nt = time()
             if not self.lastload or nt - self.lastload > self.refresh_seconds:
@@ -201,7 +205,12 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
                 if path not in self:
                     self[path] = Node(path = path)
                 
-            
-        
-        
-        
+    def drop_flat_pages(self):
+        self.lock.acquire()
+        try:
+            for node in list(self.values()):
+                if not node.view:
+                    del self[node.path]
+            self.lastload = None
+        finally:
+            self.lock.release()

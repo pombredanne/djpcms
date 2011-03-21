@@ -12,11 +12,9 @@ __all__ = ['TextInput',
            'Select',
            'List']
 
-class TextInput(HtmlWidget):
-    tag = 'input'
-    inline = True
+
+class FieldWidget(HtmlWidget):
     attributes = merge_dict(HtmlWidget.attributes, {
-                                                    'type':'text',
                                                     'value': None,
                                                     'name': None
                                                     })
@@ -29,10 +27,16 @@ class TextInput(HtmlWidget):
             value = self.get_value(bfield.value)
             if value:
                 attrs['value'] = value
-        return super(TextInput,self).render(djp,bfield)
+        return super(FieldWidget,self).render(djp,bfield)
     
     def get_value(self, value):
         return value
+    
+
+class TextInput(FieldWidget):
+    tag = 'input'
+    inline = True
+    attributes = merge_dict(FieldWidget.attributes, {'type':'text'})
     
     
 class SubmitInput(TextInput):
@@ -76,7 +80,7 @@ class TextArea(TextInput):
         return self._value
     
     
-class Select(TextInput):
+class Select(FieldWidget):
     tag = 'select'
     inline = False
     _option = '<option value="{0}"{1}>{2}</option>'

@@ -25,15 +25,20 @@ class TemplateForm(forms.Form):
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
     url = forms.CharField(required = False)
-    title = forms.CharField(label = 'Page title', required = False)
-    link = forms.CharField(label = 'Text to display in links', required = False)
+    title = forms.CharField(label = 'Page title',
+                            required = False)
+    link = forms.CharField(label = 'Text to display in links',
+                           required = False)
     in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.',
                                        initial = 1,
                                        required = False)
-    inner_template = forms.ChoiceField(choices = get_templates)   
+    inner_template = forms.ChoiceField(choices = get_templates,
+                                       required = False)   
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
-    layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')))
+    layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')),
+                               default = 0,
+                               initial = 0)
     
     def clean_url(self, value):
         try:
@@ -46,7 +51,7 @@ class PageForm(forms.Form):
     
 
 class PluginChoice(forms.ChoiceField):
-    widget = forms.Select(cn = sites.settings.HTML_CLASSES.ajax)
+    widget = forms.Select(cn = 'ajax')
     
     def __init__(self, *args, **kwargs):
         super(PluginChoice,self).__init__(*args, **kwargs)

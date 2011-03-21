@@ -171,12 +171,15 @@ with the wrapper callable.'''
 class BlockContentManager(object):
     
     def for_page_block(self, page, block):
-        '''Get contentblocks for a given page and block
-        @param page: instance of a page model
-        @param block: integer indicating the block number
-        @return: a queryset  
-        '''
-        blockcontents = self.filter(page = page, block = block)
+        '''\
+Get contentblocks for a given page and block
+
+:parameter page: instance of a :class:`PageInterface` model
+:parameter block: integer indicating the block number.
+
+Return an iterable over ordered items (by position) in block  
+'''
+        blockcontents = sorted(self.filter(page = page, block = block),key = lambda x : x.position)
         create = False
         pos = None
 

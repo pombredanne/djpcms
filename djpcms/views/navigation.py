@@ -3,13 +3,12 @@
 from py2py3 import itervalues, to_string
 
 from djpcms import sites, UnicodeMixin
-from djpcms.html import LazyUnicode
 from djpcms.utils.const import *
 from djpcms.template import loader
 from djpcms.utils import lazyattr
     
 
-class LazyCounter(LazyUnicode):
+class LazyCounter(UnicodeMixin):
     '''A lazy view counter used to build navigations type iterators
     '''
     def __new__(cls, djp, **kwargs):
@@ -19,7 +18,12 @@ class LazyCounter(LazyUnicode):
         obj.kwargs = kwargs
         return obj
 
-
+    def __len__(self):
+        return len(self.items())
+    
+    def __unicode__(self):
+        return self.render()
+    
 
 class Navigator(LazyCounter):
     '''A navigator for the web site
@@ -56,6 +60,7 @@ class Navigator(LazyCounter):
             return self.buildselects(parent, urlselects)
         return djp
     
+    @lazyattr
     def items(self, urlselects = None, secondary_after = 100, **kwargs):
         djp = self.djp
         css = djp.css
@@ -79,6 +84,7 @@ class Navigator(LazyCounter):
             items.append(self.make_item(djp, ' '.join(classes)))
         return items
 
+    @lazyattr
     def render(self):
         if self.mylevel <= self.levels:
             return '\n'.join(self.lines())
@@ -87,21 +93,22 @@ class Navigator(LazyCounter):
     
     def lines(self):
         items = self.items(**self.kwargs)
-        if not items:
-            raise StopIteration
-        if self.classes:
-            yield '<ul class="{0}">'.format(self.classes)
-        else:
-            yield UL
-        for item in items:
-            if item.liclass:
-                yield '<li class="{0}">'.format(item.liclass)
+        if self.url:
+            yield '<a href="{0}">{1}</a>'.format(self.url,self.name)
+        if items:
+            if self.classes:
+                yield '<ul class="{0}">'.format(self.classes)
             else:
-                yield LI
-            yield '<a href="{0}">{1}</a>'.format(item.url,item.name)
-            yield to_string(item)
-        yield LIEND
-        yield ULEND
+                yield UL
+            for item in items:
+                if item.liclass:
+                    yield '<li class="{0}">'.format(item.liclass)
+                else:
+                    yield LI
+                yield to_string(item)
+                yield LIEND
+            yield ULEND
+            
 
 class Breadcrumbs(LazyCounter):
     '''
@@ -123,6 +130,7 @@ class Breadcrumbs(LazyCounter):
                 pass
         return c
         
+    @lazyattr
     def items(self):
         first   = True
         classes = []
@@ -143,6 +151,7 @@ class Breadcrumbs(LazyCounter):
         else:
             return []
     
+    @lazyattr
     def render(self):
         return loader.render(self.template,{'breadcrumbs':self.items()})
 

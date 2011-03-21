@@ -15,9 +15,9 @@ from tagging.fields import TagField
 from djpcms.utils import slugify, markups
 from djpcms.uploads import uploader, storage_manager
 from djpcms.template import mark_safe
-from djpcms.contrib.flowrepo.managers import FlowManager, SlugManager, RepoManager 
-from djpcms.contrib.flowrepo.managers import source_interactive
-from djpcms.contrib.flowrepo.utils import encrypt, decrypt, nicetimedelta
+
+from .managers import FlowManager, SlugManager, RepoManager, source_interactive
+from .utils import encrypt, decrypt, nicetimedelta
 
 
 logger = logging.getLogger('flowrepo')

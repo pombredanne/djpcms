@@ -74,7 +74,7 @@ class ApplicationSite(SiteMixin):
         # loop over reversed sorted applications
         if appurls:
             for application in reversed(sorted(appurls, key = lambda x : x.baseurl)):
-                self.register(application)
+                self._register(application)
         url = self.make_url
         urls = ()
         # Add application's views.
@@ -90,31 +90,55 @@ class ApplicationSite(SiteMixin):
         '''The list of registered applications'''
         return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path())))
     
-    def register(self, application):
+    def _register(self, application, parent = None):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application. Is is not a valid one.')
         
         apps = application.apps
         application.apps = None
-        application = deepcopy(application)
+        registered_application = deepcopy(application)
         application.apps = apps
-        if application.name in self._nameregistry:
+        if registered_application.name in self._nameregistry:
             raise AlreadyRegistered('Application %s already registered as application' % application)
-        self._nameregistry[application.name] = application
-        application.register(self)
-        model = application.model
+        model = registered_application.model
         if model:
             if model in self._registry:
                 raise AlreadyRegistered('Model %s already registered as application' % model)
-            self._registry[model] = application
+            self._registry[model] = registered_application
+            
+        # Handle parent application if available
+        if parent:
+            parent_view = registered_application.parent
+            if not parent_view:
+                parent_view = parent.root_view
+            else:
+                if parent not in self.views:
+                    raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
+                parent_view = parent.views[parent_view]
+            registered_application.parent = parent_view
+            registered_application.baseurl = parent_view.appmodel.baseurl + parent_view.regex + registered_application.baseurl 
+            
+        # Create application views
+        registered_application._create_views(self)
+        self._nameregistry[registered_application.name] = registered_application
+        urls = []
+        for view in registered_application.views.values():
+            view_name  = registered_application._get_view_name(view.name)
+            nurl = registered_application.make_url(regex = str(view.regex),
+                                                   view  = view,
+                                                   name  = view_name)
+            urls.append(nurl)
+        registered_application._urls = tuple(urls)
         
         napps = OrderedDict()
         for app in apps.values():
-            app = self.register(app)
+            app = self._register(app, parent = registered_application)
             napps[app.name] = app
-        application.apps = napps
         
-        return application
+        registered_application.apps = napps
+        registered_application.registration_done()
+        
+        return registered_application
     
     def unregister(self, model):
         '''Unregister the :class:`djpcms.views.ModelApplication` registered

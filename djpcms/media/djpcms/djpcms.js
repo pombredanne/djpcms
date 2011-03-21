@@ -27,7 +27,7 @@
     $.fn.commonAncestor = function() {
         var parents = [],
             minlen = Infinity,
-            j;
+            i,j,p,equal;
 
         $(this).each(function() {
             var curparents = $(this).parents();
@@ -40,9 +40,10 @@
         });
 
         // Iterate until equality is found
-        $.each(parents[0], function(i,p) {
-            var equal = true;
-            for(j=0;j<parents.length;j++) {
+        for(i=0;i<parents[0].length;i++) {
+            p = parents[0][i];
+            equal = true;
+            for(j=1;j<parents.length;j++) {
                 if(parents[j][i] !== p) {
                     equal = false;
                     break;
@@ -51,7 +52,7 @@
             if(equal) {
                 return $(p);
             }
-        });
+        }
         return $([]);
     };
 	
@@ -973,7 +974,8 @@
 		            editblock = 'div.edit-block',
 		            columns = $(sortblock),
 		            holderelem = columns.commonAncestor(),
-		            curposition = null;
+		            curposition = null,
+		            log = $.djpcms.log;
 		        
 		        
 		        columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
@@ -1009,6 +1011,7 @@
     				}
     				if(form) {
     					var url = form.attr('action');
+    					log('Sending rearrange post request to "'+url+'"')
     					$.post(url,
     						   data,
     						   movedone,
@@ -1032,19 +1035,20 @@
     	            },
     	            stop: function (e,ui) {
     	                var elem = ui.item;
+    	                $.djpcms.log('Stopping drag and drop of element ' + elem);
     	                elem.css({width:''}).removeClass('dragging');
     	                function updatedone() {
     	                	columns.sortable('enable');
     	                }
     	                var pos = position(elem);
     	                if(pos.previous) {
-    	                    if(pos.previous == curposition.previous) {return;}
+    	                    if(pos.previous === curposition.previous) {return;}
     	                }
     	                else {
-    	                    if(pos.next == curposition.next) {return;}
+    	                    if(pos.next === curposition.next) {return;}
     	                }
     	                columns.sortable('disable');
-    	                moveblock(ui.item,pos,updatedone);
+    	                moveblock(elem,pos,updatedone);
     	            }
     			});
 		    }());

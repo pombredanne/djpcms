@@ -51,7 +51,7 @@ CssContext('paginator',
                    'navigator_height':'30px',
                    'information_float':'right',
                    'information_height':'20px',
-                   'margin':'0 0 10px 0'
+                   'padding':'0 0 10px 0'
                    }
            )
 
@@ -130,6 +130,14 @@ CssContext('tablesorter',
                    }
            )
 
+
+#________________________________________ djpcms-block-element
+CssContext('blockelement',
+           tag = '.djpcms-block-element, .edit-block',
+           data = {
+                   'margin': '0 0 20px 0'
+                   }
+           )
 
 #________________________________________ BOX
 box = CssContext('box',
@@ -256,6 +264,18 @@ CssContext('breadcrumbs',
            data = {
                    'font_size': '130%',
                    'padding': '10px 0'}
+           )
+
+
+#________________________________________ JAVASCRIPT LOGGING PLUGIN
+CssContext('javascript_logging',
+           tag = '.djp-logging-panel',
+           data = {
+                   'font_size': '90%',
+                   'text_align': 'left',
+                   'overflow_x': 'hidden',
+                   'overflow_y': 'scroll',
+                   'height':'400px'}
            )
 
 #________________________________________ SPECIAL IDS AND CLASSES

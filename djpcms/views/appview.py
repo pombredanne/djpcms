@@ -84,6 +84,7 @@ All parameters are optionals and usually a small subset of them needs to be used
 :keyword renderer: A one parameters functions which can be used to replace the
                    default :meth:`render` method. Default ``None``. The function
                    must return a safe string ready for rendering on a HTML page.
+:keyword force_redirect: check :attr:`force_redirect` attribute for details. Default ``None``.
 :keyword permission: A three parameters function which can be used to
                      replace the default :meth:`_has_permission` method.
                      Default ``None``. The function
@@ -167,7 +168,7 @@ Usage::
     
 .. attribute:: force_redirect
 
-    This flag is used often used in conjunction with :attr:`redirect_to_view`
+    Often used in conjunction with :attr:`redirect_to_view`
     to force a redirect after a form submission. For example::
     
         class MyApp(appsite.ModelApplication):
@@ -175,7 +176,7 @@ Usage::
             add = appview.AddView(redirect_to_view = 'search',
                                   force_redirect = True) 
     
-    This attribute is used to fine-tune the response of your web site.
+    It fine-tunes the response behaviour of your web site forms.
     
     Default: ``False``.
     
@@ -264,20 +265,28 @@ Usage::
         self.creation_counter = View.creation_counter
         View.creation_counter += 1
         
-    def __get_baseurl(self):
-        return self.appmodel.baseurl
-    baseurl = property(__get_baseurl)
+    @property
+    def baseurl(self):
+        if self.appmodel:
+            return self.appmodel.baseurl
+        else:
+            return ''
     
-    def __get_model(self):
-        return getattr(self.appmodel,'model',None)
-    model = property(fget = __get_model)
+    @property
+    def model(self):
+        if self.appmodel:
+            return self.appmodel.model
     
     @property
     def site(self):
-        return self.appmodel.site
+        if self.appmodel:
+            return self.appmodel.site
     
     def path(self):
-        return self.appmodel.path() + self.regex.purl
+        if self.appmodel:
+            return self.appmodel.path() + self.regex.purl
+        else:
+            self.regex.purl
     
     def get_url(self, djp):
         return self.appmodel.path() + self.regex.get_url(**djp.kwargs)
@@ -361,12 +370,9 @@ when :attr:`View.astable` attribute is set to ``True``.'''
         '''
         self.appmodel = appmodel
         if self.parent:
-            regex = self.parent.regex + self.urlbit
+            self.regex = self.parent.regex + self.urlbit
         else:
-            regex = self.urlbit
-        if appmodel.parent:
-            regex = appmodel.baseurl + regex
-        self.regex = regex
+            self.regex = self.urlbit
             
     def __deepcopy__(self, memo):
         return copy(self)  
@@ -462,7 +468,7 @@ and handles the saving as default ``POST`` response.'''
         return self.get_form(djp).render(djp)
     
     def default_post(self, djp):
-        return saveform(djp, False, force_redirect = self.force_redirect)
+        return saveform(djp, force_redirect = self.force_redirect)
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         return model_defaultredirect(self, request, next = next,

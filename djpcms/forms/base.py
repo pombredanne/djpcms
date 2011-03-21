@@ -8,7 +8,7 @@ import json
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import nodata, UnicodeMixin
+from djpcms import nodata, UnicodeMixin, dispatch
 from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
@@ -20,11 +20,15 @@ from .fields import Field
 from .html import FormWidget
 
 
+pre_save = dispatch.Signal()
+post_save = dispatch.Signal()
+
 __all__ = ['FormType',
            'Form',
            'HtmlForm',
            'BoundField',
-           'FormSet']
+           'FormSet',
+           'post_save']
 
 
 class FormSet(object):
@@ -97,6 +101,7 @@ browser based application as well as remote procedure calls validation.
 :parameter instance: An optional instance of a model class. The model must be registered with the library (see :func:`djpcms.RegisterORM`).
 :parameter request: An optional Http Request object of any kind. Not used by the class itself but stored
                     in the :attr:`request` attribute for convenience.
+:parameter site: An optional site instance when used in a web site.
 
 .. attribute:: is_bound
 
@@ -139,7 +144,7 @@ browser based application as well as remote procedure calls validation.
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
                  model = None, instance = None,
-                 request = None):
+                 request = None, site = None):
         self.is_bound = data is not None or files is not None
         self.rawdata = data
         self._files = files
@@ -152,6 +157,7 @@ browser based application as well as remote procedure calls validation.
         self.instance = instance
         self.messages = {}
         self.request = request
+        self._site = site
         if request:
             self.user = getattr(request,'user',None)
         else:
@@ -168,6 +174,13 @@ browser based application as well as remote procedure calls validation.
         if not self.is_bound:
             self._fill_initial()
     
+    @classmethod
+    def initials(cls):
+        '''Iterator over initial field values'''
+        for name,field in iteritems(cls.base_fields):
+            if field.initial is not None:
+                yield name,field.initial
+        
     @property
     def data(self):
         self._unwind()
@@ -194,6 +207,19 @@ browser based application as well as remote procedure calls validation.
     def dfields(self):
         self._unwind()
         return self._fields_dict
+    
+    @property
+    def site(self):
+        if self._site:
+            return self._site
+        elif self.request:
+            return self.request.DJPCMS.site
+        
+    @property
+    def root(self):
+        site = self.site
+        if site:
+            return site.root
     
     def _fill_initial(self):
         # Fill the initial dictionary with data from fields and from the instance if available
@@ -283,15 +309,16 @@ browser based application as well as remote procedure calls validation.
                 
     def form_message(self, container, key, msg):
         '''Add a message to a message container in the form.
-Messages can be errors or not.
+Messages can be errors or not. If the message is empty, it does nothing.
 
 :parameter container: a dictionary type container.
 :parameter key: the dictionary key where the message goes.
-:parameteer msg: the actual message, unicode please.'''
-        if key in container:
-            container[key].append(msg)
-        else:
-            container[key] = [msg]
+:parameteer msg: the actual message string.'''
+        if msg:
+            if key in container:
+                container[key].append(msg)
+            else:
+                container[key] = [msg]
             
     def is_valid(self):
         '''Check if Form is valid, including any subforms'''
@@ -310,7 +337,10 @@ Messages can be errors or not.
     def save(self, commit = True):
         '''Save the form. This method works if an instance or a model is available'''
         self.before_save(commit)
-        return self.mapper.save(self.cleaned_data, self.instance, commit)
+        obj = self.mapper.save(self.cleaned_data, self.instance, commit)
+        if commit:
+            post_save.send(self, instance = obj)
+        return obj
     
     def before_save(self, commit=True):
         '''Hook to modify/manipulate data before saving.

@@ -1,5 +1,7 @@
-{% if toolbox %}
-<div class="tablesorter-with-actions ui-widget">
+{% extends "djpcms/pagination.html" %}
+{% block pagination_class %} class="table-pagination ui-widget"{% endblock %}
+{% block header_class %} ui-widget-header{% endblock %}
+{% block pagination_body %}{% if toolbox %}
 <div class="toolbox ui-widget-header">{% if toolbox.actions %}
 <span class="selectors">
  Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
@@ -21,5 +23,4 @@
    <td>{{ val }}</td>{% endfor %}
  </tr>{% endfor %}
 </tbody>
-</table>{% if toolbox %}
-</div>{% endif %}
+</table>{% endblock %}

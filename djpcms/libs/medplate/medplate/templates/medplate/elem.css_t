@@ -23,7 +23,9 @@
 	text-align: {{ text_align }};{% endif %}{% if text_transform %}
 	text-transform: {{ text_transform }};{% endif %}{% if text_decoration %}
 	text-decoration: {{ text_decoration }};{% endif %}{% if overflow %}
-	overflow: {{ overflow }};{% endif %}{% if display %}
+	overflow: {{ overflow }};{% endif %}{% if overflow_x %}
+	overflow-x: {{ overflow_x }};{% endif %}{% if overflow_y %}
+    overflow-y: {{ overflow_y }};{% endif %}{% if display %}
 	display: {{ display }};{% endif %}{% if height %}
 	height: {{ height }};{% endif %}{% if min_height %}
     min-height: {{ min_height }};{% endif %}{% if width %}

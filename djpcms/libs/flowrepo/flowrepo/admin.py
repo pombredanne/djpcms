@@ -10,7 +10,8 @@ admin_urls = (
                                WebAccount,
                                name = 'web accounts',
                                list_display = ['name','url','user','tags']),
-              ContentApplication('/content/',
-                                 Report,
-                                 list_display = ['name','description','parent'])
+              AdminApplication('/content/',
+                               Report,
+                               name = 'content',
+                               list_display = ['name','description','parent'])
             )

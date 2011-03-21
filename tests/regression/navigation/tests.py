@@ -1,21 +1,26 @@
 import datetime
 
-from djpcms.test import TestCase
-from djpcms.utils import navigation
-
-from regression.navigation.models import Strategy
+from djpcms import test, views, sites
 
 
-class TestApplicationNavigation(TestCase):
-    appurls = 'regression.navigation.appurls'
+@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
+class TestApplicationNavigation(test.TestCase, test.PageMixin):
+    appurls = 'regression.navigation.appurls.appurls'
     
+    def setUp(self):
+        from .models import Strategy
+        self.Strategy = Strategy
+        self.makesite()
+        self.sites.load()
+        
     def testSimpleApplication(self):
-        p0 = self.makepage(bit = 'random')
-        p1 = self.makepage('search', Strategy, in_navigation = 5)
-        p2 = self.makepage('add',Strategy)
-        context = self.get()
-        sitenav = list(context["sitenav"])
-        self.assertEqual(len(sitenav),2)
+        self.assertEqual(self.makepage('/', site = self.sites).url,'/')
+        p = self.makepage('random', site = self.sites)
+        self.assertEqual(p.url,'/random/')
+        self.assertEqual(p.in_navigation,1)
+        context = self.get().context
+        sitenav = context["sitenav"].items()
+        self.assertEqual(len(sitenav),4)
         self.assertEqual(sitenav[0].url,'/random/')
         self.assertEqual(sitenav[1].url,'/strategies/')
         snav = list(sitenav[1])

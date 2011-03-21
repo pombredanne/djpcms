@@ -16,7 +16,6 @@ __all__ = ['Field',
            'IntegerField',
            'FloatField',
            'EmailField',
-           'ModelChoiceField',
            'FileField']
 
 
@@ -45,7 +44,7 @@ very similar to django forms API.
     
 .. attribute:: widget_attrs
 
-    dictionary of widget attributes. Used for midifying widget html attributes.
+    dictionary of widget attributes. Used for modifying widget html attributes.
     
     Default: ``None``.
 
@@ -67,7 +66,7 @@ very similar to django forms API.
                  widget_attrs = None,
                  **kwargs):
         self.name = None
-        self.default = default or self.default
+        self.default = default if default is not None else self.default
         self.initial = initial
         self.required = required if required is not None else self.required
         self.validation_error = validation_error or standard_validation_error
@@ -95,13 +94,10 @@ very similar to django forms API.
     
     def clean(self, value, bfield):
         '''Clean the field value'''
-        if value == nodata or not value:
-            if not self.required:
-                value = self.get_default(bfield)
-            else:
-                value = self.get_default(bfield)
-                if not value:
-                    raise ValidationError(self.validation_error(bfield,value))
+        if value == nodata or value is None:
+            value = self.get_default(bfield)
+            if self.required and value is None:
+                raise ValidationError(self.validation_error(bfield,value))
         return self._clean(value)
     
     def _clean(self, value):
@@ -245,7 +241,7 @@ class ChoiceField(Field):
             return {}
                 
     def _clean(self, value):
-        if value:
+        if value is not None:
             ch,model = self.choices_and_model()
             if model:
                 try:
@@ -260,38 +256,6 @@ class ChoiceField(Field):
                 if not value in ch:
                     raise ValidationError('{0} is not a valid choice'.format(value))
         return value
-
-    
-class ModelChoiceField(ChoiceField):
-    #auto_class = AutocompleteForeignKeyInput
-    
-    def get_choices(self):
-        ch = self.choices
-        if hasattr(ch,'__call__'):
-            ch = ch()
-        return ch
-    
-    def _clean(self, value):
-        '''Clean the field value'''
-        if value:
-            try:
-                ch = self.get_choices()
-                mp = mapper(ch.model)
-                if not isinstance(value,mp.model):
-                    value = mp.get(id = value)
-                if value in ch:
-                    return value
-            except:
-                pass
-            raise ValidationError('{0} is not a valid choice'.format(value))
-        return value
-            
-    def __deepcopy__(self, memo):
-        result = super(ModelChoiceField,self).__deepcopy__(memo)
-        qs = result.queryset
-        if hasattr(qs,'__call__'):
-            result.queryset = qs()
-        return set_autocomplete(result)
 
 
 class EmailField(CharField):

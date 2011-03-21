@@ -3,8 +3,7 @@ from djpcms.forms.utils import saveform
 
 from .orm import logout
 
-__all__ = ['LogoutView',
-           'LoginView']
+__all__ = ['LogoutView','LoginView']
 
 
 
@@ -32,20 +31,15 @@ class LoginView(views.ModelView):
     '''A Battery included Login view. You need to
     create a login.html file in your site template directory.
     '''
+    default_title = 'Sign in'
     template_name = 'login.html'
     def __init__(self, regex = 'login', insitemap = False, isplugin = True, **kwargs):
         super(LoginView,self).__init__(regex = regex,
                                        insitemap = insitemap,
                                        isplugin = isplugin,
+                                       force_redirect = True,
                                        **kwargs)
         
-    def title(self, djp):
-        page = djp.page
-        if page:
-            return 'Sign in to %s' % page.site.name
-        else:
-            return 'Sign in'
-    
     def preprocess(self, djp):
         if djp.request.user.is_authenticated():
             return djp.http.HttpResponseRedirect('/')
@@ -57,7 +51,7 @@ class LoginView(views.ModelView):
             return self.get_form(djp).render(djp)
     
     def default_post(self, djp):
-        return saveform(djp, force_redirect = True)
+        return saveform(djp, force_redirect = self.force_redirect)
     
     def save(self, request, f):
         return f.cleaned_data['user']

@@ -14,7 +14,7 @@ nicerepr = orms.nicerepr
 
 from .utils import LazyRender
 
-__all__ = ['Table','table','nicerepr','table_checkbox']
+__all__ = ['Table','nicerepr','table_checkbox']
 
 
 def response_table_row(headers,item,path=SLASH):
@@ -142,7 +142,8 @@ class Table(object):
                      'djpcms/tablesorter.html')
     
     def __init__(self, djp, headers, data, model = None,
-                 nd = 3, template_name = None):
+                 nd = 3, template_name = None,
+                 paginator = None):
         '''\
 Render a table
 
@@ -179,16 +180,12 @@ Render a table
         else:
             labels = (mapper.label_for_field(name) for name in headers)
         items  = (result_for_item(djp, headers, d, nd, mapper, appmodel,\
- path, actions = actions) for d in data)
+                                  path, actions = actions) for d in data)
         self.ctx = {'labels': labels,
                     'items': items,
-                    'toolbox':toolbox}
+                    'toolbox':toolbox,
+                    'paginator':paginator}
             
     def render(self):
         return loader.render(self.template_name,self.ctx)
 
-
-def table(djp, headers, data, model = None,
-          nd = 3, template_name = None):
-    t = Table(djp, headers, data, model, nd, template_name) 
-    return LazyRender(t)

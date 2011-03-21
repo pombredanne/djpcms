@@ -5,6 +5,8 @@ import time
           
 from djpcms import to_bytestring
 from djpcms.template import make_default_inners
+from djpcms.utils import closedurl
+from djpcms.apps.included.contentedit import PageForm
 from djpcms.apps.included.user import create_user, create_superuser,\
                                       login, logout, authenticate
 
@@ -34,11 +36,14 @@ class DummySessionStore(dict):
 
 class PageMixin(object):
     
-    def makepage(self, url, **kwargs):
+    def makepage(self, url, site = None, **kwargs):
         from djpcms.models import Page
-        page = Page(url = url, **kwargs)
-        page.save()
-        return page
+        data = dict(PageForm.initials())
+        data.update(kwargs)
+        data['url'] = closedurl(url)
+        f = PageForm(model = Page, data = data, site = site)
+        self.assertTrue(f.is_valid())
+        return f.save()
     
     def makeInnerTemplates(self):
         from djpcms.models import InnerTemplate

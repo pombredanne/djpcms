@@ -12,9 +12,17 @@ class TestAdmin(test.TestCase):
     
     def testAdminSimple(self):
         '''Tests that the global sites collects admins'''
+        self.assertEqual(len(self.sites),2)
         self.sites.load()
         admins = self.sites.admins
         self.assertTrue(admins)
+        # loop over three-elements tuple
+        for name,url,apps in admins:
+            self.assertTrue(apps)
+            for app in apps:
+                str(app)
+                for view in app.views:
+                    str(view)
         
     def testAdminUrls(self):
         '''Add admins urls to sites and check the sitemap'''

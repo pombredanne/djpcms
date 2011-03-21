@@ -20,6 +20,7 @@ else:
 __all__ = ('Client', 'RequestFactory',
            'encode_file', 'encode_multipart')
 
+from djpcms.template import loader
 
 BOUNDARY = 'BoUnDaRyStRiNg'
 MULTIPART_CONTENT = 'multipart/form-data; boundary=%s' % BOUNDARY
@@ -270,6 +271,21 @@ class RequestFactory(object):
         return self.request(**r)
 
 
+class ClientRequest(object):
+    
+    def __init__(self, handler):
+        self.request = None
+        root = handler.site.root
+        root.start_response.connect(self)
+        loader.context_ready.connect(self.update_context)
+        self.ctx = {}
+        
+    def __call__(self, sender, request = None, **kwargs):
+        self.request = request
+        
+    def update_context(self, sender, context = None, **kwargs):
+        self.ctx.update(context)
+        
 class Client(RequestFactory):
     """
     A class that can act as a client for testing purposes.
@@ -301,12 +317,15 @@ class Client(RequestFactory):
     def request(self, **request):
         """The master request method. Composes the environment dictionary
 and passes to the handler, returning the result of the handler."""
+        c = ClientRequest(self.handler)
         environ = self._base_environ(**request)
         response = self.handler(environ,None)
         response.client = self
         response.environ = environ
-        response.DJPCMS = environ['DJPCMS']
-        response.context = environ['DJPCMS'].context_cache
+        info = environ['DJPCMS']
+        response.DJPCMS = info
+        response.request = c.request
+        response.context = c.ctx
         return response
     
     def get(self, path, data={}, follow=False, **extra):

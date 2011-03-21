@@ -9,7 +9,7 @@ from inspect import isgenerator
 from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
 import djpcms
-from djpcms.html import ObjectDefinition, Paginator, table,\
+from djpcms.html import ObjectDefinition, Paginator, Table,\
                         SubmitInput, MediaDefiningClass
 from djpcms.forms import FormType, HtmlForm
 from djpcms.template import loader, mark_safe
@@ -206,8 +206,8 @@ or in the constructor.
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
     model = None
-    pagination_template_name = ('components/pagination.html',
-                                'djpcms/components/pagination.html')
+    pagination_template_name = ('pagination.html',
+                                'djpcms/pagination.html')
 
     # Submit buton customization
     _form_add        = 'add'
@@ -261,31 +261,15 @@ application {0}. Already available." % name)
         
     @property
     def settings(self):
-        return self.site.settings
-    
-    def register(self, application_site):
-        '''Register application with :class:`djpcms.apps.appsites.ApplicationSite`
-*application_site*.'''
         if self.site:
-            raise AlreadyRegistered('Application %s already registered as application' % self)
-        url = self.make_url
-        self.site = application_site
-        self._create_views()
-        urls = []
-        for view in self.views.values():
-            view_name  = self._get_view_name(view.name)
-            nurl = url(regex = str(view.regex),
-                       view  = view,
-                       name  = view_name)
-            urls.append(nurl)
-        self._urls = tuple(urls)
-        self.registration_done()
+            return self.site.settings
     
     def __unicode__(self):
         if not self.site:
-            return self.baseurl + ' - Not Registered'
+            v = str(self.baseurl) + ' - Not Registered'
         else:
-            return self.path()
+            v = self.path()
+        return to_string(v)
     
     def appsite(self):
         return self.parent_app
@@ -325,9 +309,13 @@ Return ``None`` if the view is not available.'''
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
-    def _create_views(self):
-        #Build views for this application
+    def _create_views(self, application_site):
+        #Build views for this application. Called by the application site
+        if self.site:
+            raise AlreadyRegistered('Application %s already registered as application' % self)
+        self.mapper = None if not self.model else mapper(self.model)
         roots = []
+        self.site = application_site
         
         if not self.views:
             raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
@@ -336,7 +324,7 @@ Return ``None`` if the view is not available.'''
         parentname = ''
         if self.parent:
             self.baseurl = self.parent.regex + self.baseurl
-            parentname = self.parent.name + SPLITTER
+            #parentname = self.parent.name + SPLITTER
             
         # Find the root view
         for name,view in iteritems(self.views):
@@ -374,17 +362,6 @@ Return ``None`` if the view is not available.'''
                 self.site.choices.append((view.code,name))
             if view.isplugin:
                 register_application(view)
-    
-        # Loop over child applications to build nested views
-        for app in self.apps.values():
-            parent = app.parent
-            if parent is None:
-                parent = self.root_view
-            else:
-                if parent not in self.views:
-                    raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
-                parent = self.views[parent]
-            app.parent = parent
     
     def get_form(self, djp,
                  form_class,
@@ -512,26 +489,24 @@ By default it return a generator of children pages.'''
         if isgenerator(query):
             query = list(query)
         p  = Paginator(djp.request, query, per_page = appmodel.list_per_page)
-        c  = djp.kwargs.copy()
         headers = view.headers or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
         astable = headers and view.astable
-        c.update({'paginator': p,
-                  'astable': astable,
-                  'djp': djp,
-                  'url': djp.url,
-                  'css': djp.css,
-                  'appmodel': appmodel,
-                  'headers': headers})
         
         if astable:
             items = self.table_generator(djp, headers, p.qs)
-            c['astable'] = table(djp, headers, items, appmodel.model)
-        else:    
+            return Table(djp, headers, items, appmodel.model, paginator = p).render()
+        else:
+            c  = djp.kwargs.copy()
+            c.update({'paginator': p,
+                      'djp': djp,
+                      'url': djp.url,
+                      'css': djp.css,
+                      'appmodel': appmodel,
+                      'headers': headers})
             c['items'] = self.data_generator(djp, p.qs)
-            
-        return loader.render(self.pagination_template_name, c)
+            return loader.render(self.pagination_template_name, c)
 
 
 class ModelApplication(Application):
@@ -568,10 +543,6 @@ functionality when searching for model instances.'''
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
         self.object_display = object_display or self.object_display or self.list_display
-    
-    def register(self, application_site):
-        self.mapper = mapper(self.model)
-        return super(ModelApplication,self).register(application_site)
         
     def get_root_code(self):
         return self.root_view.code

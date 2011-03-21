@@ -1,4 +1,4 @@
-from djpcms.models import Page, InnerTemplate, BlockContent
+from djpcms.models import Page, InnerTemplate, BlockContent, SiteContent
 from djpcms.apps.included.sitemap import SiteMapApplication
 
 NAME = 'Layout'
@@ -27,9 +27,14 @@ if Page:
                                               'plugin_name','title','requires_login'),
                               object_display = ('id','page','block','position',
                                               'plugin_name','title','requires_login',
-                                              'for_not_authenticated'))
+                                              'for_not_authenticated')),
+                  AdminApplication('/block-content/',
+                                   SiteContent,
+                                   description = 'site content',
+                                   list_display = ('id','description','markup'),
+                                   object_display = ('id','description','markup','body')
                   )
-
+        )
 else:
     admin_urls = (
                   SiteMapApplication('/pages/',

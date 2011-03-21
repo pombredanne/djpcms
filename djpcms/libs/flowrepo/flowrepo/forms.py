@@ -1,10 +1,8 @@
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from djpcms.apps.included.tagging import TagField
 
 from djpcms import forms
 from djpcms.utils import json
-from djpcms.contrib.flowrepo import models
 
 
 
@@ -40,9 +38,6 @@ class FlowForm(forms.Form):
         self._user = kwargs.pop('user',None)
         super(FlowForm,self).__init__(*args, **kwargs)
         
-    class Meta:
-        model = models.FlowItem
-    
     def savemodel(self, obj):
         raise NotImplementedError()
     
@@ -91,15 +86,10 @@ class FlowFormRelated(FlowForm):
 
 class ReportForm(FlowFormRelated):
     '''The Report Form'''
-    _underlying = models.Report
     title = forms.CharField()
     abstract = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
     body  = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
     slug  = forms.CharField(required = False)
-    
-    class Meta:
-        model = models.FlowItem
-        exclude = ['name','description','url','groups']
         
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance',None)
@@ -128,10 +118,6 @@ class UploadForm(FlowForm):
         if instance:
             self._underlying = instance.content_type.model_class()
         super(UploadForm, self).__init__(*args, **kwargs)
-    
-    class Meta:
-        model = models.FlowItem
-        exclude = ['timestamp','authors','groups','url']
         
     def savemodel(self, obj):
         obj.name = self.instance.name
@@ -156,10 +142,6 @@ class FlowItemSelector(forms.Form):
     #                                              label = 'types',
     #                                              required = False)
     item_per_page = forms.IntegerField(initial = 10)
-    
-    class Meta:
-        model = models.FlowItem
-        fields = ('content_type', 'visibility', 'tags')
         
     def save(self, commit = True):
         pass
@@ -209,14 +191,9 @@ class WebAccountForm(forms.Form):
             self.instance.data = json.dumps(data)
         return super(WebAccountForm,self).save(commit)
     
-
-class ChangeCategory(forms.Form):
-    category_name = forms.ModelChoiceField(choices = models.CategoryType.objects.all,
-                                           empty_label=None)
-    
     
 class ChangeImage(forms.Form):
-    image   = forms.ModelChoiceField(choices = models.Image.objects.all, empty_label=None)
+    image   = forms.ChoiceField(choices = lambda : models.Image.objects.all)
     class_name = forms.CharField(max_length = 100, required = False)
     
     

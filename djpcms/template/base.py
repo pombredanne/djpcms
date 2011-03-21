@@ -1,3 +1,4 @@
+from djpcms.dispatch import Signal
 
 def handle(engine = None):
     from djpcms import sites
@@ -17,12 +18,6 @@ def get_engine(engine, config = None):
         from ._django import TemplateHandler
     elif engine == 'jinja2':
         from ._jinja2 import TemplateHandler
-    elif engine == 'cheetah':
-        raise NotImplementedError("Cheetah not yet supported.")
-    elif engine == 'mustache':
-        raise NotImplementedError("Mustache not yet supported.")
-    elif not engine:
-        raise NotImplementedError('Template handler not specified')
     else:
         raise NotImplementedError('Template handler {0} not available'.format(engine))
     return TemplateHandler(config)
@@ -31,6 +26,9 @@ def get_engine(engine, config = None):
 class BaseTemplateHandler(object):
     '''Base class which wraps third-parties template libraries.'''
     TemplateDoesNotExist = None
+    
+    def __init__(self):
+        self.context_ready = Signal()
     
     def setup(self):
         '''Called when the handler is initialized and therefore it is not
@@ -52,6 +50,7 @@ which updates the input ``dictionary`` with library dependent information.
                 for processor in site_processors:
                     context_cache.update(processor(request))
             c.update(info.context_cache)
+        self.context_ready.send(self, context = c)
         return c
     
     def loaders(self):
@@ -138,6 +137,7 @@ class LibraryTemplateHandler(BaseTemplateHandler):
     context_class = None
     
     def __init__(self, config):
+        super(LibraryTemplateHandler,self).__init__()
         self.config = config
         self.setup()
 

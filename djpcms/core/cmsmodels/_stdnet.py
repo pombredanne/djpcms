@@ -142,7 +142,6 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
 class SiteContent(TimeStamp,MarkupMixin):
     '''Store content for your web site. It can store markup or raw HTML.'''
     user_last     = field.SymbolField(required = False)
-    code          = field.SymbolField(unique = True)
     description   = field.CharField()
     body          = field.CharField()
     markup        = field.CharField()

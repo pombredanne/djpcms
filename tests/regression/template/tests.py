@@ -1,7 +1,8 @@
-from djpcms import test
+from djpcms import test, sites
 
 
 
+@test.skipUnless(sites.tests.TEMPLATE_ENGINE,"jinja2")
 class TestJinja2Templates(test.TestCase):
     
     def loader(self):
@@ -14,6 +15,6 @@ class TestJinja2Templates(test.TestCase):
         
     def testSimpleRender(self):
         loader = self.loader()
-        html = loader.render_to_string('simple.html',{'bar':5})
+        html = loader.render('simple.html',{'bar':5})
         html = html.strip()
         self.assertEqual(html,'35')

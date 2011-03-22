@@ -93,17 +93,18 @@ The main function here is the ``resolve`` method'''
             try:
                 view, rurl, kwargs = view.resolver.resolve(rurl[0])
             except Resolver404 as e:
-                raise self.http.Http404(str(e),site = site)
+                if not urlargs:
+                    try:
+                        node = self.tree.node(spath, site = site)
+                        return self.resolve_from_node(node)
+                    except PathException:
+                        raise self.http.Http404(str(e),site = site)
+                else:
+                    raise self.http.Http404(str(e),site = site)
             
             if site is None:
                 site = view
-                try:
-                    node = self.tree.node(spath, site = site)
-                    return self.resolve_from_node(node)
-                except PathException:
-                    pass
-            else:
-                urlargs.update(kwargs)
+            urlargs.update(kwargs)
         
         return site, view, urlargs
             

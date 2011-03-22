@@ -74,11 +74,16 @@ class Node(UnicodeMixin):
     
     @property
     def site(self):
-        s = self._site
-        if s is None:
-            view = self.get_view()
-            s = view.site
-        return s
+        if self._site is None:
+            if self.view:
+                return self.view.site
+            else:
+                ancestor = self.ancestor
+                if ancestor:
+                    self._site = self.ancestor.site
+                return self._site
+        else:
+            return self._site
             
     @property
     def ancestor(self):
@@ -104,15 +109,11 @@ class Node(UnicodeMixin):
         if self.view:
             return self.view
         elif self.page:
-            site = self._site
+            site = self.site
             if site is None:
-                ancestor = self.ancestor
-                if ancestor:
-                    site = ancestor.site
-            if site:
-                return pageview(self.page,self.site)
-            else:
                 raise PathException('Cannot get view for node {0}'.format(self))
+            else:
+                return pageview(self.page,site)
         else:
             raise PathException('Cannot get view for node {0}'.format(self))
         
@@ -177,7 +178,10 @@ Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
             node._site = site
             return node
         else:
-            return self[path]
+            node = self[path]
+            if force:
+                node._site = site
+            return node
     
     def addapplications(self, apps):
         '''Add a list of applications to the sitemap'''

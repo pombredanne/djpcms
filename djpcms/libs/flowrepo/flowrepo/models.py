@@ -12,9 +12,8 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 
 from tagging.fields import TagField
 
-from djpcms.utils import slugify, markups
+from djpcms.utils import slugify, markups, mark_safe
 from djpcms.uploads import uploader, storage_manager
-from djpcms.template import mark_safe
 
 from .managers import FlowManager, SlugManager, RepoManager, source_interactive
 from .utils import encrypt, decrypt, nicetimedelta
@@ -221,9 +220,6 @@ class SlugBase(FlowItemBase):
         super(SlugBase,self).save(**kwargs)
         
     def _tohtml(self, text, mkp):
-        if not text:
-            return u''
-        
         if mkp:
             handler = mkp.get('handler')
             text = handler(text)

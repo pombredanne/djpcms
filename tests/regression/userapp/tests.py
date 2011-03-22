@@ -17,7 +17,7 @@ def appurls2():
 
 @test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
 class TestSiteUser(test.TestCase, test.UserMixin):
-    appurls = 'regression.user.tests.appurls2'
+    appurls = 'regression.userapp.tests.appurls2'
     
     def setUp(self):
         from .models import User, Portfolio
@@ -26,6 +26,10 @@ class TestSiteUser(test.TestCase, test.UserMixin):
         self.makesite()
         self.sites.load()
         self.makeusers()
+        
+    def installed_apps(self):
+        from .models import installed_apps
+        return installed_apps
         
     def testAppsViews(self):
         app = self.sites.for_model(self.User)
@@ -55,13 +59,32 @@ class TestSiteUser(test.TestCase, test.UserMixin):
     def testUserpage(self):
         response = self.get('/testuser/')
         info = response.DJPCMS
+        djp = info.djp(response.request)
+        self.assertEqual(djp.url,'/testuser/')
         self.assertEqual(info.instance.username,'testuser')
         response = self.get('/xxxxxxxx/', status = 404)
         
     def testUserApplication(self):
         response = self.get('/testuser/portfolio/')
+        context = response.context
         info = response.DJPCMS
+        djp = info.djp(response.request)
+        user = djp.for_user()
+        self.assertTrue(user)
+        self.assertEqual(user.username,'testuser')
         self.assertEqual(info.instance,None)
+        
+    def testUserApplicationWithInstance(self):
+        p = self.Portfolio(user = self.superuser, name = 'testp', description = 'bla bla')
+        p.save()
+        response = self.get('/testuser/portfolio/{0}/'.format(p.id))
+        context = response.context
+        info = response.DJPCMS
+        djp = info.djp(response.request)
+        user = djp.for_user()
+        self.assertTrue(user)
+        self.assertEqual(user,self.superuser)
+        self.assertEqual(info.instance,p)
         
     def _testlogin(self, user, ajax = True):
         url = '/accounts/login/'

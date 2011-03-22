@@ -123,9 +123,12 @@ which corresponds to ``self``'''
             return self.tree[url]
         except KeyError:
             if self.view:
-                return self.tree[self.view.path()]
+                return self.tree[self.view.path]
             else:
                 raise
+    
+    def for_user(self):
+        return self.view.for_user(self)
     
     def is_soft(self):
         return self.view.is_soft(self)
@@ -291,8 +294,7 @@ the parent of the embedded view.'''
             context['breadcrumbs'] = b
         
         context = loader.context(context, self.request)
-        html = loader.mark_safe(loader.render(self.template_file,
-                                              context))
+        html = loader.render(self.template_file, context)
         return self.http.HttpResponse(html,mimetype = 'text/html')
         
     @storegenarator

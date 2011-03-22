@@ -273,7 +273,7 @@ application {0}. Already available." % name)
         if not self.site:
             v = str(self.baseurl) + ' - Not Registered'
         else:
-            v = self.path()
+            v = self.path
         return to_string(v)
     
     def appsite(self):
@@ -511,8 +511,8 @@ By default it return a generator of children pages.'''
 
     def for_user(self, djp):
         if self.parent:
-            djp = self.tree.djp[self.parent.path()](djp.request,**djp.kwargs)
-            return djp.view.for_user(djp)
+            djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
+            return djp.for_user()
             
 
 class ModelApplication(Application):
@@ -562,7 +562,10 @@ functionality when searching for model instances.'''
 
 It returns dictionary of url bits which are used to uniquely identify a model instance. 
         '''
-        return {'id': obj.id}
+        if isinstance(obj,self.model):
+            return {'id': obj.id}
+        else:
+            return {}
     
     def get_object(self, request, **kwargs):
         '''Retrive an instance of self.model from key-values *kwargs* forming the url.

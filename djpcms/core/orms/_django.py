@@ -79,7 +79,4 @@ class OrmWrapper(BaseOrmWrapper):
     @classmethod
     def setup_environment(cls, sites):
         sites.settings.setup_django(True)
-        from django.conf import settings
-        from django.db import models
-        models.get_models()
            

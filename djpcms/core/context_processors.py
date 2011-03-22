@@ -44,7 +44,7 @@ class PageLink(UnicodeMixin):
             info = self.request.DJPCMS
             view = info.view
             kwargs = info.kwargs.copy()
-            kwargs['url'] = self.request.path if not info.view else info.view.path()
+            kwargs['url'] = self.request.path if not info.view else info.view.path
             path = iri_to_uri(path,kwargs)
             return icons.circle_plus(path,'add page',title="add page contents",button=False)
         else:

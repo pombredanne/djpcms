@@ -2,7 +2,7 @@ import datetime
 import json
 
 from djpcms import views
-from djpcms.template import loader, mark_safe
+from djpcms.template import loader
 from djpcms.utils.unipath import FSPath as Path
 
     
@@ -74,7 +74,7 @@ class DocView(views.View):
              #'search': urlresolvers.reverse('document-search', kwargs={'lang':lang, 'version':version}),
              'redirect_from': request.GET.get('from', None)}
         
-        return loader.render_to_string(template_names, c)
+        return loader.render(template_names, c)
         
     def makebreadcrumbs(self, djp, doc):
         parent = djp
@@ -128,12 +128,6 @@ class DocApplication(views.Application):
         if not docroot.exists():
             raise djp.http.Http404()
         return docroot 
-    
-    def bodybits(self):
-        if self.editurl:
-            return mark_safe('class="edit documentation"')
-        else:
-            return mark_safe('class="documentation"')
         
     def doc_index_url(self, request, lang, version):
         return '%s%s/%s/' % (self.baseurl,lang,version)

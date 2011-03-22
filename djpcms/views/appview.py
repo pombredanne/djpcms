@@ -290,7 +290,7 @@ Usage::
             return self.regex
     
     def get_url(self, djp):
-        return self.appmodel.route().get_url(**djp.kwargs)
+        return self.route().get_url(**djp.kwargs)
         
     def title(self, djp):
         page = djp.page

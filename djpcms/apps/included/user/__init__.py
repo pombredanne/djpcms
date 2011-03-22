@@ -30,7 +30,7 @@ class UserAppBase(views.ModelApplication):
         self.site.User = self.mapper
     
     def objectbits(self, obj):
-        if self.userpage:
+        if self.userpage and isinstance(obj,self.model):
             return {'username': obj.username}
         else:
             return {}

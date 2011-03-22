@@ -176,7 +176,9 @@ browser based application as well as remote procedure calls validation.
     
     @classmethod
     def initials(cls):
-        '''Iterator over initial field values'''
+        '''Iterator over initial field values.
+Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
+This class method can be useful when using forms outside web applications.'''
         for name,field in iteritems(cls.base_fields):
             if field.initial is not None:
                 yield name,field.initial

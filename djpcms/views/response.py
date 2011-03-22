@@ -18,11 +18,11 @@ __all__ = ['DjpResponse',
 
 def handle_ajax_error(self,e):
     #Internal function for handling AJAX server errors
-    if self.site.settings.DEBUG:
+    if self.root.settings.DEBUG:
         exc_info = sys.exc_info()
         logtrace(self.view.logger, self.request, exc_info)
         stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
-        return jservererror(stack_trace, url = self.url)
+        return jservererror(self.request, stack_trace)
     else:
         raise e
 

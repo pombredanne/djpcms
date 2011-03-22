@@ -37,7 +37,7 @@ class BoxWrapper(DJPwrapper):
         if html:
             cn,deleteurl = self._wrap(djp, cblock, html)
             return box(id = self.id(cblock),
-                       hd = cblock.title,
+                       hd = self.title(cblock),
                        bd = html,
                        ft = self.footer(djp,cblock,html),
                        collapsable = self.collapsable,
@@ -46,6 +46,9 @@ class BoxWrapper(DJPwrapper):
                        cn = cn)
         else:
             return ''
+        
+    def title(self, cblock):
+        return cblock.title
     
     def id(self, cblock):
         return None

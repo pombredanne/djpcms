@@ -203,6 +203,7 @@ class Static(views.Application):
     _media = None
     site_name = 'site'
     hidden = True
+    has_plugins = False
     show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticFileRoot()

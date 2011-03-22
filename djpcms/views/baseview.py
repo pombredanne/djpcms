@@ -3,7 +3,7 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import sites, UnicodeMixin
+from djpcms import UnicodeMixin, forms
 from djpcms.utils.ajax import jservererror, jredirect
 from djpcms.html import Media
 from djpcms.template import loader
@@ -19,12 +19,6 @@ __all__ = ['RendererMixin',
            'pageview']
     
     
-def absolute_parent(djp):
-    path = parentpath(djp.url)
-    if path:
-        return sites.djp(djp.request, path[1:])
-
-
 class RendererMixin(UnicodeMixin,RouteMixin):
     '''\
 Mixin for a class able to render itself
@@ -51,8 +45,10 @@ By default it returns an empty string.
             return ''
     
     def for_user(self, djp):
+        '''Return an instance of a user model if the current renderer
+belongs to a user, otherwise returns ``None``.'''
         return None
-        
+    
 
 # THE DJPCMS BASE CLASS for handling views
 class djpcmsview(RendererMixin):
@@ -161,35 +157,26 @@ class djpcmsview(RendererMixin):
         raise NotImplementedError('Post response not implemented')
     
     def ajax_post_response(self, djp):
-        request   = djp.request
-        post      = request.POST
-        
-        params   = dict(post.items())
-        prefix   = params.get('_prefixed',None)
-        ajax_key = params.get(djp.css.post_view_key, None)
+        request = djp.request
+        data = request.data_dict
+        ajax_key = forms.get_submit_key(data,djp.css.post_view_key)
         if ajax_key:
-            if prefix and prefix in ajax_key:
-                ajax_key = ajax_key[len(prefix)+1:]
             ajax_key = ajax_key.replace('-','_').lower()
+            if ajax_key == forms.CANCEL_KEY:
+                next = data.get(forms.REFERER_KEY,None)
+                next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
+                return jredirect(next)
             
-        # Handle the cancel request redirect.
-        # Check for next in the parameters,
-        # If not there redirect to self.defaultredirect
-        if ajax_key == 'cancel':
-            next = params.get('next',None)
-            next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
-            return jredirect(next)
-        else:
-            ajax_view_function = None
-            if ajax_key:
-                ajax_view = 'ajax__%s' % ajax_key
-                ajax_view_function  = getattr(self,str(ajax_view),None)
-            
-            # No post view function found. Let's try the default ajax post view
-            if not ajax_view_function:
-                ajax_view_function = self.default_post;
+        ajax_view_function = None
+        if ajax_key:
+            ajax_view = 'ajax__%s' % ajax_key
+            ajax_view_function  = getattr(self,str(ajax_view),None)
         
-            return ajax_view_function(djp)
+        # No post view function found. Let's try the default ajax post view
+        if not ajax_view_function:
+            ajax_view_function = self.default_post;
+    
+        return ajax_view_function(djp)
     
     def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''

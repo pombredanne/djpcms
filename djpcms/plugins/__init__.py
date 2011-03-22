@@ -15,7 +15,7 @@ CLOSE_DIV = '\n</div>'
 
 
 def ordered_generator(di):
-    def _():
+    def _(*args):
         return ((c.name,c.description) for c in sorted(di.values(), key=lambda x: x.description))
     return _
 

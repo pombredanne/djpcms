@@ -29,9 +29,11 @@ __all__ = ['View',
            'IDREGEX',
            'SLUG_REGEX']
 
+
 ALL_URLS = RegExUrl('(?P<path>.*)', append_slash = False)
 IDREGEX = '(?P<id>\d+)'
 SLUG_REGEX = '[-\.\+\#\'\:\w]+'
+
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
     '''Default redirect for a model view is the View url for that model
@@ -301,12 +303,14 @@ Usage::
         return title.format(djp.kwargs)
     
     def linkname(self, djp):
+        link = None
         page = djp.page
         if page:
             link = page.link
+        if not link:
+            return self.title(djp)
         else:
-            link = self.default_title or nicename(self.appmodel.name)
-        return link.format(djp.kwargs)
+            return link.format(djp.kwargs)
     
     def names(self):
         return self.regex.names
@@ -493,10 +497,12 @@ A view of this type has an embedded object available which is used to generate t
         else:
             request = getattr(djp,'request',None)
             instance = self.appmodel.get_object(request, **kwargs)
-            djp.kwargs['instance'] = instance  
+            if instance:
+                djp.kwargs['instance'] = instance  
         
         if not instance:
-            raise djp.http.Http404
+            raise djp.http.Http404('Could not retrieve model instance\
+ from url arguments: {0}'.format(djp.kwargs))
         
         return super(ObjectView,self).get_url(djp)
 

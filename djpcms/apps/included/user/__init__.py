@@ -23,8 +23,34 @@ permission = lambda self, request, obj: False if not request else request.user.i
 
 
 class UserAppBase(views.ModelApplication):
+    '''Base class for user application. Defines several
+utility methods for dealing with users and uaser data.'''
     userpage = False
+    home = views.SearchView()
+    login = LoginView(template_name = 'login.html',
+                      inherit_page = False,
+                      form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
+    logout = LogoutView()
+    add = views.AddView(regex = 'create',
+                        isplugin = True,
+                        in_navigation = 0,
+                        form = HtmlForm(RegisterForm,
+                        submits = (('Create','create_user'),)),
+                        force_redirect = True)
     
+    
+    def userhomeurl(self, request):
+        '''The user home page url'''
+        user = getattr(request,'user',None)
+        if user and user.is_authenticated():
+            if self.userpage:
+                view = self.getview('userhome')
+            else:
+                view = self.getview('home')
+            if view:
+                djp = view(request, instance = user)
+                return djp.url
+        
     def registration_done(self):
         '''Set the user model in the application site'''
         self.site.User = self.mapper
@@ -49,24 +75,13 @@ class UserAppBase(views.ModelApplication):
 class UserApplication(UserAppBase):
     '''This is a special Application since it deals with users and therefore is everywhere.
 No assumption has been taken over which model is used for storing user data.'''
-    name     = 'account'
-    
-    home   = views.ModelView()
-    login  = LoginView(parent = 'home',
-                       template_name = 'login.html',
-                       inherit_page = False,
-                       form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
-    logout = LogoutView(parent = 'home')
-    change = views.ChangeView(regex = 'change',
-                              isplugin = True,
-                              parent = 'home',
-                              form = HtmlForm(PasswordChangeForm))
-    add = views.AddView(regex = 'create',
-                          isplugin = True,
-                          parent = 'home',
-                          form = HtmlForm(RegisterForm,
-                                          submits = (('Create','create_user'),)),
-                          force_redirect = True)
+    name    = 'account'
+    inherit = True    
+    change_password = views.ChangeView(regex = 'change-password',
+                                       in_navigation = 0,
+                                       isplugin = True,
+                                       parent = 'home',
+                                       form = HtmlForm(PasswordChangeForm))
         
     def has_add_permission(self, request = None, obj = None):
         if request:
@@ -78,18 +93,31 @@ No assumption has been taken over which model is used for storing user data.'''
         return permission(self,request,obj)
 
 
-class UserSite(UserAppBase):
+class UserApplicationWithFilter(UserApplication):
     '''Application for managing user home pages in the form of "/username/...".
 The userhome view'''
+    inherit = True
     userpage = True
-    home = views.SearchView()
-    userhome = views.ViewView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
-                              parent = 'home')
-    login  = LoginView(parent = 'home',
-                       template_name = 'login.html',
-                       inherit_page = False,
-                       form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
-    logout = LogoutView(parent = 'home')
+    userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
+                        parent = 'home')
+    change_password = views.ChangeView(regex = 'change-password',
+                                       in_navigation = 0,
+                                       parent = 'userhome',
+                                       isplugin = True,
+                                       form = HtmlForm(PasswordChangeForm))
+    userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
+                            parent = 'userhome')
     
     def for_user(self, djp):
-        return djp.instance
+        '''If user instance not available, return None'''
+        try:
+            return djp.instance
+        except djp.http.Http404:
+            return None
+    
+    def get_view_from_path(self, path):
+        path = path.split('/')
+        
+        
+class UserDataApplication(views.ModelApplication):
+    pass

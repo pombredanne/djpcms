@@ -1,7 +1,6 @@
 from regression import models
 from djpcms import sites
 
-
 installed_apps = []
     
     
@@ -23,3 +22,4 @@ class Portfolio(models.Model):
     
     def __unicode__(self):
         return self.name
+    

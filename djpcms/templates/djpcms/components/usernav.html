@@ -1,9 +1,10 @@
 <ul class="simple-nav right user">{% if pagelink %}
  <li class="secondary">{{ pagelink }}</li>{% endif %}{% if is_authenticated %}
-{% block authenticated %}{% if user_url %}
- <li class="secondary"><a href="{% block userlink %}{{ user_url }}{% endblock %}">{{ user.username }}</a></li>{% endif %}
- <li class="secondary"><a href="{{ logout_url }}?next={{ request.path }}">logout</a></li>{% endblock %}{% else %}
- {% block not_authenticated %}{% if login_url %}
+ {% block authenticated %} {% if user_url %}
+   <li class="secondary"><a href="{% block userlink %}{{ user_url }}{% endblock %}">{{ user.username }}</a></li>{% endif %}
+   {% if logout_url %}
+   <li class="secondary"><a href="{{ logout_url }}?next={{ request.path }}">logout</a></li>{% endif %}
+   {% endblock %}{% else %}{% block not_authenticated %}{% if login_url %}
  <li class="secondary"><a href="{{ login_url }}?next={{ request.path }}">login</a></li>{% if register_url %} 
  <li class="secondary"><a href="{{ register_url }}">register</a></li>{% endif %}{% endif %}
  {% endblock %}{% endif %}

@@ -3,7 +3,7 @@ from djpcms.forms.utils import saveform
 
 from .orm import logout
 
-__all__ = ['LogoutView','LoginView']
+__all__ = ['LogoutView','LoginView','UserView','UserDataView']
 
 
 
@@ -59,4 +59,15 @@ class LoginView(views.ModelView):
     def success_message(self, instance, mch):
         return ''
 
+
+class UserView(views.ViewView):
+    
+    def title(self, djp):
+        return djp.instance.username
             
+            
+class UserDataView(UserView):
+    
+    def render(self, djp):
+        return ''
+    

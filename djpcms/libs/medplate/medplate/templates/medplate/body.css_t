@@ -4,7 +4,7 @@
 {{ jquery }}{% endif %}{% endblock %}
 
 
-{% block body %}
+{% block end-layout %}
 {% block text %}
 pre {
 	font-family: monospace;
@@ -13,28 +13,25 @@ pre {
 h1 {
 	font-size:180%;
 	line-height:1.1em;
-	margin-bottom:0.6em;
+	margin-bottom:1em;
 }
 h2 {
 	font-size:150%;
 	line-height:1.2em;
-	margin-bottom:0.2em;
+	margin-bottom:0.8em;
 }
 h3 {
 	font-size:120%;
 	line-height:1.2em;
-	margin-bottom:0.2em;
+	margin-bottom:0.6em;
 }
 p {
-	margin-bottom: 1em;
+	margin-bottom: 0.6em;
 }
 blockquote div.body-quote {
 	font-style: italic;
 	font-size: 100%;
 	font-family: Georgia,"Times New Roman",Times,serif;
-}
-.topnav {
-	font-size: 90%;
 }
 {% endblock %}
 
@@ -105,9 +102,6 @@ a:hover.headerlink {
 {% endblock %}
 
 
-
-
-
 {% block autocomplete %}
 /* AUTOCOMPLETE
 -------------------------------------------------------*/
@@ -143,47 +137,4 @@ a:hover.headerlink {
 }
 {% endblock %}
 
-
-{% block openid %}
-
-/* OPEN ID
---------------------------------------------------------*/
-
-
-input.openid {
-    background: url({{ MEDIA_URL }}djpcms/img/icons/openid-icon.png) no-repeat 0 50%;
-    background-color:#FFFFFF;
-    padding:0.2em;
-    padding-left:1.5em;
-    border:1px solid #B7C6CE;
-}
 {% endblock %}
-
-
-
-
-{% block edit-links %}
-
-/* EDIT-LINKS
---------------------------------------------------------*/
-
-ul.edit-links.horizontal li {
-	display: inline;
-	margin-right: 5px;
-}
-ul.edit-links.vertical li {
-	display: block;
-	margin-bottom: 5px;
-}
-ul.edit-links.vertical a {
-	width: 80px;
-}
-{% endblock %}
-
-
-
-{% endblock %}
-
-
-{% block end-layout %}
-{% include "layout.css" %}{% endblock %}

@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 
-from djpcms import sites, UnicodeMixin, CHANGE, ADD
+from djpcms import views, UnicodeMixin, CHANGE, ADD
 from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
@@ -11,10 +11,20 @@ from djpcms.html import grid960, htmldoc, List, icons
 
 class PageLink(UnicodeMixin):
     '''Utility for displaying links for page editing/creation.'''
-    def __init__(self, request, page):
+    def __init__(self, request):
         self.request = request
-        self.page = page
-    
+        info = request.DJPCMS
+        self.page = info.page
+        self.app = request.DJPCMS.root.for_model(Page)
+        if self.app:
+            cdjp = self.cdjp = info.djp(request)
+            self.isediting = cdjp is not None and \
+                             isinstance(cdjp.instance,Page) and \
+                             isinstance(cdjp.view,views.ChangeView)
+        else:
+            self.cdjp = None
+            self.isediting = False
+        
     def __unicode__(self):
         if not hasattr(self,'_html'):
             self._html = self.render()
@@ -24,43 +34,48 @@ class PageLink(UnicodeMixin):
         return len(self.__unicode__())
     
     def render(self):
-        app = sites.for_model(Page)
-        if app:
-            cdjp = self.request.DJPCMS.djp(self.request)
-            if cdjp and isinstance(cdjp.instance,Page):
-                return self.exitlink(cdjp.instance.url)
+        if self.app:
+            if self.isediting:
+                return self.exitlink(self.cdjp.instance.url)
             else:
-                site = app.site
+                site = self.app.site
                 if not self.page:
                     if Page and site.permissions.has(self.request, ADD, Page):
-                        return self.addlink(app)
+                        return self.addlink()
                 elif site.permissions.has(self.request, CHANGE, self.page):
-                    return self.changelink(app)
+                    return self.changelink()
         return ''
     
-    def addlink(self, app):
-        path = app.addurl(self.request)
+    def addlink(self):
+        path = self.app.addurl(self.request)
         if path:
             info = self.request.DJPCMS
             view = info.view
             kwargs = info.kwargs.copy()
-            kwargs['url'] = self.request.path if not info.view else info.view.path
+            kwargs['url'] = self.request.path if not view else view.path
             path = iri_to_uri(path,kwargs)
-            return icons.circle_plus(path,'add page',title="add page contents",button=False)
+            return icons.circle_plus(path,'add page',
+                                     title="add page contents",button=False)
         else:
             return ''
     
-    def changelink(self, app):
-        path = app.changeurl(self.request, self.page)
+    def changelink(self):
+        path = self.app.changeurl(self.request, self.page)
         if path:
-            kwargs = iri_to_uri(path,self.request.DJPCMS.kwargs)
-            return icons.pencil(path,'edit',title = 'Edit page contents',button=False)
+            path = iri_to_uri(path,self.request.DJPCMS.kwargs)
+            return icons.pencil(path,'edit',
+                                title = 'Edit page contents',
+                                button=False)
         else:
             return ''
 
     def exitlink(self, path):
-        path = path % dict(self.request.GET.items())
-        return icons.circle_close(path,'exit edit',title = 'Exit page editing',button=False)
+        try:
+            path = path % dict(self.request.GET.items())
+        except KeyError:
+            return ''
+        return icons.circle_close(path,'exit',
+                                  title = 'Exit page editing',button=False)
     
 
 def get_grid960(page):
@@ -72,11 +87,12 @@ def djpcms(request):
     info = request.DJPCMS
     site = info.site
     page = info.page
-    settings = site.settings    
+    settings = site.settings
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
-    
+    plink = PageLink(request)
     user = getattr(request,'user',None)
-    ctx = {'pagelink':PageLink(request,page),
+    
+    ctx = {'pagelink':plink,
            'base_template': base_template,
            'css':settings.HTML_CLASSES,
            'grid': get_grid960(page),
@@ -90,18 +106,14 @@ def djpcms(request):
            'now': datetime.now(),
            'MEDIA_URL': settings.MEDIA_URL}
     
-    # lets check if there is a user application. The likelihood is that there is one :)
-    userapp = site.for_model(site.User)
-    if userapp:
-        ctx.update({
-                    'login_url': userapp.appviewurl(request,'login'),
-                    'logout_url': userapp.appviewurl(request,'logout'),
-                    })
-        if getattr(userapp,'userpage',False):
-            url = userapp.viewurl(request, request.user)
-        else:
-            url = userapp.baseurl
-        ctx.update({'user_url': url})
+    if not plink.isediting:
+        userapp = site.for_model(site.User)
+        if userapp:
+            ctx.update({
+                        'login_url': userapp.appviewurl(request,'login'),
+                        'logout_url': userapp.appviewurl(request,'logout'),
+                        'user_url': userapp.userhomeurl(request)
+                        })
     return ctx
 
 

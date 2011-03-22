@@ -10,7 +10,7 @@ if Page:
     from djpcms.apps.included.admin import AdminApplication
     
     admin_urls = (
-                  SiteMapApplication('/pages/',
+                  SiteMapApplication('/sitemap/',
                                      description = 'site map',
                                      form = HtmlPageForm,
                                      list_display_links = ('url','inner_template')),

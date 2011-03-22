@@ -42,6 +42,21 @@ very similar to django forms API.
     
     Default: ``None``.
     
+.. attribute:: initial
+
+    Initial value for field. If Provided, the field will display the value when rendering
+    the form without bound data.
+    
+    Default: ``None``.
+    
+    .. seealso::
+        
+        Inital is used by :class:`djpcms.forms.Form` and
+        by :class:`djpcms.forms.HtmlForm` instances to render
+        an unbounded form. The :func:`djpcms.forms.Form.initials`
+        method return a dictionary of initial values for fields
+        providing one. 
+    
 .. attribute:: widget_attrs
 
     dictionary of widget attributes. Used for modifying widget html attributes.
@@ -208,7 +223,15 @@ class BooleanField(Field):
     
     
 class ChoiceField(Field):
-    '''A :class:`Field` which validates against a set of choices.'''
+    '''A :class:`Field` which validates against a set of ``choices``.
+Additiona attributes::
+
+.. attribuite:: choices
+
+    A callable or an iterable over two-dimensional tuples.
+    If a callable, it must accept a one parameter given by
+    the form instance and return an iterable over two dimensional tuples.
+'''
     widget = Select
     
     def _handle_params(self, choices = None, model = None,
@@ -223,9 +246,11 @@ class ChoiceField(Field):
         self._raise_error(kwargs)
         
     def choices_and_model(self):
+        '''Return an tuple containing an
+iterable over choices and a model class (if applicable).'''
         ch = self.choices
         if hasattr(ch,'__call__'):
-            ch = ch()
+            ch = ch(self)
         model = self._model
         if not model and hasattr(ch,'model'):
             model = ch.model

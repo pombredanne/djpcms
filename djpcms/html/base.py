@@ -82,7 +82,7 @@ is derived from this class. Any Operation on this class is similar to jQuery.'''
     default_style = None
     inline = False
     template = None
-    attributes = {'id':None}
+    attributes = {'id':None,'title':None}
     default_class = None
     
     def __init__(self, tag = None, cn = None, template = None, js = None,

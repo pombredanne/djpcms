@@ -1,16 +1,12 @@
-from django.contrib.contenttypes.models import ContentType
-
-from djpcms import forms, get_site
+from djpcms import forms, html
 from djpcms.template import loader
 from djpcms.plugins import DJPplugin
 from djpcms.utils import gen_unique_id
-from djpcms.utils.uniforms import UniForm, FormLayout, Fieldset
-from djpcms.utils.html import input
 
 
-def registered_models(url = None):
-    ids = []
-    site = get_site(url)
+def registered_models(form):
+    '''Generator of model Choices'''
+    site = form.request.DJPCMS.info.site
     for model,app in site._registry.items():
         if isinstance(app,site.ModelApplication) and not app.hidden:
             try:
@@ -42,19 +38,18 @@ def app_model_from_ct(ct, url = None):
         return '', False
     
     
-
 class SearchForm(forms.Form):
     '''
     A simple search form used by plugins.apps.SearchBox.
     The search_text name will be used by SearchViews to handle text search
     '''
-    q = forms.OldCharField(required = False,
-                        widget = forms.TextInput(attrs = {'class': 'classy-search autocomplete-off',
-                                                          'title': 'Enter your search text'}))
+    q = forms.CharField(required = False,
+                        widget = html.TextInput(cn = 'classy-search autocomplete-off',
+                                                title = 'Enter your search text'))
 
 class ForModelForm(forms.Form):
-    for_model   = forms.ModelChoiceField(queryset = registered_models,
-                                         empty_label=None)
+    for_model   = forms.ChoiceField(choices = registered_models,
+                                    empty_label=None)
     
     def clean_for_model(self):
         site = get_site()
@@ -68,30 +63,34 @@ class ForModelForm(forms.Form):
 
 
 class LatestItemForm(ForModelForm):
-    max_display = forms.OldIntegerField(initial = 10)
-    pagination  = forms.OldBooleanField(initial = False, required = False)
+    max_display = forms.IntegerField(initial = 10)
+    pagination  = forms.BooleanField(initial = False)
 
 
 class FormModelForm(ForModelForm):
-    method      = forms.OldChoiceField(choices = (('get','get'),('post','post')),
+    method      = forms.ChoiceField(choices = (('get','get'),('post','post')),
                                     initial = 'get')
-    ajax        = forms.OldBooleanField(initial = False, required = False)
+    ajax        = forms.BooleanField(initial = False)
 
 
 class SearchModelForm(FormModelForm):
-    title       = forms.OldCharField(required = False, max_length = 50)
+    title  = forms.CharField(required = False, max_length = 50)
 
 
 class FilterModelForm(FormModelForm):
     pass
 
 
+class ModelLinksForm(forms.Form):
+    asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
+    layout = forms.ChoiceField(choices = (('horizontal','horizontal'),('vertical','vertical')))
+    exclude = forms.CharField(max_length=600,required=False)
+    
 #
 #______________________________________________ PLUGINS
 
 class SearchBox(DJPplugin):
-    '''
-    A search box for a model
+    '''A search box for a model
     '''
     name = 'search-box'
     description = 'Search a Model' 
@@ -161,12 +160,6 @@ class ModelFilter(DJPplugin):
             f.addClass(djp.css.ajax)
         f.inputs.append(input(value = 'filter', name = '_filter'))
         return f.render()
-    
-    
-class ModelLinksForm(forms.Form):
-    asbuttons = forms.OldBooleanField(initial = True, required = False, label = 'as buttons')
-    layout = forms.OldChoiceField(choices = (('horizontal','horizontal'),('vertical','vertical')))
-    exclude = forms.OldCharField(max_length=600,required=False)
     
     
 class ObjectLinks(DJPplugin):

@@ -13,23 +13,10 @@ from djpcms.utils.dates import format
 from djpcms.utils.ajax import jredirect, jremove
 from djpcms.html import HiddenInput
 
-from .globals import generate_prefix
+from .globals import *
 
 logger = logging.getLogger('djpcms.forms')
 
-get_next = lambda request, name = "next" : request.POST.get(name,request.GET.get(name,None))
-
-
-SAVE_AS_NEW = '_save_as_new'
-SAVE_AND_CONTINUE = '_save_and_continue'
-
-
-def next_and_current(request):
-    next = get_next(request)
-    curr = request.environ.get('HTTP_REFERER')
-    if next:
-        next = request.build_absolute_uri(next)
-    return next,curr
 
 
 def set_request_message(f, request):
@@ -111,20 +98,6 @@ def success_message(instance, mch):
         return '0[mch]'.format(c)
 
 
-def update_initial(request, form_class, initial = None,
-                   own_view = True):    
-    if request.method == 'GET':
-        params = dict(request.GET.items())
-        next   = params.get('next',None)
-        if not next and not own_view:
-            next = request.path
-        if next:
-            form_class = add_hidden_field(form_class,'next')
-        initial = initial or {}
-        initial['next'] = next
-    return initial
-
-
 def get_form(djp,
              form_factory,
              method = 'POST',
@@ -152,11 +125,12 @@ def get_form(djp,
                       available form class as no inputs associated with it.
                       Default ``None``.
 '''
-    request  = djp.request
+    request = djp.request
+    referer = request.environ.get('HTTP_REFERER')
     own_view = djp.own_view()
     data = request.data_dict
-    prefix = data.get('__prefixed__',None)
-    save_as_new = '_save_as_new' in data
+    prefix = data.get(PREFIX_KEY,None)
+    save_as_new = SAVE_AS_NEW_KEY in data
     submits = form_factory.submits
     if submits:
         inputs = [forms.SubmitInput(value = val, name = nam) for val,nam in submits]
@@ -167,8 +141,11 @@ def get_form(djp,
         
     if not prefix and force_prefix:
         prefix = generate_prefix()
-        pinput = forms.HiddenInput(name='__prefixed__',value=prefix)
+        pinput = forms.HiddenInput(name=PREFIX_KEY,value=prefix)
         inputs.append(pinput)
+        
+    pinput = forms.HiddenInput(name='__referer__',value=referer)
+    inputs.append(pinput)
                 
     # Create the form instance
     form  = form_factory(**form_kwargs(request     = request,
@@ -204,14 +181,14 @@ has been submitted.'''
     POST = request.POST
     GET = request.GET
     curr = request.environ.get('HTTP_REFERER')
-    next = get_next(request)
+    referer = data.get(REFERER_KEY,None)
     fhtml = view.get_form(djp)
     
     layout = fhtml.layout
     f = fhtml.form
     
-    if "_cancel" in data:
-        redirect_url = next
+    if CANCEL_KEY in data:
+        redirect_url = referer
         if not redirect_url:
             if djp.instance:
                 redirect_url = view.appmodel.viewurl(request,djp.instance)
@@ -225,14 +202,14 @@ has been submitted.'''
     
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
-        editing  = editing if not SAVE_AS_NEW in data else False
+        editing  = editing if not SAVE_AS_NEW_KEY in data else False
         instance = view.save(request, f)
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)
         
         # Save and continue. Redirect to referer if not AJAX or send messages 
-        if SAVE_AND_CONTINUE in data:
+        if SAVE_AND_CONTINUE_KEY in data:
             if is_ajax:
                 return layout.json_messages(f)
             else:
@@ -241,7 +218,7 @@ has been submitted.'''
 
         # Check redirect url
         redirect_url = view.defaultredirect(request,
-                                            next = next,
+                                            next = referer,
                                             instance = instance)
             
         # not forcing redirect. Check if we can send a JSON message
@@ -268,8 +245,8 @@ def deleteinstance(djp, force_redirect = False):
     view    = djp.view
     request = djp.request
     
-    curr    = request.environ.get('HTTP_REFERER')
-    next    = get_next(request)
+    curr = request.environ.get('HTTP_REFERER')
+    next = None
     if next:
         next = request.build_absolute_uri(next)
     next = next or curr

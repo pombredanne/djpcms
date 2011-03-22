@@ -145,13 +145,6 @@ box = CssContext('box',
                  template='djpcms/style/box/box.css_t',
                  data = {'padding':'2px',
                          'border': 'none'})
-CssContext('editbox',
-           parent = box,
-           same_as_parent = True,
-           tag='.edit-block',
-           template='djpcms/style/box/editbox.css_t',
-           data = {'padding':'2px',
-                   'border': 'none'})
 
 CssContext('hd',
            parent = box,
@@ -176,6 +169,22 @@ CssContext('ft',
 
 
 #________________________________________ EDITING
+editbox = CssContext('editbox',
+           parent = box,
+           same_as_parent = True,
+           tag='.edit-block',
+           template='djpcms/style/box/editbox.css_t',
+           data = {'padding':'0',
+                   'border': 'none'})
+
+CssContext('editboxft',
+           parent = editbox,
+           tag='div.ft',
+           data={'padding':'5px 0 0 0',
+                 'overflow':'hidden',
+                 'border':'none'})
+
+
 CssContext('bodyedit',
            tag = 'body.admin',
            template='djpcms/style/editing.css_t',

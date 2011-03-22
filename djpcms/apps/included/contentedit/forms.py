@@ -8,13 +8,9 @@ __all__ = ['TemplateForm',
            'ContentBlockForm']
 
 
-def get_templates():
+def get_templates(*args):
     from djpcms.models import InnerTemplate
     return InnerTemplate.objects.all()
-
-
-def siteapp_choices():
-    return sites.get_site().choices
 
 
 class TemplateForm(forms.Form):
@@ -68,8 +64,10 @@ class PluginChoice(forms.ChoiceField):
 class ContentBlockForm(forms.Form):
     url = forms.CharField(widget=forms.HiddenInput, required = False)
     title = forms.CharField(required = False)
-    plugin_name = PluginChoice(label = 'Plugin', choices = plugingenerator)
+    plugin_name = PluginChoice(label = 'Plugin',
+                               choices = plugingenerator)
     container_type = forms.ChoiceField(label = 'Container',
+                                       widget = forms.Select(cn = 'ajax'),
                                        choices = wrappergenerator,
                                        help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
     for_not_authenticated = forms.BooleanField(default = False)
@@ -87,8 +85,8 @@ class ContentBlockForm(forms.Form):
         if pe:
             instance.requires_login = True
         cb = super(ContentBlockForm,self).save(commit = commit)
-        if commit and cb.id:
-            ObjectPermission.objects.set_view_permission(cb, groups = pe)
+        #if commit and cb.id:
+        #    ObjectPermission.objects.set_view_permission(cb, groups = pe)
         return cb
 
     def clean(self):

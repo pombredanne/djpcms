@@ -19,6 +19,7 @@ ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
 class ApplicationGroup(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer a group of :class:`djpcms.views.Applications`.'''
+    has_plugins = False
     list_display = ['name','actions']
     home = views.GroupView(in_navigation = 1,
                            view_template = ADMIN_APPLICATION_TEMPLATE)
@@ -40,6 +41,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
 class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''
+    has_plugins = False
     query_template = ADMIN_GROUP_TEMPLATE
     home = views.GroupView(in_navigation = 1)
     
@@ -58,7 +60,7 @@ administer models in groups.'''
     
 class AdminApplication(views.ModelApplication):
     view_template = 'djpcms/admin/viewtemplate.html'
-    
+    has_plugins = False
     search = views.SearchView()
     add    = views.AddView()
     view   = views.ViewView()

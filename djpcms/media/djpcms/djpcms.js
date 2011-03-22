@@ -1,5 +1,4 @@
-/* File:         djpcms.js
- * Description:  djpcms Javascript Site Manager
+/* Description:  djpcms Javascript Site Manager
  * Author:       Luca Sbardella
  * Language:     Javascript
  * License:      new BSD licence
@@ -542,26 +541,41 @@
 	 */
     $.djpcms.decorator({
         id:	"ajax_widgets",
+        config: {
+            submit_opacity: '0.5'
+        },
         description: "add ajax functionality to links, buttons and selects",
         decorate: function($this,config) {
-            var ajaxclass = config.ajaxclass ? config.ajaxclass : 'ajax';
-            var confirm = config.confirm_actions;
+            var ajaxclass = config.ajaxclass ? config.ajaxclass : 'ajax',
+                confirm = config.confirm_actions,
+                cfg = config.ajax_widgets;
+                callback = $.djpcms.jsonCallBack,
+                log = $.djpcms.log;
             
-            function callback(o,s,e) {
-                $.djpcms.jsonCallBack(o,s,e);
+            function sendrequest(elem,name,abort) {
+                if(abort) {
+                    $.djpcms.set_inrequest(false)
+                }
+                else {
+    				var url = elem.attr('href');
+    				if(url) {
+    					var p = $.djpcms.postparam(name);
+    					$.post(url,
+    							$.param(p),
+    							callback,
+    							"json");
+    				}
+                }
+			}
+            
+            function presubmit_form(formData, jqForm, opts) {
+                jqForm.css({'opacity':cfg.submit_opacity});
+                //$('.'+config.errorlist+
+                // ',.'+config.ajax_server_error,jqForm).fadeOut(100);
+                return true;
             }
             
-            function sendrequest(elem,name) {
-				var url = elem.attr('href');
-				if(url) {
-					var p = $.djpcms.postparam(name);
-					$.post(url,
-							$.param(p),
-							callback,
-							"json");
-				}
-			}
-			function deco(event,elem) {
+			function ajax_submit(event,elem) {
 				event.preventDefault();
 				if($.djpcms.inrequest()) {
 					return;
@@ -582,7 +596,7 @@
 								   },
 								   Cancel: function() {
 									   $(this).dialog( "close" );
-									   $.djpcms.set_inrequest(false);
+									   sendrequest(a,name,true);
 								   }
 						}});
 				}
@@ -590,42 +604,41 @@
 					sendrequest(a,name);
 				}
 			}
-			$('a.'+ajaxclass,$this).click(function(event) {deco(event,this);});
-			$('button.'+ajaxclass,$this).click(function(event) {deco(event,this);});
+			$('a.'+ajaxclass,$this).click(function(event) {
+			    ajax_submit(event,this);
+			});
+			$('button.'+ajaxclass,$this).click(function(event) {
+			    ajax_submit(event,this);
+			});
 			$('select.'+ajaxclass,$this).change(function(event) {
-				var a    = $(this);
-				var _url = a.attr('href');
-				var f    = a.parents('form');
-				if(f.length === 1 && !_url) {
-					_url = f.attr('action');
+				var elem = $(this),
+				    url = elem.attr('href'),
+				    f = elem.parents('form');
+				if(f.length === 1 && !url) {
+					url = f.attr('action');
 				}
-				if(!_url) {
-					_url = window.location.toString();
+				if(!url) {
+					url = window.location.toString();
 				}
+				
 				if(!f) {
-					var p   = $.djpcms.postparam(a.attr('name'));
-					p.value = a.val();
+					var p   = $.djpcms.postparam(elem.attr('name'));
+					p.value = elem.val();
 					$.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
 				}
 				else {
 					var opts = {
-							url:       _url,
+							'url':     url,
 							type:      'post',
 							success:   callback,
 							submitkey: config.post_view_key,
 							dataType: "json"
 							};
-					f[0].clk = this;
+					f[0].clk = elem[0];
+					log('Submitting select change from "'+elem[0].name+'"');
 					f.ajaxSubmit(opts);
 				}
 			});
-			
-			var presubmit_form = function(formData, jqForm, opts) {
-				jqForm.css({'opacity':'0.5'});
-				$('.'+config.errorlist+
-				 ',.'+config.ajax_server_error,jqForm).fadeOut(100);
-				return true;
-			};
 			var success_form = function(o,s,jform) {
 				$.djpcms.jsonCallBack(o,s,jform);
 				jform.css({'opacity':'1'});

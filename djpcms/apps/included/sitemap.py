@@ -31,9 +31,13 @@ class PageChangeView(views.ChangeView):
         c = super(PageChangeView,self).get_context(djp)
         page = djp.instance
         kwargs = dict(djp.request.GET.items())
-        url = page.url % kwargs
+        try:
+            url = page.url % kwargs
+        except KeyError as e:
+            return c
         inner = c['inner']
-        c['inner'] = box(collapsed = True, bd = inner, hd = 'Page properties')
+        c['inner'] = box(collapsed = True, bd = inner,
+                         hd = 'Page properties')
         try:
             cdjp = djp.site.djp(djp.request, url[1:])
         except Exception as e:
@@ -44,6 +48,13 @@ class PageChangeView(views.ChangeView):
             c['underlying'] = cdjp.view.get_context(cdjp, editing = True)['inner']
         return c     
         
+    def defaultredirect(self, request, next = None, instance = None, **kwargs):
+        if next:
+            return next
+        return super(PageChangeView,self).defaultredirect(request,
+                                                          instance = instance,
+                                                          **kwargs)
+        
     
 class SiteMapApplication(views.ModelApplication):
     '''Application to use for admin sitemaps'''
@@ -53,12 +64,14 @@ class SiteMapApplication(views.ModelApplication):
     
     if Page:
         search = views.SearchView(regex = 'pages',
-                                  parent = 'main')
+                                  parent = 'main',
+                                  title = lambda djp : 'pages')
         add = views.AddView(parent = 'main',
                             force_redirect = True)
         view = views.ViewView()
         change = PageChangeView(force_redirect = True,
-                                template_name = 'djpcms/admin/editpage.html')
+                                template_name = 'djpcms/admin/editpage.html',
+                                title = lambda djp: 'editing')
         delete = views.DeleteView()
         
         def __init__(self, baseurl, **kwargs):

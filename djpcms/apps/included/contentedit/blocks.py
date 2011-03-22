@@ -5,7 +5,7 @@ and defines several ajax enabled sub-views
 '''
 from py2py3 import range
 
-from djpcms import forms, sites
+from djpcms import forms
 from djpcms.forms import FormType, HtmlForm, SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
@@ -38,6 +38,9 @@ class EditWrapperHandler(CollapsedWrapper):
     def __call__(self, djp, cblock, html):
         return self.wrap(djp, cblock, html)
     
+    def title(self, cblock):
+        return ''
+    
     def id(self, cblock):
         return cblock.htmlid()
     
@@ -65,8 +68,9 @@ class ChangeContentView(views.ChangeView):
     
     def get_preview(self, request, instance, url, wrapped = True, plugin = None):
         try:
-            djpview = sites.djp(request, url[1:])
-            preview_html = instance.render(djpview, plugin = plugin, wrapper = dummy_wrap)
+            djpview = request.DJPCMS.root.djp(request, url[1:])
+            preview_html = instance.render(djpview,
+                                           plugin = plugin)
         except Exception as e:
             preview_html = '%s' % e
         if wrapped:
@@ -108,37 +112,50 @@ class ChangeContentView(views.ChangeView):
         return fw
         
     def get_plugin_form(self, djp, plugin, withdata = True):
-        '''If *plugin* is not ``None``, it returns a tuple with the plugin form and the url for editing plugin contents.'''
+        '''Retrieve the plugin editing form. If ``plugin`` is not ``None``,
+it returns a tuple with the plugin form and the url
+for editing plugin contents.'''
         if plugin:
             instance = djp.instance
             args     = None
             if instance.plugin == plugin:
                 args = instance.arguments
             pform = plugin.get_form(djp,args,withdata=withdata)
-            purl  = djp.view.appmodel.pluginurl(djp.request, instance)
-            return (pform,purl)
-        else:
-            return (None,None)
+            if pform:
+                purl = djp.view.appmodel.pluginurl(djp.request, instance)
+                return (pform,purl)
+        return (None,None)
             
     def edit_block(self, request):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
                       html = self.instance.plugin_edit_block(request))
-        
+    
+    def ajax__container_type(self, djp):
+        return self.handle_content_block_changes(djp, commit = False)
+    
     def ajax__plugin_name(self, djp):
+        return self.handle_content_block_changes(djp, commit = False)
+    
+    def default_post(self, djp):
+        return self.handle_content_block_changes(djp)
+    
+    def __ajax__plugin_name(self, djp):
+        
         '''
-        Ajax post view function which handle the change of pluging within one html block.
-        It return JSON serializable object 
+        Ajax post view function which handle the change of pluging
+        within one html block. It return JSON serializable object 
         '''
-        form = self.get_form(djp, all = False)
+        form = self.get_form(djp).form
         if form.is_valid():
             url        = form.cleaned_data['url']
-            instance   = djp.instance
-            new_plugin = form.cleaned_data.get('plugin_name',None)
-            pform,purl = self.get_plugin_form(djp, new_plugin, withdata = False)
+            new_plugin = form.cleaned_data['plugin_name']
+            pform,purl = self.get_plugin_form(djp, new_plugin, False)
             if pform:
                 html = UniForm(pform,tag=False).render(djp)
             else:
                 html = ''
+            instance = djp.instance
+            preview = self.get_preview(djp.request, instance, url)
             data = jhtmls(identifier = '#%s' % instance.pluginid('options'), html = html)
             preview = self.get_preview(djp.request, instance, url, plugin = new_plugin, wrapped = False)
             data.add('#%s' % instance.pluginid('preview'), preview)
@@ -154,9 +171,6 @@ class ChangeContentView(views.ChangeView):
     def ajax__edit_content(self, djp):
         pluginview = self.appmodel.getview('plugin')
         return pluginview.default_post(pluginview(djp.request, instance = djp.instance))
-        
-    def ajax__container_type(self, djp):
-        return self.ajax__plugin_name(djp)
         
     def ajax__rearrange(self, djp):
         '''Move the content block to a new position and updates all html attributes'''
@@ -194,12 +208,10 @@ class ChangeContentView(views.ChangeView):
         except Exception as e:
             return jerror('Could not find target block. {0}'.format(e))
     
-    def default_post(self, djp):
+    def handle_content_block_changes(self, djp, commit = True):
         '''View called when changing the content plugin values.
 The instance.plugin object is maintained but its fields may change.'''
-        # First get the plugin name
-        is_ajax = djp.request.is_xhr
-        fhtml = self.get_form(djp, all = False)
+        fhtml = self.get_form(djp)
         form = fhtml.form
         layout = fhtml.layout
         
@@ -213,13 +225,24 @@ The instance.plugin object is maintained but its fields may change.'''
         request = djp.request
         cd = form.cleaned_data
         plugin = cd['plugin_name']
+        container = cd['container_type']
         url = cd['url']
-        instance.plugin_name = plugin.name
+        pform,purl = self.get_plugin_form(djp, plugin, withdata = commit)
         
-        # Get the full form
-        html_form  =  self.get_form(djp)
-        form = html_form.form
-        layout = html_form.layout
+        if commit and pform and not pform.is_valid():
+            return layout.json_messages(pform)
+            
+        instance = form.save(commit = commit)
+        preview = self.get_preview(request, instance, url)
+        jquery = jhtmls(identifier = '#%s' % instance.pluginid('preview'),
+                        html = preview)
+        
+        if commit:
+            form.add_message("Plugin changed to %s" % instance.plugin.description)
+        
+        jquery.update(layout.json_messages(form))
+        return jquery
+    
         if form.is_valid():
             # save the plugin
             instance   = form.save(commit = False)
@@ -346,6 +369,7 @@ The url is given by the ContentBlocks models
 class ContentSite(views.ModelApplication):
     '''AJAX enabled :class:`djpcms.views.ModelApplication` for changing
 content in a content block.'''
+    has_plugins = False
     search      = views.SearchView()
     view        = views.ViewView()
     change      = ChangeContentView()

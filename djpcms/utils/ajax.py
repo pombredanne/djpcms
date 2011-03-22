@@ -104,12 +104,12 @@ class jempty(HeaderBody):
 
 
 class jservererror(HeaderBody):
-    template_name = ('bits/post-error.html',
-                     'djpcms/bits/post-error.html')
-    def __init__(self, err, url = None):
+    template_name = ('errors/post-error.html',
+                     'djpcms/errors/post-error.html')
+    def __init__(self, request, err):
         self.html = self.render(self.template_name,
                                  {'error':err,
-                                  'url': url})
+                                  'request': request})
     
     def header(self):
         return 'servererror'

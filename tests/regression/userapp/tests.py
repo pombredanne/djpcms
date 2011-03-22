@@ -2,22 +2,37 @@ from djpcms import test, sites
 from djpcms.apps.included.user import LoginForm
 from djpcms.views import appsite, appview
 from djpcms.apps.included.vanilla import Application
-from djpcms.apps.included.user import UserApplication, UserSite
+from djpcms.apps.included.user import UserApplication, UserApplicationWithFilter
+
+USER_NUMVIEWS = 6
+
+class CustomUserApp(UserApplicationWithFilter):
+    inherit = True
+
+
+# A web site with user pages
+def appurls1():
+    from .models import User, Portfolio
+    apps = (Application('/portfolio/', Portfolio,
+                        parent = 'userhome'),)
+    return (CustomUserApp('/',
+                          User, apps = apps),
+            )
 
 
 # A web site with user pages
 def appurls2():
     from .models import User, Portfolio
     apps = (Application('/portfolio/', Portfolio,
-                        parent = 'userhome'),)
-    return (UserSite('/',
-                     User, apps = apps),
+                         parent = 'userhome'),)
+    return (UserApplication('/',User, apps = apps),
             )
-
+    
 
 @test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
-class TestSiteUser(test.TestCase, test.UserMixin):
-    appurls = 'regression.userapp.tests.appurls2'
+class TestSiteUser1(test.TestCase, test.UserMixin):
+    appurls = 'regression.userapp.tests.appurls1'
+    NUMVIEWS = USER_NUMVIEWS
     
     def setUp(self):
         from .models import User, Portfolio
@@ -31,16 +46,21 @@ class TestSiteUser(test.TestCase, test.UserMixin):
         from .models import installed_apps
         return installed_apps
         
+    def testMeta(self):
+        views = CustomUserApp.base_views
+        self.assertEqual(len(views),self.NUMVIEWS)
+        
     def testAppsViews(self):
         app = self.sites.for_model(self.User)
         site = app.site
         self.assertTrue(len(site),2)
         views = app.views
-        self.assertEqual(len(views),4)
+        self.assertEqual(len(views),self.NUMVIEWS)
         urls = app._urls
-        self.assertEqual(len(urls),4)
+        self.assertEqual(len(urls),self.NUMVIEWS)
         apps = app.apps
         self.assertEqual(len(apps),1)
+        # Get the vanilla portfolio application
         papp = apps['portfolio']
         self.assertEqual(len(papp.views),5)
         self.assertEqual(len(papp._urls),5)
@@ -115,3 +135,7 @@ class TestSiteUser(test.TestCase, test.UserMixin):
         self.assertEqual(form.data['password'],'blabla')
         
 
+#@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
+#class TestSiteUser2(TestSiteUser1):
+#    appurls = 'regression.userapp.tests.appurls2'
+#    NUMVIEWS = USER_NUMVIEWS - 1

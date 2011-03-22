@@ -9,9 +9,9 @@ from inspect import isgenerator
 from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
 import djpcms
+from djpcms import forms
 from djpcms.html import ObjectDefinition, Paginator, Table,\
                         SubmitInput, MediaDefiningClass
-from djpcms.forms import FormType, HtmlForm
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -22,7 +22,7 @@ from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
 from djpcms.utils.collections import OrderedDict
 
-from .baseview import RendererMixin, absolute_parent
+from .baseview import RendererMixin
 from .appview import View, ViewView
 from .regex import RegExUrl
 
@@ -90,7 +90,8 @@ def process_views(view,views,app):
         if is_bytes_or_string(pkey):
             parent  = app.views.get(pkey,None)
             if not parent:
-                raise ApplicationUrlException('Parent %s for %s not in children tree' % (pkey,view))
+                raise ApplicationUrlException('Parent view "%s" for view "%s"\
+ not in children tree. Check application "%s".' % (pkey,view,app.__class__.__name__))
             view.parent = parent
         else:
             parent = pkey
@@ -184,6 +185,7 @@ or in the constructor.
     '''True if authentication is required. Default ``False``.'''
     has_api          = False
     '''Flag indicating if API is available. Default ``False``.'''
+    has_plugins      = True
     hidden           = False
     '''If ``True`` the application is only used internally and it won't
     appear in any navigation.
@@ -358,10 +360,7 @@ Return ``None`` if the view is not available.'''
         while views:
             view = process_views(views[0],views,self)
             view.processurlbits(self)
-            if view.isapp and not self.parent:
-                name = self.description + ' ' + nicename(view.name)
-                self.site.choices.append((view.code,name))
-            if view.isplugin:
+            if self.has_plugins and view.isplugin:
                 register_application(view)
     
     def get_form(self, djp,
@@ -384,8 +383,8 @@ Return ``None`` if the view is not available.'''
         form_class = form_class or self.form
         if not form_class:
             raise ValueError("Form class not defined in {0}".format(self))
-        elif isinstance(form_class,FormType):
-            form_class = HtmlForm(form_class)
+        elif isinstance(form_class,forms.FormType):
+            form_class = forms.HtmlForm(form_class)
         
         # Check instance and model    
         if instance == False:
@@ -414,16 +413,21 @@ Return ``None`` if the view is not available.'''
         '''Generate the submits elements to be added to the model form.
         '''
         if instance:
-            sb = [SubmitInput(value = self._form_save, name = '_save')]
+            sb = [SubmitInput(value = self._form_save,
+                              name = forms.SAVE_KEY)]
             if self._submit_as_new:
-                sb.append(SubmitInput(value = self._submit_as_new, name = '_save_as_new'))
+                sb.append(SubmitInput(value = self._submit_as_new,
+                                      name = forms.SAVE_AS_NEW_KEY))
         else:
-            sb = [SubmitInput(value = self._form_add, name = '_save')]
+            sb = [SubmitInput(value = self._form_add,
+                              name = forms.SAVE_KEY)]
         if own_view:
             if self._form_continue:
-                sb.append(SubmitInput(value = self._form_continue, name = '_save_and_continue'))
+                sb.append(SubmitInput(value = self._form_continue,
+                                      name = forms.SAVE_AND_CONTINUE_KEY))
             if self._submit_cancel:
-                sb.append(SubmitInput(value = self._submit_cancel, name = '_cancel'))
+                sb.append(SubmitInput(value = self._submit_cancel,
+                                      name = forms.CANCEL_KEY))
         return sb
 
     def get_label_for_field(self, name):
@@ -661,7 +665,11 @@ Re-implement for custom arguments.'''
         This can be re-implemented by subclasses.
         By default returns all
         '''
-        return self.model.objects.all()
+        user = self.for_user(djp)
+        if user:
+            return self.mapper.filter(user = user)
+        else:
+            return self.mapper.all()
     
     def orderquery(self, qs):
         return qs

@@ -26,6 +26,10 @@ class djpcmsinfo(UnicodeMixin):
             return self.view(request, **self.kwargs)
     
     @property
+    def root(self):
+        return self.site.root
+    
+    @property
     def tree(self):
         return self.site.tree
     

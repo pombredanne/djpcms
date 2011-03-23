@@ -113,9 +113,9 @@ very similar to django forms API.
             value = self.get_default(bfield)
             if self.required and value is None:
                 raise ValidationError(self.validation_error(bfield,value))
-        return self._clean(value)
+        return self._clean(value, bfield)
     
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         return value
     
     def get_default(self, bfield):
@@ -145,7 +145,7 @@ class CharField(Field):
             raise ValueError('max_length must be positive')
         self._raise_error(kwargs)
         
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         try:
             return str(value)
         except:
@@ -159,7 +159,7 @@ class IntegerField(Field):
         self.validator = validator
         self._raise_error(kwargs)
         
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         try:
             value = int(value)
             if self.validator:
@@ -171,7 +171,7 @@ class IntegerField(Field):
 
 class FloatField(IntegerField):
     '''A field which normalises to a Python float value'''
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         try:
             value = float(value)
             if self.validator:
@@ -184,7 +184,7 @@ class FloatField(IntegerField):
 class DateField(Field):
     widget = TextInput
     
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         try:
             value = int(value)
             if self.validator:
@@ -196,7 +196,7 @@ class DateField(Field):
 
 class DateTimeField(DateField):
     
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         try:
             value = int(value)
             if self.validator:
@@ -230,7 +230,7 @@ Additiona attributes::
 
     A callable or an iterable over two-dimensional tuples.
     If a callable, it must accept a one parameter given by
-    the form instance and return an iterable over two dimensional tuples.
+    the bounded field instance and return an iterable over two dimensional tuples.
 '''
     widget = Select
     
@@ -245,29 +245,20 @@ Additiona attributes::
         self.inline = inline
         self._raise_error(kwargs)
         
-    def choices_and_model(self):
+    def choices_and_model(self, bfield):
         '''Return an tuple containing an
 iterable over choices and a model class (if applicable).'''
         ch = self.choices
         if hasattr(ch,'__call__'):
-            ch = ch(self)
+            ch = ch(bfield)
         model = self._model
         if not model and hasattr(ch,'model'):
             model = ch.model
         return ch,model
-            
-    def get_choices(self):
-        ch = self.choices
-        if hasattr(ch,'__call__'):
-            ch = ch()
-        if ch:
-            return dict(((to_string(k),v) for k,v in ch))
-        else:
-            return {}
                 
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         if value is not None:
-            ch,model = self.choices_and_model()
+            ch,model = self.choices_and_model(bfield)
             if model:
                 try:
                     mp = mapper(model)

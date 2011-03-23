@@ -6,6 +6,8 @@ from .forms import *
 __all__ = ['HtmlTemplateForm',
            'HtmlPageForm']
 
+PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
+
 HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 HtmlPageForm = forms.HtmlForm(
@@ -24,6 +26,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
                                             'view_permission'),
                           uniforms.Columns(('for_not_authenticated',),
                                            ('requires_login',),
-                                           default_style=uniforms.inlineLabels3)
+                                           default_style=uniforms.inlineLabels3),
+                          uniforms.Html(tag = 'div').addClass(PLUGIN_DATA_FORM_CLASS)
                            )
 )

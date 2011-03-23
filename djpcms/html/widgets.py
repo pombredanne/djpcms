@@ -100,7 +100,7 @@ class Select(FieldWidget):
         selected_choices = []
         if bfield:
             field = bfield.field
-            choices,model = field.choices_and_model()
+            choices,model = field.choices_and_model(bfield)
             if bfield.value:
                 selected_choices.append(bfield.value)
         else:

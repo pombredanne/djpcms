@@ -1,16 +1,15 @@
 import json
 
-from djpcms import sites, forms
+from djpcms import forms, html
 from djpcms.plugins import DJPplugin
 from djpcms.forms.utils import form_kwargs
 from djpcms.forms.layout import uniforms
-from djpcms.template import mark_safe
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.models import SiteContent
-from djpcms.utils import markups
+from djpcms.utils import markups, mark_safe
 
 
-def get_site_content():
+def get_site_content(form):
     if SiteContent:
         return SiteContent.objects.all()
     else:
@@ -25,10 +24,10 @@ class ChangeTextContent(forms.Form):
     '''
     Form for changing text content during inline editing
     '''
-    site_content = forms.ModelChoiceField(choices = get_site_content,
-                                          empty_label="New Content",
-                                          required = False,
-                                          widget = forms.Select(cn = sites.settings.HTML_CLASSES.ajax))
+    site_content = forms.ChoiceField(choices = get_site_content,
+                                     empty_label="New Content",
+                                     required = False,
+                                     widget = html.Select(cn = forms.AJAX))
     new_content  = forms.CharField(label = 'New content unique title',
                                    help_text = 'When creating a new content give a unique name you like',
                                    required = False)
@@ -45,7 +44,7 @@ class ChangeTextContent(forms.Form):
         if self.user.is_authenticated() and self.user.is_active:
             pass            
         
-    def clean_new_content(self):
+    def clean_new_content(self, sc):
         sc = self.cleaned_data['site_content']
         nc = self.cleaned_data['new_content']
         if not sc:

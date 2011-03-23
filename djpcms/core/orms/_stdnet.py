@@ -29,9 +29,6 @@ class OrmWrapper(BaseOrmWrapper):
         from stdnet.orm import StdNetType
         if not isinstance(self.model,StdNetType):
             raise ValueError
-            
-    def _hash(self):
-        return self.meta.hash
     
     def get_view_permission(self):
         return '%s_view' % self.meta.basekey()

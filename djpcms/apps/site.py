@@ -88,6 +88,7 @@ class ApplicationSites(SiteMixin, djpcms.UnicodeMixin):
     '''This class is used as a singletone and holds information
 of djpcms application routes as well as general configuration parameters.'''
     modelwrappers = OrderedDict()
+    model_from_hash = {}
     
     def __init__(self):
         self.clear()
@@ -106,7 +107,6 @@ of djpcms application routes as well as general configuration parameters.'''
         self.route = None
         self.tree = None
         self._commands = None
-        self.model_from_hash = {}
         self.User = None
         
     def __unicode__(self):

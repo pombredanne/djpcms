@@ -1,41 +1,18 @@
 from djpcms import forms, html
 from djpcms.template import loader
+from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
 from djpcms.utils import gen_unique_id
 
 
-def registered_models(form):
+def registered_models(bfield):
     '''Generator of model Choices'''
-    site = form.request.DJPCMS.info.site
+    form = bfield.form
+    site = form.request.DJPCMS.site
     for model,app in site._registry.items():
-        if isinstance(app,site.ModelApplication) and not app.hidden:
-            try:
-                ct = ContentType.objects.get_for_model(model)
-            except:
-                continue
-            ids.append(ct.id)
-    return ContentType.objects.filter(pk__in = ids)
-
-
-def app_model_from_ct(ct, url = None):
-    if ct:
-        site = get_site(url)
-        if not isinstance(ct,ContentType):
-            try:
-                ct = ContentType.objects.get(id = int(ct))
-            except:
-                if site.settings.DEBUG:
-                    return 'Content type %s not available' % ct, False
-                else:
-                    return '', False
-        model = ct.model_class()
-        appmodel = site.for_model(model)
-        if appmodel:
-            return appmodel, True
-        else:
-            return '', False
-    else:
-        return '', False
+        if not app.hidden:
+            id = mapper(model).hash
+            yield id,str(model._meta)
     
     
 class SearchForm(forms.Form):
@@ -48,18 +25,16 @@ class SearchForm(forms.Form):
                                                 title = 'Enter your search text'))
 
 class ForModelForm(forms.Form):
-    for_model   = forms.ChoiceField(choices = registered_models,
-                                    empty_label=None)
+    for_model   = forms.ChoiceField(choices = registered_models)
     
-    def clean_for_model(self):
-        site = get_site()
-        ct = self.cleaned_data['for_model']
-        model = ct.model_class()
-        appmodel = site.for_model(model)
-        if appmodel:
-            return ct
-        else:
-            raise forms.ValidationError('Model %s has no application installed' % ct)
+    def clean_for_model(self, mhash):
+        try:
+            info = self.request.DJPCMS
+            model = info.root.model_from_hash[mhash]
+            appmodel = info.site.for_model(model)
+            return appmodel
+        except:
+            raise forms.ValidationError('Model has no application installed')
 
 
 class LatestItemForm(ForModelForm):
@@ -100,13 +75,11 @@ class SearchBox(DJPplugin):
                for_model = None, method = 'get',
                title = None, **kwargs):
         if for_model:
-            site = get_site()
-            try:
-                ct = ContentType.objects.get(id = int(for_model))
-            except:
+            site = djp.site
+            if for_model in site.root.model_from_hash:
+                model = site.root.model_from_hash[for_model]
+            else:
                 raise ValueError('Content type %s not available' % for_model)
-            model = ct.model_class()
-            request  = djp.request
             appmodel = site.for_model(model)
             if appmodel:
                 search_url = appmodel.searchurl(request)
@@ -127,6 +100,8 @@ class SearchBox(DJPplugin):
                                                      'title': title or 'Enter your search term',
                                                      'url':   search_url,
                                                      'method':method})
+            else:
+                raise ValueError('Model {0} has no application associated with it.'.format(model._meta))
         else:
             raise ValueError('Content type not available')
 

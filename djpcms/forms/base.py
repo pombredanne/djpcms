@@ -280,18 +280,19 @@ This class method can be useful when using forms outside web applications.'''
             
             if is_bound:
                 if key in rawdata:
-                    value = field_value = rawdata[key]
+                    rawvalue = field_value = rawdata[key]
                 else:
-                    value = nodata
+                    rawvalue = nodata
                 try:
-                    value = bfield.clean(value)
+                    value = bfield.clean(rawvalue)
                     func_name = 'clean_' + name
                     if hasattr(self,func_name):
                         value = getattr(self,func_name)(value)
                     cleaned[name] = value
                 except ValidationError as e:
                     form_message(errors, name, force_str(e))
-                data[name] = value
+                if rawvalue is not nodata:
+                    data[name] = rawvalue
             
             elif name in initial:
                 data[name] = field_value = initial[name]

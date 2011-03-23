@@ -180,20 +180,20 @@ This is the function plugins need to implement.
         else:
             return json.dumps({})
     
-    def get_form(self, djp, args = None, withdata = True):
-        '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when in editing mode.
-Usually, there is no need to override this function. If your plugin needs input parameters when editing, simple set the
-:attr:`form` attribute.
-        '''
-        if self.form:
+    def get_form(self, djp, args = None, **kwargs):
+        '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when
+in editing mode. Usually, there is no need to override this function.
+If your plugin needs input parameters when editing, simple set the
+:attr:`form` attribute.'''
+        form_class = self.form
+        if form_class:
+            if isinstance(form_class,forms.FormType):
+                form_class = forms.HtmlForm(form_class)
             initial = self.arguments(args) or None
-            return self.form(**form_kwargs(request = djp.request,
-                                           initial = initial,
-                                           withdata = withdata,
-                                           own_view = djp.own_view()))
-            
-    #def response(self, request, *bits):
-    #    raise http.Http404
+            form =  form_class(**form_kwargs(request = djp.request,
+                                             initial = initial,
+                                             own_view = djp.own_view()))
+            return form_class.widget(form, **kwargs)
     
     def _register(self):
         global _plugin_dictionary

@@ -32,7 +32,6 @@ wrap existing object relational mappers.
         self.appmodel = None
         self.test()
         self.setup()
-        self.hash = self._hash()
         sites.model_from_hash[self.hash] = model
         
     def setup(self):

@@ -629,7 +629,7 @@
 				else {
 					var opts = {
 							'url':     url,
-							type:      'post',
+							type:      'get',
 							success:   callback,
 							submitkey: config.post_view_key,
 							dataType: "json"

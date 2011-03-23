@@ -7,6 +7,11 @@ import django
 from .base import BaseOrmWrapper
 
 
+def django_hash(model):
+    sha = hashlib.sha1('django({0})'.format(model._meta))
+    return sha.hexdigest()[:8]
+
+
 class OrmWrapper(BaseOrmWrapper):
     orm = 'django'
     
@@ -19,6 +24,7 @@ class OrmWrapper(BaseOrmWrapper):
         self.meta = meta = self.model._meta
         self.module_name = meta.module_name
         self.app_label   = meta.app_label
+        self.hash = django_hash(self.model)
         #
         self.objects = self.model.objects
         self.get = self.objects.get
@@ -29,10 +35,6 @@ class OrmWrapper(BaseOrmWrapper):
         #Calculate the Hash id of metaclass `meta`
         self.model_to_dict = model_to_dict
         self._label_for_field = lambda name: to_string(label_for_field(name, self.model, self.model_admin))
-        
-    def _hash(self):
-        sha = hashlib.sha1('django({0})'.format(self.meta))
-        return sha.hexdigest()
         
     def test(self):
         from django.db.models.base import ModelBase

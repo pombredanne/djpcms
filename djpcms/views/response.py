@@ -3,6 +3,7 @@ import traceback
 from copy import copy
 
 import djpcms
+from djpcms import forms
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
@@ -264,10 +265,14 @@ the parent of the embedded view.'''
             # AJAX RESPONSE
             try:
                 if method not in (m.lower() for m in view.methods(request)):
-                    raise ViewDoesNotExist('{0} method not available'.format(method))
-                res = getattr(view,'ajax_%s_response' % method)(self)
-            except ViewDoesNotExist as e:
-                res = jservererror(str(e), url = request.path)
+                    raise ViewDoesNotExist('AJAX "{0}" method not available in view.'.format(method))
+                data = request.data_dict
+                ajax_key = forms.get_submit_key(data,self.css.post_view_key)
+                ajax_view_function = getattr(view,'ajax_%s_response' % method)
+                if ajax_key:
+                    ajax_view = 'ajax__' + ajax_key
+                    ajax_view_function = getattr(view,ajax_view,ajax_view_function)
+                res = ajax_view_function(self)
             except Exception as e:
                 res = handle_ajax_error(self,e)
             try:

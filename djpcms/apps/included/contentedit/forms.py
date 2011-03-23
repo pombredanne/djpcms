@@ -52,7 +52,7 @@ class PluginChoice(forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         super(PluginChoice,self).__init__(*args, **kwargs)
     
-    def _clean(self, value):
+    def _clean(self, value, bfield):
         '''Overried default value to return a Content Type object
         '''
         value = get_plugin(value) 

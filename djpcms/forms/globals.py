@@ -14,7 +14,8 @@ __all__ = ['FormException',
            'SAVE_AND_CONTINUE_KEY',
            'SAVE_AS_NEW_KEY',
            'PREFIX_KEY',
-           'REFERER_KEY']
+           'REFERER_KEY',
+           'AJAX']
 
 
 # some useful hidden keys
@@ -24,6 +25,9 @@ SAVE_AND_CONTINUE_KEY = '_save_and_continue'
 SAVE_AS_NEW_KEY = '_save_as_new'
 PREFIX_KEY = '__prefixed__'
 REFERER_KEY = '__referer__'
+
+# some AJAX classes
+AJAX = 'ajax'
 
 
 class FormException(DjpcmsException):
@@ -35,7 +39,7 @@ class ValidationError(Exception):
 
 
 def generate_prefix():
-    return str(uuid4())
+    return str(uuid4())[:8]
 
 
 class NoData(object):

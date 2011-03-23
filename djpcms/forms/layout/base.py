@@ -143,7 +143,7 @@ Render a single bound field using a layout.
 
 class Html(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to `self`.'''
-    def __init__(self, html, renderer = None, **kwargs):
+    def __init__(self, html = '', renderer = None, **kwargs):
         super(Html,self).__init__(**kwargs)
         self.html = html
 

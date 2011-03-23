@@ -4,7 +4,7 @@ from py2py3 import range
 
 import djpcms
 from djpcms import UnicodeMixin, forms
-from djpcms.utils.ajax import jservererror, jredirect
+from djpcms.utils.ajax import jredirect
 from djpcms.html import Media
 from djpcms.template import loader
 from djpcms.utils import parentpath
@@ -143,9 +143,6 @@ class djpcmsview(RendererMixin):
         
         context['inner'] = inner
         return context
-    
-    def ajax_get_response(self, djp):
-        return jservererror('AJAX GET RESPONSE NOT AVAILABLE', url = djp.url)
 
     def get_response(self, djp):
         '''Get response handler.'''
@@ -156,27 +153,18 @@ class djpcmsview(RendererMixin):
         '''Get response handler.'''
         raise NotImplementedError('Post response not implemented')
     
+    def ajax_get_response(self, djp):
+        raise NotImplementedError('AJAX GET RESPONSE NOT AVAILABLE')
+    
     def ajax_post_response(self, djp):
         request = djp.request
         data = request.data_dict
         ajax_key = forms.get_submit_key(data,djp.css.post_view_key)
-        if ajax_key:
-            ajax_key = ajax_key.replace('-','_').lower()
-            if ajax_key == forms.CANCEL_KEY:
-                next = data.get(forms.REFERER_KEY,None)
-                next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
-                return jredirect(next)
-            
-        ajax_view_function = None
-        if ajax_key:
-            ajax_view = 'ajax__%s' % ajax_key
-            ajax_view_function  = getattr(self,str(ajax_view),None)
-        
-        # No post view function found. Let's try the default ajax post view
-        if not ajax_view_function:
-            ajax_view_function = self.default_post;
-    
-        return ajax_view_function(djp)
+        if ajax_key == forms.CANCEL_KEY:
+            next = data.get(forms.REFERER_KEY,None)
+            next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
+            return jredirect(next)
+        return self.default_post(djp)
     
     def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''

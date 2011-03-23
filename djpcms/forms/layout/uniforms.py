@@ -24,9 +24,6 @@ There are three types of layout:
 
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
-from djpcms.template import loader
-from djpcms.utils.ajax import jhtmls
-
 from .base import FormLayout, FormLayoutElement, Html
 
 
@@ -117,38 +114,10 @@ class Columns(UniFormElement):
         return context    
 
 class Layout(FormLayout):
-    '''Main class for defining the layout of a uniform.
-'''
-    template = "djpcms/uniforms/uniform.html"
+    '''Main class for defining the layout of a uniform.'''
+    template = "djpcms/form-layouts/uniform.html"
+    field_template = "djpcms/form-layouts/field.html"
     default_style  = 'inlineLabels'
     form_class = 'uniForm'
-    
-    def __init__(self, *fields, **kwargs):
-        super(Layout,self).__init__(**kwargs)
-        self.add(*fields)
-    def render(self, djp, form, inputs):
-        '''Render the uniform layout of *form*.
-This function is called by an instance of
-:class:`djpcms.forms.html.FormWidget`'''
-        ctx  = {'layout':self}
-        html = ''
-        template = self.template
-        for field in self._allfields:
-            h = field.render(djp, form, self)
-            if field.key and template:
-                ctx[field.key] = h
-            else:
-                html += h
-        
-        missing_fields = self.get_missing_fields(form)        
-        if missing_fields:
-            fset  = Fieldset(*missing_fields).addClass(self.default_style)
-            html += fset.render(djp,form,self)
-               
-        ctx['has_inputs'] = len(inputs)
-        ctx['inputs'] = (input.render(djp) for input in inputs)
-        ctx['form']   = loader.mark_safe(html)
-        ctx['messages'] = ''
-        
-        return loader.render(template, ctx)
-        
+    default_element = Fieldset
+    

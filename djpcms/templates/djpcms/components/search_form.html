@@ -1,0 +1,5 @@
+{% if csrf_token %}{{ csrf_token }}{% endif %}
+<div class="cx-search-bar">{% for input in inputs %}
+{{ input }}{% endfor %}
+{{ form }}
+</div>

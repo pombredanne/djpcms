@@ -1,4 +1,5 @@
 from djpcms import test, forms
+from djpcms.plugins.apps import HtmlSearchForm
 from djpcms.apps.included.contentedit.forms import PageForm
 from .forms import SimpleForm
 
@@ -17,8 +18,8 @@ class TestSimpleForm(test.TestCase):
                           prefix = prefix)
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.data['name'],'pinco')
-        self.assertTrue(form.data['age'])
+        self.assertEqual(form.cleaned_data['name'],'pinco')
+        self.assertTrue(form.cleaned_data['age'])
         
     def testSimpleHtml(self):
         hf = forms.HtmlForm(SimpleForm)
@@ -44,4 +45,16 @@ class TestSimpleForm(test.TestCase):
         initial = p.initial
         self.assertEqual(initial['in_navigation'],1)
         self.assertEqual(d,initial)
+        
+    def testSearchForm(self):
+        '''Test the search form in :mod:`djpcms.plugins.apps`'''
+        self.assertTrue(len(HtmlSearchForm.inputs),1)
+        s = HtmlSearchForm.inputs[0].render()
+        self.assertTrue('<input ' in s)
+        self.assertTrue(s.startswith('<div class="cx-submit">'))
+        form = HtmlSearchForm()
+        self.assertFalse(form.is_bound)
+        widget = HtmlSearchForm.widget(form)
+        html = widget.render()
+        self.assertTrue(html)
         

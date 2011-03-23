@@ -62,7 +62,7 @@ class PluginChoice(forms.ChoiceField):
 
     
 class ContentBlockForm(forms.Form):
-    url = forms.CharField(widget=forms.HiddenInput, required = False)
+    url = forms.HiddenField(required = False)
     title = forms.CharField(required = False)
     plugin_name = PluginChoice(label = 'Plugin',
                                choices = plugingenerator)

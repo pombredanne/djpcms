@@ -2,7 +2,7 @@
 
 Several parts are originally from django
 '''
-from copy import deepcopy
+from copy import deepcopy, copy
 import json
 
 from py2py3 import iteritems
@@ -13,7 +13,7 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
-from djpcms.html import media_property, List
+from djpcms.html import media_property, List, SubmitInput
 
 from .globals import *
 from .fields import Field
@@ -361,14 +361,44 @@ class HtmlForm(object):
     '''The :class:`Form` class is designed to be used for validation purposes and therefore it needs this
 wrapper class for web rendering on web pages.
     
-:parameter form_class: a :class:`Form` class
-:parameter layout: a :class:`djpcms.forms.layout.Layout` instance or ``None``.
+:parameter form_class: A form class setting the :attr:`form_class` attribute.
+:parameter layout: An optional layout instance which sets the :attr:`layout` attribute.
+                   Default ``None``.
+                   
+Simple usage::
+
+    MyHtmlForm = HtmlForm(MyFormClass) 
+
+
+.. attribute:: form_class
+
+    A class derived from :class:`djpcms.forms.Form` which declares
+    a set of :class:`djpcms.forms.Fields`.
+    
+.. attribute:: layout
+
+    An instance of :class:`djpcms.forms.layout.FormLayout` used to render the :attr:`form_class`.
+    
+.. attribute:: inputs
+
+    An iterable of form inputs.
+    
+    Default:: ``[]``
 '''
-    def __init__(self, form_class, layout = None, model = None, submits = None):
+    def __init__(self, form_class,
+                 layout = None,
+                 model = None,
+                 inputs = None):
         self.form_class = form_class
         self._layout = layout
         self.model = model
-        self.submits = submits
+        self.inputs = []
+        if inputs:
+            for input in inputs:
+                if not hasattr(input,'render'):
+                    input = SubmitInput(value = input[0],
+                                        name = input[1])
+                self.inputs.append(input)
         
     def __get_layout(self):
         layout = self._layout
@@ -380,21 +410,58 @@ wrapper class for web rendering on web pages.
     layout = property(__get_layout,__set_layout)
         
     def __call__(self, model = None, **kwargs):
+        '''Create a :attr:`form_class` instance with
+input paramaters ``kwargs``.'''
         return self.form_class(model=model or self.model,**kwargs)
     
+    @property
+    def default_inputs(self):
+        return copy(self.inputs)
+    
     def widget(self, form, **kwargs):
-        '''Create a rendable form widget'''
-        return FormWidget(form, layout = self.layout, **kwargs)
+        '''Create :class:`djpcms.forms.FormWidget`
+ready to be rendered.
+
+:parameter form: Instance of :attr:`form_class` obtained from the :meth:`__call__`
+                 method.
+:parameter parameters: parameters to be passed to the :class:`djpcms.forms.FormWidget`
+                       constructor.
+'''
+        return FormWidget(form,
+                          layout = self.layout,
+                          **kwargs)
     
         
 class BoundField(object):
-    "A Wrapper containg a form, field and data"
+    '''A Wrapper containg a :class:`djpcms.forms.Form` instance,
+a :class:`djpcms.forms.Field` instance which belongs to the form,
+and field bound data.
+Instances of BoundField are created during form validation
+and shouldn't be used otherwise. It is an utility class.
+
+.. attribute:: form
+
+    An instance of :class:`djpcms.forms.Form`
+    
+.. attribute::    field
+
+    An instance of :class:`djpcms.forms.Field`
+    
+.. attribute::    name
+
+    The :attr:`field` name (the key in the forms's fields dictionary).
+    
+.. attribute::    html_name
+
+    The :attr:`field` name to be used in HTML.
+'''
     def __init__(self, form, field, name, html_name = None):
         self.form = form
         self.field = field.copy(self)
         self.name = name
         self.html_name = html_name or name
         self.value = None
+        self.title = None
         if field.label is None:
             self.label = nicename(name)
         else:
@@ -404,12 +471,14 @@ class BoundField(object):
         self.errors_id = self.id + '-errors'
         
     def clean(self, value):
+        '''return a cleaned value for ``value`` by running the validation
+algorithm on :attr:`field`.'''
         self.value = self.field.clean(value, self)
         return self.value
 
     def _data(self):
-        """
-        Returns the data for this BoundField, or None if it wasn't given.
+        """Returns the data for this BoundField,
+or None if it wasn't given.
         """
         return self.field.widget.value_from_datadict(self.form.data, self.form.files, self.html_name)
     data = property(_data)

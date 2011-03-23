@@ -33,6 +33,7 @@
     cursor: pointer;
     height: 28px;
     width: 30px;
+    color: transparent;
 }
 {{ tag }} .idlefield {
 	color: #adadad;

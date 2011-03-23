@@ -6,79 +6,64 @@ Full list of settings
 
 .. module:: djpcms.settings
 
-A Django settings file doesn't have to define any ``djpcms`` settings if it doesn't need
-to. Each setting has a sensible default value. These defaults live in the
-:file:`djpcms/conf/djpcms_defaults.py` module.
+Djpcms does not have a global settings variable by design decision.
+However, when you create a web-application you can specify (if you like)
+certain settings attributes.
+These attributes can be specified in a flat python file, or by passing key-value
+pairs to the application constructor.
 
-Here's a full list of all available settings, in alphabetical order, and their
-default values.
+Each setting has a sensible default value. These defaults live in the
+:mod:`djpcms.conf.djpcms_defaults` module.
+This section displays and discuss the full list of all available settings,
+in alphabetical order, and their default values.
 
 
-.. setting:: APPLICATION_URL_MODULE
+.. setting:: APPLICATION_URLS
 
-APPLICATION_URL_MODULE
+APPLICATION_URLS
 ---------------------------------
 default: ``None``
 
-The python dotted path to the application urls module.
-This module is where applications can be registered to the site.
-If not provided, no dynamic application will be available.
+An iterable, a function or a dotted python path to an iterable or a function.
+If a function (or a dotted path to a function), it must return an iterable
+over :class:`djpcms.views.Application` instances.
+If not provided, no dynamic applications will be available.
 
 See: :ref:`topics-applications-index`
 
+.. settings: CMS_ORM
 
-.. setting:: CONTENT_INLINE_EDITING
+CMS_ORM
+------------
+Default: ``None``
 
-CONTENT_INLINE_EDITING
--------------------------
+Object Relational mapper to be used for ``djpcms`` content and page models.
+Possible choices are:
 
-default::
+ * stdnet_ for in memory redis based models.
+ * django_ for traditional relational database based models.
 
-	{
-	'available': True,
-	'preurl': 'edit-content',
-	'pagecontent': '/site-content/',
-	'width': 600,
-	'height': 400
-	}
+If not specified, pages and pages block cannot be modified at runtime.
 
-Dictionary of information for `inline content editing`.
+.. settings: DEBUG
 
-* ``preurl`` is the prefix to add to a page url in editing mode.
-* ``pagecontent`` defines the base url for editing page contents. It must contain trailing slashes.
-* ``width`` and ``height`` are the size of the floating dialog used for editing plugin content.
+DEBUG
+---------
 
-.. hint:: Check out the :ref:`inline editing <inline-editing>` documentation for more information.
+default: ``False``
+
+A flag for anabling debug information.
+
 
 .. setting:: DEFAULT_TEMPLATE_NAME
 
 DEFAULT_TEMPLATE_NAME
 ---------------------------
 
-default: ``['base.html','djpcms/base.html']``
+default: ``('base.html','djpcms/base.html')``
 
 A list of template files or a string.
 Used when no :attr:`djpcms.models.Page.template` is specified.
-
-
-
-.. setting:: DJPCMS_MARKUP_MODULE
-
-DJPCMS_MARKUP_MODULE
--------------------------
-
-default: ``'djpcms.utils.markups'``
-
-Python dotted path to the markup module. This module exposes four functions:
-
-* ``choices()`` return a iterable over two-element tuple.
-* ``get(name)`` return the handle for rendering with markup *name*.
-* ``add(handle)`` add a new markup handle.
-* ``default()`` return the default markup handle.
-
-.. seealso::
-
-	This setting is used in the :class:`djpcms.plugins.text.Text` plugin.
 
 
 .. setting:: DJPCMS_PLUGINS
@@ -86,7 +71,9 @@ Python dotted path to the markup module. This module exposes four functions:
 DJPCMS_PLUGINS
 ----------------------
 
-Default: ``['djpcms.plugins.*]``
+Default::
+
+    ['djpcms.plugins.*]
 
 A list of python dotted paths to where plugins are defined.
 
@@ -147,15 +134,19 @@ javascript decorators or simple css styling.
 See: :ref:`topics-javascript-index`
 
 
-.. setting:: SERVE_STATIC_FILES
+.. settings:: INSTALLED_APPS
 
-SERVE_STATIC_FILES
-----------------------
+INSTALLED_APPS
+-------------------
 
-Default: ``True``
+Default::
 
-Whether static files are served by the server running the Django
-site (and therefore included in the urls) or not. It should be set to ``True`` only during development.
+    ["djpcms"]
+
+A list of installed applications.
+Applications are python dotted path to modules
+which provides tamplates, object relational mapper models
+and static files.
 
 
 .. SETTING:: SITE_NAVIGATION_LEVELS
@@ -169,14 +160,25 @@ Number of nested levels in the main site navigation. This setting is used by the
 main site navigation which can be found in the context dictionary at key ``sitenav``.
 To include the site navigation in your page add::
 
-	{{ sitenav.render }}
+	{{ sitenav }}
 	
-somewhere in your template file.
+somewhere in your template file.	
 
-.. seealso::
+.. settings:: TEMPLATE_CONTEXT_PROCESSORS
 
-	Check out the ``djpcms/bits/navitem.html`` template which renders the navigation.
-	
+TEMPLATE_CONTEXT_PROCESSORS
+---------------------------------
+
+Default:: 
+
+    ("djpcms.core.context_processors.djpcms",
+     "djpcms.core.context_processors.messages")
+            
+A tuple of callables that are used to populate the context when
+a request object is passed to the template library.
+These callables take a request object as their argument and return
+a dictionary of items to be merged into the context.
+
 
 .. SETTING:: TEMPLATE_ENGINE
 	
@@ -187,8 +189,10 @@ Default: ``django``
 
 The template engine to use when rendering pages. Available
 
-* ``django``
+* django_
 * jinja2_
 
 
 .. _jinja2: http://jinja.pocoo.org/
+.. _stdnet: http://lsbardel.github.com/python-stdnet/
+.. _django: http://www.djangoproject.com/

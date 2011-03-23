@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from djpcms import sites, nodata
+from djpcms import sites, nodata, UnicodeMixin
 from djpcms.html import icons, nicerepr
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
@@ -10,7 +10,7 @@ __all__ = ['BaseOrmWrapper',
            'nicerepr']
 
 
-class BaseOrmWrapper(object):
+class BaseOrmWrapper(UnicodeMixin):
     '''Base class for classes used to
 wrap existing object relational mappers.
 
@@ -44,9 +44,8 @@ wrap existing object relational mappers.
     def clear(cls):
         pass
     
-    def __repr__(self):
+    def __unicode__(self):
         return str(self.model)
-    __str__ = __repr__
     
     def _hash(self):
         raise NotImplementedError
@@ -136,6 +135,17 @@ wrap existing object relational mappers.
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError
+    
+    def search_text(self, qs, search_string, slist):
+        '''\
+Perform a full text search on the model.
+
+:parameter qs: initial query where the search is applied.
+:parameter search_string: a string to search.
+:parameter slist: a list of fields to search.
+
+Return an iterable over items'''
+        raise NotImplementedError('Cannot perform text search. Not implemented')
 
     @classmethod
     def setup_environment(cls,sites_):

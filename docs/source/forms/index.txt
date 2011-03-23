@@ -1,14 +1,12 @@
 .. _djpcms-forms:
 
-.. module:: djpcms.forms
-
 =====================
 Forms and Layouts
 =====================
 
-Forms are crucial not only for browser driven application, but also for
-rpc, command line, driven applications.
-This is way djpcms has its own from library::
+.. automodule:: djpcms.forms
+
+::
 
     from djpcms import forms
     
@@ -18,7 +16,7 @@ This is way djpcms has its own from library::
                                       required= False)
         labels = forms.CharField(required=False)
         
-        
+                
 **Contents**
 
 .. toctree::

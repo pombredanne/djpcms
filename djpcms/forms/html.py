@@ -8,9 +8,9 @@ from djpcms.html import BaseMedia, HtmlWidget
 from djpcms.html.widgets import *
 
 
-
 class FormWidget(HtmlWidget):
-    '''Form HTML widget'''
+    '''A :class:`djpcms.html.HtmlWidget` used to display
+forms using the :mod:`djpcms.forms.layout` API.'''
     tag = 'form'
     attributes = merge_dict(HtmlWidget.attributes, {
                                                     'method':'post',
@@ -24,16 +24,16 @@ class FormWidget(HtmlWidget):
         self.inputs = inputs if inputs is not None else []
         self.addClass(self.layout.form_class)
         
-    def inner(self, djp = None):
+    def inner(self, djp = None, **kwargs):
         return self.layout.render(djp,
                                   self.form,
-                                  self.inputs)
+                                  self.inputs,
+                                  **kwargs)
         
     def is_valid(self):
-        '''Proxy for self.forms.is_valid'''
+        '''Proxy for :attr:`forms` ``is_valid`` method.
+See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         return self.form.is_valid()
-    
-    def add(self, elem):
-        '''Add extra element to the form widget'''
-        pass
+
+
     

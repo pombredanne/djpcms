@@ -29,13 +29,14 @@ utility methods for dealing with users and uaser data.'''
     home = views.SearchView()
     login = LoginView(template_name = 'login.html',
                       inherit_page = False,
-                      form = HtmlForm(LoginForm, submits = (('Sign in','login_user'),)))
+                      form = HtmlForm(LoginForm,
+                                      inputs = (('Sign in','login_user'),)))
     logout = LogoutView()
     add = views.AddView(regex = 'create',
                         isplugin = True,
                         in_navigation = 0,
                         form = HtmlForm(RegisterForm,
-                        submits = (('Create','create_user'),)),
+                        inputs = (('Create','create_user'),)),
                         force_redirect = True)
     
     

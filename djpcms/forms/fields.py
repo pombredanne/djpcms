@@ -1,8 +1,10 @@
 from copy import copy, deepcopy
 
 from djpcms import sites, nodata, to_string
+from djpcms.utils import escape
 from djpcms.core.orms import mapper
-from djpcms.html import TextInput, CheckboxInput, Select
+from djpcms.html import TextInput, CheckboxInput, Select,\
+                        HiddenInput
 
 from .globals import *
 
@@ -16,7 +18,8 @@ __all__ = ['Field',
            'IntegerField',
            'FloatField',
            'EmailField',
-           'FileField']
+           'FileField',
+           'HiddenField']
 
 
 def standard_validation_error(field,value):
@@ -85,7 +88,7 @@ very similar to django forms API.
         self.initial = initial
         self.required = required if required is not None else self.required
         self.validation_error = validation_error or standard_validation_error
-        self.help_text = help_text
+        self.help_text = escape(help_text)
         self.label = label
         self.widget = widget or self.widget
         self.widget_attrs = widget_attrs
@@ -280,3 +283,7 @@ class EmailField(CharField):
 
 class FileField(CharField):
     pass
+
+
+def HiddenField(**kwargs):
+    return CharField(widget=HiddenInput, **kwargs)

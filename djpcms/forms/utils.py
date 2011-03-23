@@ -131,13 +131,9 @@ def get_form(djp,
     data = request.data_dict
     prefix = data.get(PREFIX_KEY,None)
     save_as_new = SAVE_AS_NEW_KEY in data
-    submits = form_factory.submits
-    if submits:
-        inputs = [forms.SubmitInput(value = val, name = nam) for val,nam in submits]
-    elif addinputs:
+    inputs = form_factory.default_inputs
+    if not inputs and addinputs:
         inputs = addinputs(instance, own_view)
-    else:
-        inputs = []
         
     if not prefix and force_prefix:
         prefix = generate_prefix()

@@ -8,7 +8,7 @@ from djpcms.utils.text import nicename
 from djpcms.html import icons
 
 from .nicerepr import nicerepr
-from .widgets import Select, CheckboxInput
+from .widgets import CheckboxInput, SelectWithAction
 
 from .utils import LazyRender
 
@@ -28,8 +28,8 @@ spvval = '<span class="value">'
 
 
 def table_checkbox(val):
-    chk = CheckboxInput(value = val, name = 'action-item').render()
     if val:
+        chk = CheckboxInput(name = 'action-item').render()
         val = divchk+chk+spvval+val+SPANEND+DIVEND
     return mark_safe(val)
         
@@ -103,8 +103,7 @@ def table_toolbox(appmodel, djp, headers):
             choices.append((name,description))
     toolbox = {}
     if len(choices) > 1:
-        s = Select(choices = choices, cn = 'ajax actions').addAttr('href',action_url)
-        toolbox['actions'] = s.render(djp)
+        toolbox['actions'] = SelectWithAction(choices, action_url)
         toolbox['cols'] = len(headers)
     if addurl:
         toolbox['links'] = [icons.circle_plus(addurl,'add')]

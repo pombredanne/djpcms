@@ -1,3 +1,19 @@
+'''\
+A collection of classes and Mixins for rendering HTML widgets.
+Used throughout the library including the :mod:`djpcms.forms`
+module.
+
+A simple usage::
+
+    >>> from djpcms import html
+    >>> text = html.TextInput(name = 'plugin', value='Random', cn='plg')
+    >>> text.flatatt()
+    ' type="text" name="plugin" value="Random" class="plg"'
+    >>> text.render()
+    '<input type="text" name="plugin" value="Random" class="plg"/>'
+    >>> text.addClass('foo').render()
+    '<input type="text" name="plugin" value="Random" class="plg foo"/>'
+'''
 from py2py3 import to_string
 
 from .utils import *
@@ -21,6 +37,6 @@ class HtmlWrap(HtmlWidget):
         
     def inner(self, *args, **kwargs):
         if hasattr(self._inner,'render'):
-            self._inner.render(*args, **kwargs)
+            return self._inner.render(*args, **kwargs)
         else:
-            to_string(self._inner)
+            return to_string(self._inner)

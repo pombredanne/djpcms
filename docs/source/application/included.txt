@@ -109,7 +109,7 @@ and tag autocomplete is done.
 
 .. _included-docapplication:
 
-.. module:: djpcms.views.apps.docs
+.. module:: djpcms.apps.included.docs
 
 Sphinx Documentation
 ========================================
@@ -138,4 +138,13 @@ cut and past the entire ``docs`` directory in :file:`djpcms/templates/djpcms`.
    :members:
    :member-order: bysource
    
-   
+
+.. _included-contentedit:
+
+Inline Content Editing
+==============================
+
+.. automodule:: djpcms.apps.included.contentedit
+
+
+

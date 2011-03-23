@@ -10,7 +10,8 @@ __all__ = ['TextInput',
            'CheckboxInput',
            'TextArea',
            'Select',
-           'List']
+           'List',
+           'SelectWithAction']
 
 
 class FieldWidget(HtmlWidget):
@@ -24,6 +25,8 @@ class FieldWidget(HtmlWidget):
             attrs = self.attrs
             attrs['id'] = bfield.id
             attrs['name'] = bfield.html_name
+            if bfield.title:
+                attrs['title'] = bfield.title
             value = self.get_value(bfield.value)
             if value:
                 attrs['value'] = value
@@ -131,3 +134,7 @@ class List(HtmlWidget,list):
         return '\n'.join((LI + elem + LIEND for elem in self))
     
     
+def SelectWithAction(choices, action_url, **kwargs):
+    a = HtmlWidget('a', cn = 'djph select-action').addAttr('href',action_url)
+    s = Select(choices = choices, **kwargs).addClass('ajax actions')
+    return a.render()+s.render()

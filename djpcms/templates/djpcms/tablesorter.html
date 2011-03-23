@@ -3,8 +3,8 @@
 {% block header_class %} ui-widget-header{% endblock %}
 {% block pagination_body %}{% if toolbox %}
 <div class="toolbox ui-widget-header">{% if toolbox.actions %}
-<span class="selectors">
- Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
+ <span class="selectors">
+  Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
  </span>
  {{ toolbox.actions }}{% endif %}{% if toolbox.links %}
 <span class="links">{% for link in toolbox.links %} 

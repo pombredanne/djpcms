@@ -7,14 +7,12 @@ DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
 APPLICATION_URLS = None
-LANGUAGE_REDIRECT               = False
-HTML_CLASSES                    = None
-MAX_SEARCH_DISPLAY              = 20
-CACHE_VIEW_OBJECTS              = True
+HTML_CLASSES = None
+MAX_SEARCH_DISPLAY = 20
+CACHE_VIEW_OBJECTS = True
 DJPCMS_IMAGE_UPLOAD_FUNCTION    = None
-DJPCMS_EMPTY_VALUE              = '(None)'
+DJPCMS_EMPTY_VALUE = '(None)'
 
-SITE_ID = 1
 MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",

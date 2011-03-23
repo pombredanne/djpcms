@@ -6,9 +6,6 @@
 Forms
 =======
 
-.. automodule:: djpcms.forms
-
-
 API
 =======
 
@@ -20,11 +17,26 @@ Form
    :member-order: bysource
 
 
-
 HtmlForm
 ~~~~~~~~~~~~~~
 
 .. autoclass:: djpcms.forms.HtmlForm
    :members:
    :member-order: bysource
-   
+
+
+BoundField
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.BoundField
+   :members:
+   :member-order: bysource
+
+
+FormWidget
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.FormWidget
+   :members:
+   :member-order: bysource
+      

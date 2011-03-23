@@ -180,7 +180,7 @@ This is the function plugins need to implement.
         else:
             return json.dumps({})
     
-    def get_form(self, djp, args = None, **kwargs):
+    def get_form(self, djp, args = None, prefix = None, **kwargs):
         '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when
 in editing mode. Usually, there is no need to override this function.
 If your plugin needs input parameters when editing, simple set the
@@ -192,7 +192,8 @@ If your plugin needs input parameters when editing, simple set the
             initial = self.arguments(args) or None
             form =  form_class(**form_kwargs(request = djp.request,
                                              initial = initial,
-                                             own_view = djp.own_view()))
+                                             own_view = djp.own_view(),
+                                             prefix = prefix))
             return form_class.widget(form, **kwargs)
     
     def _register(self):

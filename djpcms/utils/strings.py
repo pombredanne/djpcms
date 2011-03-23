@@ -74,6 +74,8 @@ def escape(html):
     """
     Returns the given HTML with ampersands, quotes and angle brackets encoded.
     """
+    if hasattr(html,'__html__'):
+        return html
     if html:
         return force_str(html).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
     else:

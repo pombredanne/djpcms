@@ -1,0 +1,25 @@
+.. _djpcms-html:
+
+=================
+HTML tools
+=================
+
+.. automodule:: djpcms.html
+   :members:
+   :member-order: bysource
+   
+   
+HtmlAttrMixin
+===================
+
+.. autoclass:: djpcms.html.HtmlAttrMixin
+   :members:
+   :member-order: bysource
+   
+   
+HtmlWidget
+=============
+
+.. autoclass:: djpcms.html.HtmlWidget
+   :members:
+   :member-order: bysource

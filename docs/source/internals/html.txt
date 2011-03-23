@@ -1,9 +1,0 @@
-.. _djpcms-html:
-
-=================
-HTML tools
-=================
-
-.. automodule:: djpcms.html
-   :members:
-   :member-order: bysource

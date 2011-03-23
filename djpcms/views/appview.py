@@ -9,7 +9,6 @@ from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
-from djpcms.utils import construct_search, isexact
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
@@ -431,20 +430,11 @@ It returns a queryset.
         '''
         qs = super(SearchView,self).appquery(djp)
         request = djp.request
-        slist = self.appmodel.search_fields
+        appmodel = self.appmodel
+        slist = appmodel.search_fields
         search_string = request.data_dict.get(self.search_text,None)
         if slist and search_string:
-            bits  = smart_split(search_string)
-            #bits  = search_string.split(' ')
-            for bit in bits:
-                bit = isexact(bit)
-                if not bit:
-                    continue
-                or_queries = [Q(**{construct_search(field_name): bit}) for field_name in slist]
-                other_qs   = QuerySet(self.appmodel.modelsearch())
-                other_qs.dup_select_related(qs)
-                other_qs   = other_qs.filter(reduce(operator.or_, or_queries))
-                qs         = qs & other_qs    
+            qs = appmodel.mapper.search_text(qs, search_string, slist)    
         return qs
     
     def render(self, djp):

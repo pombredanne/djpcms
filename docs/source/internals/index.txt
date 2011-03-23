@@ -10,7 +10,6 @@ Internals
    response
    core
    navigation
-   html
    sitemap
    internals
    exceptions

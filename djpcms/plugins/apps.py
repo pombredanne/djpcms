@@ -1,8 +1,8 @@
 from djpcms import forms, html
+from djpcms.forms.layout import DivFormElement, FormLayout, nolabel
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
-from djpcms.utils import gen_unique_id
 
 
 def registered_models(bfield):
@@ -15,15 +15,6 @@ def registered_models(bfield):
             yield id,str(model._meta)
     
     
-class SearchForm(forms.Form):
-    '''
-    A simple search form used by plugins.apps.SearchBox.
-    The search_text name will be used by SearchViews to handle text search
-    '''
-    q = forms.CharField(required = False,
-                        widget = html.TextInput(cn = 'classy-search autocomplete-off',
-                                                title = 'Enter your search text'))
-
 class ForModelForm(forms.Form):
     for_model   = forms.ChoiceField(choices = registered_models)
     
@@ -49,7 +40,7 @@ class FormModelForm(ForModelForm):
 
 
 class SearchModelForm(FormModelForm):
-    title  = forms.CharField(required = False, max_length = 50)
+    tooltip  = forms.CharField(required = False, max_length = 50)
 
 
 class FilterModelForm(FormModelForm):
@@ -61,6 +52,33 @@ class ModelLinksForm(forms.Form):
     layout = forms.ChoiceField(choices = (('horizontal','horizontal'),('vertical','vertical')))
     exclude = forms.CharField(max_length=600,required=False)
     
+
+
+#
+#___________________________________________ A CLASSY SEARCH FORM
+class SearchForm(forms.Form):
+    '''
+    A simple search form used by plugins.apps.SearchBox.
+    The search_text name will be used by SearchViews to handle text search
+    '''
+    q = forms.CharField(required = False,
+                        widget = html.TextInput(cn = 'classy-search autocomplete-off',
+                                                title = 'Enter your search text'))
+
+SearchSubmit = html.HtmlWrap(tag = 'div', cn='cx-submit',
+                             inner = html.SubmitInput(cn='cx-search-btn '+forms.NOBUTTON,
+                                                      title = 'Search').render())
+HtmlSearchForm = forms.HtmlForm(
+        SearchForm,
+        inputs = [SearchSubmit],
+        layout = FormLayout(
+                    DivFormElement('q',
+                                   default_style = nolabel,
+                                   cn = 'cx-input'),
+                    template = ('search_form.html',
+                                'djpcms/components/search_form.html')
+            )
+)
 #
 #______________________________________________ PLUGINS
 
@@ -69,13 +87,17 @@ class SearchBox(DJPplugin):
     '''
     name = 'search-box'
     description = 'Search a Model' 
+    template_name = ('search_form.html',
+                     'djpcms/components/search_form.html')
     form = SearchModelForm
     
     def render(self, djp, wrapper, prefix,
                for_model = None, method = 'get',
-               title = None, **kwargs):
+               tooltip = None, ajax = False,
+               **kwargs):
         if for_model:
             site = djp.site
+            request = djp.request
             if for_model in site.root.model_from_hash:
                 model = site.root.model_from_hash[for_model]
             else:
@@ -85,21 +107,16 @@ class SearchBox(DJPplugin):
                 search_url = appmodel.searchurl(request)
                 if search_url:
                     data = request.GET if method == 'get' else request.POST
-                    #prefix = data.get("_prefixed",None)
-                    #if not prefix:
-                    #    prefix = gen_unique_id()
-                    prefix = None
-                    f = SearchForm(data = data, prefix = prefix)
-                    if title:
-                        f.fields['q'].widget.attrs['title'] = title
-                    return loader.render_to_string(['search_form.html',
-                                                    'bits/search_form.html',
-                                                    'djpcms/bits/search_form.html'],
-                                                    {'html':  f,
-                                                     'prefix': prefix,
-                                                     'title': title or 'Enter your search term',
-                                                     'url':   search_url,
-                                                     'method':method})
+                    f = HtmlSearchForm(data = data or None)
+                    if tooltip:
+                        f.dfields['q'].title = tooltip
+                    w =  HtmlSearchForm.widget(f,
+                                               inputs = HtmlSearchForm.default_inputs, 
+                                               action = search_url,
+                                               method = method)
+                    if ajax:
+                        w.addClass(forms.AJAX)
+                    return w.render()
             else:
                 raise ValueError('Model {0} has no application associated with it.'.format(model._meta))
         else:

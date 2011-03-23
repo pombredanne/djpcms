@@ -15,7 +15,8 @@ __all__ = ['FormException',
            'SAVE_AS_NEW_KEY',
            'PREFIX_KEY',
            'REFERER_KEY',
-           'AJAX']
+           'AJAX',
+           'NOBUTTON']
 
 
 # some useful hidden keys
@@ -26,8 +27,9 @@ SAVE_AS_NEW_KEY = '_save_as_new'
 PREFIX_KEY = '__prefixed__'
 REFERER_KEY = '__referer__'
 
-# some AJAX classes
+# some AJAX and CSS classes for inputs and forms
 AJAX = 'ajax'
+NOBUTTON = 'nobutton'
 
 
 class FormException(DjpcmsException):

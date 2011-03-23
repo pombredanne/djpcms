@@ -24,6 +24,6 @@ djpcms.MakeSite(__file__,
 
 if __name__ == '__main__':
     '''To run type python helloworld.py serve'''
-    djpcms.execute()
+    djpcms.execute(djpcms.sites)
 
     

@@ -1,10 +1,3 @@
-'''
-Application for handling inline editing of blocks
-The application derives from the base appsite.ModelApplication
-and defines several ajax enabled sub-views 
-'''
-from py2py3 import range
-
 from djpcms import forms
 from djpcms.forms import FormType, HtmlForm, SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
@@ -19,10 +12,8 @@ from djpcms import views
 
 from .layout import ContentBlockHtmlForm, PLUGIN_DATA_FORM_CLASS
 
-dummy_wrap = lambda d,b,x : x
 
-
-edit_class = 'edit-block'
+edit_class = 'edit-block ui-state-active'
 movable_class = 'movable'
 edit_movable = edit_class + ' ' + movable_class
 
@@ -33,6 +24,8 @@ class EditWrapperHandler(CollapsedWrapper):
     '''Wrapper for editing content
     '''
     auto_register = False
+    header_classes = CollapsedWrapper.header_classes + ' ui-state-active'
+    
     def __init__(self, url):
         self.url = url
         
@@ -40,7 +33,10 @@ class EditWrapperHandler(CollapsedWrapper):
         return self.wrap(djp, cblock, html)
     
     def title(self, cblock):
-        return 'Content Editor'
+        if cblock.plugin:
+            return cblock.plugin.description
+        else:
+            return 'Content Editor'
     
     def id(self, cblock):
         return 'edit-{0}'.format(cblock.htmlid())
@@ -56,11 +52,9 @@ class EditWrapperHandler(CollapsedWrapper):
         return djp.view.get_preview(djp.request, djp.instance, self.url)
              
         
-# Application view for handling change in content block internal plugin
-# It handles two different Ajax interaction with the browser 
+
 class ChangeContentView(views.ChangeView):
     '''View class for managing inline editing of a content block.
-    The url is given by the ContentBlocks models
     '''    
     def get_preview(self, request, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
@@ -116,7 +110,7 @@ for editing plugin contents.'''
                 args = instance.arguments
             pform = plugin.get_form(djp, args, prefix = prefix)
             if pform:
-                # Remove the tag
+                # Remove the tag since this form is injected in the block form.
                 pform.tag = None
                 purl = djp.view.appmodel.pluginurl(djp.request, instance)
                 return (pform,purl)

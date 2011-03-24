@@ -37,6 +37,13 @@ CssTheme('box',
                  'background':'#aaa'
                  })
 
+CssTheme('flatbox',
+         theme_name,
+         data = {
+            'background':'#ffffff',
+            'border':'1px solid #4297d7'
+                 })
+
 
 CssTheme('tablesorter',
          theme_name,

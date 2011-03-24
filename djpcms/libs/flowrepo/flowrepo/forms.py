@@ -84,22 +84,23 @@ class FlowFormRelated(FlowForm):
         return instance
     
 
-class ReportForm(FlowFormRelated):
+class ReportForm(forms.Form):
     '''The Report Form'''
     title = forms.CharField()
     abstract = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
     body  = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
     slug  = forms.CharField(required = False)
+    timestamp = forms.DateTimeField(required = False)
         
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance',None)
-        if instance:
-            obj = instance.object
-            initial = kwargs.get('initial',None) or {}
-            initial['title'] = getattr(obj,'name',instance.name)
-            initial['abstract'] = getattr(obj,'description',instance.description)
-            initial['body'] = getattr(obj,'body','')
-            kwargs['initial'] = initial
+        #instance = kwargs.get('instance',None)
+        #if instance:
+        #    obj = instance.object
+        #    initial = kwargs.get('initial',None) or {}
+        #    initial['title'] = getattr(obj,'name',instance.name)
+        #    initial['abstract'] = getattr(obj,'description',instance.description)
+        #    initial['body'] = getattr(obj,'body','')
+        #    kwargs['initial'] = initial
         super(ReportForm,self).__init__(*args,**kwargs)
         
     def savemodel(self, obj):

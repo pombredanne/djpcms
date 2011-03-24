@@ -1,5 +1,5 @@
 {% if hd %}
- <div class="hd ui-widget-header">
+ <div class="hd {{ header_classes }}">
   <h2>{% if title %}{{ title }}{% endif %}</h2>{% if menulist %}
   <div class="edit-menu">{% for menu in menulist %}
    {{ menu }}{% endfor %}

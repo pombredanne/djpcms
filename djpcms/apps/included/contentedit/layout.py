@@ -27,6 +27,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
                           uniforms.Columns(('for_not_authenticated',),
                                            ('requires_login',),
                                            default_style=uniforms.inlineLabels3),
+                          # Add an Html element with key so that we can inject extra form data
                           uniforms.Html(key = 'plugin', tag = 'div').addClass(PLUGIN_DATA_FORM_CLASS)
-                           )
+                )
 )

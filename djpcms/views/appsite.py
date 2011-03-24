@@ -382,7 +382,9 @@ Return ``None`` if the view is not available.'''
         # Check the Form Class
         form_class = form_class or self.form
         if not form_class:
-            raise ValueError("Form class not defined in {0}".format(self))
+            raise ValueError('Form class not defined for view "{0}" in application "{1}" @ "{2}".\
+ Make sure to pass a class form to the view or application constructor.'\
+                    .format(djp.view,self.__class__.__name__,self))
         elif isinstance(form_class,forms.FormType):
             form_class = forms.HtmlForm(form_class)
         

@@ -3,14 +3,17 @@ from .base import HtmlWidget
 
 class BoxWidget(HtmlWidget):
     tag = 'div'
-    template = ('box.html','content/box.html','djpcms/content/box.html')
+    template = ('box.html','djpcms/components/box.html')
+    header_classes = 'ui-widget-header'
     
-    def __init__(self, hd = None, bd = None, ft = None, **kwargs):
+    def __init__(self, hd = None, bd = None, ft = None, header_classes = None, **kwargs):
         self.menulist = []
+        self.header_classes = header_classes or self.header_classes
         self._ctx = {'title': None if not hd else hd,
                      'hd': True,
                      'bd': None if not bd else bd,
                      'ft': None if not ft else ft,
+                     'header_classes':self.header_classes,
                      'menulist': self.menulist}
         super(BoxWidget,self).__init__(**kwargs)
         

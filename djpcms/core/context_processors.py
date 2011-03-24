@@ -18,9 +18,12 @@ class PageLink(UnicodeMixin):
         self.app = request.DJPCMS.root.for_model(Page)
         if self.app:
             cdjp = self.cdjp = info.djp(request)
+            epage = cdjp.instance
             self.isediting = cdjp is not None and \
-                             isinstance(cdjp.instance,Page) and \
+                             isinstance(epage,Page) and \
                              isinstance(cdjp.view,views.ChangeView)
+            if self.isediting:
+                self.page = epage
         else:
             self.cdjp = None
             self.isediting = False
@@ -95,7 +98,6 @@ def djpcms(request):
     ctx = {'pagelink':plink,
            'base_template': base_template,
            'css':settings.HTML_CLASSES,
-           'grid': get_grid960(page),
            'htmldoc': htmldoc(None if not page else page.doctype),
            'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
@@ -108,12 +110,16 @@ def djpcms(request):
     
     if not plink.isediting:
         userapp = site.for_model(site.User)
+        grid = get_grid960(page)
         if userapp:
             ctx.update({
                         'login_url': userapp.appviewurl(request,'login'),
                         'logout_url': userapp.appviewurl(request,'logout'),
                         'user_url': userapp.userhomeurl(request)
                         })
+    else:
+        grid = get_grid960(plink.page)
+    ctx['grid'] = grid
     return ctx
 
 

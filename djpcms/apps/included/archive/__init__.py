@@ -8,22 +8,33 @@ import copy
 from djpcms.template import loader
 from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
 from djpcms.utils import force_str
-from djpcms.apps.included.archive import views 
+from djpcms.apps.included.archive.views import * 
 
-__all__ = ['ArchiveApplication']
+__all__ = ['ArchiveApplication',
+           'ArchiveView',
+           'YearArchiveView',
+           'MonthArchiveView',
+           'DayArchiveView']
 
 
-class ArchiveApplication(views.ModelApplication):
-    '''
-    An application urls wich define a search and archive views
-    '''
+class ArchiveApplication(ModelApplication):
+    '''\
+A :class:`djpcms.views.ModelApplication` wich defines archive views
+based on a date field.
+It needs to specify a new attribute either in the constructor or as
+class attribute:
+
+.. attribute:: date_code
+
+    Name of field used to create archives
+'''
     date_code     = None
     '''The model field name which is used to create time archives. Must be a date or datetime field.'''
     split_days    = False
-    search        = views.ArchiveView()
-    year_archive  = views.YearArchiveView(regex = '(?P<year>\d{4})')
-    month_archive = views.MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
-    day_archive   = views.DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
+    search        = ArchiveView()
+    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})')
+    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
+    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
     
     def __init__(self, *args, **kwargs):
         self.date_code = kwargs.pop('date_code',self.date_code)

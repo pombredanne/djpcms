@@ -180,8 +180,9 @@ browser based application as well as remote procedure calls validation.
 Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
 This class method can be useful when using forms outside web applications.'''
         for name,field in iteritems(cls.base_fields):
-            if field.initial is not None:
-                yield name,field.initial
+            initial = field.get_initial(self)
+            if initial is not None: 
+                yield name,initial
         
     @property
     def data(self):
@@ -225,17 +226,18 @@ This class method can be useful when using forms outside web applications.'''
     
     def _fill_initial(self):
         # Fill the initial dictionary with data from fields and from the instance if available
-        initial = self.initial
+        initials = self.initial
         instance = self.instance
         for name,field in iteritems(self.base_fields):
-            if name in initial:
+            if name in initials:
                 continue
-            if field.initial is not None:
-                initial[name] = field.initial
+            initial = field.get_initial(self)
+            if initial is not None:
+                initials[name] = initial
             if self.instance:
                 value = getattr(instance,name,None)
                 if value:
-                    initial[name] = value
+                    initials[name] = value
         
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:

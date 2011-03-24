@@ -25,6 +25,7 @@ TEMPLATE_ENGINE = 'jinja2' # django, jinja2
 MEDIA_URL = '/media/'
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
+DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
 
 # django settings
 ROOT_URLCONF                    = 'djpcms.apps.djangosite.defaults.urls' # default value for django

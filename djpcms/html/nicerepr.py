@@ -20,7 +20,7 @@ def nicerepr(val,
              datetime_format = DEFAULT_DATETIME_FORMAT):
     '''Prettify a value to be displayed in html'''
     if val is None:
-        return empty_value
+        return NONE_VALUE
     elif isinstance(val,datetime):
         time = val.time()
         if not time:

@@ -7,7 +7,6 @@ def get_version():
 
 # This list is updated by the views.appsite.appsite handler
 empty_choice = ('','-----------------')
-siteapp_choices = [empty_choice]
 
 
 __version__   = get_version()
@@ -47,7 +46,7 @@ def install_libs():
     dlibs = os.path.join(DJPCMS_DIR,'libs')
     install_lib(dlibs, 'py2py3', 'py2py3')
     install_lib(dlibs, 'medplate', 'medplate')
-    install_lib(dlibs, 'django-tagging', 'tagging')
+    #install_lib(dlibs, 'django-tagging', 'tagging')
     install_lib(dlibs, 'flowrepo', 'flowrepo')
     #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
 

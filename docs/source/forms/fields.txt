@@ -20,6 +20,13 @@ Field
    :members:
    :member-order: bysource
    
+
+CharField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.CharField
+   :members:
+   :member-order: bysource   
    
    
 ChoiceField

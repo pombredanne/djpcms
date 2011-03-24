@@ -14,7 +14,9 @@ class LogoutView(views.ModelView):
     _methods = ('get',)
     
     def __init__(self, regex = 'logout', parent = None):
-        super(LogoutView,self).__init__(regex = regex, parent = parent, isapp = False, insitemap = False)
+        super(LogoutView,self).__init__(regex = regex,
+                                        parent = parent,
+                                        insitemap = False)
         
     def preprocess(self, djp):
         request = djp.request
@@ -33,9 +35,11 @@ class LoginView(views.ModelView):
     '''
     default_title = 'Sign in'
     template_name = 'login.html'
-    def __init__(self, regex = 'login', insitemap = False, isplugin = True, **kwargs):
+    def __init__(self,
+                 regex = 'login',
+                 isplugin = True,
+                 **kwargs):
         super(LoginView,self).__init__(regex = regex,
-                                       insitemap = insitemap,
                                        isplugin = isplugin,
                                        force_redirect = True,
                                        **kwargs)

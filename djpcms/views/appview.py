@@ -65,28 +65,84 @@ so that they can be rendered in any page of your site.
 
 All parameters are optionals and usually a small subset of them needs to be used.
 
-:keyword parent: A string indicating the closest parent application view.
-                 If not supplied, ``djpcms`` will calculate it
-                 during validation of the applications during startup. It is used to
-                 assign a value to the :attr:`parent` attribute. Default ``None``.
-:keyword regex: Regular expression string indicating the view relative url.
-                This is the url which the view add to its parent url. Default ``None``.
-:keyword isapp: If ``True`` the view will be treated as an application view and therefore added to the list
-                of applications which can be associated with a :class:`djpcms.models.Page` object.
-                Its value is assigned to the :attr:`isapp` attribute. Default ``False``.
-:keyword isplugin: If ``True`` the view can be rendered as :class:`djpcms.plugins.ApplicationPlugin`.
-                  Its value is assigned to the :attr:`isplugin` attribute. Default ``False``.
-:keyword form: Form class or ``None``. If supplied it will be assigned to the :attr:`_form` attribute.
-               It is a form which can be used for interaction. Default ``None``.
-:keyword methods: Tuple used to specify the response method allowed ('get', 'post', put') ro ``None``.
-                  If specified it replaces the :attr:`_methods` attribute.
-                  Default ``None``.
-:keyword view_template: Template file used to render the view. Default ``None``.
-                        If specified it replaces the :attr:`view_template` attribute.
-:keyword renderer: A one parameters functions which can be used to replace the
-                   default :meth:`render` method. Default ``None``. The function
-                   must return a safe string ready for rendering on a HTML page.
-:keyword force_redirect: check :attr:`force_redirect` attribute for details. Default ``None``.
+:keyword parent:
+
+    A string indicating the closest parent application view.
+    If not supplied, ``djpcms`` will calculate it
+    during validation of the applications during startup. It is used to
+    assign a value to the :attr:`parent` attribute.
+    
+    Default ``None``.
+    
+:keyword regex:
+
+    Regular expression string indicating the view relative url.
+    This is the part of the url which the view add to its parent
+    view path. For more information check the :func:`djpcms.views.View.route`
+    function and :attr:`djpcms.views.View.path` attribute.
+    
+    Default ``None``.
+    
+:keyword insitemap:
+
+    If True the view is included in site-map.
+    
+    Default ``True``.
+    
+:keyword isplugin:
+
+    If ``True`` the view can be placed in any page via the plugin API.
+    (Check :class:`djpcms.plugins.ApplicationPlugin` for more info).
+    Its value is assigned to the :attr:`isplugin` attribute.
+    
+    Default ``False``.
+    
+:keyword description:
+
+    Useful description of the view in few words
+    (no more than 20~30 characters). Used only when the
+    :attr:`djpcms.views.View.isplugin` flag is set to ``True``.
+    In this case its value is used when
+    displaying menus of available plugins. If not defined it is
+    calculated from the attribute name of the view
+    in the :class:`djpcms.views.Application` where it is declared.
+
+    Default ``None``.
+
+:keyword form:
+
+    Form class or ``None``. If supplied it will be assigned to
+    the :attr:`_form` attribute.
+    It is a form which can be used for interaction.
+    
+    Default ``None``.
+    
+:keyword methods:
+
+    Tuple used to specify the response method allowed ('get', 'post', put') ro ``None``.
+    If specified it replaces the :attr:`_methods` attribute.
+    
+    Default ``None``.
+    
+:keyword view_template:
+
+    Template file used to render the view. Default ``None``.
+    If specified it replaces the :attr:`view_template` attribute.
+    
+:keyword renderer:
+
+    A one parameters functions which can be used to replace the
+    default :meth:`render` method. Default ``None``. The function
+    must return a safe string ready for rendering on a HTML page.
+    
+    Default: ``None``.
+    
+:keyword force_redirect:
+
+    Check :attr:`force_redirect` attribute for details.
+    
+    Default ``None``.
+    
 :keyword permission: A three parameters function which can be used to
                      replace the default :meth:`_has_permission` method.
                      Default ``None``. The function
@@ -97,23 +153,31 @@ All parameters are optionals and usually a small subset of them needs to be used
                          
                      where ``self`` is an instance of the view, ``request`` is the HTTP request instance and
                      ``obj`` is an instance of model or ``None``.
-:keyword headers: List of string to display as table header when the
-                  view display a table. Default ``None``.
+:keyword headers:
 
-:keyword force_redirect: Boolean used to force redirect after form submission.
-                         Check :attr:`force_redirect` for more information. Default: ``False``.
-:keyword redirect_to_view: String indicating a redirection to another view within
-                           the same application. Check :attr:`redirect_to_view`
-                           for more information. Default: ``None``.
+    List of string to display as table header when the
+    view display a table.
     
-    
-Usage::
+    Default ``None``.
 
-    from djpcms.views import appview, appsite
+:keyword redirect_to_view:
+
+    String indicating a redirection to another view within
+    the same application. Check :attr:`redirect_to_view`
+    for more information.
     
-    class MyApplication(appsite.ApplicationBase):
-        home = appview.View(renderer = lambda s, djp : 'Hello world')
-        test = appview.View(regex = 'testview', renderer = lambda s, djp : 'Another view')
+    Default: ``None``.
+    
+    
+This is a trivial example of an application exposing two very simple
+views::
+
+    from djpcms import views
+    
+    class MyApplication(views.Application):
+        home = views.View(renderer = lambda djp : 'Hello world')
+        test = views.View(regex = 'testview',
+                          renderer = lambda djp : 'Another view')
     
 .. attribute:: appmodel
 
@@ -199,11 +263,11 @@ Usage::
     _form_ajax     = None
     
     def __init__(self,
-                 parent        = None,
-                 regex         = None,
-                 insitemap     = True,
-                 isapp         = False,
-                 isplugin      = False,
+                 parent = None,
+                 regex = None,
+                 insitemap = True,
+                 isplugin = False,
+                 description = None,
                  methods       = None,
                  plugin_form   = None,
                  renderer      = None,
@@ -212,7 +276,6 @@ Usage::
                  in_navigation = 0,
                  template_name = None,
                  view_template = None,
-                 description    = None,
                  force_redirect = None,
                  form           = None,
                  form_ajax     = None,
@@ -226,7 +289,6 @@ Usage::
         self.name        = None
         self.description = description
         self.parent    = parent
-        self.isapp     = isapp
         self.isplugin  = isplugin
         self.in_nav    = int(in_navigation)
         self.appmodel  = None
@@ -530,10 +592,9 @@ class DeleteView(ObjectView):
     default_title = 'delete {0[instance]}'
     _methods      = ('post',)
     
-    def __init__(self, regex = 'delete', parent = 'view', isapp = False, **kwargs):
+    def __init__(self, regex = 'delete', parent = 'view', **kwargs):
         super(DeleteView,self).__init__(regex = regex,
                                         parent = parent,
-                                        isapp = isapp,
                                         **kwargs)
         
     def _has_permission(self, request, obj):
@@ -574,12 +635,21 @@ class ChangeView(ObjectView):
         return saveform(djp, True, force_redirect = self.force_redirect)
     
 
-class AutocompleteView(SearchView):
-    '''This is an interesting :class:View` class.
-It is an **AJAX Get only** view for :ref:`auto-complete <autocomplete>` functionalities.
-To use it, add it to a :class:`djpcms.views.appsite.ModelApplication` declaration.
+class AutocompleteView(ModelView):
+    '''A AJAX view for handling
+:ref:`auto-complete <autocomplete>` functionalities.
+To use it, add it to a :class:`djpcms.views.ModelApplication` declaration.
 
-Let's say you have a model::
+It specifies an extra attribute
+
+.. attribute:: display
+
+    The model field or function which display the object.
+    If not specified it uses the ``__str__`` method.
+    
+    Default ``None``.
+
+For example, let's say you have a model::
 
     from django.db import models
     
@@ -587,42 +657,32 @@ Let's say you have a model::
         name = models.CharField(max_length = 60)
         description = models.TextField()
     
-And we would like to have an auto-complete view which displays the ``name`` field and search for both
-``name`` and ``description`` fields::
+And we would like to have an auto-complete view which displays the ``name``
+field and search for both ``name`` and ``description`` fields::
 
     from djpcms.views.appsite import ModelApplication
     
     class MyModelApp(ModelApplication):
         search_fields = ['name','description']
-        complete = AutocompleteView(display = 'name')
+        autocomplete = AutocompleteView(display = 'name')
         
     appsite.site.register('/mymodelurl/', MyModelApp, model = MyModel)
     
-The last bit of information is to use a different ``ModelChoiceField`` and ``ModelMultipleChoiceField`` in
-your forms. Rather than doing::
-
-    from django.forms import ModelChoiceField, ModelMultipleChoiceField
-    
-do::
-    
-    from djpcms.forms import ModelChoiceField, ModelMultipleChoiceField
-    
-and if your model has an AutocompleteView installed, it will work out of the box.
+The last bit of information is to use the :class:`djpcms.forms.ChoiceField`
+field in forms and if your model has an AutocompleteView installed,
+it will work out of the box.
 '''
     _methods = ('get',)
     
-    def __init__(self, regex = 'autocomplete', display = 'name', **kwargs):
+    def __init__(self, regex = 'autocomplete', display = None, **kwargs):
         self.display = display
         super(AutocompleteView,self).__init__(regex = regex, **kwargs)
         
     def processurlbits(self, appmodel):
+        '''Override so that the view is registered with the autocomplete dictionary.'''
         super(AutocompleteView,self).processurlbits(appmodel)
         autocomplete.register(self.appmodel.model,self)
     
-    def get_url(self, *args, **kwargs):
-        purl = self.regex.get_url()
-        return '%s%s' % (self.baseurl,purl)
-        
     def get_response(self, djp):
         '''This response works only if it is an AJAX response. Otherwise it raises a ``Http404`` exception.'''
         request = djp.request

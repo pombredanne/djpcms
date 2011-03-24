@@ -32,7 +32,6 @@ class ApplicationSite(SiteMixin, RouteMixin):
         self._request_middleware = None
         self._response_middleware = None
         self._template_context_processors = None
-        #self.ModelApplication = ModelApplication
         handler = handler or WSGI
         self.handle = handler(self)
         
@@ -161,7 +160,7 @@ If the ``model`` does not have an application it return ``None``.'''
         self._registry.clear()
             
     def for_model(self, model):
-        '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for model *model*.
+        '''Obtain a :class:`djpcms.views.ModelApplication` for model *model*.
 If the application is not available, it returns ``None``. Never fails.'''
         #Allow for OrmWrapper
         if not model:
@@ -173,6 +172,25 @@ If the application is not available, it returns ``None``. Never fails.'''
         except:
             return None
             
+    def for_hash(self, model_hash, safe = True):
+        '''Obtain a :class:`djpcms.views.ModelApplication` for model
+ model hash id. If the application is not available, it returns ``None``
+ unless ``safe`` is set to ``False`` in which case it throw a
+ :class:`djpcms.core.exceptions.ApplicationNotAvailable`.'''
+        if model_hash in self.root.model_from_hash:
+            model = self.root.model_from_hash[model_hash]
+        else:
+            if safe:
+                return None
+            else:
+                raise ValueError('Model type %s not available' % model_hash)
+        appmodel = self.for_model(model)
+        if not appmodel:
+            if not safe:
+                raise ApplicationNotAvailable('Model {0} has\
+ not application registered'.format(mapper(model)))
+        return appmodel
+    
     def getapp(self, appname):
         '''Given a *appname* in the form of appname-appview
 returns the application handler. If the appname is not available, it raises a KeyError'''

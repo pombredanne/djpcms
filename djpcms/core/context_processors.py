@@ -81,8 +81,8 @@ class PageLink(UnicodeMixin):
                                   title = 'Exit page editing',button=False)
     
 
-def get_grid960(page):
-    float_layout = 0 if not page else page.layout
+def get_grid960(page, settings):
+    float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
     return grid960(fixed = not float_layout)
 
 
@@ -110,7 +110,7 @@ def djpcms(request):
     
     if not plink.isediting:
         userapp = site.for_model(site.User)
-        grid = get_grid960(page)
+        grid = get_grid960(page,settings)
         if userapp:
             ctx.update({
                         'login_url': userapp.appviewurl(request,'login'),
@@ -118,7 +118,7 @@ def djpcms(request):
                         'user_url': userapp.userhomeurl(request)
                         })
     else:
-        grid = get_grid960(plink.page)
+        grid = get_grid960(plink.page,settings)
     ctx['grid'] = grid
     return ctx
 

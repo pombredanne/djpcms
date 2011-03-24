@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 
 from djpcms import sites, nodata, to_string
-from djpcms.utils import escape
+from djpcms.utils import escape, slugify
 from djpcms.core.orms import mapper
 from djpcms.html import TextInput, CheckboxInput, Select,\
                         HiddenInput
@@ -19,7 +19,8 @@ __all__ = ['Field',
            'FloatField',
            'EmailField',
            'FileField',
-           'HiddenField']
+           'HiddenField',
+           'CurrencyField']
 
 
 def standard_validation_error(field,value):
@@ -47,8 +48,10 @@ very similar to django forms API.
     
 .. attribute:: initial
 
-    Initial value for field. If Provided, the field will display the value when rendering
-    the form without bound data.
+    Initial value for field. If Provided, the field will display
+    the value when rendering the form without bound data.
+    It can be a callable which receive a :class:`djpcms.forms.Form`
+    instance as argument.
     
     Default: ``None``.
     
@@ -121,6 +124,18 @@ very similar to django forms API.
     def _clean(self, value, bfield):
         return value
     
+    def get_initial(self, form):
+        '''\
+Get the initial value of field if available.
+
+:parameter form: an instance of the :class:`djpcms.forms.Form` class
+                 where the ``self`` is declared.
+        '''
+        initial = self.initial
+        if hasattr(initial,'__call__'):
+            initial = initial(form)
+        return initial
+        
     def get_default(self, bfield):
         default = self.default
         if hasattr(default,'__call__'):
@@ -137,22 +152,70 @@ very similar to django forms API.
     
 
 class CharField(Field):
+    '''\
+A text :class:`djpcms.forms.Field` which introduces three
+optional parameter (attribute):
+
+.. attribute:: max_length
+
+    If provided, the text length will be validated accordingly.
+    
+    Default ``None``.
+    
+.. attribute:: char_transform
+
+    One of ``None``, ``u`` for upper and ``l`` for lower. If provided
+    converts text to upper or lower.
+    
+    Default ``None``.
+    
+.. attribute:: toslug
+
+    If provided it will be used to create a slug text which can be used
+    as URI without the need to escape.
+    For example, if ``toslug`` is set to "_", than::
+    
+        bla foo; bee
+
+    becomes::
+    
+        bla_foo_bee
+    
+    Default ``None``
+'''
     default = ''
     widget = TextInput
     
-    def _handle_params(self, max_length = 30, **kwargs):
+    def _handle_params(self, max_length = 30, char_transform = None,
+                       toslug = None, **kwargs):
         if not max_length:
             raise ValueError('max_length must be provided for {0}'.format(self.__class__.__name__))
         self.max_length = int(max_length)
         if self.max_length <= 0:
             raise ValueError('max_length must be positive')
+        self.char_transform = char_transform
+        if toslug:
+            if toslug == True:
+                toslug = '-'
+            toslug = slugify(toslug)
+        self.toslug = toslug
         self._raise_error(kwargs)
         
     def _clean(self, value, bfield):
         try:
-            return str(value)
+            value = to_string(value)
         except:
             raise ValidationError
+        if self.toslug:
+            value = slugify(value, self.toslug)
+        if self.char_transform:
+            if self.char_transform == 'u':
+                value = value.upper()
+            else:
+                value = value.lower()
+        if self.required and not value:
+            raise ValidationError(self.validation_error(bfield,value))
+        return value
 
 
 class IntegerField(Field):
@@ -287,3 +350,11 @@ class FileField(CharField):
 
 def HiddenField(**kwargs):
     return CharField(widget=HiddenInput, **kwargs)
+
+
+class CurrencyField(FloatField):
+    widget = TextInput(cn = 'currency-field')
+    
+    def clean(self, value, bfield):
+        value = value.replace(',','')
+        return super(CurrencyField,self).clean(value,bfield)

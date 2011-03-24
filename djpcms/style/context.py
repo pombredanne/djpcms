@@ -2,6 +2,10 @@ from medplate import CssContext
 
 from .elements import *
 
+# SOME DEFAULTS
+BOX_HEADER_PADDING = '6px 12px'
+BOX_BODY_PADDING = '5px 5px'
+
 #________________________________________ ANCHOR
 CssContext('anchor',
            tag = 'a',
@@ -75,6 +79,10 @@ CssContext('uniformHint',
            tag = '.formHint',
            parent = 'uniform',
            data = {'display':'none'}
+           )
+CssContext('label',
+           tag = ' label',
+           parent = 'uniform'
            )
 
 #________________________________________ SUBMITS AND BUTTONS
@@ -150,20 +158,20 @@ CssContext('hd',
            parent = box,
            tag='div.hd',
            template='djpcms/style/box/header.css_t',
-           data={'padding':'6px 12px',
-                 'text_transform':'uppercase',
+           data={'padding':BOX_HEADER_PADDING,
+                 #'text_transform':'uppercase',
                  'title_size':'110%',
                  'font_weight':'normal',
                  'overflow':'hidden'}),
 CssContext('bd',
            parent = box,
            tag='div.bd',
-           data={'padding':'5px 5px',
+           data={'padding':BOX_BODY_PADDING,
                  'border':'none'}),
 CssContext('ft',
            parent = box,
            tag='div.ft',
-           data={'padding':'5px 5px',
+           data={'padding':BOX_BODY_PADDING,
                  'overflow':'hidden',
                  'border':'none'})
 
@@ -189,7 +197,6 @@ CssContext('bodyedit',
            tag = 'body.admin',
            template='djpcms/style/editing.css_t',
            data = {
-                   'background': '#f5f5f5',
                    'placeholder_border': '2px dashed #666'
                    }
            )
@@ -223,11 +230,11 @@ CssContext('flatbox',
                                template='djpcms/style/box/header.css_t',
                                data={'font_weight': 'bold',
                                      'title_size':'110%',
-                                     'padding':'5px 5px',
+                                     'padding':BOX_HEADER_PADDING,
                                      'overflow':'hidden'}),
                     CssContext('bd',
                                tag='div.bd',
-                               data={'padding':0})
+                               data={'padding':BOX_BODY_PADDING})
                     ]
            )
 
@@ -246,8 +253,11 @@ CssContext('table',
 #________________________________________ SEARCH BOX
 CssContext('search',
            tag='div.cx-search-bar',
-           template='djpcms/style/search-box.css_t'
-           )
+           template='djpcms/style/search-box.css_t',
+           data = {
+                'background':'#fff'
+        }
+)
 
 
 #________________________________________ JQUERY UI-TABS

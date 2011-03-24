@@ -14,13 +14,15 @@ __all__ = ['urlparse',
            'routejoin',
            'iri_to_uri',
            'remove_double_slash',
-           'SLASH']
+           'SLASH',
+           'URI_RESERVED']
 
 if ispy3k:
     urlquote = urlparse.quote
 else:
     from urllib import quote as urlquote
 
+URI_RESERVED = set((';','/','?',':','@','&','=','+','$',','))
 SLASH2 = SLASH+SLASH
 #: list of characters that are always safe in URLs.
 _always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'

@@ -1,14 +1,46 @@
-from djpcms import forms
-from djpcms.views import appsite, appview
-from djpcms.apps.included.archive import ArchiveApplication, views as archive
+from djpcms.apps.included.archive import *
+from djpcms import forms, views
 
-#from tagging.models import Tag, TaggedItem
+__all__ = ['cleaned_tags',
+           'TagView',
+           'TagMixedIn',
+           'TagArchiveView',
+           'TagsApplication',
+           'TagApplication',
+           'ArchiveTaggedApplication']
+
+DEFAULT_SEP = ' '
 
 
-# REGEX FOR A TAG
-tag_regex = '[-\.\+\#\'\:\w]+'
+def cleaned_tags(data, separator = DEFAULT_SEP):
+    '''Generator of well formatted tags'''
+    data = data.strip().split(separator)
+    for value in data:
+        value = value.strip()
+        if value:
+            yield value
+ 
 
+class TagField(forms.CharField):
+    '''A field for tags'''
+    
+    def _handle_params(self, choices = None, separator = DEFAULT_SEP,
+                       toslug = '-', **kwargs):
+        self.choices = choices
+        self.separator = separator
+        super(TagField,self)._handle_params(toslug = False, **kwargs)
 
+    def taggen(self, value, bfield):
+        supclean = super(TagField,self)._clean
+        for tag in cleaned_tags(value):
+            tag = supclean(tag,bfield)
+            if tag:
+                yield tag
+                        
+    def _clean(self, value, bfield):
+        return set(self.taggen(value,bfield))
+        
+        
 def add_tags(self, c, djp, obj):
     request = djp.request
     tagurls = []
@@ -34,7 +66,7 @@ def tagurl(self, request, *tags):
         return view(request, **kwargs).url
 
 
-class TagView(appview.SearchView):
+class TagView(views.SearchView):
     '''A specialised search view which handles tags'''
     def __init__(self, *args, **kwargs):
         super(TagView,self).__init__(*args, **kwargs)
@@ -59,7 +91,7 @@ class TagView(appview.SearchView):
             return query
 
 
-class TagArchiveView(archive.ArchiveView):
+class TagArchiveView(ArchiveView):
     
     def __init__(self, *args, **kwargs):
         super(TagArchiveView,self).__init__(*args, **kwargs)
@@ -80,10 +112,10 @@ class TagArchiveView(archive.ArchiveView):
             return query
 
 
-class TagsApplication(appsite.ModelApplication):
+class TagsApplication(views.ModelApplication):
     '''An application for anabling tags autocomplete'''
     search_fields = ['name']
-    complete = appview.AutocompleteView()
+    complete = views.AutocompleteView()
 
 
 class TagMixedIn(object):
@@ -92,10 +124,10 @@ class TagMixedIn(object):
         return djp.getdata('tag{0}'.format(n))
 
 
-class TagApplication(appsite.ModelApplication,TagMixedIn):
-    search   = appview.SearchView(in_navigation = True)
-    tag0     = appview.SearchView(regex = 'tags', parent = 'search', in_navigation = True)
-    tag1     = TagView(regex = '(?P<tag1>%s)' % tag_regex, parent = 'tag0')
+class TagApplication(views.ModelApplication,TagMixedIn):
+    search   = views.SearchView(in_navigation = True)
+    tag0     = views.SearchView(regex = 'tags', parent = 'search', in_navigation = True)
+    tag1     = TagView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0')
     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
@@ -109,13 +141,13 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
     '''
     Comprehensive Tagged Archive Application urls.
     '''
-    search        = archive.ArchiveView()
-    year_archive  = archive.YearArchiveView(regex = '(?P<year>\d{4})')
-    month_archive = archive.MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
-    day_archive   = archive.DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
+    search        = ArchiveView()
+    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})')
+    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
+    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
     
-    tag0           = appview.ModelView(regex = 'tags', in_navigation = True)
-    tag1           = TagArchiveView(regex = '(?P<tag1>%s)' % tag_regex, parent = 'tag0')
+    tag0           = views.ModelView(regex = 'tags', in_navigation = True)
+    tag1           = TagArchiveView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0')
     year_archive1  = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
     month_archive1 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive1')
     day_archive1   = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive1')
@@ -127,11 +159,5 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
         c = super(ArchiveTaggedApplication,self).object_content(djp, obj)
         return add_tags(self, c, djp, obj)
     
-    
-class TagField(forms.CharField):
-    
-    def _handle_params(self, choices = None, separator = ' ', **kwargs):
-        self.choices = choices
-        self.separator = separator
-        self._raise_error(kwargs)
+
 

@@ -8,15 +8,40 @@ View handlers
 
 As soon as a client requests a url, the primary job of ``djpcms`` is to find and invoke
 a ``view handler``. These view handlers are instances of
-:class:`djpcms.views.baseview.djpcmsview` the ``djpcms`` base class
+:class:`djpcms.views.djpcmsview` the ``djpcms`` base class
 for handling user requests.
+Views are usually specified in a declarative manner when creating a
+:class`djpcms.views.Application` class. A common pattern is
+to create an application class containg several views which
+are closely related to each other.
 
+For example, the *Vannilla Application* implemented in
+:mod:`djpcms.apps.included.vanilla` module specifies the
+five most common views for a model::
 
+    from djpcms import views
+
+    class Application(views.ModelApplication):
+        search = views.SearchView()
+        add = views.AddView()
+        view = views.ViewView()
+        change = views.ChangeView()
+        delete = views.DeleteView()
+
+By default these views are served at::
+
+    ../
+    ../add/
+    ../(?P<id>\d+)/
+    ../(?P<id>\d+)/change/
+    ../(?P<id>\d+)/delete/
+    
+    
 Overview
 =====================
 If your web-site does not have any application, there is no need
 for you to write any view handler since flat pages are always processed by
-instances of the :class:`djpcms.views.baseview.pageview` class. 
+instances of the :class:`djpcms.views.pageview` class. 
 On the other hand if you have dynamic application, the chances are you are going to
 write some code.
 
@@ -49,7 +74,7 @@ Flat Page View
    :members:
    :member-order: bysource
 
-   
+
 Application View
 ~~~~~~~~~~~~~~~~~~~~~~~
 

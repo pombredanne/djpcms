@@ -20,12 +20,9 @@ class ForModelForm(forms.Form):
     
     def clean_for_model(self, mhash):
         try:
-            info = self.request.DJPCMS
-            model = info.root.model_from_hash[mhash]
-            appmodel = info.site.for_model(model)
-            return appmodel
-        except:
-            raise forms.ValidationError('Model has no application installed')
+            return self.request.DJPCMS.site.for_hash(mhash,safe=False)
+        except Exception as e:
+            raise forms.ValidationError(str(e))
 
 
 class LatestItemForm(ForModelForm):
@@ -83,7 +80,7 @@ HtmlSearchForm = forms.HtmlForm(
 #______________________________________________ PLUGINS
 
 class SearchBox(DJPplugin):
-    '''A search box for a model
+    '''A text search for a model rendered as a nice search input.
     '''
     name = 'search-box'
     description = 'Search a Model' 
@@ -95,32 +92,22 @@ class SearchBox(DJPplugin):
                for_model = None, method = 'get',
                tooltip = None, ajax = False,
                **kwargs):
-        if for_model:
-            site = djp.site
-            request = djp.request
-            if for_model in site.root.model_from_hash:
-                model = site.root.model_from_hash[for_model]
-            else:
-                raise ValueError('Content type %s not available' % for_model)
-            appmodel = site.for_model(model)
-            if appmodel:
-                search_url = appmodel.searchurl(request)
-                if search_url:
-                    data = request.GET if method == 'get' else request.POST
-                    f = HtmlSearchForm(data = data or None)
-                    if tooltip:
-                        f.dfields['q'].title = tooltip
-                    w =  HtmlSearchForm.widget(f,
-                                               inputs = HtmlSearchForm.default_inputs, 
-                                               action = search_url,
-                                               method = method)
-                    if ajax:
-                        w.addClass(forms.AJAX)
-                    return w.render()
-            else:
-                raise ValueError('Model {0} has no application associated with it.'.format(model._meta))
-        else:
-            raise ValueError('Content type not available')
+        site = djp.site
+        request = djp.request
+        appmodel = site.for_hash(for_model,safe=False)
+        search_url = appmodel.searchurl(request)
+        if search_url:
+            data = request.GET if method == 'get' else request.POST
+            f = HtmlSearchForm(data = data or None)
+            if tooltip:
+                f.dfields['q'].title = tooltip
+            w =  HtmlSearchForm.widget(f,
+                                       inputs = HtmlSearchForm.default_inputs, 
+                                       action = search_url,
+                                       method = method)
+            if ajax:
+                w.addClass(forms.AJAX)
+            return w.render()
 
 
 class ModelFilter(DJPplugin):
@@ -197,15 +184,9 @@ class LatestItems(DJPplugin):
     description    = 'Latest items for a model'
     form           = LatestItemForm
     template_names = {
-                      'list': (
-                               'plugins/latestitems/list.html',
-                               'djpcms/plugins/latestitems/list.html',
-                               ),
-                      'item': (
-                               'plugins/latestitems/item.html',
-                               'djpcms/plugins/latestitems/item.html',
-                               )
-                       }       
+                      'list': ('djpcms/plugins/latestitems/list.html',),
+                      'item': ('djpcms/plugins/latestitems/item.html',)
+                      }       
     
     def get_templates(self, opts, name):
         template = '{0}/{1}/latestitems/{2}.html'.format(opts.app_label,
@@ -214,31 +195,23 @@ class LatestItems(DJPplugin):
         return (template,) + self.template_names[name]
         
     def datagen(self, appmodel, djp, wrapper, items):
-        templates = self.get_templates(appmodel.opts,'item')
+        templates = self.get_templates(appmodel.mapper,'item')
         for obj in items:
             content = appmodel.object_content(djp, obj)
-            yield loader.render_to_string(templates,content)
+            yield loader.render(templates,content)
             
     def render(self, djp, wrapper, prefix,
                for_model = None, max_display = 5,
                pagination = False, **kwargs):
-        try:
-            site = djp.site
-            ct = ContentType.objects.get(id = for_model)
-            model = ct.model_class()
-            appmodel = site.for_model(model)
-            if not appmodel:
-                return ''
-        except:
-            return ''
+        site = djp.site
+        appmodel = site.for_hash(for_model,safe=False)
         data = appmodel.orderquery(appmodel.basequery(djp))
         max_display = max(max_display,1)
         items = data[0:max_display]
         if not items:
             return ''
-        templates = self.get_templates(appmodel.opts,'list')
-        content = {'items': self.datagen(appmodel, djp, wrapper, items)}
-        return loader.render_to_string(templates,
-                                       content)
+        templates = self.get_templates(appmodel.mapper,'list')
+        ctx = {'items': self.datagen(appmodel, djp, wrapper, items)}
+        return loader.render(templates,ctx)
 
     

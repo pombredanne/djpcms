@@ -1,5 +1,6 @@
 import unittest as test
-from djpcms.utils import force_str, parentpath, closedurl, routejoin, openedurl
+from djpcms.utils import force_str, parentpath, closedurl, routejoin, openedurl,\
+                         slugify, URI_RESERVED
 from djpcms.utils.text import nicename
 
 
@@ -17,6 +18,15 @@ class TestUtilsStrings(test.TestCase):
         self.assertEqual(nicename('ciao_bla'),'Ciao bla')
         self.assertEqual(nicename('ciao-bla_foo'),'Ciao bla foo')
         self.assertEqual(nicename('ciao bla-foo'),'Ciao bla foo')
+    
+    def testSlugify(self):
+        s = ''.join(URI_RESERVED)
+        self.assertEqual(slugify(s),'')
+        self.assertEqual(slugify('ciao pippo'),'ciao-pippo')
+        self.assertEqual(slugify('ciao "pippo"'),'ciao-pippo')
+        self.assertEqual(slugify("ciao 'bla' 'go';;;pippo"),'ciao-bla-gopippo')
+        
+        
         
 class TestUrls(test.TestCase):
     

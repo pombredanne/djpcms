@@ -1,6 +1,6 @@
 import creole
 
-from djpcms.contrib.flowrepo.markups import application
+from djpcms.utils.markups import application
 
 
 class Application(application.Application):

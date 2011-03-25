@@ -137,25 +137,17 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
 
 class SiteContent(TimeStamp,MarkupMixin):
     '''Store content for your web site. It can store markup or raw HTML.'''
-    user_last     = field.SymbolField(required = False)
-    description   = field.CharField()
-    body          = field.CharField()
-    markup        = field.CharField()
+    title = field.CharField()
+    body = field.CharField()
+    markup = field.CharField()
+    tags = field.CharField()
     '''Markup type. If not specified it will be treated as raw HTML.'''
     
     def __unicode__(self):
-        return self.code
+        return self.title
     
     class Meta:
         app_label = 'djpcms'
-    
-    def update(self, user = None, body = ''):
-        self.body = body
-        user_last = None
-        if user and user.is_authenticated():
-            user_last = user
-        self.user_last = user_last
-        self.save()
 
 
 class AdditionalPageData(ModelBase):

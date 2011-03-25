@@ -1,11 +1,13 @@
 import djpcms
-from djpcms import sites, forms, empty_choice
-from djpcms.utils import force_str, slugify
+from djpcms import forms, html
+from djpcms.utils import markups
 from djpcms.plugins import get_plugin, plugingenerator, wrappergenerator
+
 
 __all__ = ['TemplateForm',
            'PageForm',
-           'ContentBlockForm']
+           'ContentBlockForm',
+           'EditContentForm']
 
 
 def get_templates(*args):
@@ -97,6 +99,17 @@ class ContentBlockForm(forms.Form):
             raise forms.ValidationError("Cannot select 'requires login'\
  and 'for not authenticated' at the same time.")
 
+
+
+class EditContentForm(forms.Form):
+    '''Form used to edit and add Content'''
+    title   = forms.CharField()
+    body    = forms.CharField(widget = html.TextArea,
+                              required = False)
+    markup  = forms.ChoiceField(choices = lambda bf : tuple(markups.choices()),
+                                initial = lambda form : markups.default(),
+                                required = False)
+        
 
 def _getid(obj):
     if obj:

@@ -13,6 +13,9 @@ from djpcms import views
 from .layout import ContentBlockHtmlForm, PLUGIN_DATA_FORM_CLASS
 
 
+__all__ = ['ContentSite']
+
+
 edit_class = 'edit-block ui-state-active'
 movable_class = 'movable'
 edit_movable = edit_class + ' ' + movable_class

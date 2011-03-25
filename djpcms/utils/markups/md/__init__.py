@@ -1,6 +1,6 @@
 import markdown2
 
-from djpcms.contrib.flowrepo.markups import application
+from djpcms.utils.markups import application
     
 class Application(application.Application):
     code = 'md'

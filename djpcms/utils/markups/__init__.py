@@ -1,6 +1,10 @@
 import os
 from djpcms.utils.importer import import_module
 
+_loaded = False
+_default_markup = None
+MARKUP_HANDLERS = {}
+
 
 def add(code, name, handler):
     '''
@@ -16,7 +20,7 @@ def add(code, name, handler):
 def choices():
     load()
     global MARKUP_HANDLERS
-    yield ('','None')
+    yield ('','raw')
     for k,v in MARKUP_HANDLERS.items():
         yield (k,v.get('name'))
 
@@ -39,7 +43,7 @@ def load():
         for d in os.listdir(path):
             if os.path.isdir(os.path.join(path,d)):
                 try:
-                    appmod = import_module('djpcms.contrib.flowrepo.markups.{0}'.format(d))
+                    appmod = import_module('djpcms.utils.markups.{0}'.format(d))
                     app = appmod.app
                 except ImportError as e:
                     pass
@@ -48,10 +52,6 @@ def load():
                     add(d,app.name,app)
         _loaded = True
         
-        
-_loaded = False
-_default_markup = None
-MARKUP_HANDLERS = {}
 
 
 def help(code = 'crl'):

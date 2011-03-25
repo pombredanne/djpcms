@@ -13,7 +13,8 @@ DEFAULT_SEP = ' '
 
 
 def cleaned_tags(data, separator = DEFAULT_SEP):
-    '''Generator of well formatted tags'''
+    '''Generator of well formatted tags. It splits the string ``data``
+using the ``separator`` and removes trailing spaces.'''
     data = data.strip().split(separator)
     for value in data:
         value = value.strip()
@@ -22,7 +23,7 @@ def cleaned_tags(data, separator = DEFAULT_SEP):
  
 
 class TagField(forms.CharField):
-    '''A field for tags'''
+    '''A specialized field for tags'''
     
     def _handle_params(self, choices = None, separator = DEFAULT_SEP,
                        toslug = '-', **kwargs):
@@ -126,8 +127,8 @@ class TagMixedIn(object):
 
 class TagApplication(views.ModelApplication,TagMixedIn):
     search   = views.SearchView(in_navigation = True)
-    tag0     = views.SearchView(regex = 'tags', parent = 'search', in_navigation = True)
-    tag1     = TagView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0')
+    tag0     = views.SearchView(regex = 'tags', parent = 'search', isplugin = False)
+    tag1     = TagView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0', isplugin = False)
     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
@@ -141,16 +142,19 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
     '''
     Comprehensive Tagged Archive Application urls.
     '''
-    search        = ArchiveView()
-    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})')
-    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
-    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
+    search = ArchiveView()
+    year_archive = YearArchiveView(regex = '(?P<year>\d{4})', isplugin = False)
+    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive',
+                                     isplugin = False)
+    day_archive = DayArchiveView(regex = '(?P<day>\d{2})', parent = 'month_archive',
+                                   isplugin = False)
     
-    tag0           = views.ModelView(regex = 'tags', in_navigation = True)
-    tag1           = TagArchiveView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0')
-    year_archive1  = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
+    tag0 = views.ModelView(regex = 'tags', isplugin = False)
+    tag1 = TagArchiveView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX,
+                                    parent = 'tag0', isplugin = False)
+    year_archive1 = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
     month_archive1 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive1')
-    day_archive1   = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive1')
+    day_archive1 = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive1')
      
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)

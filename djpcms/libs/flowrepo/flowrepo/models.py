@@ -10,8 +10,6 @@ from django.contrib.contenttypes import generic
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User, Group, AnonymousUser
 
-from tagging.fields import TagField
-
 from djpcms.utils import slugify, markups, mark_safe
 from djpcms.uploads import uploader, storage_manager
 
@@ -65,7 +63,7 @@ class FlowItem(FlowItemBase):
     timestamp       = models.DateTimeField()
     url             = models.CharField(blank=True, max_length=1000)
     visibility      = models.IntegerField(choices=visibility_choices, default=3)
-    tags            = TagField(max_length=2500, blank = True)
+    tags            = models.CharField(max_length=2500, blank = True)
     allow_comments  = models.BooleanField(_('allow comments'), default=False)
     
     # Metadata about where the object "came from"
@@ -389,7 +387,7 @@ class WebAccount(models.Model):
     name   = models.CharField(blank = False, max_length = 100)
     url    = models.URLField(max_length=1000)
     e_data = models.TextField(blank = True, verbose_name = 'encrypted data')
-    tags   = TagField(max_length=2500)
+    tags   = models.CharField(max_length=2500)
 
     class Meta:
         unique_together = ('name','user')

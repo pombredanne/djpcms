@@ -111,9 +111,13 @@
 
             this.defaults = {
                 cssHeader: "header",
-                cssAsc: "headerSortUp",
-                cssDesc: "headerSortDown",
+                cssAsc: "ui-state-highlight",
+                cssDesc: "ui-state-highlight",
                 cssChildRow: "expand-child",
+                iconMid: "ui-icon ui-icon-triangle-2-n-s",
+                iconAsc: "ui-icon ui-icon-triangle-1-n",
+                iconDesc: "ui-icon ui-icon-triangle-1-s",
+                iconFloat: 'right',
                 sortInitialOrder: "asc",
                 sortMultiSortKey: "shiftKey",
                 sortForce: null,
@@ -380,25 +384,34 @@
                     var time = new Date();
                 }
 
-                var meta = ($.metadata) ? true : false;
-                
-                var header_index = computeTableHeaderCellIndexes(table);
+                var meta = ($.metadata) ? true : false,
+                    header_index = computeTableHeaderCellIndexes(table),
+                    config = table.config;
 
-                $tableHeaders = $(table.config.selectorHeaders, table).each(function (index) {
+                $tableHeaders = $(config.selectorHeaders, table).each(function (index) {
 
                     this.column = header_index[this.parentNode.rowIndex + "-" + this.cellIndex];
                     // this.column = index;
-                    this.order = formatSortingOrder(table.config.sortInitialOrder);
+                    this.order = formatSortingOrder(config.sortInitialOrder);
                     
-					
-					this.count = this.order;
+                    
+                    this.count = this.order;
 
-                    if (checkHeaderMetadata(this) || checkHeaderOptions(table, index)) this.sortDisabled = true;
-					if (checkHeaderOptionsSortingLocked(table, index)) this.order = this.lockedOrder = checkHeaderOptionsSortingLocked(table, index);
+                    if(checkHeaderMetadata(this) || checkHeaderOptions(table, index)) {
+                        this.sortDisabled = true;
+                    }
+                    if(checkHeaderOptionsSortingLocked(table, index)) {
+                        this.order = this.lockedOrder = checkHeaderOptionsSortingLocked(table, index);
+                    }
 
                     if (!this.sortDisabled) {
-                        var $th = $(this).addClass(table.config.cssHeader);
-                        if (table.config.onRenderHeader) table.config.onRenderHeader.apply($th);
+                        var th = $(this).addClass(config.cssHeader);
+                        if(config.iconFloat) {
+                            th.append($('<span>').addClass(config.iconMid).css({'float':config.iconFloat}));
+                        }
+                        if (table.config.onRenderHeader) {
+                            config.onRenderHeader.apply(th);
+                        }
                     }
 
                     // add cell to headerList
@@ -493,12 +506,12 @@
                 };
                 return false;
             }
-			
-			 function checkHeaderOptionsSortingLocked(table, i) {
+            
+             function checkHeaderOptionsSortingLocked(table, i) {
                 if ((table.config.headers[i]) && (table.config.headers[i].lockedOrder)) return table.config.headers[i].lockedOrder;
                 return false;
             }
-			
+            
             function applyWidget(table) {
                 var c = table.config.widgets;
                 var l = c.length;
@@ -538,18 +551,26 @@
 
             function setHeadersCss(table, $headers, list, css) {
                 // remove all header information
-                $headers.removeClass(css[0]).removeClass(css[1]);
-
-                var h = [];
+                $headers.removeClass(css[0].th).removeClass(css[1].th);
+                var  h = [], l = list.length, i, el, cs,
+                     config = table.config;
+                
                 $headers.each(function (offset) {
-                    if (!this.sortDisabled) {
+                    if(!this.sortDisabled) {
+                        if(config.iconFloat) {
+                            $('span',this)[0].className = config.iconMid;
+                        }
                         h[this.column] = $(this);
                     }
                 });
 
-                var l = list.length;
-                for (var i = 0; i < l; i++) {
-                    h[list[i][0]].addClass(css[list[i][1]]);
+                for(i = 0; i < l; i++) {
+                    el = h[list[i][0]];
+                    cs = css[list[i][1]];
+                    el.addClass(cs.th);
+                    if(config.iconFloat) {
+                        $('span',el)[0].className = cs.icon;
+                    }
                 }
             }
 
@@ -706,7 +727,8 @@
                     // build the cache for the tbody cells
                     cache = buildCache(this);
                     // get the css class names, could be done else where.
-                    var sortCSS = [config.cssDesc, config.cssAsc];
+                    var sortCSS = [{th:config.cssDesc,icon:config.iconDesc},
+                                   {th:config.cssAsc,icon:config.iconAsc}];
                     // fixate columns if the users supplies the fixedWidth option
                     fixColumnWidth(this);
                     // apply event handling to headers
@@ -725,10 +747,10 @@
                             var i = this.column;
                             // get current column sort order
                             this.order = this.count++ % 2;
-							// always sort on the locked order.
-							if(this.lockedOrder) this.order = this.lockedOrder;
-							
-							// user only whants to sort on one
+                            // always sort on the locked order.
+                            if(this.lockedOrder) this.order = this.lockedOrder;
+                            
+                            // user only whants to sort on one
                             // column
                             if (!e[config.sortMultiSortKey]) {
                                 // flush the sort list
@@ -768,9 +790,9 @@
                                 // set css for headers
                                 setHeadersCss($this[0], $headers, config.sortList, sortCSS);
                                 appendToTable(
-	                                $this[0], multisort(
-	                                $this[0], config.sortList, cache)
-								);
+                                    $this[0], multisort(
+                                    $this[0], config.sortList, cache)
+                                );
                             }, 1);
                             // stop normal event by returning false
                             return false;
@@ -844,12 +866,12 @@
                 };
             };
             this.replaceParser = function (parser) {
-            	for(var i = 0; i < parsers.length; i++) {
-            		if(parsers[i].id.toLowerCase() == parser.id.toLowerCase()) {
-            			parsers[i] = parser;
-            			break;
-            		}
-            	};
+                for(var i = 0; i < parsers.length; i++) {
+                    if(parsers[i].id.toLowerCase() == parser.id.toLowerCase()) {
+                        parsers[i] = parser;
+                        break;
+                    }
+                };
             };
             this.addWidget = function (widget) {
                 widgets.push(widget);
@@ -1040,14 +1062,24 @@
     });
     
     ts.addWidget({
-    	id:"hovering",
-    	format: function(table) {
-    		$('tr',table).hover(function() {
-    				$(this).addClass('hover');
-    			},
-    			function(){
-    				$(this).removeClass('hover');
-    			});
-    	}
+        id:"hovering",
+        format: function(table) {
+            $('th',table).hover(function() {
+                if(!this.sortDisabled) {
+                    $(this).addClass('ui-state-hover');
+                }
+            },
+            function(){
+                if(!this.sortDisabled) {
+                    $(this).removeClass('ui-state-hover');
+                }
+            });
+            $('tbody tr',table).hover(function() {
+                $(this).addClass('ui-state-hover');
+            },
+            function(){
+                $(this).removeClass('ui-state-hover');
+            });
+        }
     });
-})(jQuery);
+}(jQuery));

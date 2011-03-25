@@ -4,7 +4,9 @@ from djpcms.forms.layout import uniforms
 from .forms import *
 
 __all__ = ['HtmlTemplateForm',
-           'HtmlPageForm']
+           'HtmlPageForm',
+           'ContentBlockHtmlForm',
+           'HtmlEditContentForm']
 
 PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
 
@@ -31,3 +33,14 @@ ContentBlockHtmlForm = forms.HtmlForm(
                           uniforms.Html(key = 'plugin', tag = 'div').addClass(PLUGIN_DATA_FORM_CLASS)
                 )
 )
+
+
+HtmlEditContentForm = forms.HtmlForm(
+    EditContentForm,
+    layout = uniforms.Layout(
+                          uniforms.Fieldset('title','markup'),
+                          uniforms.Fieldset('body', default_style=uniforms.blockLabels)
+        )
+)
+
+

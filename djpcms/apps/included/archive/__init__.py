@@ -32,9 +32,9 @@ class attribute:
     '''The model field name which is used to create time archives. Must be a date or datetime field.'''
     split_days    = False
     search        = ArchiveView()
-    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})')
-    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive')
-    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive')
+    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})', isplugin = False)
+    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive', isplugin = False)
+    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive', isplugin = False)
     
     def __init__(self, *args, **kwargs):
         self.date_code = kwargs.pop('date_code',self.date_code)

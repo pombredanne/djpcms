@@ -51,22 +51,23 @@ def get_template(self):
 
 
 class DjpResponse(djpcms.UnicodeMixin):
-    '''Djpcms response class. It contains information associated with a given url
-which can and often is different from the current request path. Usually is initialized as::
+    '''Djpcms response class. It contains information associated with a given path
+which can, and often is, different from the current request path.
+Usually, it is initialized by::
 
     djp = view(request, **kwargs)
     
-where ``kwargs`` is a fictionary of arguments used to build the ``url`` (including 
-model instances).
-        
+where ``kwargs`` is a dictionary of parameters used to build the ``url`` (it can
+also include a model instance).
+
 .. attribute:: request
 
-    a HttpRequest instance containing the request environment information.
+    A HttpRequest instance containing the request environment information.
     
 .. attribute:: view
 
-    An instance of :class:`djpcms.views.baseview.djpcmsview` responsible for
-    handling the request.
+    An instance of :class:`djpcms.views.djpcmsview` responsible for
+    handling the response.
     
 .. attribute:: url
 
@@ -76,6 +77,15 @@ model instances).
 
     Object carrying information about the media to be added to the HTML page.
     It is filled during rendering of all plugins and views.
+    
+.. attribute:: site
+
+    Instance of the :class:`djpcms.apps.appsites.ApplicationSite` which own the response.
+    If the :attr:`view` is available, it is the same value.
+    
+.. attribute:: root
+
+    Web site holder.
 '''
     def __init__(self, request, view, wrapper = None, prefix = None, **kwargs):
         self.request    = request

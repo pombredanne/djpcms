@@ -277,7 +277,6 @@ class SocialUserApplication(UserApplication):
     social_delete = DeleteSocial(parent = 'social_home')
     social_action = SocialActionView(regex = '(?P<action>[-\.\w]+)',
                                      parent = 'social_home',
-                                     isapp = False,
                                      isplugin = False)
     
 

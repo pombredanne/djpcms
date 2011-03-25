@@ -36,7 +36,7 @@ CssContext('nav',
            process = horizontal_navigation,
            data = {
                    'anchor_horizontal_padding': 20,
-                   'secondary_anchor_width': 100,
+                   'secondary_anchor_width': 150,       # Useful! Control the with of drop-down
                    'secondary_border_with': 1,
                    'hover_background':'transparent',
                    'height': '2.5em',
@@ -131,10 +131,12 @@ CssContext('tablesorter',
                    'head_border_color':'#fff',
                    #'toolbox_background_color':'#fff',
                    'body_border_color':'#a6c9e2',
-                   'head_border': 'none',
                    'head_padding': '4px',
                    #
-                   'toolbox_min_height':'40px'
+                   'toolbox_min_height':'40px',
+                   #
+                   'head_border': '1px solid #a6c9e2',
+                   'row_border':'1px solid transparent'
                    }
            )
 

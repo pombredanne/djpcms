@@ -1,12 +1,14 @@
 from djpcms.models import Page, InnerTemplate, BlockContent, SiteContent
 from djpcms.apps.included.sitemap import SiteMapApplication
 
-NAME = 'Layout'
-ROUTE = 'layout'
+NAME = 'Content Management'
+ROUTE = 'cms'
 
+# If Content Management System is available, enable admin for it
 if Page:
     from djpcms.apps.included.contentedit import ContentSite, HtmlPageForm, \
-                                                 HtmlTemplateForm, ContentBlockHtmlForm 
+                                                 HtmlTemplateForm, ContentBlockHtmlForm, \
+                                                 HtmlEditContentForm
     from djpcms.apps.included.admin import AdminApplication
     
     admin_urls = (
@@ -32,9 +34,10 @@ if Page:
                                               'for_not_authenticated')),
                   AdminApplication('/block-content/',
                                    SiteContent,
+                                   form = HtmlEditContentForm,
                                    description = 'site content',
-                                   list_display = ('id','description','markup'),
-                                   object_display = ('id','description','markup','body')
+                                   list_display = ('id','title','markup'),
+                                   object_display = ('id','title','markup','body')
                   )
         )
 else:

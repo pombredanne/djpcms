@@ -14,8 +14,8 @@
 }
 {{ tag }} tbody tr {
     border: 1px solid {{ body_border_color }};
-    border-top: none;
-    border-bottom: none;
+    border-top: {{ row_border }};
+    border-bottom: {{ row_border }};
 }
 {{ tag }} tbody tr:last-child {
     border-bottom: 1px solid {{ body_border_color }};
@@ -27,14 +27,10 @@
 {{ tag }} tbody tr.odd td {
     background-color: {{ odd_background_color }};
 }
-{{ tag }} thead tr .headerSortUp {
-    background-image: url(asc.gif);
-}
-{{ tag }} thead tr .headerSortDown {
-    background-image: url(desc.gif);
-}
-{{ tag }} thead tr .headerSortDown, {{ tag }} thead tr .headerSortUp {
-background-color: #8dbdd8;
+{{ tag }} thead tr .ui-state-highlight,
+{{ tag }} thead tr .ui-state-highlight {{% if highlight %} 
+    background-color: {{ highlight.background }};
+    color: {{ highlight.color }};{% endif %}
 }
 {{ tag }} tbody tr.hover td {{% if row_hover_background %}
     background-color: {{ row_hover_background }};{% endif %}{% if row_hover_color %}

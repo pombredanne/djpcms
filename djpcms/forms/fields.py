@@ -290,13 +290,32 @@ class BooleanField(Field):
     
 class ChoiceField(Field):
     '''A :class:`Field` which validates against a set of ``choices``.
-Additiona attributes::
+Additional attributes:
 
 .. attribuite:: choices
 
     A callable or an iterable over two-dimensional tuples.
     If a callable, it must accept a one parameter given by
-    the bounded field instance and return an iterable over two dimensional tuples.
+    the bounded field instance and return an iterable over
+    two dimensional tuples.
+    
+.. attribute:: model
+
+    An optional model class if the Choice field is based on a database model.
+    
+    Default ``None``.
+    
+.. attribute:: separator
+
+    A character to separate element when the field is used in a html
+    autocomplete widget.
+    
+    Default ``" "``
+    
+.. attribute:: empty_label
+
+    If provided it represents an empty choice
+    
 '''
     widget = Select
     

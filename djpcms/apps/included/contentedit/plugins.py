@@ -3,21 +3,16 @@ import json
 from djpcms import forms, html
 from djpcms.plugins import DJPplugin
 from djpcms.forms.utils import form_kwargs
-from djpcms.forms.layout import uniforms
 from djpcms.core.exceptions import PermissionDenied
-from djpcms.models import SiteContent
-from djpcms.utils import markups, mark_safe
+from djpcms.utils import mark_safe
 
 
 def get_site_content(form):
+    from djpcms.models import SiteContent
     if SiteContent:
         return SiteContent.objects.all()
     else:
         return ()
-    
-
-class EditingForm(forms.Form):
-    pass
 
 
 class ChangeTextContent(forms.Form):
@@ -31,14 +26,6 @@ class ChangeTextContent(forms.Form):
     new_content  = forms.CharField(label = 'New content unique title',
                                    help_text = 'When creating a new content give a unique name you like',
                                    required = False)
-    
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request',None)
-        if not request:
-            raise ValueError('Request not available')
-        self.user = request.user
-        queryset = self.queryset_for_user()
-        super(ChangeTextContent,self).__init__(*args,**kwargs)
         
     def queryset_for_user(self):
         if self.user.is_authenticated() and self.user.is_active:
@@ -68,23 +55,6 @@ class ChangeTextContent(forms.Form):
             return text
         
 
-
-class EditContentForm(EditingForm):
-    markup       = forms.ChoiceField(choices = markups.choices,
-                                     initial = markups.default,
-                                     required = False)
-    
-    #layout = uniforms.FormLayout(uniforms.Fieldset('markup',elem_css=uniforms.inlineLabels),
-    #                            uniforms.Fieldset('body',elem_css='%s editing' % uniforms.blockLabels2))
-    
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request',None)
-        if not request:
-            raise ValueError('Request not available')
-        self.user = request.user
-        super(EditContentForm,self).__init__(*args,**kwargs)
-        
-
     
 class Text(DJPplugin):
     '''The text plugin allows to write content in a straightforward manner.
@@ -92,7 +62,6 @@ You can use several different markup languages or simply raw HTML.'''
     name               = "text"
     description        = "Text Editor"
     long_description   = "Write text or raw HTML"
-    form_withrequest   = True
     form               = ChangeTextContent
     
     def html(self):

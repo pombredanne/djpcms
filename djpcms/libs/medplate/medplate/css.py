@@ -71,6 +71,13 @@ class _CssContext(object):
             return self.tag()
         else:
             return ''
+        
+    def get_parent(self):
+        global _root
+        if self.parent:
+            return self.parent
+        elif hasattr(self,'name'):
+            return _root        
     
     def render(self, style, media_url, template_engine = None):
         '''Render the css context'''
@@ -86,10 +93,18 @@ class _CssContext(object):
         data['elems'] = (elem.render(style,media_url,template_engine) for\
                             elem in self.context_dictionary.values())
         self.extra_data(loader,data,style)
-        if style in self.themes:
-            sdata = self.themes[style].data
-            data.update(sdata)
+        data.update(self.theme_data(style))
         return loader.render(self.template,data)
+        
+    def theme_data(self, style):
+        parent = self.get_parent()
+        if parent:
+            data = parent.theme_data(style)
+        else:
+            data = {}
+        if style in self.themes:
+            data.update(self.themes[style].data)
+        return data
     
     def extra_data(self, loader, data, style):
         pass

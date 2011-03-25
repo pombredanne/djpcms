@@ -180,7 +180,7 @@ browser based application as well as remote procedure calls validation.
 Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
 This class method can be useful when using forms outside web applications.'''
         for name,field in iteritems(cls.base_fields):
-            initial = field.get_initial(self)
+            initial = field.get_initial(cls)
             if initial is not None: 
                 yield name,initial
         

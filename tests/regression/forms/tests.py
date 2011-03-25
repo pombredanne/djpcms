@@ -1,10 +1,11 @@
 from djpcms import test, forms
 from djpcms.plugins.apps import HtmlSearchForm
-from djpcms.apps.included.contentedit.forms import PageForm
+from djpcms.apps.included.contentedit import PageForm, EditContentForm
 from .forms import SimpleForm
 
 
 class TestSimpleForm(test.TestCase):
+    '''Test the form library using form in included applications'''
     
     def testSimpleFactory(self):
         self.assertTrue(len(SimpleForm.base_fields),2)
@@ -58,3 +59,18 @@ class TestSimpleForm(test.TestCase):
         html = widget.render()
         self.assertTrue(html)
         
+    def testContentEditForm(self):
+        form = EditContentForm()
+        self.assertFalse(form.is_bound)
+        #
+        # Test the markup field
+        bmarkup = form.dfields['markup'] # markup bound field
+        markup = bmarkup.field
+        self.assertTrue(markup.choices)
+        self.assertEqual(markup.empty_label,None)
+        self.assertTrue(markup.separator)
+        choices,model = markup.choices_and_model(bmarkup)
+        self.assertEqual(model,None)
+        self.assertTrue(choices)
+        self.assertEqual(choices[0][0],'')
+        self.assertEqual(choices[0][1],'raw')

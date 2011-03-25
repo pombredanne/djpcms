@@ -32,18 +32,13 @@
 </div>
 <!-- END OF BODY CONTAINER -->
 
-{% block body_scripts %}<!-- START OF END-BODY SCRIPTS -->
-{% block defaults_body_scripts %}
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery-ui-1.8.11.min.js"></script>{% if debug %}
+{% block body_scripts %}<!-- START OF END-BODY SCRIPTS -->{% block defaults_body_scripts %}
+<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery-ui-1.8.11.min.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.metadata.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.cookie.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.pagination.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/form.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/tablesorter/jquery.tablesorter.js"></script>{% else %}
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.metadata.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.pagination.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/form.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/tablesorter/jquery.tablesorter.js"></script>{% endif %}
+<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.tablesorter.js"></script>
 {% endblock %}{% block decorator_scripts %}
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/djpcms.js"></script>
 {% if media %}{% for js in media.render_js %}

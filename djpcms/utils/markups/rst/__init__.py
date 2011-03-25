@@ -6,7 +6,7 @@ from sphinx.application import Sphinx
 
 import djpcms
 from djpcms.utils import gen_unique_id
-from djpcms.contrib.flowrepo.markups import application
+from djpcms.utils.markups import application
 from .builders import SingleStringHTMLBuilder
 
 def info(self, *args,**kwargs):
@@ -14,12 +14,12 @@ def info(self, *args,**kwargs):
 
 Sphinx.info = info
 
-class Application(object):
+class Application(application.Application):
     code = 'rst'
     name = 'reStructuredText'
     
     def setup(self):
-        settings = djpcms.get_site().settings
+        settings = self.config
         cfgdir = settings.SITE_DIRECTORY
         srcdir = os.path.join(settings.SITE_DIRECTORY,'flowtmp')
         outdir = os.path.join(settings.MEDIA_ROOT,'site')

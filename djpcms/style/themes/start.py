@@ -5,9 +5,14 @@ from medplate import CssTheme
 
 theme_name = 'start'
 
+highlight = {'background':'#F8DA4E',
+             'color':'#915608',
+             'border_color': ' #FCD113'}
+
 CssTheme('body',
          theme_name,
-         data = {'color':'#222222'}
+         data = {'color':'#222222',
+                 'highlight': highlight}
          )
 
 CssTheme('widget-anchor',

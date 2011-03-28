@@ -12,6 +12,8 @@ from djpcms.utils.ajax import jhtmls, jredirect
 from djpcms.utils import lazyattr, gen_unique_id
 from djpcms.template import loader
 from djpcms.views import *
+
+from stdnet.orm import model_iterator
         
         
 class DbQuery(object):
@@ -57,19 +59,6 @@ class RedisDbFlushView(RedisDbView):
         keys = len(r.keys())
         return jhtmls(identifier = 'td.redisdb%s.keys' % r.db,
                       html = keys)
-
-
-class StdModelInformationView(ModelView):
-    
-    def __init__(self, **kwargs):
-        kwargs['isplugin'] = True
-        super(StdModelInformationView,self).__init__(**kwargs)
-        
-    '''Display Information regarding a
-    :class:`stdnet.orm.StdModel` registered with a backend database.'''
-    def render(self, djp, **kwargs):
-        meta = self.model._meta
-        return loader.render('monitor/stdmodel.html',{'meta':meta})
 
 
 class StdModelDeleteAllView(ModelView):

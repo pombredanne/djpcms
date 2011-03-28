@@ -59,6 +59,14 @@ As an example lets take the included application in :mod:`djpcms.apps.included.v
 API
 ===========
 
+Renderer Mixin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.views.RendererMixin
+   :members:
+   :member-order: bysource
+
+
 View Base Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

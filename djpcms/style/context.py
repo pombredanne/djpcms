@@ -13,12 +13,16 @@ CssContext('anchor',
            data = {
                    'text_decoration': 'none',
                    'weight':'normal',
-#                   'color':'#33789C',
-                   'background': 'transparent',
-#                   'color_hover':'#204C64',
-#                   'background_hover':None
+        }
+)
+
+#________________________________________ HORIZONTAL LIST
+CssContext('horizontal_list',
+           tag = '.horizontal li',
+           data = {
+                   'display':'inline',
                    }
-           )
+)
 
 CssContext('widget-anchor',
            tag = '.ui-widget-content a',

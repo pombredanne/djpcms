@@ -1,10 +1,10 @@
 {% extends "medplate/elem.css_t" %}
 
-{% block include-media %}{% if jquery %}
+{% block include_media %}{% if jquery %}
 {{ jquery }}{% endif %}{% endblock %}
 
 
-{% block end-layout %}
+{% block end_layout %}
 {% block text %}
 pre {
 	font-family: monospace;

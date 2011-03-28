@@ -97,14 +97,19 @@ class _CssContext(object):
         return loader.render(self.template,data)
         
     def theme_data(self, style):
-        parent = self.get_parent()
-        if parent:
-            data = parent.theme_data(style)
-        else:
-            data = {}
         if style in self.themes:
-            data.update(self.themes[style].data)
-        return data
+            return self.themes[style].data
+        else:
+            return {}
+        #
+        #parent = self.get_parent()
+        #if parent:
+        #    data = parent.theme_data(style)
+        #else:
+        #    data = {}
+        #if style in self.themes:
+        #    data.update(self.themes[style].data)
+        #return data
     
     def extra_data(self, loader, data, style):
         pass

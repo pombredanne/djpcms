@@ -21,8 +21,12 @@ __all__ = ['RendererMixin',
     
 class RendererMixin(UnicodeMixin,RouteMixin):
     '''\
-Mixin for a class able to render itself
+A mixin class for rendering objects
 
+    .. attribute:: appmodel
+    
+        The application model wher the renedrer is defined.
+        
     .. attribute:: template_name
      
         Used to specify a template file or a tuple of template files.
@@ -34,9 +38,11 @@ Mixin for a class able to render itself
     description = None
     
     def render(self, djp):
-        '''Render the Current View and return unicode string.
+        '''\
+Render the Current View and return a safe string.
 This function is implemented by subclasses of :class:`djpcms.views.View`.
-By default it returns an empty string.
+By default it returns an empty string if the view is a :class:`djpcms.views.pageview`
+other wise the ``render`` method of the :attr:`appmodel`.
 
 :parameter djp: instance of :class:`djpcms.views.DjpResponse`.'''
         if self.appmodel:
@@ -52,7 +58,8 @@ belongs to a user, otherwise returns ``None``.'''
 
 # THE DJPCMS BASE CLASS for handling views
 class djpcmsview(RendererMixin):
-    '''Base class for handling http requests.
+    '''A :class:`djpcms.views.RendererMixin` class for handling
+http requests.
     
     .. attribute:: _methods
 

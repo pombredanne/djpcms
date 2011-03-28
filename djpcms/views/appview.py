@@ -520,8 +520,8 @@ and handles the saving as default ``POST`` response.'''
     def _has_permission(self, request, obj):
         return self.appmodel.has_add_permission(request, obj)
     
-    def save(self, request, f):
-        return self.appmodel.object_from_form(f)
+    def save(self, request, f, commit = True):
+        return self.appmodel.object_from_form(f, commit)
     
     def render(self, djp):
         return self.get_form(djp).render(djp)

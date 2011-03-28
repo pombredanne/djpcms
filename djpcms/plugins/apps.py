@@ -141,43 +141,39 @@ class ModelFilter(DJPplugin):
         return f.render()
     
     
-class ObjectLinks(DJPplugin):
-    name = 'edit-object'
-    description = 'Links for a model instance'
-    form = ModelLinksForm
-    def render(self, djp, wrapper, prefix, layout = 'horizontal',
-               asbuttons = True, exclude = '', **kwargs):
-        try:
-            exclude = exclude.split(',')
-            links = djp.view.appmodel.object_links(djp,djp.instance, asbuttons=asbuttons, exclude=exclude)
-            links['layout'] = layout
-            if links['geturls'] or links['posturls']:
-                return loader.render_to_string(['bits/editlinks.html',
-                                                'djpcms/bits/editlinks.html'],
-                                                links)
-            else:
-                return ''
-        except:
-            return ''
-    
-    
 class ModelLinks(DJPplugin):
     name = 'model-links'
     description = 'Links for a model'
+    template_name = ('links.html',
+                     'djpcms/components/links.html')
     form = ModelLinksForm
+    
+    def get_links(self, djp, exclude, asbuttons):
+        return djp.view.appmodel.links(djp, asbuttons=asbuttons, exclude=exclude)
+    
     def render(self, djp, wrapper, prefix, layout = 'horizontal',
                asbuttons = True, exclude = '', **kwargs):
-        try:
-            exclude = exclude.split(',')
-            links = djp.view.appmodel.links(djp, asbuttons=asbuttons, exclude=exclude)
+        exclude = exclude.split(',')
+        links = self.get_links(djp, exclude, asbuttons)
+        if links['links']:
             links['layout'] = layout
-            return loader.render_to_string(['bits/editlinks.html',
-                                            'djpcms/bits/editlinks.html'],
-                                            links)
-        except:
+            return loader.render(self.template_name, links)
+        else:
             return ''
-        
-
+    
+    
+class ObjectLinks(ModelLinks):
+    name = 'edit-object'
+    description = 'Links for a model instance'
+    form = ModelLinksForm
+    
+    def get_links(self, djp, exclude, asbuttons):
+        return djp.view.appmodel.object_links(djp,
+                                              djp.instance,
+                                              asbuttons=asbuttons,
+                                              exclude=exclude)
+    
+    
 class LatestItems(DJPplugin):
     '''Display the latest items for a Model.'''
     name = 'latest-items'

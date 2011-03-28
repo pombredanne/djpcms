@@ -32,7 +32,8 @@ def getmodel(appmodel):
             except ValueError:
                 continue
         if not wrapper:
-            raise AttributeError('Could not find ORM wrapper for {0}'.format(model))
+            return DummyMapper(model)
+            #raise AttributeError('Could not find ORM wrapper for {0}'.format(model))
         else:
             setattr(model,'_djpcms_orm_wrapper',wrapper)
     return wrapper

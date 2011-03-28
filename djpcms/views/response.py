@@ -227,6 +227,8 @@ the parent of the embedded view.'''
             if 'instance' not in kwargs:
                 self.url
             return kwargs['instance']
+        else:
+            return self.kwargs.get('instance',None)
         
     def html(self):
         '''Render itself'''

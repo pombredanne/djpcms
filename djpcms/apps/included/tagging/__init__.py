@@ -1,5 +1,5 @@
 from djpcms.apps.included.archive import *
-from djpcms import forms, views
+from djpcms import forms, views, UnicodeMixin
 
 __all__ = ['cleaned_tags',
            'TagView',
@@ -21,6 +21,18 @@ using the ``separator`` and removes trailing spaces.'''
         if value:
             yield value
  
+ 
+class TagSet(UnicodeMixin):
+     
+    def __init__(self, tags):
+        self.tags = tags
+
+    def add(self, tag):
+        self.tags.add(tag)
+
+    def __unicode__(self):
+        return ' '.join(self.tags)
+    
 
 class TagField(forms.CharField):
     '''A specialized field for tags'''
@@ -29,17 +41,21 @@ class TagField(forms.CharField):
                        toslug = '-', **kwargs):
         self.choices = choices
         self.separator = separator
-        super(TagField,self)._handle_params(toslug = False, **kwargs)
+        super(TagField,self)._handle_params(toslug = toslug, **kwargs)
 
     def taggen(self, value, bfield):
-        supclean = super(TagField,self)._clean
-        for tag in cleaned_tags(value):
-            tag = supclean(tag,bfield)
-            if tag:
-                yield tag
-                        
-    def _clean(self, value, bfield):
-        return set(self.taggen(value,bfield))
+        supclean = super(TagField,self)._clean    
+        for tag in cleaned_tags(value,self.separator):
+            try:
+                tag = supclean(tag,bfield)
+            except forms.ValidationError:
+                continue
+            else:
+                if tag:
+                    yield tag
+    
+    def clean(self, value, bfield):
+        return TagSet(set(self.taggen(value,bfield)))
         
         
 def add_tags(self, c, djp, obj):

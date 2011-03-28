@@ -3,10 +3,16 @@ from djpcms.html import LazyRender
 from djpcms.contrib.monitor import views
 from djpcms.apps.included.admin import AdminApplication
 from djpcms.html import Table, ObjectDefinition
+from djpcms.utils import mark_safe
 
 from stdnet.lib import redis
+from stdnet.orm import model_iterator
 
 from .redisinfo import redis_info, RedisServerForm
+
+
+__all__ = ['RedisMonitorApplication',
+           'StdModelApplication']
 
 
 class RedisMonitorApplication(AdminApplication):
@@ -52,6 +58,76 @@ class RedisMonitorApplication(AdminApplication):
     
     
 class StdModelApplication(views.ModelApplication):
-    search      = views.SearchView()
-    information = views.StdModelInformationView(regex = 'info')
-    flush       = views.StdModelDeleteAllView(regex = 'flush')
+    '''Display Information about a stdnet model'''
+    object_display = ['name','app_label','database','keyprefix','timeout']
+    list_display = ['name','app_label','database','keyprefix','timeout']
+    search = views.View(astable = True)
+    app = views.View(astable = True,
+                     regex = '(?P<app>{0})'.format(views.SLUG_REGEX),
+                     title = lambda djp : djp.kwargs['app'])
+    view = views.View(regex = '(?P<model>{0})'.format(views.SLUG_REGEX),
+                      parent = 'app',
+                      renderer = lambda djp: djp.view.appmodel.render_model(djp),
+                      title = lambda djp: djp.view.appmodel.model_title(djp))
+    flush = views.StdModelDeleteAllView(regex = 'flush',
+                                        parent = 'view')
+    
+    def basequery(self, djp):
+        models = model_iterator(djp.root.settings.INSTALLED_APPS)
+        application = djp.kwargs.get('app',None)
+        mname = djp.kwargs.get('model',None)
+        done = False
+        for model in models:
+            if done:
+                raise StopIteration
+            meta = model._meta
+            app = meta.app_label
+            name = meta.name
+            if application:
+                if application != app:
+                    continue
+                elif mname and mname != name:
+                    continue
+                else:
+                    djp.kwargs['instance'] = meta
+                    done = True
+            yield meta
+            #view = self.getview('view')(djp.request, app = app,
+            #                            model = name)
+            #appview = self.getview('app')(djp.request, app = app)
+            #if view:
+            #    name = mark_safe('<a href="{0}" title="{1} model">{1}</a>'.format(view.url,name))
+            #if appview:
+            #    app = mark_safe('<a href="{0}" title="{1} application group">{1}</a>'.format(appview.url,app))
+            #yield (name,app,str(meta.cursor))
+            
+    def objectbits(self, obj):
+        return {'app':obj.app_label,
+                'model':obj.name}
+        
+    def render(self, djp):
+        qs = self.basequery(djp)
+        return self.render_query(djp, qs)
+    
+    def get_instance(self, djp):
+        model = djp.instance
+        if not model:
+            list(self.basequery(djp))
+            model = djp.instance
+        return model
+    
+    def model_title(self, djp):
+        model = self.get_instance(djp)
+        if model:
+            return model.name
+        
+    def render_model(self, djp):
+        model = self.get_instance(djp)
+        if not model:
+            raise djp.http.Http404('Model {0[app]}.{0[name]} not available'.format(djp.kwargs))
+        info = ObjectDefinition(self, djp)
+        return loader.render('monitor/stdmodel.html',
+                             {'meta':model,
+                              'info':info})
+    
+        

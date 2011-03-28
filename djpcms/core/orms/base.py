@@ -7,6 +7,7 @@ from djpcms.utils.text import nicename
 from djpcms.template import loader
 
 __all__ = ['BaseOrmWrapper',
+           'DummyMapper',
            'nicerepr']
 
 
@@ -61,29 +62,11 @@ wrap existing object relational mappers.
         self.list_display_links = appmodel.list_display_links or []
         self.search_fields = appmodel.search_fields or []
         
-    def getrepr(self, name, instance):
-        attr = getattr(instance,name,None)
-        if hasattr(attr,'__call__'):
-            return attr()
-        else:
-            return attr
-        
     def model_to_dict(self, instance, fields = None, exclude = None):
         raise NotImplementedError
     
     def _label_for_field(self, name):
         return nicename(name)
-        
-    def appfuncname(self, name):
-        return 'objectfunction__%s' % name
-    
-    def get_value(self, instance, name, default = nodata):
-        default = default if default is not nodata else sites.settings.DJPCMS_EMPTY_VALUE
-        func = getattr(self.appmodel,self.appfuncname(name),None)
-        if func:
-            return func(instance)
-        else:
-            return default
     
     def label_for_field(self, name):
         '''Get the lable for field or attribute or function *name*.'''
@@ -150,3 +133,13 @@ Return an iterable over items'''
     @classmethod
     def setup_environment(cls,sites_):
         pass
+
+
+class DummyMapper(BaseOrmWrapper):
+    
+    def __init__(self, model):
+        self.model = model
+        
+    def unique_id(self, obj):
+        return hash(obj)
+        

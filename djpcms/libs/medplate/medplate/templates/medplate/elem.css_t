@@ -1,6 +1,6 @@
 {% extends "medplate/root.css_t" %}
 
-{% block include-media %}{% endblock %}
+{% block include_media %}{% endblock %}
 
 {% block description %}
 /*
@@ -8,7 +8,8 @@
 {{ description }}
 ----------------------------------------------- */{% endblock %}
 
-{% block main-properties %}
+{% block main_properties %}
+/* {{ tag }} tag properties. */
 {{ tag }} {{% if background %}
 	background: {{ background }};{% endif %}{% if color %}
 	color: {{ color }};{% endif %}{% if font_family %}

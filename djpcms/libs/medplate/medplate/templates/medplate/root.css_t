@@ -1,6 +1,6 @@
 {% block description %}{% endblock %}
-{% block include-media %}{% endblock %}
-{% block main-properties %}{% endblock %}
+{% block include_media %}{% endblock %}
+{% block main_properties %}{% endblock %}
 {% block body %}{% endblock %}{% for elem in elems %}
 {{ elem }}{% endfor %}
-{% block end-layout %}{% endblock %}
+{% block end_layout %}{% endblock %}

@@ -170,6 +170,7 @@ def saveform(djp, editing = False, force_redirect = False):
 This method try to deal with all possible events occurring after a form
 has been submitted.'''
     view = djp.view
+    appmodel = view.appmodel
     request = djp.request
     http = djp.http
     is_ajax = request.is_xhr
@@ -187,9 +188,9 @@ has been submitted.'''
         redirect_url = referer
         if not redirect_url:
             if djp.instance:
-                redirect_url = view.appmodel.viewurl(request,djp.instance)
+                redirect_url = appmodel.viewurl(request,djp.instance)
             if not redirect_url:
-                redirect_url = view.appmodel.searchurl(request) or '/'
+                redirect_url = appmodel.searchurl(request) or '/'
 
         if is_ajax:
             return jredirect(url = redirect_url)
@@ -206,16 +207,20 @@ has been submitted.'''
         
         # Save and continue. Redirect to referer if not AJAX or send messages 
         if SAVE_AND_CONTINUE_KEY in data:
-            if is_ajax:
-                return layout.json_messages(f)
+            if editing:
+                if is_ajax:
+                    return layout.json_messages(f)
+                else:
+                    set_request_message(f,request)
+                    return http.HttpResponseRedirect(curr)
             else:
-                set_request_message(f,request)
-                return http.HttpResponseRedirect(curr)
+                redirect_url = appmodel.changeurl(request, instance)                    
 
         # Check redirect url
-        redirect_url = view.defaultredirect(request,
-                                            next = referer,
-                                            instance = instance)
+        else:
+            redirect_url = view.defaultredirect(request,
+                                                next = referer,
+                                                instance = instance)
             
         # not forcing redirect. Check if we can send a JSON message
         if not force_redirect:

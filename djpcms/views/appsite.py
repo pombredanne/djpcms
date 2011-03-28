@@ -13,7 +13,7 @@ from djpcms import forms
 from djpcms.html import ObjectDefinition, Paginator, Table,\
                         SubmitInput, MediaDefiningClass
 from djpcms.template import loader
-from djpcms.core.orms import mapper
+from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException, AlreadyRegistered
 from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
@@ -153,6 +153,10 @@ or in the constructor.
     instance of :class:`djpcms.views.ApplicationSite`, the application site manager
     to which the application is registered with.
     
+.. attribute:: list_display
+
+    An list or a tuple over attribute's names to display in pagination views.
+    
 .. attribute:: editavailable
 
     ``True`` if :ref:`inline editing <inline-editing>`
@@ -187,6 +191,7 @@ or in the constructor.
     '''Flag indicating if API is available. Default ``False``.'''
     has_plugins      = True
     hidden           = False
+    related_field    = None
     '''If ``True`` the application is only used internally and it won't
     appear in any navigation.
     
@@ -211,6 +216,8 @@ of objects. Default is ``None``.'''
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
 
+    actions = []
+    astable = None
     # Submit buton customization
     _form_add        = 'add'
     _form_edit       = 'change'
@@ -224,11 +231,13 @@ of objects. Default is ``None``.'''
                  list_per_page = None, form = None, list_display = None,
                  list_display_links = None, in_navigation = None,
                  description = None, template_name = None, parent = None,
+                 related_field = None, astable = None,
                  apps = None, **views):
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
         self.site = None
+        self.astable = astable if astable is not None else self.astable
         self.root_view = None
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation
@@ -237,6 +246,7 @@ of objects. Default is ``None``.'''
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
         self.list_display_links = list_display_links or self.list_display_links
+        self.related_field = related_field or self.related_field
         self.form = form or self.form
         self.creation_counter = Application.creation_counter
         Application.creation_counter += 1
@@ -448,7 +458,7 @@ Return ``None`` if the view is not available.'''
         for ex in self.exclude_links:
             if ex not in exclude:
                 exclude.append(ex)
-        content = {'geturls':gets,
+        content = {'links':gets,
                    'posturls':posts}
         kwargs  = djp.kwargs
         for view in self.views.itervalues():
@@ -503,7 +513,8 @@ By default it return a generator of children pages.'''
         
         if astable:
             items = self.table_generator(djp, headers, p.qs)
-            return Table(djp, headers, items, appmodel.model, paginator = p).render()
+            return Table(djp, headers, items, appmodel.model, paginator = p,
+                         appmodel = self).render()
         else:
             c  = djp.kwargs.copy()
             c.update({'paginator': p,
@@ -520,7 +531,13 @@ By default it return a generator of children pages.'''
             djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
             return djp.for_user()
             
-
+    def get_intance_value(self, obj, field_name):
+        fname = 'objectfunction__%s' % field_name
+        if hasattr(self,fname):
+            return getattr(self,fname)(obj)
+        else:
+            return None
+    
 class ModelApplication(Application):
     '''An :class:`Application` class for applications
 based on a back-end database model.
@@ -662,16 +679,21 @@ Re-implement for custom arguments.'''
     #-----------------------------------------------------------------------------------------------
     
     def basequery(self, djp, **kwargs):
-        '''
-        Starting queryset for searching objects in model.
-        This can be re-implemented by subclasses.
-        By default returns all
-        '''
+        '''Starting queryset for searching objects in model.
+This can be re-implemented by subclasses.'''
         user = self.for_user(djp)
         if user:
-            return self.mapper.filter(user = user)
+            qs = self.mapper.filter(user = user)
         else:
-            return self.mapper.all()
+            qs = self.mapper.all()
+        related_field = self.related_field
+        if related_field:
+            parent = djp.parent
+            if parent:
+                instance = parent.instance
+                if instance and not isinstance(instance,self.model):
+                    qs = qs.filter(**{related_field:instance})
+        return qs
     
     def orderquery(self, qs):
         return qs
@@ -700,12 +722,11 @@ This dictionary should be used to render an object within a template. It returns
         css     = djp.css
         next    = djp.url
         request = djp.request
-        post    = ('post',)
-        posts   = []
+        post = ('post',)
+        links = []
         gets    = []
         exclude = self.exclude_object_links
-        content = {'geturls':gets,
-                   'posturls':posts,
+        content = {'links':links,
                    'module_name':self.mapper.module_name}
         for view in self.object_views:
             djpv = view(request, instance = obj)
@@ -721,7 +742,7 @@ This dictionary should be used to render an object within a template. It returns
                         cl = ' class="%s %s"' % (css.ajax,css.nicebutton)
                     else:
                         cl = ' class="%s"' % css.nicebutton
-                    posts.append(mark_safe('<a href="%s"%s%s name="%s">%s</a>' % 
+                    links.append(mark_safe('<a href="%s"%s%s name="%s">%s</a>' % 
                                             (url,cl,title,name,name)))
                 content['%surl' % name] = url
         return content

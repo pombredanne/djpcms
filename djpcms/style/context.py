@@ -15,12 +15,20 @@ CssContext('anchor',
                    'weight':'normal',
         }
 )
+CssContext('float_right',
+           tag = '.right',
+           data = {
+                   'float':'right',
+                   }
+)
 
-#________________________________________ HORIZONTAL LIST
+
+#________________________________________ horizontal_list    -    HORIZONTAL LIST
 CssContext('horizontal_list',
            tag = '.horizontal li',
            data = {
                    'display':'inline',
+                   'margin':'0 5px'
                    }
 )
 
@@ -33,7 +41,7 @@ CssContext('widget-anchor',
                    }
            )
                     
-#________________________________________ MAIN NAVIGATION
+#________________________________________ nav    -     MAIN NAVIGATION
 CssContext('nav',
            tag='ul.main-nav',
            template='djpcms/style/horizontal_navigation.css_t',
@@ -64,15 +72,13 @@ CssContext('paginator',
            )
 
 
-#________________________________________ UNIFORMS
+#________________________________________ FORM & UNIFORMS
 CssContext('uniform',
            tag = 'form.uniForm',
            template = 'djpcms/style/uniform.css_t',
            data = {
                    'background':'transparent',
                    'text_align':'left',
-                   'input_border':'1px solid #ccc',
-                   'input_padding': '3px 3px',
                    'table_padding': '2px 5px 2px 0',
                    'buttonholder_padding': "10px 0",
                    'error_color': '#af4c4c',
@@ -89,6 +95,12 @@ CssContext('label',
            parent = 'uniform'
            )
 
+CssContext('field-widget-input',
+           tag = '.field-widget.input',
+           data = {
+                   'padding': '3px 3px'
+                   }
+)
 #________________________________________ SUBMITS AND BUTTONS
 #CssContext('button',
 #           tag = '.ui-button',
@@ -145,12 +157,23 @@ CssContext('tablesorter',
            )
 
 
-#________________________________________ djpcms-block-element
+#________________________________________ blockelement
 CssContext('blockelement',
            tag = '.djpcms-block-element, .edit-block',
            data = {
                    'margin': '0 0 20px 0'
                    }
+           )
+
+CssContext('blockelement_preview',
+           tag = '.edit-block .preview .djpcms-block-element',
+           data = {
+                   'margin': '0'
+                   }
+           )
+
+CssContext('edit_plugin_body',
+           tag = '.edit-block .bd.plugin-form'
            )
 
 #________________________________________ BOX
@@ -162,7 +185,7 @@ box = CssContext('box',
 
 CssContext('hd',
            parent = box,
-           tag='div.hd',
+           tag='.hd',
            template='djpcms/style/box/header.css_t',
            data={'padding':BOX_HEADER_PADDING,
                  #'text_transform':'uppercase',
@@ -171,12 +194,12 @@ CssContext('hd',
                  'overflow':'hidden'}),
 CssContext('bd',
            parent = box,
-           tag='div.bd',
+           tag='.bd',
            data={'padding':BOX_BODY_PADDING,
                  'border':'none'}),
 CssContext('ft',
            parent = box,
-           tag='div.ft',
+           tag='.ft',
            data={'padding':BOX_BODY_PADDING,
                  'overflow':'hidden',
                  'border':'none'})
@@ -193,8 +216,8 @@ editbox = CssContext('editbox',
 
 CssContext('editboxft',
            parent = editbox,
-           tag='div.ft',
-           data={'padding':'5px 0 0 0',
+           tag=' > .ft',
+           data={'padding':'0',
                  'overflow':'hidden',
                  'border':'none'})
 

@@ -1,4 +1,4 @@
-<ul class="simple-nav right user">{% if pagelink %}
+<ul class="horizontal right user">{% if pagelink %}
  <li class="secondary">{{ pagelink }}</li>{% endif %}{% if is_authenticated %}
  {% block authenticated %} {% if user_url %}
    <li class="secondary"><a href="{% block userlink %}{{ user_url }}{% endblock %}">{{ user.username }}</a></li>{% endif %}

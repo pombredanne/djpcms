@@ -138,6 +138,7 @@ Return an iterable over items'''
 class DummyMapper(BaseOrmWrapper):
     
     def __init__(self, model):
+        self.hash = None
         self.model = model
         
     def unique_id(self, obj):

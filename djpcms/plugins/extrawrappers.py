@@ -33,6 +33,8 @@ class BoxWrapper(DJPwrapper):
     collapsable = False
     collapsed = False
     header_classes = 'ui-widget-header'
+    body_classes = 'ui-widget-content'
+    footer_classes = 'ui-widget-content'
     
     def wrap(self, djp, cblock, html):
         if html:
@@ -41,6 +43,8 @@ class BoxWrapper(DJPwrapper):
                        hd = self.title(cblock),
                        bd = html,
                        header_classes = self.header_classes,
+                       body_classes = self.body_classes,
+                       footer_classes = self.footer_classes,
                        ft = self.footer(djp,cblock,html),
                        collapsable = self.collapsable,
                        collapsed = self.collapsed,

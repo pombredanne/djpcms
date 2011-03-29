@@ -86,7 +86,6 @@
     	        twitter_user: null,
     	        fadetime: 200,
     	        ajaxtimeout: 30,
-    	        tablesorter: {widgets:['zebra','hovering']},
     	        debug: false
     	        };
     	
@@ -479,22 +478,12 @@
      */
     $.djpcms.decorator({
         id:"tablesorter",
+        config: {
+            widgets:['zebra','hovering','toolbox']
+        },
         decorate: function($this,config) {
             $('table.tablesorter',$this).each(function() {
                 $(this).tablesorter(config.tablesorter);
-            });
-            $('.tablesorter-with-actions').each(function() {
-                var me = $(this),
-                    all = $('.action-check input',me),
-                    tr = $('tbody tr',me);
-                $('.select_all',me).click(function() {
-                    all.attr({'checked':'checked'});
-                    tr.addClass('ui-state-highlight');
-                });
-                $('.select_none',me).click(function() {
-                    all.removeAttr('checked');
-                    tr.removeClass('ui-state-highlight');
-                });
             });
         }
     });
@@ -675,11 +664,10 @@
     	id:"autocomplete_off",
     	decorate: function($this,config) {
     		$('.autocomplete-off',$this).each(function() {
-    			$(this).val('');
     			$(this).attr('autocomplete','off');
     		});
     		$('input:password',$this).each(function() {
-    			$(this).val('').attr('autocomplete','off');
+    			$(this).attr('autocomplete','off');
     		});
     	}
     });
@@ -691,12 +679,13 @@
     	id:"classy-search",
     	decorate: function($this,config) {
     		$('.classy-search',$this).each(function() {
-    			var el = $(this);
-    			el.defaultValue = el.attr('title');
-    			if(!el.val()) {
-    				el.val(el.defaultValue);
+    			var el = $(this),
+    			    val = el.val(),
+    			    df = el.attr('title');
+    			if(!val) {
+    				el.val(df);
     			}
-    			if(el.val() === el.defaultValue) {
+    			if(el.val() === df) {
     				el.addClass('idlefield');
     			}
     			el.focus(function() {

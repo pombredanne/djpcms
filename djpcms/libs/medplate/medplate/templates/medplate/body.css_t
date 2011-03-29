@@ -36,36 +36,6 @@ blockquote div.body-quote {
 }
 {% endblock %}
 
-{% block simple-nav %}
-
-/** UL.SIMPLE-NAV
------------------------------------------------------------*/
-ul.simple-nav li {
-	display: inline;
-}
-ul.simple-nav.right {
-	float: right;
-}
-ul.simple-nav.right li {
-	margin-left: 10px;
-}
-{% endblock %}
-
-
-/** BLOCKS
---------------------------------------------------------- */
-div.djpcms-block {
-    padding:0;
-    margin:0;
-    overflow:hidden;
-}
-div.djpcms-block-element,
-div.edit-block,
-div.djpcms-placeholder {
-    overflow: hidden;
-    margin-bottom: {{ block_spacing }};
-}
-
 
 {% block action %}
 

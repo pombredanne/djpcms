@@ -1,7 +1,7 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block body %}
-{{ tag }}.collapsed .bd {
+{{ tag }}.collapsed > .bd {
 	display: none;
 }
 {{ tag }} .edit-menu {

@@ -251,6 +251,7 @@ class FlowItemApplication(ArchiveTaggedApplication):
 
 class WebAccountApplication(TagApplication):
     list_display_links = ('name',)
+    search_fields = ('name','url','tags')
     name             = 'webaccount'
     form             = NiceWebAccountForm
     form_withrequest = True

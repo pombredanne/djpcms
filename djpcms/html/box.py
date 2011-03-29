@@ -5,16 +5,20 @@ class BoxWidget(HtmlWidget):
     tag = 'div'
     template = ('box.html','djpcms/components/box.html')
     header_classes = 'ui-widget-header'
+    body_classes = 'ui-widget-content'
+    footer_classes = 'ui-widget-content'
     
-    def __init__(self, hd = None, bd = None, ft = None, header_classes = None, **kwargs):
+    def __init__(self, hd = None, bd = None, ft = None, header_classes = None,
+                 body_classes = None, footer_classes = None, **kwargs):
         self.menulist = []
         self.header_classes = header_classes or self.header_classes
+        self.body_classes = body_classes or self.header_classes
+        self.footer_classes = header_classes or self.footer_classes
         self._ctx = {'title': None if not hd else hd,
                      'hd': True,
                      'bd': None if not bd else bd,
                      'ft': None if not ft else ft,
-                     'header_classes':self.header_classes,
-                     'menulist': self.menulist}
+                     'self': self}
         super(BoxWidget,self).__init__(**kwargs)
         
     def get_context(self, context):

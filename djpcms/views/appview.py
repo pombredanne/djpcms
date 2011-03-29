@@ -356,10 +356,11 @@ views::
         return self.route().get_url(**djp.kwargs)
         
     def title(self, djp):
+        title = None
         page = djp.page
         if page:
             title = page.title
-        else:
+        if not title:
             title = self.default_title or self.appmodel.description
         return title.format(djp.kwargs)
     

@@ -28,6 +28,7 @@ class EditWrapperHandler(CollapsedWrapper):
     '''
     auto_register = False
     header_classes = CollapsedWrapper.header_classes + ' ui-state-active'
+    body_classes = CollapsedWrapper.body_classes + ' plugin-form'
     
     def __init__(self, url):
         self.url = url
@@ -67,7 +68,7 @@ class ChangeContentView(views.ChangeView):
                                            plugin = plugin)
         except Exception as e:
             preview_html = '%s' % e
-        return mark_safe('<div id="%s">%s</div>' % (instance.pluginid('preview'),preview_html))
+        return mark_safe('<div id="%s" class="preview">%s</div>' % (instance.pluginid('preview'),preview_html))
     
     def __get_form(self, djp, force_prefix = True, **kwargs):
         '''Get the contentblock editing form

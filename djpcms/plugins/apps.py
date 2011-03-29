@@ -12,7 +12,8 @@ def registered_models(bfield):
     for model,app in site._registry.items():
         if not app.hidden:
             id = mapper(model).hash
-            yield id,str(model._meta)
+            if id:
+                yield id,str(model._meta)
     
     
 class ForModelForm(forms.Form):

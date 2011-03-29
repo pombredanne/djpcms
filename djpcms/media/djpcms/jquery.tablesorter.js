@@ -1082,4 +1082,28 @@
             });
         }
     });
+    
+    /**
+     * Table-sorter decorator
+     * decorate tables with jquery.tablesorter plugin
+     * Plugin can be found at http://tablesorter.com/
+     */
+    ts.addWidget({
+        id:"toolbox",
+        format: function(table) {
+            var me = $(table).prev('.toolbox');
+            if(me.length) {
+                var all = $('.action-check input',me),
+                    tr = $('tbody tr',me);
+                $('.select_all',me).click(function() {
+                    all.attr({'checked':'checked'});
+                    tr.addClass('ui-state-highlight');
+                });
+                $('.select_none',me).click(function() {
+                    all.removeAttr('checked');
+                    tr.removeClass('ui-state-highlight');
+                });
+            }
+        }
+    });
 }(jQuery));

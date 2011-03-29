@@ -29,6 +29,7 @@ CssTheme('breadcrumbs',
          theme_name,
          data = {})
 
+
 CssTheme('bodyedit',
          theme_name,
          data = {
@@ -38,9 +39,7 @@ CssTheme('bodyedit',
 
 CssTheme('box',
          theme_name,
-         data = {
-                 'background':'#aaa'
-                 })
+         data = {})
 
 CssTheme('flatbox',
          theme_name,
@@ -84,3 +83,19 @@ CssTheme('nav',
                 'radius': '14px'
                },
          )
+
+CssTheme('edit_plugin_body',
+         theme_name,
+         data = {
+                 'background':'#BAE28D'
+                 }
+)
+
+
+CssTheme('field-widget-input',
+         theme_name,
+         data = {
+                 'background':'#ffffff',
+                 'border':'1px solid #a6c9e2'
+                 }
+)

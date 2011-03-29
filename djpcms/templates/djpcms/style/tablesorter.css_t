@@ -4,7 +4,6 @@
 {% block body %}
 {{ tag }} thead tr th,
 {{ tag }} tfoot tr th {
-    background-color: {{ head_background_color }};
     border: {{ head_border }};{% if head_font_size %}
     font-size: {{ head_font_size }};{% endif %}
     padding: {{ head_padding }};
@@ -13,7 +12,8 @@
     cursor: pointer;
 }
 {{ tag }} tbody tr {
-    border: 1px solid {{ body_border_color }};
+    border-right: 1px solid {{ body_border_color }};
+    border-left: 1px solid {{ body_border_color }};
     border-top: {{ row_border }};
     border-bottom: {{ row_border }};
 }
@@ -24,7 +24,7 @@
     padding: 4px;
     vertical-align: top;
 }
-{{ tag }} tbody tr.odd td {
+{{ tag }} tbody tr.odd {
     background-color: {{ odd_background_color }};
 }
 {{ tag }} thead tr .ui-state-highlight,

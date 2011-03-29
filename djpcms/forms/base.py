@@ -169,6 +169,8 @@ browser based application as well as remote procedure calls validation.
             self.mapper = mapper(model)
             if not self.instance:
                 self.instance = model()
+        else:
+            self.mapper = None
         self.form_sets = []
         self.forms = []
         if not self.is_bound:

@@ -75,7 +75,6 @@
     	            'flush': 'Please confirm flush'
     	                },
     	        autoload_class: "autoload",
-    	        post_view_key: "xhr",
     	        ajax_server_error: "ajax-server-error",
     	        errorlist: "errorlist",
     	        formmessages: "form-messages",
@@ -104,12 +103,14 @@
     		}
     	}
     	
-    	function _postparam(name) {
-    		var reqdata = {submitkey: defaults.post_view_key};
-    		if(name){
-    			reqdata[defaults.post_view_key] = name;
-    		}
-    		return reqdata;
+    	function _postparam(name, data) {
+    	    var p = {'xhr':name};
+    	    if(data) {
+    	        return $.extend(p,data);
+    	    }
+    	    else {
+    	        return p;
+    	    }
     	}
     	
     	// Set options
@@ -192,7 +193,7 @@
     	    jsonCallBack: _jsonCallBack,
     	    decorator: addDecorator,
     	    set_options: setOptions,
-    	    postparam: _postparam,
+    	    ajaxparams: _postparam,
     	    set_inrequest: function(v){inrequest=v;},
     	    'inrequest': function(){return inrequest;},
     	    'log': log,
@@ -347,8 +348,9 @@
     				el = $(b.identifier);
     			}
     			if(el) {
-    				var be = $.djpcms.options.remove_effect;
-    				el.hide(be.type,{},be.duration,function() {el.remove();});
+    			    var be = $.djpcms.options.remove_effect;
+    			    el.fadeIn(be.duration, function() {el.remove();});
+    				//el.hide(be.type,{},be.duration,function() {el.remove();});
     			}
     		});
     		return true;
@@ -399,7 +401,7 @@
     				if(b.url) {
     					var params = $('form',el).formToArray();
     					if(b.func) {
-    						var extra = $.djpcms.postparam(b.func);
+    						var extra = $.djpcms.ajaxparams(b.func);
     						$.each(extra, function(k,v) {
     							params.push({'name':k, 'value':v});
     						});
@@ -554,11 +556,8 @@
                 else {
     				var url = elem.attr('href');
     				if(url) {
-    					var p = $.djpcms.postparam(name);
-    					$.post(url,
-    							$.param(p),
-    							callback,
-    							"json");
+    					var p = $.djpcms.ajaxparams(name);
+    					$.post(url,p,callback,"json");
     				}
                 }
     		}
@@ -617,7 +616,7 @@
     			}
     			
     			if(!f) {
-    				var p   = $.djpcms.postparam(elem.attr('name'));
+    				var p   = $.djpcms.ajaxparams(elem.attr('name'));
     				p.value = elem.val();
     				$.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
     			}
@@ -999,7 +998,7 @@
     	        }
     	        
     			function moveblock(elem, pos, callback) {
-    				var data = $.extend($.djpcms.postparam('rearrange'),pos);
+    				var data = $.extend($.djpcms.ajaxparams('rearrange'),pos);
     				var form = $('form.djpcms-blockcontent',elem);
     				function movedone(e,s) {
     					$.djpcms.jsonCallBack(e,s);
@@ -1116,6 +1115,70 @@
     		}
     		return {value:cs,negative:isneg};
     	}
+    
+        
+        if($.tablesorter) {
+            /**
+             * A tablesorter widget for enabling actions on rowsS
+             */
+            $.tablesorter.addWidget({
+                id:"toolbox",
+                format: function(table) {
+                    var tbl = $(table),
+                        me = tbl.prev('.toolbox'),
+                        select = $('select',me);
+                    
+                    if(me.length === 1 && select.length === 1) {
+                        var data = select.data(),
+                            url = data['url'];
+                        if(url) {
+                            function handle_callback(e,o) {
+                                $.djpcms.jsonCallBack(e,o,table);
+                            }
+                            
+                            function toggle(chk) {
+                                chk.each(function() {
+                                    var el = $(this),
+                                        tr = el.parents('tr');
+                                    if(el.is(':checked')) {
+                                        tr.addClass('ui-state-highlight');
+                                    }
+                                    else {
+                                        tr.removeClass('ui-state-highlight');
+                                    }
+                                });
+                            }
+                            
+                            tbl.delegate('.action-check input','click', function() {
+                                toggle($(this));
+                            });
+                            
+                            select.change(function() {
+                                if(this.value) {
+                                    var ids = [],
+                                        data = $.djpcms.ajaxparams('action',
+                                                                    {'ids':ids,
+                                                                     'action':this.value});
+                                    $('.action-check input:checked',this.table).each(function() {
+                                        ids.push(this.value);
+                                    });
+                                    $.post(url,
+                                           data,
+                                           handle_callback,
+                                           'json')                       
+                                }
+                            });
+                            $('.select_all',me).click(function() {
+                                toggle($('.action-check input').attr({'checked':'checked'}));
+                            });
+                            $('.select_none',me).click(function() {
+                                toggle($('.action-check input').attr({'checked':''}));
+                            });
+                        }
+                    }
+                }
+            });
+        }
     		
     }(jQuery));
     

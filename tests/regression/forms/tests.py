@@ -1,4 +1,4 @@
-from djpcms import test, forms
+from djpcms import test, forms, sites
 from djpcms.plugins.apps import HtmlSearchForm
 from djpcms.apps.included.contentedit import PageForm, EditContentForm
 from .forms import SimpleForm
@@ -44,8 +44,31 @@ class TestSimpleForm(test.TestCase):
         p = PageForm()
         self.assertFalse(p.is_bound)
         initial = p.initial
-        self.assertEqual(initial['in_navigation'],1)
+        self.assertEqual(initial['in_navigation'],0)
         self.assertEqual(d,initial)
+        
+    @test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
+    def testPageFormBound(self):
+        from djpcms.models import Page
+        d = dict(PageForm.initials())
+        p = PageForm(data = d)
+        self.assertFalse(p.is_valid())
+        p = PageForm(data = d, model = Page)
+        self.assertTrue(p.is_valid())
+        page = p.save()
+        page = Page.objects.get(id = page.id)
+        for k,v in d.items():
+            self.assertEqual(getattr(page,k),v)
+        p = PageForm(instance = page)
+        dp = p.initial
+        for k,v in d.items():
+            self.assertEqual(dp[k],v)
+            
+        # Now we test the rendered form
+        hf = forms.HtmlForm(PageForm)
+        w = hf.widget(p, action = '/test/')
+        html = w.render()
+        self.assertTrue('value="0"' in html)
         
     def testSearchForm(self):
         '''Test the search form in :mod:`djpcms.plugins.apps`'''
@@ -59,7 +82,7 @@ class TestSimpleForm(test.TestCase):
         html = widget.render()
         self.assertTrue(html)
         
-    def testContentEditForm(self):
+    def __testContentEditForm(self):
         form = EditContentForm()
         self.assertFalse(form.is_bound)
         #

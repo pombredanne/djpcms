@@ -12,6 +12,7 @@ from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
+from djpcms.utils.ajax import jcollection, jremove 
 
 
 __all__ = ['View',
@@ -463,6 +464,23 @@ class ModelView(View):
     '''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
+    
+    def get_instances(self, djp):
+        data = djp.request.data_dict
+        if 'ids' in data:
+            return self.appmodel.mapper.filter(id__in = data['ids'])
+        
+    def ajax__delete(self, djp):
+        '''An ajax view for deleting a list of ids.'''
+        objs = self.get_instances(djp)
+        mapper = self.appmodel.mapper
+        c = jcollection()
+        if objs:
+            for obj in objs:
+                id = mapper.unique_id(obj)
+                obj.delete()
+                c.append(jremove('#'+id))
+        return c
 
     
 class SearchView(ModelView):

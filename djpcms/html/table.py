@@ -6,13 +6,18 @@ from djpcms.utils.text import nicename
 from djpcms.html import icons
 
 from .nicerepr import *
-from .widgets import SelectWithAction
+from .widgets import Select
 
 __all__ = ['Table']
     
     
-def table_toolbox(appmodel, djp, headers):
-    '''Create a toolbox for the table if possible'''
+def table_toolbox(djp, appmodel):
+    '''\
+Create a toolbox for the table if possible.
+
+:parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
+:parameter appmodel: an instance of a :class:`djpcms.views.Application`.
+'''
     request = djp.request
     site = djp.site
     addurl = appmodel.addurl(djp.request)
@@ -24,8 +29,7 @@ def table_toolbox(appmodel, djp, headers):
             choices.append((name,description))
     toolbox = {}
     if len(choices) > 1:
-        toolbox['actions'] = SelectWithAction(choices, action_url)
-        toolbox['cols'] = len(headers)
+        toolbox['actions'] = Select(choices).addData('url',action_url).render()
     if addurl:
         toolbox['links'] = [icons.circle_plus(addurl,'add')]
     return toolbox
@@ -77,7 +81,7 @@ Render a table given a response object ``djp``.
         toolbox = None
         actions = False
         if mapper:
-            toolbox = table_toolbox(appmodel, djp, headers)
+            toolbox = table_toolbox(djp, appmodel)
             actions = 'actions' in toolbox
             
         items  = (results_for_item(djp, headers, d, appmodel,\

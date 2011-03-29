@@ -8,20 +8,6 @@
     overflow: hidden;
     padding: 5px;
 }
-{{ tag }} input[type="text"],
-{{ tag }} input[type="password"],
-{{ tag }} textarea,
-{{ tag }} select {
-    border: none;
-    padding: 0;
-    width:100%;
-    background: transparent;
-}
-{{ tag }} input:focus,
-{{ tag }} select:focus {
-	border: none;
-	outline: none; /*This is for google chrome*/
-}
 {{ tag }} input[type="checkbox"] {
     float: left;
     width:auto;

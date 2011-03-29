@@ -22,29 +22,33 @@ class TemplateForm(forms.Form):
 
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
-    url = forms.CharField(required = False)
+    url = forms.CharField(initial = '/')
     title = forms.CharField(label = 'Page title',
                             required = False)
     link = forms.CharField(label = 'Text to display in links',
                            required = False)
     in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.',
-                                       initial = 1,
+                                       initial = 0,
                                        required = False)
     inner_template = forms.ChoiceField(choices = get_templates,
                                        required = False)   
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
+    doctype = forms.ChoiceField(choices = html.html_choices,
+                                initial = html.htmldefaultdoc)
     layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')),
-                               default = 0,
                                initial = 0)
     
     def clean_url(self, value):
-        try:
-            page = self.mapper.get(url = value)
-        except self.mapper.DoesNotExist:
-            page = None
-        if page and self.instance != page:
-            raise forms.ValidationError('A page with url "{0}" is already available'.format(value))
+        if self.mapper:
+            try:
+                page = self.mapper.get(url = value)
+            except self.mapper.DoesNotExist:
+                page = None
+            if page and self.instance != page:
+                raise forms.ValidationError('A page with url "{0}" is already available'.format(value))
+        else:
+            raise forms.ValidationError('No page model defined. Cannot validate')
         return value
     
 

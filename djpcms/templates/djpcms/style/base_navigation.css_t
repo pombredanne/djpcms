@@ -6,6 +6,15 @@
 	z-index:9999;
 }
 
+{{ tag }} li.ui-state-active {{% if active_background %}
+    background: {{ active_background }};{% endif %}
+}{% if active_color %}
+{{ tag }} li.ui-state-active a,
+{{ tag }} li.ui-state-active a:hover,
+{{ tag }} li.ui-state-active a:visited {
+    color: {{ active_color }};
+}{% endif %}
+
 /* level 2 list */
 {{ tag }} ul {
     background: {{ hover_background }};{% if secondary_border %}

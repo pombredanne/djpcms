@@ -47,6 +47,7 @@ CssContext('nav',
            template='djpcms/style/horizontal_navigation.css_t',
            process = horizontal_navigation,
            data = {
+                   'display':'block',
                    'anchor_horizontal_padding': 20,
                    'secondary_anchor_width': 150,       # Useful! Control the with of drop-down
                    'secondary_border_with': 1,
@@ -97,6 +98,7 @@ CssContext('label',
 
 CssContext('field-widget-input',
            tag = '.field-widget.input',
+           template = 'djpcms/style/field-widget.css_t',
            data = {
                    'padding': '3px 3px'
                    }

@@ -6,12 +6,15 @@ from decimal import Decimal
 
 from py2py3 import string_type
 
+
 __all__ = ['encode_str',
            'force_str',
            'escape',
            'smart_escape',
            'mark_safe']
 
+EMPTY = ''
+NOTHING = (None,EMPTY)
 
 protected_types = (int, bool, datetime, date, time, float, Decimal)
 
@@ -76,10 +79,10 @@ def escape(html):
     """
     if hasattr(html,'__html__'):
         return html
-    if html:
-        return force_str(html).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
-    else:
+    if html in NOTHING:
         return ''
+    else:
+        return force_str(html).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 
 
 def smart_escape(text):

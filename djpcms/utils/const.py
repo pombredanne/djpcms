@@ -1,4 +1,4 @@
-from .strings import mark_safe
+from .strings import mark_safe, EMPTY, NOTHING
 
 DIV = '<div>'
 DIVEND = '</div>'

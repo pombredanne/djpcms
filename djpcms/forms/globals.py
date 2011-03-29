@@ -8,7 +8,7 @@ __all__ = ['FormException',
            'ValidationError',
            'DefaultLayout',
            'generate_prefix',
-           'get_submit_key',
+           'get_ajax_action',
            'SAVE_KEY',
            'CANCEL_KEY',
            'SAVE_AND_CONTINUE_KEY',
@@ -26,8 +26,6 @@ SAVE_AND_CONTINUE_KEY = '_save_and_continue'
 SAVE_AS_NEW_KEY = '_save_as_new'
 PREFIX_KEY = '__prefixed__'
 REFERER_KEY = '__referer__'
-
-# some AJAX and CSS classes for inputs and forms
 AJAX = 'ajax'
 NOBUTTON = 'nobutton'
 
@@ -50,13 +48,16 @@ class NoData(object):
     __str__ = __repr__
 
 
-def get_submit_key(data, key):
-    prefix = data.get(PREFIX_KEY,None)
-    submit_key = data.get(key, None)
-    if submit_key:
-        if prefix and prefix in submit_key:
-            submit_key = submit_key[len(prefix):]
-    return submit_key
+def get_ajax_action(data):
+    action = None
+    ajax_key = data.get('xhr', None)
+    if ajax_key:
+        action = data.get(ajax_key,None)
+        if action:
+            prefix = data.get(PREFIX_KEY,None)
+            if prefix and prefix in submit_key:
+                action = action[len(prefix):]
+    return action
 
 
 nodata = NoData()

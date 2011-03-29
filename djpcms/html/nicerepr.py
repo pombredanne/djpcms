@@ -25,9 +25,9 @@ divchk = '<div class="action-check">'
 spvval = '<span class="value">'
 
 
-def table_checkbox(val):
+def table_checkbox(val,id):
     if val:
-        chk = CheckboxInput(name = 'action-item').render()
+        chk = CheckboxInput(name = 'action-item', value = id).render()
         val = divchk+chk+spvval+val+SPANEND+DIVEND
     return mark_safe(val)
 
@@ -179,7 +179,7 @@ class get_app_result(object):
         
         if self.first and self.actions:
             first = False
-            var = table_checkbox(var)
+            var = table_checkbox(var, getattr(result,'id',None))
         
         escape = escape or default_escape
         var = escape(var)

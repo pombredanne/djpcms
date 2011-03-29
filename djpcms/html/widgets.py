@@ -28,8 +28,7 @@ class FieldWidget(HtmlWidget):
             if bfield.title:
                 attrs['title'] = bfield.title
             value = self.get_value(bfield.value)
-            if value:
-                attrs['value'] = value
+            attrs['value'] = value
         return super(FieldWidget,self).render(djp,bfield)
     
     def get_value(self, value):

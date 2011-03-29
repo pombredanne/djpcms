@@ -3,6 +3,7 @@ from py2py3 import iteritems
 from djpcms import sites, UnicodeMixin
 from djpcms.utils import force_str, slugify, escape
 from djpcms.utils.collections import OrderedDict
+from djpcms.utils.const import NOTHING
 from djpcms.template import loader
 from .media import BaseMedia
 
@@ -11,11 +12,12 @@ __all__ = ['flatatt',
            'HtmlAttrMixin',
            'HtmlWidget']
 
+
 def attrsiter(attrs):
     for k,v in attrs.items():
-        if v:
+        if v not in NOTHING:
             yield ' {0}="{1}"'.format(k, escape(v))
-                
+
                 
 def flatatt(attrs):
     return ''.join(attrsiter(attrs))
@@ -42,11 +44,25 @@ Any Operation on this class is similar to jQuery.
         if self.classes:
             cs = ' '.join(self.classes)
             attrs['class'] = cs
+        for k,v in self.data.items():
+            attrs['data-{0}'.format(k)] = v
         if attrs:
             return flatatt(attrs)
         else:
             return ''
         
+    @property
+    def data(self):
+        '''Dictionary of attributes.'''
+        if not hasattr(self,'_HtmlAttrMixin__data'):
+            self.__data = {}
+        return self.__data
+    
+    def addData(self, name, val):
+        if val:
+            self.data[name] = val
+            return self
+    
     @property
     def attrs(self):
         '''Dictionary of attributes.'''

@@ -59,7 +59,7 @@ class PageChangeView(views.ChangeView):
 class SiteMapApplication(views.ModelApplication):
     '''Application to use for admin sitemaps'''
     list_display = ('id', 'url','application','application_view',
-                    'template','inner_template')
+                    'template','inner_template','in_navigation','doc_type')
     main = SiteMapView(in_navigation = 1)
     
     if Page:

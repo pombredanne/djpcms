@@ -354,6 +354,7 @@ iterable over choices and a model class (if applicable).'''
             if value:
                 if not model:
                     ch = set((to_string(x[0]) for x in ch))
+                    value = to_string(value)
                 if not value in ch:
                     raise ValidationError('{0} is not a valid choice'.format(value))
         return value

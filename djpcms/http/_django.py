@@ -10,13 +10,26 @@ Request = wsgi.WSGIRequest
 STATUS_CODE_TEXT = wsgi.STATUS_CODE_TEXT
 
 
+def from_data_dict(data):
+    for key,val in data.iterlists():
+        if key.endswith('[]'):
+            key = key[:-2]
+            if not isinstance(key,(list,tuple)):
+                val = [val]
+            yield key,val
+        if len(val) > 1:
+            yield key,val
+        else:
+            yield key,val[0]
+
 def make_request(environ):
     request = Request(environ)
     request.is_xhr = request.is_ajax()
     if request.method == 'POST':
-        request.data_dict = dict(request.POST.items())
+        data = request.POST
     else:
-        request.data_dict = dict(request.GET.items())
+        data = request.GET
+    request.data_dict = dict(from_data_dict(data))
     return request
     
 

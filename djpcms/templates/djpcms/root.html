@@ -1,14 +1,12 @@
 {% block doctype_html %}{{ htmldoc.html }}{% endblock %}
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>{% block title %}{% if title %}{{ title }} - {% endif %}{% block sitetitle %}{% endblock %}{% endblock %}</title>
-<!-- Global IE fix to avoid layout crash when single word size wider than column width -->
-<!--[if IE]><style type="text/css"> body {word-wrap: break-word;}</style><![endif]-->{% block meta_content %}
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />{% endblock %}{% block meta_language %}
-<meta http-equiv="Content-Language" content="en-uk" />{% endblock %}
+{{ htmldoc.meta }}
 {% block blockbots %}{%if robots %}<meta name="ROBOTS" content="{{ robots }}" />{% endif %}{% endblock %}
 {% block blockkeywords %}<meta name="keywords" content="{% block site_keywords %}{% endblock %}"/>{% endblock %}
-{% block blockdescriptions %}<meta name="description" content="{% block site_description %}{% endblock %}"/>{% endblock %}{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
+{% block blockdescriptions %}<meta name="description" content="{% block site_description %}{% endblock %}"/>{% endblock %}
+<title>{% block title %}{% if title %}{{ title }} - {% endif %}{% block sitetitle %}{% endblock %}{% endblock %}</title>
+<!-- Global IE fix to avoid layout crash when single word size wider than column width -->
+<!--[if IE]><style type="text/css"> body {word-wrap: break-word;}</style><![endif]-->{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
 {{ head }}{% endfor %}{% endif %}{% block head_content %}
 <!--  STYLING -->{% block style_reset %}
 {% include "djpcms/bits/reset.html" %}{% endblock %}{% block extrastyle %}

@@ -16,17 +16,16 @@ class PageLink(UnicodeMixin):
         info = request.DJPCMS
         self.page = info.page
         self.app = request.DJPCMS.root.for_model(Page)
+        self.isediting = False
+        self.cdjp = None
         if self.app:
             cdjp = self.cdjp = info.djp(request)
-            epage = cdjp.instance
-            self.isediting = cdjp is not None and \
-                             isinstance(epage,Page) and \
-                             isinstance(cdjp.view,views.ChangeView)
-            if self.isediting:
-                self.page = epage
-        else:
-            self.cdjp = None
-            self.isediting = False
+            if cdjp:
+                epage = cdjp.instance
+                self.isediting = isinstance(epage,Page) and \
+                                 isinstance(cdjp.view,views.ChangeView)
+                if self.isediting:
+                    self.page = epage
         
     def __unicode__(self):
         if not hasattr(self,'_html'):

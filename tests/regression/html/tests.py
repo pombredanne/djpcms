@@ -14,9 +14,23 @@ class testHtmlTools(test.TestCase):
         c = html.HtmlAttrMixin().addClass('ciao pippo bla')
         self.assertTrue(c.hasClass('bla'))
     
-    #def testLazyRender(self):
-    #    a = html.LazyRender('ciao')
-    #    self.assertEqual(to_string('a'),'ciao')
+    def testData(self):
+        c = html.HtmlAttrMixin()
+        c.addData('food','pasta').addData('city','Rome')
+        self.assertEqual(c.data['food'],'pasta')
+        self.assertEqual(c.data['city'],'Rome')
+        f = c.flatatt()
+        self.assertTrue(f in (' data-food="pasta" data-city="Rome"',
+                              ' data-city="Rome" data-food="pasta"'))
+        
+    def testEmptyAttr(self):
+        c = html.HtmlAttrMixin()
+        c.addAttr('value','')
+        self.assertEqual(c.flatatt(),'')
+        c.addAttr('value',None)
+        self.assertEqual(c.flatatt(),'')
+        c.addAttr('value',0)
+        self.assertEqual(c.flatatt(),' value="0"')
 
 
 class TestInputs(test.TestCase):

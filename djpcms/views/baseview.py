@@ -164,10 +164,11 @@ http requests.
         raise NotImplementedError('AJAX GET RESPONSE NOT AVAILABLE')
     
     def ajax_post_response(self, djp):
+        '''Handle AJAX post requests'''
         request = djp.request
         data = request.data_dict
-        ajax_key = forms.get_submit_key(data,djp.css.post_view_key)
-        if ajax_key == forms.CANCEL_KEY:
+        action = forms.get_ajax_action(data)
+        if action == forms.CANCEL_KEY:
             next = data.get(forms.REFERER_KEY,None)
             next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
             return jredirect(next)

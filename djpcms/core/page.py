@@ -8,6 +8,7 @@ from djpcms.template import loader
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
+from djpcms.html import htmldoc
 
 
 contentre = re.compile('{{ content\d }}')
@@ -76,6 +77,10 @@ class PageInterface(object):
         except:
             level = 1
         return level
+    
+    def doc_type(self):
+        d = self.doctype
+        return htmldoc(d)
     
     
 class TemplateInterface(object):

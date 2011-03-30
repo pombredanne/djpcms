@@ -59,6 +59,58 @@
     };
     
     /**
+     * A minimalist logging class
+     */
+    function djplogger() {
+        var handlers = [],
+            logclass = 'log',
+            defo = ' INFO   - ',
+            _levels = {
+                    'debug':   ' DEBUG  - ',
+                    'info':    defo,
+                    'error':   ' ERROR  - ',
+                    'critical':' CRITIC - '},
+            clog;
+            
+        if(typeof console !== "undefined" && typeof console.log !== "undefined") {
+            clog = console.log;
+        } else {
+            clog = function(msg){};
+        }
+            
+        function _log(msg, level) {
+            var mlevel = _levels[level || 'info'],
+                msg,
+                dte = new Date(),
+                hours = dte.getHours(),
+                minutes = dte.getMinutes(),
+                seconds = dte.getSeconds();
+            if(!mlevel) {
+                mlevel = defo;
+                level = 'info';
+            }
+            if(hours < 10) {hours = '0'+hours;}
+            if(minutes < 10) {minutes = '0'+minutes;}
+            if(seconds < 10) {seconds = '0'+seconds;}
+            msg = hours+':'+minutes+':'+seconds+mlevel+msg;
+            clog(msg);
+            msg = '<pre class="' + logclass + ' '+level+'">'+msg+'</pre>';
+            $.each(handlers, function(i,handle) {
+                handle.prepend(msg);
+            });
+        }
+        
+        return {
+            'addHandler': function(h) {handlers.push(h);},
+            'log': _log,
+            'debug': function(msg){_log(msg,'debug');},
+            'info': function(msg){_log(msg,'info');},
+            'error': function(msg){_log(msg,'error');},
+            'critical': function(msg){_log(msg,'critical');}
+        };
+    };
+    
+    /**
      * djpcms site manager
      */
     $.djpcms = (function() {
@@ -68,6 +120,7 @@
             logging_pannel = null,
             inrequest = false,
             panel = null,
+            logger = djplogger();
             defaults = {
     	        media_url: "/media-site/",
     	        confirm_actions:{
@@ -89,20 +142,12 @@
     	        };
     	
     	function set_logging_pannel(panel) {
-    		logging_pannel = panel;
+    	    var panel = $(panel);
+    	    if(panel.length) {
+    	        logger.addHandler(panel);
+    	    }
     	}
-    	
-    	function log(s) {
-    		if($.djpcms.options.debug) {
-    			if (typeof console !== "undefined" && typeof console.debug !== "undefined") {
-    				console.log('$.djpcms: '+ s);
-    				if(logging_pannel) {
-    					logging_pannel.prepend('<p>'+s+'</p>');
-    				}
-    			} 
-    		}
-    	}
-    	
+    	    	
     	function _postparam(name, data) {
     	    var p = {'xhr':name};
     	    if(data) {
@@ -145,7 +190,7 @@
     	        return jcb.handle(data.body, elem, defaults) & data.error;
     	    }
     	    else {
-    	        log('Could not find callback ' + id);
+    	        logger.error('Could not find callback ' + id);
     	    }
     	}
     	
@@ -172,13 +217,13 @@
     		return this.each(function() {
     			var config = defaults;
     			var me = $(this);
-    			var logger = $('.djp-logging-panel',me);
-    			if(logger) {
-    				set_logging_pannel(logger);
+    			var lp = $('.djp-logging-panel',me);
+    			if(lp) {
+    				set_logging_pannel(lp);
     			}
     			
     			$.each(decorators,function(id,decorator) {
-    				log(me.toString() + ' - adding decorator ' + id);
+    				logger.info('Adding decorator ' + id);
     				decorator(me,config);
     			});						
     		});
@@ -190,13 +235,13 @@
     	    options: defaults,
     	    jsonParse: _jsonParse,
     	    'addJsonCallBack': addJsonCallBack,
-    	    jsonCallBack: _jsonCallBack,
+    	    'jsonCallBack': _jsonCallBack,
     	    decorator: addDecorator,
     	    set_options: setOptions,
-    	    ajaxparams: _postparam,
+    	    'ajaxparams': _postparam,
     	    set_inrequest: function(v){inrequest=v;},
     	    'inrequest': function(){return inrequest;},
-    	    'log': log,
+    	    'logger': logger,
     	    'panel': function() {
     	        // A floating panel
     	        if(!panel) {
@@ -547,7 +592,7 @@
                 confirm = config.confirm_actions,
                 cfg = config.ajax_widgets,
                 callback = $.djpcms.jsonCallBack,
-                log = $.djpcms.log;
+                logger = $.djpcms.logger;
             
             function sendrequest(elem,name,abort) {
                 if(abort) {
@@ -629,7 +674,7 @@
     						dataType: "json"
     						};
     				f[0].clk = elem[0];
-    				log('Submitting select change from "'+elem[0].name+'"');
+    				logger.info('Submitting select change from "'+elem[0].name+'"');
     				f.ajaxSubmit(opts);
     			}
     		});
@@ -970,12 +1015,12 @@
     	            columns = $(sortblock),
     	            holderelem = columns.commonAncestor(),
     	            curposition = null,
-    	            log = $.djpcms.log;
+    	            logger = $.djpcms.logger;
     	        
     	        
     	        columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
     	            curposition = position($(this).parent(editblock));
-    	            $.djpcms.log('selected item to move');
+    	            $.djpcms.logger.info('selected item to move');
     	            var elem = $(this).parent();
                     elem.css({
                         width: elem.width() + 'px'
@@ -1006,7 +1051,7 @@
     				}
     				if(form) {
     					var url = form.attr('action');
-    					log('Sending rearrange post request to "'+url+'"')
+    					logger.info('Sending rearrange post request to "'+url+'"')
     					$.post(url,
     						   data,
     						   movedone,
@@ -1030,7 +1075,7 @@
     	            },
     	            stop: function (e,ui) {
     	                var elem = ui.item;
-    	                $.djpcms.log('Stopping drag and drop of element ' + elem);
+    	                logger.info('Stopping drag and drop of element ' + elem);
     	                elem.css({width:''}).removeClass('dragging');
     	                function updatedone() {
     	                	columns.sortable('enable');
@@ -1156,9 +1201,7 @@
                             select.change(function() {
                                 if(this.value) {
                                     var ids = [],
-                                        data = $.djpcms.ajaxparams('action',
-                                                                    {'ids':ids,
-                                                                     'action':this.value});
+                                        data = $.djpcms.ajaxparams(this.value,{'ids':ids});
                                     $('.action-check input:checked',this.table).each(function() {
                                         ids.push(this.value);
                                     });

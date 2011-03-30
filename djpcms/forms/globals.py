@@ -26,6 +26,7 @@ SAVE_AND_CONTINUE_KEY = '_save_and_continue'
 SAVE_AS_NEW_KEY = '_save_as_new'
 PREFIX_KEY = '__prefixed__'
 REFERER_KEY = '__referer__'
+AJAX_ACTION_KEY = 'xhr'
 AJAX = 'ajax'
 NOBUTTON = 'nobutton'
 
@@ -50,13 +51,11 @@ class NoData(object):
 
 def get_ajax_action(data):
     action = None
-    ajax_key = data.get('xhr', None)
-    if ajax_key:
-        action = data.get(ajax_key,None)
-        if action:
-            prefix = data.get(PREFIX_KEY,None)
-            if prefix and prefix in submit_key:
-                action = action[len(prefix):]
+    action = data.get(AJAX_ACTION_KEY, None)
+    if action:
+        prefix = data.get(PREFIX_KEY,None)
+        if prefix and prefix in action:
+            action = action[len(prefix):]
     return action
 
 

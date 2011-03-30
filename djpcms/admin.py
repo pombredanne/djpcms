@@ -13,12 +13,12 @@ if Page:
     
     admin_urls = (
                   SiteMapApplication('/sitemap/',
-                                     description = 'site map',
+                                     description = 'Site-map',
                                      form = HtmlPageForm,
                                      list_display_links = ('url','inner_template')),
                   AdminApplication('/templates/',
                                    InnerTemplate,
-                                   description = 'inner templates',
+                                   description = 'Inner templates',
                                    form = HtmlTemplateForm,
                                    list_display = ('id','name','numblocks'),
                                    object_display = ('id','name','numblocks','template'),
@@ -35,7 +35,7 @@ if Page:
                   AdminApplication('/block-content/',
                                    SiteContent,
                                    form = HtmlEditContentForm,
-                                   description = 'site content',
+                                   description = 'Site content',
                                    list_display = ('id','title','markup'),
                                    object_display = ('id','title','markup','body')
                   )

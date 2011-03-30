@@ -45,13 +45,14 @@
                         type: 'post',
                         dataType: 'json',
                         success:   callBack,
-                        data: $.djpcms.postparam('reload')
+                        data: $.djpcms.ajaxparams('reload')
                         };
                
             $.ajax(opts);  
         }
         
         $(selector).mtree({
+            "logger": $.djpcms.logger,
             plugins: ['core','json','crrm','ui','table'],
             json: {"url":sitemap_loader},
             table: {min_height: '500px'}

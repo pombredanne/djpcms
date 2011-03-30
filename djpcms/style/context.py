@@ -321,12 +321,18 @@ CssContext('breadcrumbs',
 CssContext('javascript_logging',
            tag = '.djp-logging-panel',
            data = {
-                   'font_size': '90%',
-                   'text_align': 'left',
-                   'overflow_x': 'hidden',
-                   'overflow_y': 'scroll',
+                   'overflow': 'scroll',
                    'height':'400px'}
            )
+CssContext('javascript_logging_paragraph',
+           tag = '.djp-logging-panel pre',
+           data = {
+                   'font_family': 'monospace',
+                   'font_size': '80%',
+                   'text_align': 'left',
+                   'margin':'0'
+        }
+)
 
 #________________________________________ SPECIAL IDS AND CLASSES
 CssContext('content',tag='#content',

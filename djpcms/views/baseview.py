@@ -56,7 +56,7 @@ belongs to a user, otherwise returns ``None``.'''
         return None
     
 
-# THE DJPCMS BASE CLASS for handling views
+
 class djpcmsview(RendererMixin):
     '''A :class:`djpcms.views.RendererMixin` class for handling
 http requests.
@@ -66,13 +66,16 @@ http requests.
         Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
         
             _methods = ('get','post')
+    
+    .. attribute:: object_view
+    
+        Flag indicating if the view is used to render or manipulate model instances.
+        
+        Default ``False``.
              
     '''
-    page = None
-    logger = logging.getLogger('djpcmsview')
-    '''The parent view of ``self``. An instance of :class:`djpcmsview` or ``None``'''
     object_view = False
-    '''Flag indicationg if the view class is used to render or manipulate model instances. Default ``False``.'''
+    logger = logging.getLogger('djpcmsview')
     
     _methods      = ('get','post')
 

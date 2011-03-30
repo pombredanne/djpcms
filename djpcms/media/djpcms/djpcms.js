@@ -120,7 +120,8 @@
             logging_pannel = null,
             inrequest = false,
             panel = null,
-            logger = djplogger();
+            appqueue = [],
+            logger = djplogger(),
             defaults = {
     	        media_url: "/media-site/",
     	        confirm_actions:{
@@ -155,6 +156,15 @@
     	    }
     	    else {
     	        return p;
+    	    }
+    	}
+    	
+    	function queue_application(app) {
+    	    if($.data(document,'djpcms')) {
+    	        app();
+    	    }
+    	    else {
+    	        appqueue.push(app);
     	    }
     	}
     	
@@ -225,7 +235,14 @@
     			$.each(decorators,function(id,decorator) {
     				logger.info('Adding decorator ' + id);
     				decorator(me,config);
-    			});						
+    			});
+    			if(this == document) {
+    			    $.data(this,'djpcms',config);
+    			    $.each(appqueue, function(i,app) {
+    			        app();
+    			    });
+    			    appqueue = [];
+    			}
     		});
     	}
     	
@@ -242,6 +259,7 @@
     	    set_inrequest: function(v){inrequest=v;},
     	    'inrequest': function(){return inrequest;},
     	    'logger': logger,
+    	    'queue': queue_application,
     	    'panel': function() {
     	        // A floating panel
     	        if(!panel) {

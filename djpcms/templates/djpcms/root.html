@@ -48,7 +48,7 @@
         options.media_url = "{{ MEDIA_URL }}";
         options.debug     = {{ jsdebug }};
         $.djpcms.set_options(options);
-        $(document).djpcms();
+        $(document).djpcms().trigger('djpcms-loaded');
     });
 }(jQuery));
 </script>{% endblock %}{% endblock %}

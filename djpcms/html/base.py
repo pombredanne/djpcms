@@ -1,7 +1,9 @@
+import json
+
 from py2py3 import iteritems
 
-from djpcms import sites, UnicodeMixin
-from djpcms.utils import force_str, slugify, escape
+from djpcms import sites, UnicodeMixin, is_string
+from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.const import NOTHING
 from djpcms.template import loader
@@ -16,16 +18,24 @@ __all__ = ['flatatt',
 def attrsiter(attrs):
     for k,v in attrs.items():
         if v not in NOTHING:
-            yield ' {0}="{1}"'.format(k, escape(v))
+            yield " {0}='{1}'".format(k, escape(v))
 
                 
 def flatatt(attrs):
     return ''.join(attrsiter(attrs))
 
 
+def dump_data_value(v):
+    if not is_string(v):
+        if isinstance(v,bytes):
+            v = v.decode()
+        else:
+            v = json.dumps(v)
+    return mark_safe(v)
+
 class HtmlAttrMixin(object):
     '''A mixin class which exposes jQuery-alike API for
-handling HTML classes and attributes. Simple to use::
+handling HTML classes, attributes and data::
 
     >>> a = HtmlAttrMixin().addClass('bla foo').addAttr('name','pippo')
     >>> a.classes
@@ -45,7 +55,7 @@ Any Operation on this class is similar to jQuery.
             cs = ' '.join(self.classes)
             attrs['class'] = cs
         for k,v in self.data.items():
-            attrs['data-{0}'.format(k)] = v
+            attrs['data-{0}'.format(k)] = dump_data_value(v)
         if attrs:
             return flatatt(attrs)
         else:

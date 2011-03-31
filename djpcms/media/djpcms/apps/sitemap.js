@@ -33,22 +33,18 @@
         $.djpcms.sitemap = function(selector,url) {
            
             $.djpcms.queue(function () {
+                
+                /**
+                 * Load sitemap from server
+                 */
                 function sitemap_loader() {
-                    
-                    function callBack(e,s) {
-                        $.djpcms.jsonCallBack(e,s,that);
-                    }
-                    
-                    var that = this,
-                        opts = {
-                                'url':url,
-                                type: 'post',
-                                dataType: 'json',
-                                success:   callBack,
-                                data: $.djpcms.ajaxparams('reload')
-                                };
-                       
-                    $.ajax(opts);  
+                    var that = this;         };
+                    $.ajax({'url':url,
+                            type: 'post',
+                            dataType: 'json',
+                            success: function(e,s) {$.djpcms.jsonCallBack(e,s,that);},
+                            data: $.djpcms.ajaxparams('reload')
+                    });
                 }
                 
                 $(selector).mtree({

@@ -109,12 +109,12 @@ wrap existing object relational mappers.
     def has_delete_permission(self, user, obj=None):
         return user.is_superuser
     
-    def get_object_id(self, obj):
-        return '%s-%s' % (self.module_name,obj.id)
-    
-    def unique_id(self, obj):
+    def unique_id(self, obj = None):
         '''Create a unique ID for the object'''
-        return '%s-%s' % (self.hash,obj.id)
+        if obj:
+            return '%s-%s' % (self.hash,obj.id)
+        else:
+            return self.hash
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError

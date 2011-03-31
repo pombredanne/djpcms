@@ -118,6 +118,7 @@
     $.djpcms = (function() {
         
         var decorators = {},
+            actions = {},
             jsonCallBacks = {},
             logging_pannel = null,
             inrequest = false,
@@ -206,6 +207,30 @@
     	    }
     	}
     	
+    	function addAction(id, action) {
+    	    var a = actions[id];
+    	    if(!a) {
+    	       a = {'action':action, 'ids': {}};
+    	       actions[id] = a;
+    	    } else if(action) {
+    	        a.action = action;
+    	    }
+    	    return a;
+    	}
+    	
+    	function registerActionElement(actionid, id) {
+    	    var action = addAction(actionid,null);
+    	    action.ids[id] = id;
+    	}
+    	
+    	function getAction(actionid, id) {
+    	    var action = addAction(actionid,null);
+    	    if(action.ids[id]) {
+    	        delete action.ids[id];
+    	        return action.action;
+    	    }
+        }
+    	
     	/**
     	 * Handle a JSON call back by looping through all the callback
     	 * objects registered
@@ -259,6 +284,12 @@
     	    set_options: setOptions,
     	    'ajaxparams': _postparam,
     	    set_inrequest: function(v){inrequest=v;},
+    	    //
+    	    // Action in slements ids
+    	    'addAction': addAction,
+    	    'registerActionElement': registerActionElement,
+    	    'getAction': getAction,
+    	    //
     	    'inrequest': function(){return inrequest;},
     	    'logger': logger,
     	    'queue': queue_application,

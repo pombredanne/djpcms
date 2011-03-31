@@ -23,6 +23,16 @@ class testHtmlTools(test.TestCase):
         self.assertTrue(f in (' data-food="pasta" data-city="Rome"',
                               ' data-city="Rome" data-food="pasta"'))
         
+    def testNestedData(self):
+        random = ['bla',3,'foo']
+        table = {'name':'path',
+                 'resizable':True}
+        c = html.HtmlAttrMixin().addData('table',table).addData('random',random)
+        self.assertEqual(c.data['table']['name'],'path')
+        self.assertEqual(c.data['random'][0],'bla')
+        attr = c.flatatt()
+        self.assertTrue('data-table' in attr)
+        
     def testEmptyAttr(self):
         c = html.HtmlAttrMixin()
         c.addAttr('value','')

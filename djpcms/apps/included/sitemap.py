@@ -1,38 +1,25 @@
 '''An application for displaying the sitemap as a table tree. To use add the
 following to your application urls tuple::
 
-    SiteMapApplication('/sitemap/', name = 'sitemap', in_navigation = 100)
+    SiteMapApplication('/sitemap/',
+                        name = 'sitemap')
 '''
 from djpcms import views, sites
 from djpcms.template import loader
 from djpcms.models import Page
 from djpcms.core import messages
-from djpcms.utils import gen_unique_id
 from djpcms.html import box, table
 
+from jslib.jquery_mtree.mixins import MtreeMixin, MtreeView
     
-class SiteMapView(views.View):
-    '''View to display Sitemap on a table-tree'''
-    fields = ('path', 'id', 'application','application_view',
-              'template','inner_template','in_navigation','doc_type',
-              'soft_root','title','link')
-    views = [
-             {'name':'default',
-              'fields': ('id','application','in_navigation','doc_type')},
-             {'name':'titles',
-              'fields': ('id','title','link')}
-             ]
+    
+class SiteMapView(views.View, MtreeView):
     
     def render(self, djp):
-        return loader.render('djpcms/components/sitemap.html',
-                             {'url': djp.url,
-                              'id': gen_unique_id()})
+        return self.appmodel.render_tree(djp)
         
-    def ajax__reload(self, djp):
-        request = djp.request
-        fields = self.fields
-        return sites.tree.tojson(fields, views = self.views, refresh = True)
-    
+    def get_root_tree(self, djp):
+        return djp.tree
     
 
 class PageChangeView(views.ChangeView):
@@ -66,11 +53,27 @@ class PageChangeView(views.ChangeView):
                                                           **kwargs)
         
     
-class SiteMapApplication(views.ModelApplication):
+class SiteMapApplication(views.ModelApplication, MtreeMixin):
     '''Application to use for admin sitemaps'''
     list_display = ('id', 'url','application','application_view',
                     'template','inner_template','in_navigation','doc_type',
                     'soft_root')
+    
+    fields = ('path', 'id', 'application','application_view',
+              'template','inner_template','in_navigation','doc_type',
+              'soft_root','title','link')
+    table_views = [
+             {'name':'default',
+              'fields': ('id','application','in_navigation','doc_type')},
+             {'name':'titles',
+              'fields': ('id','title','link')}
+             ]
+    
+    mtree = {
+             'plugins': ('core','json','crrm','ui','table','types'),
+             'table': {'min_height': '500px', 'name': 'path'}
+             }
+    
     main = SiteMapView(in_navigation = 1)
     
     if Page:
@@ -94,13 +97,5 @@ class SiteMapApplication(views.ModelApplication):
             
     
     class Media:
-        js = ('djpkit/djpkit.js',
-              'djpkit/jquery.splitter.js',
-              'jquery_mtree/mtree.js',
-              'jquery_mtree/mtree.crrm.js',
-              'jquery_mtree/mtree.ui.js',
-              'jquery_mtree/mtree.table.js',
-              'jquery_mtree/mtree.dnd.js',
-              'jquery_mtree/mtree.contextmenu.js',
-              'jquery_mtree/mtree.types.js',
-              'djpcms/apps/sitemap.js')
+        js = MtreeMixin.MTREE_JAVASCRIPT
+    

@@ -5,7 +5,6 @@ from py2py3 import itervalues
 
 from djpcms import UnicodeMixin
 from djpcms.utils import parentpath, SLASH
-from djpcms.utils.text import nicename
 from djpcms.views import DjpResponse, pageview
 from djpcms.html import field_repr
 from djpcms.core.orms import mapper
@@ -196,8 +195,8 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
     
     def tojson(self, fields, views = None, refresh = True):
         '''Serialize as a JSON string.'''
-        nice_fields = [{'name':name,'description':nicename(name)} for name in fields]
-        data = JsonData(fields = nice_fields, views = views)
+        from jslib.jquery_mtree.data import JSONdata
+        data = JSONdata(fields = fields, views = views)
         root = self.root.tojson(fields)
         data.add(root)
         return data

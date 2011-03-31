@@ -13,6 +13,16 @@ from djpcms.html import box, table
     
 class SiteMapView(views.View):
     '''View to display Sitemap on a table-tree'''
+    fields = ('path', 'id', 'application','application_view',
+              'template','inner_template','in_navigation','doc_type',
+              'soft_root','title','link')
+    views = [
+             {'name':'default',
+              'fields': ('id','application','in_navigation','doc_type')},
+             {'name':'titles',
+              'fields': ('id','title','link')}
+             ]
+    
     def render(self, djp):
         return loader.render('djpcms/components/sitemap.html',
                              {'url': djp.url,
@@ -20,8 +30,8 @@ class SiteMapView(views.View):
         
     def ajax__reload(self, djp):
         request = djp.request
-        fields = self.appmodel.list_display
-        return sites.tree.tojson(fields, refresh = True)
+        fields = self.fields
+        return sites.tree.tojson(fields, views = self.views, refresh = True)
     
     
 

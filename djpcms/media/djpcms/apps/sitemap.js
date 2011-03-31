@@ -55,7 +55,7 @@
                     "logger": $.djpcms.logger,
                     plugins: ['core','json','crrm','ui','table'],
                     json: {"url":sitemap_loader},
-                    table: {min_height: '500px'}
+                    table: {min_height: '500px', name: 'path'}
                 });
             });
         }

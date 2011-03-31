@@ -7,6 +7,7 @@ from djpcms import UnicodeMixin
 from djpcms.utils import parentpath, SLASH
 from djpcms.utils.text import nicename
 from djpcms.views import DjpResponse, pageview
+from djpcms.html import field_repr
 from djpcms.core.orms import mapper
 from djpcms.core.exceptions import ImproperlyConfigured, PathException
 
@@ -20,6 +21,7 @@ class DummyRequest(object):
     
     def __init__(self,site):
         self.site = site
+        self.user = None
         
 
 class NodeInfo(object):
@@ -120,15 +122,9 @@ class Node(UnicodeMixin):
     def tojson(self, fields):
         '''Convert ``self`` into an instance of :class:`JsonTreeNode`
 for json serialization.'''
-        values = []
-        info = NodeInfo(self)
-        for field in fields:
-            attr = getattr(info,field,None)
-            if hasattr(attr,'__call__'):
-                attr = attr()
-            values.append(attr if attr is not None else '')
+        djp = self.djp()
         node = JsonTreeNode(None, self.path,
-                            values = values,
+                            values = [field_repr(field, djp) for field in fields],
                             children = [])
         for child in self.children():
             node.add(child.tojson(fields))
@@ -198,10 +194,10 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
             pages = Page.objects.all()
         return self.root
     
-    def tojson(self, fields, refresh = True):
+    def tojson(self, fields, views = None, refresh = True):
         '''Serialize as a JSON string.'''
         nice_fields = [{'name':name,'description':nicename(name)} for name in fields]
-        data = JsonData(fields = nice_fields)
+        data = JsonData(fields = nice_fields, views = views)
         root = self.root.tojson(fields)
         data.add(root)
         return data

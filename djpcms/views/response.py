@@ -230,6 +230,19 @@ the parent of the embedded view.'''
         else:
             return self.kwargs.get('instance',None)
         
+    def id(self):
+        page = self.page
+        if page:
+            return page.id
+        
+    def application(self):
+        appmodel = self.view.appmodel
+        if appmodel:
+            return appmodel.name
+        
+    def path(self):
+        return self.view.path
+    
     def html(self):
         '''Render itself'''
         return LazyRender(self)
@@ -269,8 +282,8 @@ the parent of the embedded view.'''
                     request.session.set_test_cookie()
 
             if method not in (m.lower() for m in view.methods(request)):
-                raise http.HttpException(405,
-                                         msg='method {0} is not allowed'.format(method))
+                raise http.HttpException(status = 405,
+                                         msg = 'method {0} is not allowed'.format(method))
         
             return getattr(view,'%s_response' % method)(self)
         else:

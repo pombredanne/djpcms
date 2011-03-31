@@ -194,25 +194,6 @@ http requests.
         else:
             return 0
     
-    def bodybits(self, page):
-        return ''
-        if self.editurl:
-            b = 'class="edit"'
-        elif page:
-            css = page.cssinfo
-            if css and css.body_class_name:
-                b = 'class="%s"' % css.body_class_name
-        return mark_safe(b)
-    
-    def contentbits(self, page):
-        return ''
-        b = ''
-        if page:
-            css = page.cssinfo
-            if css and css.container_class_name:
-                b = ' class="%s"' % css.container_class_name
-        return mark_safe(b)
-    
     def defaultredirect(self, request, next = None,
                         instance = None, **kwargs):
         '''This function is used to build a redirect ``url`` for ``self``.

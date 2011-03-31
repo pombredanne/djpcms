@@ -73,7 +73,9 @@
             clog;
             
         if(typeof console !== "undefined" && typeof console.log !== "undefined") {
-            clog = console.log;
+            clog = function(msg) {
+                console.log(msg);
+            };
         } else {
             clog = function(msg){};
         }

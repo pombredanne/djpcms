@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import format as date_format
-from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND
+from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND, NOTHING
 from djpcms.utils import force_str, mark_safe, significant_format
 from djpcms.utils import escape as default_escape
 
@@ -37,7 +37,6 @@ def nicerepr(val,
              none_value = NONE_VALUE,
              dateformat = DEFAULT_DATE_FORMAT,
              datetime_format = DEFAULT_DATETIME_FORMAT,
-             escape = None,
              **kwargs):
     '''\
 Prettify a value to be displayed in html.
@@ -65,24 +64,26 @@ Prettify a value to be displayed in html.
             return significant_format(val, n = nd)
         except TypeError:
             return val
-            #escape = escape or default_escape
-            #return escape(val)
     
     
 def field_repr(field_name, obj, appmodel = None, **kwargs):
+    '''Retrive a field value from an object'''
     if not field_name:
-        return NONE_VALUE
-    if hasattr(obj,field_name):
-        val = getattr(obj,field_name)
-        if hasattr(val,'__call__'):
-            val = val()
+        val = None
+    elif hasattr(obj,field_name):
+        try:
+            val = getattr(obj,field_name)
+            if hasattr(val,'__call__'):
+                val = val()
+        except Exception as e:
+            val = str(e)
     elif appmodel:
         val = appmodel.get_intance_value(obj, field_name)
     else:
-        return NONE_VALUE
+        val = None
     return nicerepr(val,**kwargs)
 
-
+    
 def nice_headers(headers, mapper = None):
     if not mapper:
         return (nicename(name) for name in headers)
@@ -160,9 +161,7 @@ class get_app_result(object):
         first = self.first
         url = None
         if field_name:
-            result_repr = mapper.getrepr(field_name, result, nd = nd)
-            if force_str(result_repr) == '':
-                result_repr = EMPTY_VALUE
+            result_repr = field_repr(field_name, result, appmodel = appmodel, nd = nd)
             if(self.first and not appmodel.list_display_links) or \
                     field_name in appmodel.list_display_links:
                 first = False
@@ -185,3 +184,4 @@ class get_app_result(object):
         var = escape(var)
         self.first = first
         return var
+    

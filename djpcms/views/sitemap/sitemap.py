@@ -123,7 +123,7 @@ class Node(UnicodeMixin):
 for json serialization.'''
         djp = self.djp()
         node = JsonTreeNode(None, self.path,
-                            values = [field_repr(field, djp) for field in fields],
+                            values = [field_repr(field['name'], djp) for field in fields],
                             children = [])
         for child in self.children():
             node.add(child.tojson(fields))

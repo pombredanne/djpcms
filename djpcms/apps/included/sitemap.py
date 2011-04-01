@@ -57,16 +57,16 @@ class SiteMapApplication(views.ModelApplication, MtreeMixin):
     '''Application to use for admin sitemaps'''
     list_display = ('id', 'url','application','application_view',
                     'template','inner_template','in_navigation','doc_type',
-                    'soft_root')
+                    'soft_root','route')
     
     fields = ('path', 'id', 'application','application_view',
               'template','inner_template','in_navigation','doc_type',
-              'soft_root','title','link')
+              'title','linkname','is_soft','route')
     table_views = [
              {'name':'default',
-              'fields': ('id','application','in_navigation','doc_type')},
+              'fields': ('id','application','in_navigation','is_soft','doc_type')},
              {'name':'titles',
-              'fields': ('id','title','link')}
+              'fields': ('id','route','title','linkname')}
              ]
     
     mtree = {

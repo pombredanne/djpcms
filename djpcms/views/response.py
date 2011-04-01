@@ -8,7 +8,7 @@ from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied, PathException
-from djpcms.html.utils import LazyRender
+from djpcms.html import LazyRender, htmldoc
 
 from .navigation import Navigator, Breadcrumbs
 
@@ -129,14 +129,22 @@ also include a model instance).
     def node(self):
         '''Get the :class:`djpcms.views.sitemap.Node` in the global sitemap
 which corresponds to ``self``'''
-        url = self.url
         try:
+            url = self.url
             return self.tree[url]
-        except KeyError:
+        except:
             if self.view:
                 return self.tree[self.view.path]
             else:
                 raise
+    
+    @property
+    def linkname(self):
+        return self.view.linkname(self)
+    
+    @property    
+    def title(self):
+        return self.view.title(self)
     
     def for_user(self):
         return self.view.for_user(self)
@@ -146,20 +154,6 @@ which corresponds to ``self``'''
     
     def own_view(self):
         return self.url == self.request.path
-    
-    def get_linkname(self):
-        return self.view.linkname(self) or self.url
-    linkname = property(get_linkname)
-        
-    def get_title(self):
-        return self.view.title(self)
-    title = property(get_title)
-    
-    def bodybits(self):
-        return self.view.bodybits(self.page)
-    
-    def contentbits(self):
-        return self.view.contentbits(self.page)
     
     def set_content_type(self, ct):
         h = self._headers['content-type']
@@ -242,6 +236,13 @@ the parent of the embedded view.'''
         
     def path(self):
         return self.view.path
+    
+    def route(self):
+        return str(self.view.route())
+    
+    def doc_type(self):
+        page = self.page
+        return htmldoc(None if not page else page.doctype).name
     
     def html(self):
         '''Render itself'''

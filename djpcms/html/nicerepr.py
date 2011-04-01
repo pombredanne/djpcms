@@ -63,7 +63,7 @@ Prettify a value to be displayed in html.
         try:
             return significant_format(val, n = nd)
         except TypeError:
-            return val
+            return force_str(val)
     
     
 def field_repr(field_name, obj, appmodel = None, **kwargs):

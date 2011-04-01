@@ -71,7 +71,7 @@ Any Operation on this class is similar to jQuery.
     def addData(self, name, val):
         if val:
             self.data[name] = val
-            return self
+        return self
     
     @property
     def attrs(self):

@@ -12,7 +12,7 @@ from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
-from djpcms.utils.ajax import jcollection, jremove 
+from djpcms.utils.ajax import jcollection, jremove, CustomHeaderBody 
 
 
 __all__ = ['View',
@@ -24,7 +24,6 @@ __all__ = ['View',
            'ViewView',
            'DeleteView',
            'ChangeView',
-           'AutocompleteView',
            'ALL_URLS',
            'IDREGEX',
            'SLUG_REGEX']
@@ -522,8 +521,16 @@ It returns a queryset.
         '''Perform the custom query over the model objects and return a paginated result
         '''
         qs = self.appquery(djp)
-        return self.appmodel.render_query(djp, qs)  
-
+        return self.appmodel.render_query(djp, qs)
+            
+    def ajax__autocomplete(self, djp):
+        qs = self.appquery(djp)
+        params = djp.request.data_dict
+        if 'maxRows' in params:
+            qs = qs[:params['maxRows']]
+        return CustomHeaderBody('autocomplete',
+                                list(self.appmodel.gen_autocomplete(qs)))
+    
 
 class AddView(ModelView):
     default_title = 'add'
@@ -653,75 +660,3 @@ class ChangeView(ObjectView):
     def default_post(self, djp):
         return saveform(djp, True, force_redirect = self.force_redirect)
     
-
-class AutocompleteView(ModelView):
-    '''A AJAX view for handling
-:ref:`auto-complete <autocomplete>` functionalities.
-To use it, add it to a :class:`djpcms.views.ModelApplication` declaration.
-
-It specifies an extra attribute
-
-.. attribute:: display
-
-    The model field or function which display the object.
-    If not specified it uses the ``__str__`` method.
-    
-    Default ``None``.
-
-For example, let's say you have a model::
-
-    from django.db import models
-    
-    class MyModel(models.Model):
-        name = models.CharField(max_length = 60)
-        description = models.TextField()
-    
-And we would like to have an auto-complete view which displays the ``name``
-field and search for both ``name`` and ``description`` fields::
-
-    from djpcms.views.appsite import ModelApplication
-    
-    class MyModelApp(ModelApplication):
-        search_fields = ['name','description']
-        autocomplete = AutocompleteView(display = 'name')
-        
-    appsite.site.register('/mymodelurl/', MyModelApp, model = MyModel)
-    
-The last bit of information is to use the :class:`djpcms.forms.ChoiceField`
-field in forms and if your model has an AutocompleteView installed,
-it will work out of the box.
-'''
-    _methods = ('get',)
-    
-    def __init__(self, regex = 'autocomplete', display = None, **kwargs):
-        self.display = display
-        super(AutocompleteView,self).__init__(regex = regex, **kwargs)
-        
-    def processurlbits(self, appmodel):
-        '''Override so that the view is registered with the autocomplete dictionary.'''
-        super(AutocompleteView,self).processurlbits(appmodel)
-        autocomplete.register(self.appmodel.model,self)
-    
-    def get_response(self, djp):
-        '''This response works only if it is an AJAX response. Otherwise it raises a ``Http404`` exception.'''
-        request = djp.request
-        if not request.is_ajax():
-            raise djp.http.Http404
-        params = dict(request.GET.items())
-        query = request.GET.get('q', None)
-        search_fields = self.appmodel.search_fields
-        if query and search_fields:
-            q = None
-            for field_name in search_fields:
-                name = construct_search(field_name)
-                if q:
-                    q = q | Q( **{str(name):query} )
-                else:
-                    rel_name = name.split('__')[0]
-                    q = Q( **{str(name):query} )
-            qs = self.model.objects.filter(q)                    
-            data = ''.join(['%s|%s|%s\n' % (getattr(f,rel_name),f,f.pk) for f in qs])
-        else:
-            data = ''
-        return djp.http.HttpResponse(data)
-

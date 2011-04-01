@@ -36,7 +36,6 @@ form layout design.
                  field_template = None, **kwargs):
         self.default_style = default_style or self.default_style
         self.required_tag = required_tag or self.required_tag
-        self.default_style = default_style or self.default_style
         super(BaseFormLayout,self).__init__(**kwargs)
 
 
@@ -87,9 +86,7 @@ attribute to render the bounded field.
             rendered_fields[bfield.name] = bfield
         else:
             raise Exception("A field should only be rendered once: %s" % bfield)
-        widget = bfield.field.widget
-        if isclass(widget):
-            widget = widget()
+        widget = bfield.field.get_widget(djp, bfield)
         self.add_widget_classes(bfield,widget)
         field_template = self.field_template or layout.field_template
         whtml = widget.render(djp, bfield)

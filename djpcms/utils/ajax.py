@@ -97,6 +97,19 @@ class HeaderBody(jsonbase):
         return mark_safe(force_str(js))
 
 
+class CustomHeaderBody(HeaderBody):
+    
+    def __init__(self, h, b):
+        self.h = h
+        self.b = b
+    
+    def header(self):
+        return self.h
+    
+    def body(self):
+        return self.b
+
+
 class jempty(HeaderBody):
     
     def header(self):

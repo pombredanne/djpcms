@@ -183,6 +183,10 @@ which corresponds to ``self``'''
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         return self.view.render(self)
+    
+    def djp(self, view):
+        '''Create a new response base on view'''
+        return view(self.request, **self.kwargs)
         
     @lazyattr
     def _get_page(self):

@@ -1,7 +1,10 @@
+from inspect import isclass
 from copy import copy, deepcopy
 
 from djpcms import sites, nodata, to_string
 from djpcms.utils import escape, slugify
+from djpcms.utils.const import NOTHING
+from djpcms.utils.dates import parse as dateparser
 from djpcms.core.orms import mapper
 from djpcms.html import TextInput, CheckboxInput, Select,\
                         HiddenInput
@@ -19,8 +22,7 @@ __all__ = ['Field',
            'FloatField',
            'EmailField',
            'FileField',
-           'HiddenField',
-           'CurrencyField']
+           'HiddenField']
 
 
 def standard_validation_error(field,value):
@@ -115,7 +117,7 @@ very similar to django forms API.
     
     def clean(self, value, bfield):
         '''Clean the field value'''
-        if value == nodata or value is None:
+        if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
             if self.required and value is None:
                 raise ValidationError(self.validation_error(bfield,value))
@@ -149,6 +151,12 @@ Get the initial value of field if available.
 
     def model(self):
         return None
+    
+    def get_widget(self, djp, bfield):
+        widget = self.widget
+        if isclass(widget):
+            widget = widget()
+        return widget
     
 
 class CharField(Field):
@@ -219,12 +227,17 @@ optional parameter (attribute):
 
 
 class IntegerField(Field):
-    widget = TextInput
+    default = 0
+    widget = TextInput(cn = 'numeric')
     
     def _handle_params(self, validator = None, **kwargs):
         self.validator = validator
         self._raise_error(kwargs)
         
+    def clean(self, value, bfield):
+        value = value.replace(',','')
+        return super(IntegerField,self).clean(value,bfield)
+    
     def _clean(self, value, bfield):
         try:
             value = int(value)
@@ -248,28 +261,23 @@ class FloatField(IntegerField):
     
         
 class DateField(Field):
-    widget = TextInput
+    widget = TextInput(cn = 'dateinput')
     
     def _clean(self, value, bfield):
         try:
-            value = int(value)
-            if self.validator:
-                return self.validator(value)
-            return value
+            return dateparser(value)
         except:
-            raise ValidationError
+            raise ValidationError('Could not recognized date {0}'.format(value))
     
 
 class DateTimeField(DateField):
+    widget = TextInput(cn = 'dateinput')
     
     def _clean(self, value, bfield):
         try:
-            value = int(value)
-            if self.validator:
-                return self.validator(value)
-            return value
+            return dateparser(value)
         except:
-            raise ValidationError
+            raise ValidationError('Could not recognized date {0}'.format(value))
 
     
 class BooleanField(Field):
@@ -320,14 +328,19 @@ Additional attributes:
     widget = Select
     
     def _handle_params(self, choices = None, model = None,
-                       separator = ' ', inline = True,
-                       empty_label = None, **kwargs):
+                       separator = ' ', autocomplete = False,
+                       empty_label = None, multiple = False,
+                       minLength = 2, maxRows = 20,
+                       **kwargs):
         '''Choices is an iterable or a callable which takes the form as only argument'''
         self.choices = choices
         self._model = model
         self.empty_label = empty_label
         self.separator = separator
-        self.inline = inline
+        self.autocomplete = autocomplete
+        self.multiple = multiple
+        self.minLength = minLength
+        self.maxRows = maxRows
         self._raise_error(kwargs)
         
     def choices_and_model(self, bfield):
@@ -358,6 +371,20 @@ iterable over choices and a model class (if applicable).'''
                 if not value in ch:
                     raise ValidationError('{0} is not a valid choice'.format(value))
         return value
+    
+    def get_widget(self, djp, bfield):
+        if self.autocomplete:
+            ch,model = self.choices_and_model(bfield)
+            if model:
+                url = djp.site.get_url(model,'search')    
+                widget = TextInput(cn = 'autocomplete')
+                widget.addData('url',url)\
+                      .addData('multiple',self.multiple)\
+                      .addData('minlength',self.minLength)\
+                      .addData('maxrows',self.maxRows)
+                return widget
+        return super(ChoiceField,self).get_widget(djp, bfield)
+        
 
 
 class EmailField(CharField):
@@ -371,10 +398,3 @@ class FileField(CharField):
 def HiddenField(**kwargs):
     return CharField(widget=HiddenInput, **kwargs)
 
-
-class CurrencyField(FloatField):
-    widget = TextInput(cn = 'currency-field')
-    
-    def clean(self, value, bfield):
-        value = value.replace(',','')
-        return super(CurrencyField,self).clean(value,bfield)

@@ -4,7 +4,7 @@ from py2py3 import range
 
 import djpcms
 from djpcms import UnicodeMixin, forms
-from djpcms.utils.ajax import jredirect
+from djpcms.utils.ajax import jredirect, dialog
 from djpcms.html import Media
 from djpcms.template import loader
 from djpcms.utils import parentpath
@@ -36,6 +36,7 @@ A mixin class for rendering objects
     template_name = None
     name = None
     description = None
+    dialog_width = 400
     
     def render(self, djp):
         '''\
@@ -164,7 +165,11 @@ http requests.
         raise NotImplementedError('Post response not implemented')
     
     def ajax_get_response(self, djp):
-        raise NotImplementedError('AJAX GET RESPONSE NOT AVAILABLE')
+        html = self.render(djp)
+        return dialog(hd = djp.title,
+                      bd = html,
+                      width = self.dialog_width,
+                      modal = True)
     
     def ajax_post_response(self, djp):
         '''Handle AJAX post requests'''

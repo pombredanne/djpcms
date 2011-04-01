@@ -498,15 +498,18 @@ $.fn.fieldValue = function(successful) {
  */
 $.fieldValue = function(el, successful) {
     var n = el.name, t = el.type, tag = el.tagName.toLowerCase();
-    if (typeof successful == 'undefined') successful = true;
+    if (typeof successful === 'undefined') {
+        successful = true;
+    }
 
-    if (successful && (!n || el.disabled || t == 'reset' || t == 'button' ||
+    if(successful && (!n || el.disabled || t == 'reset' || t == 'button' ||
         (t == 'checkbox' || t == 'radio') && !el.checked ||
         (t == 'submit' || t == 'image') && el.form && el.form.clk != el ||
-        tag == 'select' && el.selectedIndex == -1))
+         tag == 'select' && el.selectedIndex == -1)) {
             return null;
+    }
 
-    if (tag == 'select') {
+    if(tag == 'select') {
         var index = el.selectedIndex;
         if (index < 0) return null;
         var a = [], ops = el.options;
@@ -523,7 +526,16 @@ $.fieldValue = function(el, successful) {
         }
         return a;
     }
-    return el.value;
+    else {
+        var rv = $.data(el,'real_value');
+            val = el.value;
+        if(rv) {
+            return rv.get(val);
+        }
+        else {
+            return val;
+        }
+    }
 };
 
 /**

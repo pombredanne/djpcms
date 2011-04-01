@@ -156,6 +156,7 @@ browser based application as well as remote procedure calls validation.
         self.model = model
         self.instance = instance
         self.messages = {}
+        self.hidden_fields = []
         self.request = request
         self._site = site
         if request:

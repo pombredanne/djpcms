@@ -537,6 +537,12 @@ By default it return a generator of children pages.'''
             return getattr(self,fname)(obj)
         else:
             return None
+        
+    def gen_autocomplete(self, qs):
+        for q in qs:
+            l = str(qs)
+            yield l,l,q.id
+            
     
 class ModelApplication(Application):
     '''An :class:`Application` class for applications

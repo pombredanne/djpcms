@@ -61,15 +61,15 @@ class SiteMapApplication(views.ModelApplication, MtreeMixin):
     
     fields = ('path', 'id', 'application','application_view',
               'template','inner_template','in_navigation','doc_type',
-              'title','linkname','is_soft','route')
+              'title','linkname','is_soft','route','template_file')
     table_views = [
              {'name':'default',
-              'fields': ('id','application','in_navigation','is_soft','doc_type')},
-             {'name':'titles',
-              'fields': ('id','route','title','linkname')}
+              'fields': ('id','application','in_navigation','is_soft',)},
+             {'name':'html',
+              'fields': ('id','route','title','linkname','doc_type','template_file')}
              ]
     
-    mtree = {
+    _mtree = {
              'plugins': ('core','json','crrm','ui','table','types'),
              'table': {'min_height': '500px', 'name': 'path'}
              }

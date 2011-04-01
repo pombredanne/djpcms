@@ -135,7 +135,6 @@
     	        ajax_server_error: "ajax-server-error",
     	        errorlist: "errorlist",
     	        formmessages: "form-messages",
-    	        date_format: "d M yy",
     	        box_effect: {type:"blind",duration:500},
     	        remove_effect: {type:"drop",duration:500},
     	        bitly_key: null,
@@ -152,7 +151,7 @@
     	    }
     	}
     	    	
-    	function _postparam(name, data) {
+    	function ajaxparams(name, data) {
     	    var p = {'xhr':name};
     	    if(data) {
     	        return $.extend(p,data);
@@ -178,7 +177,7 @@
     	
     	// Add a new decorator
     	function addDecorator(deco) {
-    		decorators[deco.id] = deco.decorate;
+    		decorators[deco.id] = $.proxy(deco.decorate, deco);
     		if(deco.config) {
                 defaults[deco.id] = deco.config;
             }
@@ -282,7 +281,7 @@
     	    'jsonCallBack': _jsonCallBack,
     	    decorator: addDecorator,
     	    set_options: setOptions,
-    	    'ajaxparams': _postparam,
+    	    'ajaxparams': ajaxparams,
     	    set_inrequest: function(v){inrequest=v;},
     	    //
     	    // Action in slements ids
@@ -319,6 +318,32 @@
     $.fn.extend({
         djpcms: $.djpcms.construct
     });
+    
+    /**
+     *  Data loader closure. An utility function which return
+     *  a function which can be used to create AJAX interactions
+     *  handles by djpcms callbacks.
+     *  
+     *  For example
+     *  
+     *  myloader = $.djpcms.ajax_loader('/my/path/','reload','post')
+     *  myloader()
+     *  
+     */
+    $.djpcms.ajax_loader =  function djpcms_loader(url,action,method,data) {
+        return function() {
+            var that = this;
+            $.ajax({
+                    'url':url,
+                    'type': method || 'post',
+                    'dataType': 'json',
+                    'success': function callBack(e,s) {
+                                $.djpcms.jsonCallBack(e,s,that);
+                        },
+                    'data': $.djpcms.ajaxparams(action,data)
+                });
+        };
+    };
     
     $.djpcms.errorDialog = function(html,title) {
         title = title || 'Something did not work';
@@ -481,7 +506,7 @@
     $.djpcms.addJsonCallBack({
     	id: "dialog",
     	handle: function(data, elem) {
-    		var el = $('<div></div>').html(data.html);
+    		var el = $('<div></div>').html(data.html).djpcms();
     		var buttons = {};
     		$.each(data.buttons,function(n,b) {
     			buttons[b.name] = function() {
@@ -577,12 +602,12 @@
     $.djpcms.decorator({
         id:"tablesorter",
         config: {
+            selector: 'table.tablesorter',
             widgets:['zebra','hovering','toolbox']
         },
         decorate: function($this,config) {
-            $('table.tablesorter',$this).each(function() {
-                $(this).tablesorter(config.tablesorter);
-            });
+            var opts = config.tablesorter;
+            $(opts.selector,$this).tablesorter(opts);
         }
     });
     
@@ -832,13 +857,38 @@
     
     // Calendar Date Picker Decorator
     $.djpcms.decorator({
-    	id:"Date_Picker",
+    	id:"datepicker",
+    	config: {
+            selector: 'input.dateinput',
+            dateFormat: 'd M yy',
+        },
     	decorate: function($this, config) {
-    		var ajaxclass = config.calendar_class ? config.calendar_class : 'dateinput';
-    		$('input.'+ajaxclass,$this).each(function() {
-    			$(this).datepicker({dateFormat: config.date_format});
-    		});
+    	    var opts = config.datepicker;
+    		$(opts.selector,$this).datepicker(opts);
     	}
+    });
+    
+    // Currency Input
+    $.djpcms.decorator({
+        id:"numeric",
+        config: {
+            selector: 'input.numeric',
+            negative_class: 'negative'
+        },
+        format: function(elem,nc) {
+            elem = $(elem);
+            var v = $.djpcms.format_currency(elem.val());
+            if(v.negative) {elem.addClass(nc);}
+            else {elem.removeClass(nc);}
+            elem.val(v.value); 
+        },
+        decorate: function($this, config) {
+            var opts = config.numeric,
+                format = this.format;
+            $(opts.selector,$this).keyup(function() {
+                format(this,opts.negative_class); 
+            });
+        }
     });
     
     /**
@@ -961,88 +1011,98 @@
         }
     });
     
-    $.djpcms.decorator({
-    	id:	"autocomplete",
-    	description: "add ajax autocomplete to an input",
-    	decorate: function($this,config) {
-    		$('.djp-autocomplete',$this).each(function() {
-    			var el = $(this);
-    			var display  = $('input.lookup',el).attr('autocomplete','off');
-    			var divo    = $('div.options',el);
-    			var url     = $('a',divo).attr('href');
-    			var sep		= $('span.separator',divo);
-    			var name	= $('span.name',divo);
-    			if(name.length) {
-    				display.attr('_lookup',name.html());
-    			}
-    			var inline  = false;
-    			if(sep.length) {
-    				sep = sep.html();
-    			}
-    			else {
-    				sep = ' ';
-    			}
-    			if($('span.inline',divo).length) {
-    				inline = true;
-    			}
-    			divo.remove();
-    			if(display && url) {
-    				var opts = 	{
-    					delay:10,
-    	                minChars:2,
-    	                matchSubset:1,
-    	                autoFill:false,
-    	                matchContains:1,
-    	                cacheLength:10,
-    	                selectFirst:true,
-    	                maxItemsToShow:10,
-    	                formatItem: function(data, i, total) {
-    	        			return data[1];
-    	        		}
-    				};
-    				if(display.hasClass('multi')) {
-    					opts.multiple = true;
-    					opts.multipleSeparator = sep || " ";
-    					if(!inline) {
-    						el.mousedown(function (e) {
-    							e.stopPropagation();    
-    						}).mouseup(function(e) {
-    							var originalElement = e.originalTarget || e.srcElement;
-    							try {
-    								var al = $(originalElement);
-    								if(al.hasClass('deletable')) {
-    									al.parent().remove();
-    								}
-    							} catch(err) {}
-    						});
-    					}
-    				}
-    				display.autocomplete(url, opts);
-    				display.bind("result", function(el,data,bo) {
-    					var me   = $(this);
-    					var name = me.attr("_lookup");
-    					var next = me.next();
-    					var v    = data[2];
-    					if(me.hasClass("multi")) {
-    						var lbl = data[0];
-    						if(inline) {
-    							//me.val(me.val() + lbl);
-    						}
-    						else {
-    							var td  = $('<div class="to_delete"><input type="hidden" name="'+name+'" value="'+v+'"/><a href="#" class="deletable"></a>'+lbl+'</div>');
-    							next.append(td);
-    							me.val("");
-    						}
-    					}
-    					else {
-    						next.val(v);
-    					}
-    				});
-    			}
-    		});
-    	}
+    
+    $.djpcms.addJsonCallBack({
+        id: "autocomplete",
+        handle: function(data, elem) {
+            elem.response($.map(data, function( item ) {
+                return {
+                    value: item[0],
+                    label: item[1],
+                    real_value: item[2],
+                    multiple: elem.multiple,
+                }
+            }));
+        }
     });
     
+    $.djpcms.decorator({
+        id: "autocomplete",
+        description: "Autocomplete to an input",
+        config: {
+            selector:'input.autocomplete',
+            minLength: 2,
+            maxRows: 50,
+        },
+        decorate: function($this,config) {
+            var opts = config.autocomplete;
+            
+            function split( val ) {
+                return val.split( /,\s*/ );
+            }
+            
+            function get_real_data(val) {
+                var ids = [],
+                    rv = this.data;
+                $.each(split(val),function(i,v) {
+                    var id = rv[v];
+                    if(id) {
+                        ids.push(id);
+                    }
+                });
+                return ids.join( ", " );
+            }
+                
+            $(opts.selector,$this).each(function() {
+                var elem = $(this),
+                    data = elem.data(),
+                    url = data.url,
+                    maxRows = data.maxrows || opts.maxRows,
+                    multiple = data.multiple,
+                    options;
+                if(url) {
+                    options = {
+                            minLength: data.minlength || opts.minLength,
+                            source: function(request,response) {
+                                    var ajax_data = {style: 'full',
+                                                     maxRows: maxRows,
+                                                     q: request.term
+                                                     },
+                                        loader = $.djpcms.ajax_loader(url,'autocomplete',
+                                                                      'get',ajax_data),
+                                        that = {'response':response,
+                                                'multiple': multiple,
+                                                'request':request};                                    
+                                    $.proxy(loader,that)();
+                                },
+                            select: function(event, ui) {
+                                var item = ui.item,
+                                    display = item.value,
+                                    real_data = $.data(this,'real_value') || {},
+                                    data = real_data['data'] || {};
+                                real_data['get'] = get_real_data;
+                                if(ui.multiple) {
+                                    var terms = split(this.value);
+                                    terms.pop();
+                                    terms.push(display);
+                                    terms.push("");
+                                    display = terms.join( ", " );
+                                }
+                                else {
+                                    data = {}
+                                }
+                                data[display] = item.real_value;
+                                real_data['data'] = data;
+                                $.data(this,'real_value',real_data);
+                                this.value = display;
+                                return false;
+                            }
+                    };
+                    elem.autocomplete(options);
+                }
+            })
+        }
+    });
     
     
     $.djpcms.decorator({
@@ -1155,45 +1215,44 @@
     		precision = 3;
     	}
     	s = s.replace(/,/g,'');
-    	var c = parseFloat(s);
+    	var c = parseFloat(s),
+    	    isneg = false,
+    	    decimal = false,
+    	    cs,cn,d,k,N,de = '';
     	if(isNaN(c))  {
-    		return {value:s,negative:false};
+    		return {value:s,negative:isneg};
     	}
-    	isneg = false;
+    	cs = s.split('.',2);
     	if(c<0) {
     		isneg = true;
-    		c     = Math.abs(c);
+    		c = Math.abs(c);
     	}
-    	var cn  = parseInt(c,10);
-    	var de  = c - cn;
-    	if(de > 0) {
+    	cn = parseInt(c,10);
+    	if(cs.length == 2) {
+    	    de = cs[1];
+    	    if(!de) {
+    	        de = '.';
+    	    } else {
+    	        decimal = true;
+    	        de = c - cn;
+    	    }
+    	}
+    	if(decimal) {
     		var mul = Math.pow(10,precision);
-    		var atom = c/mul;
-    		if(atom > de)  {
-    			de = "";
-    		}
-    		else {
-    			atom += "";
-    			atom  = atom.split(".")[1];
-    			for(var i=0;atom.length;i++)  {
-    				if(parseInt(atom[i],10) > 0)  {
-    					break;
-    				}
-    			}
-    			mul = Math.pow(10,i+1);
-    			de  = parseFloat(parseInt(de*mul,10))/mul;
-    			ro  = "" + cn + de;
-    			ro  = ro.split(".");
-    			de  = "."+ro[1];
-    		}
-    	}
-    	else {
-    		de = "";
+    		var atom = (parseInt(c*mul)/mul + '').split(".")[1];
+    		var de = '';
+    		decimal = false;
+			for(var i=0;i<Math.min(atom.length,precision);i++)  {
+			    de += atom[i];
+				if(parseInt(atom[i],10) > 0)  {
+					decimal = true;
+				}
+			}
+			if(decimal) {de = '.' + de;}
     	}
     	cn += "";
-    	var d,k;
-    	var N  = cn.length;
-    	var cs = "";
+    	N  = cn.length;
+    	cs = "";
     	for(var j=0;j<N;j++)  {
     		cs += cn[j];
     		k = N - j - 1;
@@ -1208,73 +1267,73 @@
     	}
     	else {
     		cs = ''+cs;
-    		}
-    		return {value:cs,negative:isneg};
     	}
+    	return {value:cs,negative:isneg};
+    }
     
         
-        if($.tablesorter) {
-            /**
-             * A tablesorter widget for enabling actions on rowsS
-             */
-            $.tablesorter.addWidget({
-                id:"toolbox",
-                format: function(table) {
-                    var tbl = $(table),
-                        me = tbl.prev('.toolbox'),
-                        select = $('select',me);
-                    
-                    if(me.length === 1 && select.length === 1) {
-                        var data = select.data(),
-                            url = data['url'];
-                        if(url) {
-                            function handle_callback(e,o) {
-                                $.djpcms.jsonCallBack(e,o,table);
-                            }
-                            
-                            function toggle(chk) {
-                                chk.each(function() {
-                                    var el = $(this),
-                                        tr = el.parents('tr');
-                                    if(el.is(':checked')) {
-                                        tr.addClass('ui-state-highlight');
-                                    }
-                                    else {
-                                        tr.removeClass('ui-state-highlight');
-                                    }
-                                });
-                            }
-                            
-                            tbl.delegate('.action-check input','click', function() {
-                                toggle($(this));
-                            });
-                            
-                            select.change(function() {
-                                if(this.value) {
-                                    var ids = [],
-                                        data = $.djpcms.ajaxparams(this.value,{'ids':ids});
-                                    $('.action-check input:checked',this.table).each(function() {
-                                        ids.push(this.value);
-                                    });
-                                    $.post(url,
-                                           data,
-                                           handle_callback,
-                                           'json')                       
+    if($.tablesorter) {
+        /**
+         * A tablesorter widget for enabling actions on rowsS
+         */
+        $.tablesorter.addWidget({
+            id:"toolbox",
+            format: function(table) {
+                var tbl = $(table),
+                    me = tbl.prev('.toolbox'),
+                    select = $('select',me);
+                
+                if(me.length === 1 && select.length === 1) {
+                    var data = select.data(),
+                        url = data['url'];
+                    if(url) {
+                        function handle_callback(e,o) {
+                            $.djpcms.jsonCallBack(e,o,table);
+                        }
+                        
+                        function toggle(chk) {
+                            chk.each(function() {
+                                var el = $(this),
+                                    tr = el.parents('tr');
+                                if(el.is(':checked')) {
+                                    tr.addClass('ui-state-highlight');
+                                }
+                                else {
+                                    tr.removeClass('ui-state-highlight');
                                 }
                             });
-                            $('.select_all',me).click(function() {
-                                toggle($('.action-check input').attr({'checked':'checked'}));
-                            });
-                            $('.select_none',me).click(function() {
-                                toggle($('.action-check input').attr({'checked':''}));
-                            });
                         }
+                        
+                        tbl.delegate('.action-check input','click', function() {
+                            toggle($(this));
+                        });
+                        
+                        select.change(function() {
+                            if(this.value) {
+                                var ids = [],
+                                    data = $.djpcms.ajaxparams(this.value,{'ids':ids});
+                                $('.action-check input:checked',this.table).each(function() {
+                                    ids.push(this.value);
+                                });
+                                $.post(url,
+                                       data,
+                                       handle_callback,
+                                       'json')                       
+                            }
+                        });
+                        $('.select_all',me).click(function() {
+                            toggle($('.action-check input').attr({'checked':'checked'}));
+                        });
+                        $('.select_none',me).click(function() {
+                            toggle($('.action-check input').attr({'checked':''}));
+                        });
                     }
                 }
-            });
-        }
+            }
+        });
+    }
     		
-    }(jQuery));
+}(jQuery));
     
     
     

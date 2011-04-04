@@ -1,16 +1,18 @@
 from inspect import isclass
 
-from djpcms.html import List
+from djpcms.html import List, HtmlWrap
 from djpcms.forms.html import HtmlWidget
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
+from djpcms.utils.text import nicename
 
 __all__ = ['BaseFormLayout',
            'FormLayout',
            'FormLayoutElement',
            'DivFormElement',
            'Html',
-           'nolabel']
+           'nolabel',
+           'TableRelatedFieldset']
 
 
 nolabel = 'nolabel'
@@ -33,10 +35,17 @@ form layout design.
     required_tag = ''
     
     def __init__(self, default_style = None, required_tag = None,
-                 field_template = None, **kwargs):
+                 field_template = None, legend = None,
+                 **kwargs):
         self.default_style = default_style or self.default_style
         self.required_tag = required_tag or self.required_tag
+        if legend:
+            legend = '<legend>{0}</legend>'.format(legend)
+        else:
+            legend = ''
+        self.legend_html = legend
         super(BaseFormLayout,self).__init__(**kwargs)
+
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -94,6 +103,7 @@ attribute to render the bounded field.
             return whtml
         else:
             ctx = {'label': None if self.default_style == nolabel else bfield.label,
+                   'name': name,
                    'required_tag': self.required_tag or layout.required_tag,
                    'field':bfield,
                    'error': form.errors.get(name,''), 
@@ -213,6 +223,11 @@ A field must be an instance of :class:`djpcms.forms.layout.FormLayoutElement`.''
         ListDict = jhtmls()
         self._add(ListDict,dfields,f.errors,self.form_error_class)
         self._add(ListDict,dfields,f.messages,self.form_message_class)
+        for fset in f.form_sets.values():
+            for f in fset.forms:
+                dfields = f._fields_dict
+                self._add(ListDict,dfields,f.errors,self.form_error_class)
+                self._add(ListDict,dfields,f.messages,self.form_message_class)
         return ListDict
         
     def _add(self, ListDict, fields, container, msg_class):
@@ -225,3 +240,62 @@ A field must be an instance of :class:`djpcms.forms.layout.FormLayoutElement`.''
             ListDict.add(name,
                          List(data = msg, cn = msg_class).render(),
                          alldocument = False)
+
+
+class TableRelatedFieldset(FormLayoutElement):
+    default_style = 'tablerelated'
+    
+    field_template = ('djpcms/form-layouts/tablefield.html',)
+    template = ('djpcms/form-layouts/tableformset.html',)
+    
+    def __init__(self, formset, fields = None, initial = 3,
+                 **kwargs):
+        super(TableRelatedFieldset,self).__init__(**kwargs)
+        self.initial = initial
+        self.formset = formset
+        self.fields = fields or ()
+    
+    def get_formset(self, form):
+        return form.form_sets[self.formset]
+        
+    def headers(self, form):
+        formset = self.get_formset(form)
+        form_class = formset.form_class
+        dfields = form_class.base_fields.copy()
+        for name in self.fields:
+            field = dfields.pop(name)
+            yield self.field_head(name, field)
+        for name,field in dfields.items():
+            yield self.field_head(name, field)
+            
+    def field_head(self, name, field):
+        label = field.label or nicename(name)
+        ch = HtmlWrap('span',inner = label)
+        if field.required:
+            ch.addClass('required')
+        return {'label': ch.render(),
+                'name':name,
+                'help_text':field.help_text}
+        
+    def render_form(self,djp,form,layout,headers):
+        dfields = form.dfields
+        for head in headers:
+            field = dfields[head['name']]
+            errors = form.errors.get(field.name,'')
+            yield {'html':self.render_field(djp, field, layout),
+                   'errors':errors,
+                   'errors_id':field.errors_id}
+    
+    def render(self, djp, form, layout, inner = None):
+        headers = list(self.headers(form))
+        formset = self.get_formset(form)
+        forms = [list(self.render_form(djp, form, layout, headers)) for form in formset.forms]
+        ctx = {'legend': self.legend_html,
+               'num_forms': formset.num_forms.render(),
+               'headers': headers,
+               'self': self,
+               'forms': forms}        
+        return loader.render(self.template,
+                             ctx)    
+        
+        

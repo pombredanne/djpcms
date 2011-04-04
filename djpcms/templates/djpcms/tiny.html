@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block page_prebody %}{% endblock %}
+{% block page_body %}
+<div class="{{ grid.column_1_4 }}">
+{{ grid.empty }}
+</div>
+<div id="inner-body" class="{{ grid.column_1_2 }}">
+{% block inner_body %}{% endblock %}
+</div>
+<div class="{{ grid.column_1_4 }}">
+{{ grid.empty }}
+</div>
+{{ grid.clear }}
+{% endblock %}

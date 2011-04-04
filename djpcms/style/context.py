@@ -248,7 +248,6 @@ CssContext('panel',
                    'padding':'7px 7px'}
            )
 
-
 #________________________________________ FLAT BOX
 CssContext('flatbox',
            tag='div.flat-box',

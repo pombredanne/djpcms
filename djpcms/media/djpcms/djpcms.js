@@ -981,6 +981,10 @@
                     c = config.uniforms,
                     html = el.html(),
                     label = $('label',el.parent());
+                
+                if(!label.length) {
+                    label = el.prev();
+                }
                 if(label.length && html) {
                     $.data(label[0],'panel-html',html);
                     label.css({cursor:'help'})

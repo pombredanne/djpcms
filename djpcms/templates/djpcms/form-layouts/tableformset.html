@@ -1,0 +1,25 @@
+<div class="{{ self.default_style }} ctrlHolder">{% if legend %}
+<div class="legend">
+ {{ legend }}
+</div>{% endif %}
+{{ num_forms }}
+<table>
+<thead>
+<tr>{% for header in headers %}
+<th class="{{ header.name }}">{{ header.label }}{% if header.help_text %}
+<div class="formHint">{{ header.help_text }}</div>{% endif %}
+</th>{% endfor %}{% if actions %}
+<th>&nbsp;</th>{% endif %}
+</tr>
+</thead>
+<tbody>{% for form in forms %}
+<tr>{% for field in form %}
+<td id="{{ field.errors_id }}">{{ field.errors }}
+</td>{% endfor %}
+</tr>
+<tr>{% for field in form %}
+<td>{{ field.html }}</td>{% endfor %}
+</tr>{% endfor %}
+</tbody>
+</table>
+</div>

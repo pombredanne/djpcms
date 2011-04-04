@@ -1,0 +1,9 @@
+{% if is_hidden %}{{ widget }}{% else %}
+<div {% if error %}class="error"{% endif %}>{% if ischeckbox %}
+    {{ widget }}
+    {% else %}
+    <div class="field-widget input {{ name }}">
+     {{ widget }}
+    </div>{% endif %}
+</div>
+{% endif %}

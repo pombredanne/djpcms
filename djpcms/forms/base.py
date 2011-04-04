@@ -13,9 +13,11 @@ from djpcms.utils.collections import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
+from djpcms.utils.const import NOTHING
 from djpcms.html import media_property, List, SubmitInput
 
 from .globals import *
+from .formsets import FormSet
 from .fields import Field
 from .html import FormWidget
 
@@ -27,18 +29,7 @@ __all__ = ['FormType',
            'Form',
            'HtmlForm',
            'BoundField',
-           'FormSet',
            'post_save']
-
-
-class FormSet(object):
-    """A collection of instances of the same Form."""
-    creation_counter = 0
-    def __init__(self, form_class, prefix = ''):
-        self.form_class = form_class
-        self.prefix = ''
-        self.creation_counter = Field.creation_counter
-        FormSet.creation_counter += 1
 
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
@@ -50,7 +41,8 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
         if isinstance(obj, Field):
             fields.append((name, attrs.pop(name)))
         elif isinstance(obj, FormSet):
-            fields.append((name, attrs.pop(name)))
+            obj.name = name
+            inlines.append((name, attrs.pop(name)))
                         
     fields = sorted(fields, key=lambda x: x[1].creation_counter)
     inlines = sorted(inlines, key=lambda x: x[1].creation_counter)
@@ -159,6 +151,7 @@ browser based application as well as remote procedure calls validation.
         self.hidden_fields = []
         self.request = request
         self._site = site
+        self.changed = False
         if request:
             self.user = getattr(request,'user',None)
         else:
@@ -172,7 +165,9 @@ browser based application as well as remote procedure calls validation.
                 self.instance = model()
         else:
             self.mapper = None
-        self.form_sets = []
+        self.form_sets = {}
+        for name,fset in self.base_inlines.items():
+            self.form_sets[name] = fset(self)
         self.forms = []
         if not self.is_bound:
             self._fill_initial()
@@ -238,9 +233,12 @@ This class method can be useful when using forms outside web applications.'''
             if initial is not None:
                 initials[name] = initial
             if self.instance:
-                value = getattr(instance,name,None)
+                value = self.value_from_instance(instance,name)
                 if value:
                     initials[name] = value
+    
+    def value_from_instance(self, instance, name):
+        return getattr(instance,name,None)
         
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:
@@ -287,7 +285,10 @@ This class method can be useful when using forms outside web applications.'''
                 if key in rawdata:
                     rawvalue = field_value = rawdata[key]
                 else:
-                    rawvalue = nodata
+                    rawvalue = None
+                if rawvalue not in NOTHING:
+                    self.changed = True
+                    data[name] = rawvalue
                 try:
                     value = bfield.clean(rawvalue)
                     func_name = 'clean_' + name
@@ -296,8 +297,6 @@ This class method can be useful when using forms outside web applications.'''
                     cleaned[name] = value
                 except ValidationError as e:
                     form_message(errors, name, force_str(e))
-                if rawvalue is not nodata:
-                    data[name] = rawvalue
             
             elif name in initial:
                 data[name] = field_value = initial[name]
@@ -315,6 +314,12 @@ This class method can be useful when using forms outside web applications.'''
                 form_message(errors, '__all__', force_str(e))
                 del self._cleaned_data
                 
+        # Handle formsets if available
+            for fset in self.form_sets.values():
+                if fset.errors:
+                    del self._cleaned_data
+                
+                
     def form_message(self, container, key, msg):
         '''Add a message to a message container in the form.
 Messages can be errors or not. If the message is empty, it does nothing.
@@ -330,7 +335,14 @@ Messages can be errors or not. If the message is empty, it does nothing.
             
     def is_valid(self):
         '''Check if Form is valid, including any subforms'''
-        return self.is_bound and not self.errors 
+        if self.is_bound:
+            if not self.errors:
+                for fset in self.form_sets.values():
+                    if fset.errors:
+                        return False
+                return True
+            return False
+        return True
     
     def clean(self):
         '''The form clean method. Called last in the validation algorithm.'''

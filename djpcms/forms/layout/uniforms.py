@@ -56,11 +56,7 @@ class Fieldset(UniFormElement):
     tag = 'fieldset'
     
     def __init__(self, *fields, **kwargs):
-        legend_html = kwargs.pop('legend','')
         super(Fieldset,self).__init__(**kwargs)
-        if legend_html:
-            legend_html = '<legend>{0}</legend>'.format(legend_html)
-        self.legend_html = legend_html
         self.fields = fields
 
     def inner(self, djp, form, layout):

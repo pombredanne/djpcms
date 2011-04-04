@@ -16,7 +16,8 @@ __all__ = ['FormException',
            'PREFIX_KEY',
            'REFERER_KEY',
            'AJAX',
-           'NOBUTTON']
+           'NOBUTTON',
+           'BUTTON']
 
 
 # some useful hidden keys
@@ -28,6 +29,7 @@ PREFIX_KEY = '__prefixed__'
 REFERER_KEY = '__referer__'
 AJAX_ACTION_KEY = 'xhr'
 AJAX = 'ajax'
+BUTTON = 'button'
 NOBUTTON = 'nobutton'
 
 

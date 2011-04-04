@@ -1,3 +1,5 @@
+import json
+
 from djpcms import forms, html
 from djpcms.forms.layout import DivFormElement, FormLayout, nolabel
 from djpcms.template import loader
@@ -14,6 +16,22 @@ def registered_models(bfield):
             id = mapper(model).hash
             if id:
                 yield id,str(model._meta)
+                
+
+def get_contet_choices(bfield):
+    model = bfield.form.model
+    if not model:
+        raise StopIteration
+    else:
+        request = bfield.form.request
+        if request:
+            info = request.DJPCMS
+            appmodel = info.site.for_model(model, all = True)
+            if appmodel:
+                sdjp = appmodel.getview('search')(request)
+                return appmodel.basequery(sdjp) 
+        
+        return mapper(model).all()
     
     
 class ForModelForm(forms.Form):
@@ -51,6 +69,9 @@ class ModelLinksForm(forms.Form):
     exclude = forms.CharField(max_length=600,required=False)
     
 
+class ContentForm(forms.Form):
+    content = forms.ChoiceField(choices = get_contet_choices,
+                                autocomplete = True)
 
 #
 #___________________________________________ A CLASSY SEARCH FORM
@@ -110,6 +131,36 @@ class SearchBox(DJPplugin):
                 w.addClass(forms.AJAX)
             return w.render()
 
+
+
+class RenderObject(DJPplugin):
+    '''Render a database object'''
+    virtual = True
+    description = 'Display your content'
+    form = ContentForm
+    
+    def get_object(self, content):
+        if content and self.for_model:
+            return mapper(self.for_model).get(id = content)
+        
+    def render(self, djp, wrapper, prefix, content = None, **kwargs):
+        obj = self.get_object(content)
+        if obj:
+            appmodel = djp.site.for_model(self.for_model, all = True)
+            if appmodel:
+                view = appmodel.getview('view')
+                return view(djp.request, instance = obj).render()
+            else:
+                return str(obj)
+        else:
+            return ''
+        
+    def edit_url(self, djp, args = None):
+        initial = self.arguments(args)
+        obj = self.get_object(initial.get('content',None))
+        return djp.site.get_url(self.for_model, 'change', instance = obj, all = True)
+      
+    
 
 class ModelFilter(DJPplugin):
     '''Display filters for a model registered in the application registry.'''

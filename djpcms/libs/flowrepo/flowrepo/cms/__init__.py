@@ -89,7 +89,6 @@ class FlowItemApplication(ArchiveTaggedApplication):
     
     main             = FlowMainView()
     search           = appview.SearchView(regex = 'search', parent = 'main', in_navigation = 0)
-    autocomplete     = appview.AutocompleteView(display = 'name', parent = 'main')
     upload_file      = appview.AddView(regex = 'upload', form = NiceUloaderForm, parent = 'main')
     applications     = ContentView(regex = '(?P<content>[-\w]+)', parent = 'main')
     add              = FlowAddView(parent = 'applications')

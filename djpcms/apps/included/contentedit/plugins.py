@@ -1,10 +1,11 @@
 import json
 
 from djpcms import forms, html
-from djpcms.plugins import DJPplugin
+from djpcms.plugins.apps import RenderObject
 from djpcms.forms.utils import form_kwargs
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.utils import mark_safe
+from djpcms.models import SiteContent
 
 
 def get_site_content(form):
@@ -56,13 +57,13 @@ class ChangeTextContent(forms.Form):
         
 
     
-class Text(DJPplugin):
+class Text(RenderObject):
     '''The text plugin allows to write content in a straightforward manner.
 You can use several different markup languages or simply raw HTML.'''
     name               = "text"
     description        = "Text Editor"
     long_description   = "Write text or raw HTML"
-    form               = ChangeTextContent
+    for_model = SiteContent
     
     def html(self):
         if self.site_content:
@@ -70,7 +71,7 @@ You can use several different markup languages or simply raw HTML.'''
         else:
             return ''
             
-    def render(self, djp, wrapper, prefix, site_content = None, **kwargs):
+    def __render(self, djp, wrapper, prefix, site_content = None, **kwargs):
         if site_content:
             try:
                 site_content = SiteContent.objects.get(id = int(site_content))
@@ -100,7 +101,4 @@ You can use several different markup languages or simply raw HTML.'''
             else:
                 raise PermissionDenied("Cannot edit '%s'. You don't have the right permissions" % obj)
             
-    def save(self, pform):
-        text = pform.update()
-        return json.dumps({'site_content': text.id})
         

@@ -333,17 +333,18 @@ admin application will be included.
         admin = AdminSite('/', apps = groups, name = name, **params)
         return (admin,)
     
-    def for_model(self, model):
+    def for_model(self, model, exclude = None):
         if not model:
             return
         r = None
         for site in self.all():
-            r2 = site.for_model(model)
-            if r2:
-                if r:
-                    raise DjpcmsException('Model {0} is registered with \
-more than one site. Cannot resolve.'.format(model))
-                r = r2
+            if site is not exclude:
+                r2 = site.for_model(model)
+                if r2:
+                    if r:
+                        raise DjpcmsException('Model {0} is registered with \
+    more than one site. Cannot resolve.'.format(model))
+                    r = r2
         return r
     
     def setsettings(self, **kwargs):

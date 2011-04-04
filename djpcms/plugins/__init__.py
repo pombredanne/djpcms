@@ -122,6 +122,7 @@ The basics:
     permission      = 'authenticated'
     #storage       = _plugin_dictionary
     #URL           = None
+    for_model = None
     
     def js(self, **kwargs):
         '''Function which can be used to inject javascript dynamically.'''
@@ -152,15 +153,8 @@ By default do nothing.
     
     def __call__(self, djp, args = None, wrapper = None, prefix = None):
         return self.render(djp, wrapper, prefix, **self.arguments(args))
-    
-    def edit(self, djp, args = None, **kwargs):
-        kwargs.update(**self.arguments(args))
-        return self.edit_form(djp, **kwargs)
         
-    def edit_form(self, djp, **kwargs):
-        '''Returns the form used to edit the plugin **content**. Most plugins don't need to implement this
-        functions but some do. Check
-        the :class:`djpcms.plugins.text.Text` for example. By default it returns ``None``.'''
+    def edit_url(self, djp, args = None):
         return None
     
     def render(self, djp, wrapper, prefix, **kwargs):
@@ -193,7 +187,8 @@ If your plugin needs input parameters when editing, simple set the
             form =  form_class(**form_kwargs(request = djp.request,
                                              initial = initial,
                                              own_view = djp.own_view(),
-                                             prefix = prefix))
+                                             prefix = prefix,
+                                             model = self.for_model))
             return form_class.widget(form, **kwargs)
     
     def _register(self):

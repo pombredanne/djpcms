@@ -540,7 +540,7 @@ By default it return a generator of children pages.'''
         
     def gen_autocomplete(self, qs):
         for q in qs:
-            l = str(qs)
+            l = str(q)
             yield l,l,q.id
             
     
@@ -684,7 +684,7 @@ Re-implement for custom arguments.'''
         return self.site.permissions.has(request,djpcms.DELETE,obj)
     #-----------------------------------------------------------------------------------------------
     
-    def basequery(self, djp, **kwargs):
+    def basequery(self, djp):
         '''Starting queryset for searching objects in model.
 This can be re-implemented by subclasses.'''
         user = self.for_user(djp)

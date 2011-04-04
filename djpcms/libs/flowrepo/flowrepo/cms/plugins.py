@@ -127,7 +127,8 @@ class LinkedItems(DJPplugin):
     description = "Related Items"
     form = LinkedItemForm
     
-    def render(self, djp, wrapper, prefix, content_types = None, display = 'list', inverse = False, **kwargs):
+    def render(self, djp, wrapper, prefix, content_types = None,
+               display = 'list', inverse = False, **kwargs):
         from djpcms.views import appsite
         instance = djp.instance
         if not isinstance(instance,FlowItem):

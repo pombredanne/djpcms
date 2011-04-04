@@ -320,9 +320,11 @@
     });
     
     /**
-     *  Data loader closure. An utility function which return
-     *  a function which can be used to create AJAX interactions
-     *  handles by djpcms callbacks.
+     *  DJPCMS AJAX DATA LOADER CLOSURE.
+     *  
+     *  An utility which return a function which can be used to
+     *  perform AJAX requests with confirmation and callbacks handled
+     *  by djpcms callbacks.
      *  
      *  For example
      *  
@@ -330,19 +332,37 @@
      *  myloader()
      *  
      */
-    $.djpcms.ajax_loader =  function djpcms_loader(url,action,method,data) {
-        return function() {
+    $.djpcms.ajax_loader =  function djpcms_loader(url,action,method,data,conf) {
+        var sendrequest = function() {
             var that = this;
+            if(conf) {
+                var el = $('<div></div>').html(conf);
+                el.dialog({modal: true,
+                           draggable: false,
+                           resizable: false,
+                           buttons: {
+                               Ok : function() {
+                                   $( this ).dialog( "close" );
+                                   sendrequest(url,action,method,data);
+                               },
+                               Cancel: function() {
+                                   $(this).dialog( "close" );
+                                   $.djpcms.set_inrequest(false);
+                               }
+                    }});
+            }
             $.ajax({
                     'url':url,
                     'type': method || 'post',
                     'dataType': 'json',
                     'success': function callBack(e,s) {
-                                $.djpcms.jsonCallBack(e,s,that);
-                        },
+                        $.djpcms.set_inrequest(false);
+                        $.djpcms.jsonCallBack(e,s,that);
+                     },
                     'data': $.djpcms.ajaxparams(action,data)
                 });
         };
+        return sendrequest 
     };
     
     $.djpcms.errorDialog = function(html,title) {
@@ -391,7 +411,8 @@
     	handle: function(data, elem, config) {
     		$.each(data, function(i,b) {
     			var el = $(b.identifier,elem),
-    			    fade = config.fadetime;
+    			    fade = config.fadetime,
+    			    html;
     			if(!el.length & b.alldocument) {
     				el = $(b.identifier);
     			}
@@ -410,19 +431,24 @@
     					nel.djpcms();
     				}
     				else {
-    					if(b.type === 'addto') {
-    						el.html(el.html() + b.html);
-    					}
-    					else if(b.type === 'replacewith') {
-    						el.replaceWith(b.html);
-    					}
-    					else {
-    						el.fadeOut(fade,function(){
-    						    el.html(b.html).fadeIn(fade);
-    						});
-    					}
-    					el.djpcms();
-    					el.show();
+    				    el.show();
+    				    el.fadeOut(fade,'linear',function(){
+    				        if(b.type === 'replacewith') {
+    				            el.replaceWith(b.html);
+    				        }
+    				        else {
+    				            if(b.type === 'addto') {
+    				                html = el.html() + b.html;
+    				            }
+    				            else {
+    				                html = b.html;
+    				            }
+    				            el.html(b.html);
+    				        }
+    				        el.djpcms();
+    				        el.fadeIn(fade);
+    				        //el.show();
+    					});
     				}
     			}
     		});
@@ -660,28 +686,18 @@
     $.djpcms.decorator({
         id:	"ajax_widgets",
         config: {
+            selector_link: 'a.ajax,button.ajax',
+            selector_select: 'select.ajax',
+            selector_form: 'form.ajax',
             submit_opacity: '0.5'
         },
         description: "add ajax functionality to links, buttons and selects",
         decorate: function($this,config) {
-            var ajaxclass = config.ajaxclass ? config.ajaxclass : 'ajax',
-                confirm = config.confirm_actions,
+            var confirm = config.confirm_actions,
                 cfg = config.ajax_widgets,
                 callback = $.djpcms.jsonCallBack,
-                logger = $.djpcms.logger;
-            
-            function sendrequest(elem,name,abort) {
-                if(abort) {
-                    $.djpcms.set_inrequest(false);
-                }
-                else {
-    				var url = elem.attr('href');
-    				if(url) {
-    					var p = $.djpcms.ajaxparams(name);
-    					$.post(url,p,callback,"json");
-    				}
-                }
-    		}
+                logger = $.djpcms.logger,
+                that = this;
             
             function presubmit_form(formData, jqForm, opts) {
                 jqForm.css({'opacity':cfg.submit_opacity});
@@ -690,42 +706,17 @@
                 return true;
             }
             
-    		function ajax_submit(event,elem) {
-    			event.preventDefault();
-    			if($.djpcms.inrequest()) {
-    				return;
-    			}
-    			$.djpcms.set_inrequest(true);
-    			var a = $(elem);
-    			var name = a.attr('name');
-    			var conf = confirm[name];
-    			if(conf) {
-    				var el = $('<div></div>').html(conf);
-    				el.dialog({modal: true,
-    						   draggable: false,
-    						   resizable: false,
-    						   buttons: {
-    							   Ok : function() {
-    								   $( this ).dialog( "close" );
-    								   sendrequest(a,name);
-    							   },
-    							   Cancel: function() {
-    								   $(this).dialog( "close" );
-    								   sendrequest(a,name,true);
-    							   }
-    					}});
-    			}
-    			else {
-    				sendrequest(a,name);
-    			}
-    		}
-    		$('a.'+ajaxclass,$this).click(function(event) {
-    		    ajax_submit(event,this);
+    		$(cfg.selector_link,$this).click(function(event) {
+    		    event.preventDefault();               
+                var elem = $(this),
+                    url = elem.attr('href'),
+                    method = elem.data('method') || 'post',
+                    action = elem.attr('name'),
+                    conf = confirm[name] || elem.data('confirm');
+                $.djpcms.ajax_loader(url,action,method,{},conf)();
     		});
-    		$('button.'+ajaxclass,$this).click(function(event) {
-    		    ajax_submit(event,this);
-    		});
-    		$('select.'+ajaxclass,$this).change(function(event) {
+    		
+    		$(cfg.selector_select,$this).change(function(event) {
     			var elem = $(this),
     			    url = elem.attr('href'),
     			    f = elem.parents('form');
@@ -758,7 +749,7 @@
     			$.djpcms.jsonCallBack(o,s,jform);
     			jform.css({'opacity':'1'});
     		};
-    		$('form.'+ajaxclass,$this).each(function() {
+    		$(cfg.selector_form,$this).each(function() {
     		    var f = $(this);
     		    var opts = {
     		            url:      	 this.action,
@@ -1059,8 +1050,16 @@
                     url = data.url,
                     maxRows = data.maxrows || opts.maxRows,
                     multiple = data.multiple,
-                    options;
+                    elemdata = {'get': get_real_data, 'data': {}},
+                    options, initials;
                 if(url) {
+                    initials = $.data(this,'initial_value');
+                    if(initials) {
+                        $.each(initials, function(i,initial) {
+                            elemdata['data'][initial[1]] = initial[0];
+                        });
+                    }
+                    elem.data('real_value',elemdata);
                     options = {
                             minLength: data.minlength || opts.minLength,
                             source: function(request,response) {
@@ -1078,9 +1077,8 @@
                             select: function(event, ui) {
                                 var item = ui.item,
                                     display = item.value,
-                                    real_data = $.data(this,'real_value') || {},
-                                    data = real_data['data'] || {};
-                                real_data['get'] = get_real_data;
+                                    real_data = $.data(this,'real_value'),
+                                    data = real_data['data'];
                                 if(ui.multiple) {
                                     var terms = split(this.value);
                                     terms.pop();

@@ -1,4 +1,5 @@
 from djpcms import forms
+from djpcms.html import HtmlWrap
 from djpcms.forms import FormType, HtmlForm, SubmitInput, HtmlWidget
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
@@ -181,10 +182,20 @@ for editing plugin contents.'''
         formhtml = self.get_form(djp,
                                  initial = {'url': url},
                                  force_prefix = True)
+        instance = djp.instance
         form = formhtml.form
         prefix = form.prefix
-        pform,purl = self.get_plugin_form(djp, djp.instance.plugin, prefix)
+        pform,purl = self.get_plugin_form(djp, instance.plugin, prefix)
         html = '' if not pform else pform.render(djp)
+        edit_url = djp.instance.plugin.edit_url(djp,instance.arguments)
+        if edit_url:
+            edit_url = HtmlWrap('a',
+                                cn = 'ajax button',
+                                inner='Edit')\
+                             .addAttr('href',edit_url)\
+                             .addAttr('title','Edit plugin')\
+                             .addData('method','get')
+            formhtml.inputs.append(edit_url)
         return formhtml.render(djp, plugin = html)
     
     def handle_content_block_changes(self, djp, commit = True):

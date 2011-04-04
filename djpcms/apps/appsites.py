@@ -159,7 +159,7 @@ If the ``model`` does not have an application it return ``None``.'''
         self._nameregistry.clear()
         self._registry.clear()
             
-    def for_model(self, model):
+    def for_model(self, model, all = False):
         '''Obtain a :class:`djpcms.views.ModelApplication` for model *model*.
 If the application is not available, it returns ``None``. Never fails.'''
         #Allow for OrmWrapper
@@ -168,9 +168,13 @@ If the application is not available, it returns ``None``. Never fails.'''
         if hasattr(model,'model'):
             model = model.model
         try:
-            return self._registry.get(model,None)
+            app = self._registry.get(model,None)
         except:
-            return None
+            app = None
+        if not app and all:
+            return self.root.for_model(model, exclude = self)
+        else:
+            return app
             
     def for_hash(self, model_hash, safe = True):
         '''Obtain a :class:`djpcms.views.ModelApplication` for model
@@ -218,12 +222,12 @@ returns the application handler. If the appname is not available, it raises a Ke
                     return None
         return None
     
-    def get_url(self, model, view_name, instance = None, **kwargs):
+    def get_url(self, model, view_name, instance = None, all = False, **kwargs):
         '''Build a url from a model, a view name and optionally a model instance'''
         if not isinstance(model,type):
             instance = model
             model = instance.__class__
-        app = self.for_model(model)
+        app = self.for_model(model, all = all)
         if app:
             view = app.getview(view_name)
             if view:

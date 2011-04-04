@@ -338,5 +338,6 @@ CssContext('javascript_logging_paragraph',
 CssContext('content',tag='#content',
            data={'min_height':'500px',
                  'overflow':'hidden',
-                 'padding':'0 0 20px 0'})
+                 'padding':'0 0 20px 0',
+                 'text_align':'left'})
 CssContext('hidecontent',tag='.djph',data={'display':'none'})

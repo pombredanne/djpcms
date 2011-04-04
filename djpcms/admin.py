@@ -1,5 +1,7 @@
+from djpcms import views
 from djpcms.models import Page, InnerTemplate, BlockContent, SiteContent
 from djpcms.apps.included.sitemap import SiteMapApplication
+from djpcms.utils import markups, mark_safe
 
 NAME = 'Content Management'
 ROUTE = 'cms'
@@ -10,6 +12,16 @@ if Page:
                                                  HtmlTemplateForm, ContentBlockHtmlForm, \
                                                  HtmlEditContentForm
     from djpcms.apps.included.admin import AdminApplication
+    
+    class SiteContentApp(AdminApplication):
+        inherit = True
+        def render_object(self, djp):
+            instance = djp.instance
+            mkp = markups.get(instance.markup)
+            text = instance.body
+            if mkp:
+                text = mkp['handler'](text)
+            return mark_safe(text)
     
     admin_urls = (
                   SiteMapApplication('/sitemap/',
@@ -32,12 +44,11 @@ if Page:
                               object_display = ('id','page','block','position',
                                               'plugin_name','title','requires_login',
                                               'for_not_authenticated')),
-                  AdminApplication('/block-content/',
-                                   SiteContent,
-                                   form = HtmlEditContentForm,
-                                   description = 'Site content',
-                                   list_display = ('id','title','markup'),
-                                   object_display = ('id','title','markup','body')
+                  SiteContentApp('/block-content/',
+                                 SiteContent,
+                                 form = HtmlEditContentForm,
+                                 description = 'Site content',
+                                 list_display = ('id','title','markup')
                   )
         )
 else:

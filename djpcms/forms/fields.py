@@ -375,13 +375,21 @@ iterable over choices and a model class (if applicable).'''
     def get_widget(self, djp, bfield):
         if self.autocomplete:
             ch,model = self.choices_and_model(bfield)
-            if model:
+            if model:                    
                 url = djp.site.get_url(model,'search')    
                 widget = TextInput(cn = 'autocomplete')
                 widget.addData('url',url)\
                       .addData('multiple',self.multiple)\
                       .addData('minlength',self.minLength)\
                       .addData('maxrows',self.maxRows)
+                value = bfield.value
+                if value:
+                    if self.multiple:
+                        raise NotImplemented
+                    else:
+                        obj = mapper(model).get(id = value)
+                        initial_value = ((obj.id,str(obj)),)
+                    widget.addData('initial_value',initial_value)
                 return widget
         return super(ChoiceField,self).get_widget(djp, bfield)
         

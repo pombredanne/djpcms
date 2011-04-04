@@ -40,6 +40,12 @@ class TextInput(FieldWidget):
     inline = True
     attributes = merge_dict(FieldWidget.attributes, {'type':'text'})
     
+    def get_value(self, value):
+        if 'initial_value' in self.data:
+            return ', '.join(initial[1] for initial in self.data['initial_value'])
+        else:
+            return value
+    
     
 class SubmitInput(TextInput):
     attributes = merge_dict(TextInput.attributes, {'type':'submit'})

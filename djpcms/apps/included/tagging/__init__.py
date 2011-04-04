@@ -5,7 +5,6 @@ __all__ = ['cleaned_tags',
            'TagView',
            'TagMixedIn',
            'TagArchiveView',
-           'TagsApplication',
            'TagApplication',
            'ArchiveTaggedApplication']
 
@@ -127,12 +126,6 @@ class TagArchiveView(ArchiveView):
             return TaggedItem.objects.get_by_model(query, tags.values())
         else:
             return query
-
-
-class TagsApplication(views.ModelApplication):
-    '''An application for anabling tags autocomplete'''
-    search_fields = ['name']
-    complete = views.AutocompleteView()
 
 
 class TagMixedIn(object):

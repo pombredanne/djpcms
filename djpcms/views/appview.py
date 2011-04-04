@@ -7,7 +7,6 @@ from py2py3 import zip
 
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
-from djpcms.forms import autocomplete
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
@@ -527,7 +526,7 @@ It returns a queryset.
         qs = self.appquery(djp)
         params = djp.request.data_dict
         if 'maxRows' in params:
-            qs = qs[:params['maxRows']]
+            qs = qs[:int(params['maxRows'])]
         return CustomHeaderBody('autocomplete',
                                 list(self.appmodel.gen_autocomplete(qs)))
     

@@ -42,3 +42,10 @@ siro['nav'] = {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',
 
 
 make_theme(theme_name,siro)
+
+CssTheme('tablerelated-legend',
+         theme_name,
+         data = {
+            'background':'#f2f2f2'
+    }
+)

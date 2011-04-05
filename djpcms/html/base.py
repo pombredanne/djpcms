@@ -2,7 +2,7 @@ import json
 
 from py2py3 import iteritems
 
-from djpcms import sites, UnicodeMixin, is_string
+from djpcms import sites, UnicodeMixin, is_string, to_string
 from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.collections import OrderedDict
 from djpcms.utils.const import NOTHING
@@ -12,7 +12,8 @@ from .media import BaseMedia
 
 __all__ = ['flatatt',
            'HtmlAttrMixin',
-           'HtmlWidget']
+           'HtmlWidget',
+           'HtmlWrap']
 
 
 def attrsiter(attrs):
@@ -229,3 +230,17 @@ the :meth:`render` method.'''
             return loader.render(self.template,context)
         else:
             return ''
+
+
+class HtmlWrap(HtmlWidget):
+    
+    def __init__(self, *args, **kwargs):
+        self._inner = kwargs.pop('inner','')
+        super(HtmlWrap,self).__init__(*args, **kwargs)
+        
+    def inner(self, *args, **kwargs):
+        if hasattr(self._inner,'render'):
+            return self._inner.render(*args, **kwargs)
+        else:
+            return to_string(self._inner)
+

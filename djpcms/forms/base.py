@@ -238,7 +238,10 @@ This class method can be useful when using forms outside web applications.'''
                     initials[name] = value
     
     def value_from_instance(self, instance, name):
-        return getattr(instance,name,None)
+        value = getattr(instance,name,None)
+        if hasattr(value,'__call__'):
+            value = value()
+        return value
         
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:
@@ -312,13 +315,7 @@ This class method can be useful when using forms outside web applications.'''
                 self.clean()
             except ValidationError as e:
                 form_message(errors, '__all__', force_str(e))
-                del self._cleaned_data
-                
-        # Handle formsets if available
-            for fset in self.form_sets.values():
-                if fset.errors:
-                    del self._cleaned_data
-                
+                del self._cleaned_data                
                 
     def form_message(self, container, key, msg):
         '''Add a message to a message container in the form.
@@ -338,7 +335,8 @@ Messages can be errors or not. If the message is empty, it does nothing.
         if self.is_bound:
             if not self.errors:
                 for fset in self.form_sets.values():
-                    if fset.errors:
+                    if fset.errors or self.errors:
+                        del self._cleaned_data
                         return False
                 return True
             return False
@@ -354,11 +352,24 @@ Messages can be errors or not. If the message is empty, it does nothing.
     def add_error(self, msg):
         self.form_message(self.errors, '__all__', msg)
     
+    def save_as_new(self, commit = True):
+        self.instance.id = None
+        for fset in self.form_sets.values():
+            fset.set_save_as_new()
+        return self.save(commit = commit)
+    
     def save(self, commit = True):
-        '''Save the form. This method works if an instance or a model is available'''
+        '''Save the form and return a model instance.
+This method works if an instance or a model is available.
+
+:parameter commit: if ``True`` changes are committed to the model backend.
+:parameter as_new: if ``True`` the instance is saved as a new instance.
+'''
         self.before_save(commit)
         obj = self.mapper.save(self.cleaned_data, self.instance, commit)
         if commit:
+            for fset in self.form_sets.values():
+                fset.save()
             post_save.send(self, instance = obj)
         return obj
     
@@ -487,6 +498,10 @@ and shouldn't be used otherwise. It is an utility class.
         self.id = form.auto_id.format(self.__dict__)
         self.errors_id = self.id + '-errors'
         
+    @property
+    def is_hidden(self):
+        return self.field.is_hidden
+    
     def clean(self, value):
         '''return a cleaned value for ``value`` by running the validation
 algorithm on :attr:`field`.'''

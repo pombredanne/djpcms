@@ -112,9 +112,10 @@ wrap existing object relational mappers.
     def unique_id(self, obj = None):
         '''Create a unique ID for the object'''
         if obj:
-            return '%s-%s' % (self.hash,obj.id)
+            id = '%s-%s' % (self.hash,obj.id)
         else:
-            return self.hash
+            id = self.hash
+        return 'o-'+id
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError

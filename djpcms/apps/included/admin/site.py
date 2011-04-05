@@ -7,6 +7,7 @@ from djpcms.core.exceptions import ImproperlyConfigured
 
 __all__ = ['AdminSite',
            'ApplicationGroup',
+           'AdminApplicationSimple',
            'AdminApplication']
 
 ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
@@ -57,6 +58,13 @@ administer models in groups.'''
     def render_query(self, djp, qs):
         return loader.render(self.query_template, {'items':qs})
       
+    
+class AdminApplicationSimple(views.ModelApplication):
+    has_plugins = False
+    search = views.SearchView()
+    view   = views.ViewView()
+    delete = views.DeleteView()
+    
     
 class AdminApplication(views.ModelApplication):
     view_template = 'djpcms/admin/viewtemplate.html'

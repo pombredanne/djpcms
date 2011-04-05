@@ -777,7 +777,7 @@ This dictionary should be used to render an object within a template. It returns
         return to_string(ObjectDefinition(self, djp))
         
     def remove_object(self, obj):
-        id = obj.id
+        id = self.mapper.unique_id(obj)
         obj.delete()
         return id
     

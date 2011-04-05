@@ -1,6 +1,6 @@
 from inspect import isclass
 
-from djpcms.html import List, HtmlWrap
+from djpcms.html import List, HtmlWrap, icons
 from djpcms.forms.html import HtmlWidget
 from djpcms.template import loader
 from djpcms.utils.ajax import jhtmls
@@ -40,7 +40,7 @@ form layout design.
         self.default_style = default_style or self.default_style
         self.required_tag = required_tag or self.required_tag
         if legend:
-            legend = '<legend>{0}</legend>'.format(legend)
+            legend = '{0}'.format(legend)
         else:
             legend = ''
         self.legend_html = legend
@@ -283,27 +283,64 @@ class TableRelatedFieldset(FormLayoutElement):
             yield self.field_head(name, field)
             
     def field_head(self, name, field):
-        label = field.label or nicename(name)
-        ch = HtmlWrap('span',inner = label)
-        if field.required:
-            ch.addClass('required')
-        return {'label': ch.render(),
-                'name':name,
-                'help_text':field.help_text}
+        if field.is_hidden:
+            return {'name':name}
+        else:
+            label = field.label or nicename(name)
+            ch = HtmlWrap('span',inner = label)
+            if field.required:
+                ch.addClass('required')
+            return {'label': ch.render(),
+                    'name':name,
+                    'help_text':field.help_text}
         
-    def render_form(self,djp,form,layout,headers):
+    def render_form_fields(self,djp,form,layout,headers):
         dfields = form.dfields
         for head in headers:
             field = dfields[head['name']]
             errors = form.errors.get(field.name,'')
             yield {'html':self.render_field(djp, field, layout),
+                   'is_hidden':field.is_hidden,
                    'errors':errors,
                    'errors_id':field.errors_id}
+        has_delete = self.has_delete
+        if has_delete is None or has_delete:
+            if form.instance.id:
+                deleteurl = djp.site.get_url(form.model,
+                                             'delete',
+                                             request = djp.request,
+                                             instance = form.instance,
+                                             all = True)
+                if deleteurl:
+                    link = icons.delete(deleteurl, cn='ajax')\
+                                .addData('conf','Please confirm you wish to delete {0}'.format(form.instance))\
+                                .render()
+                else:
+                    link = ''
+            else:
+                link = ''
+            if has_delete is None:
+                if link:
+                    has_delete = True
+                else:
+                    has_delete = False
+        if has_delete:
+            yield {'html':link}
+            
+    def render_form(self,djp,form,layout,headers):
+        '''Render a single form'''
+        ctx = {'fields': list(self.render_form_fields(djp,form,layout,headers))}
+        if form.instance.id:
+            ctx['id'] = form.mapper.unique_id(form.instance)
+        return ctx
     
     def render(self, djp, form, layout, inner = None):
+        self.has_delete = None
         headers = list(self.headers(form))
         formset = self.get_formset(form)
-        forms = [list(self.render_form(djp, form, layout, headers)) for form in formset.forms]
+        forms = [self.render_form(djp, form, layout, headers) for form in formset.forms]
+        if self.has_delete:
+            headers.append({'label':'delet'})
         ctx = {'legend': self.legend_html,
                'num_forms': formset.num_forms.render(),
                'headers': headers,

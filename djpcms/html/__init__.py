@@ -14,8 +14,6 @@ A simple usage::
     >>> text.addClass('foo').render()
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
-from py2py3 import to_string
-
 from .utils import *
 from .base import *
 from .media import *
@@ -28,15 +26,3 @@ from .objectdef import *
 from .widgets import *
 from .table import *
 
-
-class HtmlWrap(HtmlWidget):
-    
-    def __init__(self, *args, **kwargs):
-        self._inner = kwargs.pop('inner','')
-        super(HtmlWrap,self).__init__(*args, **kwargs)
-        
-    def inner(self, *args, **kwargs):
-        if hasattr(self._inner,'render'):
-            return self._inner.render(*args, **kwargs)
-        else:
-            return to_string(self._inner)

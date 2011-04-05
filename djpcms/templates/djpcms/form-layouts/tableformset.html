@@ -3,22 +3,25 @@
  {{ legend }}
 </div>{% endif %}
 {{ num_forms }}
+{% for header in headers %}{% if header.help_text %}
+<div class="formHint" data-name="{{ header.name }}">{{ header.help_text }}</div>{% endif %}{% endfor %}
 <table>
 <thead>
-<tr>{% for header in headers %}
-<th class="{{ header.name }}">{{ header.label }}{% if header.help_text %}
-<div class="formHint">{{ header.help_text }}</div>{% endif %}
-</th>{% endfor %}{% if actions %}
+<tr>{% for header in headers %}{% if header.label %}
+<th class="{{ header.name }}">{{ header.label }}
+</th>{% else %}
+<th class="djph"></th>{% endif %}{% endfor %}{% if actions %}
 <th>&nbsp;</th>{% endif %}
 </tr>
 </thead>
 <tbody>{% for form in forms %}
-<tr>{% for field in form %}
-<td id="{{ field.errors_id }}">{{ field.errors }}
-</td>{% endfor %}
+<tr>{% for field in form.fields %}{% if field.is_hidden %}
+<td class="djph"></td>{% else %}
+<td{% if field.errors_id %} id='{{ field.errors_id }}'{% endif %}>{{ field.errors }}
+</td>{% endif %}{% endfor %}
 </tr>
-<tr>{% for field in form %}
-<td>{{ field.html }}</td>{% endfor %}
+<tr{% if form.id %} id='{{ form.id }}'{% endif %}>{% for field in form.fields %}
+<td{% if field.is_hidden %} class="djph"{% endif %}>{{ field.html }}</td>{% endfor %}
 </tr>{% endfor %}
 </tbody>
 </table>

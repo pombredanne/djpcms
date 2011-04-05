@@ -23,6 +23,17 @@ CssContext('float_right',
 )
 
 
+CssContext('anchor-ui',
+           tag = 'a.ui-hoverable',
+           data = {
+            'display':'inline',
+            'border':'none',
+            'width':'18px',
+            'height':'18px',
+        }
+)
+
+
 #________________________________________ horizontal_list    -    HORIZONTAL LIST
 CssContext('horizontal_list',
            tag = '.horizontal li',
@@ -103,6 +114,17 @@ CssContext('field-widget-input',
                    'padding': '3px 3px'
                    }
 )
+CssContext('tablerelated-legend',
+           tag = '.tablerelated .legend'
+)
+CssContext('tablerelated-header',
+           tag = '.tablerelated thead span.required',
+           data = {
+                'font_weight':'bold'
+        }
+)
+           
+
 #________________________________________ SUBMITS AND BUTTONS
 #CssContext('button',
 #           tag = '.ui-button',

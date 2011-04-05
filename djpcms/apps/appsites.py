@@ -222,7 +222,8 @@ returns the application handler. If the appname is not available, it raises a Ke
                     return None
         return None
     
-    def get_url(self, model, view_name, instance = None, all = False, **kwargs):
+    def get_url(self, model, view_name, request = None,
+                instance = None, all = False, **kwargs):
         '''Build a url from a model, a view name and optionally a model instance'''
         if not isinstance(model,type):
             instance = model
@@ -232,7 +233,10 @@ returns the application handler. If the appname is not available, it raises a Ke
             view = app.getview(view_name)
             if view:
                 try:
-                    return view.get_url(DummyDjp(instance,kwargs))
+                    if request:
+                        return view(request, instance = instance).url
+                    else:
+                        return view.get_url(DummyDjp(instance,kwargs))
                 except:
                     return None
         return None

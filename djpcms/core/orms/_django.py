@@ -4,6 +4,8 @@ from functools import reduce
 
 from py2py3 import iteritems, to_string
 
+from djpcms.utils.const import NOTHING
+
 import django
 
 from .base import BaseOrmWrapper
@@ -99,7 +101,8 @@ class OrmWrapper(BaseOrmWrapper):
             instance = self.model(**data)
         else:
             for name,value in iteritems(data):
-                setattr(instance,name,value)
+                if value not in NOTHING:
+                    setattr(instance,name,value)
         if commit:
             instance.save()
         return instance

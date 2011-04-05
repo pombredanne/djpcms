@@ -3,22 +3,18 @@
 from inspect import isclass
 from stdnet import orm
 
+from djpcms.apps import PERMISSION_CODES
 
+
+class Role(orm.StdModel):
+    numeric_code = orm.IntegerField()
+    object_or_model = orm.SymbolField()
+    
+    
 class ObjectPermission(orm.StdModel):
     '''A general permission model'''
-    numeric_code = orm.IntegerField()
-    user_group_model = orm.ModelField()
-    user_group_id = orm.SymbolField()
-    model = orm.ModelField()
-    object_id = orm.SymbolField(required = False)
-    
-    def object(self):
-        if not hasattr(self,'_object'):
-            if self.object_id:
-                self._object = self.model.objects.get(id = self.object_id)
-            else:
-                self._object = None
-        return self._object
+    role = orm.ForeignKey(Role)
+    group_or_user = orm.SymbolField()
     
     
 class PermissionBackend(object):

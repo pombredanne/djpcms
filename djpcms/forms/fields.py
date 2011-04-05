@@ -152,6 +152,10 @@ Get the initial value of field if available.
     def model(self):
         return None
     
+    @property
+    def is_hidden(self):
+        return self.widget.is_hidden
+    
     def get_widget(self, djp, bfield):
         widget = self.widget
         if isclass(widget):
@@ -229,6 +233,7 @@ optional parameter (attribute):
 class IntegerField(Field):
     default = 0
     widget = TextInput(cn = 'numeric')
+    validation_error = 'Could not convert {0} to a number'
     
     def _handle_params(self, validator = None, **kwargs):
         self.validator = validator
@@ -245,7 +250,7 @@ class IntegerField(Field):
                 return self.validator(value)
             return value
         except:
-            raise ValidationError('Could not convert {0} to an integer'.format(value))
+            raise ValidationError(self.validation_error.format(value))
         
 
 class FloatField(IntegerField):
@@ -257,17 +262,18 @@ class FloatField(IntegerField):
                 return self.validator(value)
             return value
         except:
-            raise ValidationError('Could not convert {0} to an float value'.format(value))
+            raise ValidationError(self.validation_error.format(value))
     
         
 class DateField(Field):
     widget = TextInput(cn = 'dateinput')
+    validation_error = 'Could not recognized date {0}.'
     
     def _clean(self, value, bfield):
         try:
             return dateparser(value)
         except:
-            raise ValidationError('Could not recognized date {0}'.format(value))
+            raise ValidationError(self.validation_error.format(value))
     
 
 class DateTimeField(DateField):

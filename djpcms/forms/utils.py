@@ -200,7 +200,10 @@ has been submitted.'''
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing  = editing if not SAVE_AS_NEW_KEY in data else False
-        instance = view.save(request, f)
+        if editing:
+            instance = f.save()
+        else:
+            instance = f.save_as_new()
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)
@@ -254,7 +257,7 @@ def deleteinstance(djp, force_redirect = False):
         
     bid     = view.appmodel.remove_object(instance)
     msg     = 'Successfully deleted %s' % instance
-    if request.is_ajax():
+    if request.is_xhr:
         if next == curr and bid and not force_redirect:
             return jremove('#%s' % bid)
         else:

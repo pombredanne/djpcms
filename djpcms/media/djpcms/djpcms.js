@@ -333,9 +333,9 @@
      *  
      */
     $.djpcms.ajax_loader =  function djpcms_loader(url,action,method,data,conf) {
-        var sendrequest = function() {
+        var sendrequest = function(callback) {
             var that = this;
-            if(conf) {
+            if(conf && !callback) {
                 var el = $('<div></div>').html(conf);
                 el.dialog({modal: true,
                            draggable: false,
@@ -343,24 +343,25 @@
                            buttons: {
                                Ok : function() {
                                    $( this ).dialog( "close" );
-                                   sendrequest(url,action,method,data);
+                                   sendrequest(true);
                                },
                                Cancel: function() {
                                    $(this).dialog( "close" );
                                    $.djpcms.set_inrequest(false);
                                }
                     }});
+            } else {
+                $.ajax({
+                        'url':url,
+                        'type': method || 'post',
+                        'dataType': 'json',
+                        'success': function callBack(e,s) {
+                            $.djpcms.set_inrequest(false);
+                            $.djpcms.jsonCallBack(e,s,that);
+                         },
+                        'data': $.djpcms.ajaxparams(action,data)
+                    });
             }
-            $.ajax({
-                    'url':url,
-                    'type': method || 'post',
-                    'dataType': 'json',
-                    'success': function callBack(e,s) {
-                        $.djpcms.set_inrequest(false);
-                        $.djpcms.jsonCallBack(e,s,that);
-                     },
-                    'data': $.djpcms.ajaxparams(action,data)
-                });
         };
         return sendrequest 
     };
@@ -676,6 +677,9 @@
     	    $('.edit-menu a',obj).addClass('ui-corner-all')
     	        .mouseenter(function(){$(this).addClass('ui-state-hover');})
     	        .mouseleave(function(){$(this).removeClass('ui-state-hover');});
+    	    $('a.ui-hoverable',obj).addClass('ui-corner-all')
+                .mouseenter(function(){$(this).addClass('ui-state-hover');})
+                .mouseleave(function(){$(this).removeClass('ui-state-hover');});
     	}
     });
     
@@ -712,7 +716,7 @@
                     url = elem.attr('href'),
                     method = elem.data('method') || 'post',
                     action = elem.attr('name'),
-                    conf = confirm[name] || elem.data('confirm');
+                    conf = confirm[name] || elem.data('conf');
                 $.djpcms.ajax_loader(url,action,method,{},conf)();
     		});
     		
@@ -971,19 +975,22 @@
     });
     
     $.djpcms.decorator({
-        id:"uniforms",
+        id:"formhint",
         config: {
             tooltip:{x:10,y:30,effect:'clip',fadetime:200}
         },
         decorate: function($this,config) {
-            $('.uniForm .formHint',$this).each(function(){
+            $('.formHint',$this).each(function(){
                 var el = $(this),
-                    c = config.uniforms,
+                    c = config.formhint,
                     html = el.html(),
                     label = $('label',el.parent());
                 
                 if(!label.length) {
-                    label = el.prev();
+                    var name = el.data('name');
+                    if(name) {
+                        label = $('th.'+name,el.parents('form'));
+                    }
                 }
                 if(label.length && html) {
                     $.data(label[0],'panel-html',html);

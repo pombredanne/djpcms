@@ -14,6 +14,8 @@ DEFAULT_SEP = ' '
 def cleaned_tags(data, separator = DEFAULT_SEP):
     '''Generator of well formatted tags. It splits the string ``data``
 using the ``separator`` and removes trailing spaces.'''
+    if not data:
+        raise StopIteration
     data = data.strip().split(separator)
     for value in data:
         value = value.strip()

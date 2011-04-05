@@ -19,8 +19,14 @@ smooth = {
           'field-widget-input': {'background':'#ffffff',
                                  'border':'1px solid #a6c9e2'},
           'box':{},
+          # Uniform
           'uniform label':{'font_weight': 'bold',
                            'color': '#666666'},
+          'tablerelated-legend': {'font_size': '110%',
+                                  'font_weight':'bold',
+                                  'color': '#666666'
+                                  },
+          # Tablesorter
           'tablesorter': {'head_border_color':'#fff',
                           'body_border_color':'#a6c9e2',
                           'odd_background_color':'#dbebeb',

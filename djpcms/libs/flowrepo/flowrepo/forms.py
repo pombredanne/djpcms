@@ -1,9 +1,16 @@
 from django.contrib.contenttypes.models import ContentType
 from djpcms.apps.included.tagging import TagField
-
+from djpcms.utils import markups
 from djpcms import forms
 from djpcms.utils import json
 
+
+visibility_choices = (
+        (0, 'Hidden'),              
+        (1, 'Private'),          # In draft, availoable to view only to authors
+        (2, 'Authenticated'),    # authenitaced users only
+        (3, 'Public'),
+    )
 
 
 def get_upload_model(file):
@@ -30,19 +37,10 @@ def get_upload_model(file):
 
 class FlowForm(forms.Form):
     '''General form for a flowitem'''
-    _underlying = None
     timestamp = forms.DateTimeField(required = False)
-    tags      = TagField(required = False)
-    
-    def __init__(self, *args, **kwargs):
-        self._user = kwargs.pop('user',None)
-        super(FlowForm,self).__init__(*args, **kwargs)
-        
-    def savemodel(self, obj):
-        raise NotImplementedError()
-    
-    def get_user(self):
-        return self._user or self.request.user
+    tags = TagField(required = False)
+    allow_comments = forms.BooleanField()
+    visibility = forms.ChoiceField(choices=visibility_choices, initial=3)
         
     def save(self, commit = True):
         user       = self.get_user()
@@ -61,6 +59,11 @@ class FlowForm(forms.Form):
         if registered:
             flowitems.registerModel(model)
         return instance
+
+
+class FlowFormMarkup(FlowForm):
+    markup      = forms.ChoiceField(choices=markups.choices(),
+                                    default=markups.default())
 
 
 class FlowFormRelated(FlowForm):
@@ -84,26 +87,14 @@ class FlowFormRelated(FlowForm):
         return instance
     
 
-class ReportForm(forms.Form):
+class ReportForm(FlowFormMarkup):
     '''The Report Form'''
     title = forms.CharField()
     abstract = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
-    body  = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
-    slug  = forms.CharField(required = False)
-    timestamp = forms.DateTimeField(required = False)
+    body = forms.CharField(widget = forms.TextArea(cn = 'taboverride'), required = False)
+    slug = forms.CharField(required = False)
         
-    def __init__(self, *args, **kwargs):
-        #instance = kwargs.get('instance',None)
-        #if instance:
-        #    obj = instance.object
-        #    initial = kwargs.get('initial',None) or {}
-        #    initial['title'] = getattr(obj,'name',instance.name)
-        #    initial['abstract'] = getattr(obj,'description',instance.description)
-        #    initial['body'] = getattr(obj,'body','')
-        #    kwargs['initial'] = initial
-        super(ReportForm,self).__init__(*args,**kwargs)
-        
-    def savemodel(self, obj):
+    def save(self, commit = True):
         obj.name = self.cleaned_data['title']
         obj.description = self.cleaned_data['abstract']
         obj.body = self.cleaned_data['body']

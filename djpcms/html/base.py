@@ -212,7 +212,7 @@ is derived from this class.
             else:
                 inner = self.inner(*args, **kwargs)
             if self.tag:
-                return '<{0}{1}>\n{2}\n</{0}>'.format(self.tag,fattr,inner)
+                return '<{0}{1}>{2}</{0}>'.format(self.tag,fattr,inner)
             else:
                 return inner
     

@@ -1,3 +1,4 @@
-<div class="buttonHolder">{% for input in inputs %}
+{% if has_inputs %}
+<div class="{% if style %}{{ style }} {% endif %}buttonHolder">{% for input in inputs %}
   {{ input }}{% endfor %}
-</div>
+</div>{% endif %}

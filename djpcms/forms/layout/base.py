@@ -144,6 +144,19 @@ class DivFormElement(FormLayoutElement):
         return '\n'.join(self._innergen(djp, form, layout))
     
 
+class Inputs(FormLayoutElement):
+    template = 'djpcms/form-layouts/inputs.html'
+    
+    def render(self, djp, form, layout):
+        inputs = form._inputs
+        if inputs:
+            form._inputs = None
+            ctx = {'has_inputs': len(inputs),
+                   'style': self.default_style or layout.default_style,
+                   'inputs': (input.render(djp) for input in inputs)}
+            return loader.render(self.template, ctx)
+    
+
 class FormLayout(BaseFormLayout):
     '''Base form class for form layout design'''
     
@@ -168,6 +181,7 @@ class FormLayout(BaseFormLayout):
         ctx  = {'layout':self}
         html = ''
         template = self.template
+        form._inputs = inputs
         for field in self._allfields:
             key = field.key
             if key and key in keys:
@@ -183,9 +197,9 @@ class FormLayout(BaseFormLayout):
         if missing_fields:
             fset  = self.default_element(*missing_fields).addClass(self.default_style)
             html += fset.render(djp,form,self)
-               
-        ctx['has_inputs'] = len(inputs)
-        ctx['inputs'] = (input.render(djp) for input in inputs)
+        
+        if form._inputs:
+            ctx['inputs'] = Inputs().render(djp,form,self)
         ctx['form']   = html
         ctx['messages'] = ''
         

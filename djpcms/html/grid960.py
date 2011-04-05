@@ -5,7 +5,7 @@ from djpcms import to_string
 from djpcms.utils import mark_safe
 from djpcms.utils.const import EMPTY_VALUE
 
-__all__ = ['grid960','EMPTY_VALUE','CLEAR_GRID']
+__all__ = ['grid960','EMPTY_VALUE','CLEAR_GRID','get_grid960']
 
 CLEAR_GRID = mark_safe('<div class="clear"></div>')
 
@@ -52,3 +52,13 @@ class grid960_16(grid960_base):
     
     def __init__(self,fixed):
         super(grid960_16,self).__init__(16,fixed)
+
+
+
+def get_grid960(djp):
+    info = djp.request.DJPCMS
+    site = info.site
+    page = info.page
+    settings = site.settings
+    float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
+    return grid960(fixed = not float_layout)

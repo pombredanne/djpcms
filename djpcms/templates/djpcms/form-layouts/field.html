@@ -14,7 +14,7 @@
     <label for="{{ field.id }}" class="label">
       {{ label }}
     </label>{% endif %}
-    <div class="field-widget input">
+    <div class="field-widget input {{ name }}">
       {{ widget }}
     </div>{% if field.help_text %}
     <div id="hint_{{ field.id }}" class="formHint">{{ field.help_text }}</div>{% endif %}

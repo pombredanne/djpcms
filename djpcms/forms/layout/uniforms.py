@@ -24,7 +24,8 @@ There are three types of layout:
 
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
-from .base import FormLayout, FormLayoutElement, Html
+from djpcms.html import get_grid960
+from .base import FormLayout, FormLayoutElement, Html, Inputs
 
 
 inlineLabels   = 'inlineLabels'
@@ -107,6 +108,7 @@ class Columns(UniFormElement):
         for i,column in enumerate(self.columns):
             context['content%s' % i] = '\n'.join(_data(column))
             
+        context['grid'] = get_grid960(djp)
         return context    
 
 class Layout(FormLayout):

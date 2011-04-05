@@ -19,4 +19,8 @@ class WritingApplication(views.ModelApplication):
             slug = kwargs.get('slug',None)
             return self.mapper.get(slug = slug)
         except:
-            return None 
+            return None
+        
+    def render_object(self, djp):
+        instance = djp.instance
+        return mark_safe(instance.)

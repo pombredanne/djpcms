@@ -17,5 +17,3 @@ def serve(using = None, **kwargs):
         using = sites.settings.HTTP_LIBRARY
     mod = get_http(using)
     mod.serve(**kwargs)
-    
-    

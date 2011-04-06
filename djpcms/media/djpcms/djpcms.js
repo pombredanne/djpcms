@@ -366,14 +366,20 @@
         return sendrequest 
     };
     
+    /**
+     * A modal error dialog
+     */
     $.djpcms.errorDialog = function(html,title) {
         title = title || 'Something did not work';
-        var el = $('<div title="'+title+'"></div>').html(html+"");
-        width = $.djpcms.smartwidth(html);
-                el.dialog({modal:true,
-                           dialogClass: 'ui-state-error',
-                           'width': width});
-        };
+        var el = $('<div title="'+title+'"></div>').html(html+""),
+            width = $.djpcms.smartwidth(html);
+        el.dialog({modal:true,
+                   autoOpen:false,
+                   dialogClass: 'ui-state-error',
+                   'width': width});
+        $('.ui-dialog-titlebar',el.dialog('widget')).addClass('ui-state-error');
+        el.dialog("open");
+     };
     
     /**
      * ERROR and SERVER ERROR callback

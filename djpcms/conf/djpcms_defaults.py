@@ -63,7 +63,7 @@ DATE_FORMAT = 'd M y'
 DATETIME_FORMAT = DATE_FORMAT + ' H:i'
 
 DJANGO = False
-LOGGING_CONFIG = None
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

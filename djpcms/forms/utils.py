@@ -111,7 +111,7 @@ def get_form(djp,
              template = None,
              form_ajax = False,
              withinputs = True,
-             force_prefix = False):
+             force_prefix = True):
     '''Comprehensive method for building a
 :class:`djpcms.forms.HtmlForm` instance:
     

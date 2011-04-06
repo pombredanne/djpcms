@@ -26,6 +26,23 @@ def merge_dict(d1,d2):
     d.update(d2)
     return d
 
+
+def threadsafe(f):
+    import threading
+    lockname = '_lock'
+    
+    def _(self, *args, **kwargs):
+        lock = getattr(self,lockname,None)
+        if lock is None:
+            lock = threading.Lock()
+            setattr(self,lockname,lock)
+        lock.acquire()
+        try:
+            return f(self,*args,**kwargs)
+        finally:
+            lock.release()
+    
+    return _
     
 def lazyattr(f):
     '''Decorator which can be used on a member function.

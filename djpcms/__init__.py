@@ -80,7 +80,7 @@ def get_page(path):
     return sites.tree.get_page(path)
         
 
-def init_logging(settings, clear_all = True):
+def init_logging(settings, clear_all = False):
     '''Initialise logging'''
     from djpcms.utils.log import dictConfig
     
@@ -88,7 +88,6 @@ def init_logging(settings, clear_all = True):
         import logging
         logging.Logger.manager.loggerDict.clear()
 
-    settings = sites.settings
     if settings:
         if settings.DEBUG:
             settings.LOGGING['root'] = {

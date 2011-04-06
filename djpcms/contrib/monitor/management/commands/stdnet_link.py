@@ -26,3 +26,4 @@ class Command(BaseCommand):
                 logger.info('Synching model {0} with django\
  model {1}'.format(model._meta,djmodel._meta))
                 model.objects.synch()
+

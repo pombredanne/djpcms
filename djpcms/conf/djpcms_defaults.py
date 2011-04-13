@@ -95,5 +95,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'django.db.backends':{
+            'handlers': ['silent'],
+            'level': 'ERROR',
+            'propagate': True,
+        }
     }
 }

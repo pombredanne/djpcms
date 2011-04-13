@@ -89,11 +89,13 @@ def init_logging(settings, clear_all = False):
         logging.Logger.manager.loggerDict.clear()
 
     if settings:
+        LOGGING = settings.LOGGING
         if settings.DEBUG:
-            settings.LOGGING['root'] = {
-                                        'handlers': ['console'],
-                                        'level': 'DEBUG',
-                                        }
+            LOGGING['handlers']['console']['level'] = 'DEBUG' 
+            LOGGING['root'] = {
+                            'handlers': ['console'],
+                            'level': 'DEBUG',
+                            }
         dictConfig(settings.LOGGING)
         
 

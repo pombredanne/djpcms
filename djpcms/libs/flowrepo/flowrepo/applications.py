@@ -1,10 +1,14 @@
 from djpcms import views
+from djpcms.template import loader
+from djpcms.utils import markups, mark_safe
 
 from .layout import HtmlReportForm
+from .models import flowitem
 
 
 
 class WritingApplication(views.ModelApplication):
+    view_template = 'flowrepo/writeup.html'
     form = HtmlReportForm
     search = views.SearchView()
     add = views.AddView(regex = 'write')
@@ -23,4 +27,15 @@ class WritingApplication(views.ModelApplication):
         
     def render_object(self, djp):
         instance = djp.instance
-        return mark_safe(instance.)
+        item = flowitem(instance)
+        mkp = markups.get(item.markup)
+        abstract = instance.description
+        body = instance.body
+        if mkp:
+            handler = mkp.get('handler')
+            abstract = handler(abstract)
+            body = handler(body)
+        return loader.render(self.view_template,
+                             {'title': instance.title,
+                              'abstract': abstract,
+                              'body':body})

@@ -35,6 +35,10 @@ visibility_choices = (
     )
 
 
+def flowitem(self):
+    return FlowItem.objects.get_from_instance(self)
+
+
 class FlowItemBase(models.Model):
     
     class Meta:

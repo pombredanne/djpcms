@@ -57,9 +57,6 @@ class LoginView(views.ModelView):
     def default_post(self, djp):
         return saveform(djp, force_redirect = self.force_redirect)
     
-    def save(self, request, f):
-        return f.cleaned_data['user']
-    
     def success_message(self, instance, mch):
         return ''
 

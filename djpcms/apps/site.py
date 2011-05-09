@@ -60,8 +60,8 @@ def standard_exception_handle(request, e, status = None):
     stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info.stack_trace))
     ctx  = loader.context({'status':status,
                            'stack_trace':stack_trace,
-                           'request':request,
-                           'settings':site.settings},request)
+                           'settings':site.settings},
+                           request)
     html = loader.render((template,
                           'djpcms/errors/'+template,
                           'djpcms/errors/error.html'),

@@ -5,13 +5,13 @@ from py2py3 import iteritems
 
 from djpcms import forms
 from djpcms.utils.text import nicename
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.html import icons
 
 from stdnet.utils.format import format_number
 
 
-class RedisServerForm(forms.Form):
+class ServerForm(forms.Form):
     host = forms.CharField(initial = 'localhost')
     port = forms.IntegerField(initial = 6379)
     notes = forms.CharField(widget = forms.TextArea)

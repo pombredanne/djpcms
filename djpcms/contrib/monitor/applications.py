@@ -8,16 +8,16 @@ from djpcms.utils import mark_safe
 from stdnet.lib import redis
 from stdnet.orm import model_iterator
 
-from .redisinfo import redis_info, RedisServerForm
+from .redisinfo import redis_info, ServerForm
 
 
 __all__ = ['RedisMonitorApplication',
            'StdModelApplication']
-
+    
 
 class RedisMonitorApplication(AdminApplication):
     inherit = True
-    form = RedisServerForm
+    form = ServerForm
     list_per_page = 100
     template_view = ('monitor/redis_monitor.html',)
     
@@ -30,9 +30,6 @@ class RedisMonitorApplication(AdminApplication):
                            db = db)
         
     def render_object(self, djp):
-        '''Render an object in its object page.
-        This is usually called in the view page of the object.
-        '''
         instance = djp.instance
         change = self.getview('change')(djp.request, **djp.kwargs)
         r = self.get_redis(instance)
@@ -56,6 +53,8 @@ class RedisMonitorApplication(AdminApplication):
         djp = view(request, db = db)
         return djp.url
     
+        
+
     
 class StdModelApplication(views.ModelApplication):
     '''Display Information about a stdnet model'''
@@ -130,4 +129,3 @@ class StdModelApplication(views.ModelApplication):
                              {'meta':model,
                               'info':info})
     
-        

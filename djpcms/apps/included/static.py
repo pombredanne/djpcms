@@ -18,6 +18,7 @@ from djpcms.template import loader
 # Third party application list.
 third_party_applications = []
 
+_media = None
 
 class pathHandler(object):
     
@@ -77,14 +78,14 @@ It looks for the ``media`` directory in each installed application.'''
     return map
 
 
-class StaticFileView(views.View):
+class StaticView(views.View):
     
     def __init__(self, show_indexes=False, **kwargs):
         self.show_indexes = show_indexes
-        super(StaticFileView,self).__init__(**kwargs)
+        super(StaticView,self).__init__(**kwargs)
 
 
-class StaticFileRoot(StaticFileView):        
+class StaticRootView(StaticView):        
     
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
@@ -104,7 +105,7 @@ class StaticFileRoot(StaticFileView):
             raise request.http.Http404
 
 
-class StaticFileApp(StaticFileView):
+class StaticFileView(StaticView):
     
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
@@ -195,29 +196,50 @@ class StaticFileApp(StaticFileView):
         return False
 
 
+class FavIconView(StaticFileView):
+    
+    def __call__(self, request, **kwargs):
+        appmodel = self.appmodel
+        site = self.site
+        http = site.http
+        if not kwargs:
+            mapping = appmodel.loadapps(site)
+            name = site.settings.SITE_MODULE
+            if name in mapping:
+                hd = mapping[name]
+                fullpath = os.path.join(hd.absolute_path,'favicon.ico')
+                return self.serve_file(request, fullpath)
+        raise http.Http404
 
-class Static(views.Application):
+
+class StaticBase(views.Application):
+
+    def loadapps(self, site):
+        '''Load application media.'''
+        global _media
+        if _media is None:
+            _media = application_map(site.settings.INSTALLED_APPS)
+        return _media
+    
+
+class Static(StaticBase):
     '''A simple application for handling static files.
     This application should be only used during development while
     leaving the task of serving media files to other servers in production.'''
-    _media = None
-    site_name = 'site'
     hidden = True
     has_plugins = False
     show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
-    main = StaticFileRoot()
-    app  = StaticFileApp(parent = 'main',
-                         regex = '(?P<path>[\w./-]*)',
-                         append_slash = False)
+    main = StaticRootView()
+    app  = StaticFileView(parent = 'main',
+                          regex = '(?P<path>[\w./-]*)',
+                          append_slash = False)
     
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)
         super(Static,self).__init__(*args,**kwargs)
-    
-    def loadapps(self, site):
-        '''Load application media.'''
-        if self._media is None:
-            self._media = application_map(site.settings.INSTALLED_APPS)
-        return self._media
+
+
+class FavIcon(StaticBase):
+    main = FavIconView(append_slash = False)
     

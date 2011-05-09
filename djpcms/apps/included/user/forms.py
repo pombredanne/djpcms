@@ -24,7 +24,7 @@ class LoginForm(forms.Form):
         user = authenticate(User, username = username, password = password)
         if user is not None and user.is_authenticated():
             if user.is_active:
-                login(User,request, user)
+                login(User,request,user)
                 try:
                     request.session.delete_test_cookie()
                 except:
@@ -36,6 +36,12 @@ class LoginForm(forms.Form):
         else:
             msg = 'username or password not recognized'
         raise forms.ValidationError(msg)
+    
+    def save(self):
+        return self.cleaned_data['user']
+    
+    def save_as_new(self):
+        return self.save()
     
 
 class RegisterForm(forms.Form):

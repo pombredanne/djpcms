@@ -4,7 +4,7 @@ from threading import Lock
 
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper
 from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\

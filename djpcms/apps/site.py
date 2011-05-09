@@ -10,7 +10,7 @@ from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
 from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
 

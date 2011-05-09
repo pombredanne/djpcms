@@ -20,7 +20,7 @@ from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
 from .appview import View, ViewView

@@ -4,7 +4,7 @@ from py2py3 import iteritems
 
 from djpcms import sites, UnicodeMixin, is_string, to_string
 from djpcms.utils import force_str, slugify, escape, mark_safe
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 from djpcms.template import loader
 from .media import BaseMedia

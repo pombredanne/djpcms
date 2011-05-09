@@ -9,7 +9,7 @@ from py2py3 import iteritems
 
 import djpcms
 from djpcms import nodata, UnicodeMixin, dispatch
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename

@@ -1,7 +1,7 @@
 from copy import copy
 
 from djpcms import template, nodata
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 
 
 from .defaults import body_defaults, jqueryui, jquery_style_mapping

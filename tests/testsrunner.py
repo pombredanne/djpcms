@@ -6,7 +6,7 @@ from djpcms import sites, LIBRARY_NAME
 from djpcms.test import TEST_TYPES, TestDirectory,\
                         ContribTestDirectory, SiteTestDirectory
 import djpcms.contrib as contrib
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module
 import examples
 

@@ -3,7 +3,7 @@ interaction with ``djpcms.js``
 '''
 import json
 from djpcms.utils import force_str
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 
    
 class jsonbase(object):

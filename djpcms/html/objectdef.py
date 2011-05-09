@@ -22,13 +22,17 @@ object instance as html.
 
 :parameter appmodel: instance of :class:`djpcms.views.ModelApplication`.
 :parameter djp: instance of :class:`djpcms.views.DjpResponse`.
+:parameter data: Optional data to display. If not provided, the data
+                 is evaluated using the settings in ``appmodel``.
+                 The format of this data is an iterable over dictionaries
+                 containing `name` and `value` entries.
 
 Usage::
 
     >>> d = ObjectDefinition(myapp, djp)
     >>> str(d)
     
-'''    
+'''
     def __init__(self, appmodel, djp, data = None):
         self.appmodel = appmodel
         self.djp = djp
@@ -39,11 +43,11 @@ Usage::
         '''Render an object as definition list.'''
         appmodel = self.appmodel
         mapper = appmodel.mapper
-        headers = self.appmodel.object_display
         if self.data:
-            ctx = {'id':mapper.get_object_id(self.obj)}
+            ctx = {'id':mapper.unique_id(self.obj)}
             items = self.data
         else:
+            headers = self.appmodel.object_display
             label_for_field = nicename if not mapper else mapper.label_for_field
             ctx = results_for_item(self.djp,headers,
                                    self.obj,

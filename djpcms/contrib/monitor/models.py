@@ -9,4 +9,3 @@ class RedisServer(orm.StdModel):
     
     def __unicode__(self):
         return to_string('{0}:{1}'.format(self.host,self.port))
-    

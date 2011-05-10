@@ -607,8 +607,10 @@ By default it get the 'id' and get the object::
         return None
     
 Re-implement for custom arguments.'''
+        if not 'id' in kwargs:
+            return None
+        id = kwargs['id']
         try:
-            id = int(kwargs.get('id',None))
             return self.model.objects.get(id = id)
         except:
             return None

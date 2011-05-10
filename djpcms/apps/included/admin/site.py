@@ -1,3 +1,5 @@
+from py2py3 import iteritems
+
 from djpcms import views
 from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
@@ -65,22 +67,36 @@ class AdminApplicationSimple(views.ModelApplication):
     view   = views.ViewView()
     delete = views.DeleteView()
     
+    def render_object(self, djp):
+        '''Render an object in its object page.
+        This is usually called in the view page of the object.
+        '''
+        ctx = []
+        for name,view in iteritems(self.views):
+            if view.object_view:
+                if not isinstance(view,views.DeleteView):
+                    if name == 'view':
+                        html = force_str(ObjectDefinition(self, djp))
+                    else:
+                        dv = view(djp.request, **djp.kwargs)
+                        html = dv.render()
+                    o  = self.ordering.get(name,100)
+                    ctx.append({'name':nicename(name),
+                                'id':name,
+                                'value':html,
+                                'order': o})
+        ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
+        return loader.render(self.view_template,ctx)
     
-class AdminApplication(views.ModelApplication):
+    
+class AdminApplication(AdminApplicationSimple):
     view_template = 'djpcms/admin/viewtemplate.html'
+    ordering = {'view':0,'change':1}
+    inherit = False
     has_plugins = False
     search = views.SearchView()
     add    = views.AddView()
     view   = views.ViewView()
     change = views.ChangeView()
     delete = views.DeleteView()
-    
-    def render_object(self, djp):
-        '''Render an object in its object page.
-        This is usually called in the view page of the object.
-        '''
-        change = self.getview('change')(djp.request, **djp.kwargs)
-        ctx = {'view':force_str(ObjectDefinition(self, djp)),
-               'change':change.render()}
-        return loader.render(self.view_template,ctx)
-    
+

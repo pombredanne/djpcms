@@ -21,9 +21,14 @@ class DjpcmsConfig(object):
         self.__dict__['_settings'] = []
         self.__dict__['settings_module_name'] = settings_module_name
         self.fill(djpcms_defaults)
+        path = ''
         if self.settings_module_name:
             settings_module = import_module(settings_module_name)
+            path = settings_module.__file__
+            if path.endswith('.pyc'):
+                path = path[:-1]
             self.fill(settings_module)
+        self.__dict__['path'] = path
         self.update(kwargs)
         ajax = self.HTML_CLASSES
         if not ajax:

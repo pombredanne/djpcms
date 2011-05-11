@@ -56,9 +56,9 @@ Prettify a value to be displayed in html.
         return date_format(val,dateformat)
     elif isinstance(val,bool):
         if val:
-            return yes(val)
+            return yes()
         else:
-            return no(val)
+            return no()
     else:
         try:
             return significant_format(val, n = nd)

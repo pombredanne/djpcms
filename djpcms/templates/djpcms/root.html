@@ -44,7 +44,7 @@
     $(document).ready(function() {
         var options = {{ css.tojson }};
         options.media_url = "{{ MEDIA_URL }}";
-        options.debug     = {{ jsdebug }};
+        options.debug     = {% if debug %}true{% else %}false{% endif %};
         $.djpcms.set_options(options);
         $(document).djpcms().trigger('djpcms-loaded');
     });

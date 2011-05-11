@@ -10,16 +10,21 @@ from djpcms.html import grid960, htmldoc, List, icons
 
 
 class PageLink(UnicodeMixin):
-    '''Utility for displaying links for page editing/creation.'''
+    '''Utility for displaying links
+for page editing or creation or exit editing.'''
     def __init__(self, request):
         self.request = request
         info = request.DJPCMS
         self.page = info.page
+        # Get the site application for Page
         self.app = request.DJPCMS.root.for_model(Page)
         self.isediting = False
         self.cdjp = None
         if self.app:
-            cdjp = self.cdjp = info.djp(request)
+            try:
+                cdjp = self.cdjp = info.djp(request)
+            except:
+                cfjp = None
             if cdjp:
                 epage = cdjp.instance
                 self.isediting = isinstance(epage,Page) and \
@@ -86,6 +91,7 @@ def get_grid960(page, settings):
 
 
 def djpcms(request):
+    '''The main template context processor. It must be always included.'''
     info = request.DJPCMS
     site = info.site
     page = info.page
@@ -93,17 +99,16 @@ def djpcms(request):
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     plink = PageLink(request)
     user = getattr(request,'user',None)
-    
+    debug = settings.DEBUG
     ctx = {'pagelink':plink,
            'base_template': base_template,
            'css':settings.HTML_CLASSES,
            'htmldoc': htmldoc(None if not page else page.doctype),
-           'jsdebug': 'true' if settings.DEBUG else 'false',
            'request': request,
            'user': user,
            'is_authenticated': False if not user else user.is_authenticated(),
-           'debug': settings.DEBUG,
-           'release': not settings.DEBUG,
+           'debug': debug,
+           'release': not debug,
            'now': datetime.now(),
            'MEDIA_URL': settings.MEDIA_URL}
     

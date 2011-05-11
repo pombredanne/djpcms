@@ -72,7 +72,7 @@ Render a table given a response object ``djp``.
             mapper = djp.mapper(model)
             appmodel = djp.view.site.for_model(model)
         else:
-            appmodel = appmodel or djp.view.appmodel
+            #appmodel = appmodel or djp.view.appmodel
             if appmodel:
                 mapper = appmodel.mapper
             else:

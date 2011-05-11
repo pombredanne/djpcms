@@ -1,7 +1,7 @@
-import logging
-
 DEBUG = False
-# List of installed application. These must be dotted python paths
+
+# List of installed application.
+# These must be dotted python paths
 INSTALLED_APPS = ['djpcms']
 DATASTORE = {}
 # Dictionary used to configure applications
@@ -10,8 +10,11 @@ APPLICATION_URLS = None
 HTML_CLASSES = None
 MAX_SEARCH_DISPLAY = 20
 CACHE_VIEW_OBJECTS = True
-DJPCMS_IMAGE_UPLOAD_FUNCTION    = None
+DJPCMS_IMAGE_UPLOAD_FUNCTION = None
 DJPCMS_EMPTY_VALUE = '(None)'
+#
+# To group applications admin together. Check the documentation
+ADMIN_GROUPING = None
 
 MIDDLEWARE_CLASSES = ()
 TEMPLATE_DIRS = ()
@@ -28,14 +31,9 @@ DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
 
 # django settings
-ROOT_URLCONF                    = 'djpcms.apps.djangosite.defaults.urls' # default value for django
-ADMIN_URL_PREFIX                = '/admin/'
-ADMIN_MEDIA_PREFIX              = '/media/admin/'
-
-#Logging
-GLOBAL_LOG_LEVEL                = logging.INFO
-GLOBAL_LOG_FORMAT               = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-GLOBAL_LOG_HANDLERS             = [logging.StreamHandler()]
+DJANGO = False
+ROOT_URLCONF = 'djpcms.apps.djangosite.defaults.urls' # default value for django
+ADMIN_URL_PREFIX = '/admin/'
 
 # Root page for user account urls
 USER_ACCOUNT_HOME_URL           = '/accounts/'
@@ -59,11 +57,11 @@ DJPCMS_USER_CAN_EDIT_PAGES      = False
 JINJA2_TEMPLATE_LOADERS = [('djpcms.utils.jinja2loaders.ApplicationLoader',)]
 JINJA2_EXTENSIONS = []
 
+# Date Format
 DATE_FORMAT = 'd M y'
 DATETIME_FORMAT = DATE_FORMAT + ' H:i'
 
-DJANGO = False
-
+# Finally Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -72,7 +70,8 @@ LOGGING = {
             'format': '%(asctime)s | (p=%(process)s,t=%(thread)s) | %(levelname)s | %(name)s | %(message)s'
         },
         'simple': {
-            'format': '%(asctime)s %(levelname)s %(message)s'
+            'format': '%(asctime)s %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
         },
     },
     'handlers': {

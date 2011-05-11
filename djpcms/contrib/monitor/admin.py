@@ -1,5 +1,5 @@
 from .applications import *
-from .models import Server
+from .models import RedisServer
 
 from stdnet.orm.base import Metaclass
 
@@ -11,5 +11,5 @@ admin_urls = (
               StdModelApplication('/stdnet/',
                                   Metaclass,
                                   name = 'StdNet Models')
-        )
+              )
 

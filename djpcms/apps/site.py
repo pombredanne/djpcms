@@ -222,7 +222,7 @@ The function returns an instance of
             if os.path.isfile(sett):
                 settings_module_name = '{0}.{1}'.format(name,settings)
             else:
-                settings_module_name = None
+                settings_module_name = settings
         
         settings = get_settings(settings_module_name,
                                 SITE_DIRECTORY = path,
@@ -323,12 +323,33 @@ admin application will be included.
 :parameter params: key-value pairs of extra parameters for input in the
                    :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
         from djpcms.apps.included.admin import AdminSite, ApplicationGroup
+        adming = {}
+        agroups = {}
+        if self.settings.ADMIN_GROUPING:
+            for url,v in self.settings.ADMIN_GROUPING.items():
+                for app in v['apps']:
+                    if app not in adming:
+                        adming[app] = url
+                        if url not in agroups:
+                            v = v.copy()
+                            v['urls'] = ()
+                            agroups[url] = v
         groups = []
         for name_,route,urls in self.admins:
             if urls:
-                groups.append(ApplicationGroup(route,
-                                               name = name_,
-                                               apps = urls))
+                rname = route[1:-1]
+                if rname in adming:
+                    url = adming[rname]
+                    agroups[url]['urls'] += urls
+                else:
+                    groups.append(ApplicationGroup(route,
+                                                   name = name_,
+                                                   apps = urls))
+        for route,data in agroups.items():
+            groups.append(ApplicationGroup(route,
+                                           name = data['name'],
+                                           apps = data['urls']))
+            
         # Create the admin application
         admin = AdminSite('/', apps = groups, name = name, **params)
         return (admin,)

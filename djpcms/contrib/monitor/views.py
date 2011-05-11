@@ -37,7 +37,7 @@ class DbQuery(object):
         type_length = self.r.type_length
         for key in data:
             typ,len,ttl = type_length(key)
-            yield table_checkbox(key),typ,len,ttl
+            yield (table_checkbox(key,key),typ,len,ttl)
         
         
 class RedisDbView(ViewView):

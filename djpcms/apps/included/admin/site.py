@@ -60,8 +60,10 @@ administer models in groups.'''
     def render_query(self, djp, qs):
         return loader.render(self.query_template, {'items':qs})
       
-    
+
 class AdminApplicationSimple(views.ModelApplication):
+    view_template = 'djpcms/admin/viewtemplate.html'
+    ordering = {'view':0,'change':1}
     has_plugins = False
     search = views.SearchView()
     view   = views.ViewView()
@@ -76,9 +78,13 @@ class AdminApplicationSimple(views.ModelApplication):
             if view.object_view:
                 if not isinstance(view,views.DeleteView):
                     if name == 'view':
-                        html = force_str(ObjectDefinition(self, djp))
+                        html = self.render_object_view(djp)
                     else:
                         dv = view(djp.request, **djp.kwargs)
+                        try:
+                            dv.url
+                        except:
+                            continue
                         html = dv.render()
                     o  = self.ordering.get(name,100)
                     ctx.append({'name':nicename(name),
@@ -88,10 +94,11 @@ class AdminApplicationSimple(views.ModelApplication):
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
         return loader.render(self.view_template,ctx)
     
+    def render_object_view(self, djp):
+        return force_str(ObjectDefinition(self, djp))
+    
     
 class AdminApplication(AdminApplicationSimple):
-    view_template = 'djpcms/admin/viewtemplate.html'
-    ordering = {'view':0,'change':1}
     inherit = False
     has_plugins = False
     search = views.SearchView()

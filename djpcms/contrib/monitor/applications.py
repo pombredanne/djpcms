@@ -19,7 +19,7 @@ class RedisMonitorApplication(AdminApplication):
     inherit = True
     form = ServerForm
     list_per_page = 100
-    template_view = ('monitor/redis_monitor.html',)
+    template_view = ('monitor/monitor.html',)
     
     db = views.RedisDbView(regex = '(?P<db>\d+)', parent = 'view')
     flush = views.RedisDbFlushView(regex = 'flush', parent = 'db')
@@ -29,31 +29,25 @@ class RedisMonitorApplication(AdminApplication):
                            port = instance.port,
                            db = db)
         
-    def render_object(self, djp):
-        instance = djp.instance
-        change = self.getview('change')(djp.request, **djp.kwargs)
-        r = self.get_redis(instance)
+    def render_object_view(self, djp):
+        r = self.get_redis(djp.instance)
         try:
             info = redis_info(r.info(),djp.url)
         except redis.ConnectionError:
-            panels = [{'name':'Server','value':'No Connection'}]
-            databases = ''
+            left_panels = [{'name':'Server','value':'No Connection'}]
+            right_panels = ()
         else:
-            databases = Table(djp, **info.pop('keys')).render()
-            panels = ({'name':k,'value':ObjectDefinition(self,djp,v)} for k,v in info.items())
-        view = loader.render(self.template_view,
-                            {'panels':panels,
-                             'databases':databases})
-        ctx = {'view':view,
-               'change':change.render()}
-        return loader.render(self.view_template,ctx)
+            left_panels = ({'name':k,'value':ObjectDefinition(self,djp,v)} for k,v in info.items())
+            right_panels = ({'name':'Databases',
+                             'value':Table(djp, **info.pop('keys')).render()},)
+        return loader.render(self.template_view,
+                            {'left_panels':left_panels,
+                             'right_panels':right_panels})
     
     def dburl(self, db):
         dbview = self.getview('db')
         djp = view(request, db = db)
         return djp.url
-    
-        
 
     
 class StdModelApplication(views.ModelApplication):

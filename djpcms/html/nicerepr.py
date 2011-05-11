@@ -153,7 +153,10 @@ class get_app_result(object):
         self.first = True
         
     def id(self, result):
-        return self.mapper.unique_id(result)
+        try:
+            return self.mapper.unique_id(result)
+        except:
+            return None
     
     def __call__(self, request, field_name, result, appmodel,
                  nd = 3, path = None, escape = None, **kwargs):

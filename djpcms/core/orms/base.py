@@ -27,6 +27,7 @@ wrap existing object relational mappers.
     '''Object Relational Mapper name'''
     DoesNotExist = None
     '''Exception raise when an object is not available'''
+    short_description = 'short_description'
     
     def __init__(self, model):
         self.model = model
@@ -65,25 +66,13 @@ wrap existing object relational mappers.
     def model_to_dict(self, instance, fields = None, exclude = None):
         raise NotImplementedError
     
-    def _label_for_field(self, name):
+    def label_for_field(self, name):
+        if hasattr(self.model,name):
+            fun = getattr(self.model,name)
+            if hasattr(fun,self.short_description):
+                return fun.short_description
         return nicename(name)
     
-    def label_for_field(self, name):
-        '''Get the lable for field or attribute or function *name*.'''
-        try:
-            return self._label_for_field(name)
-        except:
-            pass
-        try:
-            if self.appmodel:
-                func = getattr(self.appmodel,self.appfuncname(name),None)
-                if func:
-                    return func(name)
-                else:
-                    return self.appmodel.get_label_for_field(name)
-        except:
-            return name
-        
     def getrepr(self, name, instance, nd = 3):
         '''representation of field *name* for *instance*.'''
         return nicerepr(self._getrepr(name,instance),nd)

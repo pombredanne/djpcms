@@ -313,8 +313,7 @@ Additional attributes:
 
     A callable or an iterable over two-dimensional tuples.
     If a callable, it must accept a one parameter given by
-    the bounded field instance and return an iterable over
-    two dimensional tuples.
+    the bounded field instance.
     
 .. attribute:: model
 
@@ -324,10 +323,16 @@ Additional attributes:
     
 .. attribute:: separator
 
-    A character to separate element when the field is used in a html
+    An optional character to separate elements when the field is used in a html
     autocomplete widget.
     
     Default ``" "``
+    
+.. attribute:: autocomplete
+
+    an optional boolean indicating if the field is rendered as an autocomplete widget.
+    
+    Default ``False``.
     
 .. attribute:: empty_label
 

@@ -71,10 +71,8 @@ def import_tests(tags, test_type, can_fail):
         try:
             mod = import_module(tests)
         except ImportError as e:
-            if can_fail:
-                logger.warn("Could not import '%s'. %s" % (tests,e))
-                continue
-            raise
+            logger.warn("Could not import '%s'. %s" % (tests,e))
+            continue
         yield mod
 
         

@@ -45,7 +45,8 @@ if Page:
             '''Register the page post save with tree'''
             if isinstance(instance, Page):
                 for site in self.sites:
-                    site.tree.update_flat_pages()
+                    if site.tree:
+                        site.tree.update_flat_pages()
     
     tree_update = TreeUpdate()
     

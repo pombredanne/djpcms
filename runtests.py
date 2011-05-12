@@ -27,7 +27,7 @@ def makeoptions():
     parser.add_option("-m", "--model",
                       action="store",
                       dest="model",
-                      default='django',
+                      default='stdnet',
                       help="The object relational mapper to use. One of django, stdnet (default django)")
     parser.add_option('-p', '--template',
                       action="store",

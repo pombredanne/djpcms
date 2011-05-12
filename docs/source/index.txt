@@ -54,7 +54,6 @@ Contents
    contrib/index
    settings
    internals/index
-   authors
    changelog
    license
 

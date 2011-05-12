@@ -1,6 +1,7 @@
 from djpcms import test, forms, sites
 from djpcms.plugins.apps import HtmlSearchForm
 from djpcms.apps.included.contentedit import PageForm, EditContentForm
+
 from .forms import SimpleForm
 
 
@@ -8,7 +9,7 @@ class TestSimpleForm(test.TestCase):
     '''Test the form library using form in included applications'''
     
     def testSimpleFactory(self):
-        self.assertTrue(len(SimpleForm.base_fields),2)
+        self.assertEqual(len(SimpleForm.base_fields),3)
         form = SimpleForm()
         self.assertFalse(form.is_bound)
         self.assertFalse(form.is_valid())
@@ -39,6 +40,7 @@ class TestSimpleForm(test.TestCase):
         self.assertTrue('39' in html)
         
     def testPageForm(self):
+        '''Test the Page Form'''
         d = dict(PageForm.initials())
         self.assertTrue(d)
         p = PageForm()
@@ -75,7 +77,7 @@ class TestSimpleForm(test.TestCase):
         self.assertTrue(len(HtmlSearchForm.inputs),1)
         s = HtmlSearchForm.inputs[0].render()
         self.assertTrue('<input ' in s)
-        self.assertTrue(s.startswith('<div class="cx-submit">'))
+        self.assertTrue(s.startswith("<div class='cx-submit'>"))
         form = HtmlSearchForm()
         self.assertFalse(form.is_bound)
         widget = HtmlSearchForm.widget(form)
@@ -97,3 +99,4 @@ class TestSimpleForm(test.TestCase):
         self.assertTrue(choices)
         self.assertEqual(choices[0][0],'')
         self.assertEqual(choices[0][1],'raw')
+

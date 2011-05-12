@@ -151,18 +151,29 @@ class TestCase(ApplicationTest):
 Implements shortcut functions for testing djpcms.
 Must be used as a base class for TestCase classes'''
     def _pre_setup(self):
+        from djpcms.models import tree_update
         self.sites = ApplicationSites() # The test sites handler. Used for everything
+        if tree_update:
+            tree_update.register_site(self.sites)
         self.handler = DjpCmsHandler(self.sites)
         self.tests = djpcms.sites.settings
         self.tests.TESTING = True
         if self._env:
             self._env.pre_setup()
-
+            
+    def _post_teardown(self):
+        from djpcms.models import tree_update
+        if tree_update:
+            tree_update.unregister_site(self.sites)
+            
     def makesite(self, route = None, appurls = None, **kwargs):
         '''Utility function for setting up an application site. The site is not loaded.'''
         appurls = getattr(self,'appurls',appurls)
         tests = self.tests
         apps = tests.INSTALLED_APPS + self.installed_apps()
+        for app in tests.INCLUDE_TEST_APPS:
+            if app not in apps:
+                apps.append(app)
         return self.sites.make(self.tests.SITE_DIRECTORY,
                                'conf',
                                route = route or '/',

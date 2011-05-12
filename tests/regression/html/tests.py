@@ -9,8 +9,8 @@ class testHtmlTools(test.TestCase):
         self.assertTrue('ciao' in c.classes)
         self.assertTrue('pippo' in c.classes)
         f = c.flatatt()
-        self.assertTrue(f in (' class="ciao pippo"',
-                              ' class="pippo ciao"'))
+        self.assertTrue(f in (" class='ciao pippo'",
+                              " class='pippo ciao'"))
         c = html.HtmlAttrMixin().addClass('ciao pippo bla')
         self.assertTrue(c.hasClass('bla'))
     
@@ -20,8 +20,8 @@ class testHtmlTools(test.TestCase):
         self.assertEqual(c.data['food'],'pasta')
         self.assertEqual(c.data['city'],'Rome')
         f = c.flatatt()
-        self.assertTrue(f in (' data-food="pasta" data-city="Rome"',
-                              ' data-city="Rome" data-food="pasta"'))
+        self.assertTrue(f in (" data-food='pasta' data-city='Rome'",
+                              " data-city='Rome' data-food='pasta'"))
         
     def testNestedData(self):
         random = ['bla',3,'foo']
@@ -40,7 +40,7 @@ class testHtmlTools(test.TestCase):
         c.addAttr('value',None)
         self.assertEqual(c.flatatt(),'')
         c.addAttr('value',0)
-        self.assertEqual(c.flatatt(),' value="0"')
+        self.assertEqual(c.flatatt()," value='0'")
 
 
 class TestInputs(test.TestCase):
@@ -50,9 +50,9 @@ class TestInputs(test.TestCase):
         ht = ts.render()
         self.assertTrue(ht.startswith('<input '))
         self.assertTrue(ht.endswith('/>'))
-        self.assertTrue('type="{0}"'.format(ty) in ht)
-        self.assertTrue('value="test"' in ht)
-        self.assertTrue('name="pippo"' in ht)
+        self.assertTrue("type='{0}'".format(ty) in ht)
+        self.assertTrue("value='test'" in ht)
+        self.assertTrue("name='pippo'" in ht)
         return ts
     
     def testTextInput(self):
@@ -70,7 +70,7 @@ class TestInputs(test.TestCase):
         ts = self.create(html.TextInput, 'text', cn = 'ciao ciao')
         self.assertTrue(ts.hasClass('ciao'))
         ht = ts.render()
-        self.assertTrue('class="ciao"' in ht)
+        self.assertTrue("class='ciao'" in ht)
         ts.removeClass('ciao')
         self.assertFalse(ts.hasClass('ciao'))
         #lets try a jQuery type thing
@@ -79,8 +79,8 @@ class TestInputs(test.TestCase):
         self.assertTrue(ts.hasClass('another'))
         self.assertFalse(ts.hasClass('bravo'))
         ht = ts.render()
-        self.assertTrue('class="pippo another"' in ht or
-                        'class="another pippo"' in ht)
+        self.assertTrue("class='pippo another'" in ht or
+                        "class='another pippo'" in ht)
         
     def testFailTextInput(self):
         self.assertRaises(TypeError,html.TextInput, fake='test')

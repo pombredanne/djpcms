@@ -1,13 +1,17 @@
+'''\
+Djpcms models can be django based or stdnet based.
+'''
 from djpcms import sites, dispatch
-from djpcms.forms import post_save
 
 if sites.settings.CMS_ORM == 'django':
     
     from djpcms.core.cmsmodels._django import *
+    from django.db.models.signals import post_save
     
 elif sites.settings.CMS_ORM == 'stdnet':
     
     from djpcms.core.cmsmodels._stdnet import *
+    from stdnet.orm import post_save
     
 else:
     BlockContent = None
@@ -15,15 +19,35 @@ else:
     Site = None
     InnerTemplate = None
     SiteContent = None
+    tree_update = None
+    
     
 
 if Page:
     
-    def update_sitemap_tree(sender, instance = None, **kwargs):
-        if isinstance(instance, Page):
-            root = sender.root
-            if root:
-                root.tree.drop_flat_pages()
+    class TreeUpdate(object):
+        
+        def __init__(self):
+            self.sites = []
+            self.sites.append(sites)
             
-    post_save.connect(update_sitemap_tree)
+        def register_site(self, site):
+            '''Provided for testing purposes'''
+            if site not in self.sites:
+                self.sites.append(site)
+            
+        def unregister_site(self, site):
+            '''Provided for testing purposes'''
+            if site in self.sites:
+                self.sites.remove(site)
+        
+        def update_sitemap_tree(self, sender, instance = None, **kwargs):
+            '''Register the page post save with tree'''
+            if isinstance(instance, Page):
+                for site in self.sites:
+                    site.tree.update_flat_pages()
     
+    tree_update = TreeUpdate()
+    
+    post_save.connect(tree_update.update_sitemap_tree, sender = Page)
+

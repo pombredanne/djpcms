@@ -2,6 +2,7 @@
 '''
 import os
 INSTALLED_APPS  = ['djpcms']
+INCLUDE_TEST_APPS = ['regression.djptest']
 CUR_DIR = os.path.split(os.path.abspath(__file__))[0]
 SITE_ID = 1
 DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3'}}

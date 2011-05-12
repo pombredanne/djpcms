@@ -240,7 +240,10 @@ class IntegerField(Field):
         self._raise_error(kwargs)
         
     def clean(self, value, bfield):
-        value = value.replace(',','')
+        try:
+            value = value.replace(',','')
+        except AttributeError:
+            pass
         return super(IntegerField,self).clean(value,bfield)
     
     def _clean(self, value, bfield):

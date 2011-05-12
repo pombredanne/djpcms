@@ -1,10 +1,3 @@
-# Need this during development in windows ######
-import os
-import sys
-p = lambda x : os.path.split(x)[0]
-sys.path.insert(0,p(p(p(p(__file__)))))
-################################################
-#
 import djpcms
 from djpcms.views import Application,View
 

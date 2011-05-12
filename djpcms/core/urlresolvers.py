@@ -69,9 +69,17 @@ The main function here is the ``resolve`` method'''
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)
     
+    @property
+    def resolver(self):
+        if not hasattr(self,'_resolver'):
+            self._resolver = RegexURLResolver(r'^', self.urls())
+        return self._resolver
+    
     def resolve(self, path):
         # try sitemap first
         spath = SLASH+path
+        site = None
+        node = None
         try:
             node = self.tree[spath]
             return self.resolve_from_node(node)
@@ -81,16 +89,11 @@ The main function here is the ``resolve`` method'''
         view = self
         rurl = (path,)
         urlargs = {}
-        site = None
         while isinstance(view,ResolverMixin):
             if len(rurl) != 1:
                 if 'path' not in urlargs:
                     raise self.http.Http404(site = site)
                 rurl = (urlargs.pop('path'),)
-            if not getattr(view,'resolver',None):
-                urls = view.urls()
-                view.resolver = RegexURLResolver(r'^', urls)
-
             try:
                 view, rurl, kwargs = view.resolver.resolve(rurl[0])
             except Resolver404 as e:

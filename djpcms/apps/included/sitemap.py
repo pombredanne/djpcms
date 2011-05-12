@@ -10,9 +10,9 @@ from djpcms.models import Page
 from djpcms.core import messages
 from djpcms.html import box, table
 
-from jslib.jquery_mtree.mixins import MtreeMixin, MtreeView
+from .mtree import MtreeMixin, MtreeView
     
-    
+
 class SiteMapView(views.View, MtreeView):
     
     def render(self, djp):

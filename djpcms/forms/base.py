@@ -8,7 +8,7 @@ import json
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import nodata, UnicodeMixin, dispatch
+from djpcms import nodata, UnicodeMixin
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str
@@ -22,14 +22,10 @@ from .fields import Field
 from .html import FormWidget
 
 
-pre_save = dispatch.Signal()
-post_save = dispatch.Signal()
-
 __all__ = ['FormType',
            'Form',
            'HtmlForm',
-           'BoundField',
-           'post_save']
+           'BoundField']
 
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
@@ -340,7 +336,7 @@ Messages can be errors or not. If the message is empty, it does nothing.
                         return False
                 return True
             return False
-        return True
+        return False
     
     def clean(self):
         '''The form clean method. Called last in the validation algorithm.'''
@@ -370,7 +366,6 @@ This method works if an instance or a model is available.
         if commit:
             for fset in self.form_sets.values():
                 fset.save()
-            post_save.send(self, instance = obj)
         return obj
     
     def before_save(self, commit=True):

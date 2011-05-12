@@ -341,8 +341,8 @@ content in a content block.'''
         
     def pluginurl(self, request, obj):
         p = obj.plugin
-        if not p or not p.edit_form:
-            return
+        #if not p or not p.edit_form:
+        #    return
         view = self.getview('plugin')
         if view and self.has_change_permission(request, obj):
             djp = view(request, instance = obj)

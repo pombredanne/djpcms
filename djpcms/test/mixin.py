@@ -36,21 +36,29 @@ class DummySessionStore(dict):
 
 class PageMixin(object):
     
-    def makepage(self, url, site = None, **kwargs):
+    @property
+    def Page(self):
         from djpcms.models import Page
+        return Page
+    
+    @property
+    def InnerTemplate(self):
+        from djpcms.models import InnerTemplate
+        return InnerTemplate
+    
+    def makepage(self, url, site = None, **kwargs):
         data = dict(PageForm.initials())
         data.update(kwargs)
         data['url'] = closedurl(url)
         site = site if site is not None else self.sites
-        f = PageForm(model = Page, data = data, site = site)
+        f = PageForm(model = self.Page, data = data, site = site)
         self.assertTrue(f.is_valid())
         return f.save()
     
     def makeInnerTemplates(self):
-        from djpcms.models import InnerTemplate
         '''Create Inner templates from the ``djpcms/templates/djpcms/inner`` directory'''
         make_default_inners()
-        return list(InnerTemplate.objects.all())
+        return list(self.InnerTemplate.objects.all())
     
     
 class UserMixin(object):

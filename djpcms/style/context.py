@@ -185,7 +185,8 @@ CssContext('tablesorter',
 CssContext('blockelement',
            tag = '.djpcms-block-element, .edit-block',
            data = {
-                   'margin': '0 0 20px 0'
+                   'margin': '0 0 20px 0',
+                   'display': 'block'
                    }
            )
 

@@ -79,12 +79,8 @@ class Node(UnicodeMixin):
             if self.view:
                 return self.view.site
             else:
-                ancestor = self.ancestor
-                if ancestor:
-                    self._site = self.ancestor.site
-                return self._site
-        else:
-            return self._site
+                self._site = self.urlmap.get_site(self.path)
+        return self._site
             
     @property
     def ancestor(self):
@@ -101,7 +97,7 @@ class Node(UnicodeMixin):
     def djp(self, request = None, **kwargs):
         '''Create a :class:`djpcms.views.DjpResponse` object with a dummy request if not available'''
         if not request:
-            request = DummyRequest(self.site)
+            request = DummyRequest(self.site)   
         view = self.get_view()
         return DjpResponse(request, view, **kwargs)
     
@@ -133,8 +129,9 @@ for json serialization.'''
 class SiteMap(dict):
     '''Djpcms sitemap'''
     refresh_seconds = 3600
-    def __init__(self):
+    def __init__(self, site):
         super(SiteMap,self).__init__()
+        self.site = site
         self.root = r = Node(self)
         self[r.path] = r
         self.lastload = None
@@ -201,6 +198,10 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
         data.add(root)
         return data
     
+    def get_site(self,path):
+        r = self.site.resolver.resolve(path[1:])
+        return r[0]
+        
     def get_page(self,path):
         from djpcms.models import Page
         if Page:
@@ -227,12 +228,14 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
         else:
             return False
     
-    def drop_flat_pages(self):
+    def update_flat_pages(self):
         self.lock.acquire()
         try:
             for node in list(self.values()):
                 if not node.view:
                     del self[node.path]
-            self.lastload = None
         finally:
             self.lock.release()
+        self.lastload = None
+        self.load()
+    

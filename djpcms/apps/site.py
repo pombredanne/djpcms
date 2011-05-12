@@ -159,7 +159,7 @@ It also initialise admin for models.'''
                 continue            
         
     def _load(self):
-        '''Load sites'''
+        '''Load sites and flat pages'''
         from djpcms.views import SiteMap, ALL_URLS
         if not self._sites:
             raise ImproperlyConfigured('No sites registered.')
@@ -169,7 +169,7 @@ It also initialise admin for models.'''
         sites = self.all()
         if sites[-1].path is not SLASH:
             raise ImproperlyConfigured('There must be a root site available.')
-        self.tree = tree = SiteMap()
+        self.tree = tree = SiteMap(self)
         for site in reversed(sites):
             site.load()
         import_modules(settings.DJPCMS_PLUGINS)
@@ -179,6 +179,8 @@ It also initialise admin for models.'''
         for site in sites:
             regex = site.route() + ALL_URLS
             urls += url(str(regex), site),
+        # Load flat pages to site map
+        self.tree.load()
         return urls
     
     def make(self, name, settings = None, route = None,

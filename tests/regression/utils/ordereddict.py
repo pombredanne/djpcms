@@ -1,7 +1,7 @@
 import unittest
 from itertools import izip
 
-from djpcms.utils.collections import OrderedDict
+from djpcms.utils.structures import OrderedDict
 from djpcms.utils.populate import populate
 
 

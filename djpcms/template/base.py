@@ -1,5 +1,6 @@
 from djpcms.dispatch import Signal
 
+
 def handle(engine = None):
     from djpcms import sites
     engine = engine or sites.settings.TEMPLATE_ENGINE

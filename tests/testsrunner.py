@@ -57,7 +57,8 @@ def import_tests(tags, test_type, can_fail):
             if first:
                 first = False
                 model_labels[model_label] = t
-            INSTALLED_APPS.append(model_label)
+            if model_label not in INSTALLED_APPS: 
+                INSTALLED_APPS.append(model_label)
             
     if not tried:
         print('Could not find any tests. Aborting.')

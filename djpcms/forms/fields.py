@@ -77,6 +77,7 @@ very similar to django forms API.
     widget = None
     required = True
     creation_counter = 0
+    validation_error = standard_validation_error
     
     def __init__(self,
                  required = None,
@@ -92,7 +93,7 @@ very similar to django forms API.
         self.default = default if default is not None else self.default
         self.initial = initial
         self.required = required if required is not None else self.required
-        self.validation_error = validation_error or standard_validation_error
+        self.validation_error = validation_error or self.validation_error
         self.help_text = escape(help_text)
         self.label = label
         self.widget = widget or self.widget
@@ -233,7 +234,7 @@ optional parameter (attribute):
 class IntegerField(Field):
     default = 0
     widget = TextInput(cn = 'numeric')
-    validation_error = 'Could not convert {0} to a number'
+    convert_error = 'Could not convert {0} to a valid number'
     
     def _handle_params(self, validator = None, **kwargs):
         self.validator = validator
@@ -253,7 +254,7 @@ class IntegerField(Field):
                 return self.validator(value)
             return value
         except:
-            raise ValidationError(self.validation_error.format(value))
+            raise ValidationError(self.convert_error.format(value))
         
 
 class FloatField(IntegerField):

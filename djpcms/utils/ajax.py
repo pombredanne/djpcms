@@ -64,7 +64,7 @@ class simplelem(jsonbase):
         return self.elem
 
 
-class simpledump(object):
+class simpledump(jsonbase):
     
     def __init__(self, str):
         self.data = str

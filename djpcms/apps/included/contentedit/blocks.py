@@ -183,11 +183,14 @@ for editing plugin contents.'''
                                  initial = {'url': url},
                                  force_prefix = True)
         instance = djp.instance
+        plugin = instance.plugin
+        if not plugin:
+            return ''
         form = formhtml.form
         prefix = form.prefix
         pform,purl = self.get_plugin_form(djp, instance.plugin, prefix)
         html = '' if not pform else pform.render(djp)
-        edit_url = djp.instance.plugin.edit_url(djp,instance.arguments)
+        edit_url = plugin.edit_url(djp,instance.arguments)
         if edit_url:
             edit_url = HtmlWrap('a',
                                 cn = 'ajax button',

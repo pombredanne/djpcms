@@ -183,7 +183,7 @@ class OAuthProvider(Provider):
     
     def user_data(self, request, access_token):
         """Loads user data from service"""
-        raise NotImplementedError, 'Implement in subclass'
+        raise NotImplementedError('Implement in subclass')
         
     def fetch_response(self, oauth_request, method = 'GET'):
         """Executes request and fetches service response"""

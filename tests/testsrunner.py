@@ -28,7 +28,7 @@ def get_tests(test_type):
     for t in ALL_TESTS:
         dirpath = t.dirpath(test_type)
         for d in os.listdir(dirpath):
-            if os.path.isdir(os.path.join(dirpath,d)):
+            if not d.startswith('__') and os.path.isdir(os.path.join(dirpath,d)):
                 yield (t,d)
 
 
@@ -40,6 +40,11 @@ def import_tests(tags, test_type, can_fail):
     for t,app in get_tests(test_type):
         model_app = t.app_label(test_type,app)
         if tags and app not in tags:
+            logger.debug("Skipping model %s" % model_app)
+            continue
+        try:
+            import_module(model_app)
+        except ImportError:
             logger.debug("Skipping model %s" % model_app)
             continue
         tried += 1

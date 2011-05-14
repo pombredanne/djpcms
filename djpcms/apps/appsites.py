@@ -2,6 +2,8 @@ import os
 from copy import deepcopy
 from threading import Lock
 
+from py2py3 import is_bytes_or_string
+
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
 from djpcms.utils.structures import OrderedDict
@@ -69,7 +71,7 @@ class ApplicationSite(SiteMixin, RouteMixin):
         appurls = self.settings.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls,'__call__'):
-                if not hasattr(appurls,'__iter__'):
+                if is_bytes_or_string(appurls):
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()

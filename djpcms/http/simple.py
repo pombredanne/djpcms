@@ -2,17 +2,33 @@
 import sys
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
+from py2py3 import to_bytestring,itervalues,is_bytes_or_string,to_string
 from djpcms import sites
 from djpcms.core.exceptions import *
 
+try:
+    from BaseHTTPServer import BaseHTTPRequestHandler
+except:
+    from http.server import BaseHTTPRequestHandler
+
 from .utils import parse_cookie
-        
+
+
+def to_ascii(*values):
+    for value in values:
+        yield to_string(value)
+        #yield to_bytestring(value,encoding = 'us-ascii')
+
 
 def serve(port = 0, use_reloader = False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""
     server = WSGIServer(('', port), WSGIRequestHandler)
     server.set_app(sites.wsgi)
     server.serve_forever()
+    
+    
+def set_header(self, key, value):
+    self.set_header(key, value)
     
 
 class Request(object):
@@ -86,15 +102,33 @@ make_request = Request
 
 
 class HttpResponse(object):
+    STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
     mimetype = 'text/plain'
     status = 200
     
     def __init__(self, content, mimetype = None, status = None):
+        if is_bytes_or_string(content):
+            content = (to_string(content),)
         self.content = content
         self.mimetype = mimetype or self.mimetype
         self.status = status or self.status
-        self.headers = []
+        self._headers = {}
+            
+    def set_header(self, header, value):
+        header, value = to_ascii(header.lower(), value)
+        self._headers[header] = (header, value)
+
+    def has_header(self, header):
+        """Case-insensitive check for a header."""
+        return self._headers.has_key(header.lower())
+    
+    def __iter__(self):
+        return iter(self.content)
         
+    @property
+    def status_code(self):
+        return int(self.status)
+    
     def set_cookie(self, key, value='', max_age=None, expires=None,
                    path='/', domain=None, secure=None, httponly=False):
         """Sets a cookie. The parameters are the same as in the cookie `Morsel`
@@ -140,7 +174,24 @@ class HttpResponse(object):
         filtering that should not take place for streamed responses.
         """
         try:
-            len(self.response)
+            len(self.content)
         except TypeError:
             return True
         return False
+    
+    def __call__(self, environ, start_response):
+        try:
+            status_text = self.STATUS_CODE_TEXT[self.status][0]
+        except KeyError:
+            status_text = 'UNKNOWN STATUS CODE'
+        status = '%s %s' % (self.status, status_text)
+        #for c in res.cookies.values():
+        #    response_headers.append(('Set-Cookie', str(c.output(header=''))))
+        if start_response is not None:
+            start_response(status, itervalues(self._headers))
+        return self
+
+    
+    
+def finish_response(response, environ, start_response):
+    return response(environ, start_response)

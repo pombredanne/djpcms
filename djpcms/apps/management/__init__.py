@@ -137,7 +137,12 @@ class ManagementUtility(object):
     def __init__(self, sites, argv=None):
         self.argv = argv or sys.argv[:]
         self.prog_name = os.path.basename(self.argv[0])
-        self.sites = sites
+        if hasattr(sites,'__call__'):
+            self.callable = sites
+            self.sites = sites()
+        else:
+            self.sites = sites
+            self.callable = lambda : self.sites
 
     def main_help_text(self):
         """
@@ -209,14 +214,10 @@ class ManagementUtility(object):
             parser.print_lax_help()
             sys.stderr.write(self.main_help_text() + '\n')
         else:
-            self.fetch_command(subcommand).run_from_argv(self.sites, self.argv)
+            self.fetch_command(subcommand).run_from_argv(self.callable, self.argv)
 
 
-def execute(sites, argv=None):
+def execute(sites, argv=None, **params):
     '''Execute a command against a sites instance'''
-    utility = ManagementUtility(sites,argv)
+    utility = ManagementUtility(sites,argv,**params)
     utility.execute()
-
-
-        
-

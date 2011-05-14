@@ -11,7 +11,7 @@ __all__ = ['TestUtilsStrings',
 class TestUtilsStrings(test.TestCase):
 
     def test_force_str(self):
-        ts = bytes('test string')
+        ts = b'test string'
         self.assertEqual(force_str(ts),'test string')
         
     def testNiceName(self):

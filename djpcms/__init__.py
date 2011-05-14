@@ -59,11 +59,6 @@ to_bytestring = py2py3.to_bytestring
 is_string = py2py3.is_string
 UnicodeMixin = py2py3.UnicodeMixin
 
-from .apps import *
-from .apps.management import execute
-from .http import serve
-from .conf import nodata
-
 
 def node(path):
     '''Retrive a :class:`Node` from the global sitemap from a ``path`` input.
@@ -99,4 +94,48 @@ def init_logging(settings, clear_all = False):
         dictConfig(settings.LOGGING)
         
 
+LOGGING_SAMPLE = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s | (p=%(process)s,t=%(thread)s) | %(levelname)s | %(name)s | %(message)s'
+        },
+        'simple': {
+            'format': '%(asctime)s %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'silent': {
+            'class': 'djpcms.utils.log.NullHandler',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'djpcms.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django.request':{
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.db.backends':{
+            'handlers': ['silent'],
+            'level': 'ERROR',
+            'propagate': True,
+        }
+    }
+}
 
+
+from .apps import *
+from .apps.management import execute
+from .http import serve
+from .conf import nodata

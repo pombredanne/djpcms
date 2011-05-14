@@ -2,7 +2,7 @@
 Dependcies: **None**
 
 Useful application for serving static files.
-To be used during development.
+Useful during development.
 '''
 import os
 import re
@@ -143,7 +143,8 @@ class StaticFileView(StaticView):
         html = loader.render(self.appmodel.template,
                              {'names':names,
                               'files':files,
-                              'directory':request.path})
+                              'directory':request.path,
+                              'notroot':True})
         return self.site.http.HttpResponse(html, mimetype = 'text/html')
         
     def serve_file(self, request, fullpath):
@@ -152,7 +153,7 @@ class StaticFileView(StaticView):
         statobj = os.stat(fullpath)
         mimetype, encoding = mimetypes.guess_type(fullpath)
         mimetype = mimetype or 'application/octet-stream'
-        if not self.was_modified_since(request.META.get('HTTP_IF_MODIFIED_SINCE'),
+        if not self.was_modified_since(request.environ.get('HTTP_IF_MODIFIED_SINCE',None),
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
             return http.HttpResponse(status = 304,

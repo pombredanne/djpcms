@@ -1,3 +1,4 @@
+import djpcms
 DEBUG = False
 
 # List of installed application.
@@ -21,9 +22,9 @@ TEMPLATE_DIRS = ()
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
-HTTP_LIBRARY = 'django' # django, werkzeug
-CMS_ORM = None # django, stdnet
-TEMPLATE_ENGINE = 'jinja2' # django, jinja2
+HTTP_LIBRARY = None             #'django' # django, werkzeug
+CMS_ORM = None                  # django, stdnet
+TEMPLATE_ENGINE = 'jinja2'      # django, jinja2
 
 MEDIA_URL = '/media/'
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
@@ -62,42 +63,4 @@ DATE_FORMAT = 'd M y'
 DATETIME_FORMAT = DATE_FORMAT + ' H:i'
 
 # Finally Logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(asctime)s | (p=%(process)s,t=%(thread)s) | %(levelname)s | %(name)s | %(message)s'
-        },
-        'simple': {
-            'format': '%(asctime)s %(levelname)s %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-        },
-    },
-    'handlers': {
-        'silent': {
-            'class': 'djpcms.utils.log.NullHandler',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'djpcms.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request':{
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.db.backends':{
-            'handlers': ['silent'],
-            'level': 'ERROR',
-            'propagate': True,
-        }
-    }
-}
+LOGGING = djpcms.LOGGING_SAMPLE

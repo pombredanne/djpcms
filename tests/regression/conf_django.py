@@ -2,11 +2,10 @@ from djpcms_test_settings import *
 
 CMS_ORM = 'django'
 
-INSTALLED_APPS  = ['django.contrib.auth',
-                   'django.contrib.sessions',
-                   'django.contrib.contenttypes',
-                   'tagging',
-                   'djpcms']
+INSTALLED_APPS  += ['django.contrib.auth',
+                    'django.contrib.sessions',
+                    'django.contrib.contenttypes',
+                    'tagging']
 
 
 MIDDLEWARE_CLASSES = (

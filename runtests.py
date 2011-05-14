@@ -2,6 +2,7 @@
 import os
 import sys
 from optparse import OptionParser
+sys.path.insert(0,os.path.split(os.path.abspath(__file__))[0])
 
 import djpcms
 
@@ -32,7 +33,7 @@ def makeoptions():
     parser.add_option('-p', '--template',
                       action="store",
                       dest="template",
-                      default='django',
+                      default='jinja2',
                       help="Template library to use. One of django or jinja2 (default django).")
     parser.add_option('-g', '--httplib',
                       action="store",

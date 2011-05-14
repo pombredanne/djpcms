@@ -59,6 +59,12 @@ class RegExUrl(UnicodeMixin):
         else:
             return False
         
+    def __lt__(self, other):
+        if isinstance(other,self.__class__):
+            return to_string(self) < to_string(other)
+        else:
+            raise TypeError('Cannot compare {0} with {1}'.format(self,other))
+        
     def __unicode__(self):
         if self.append_slash:
             return to_string('^{0}$'.format(self.__url))

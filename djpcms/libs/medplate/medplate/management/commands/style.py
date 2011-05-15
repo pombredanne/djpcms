@@ -70,11 +70,12 @@ class Command(BaseCommand):
     help = "Creates a css file from a template css."
     args = '[appname appname ...]'
     
-    def handle(self, sites, *args, **options):
+    def handle(self, callable, *args, **options):
         style = options['style']
         target = options['target']
         mediaurl = options['mediaurl']
         apps = args
+        sites = callable()
         if not target:
             target = style + '.css'
             mdir = os.path.join(sites.settings.SITE_DIRECTORY,
@@ -82,8 +83,6 @@ class Command(BaseCommand):
                                 sites.settings.SITE_MODULE)
             if os.path.isdir(mdir):
                 target = os.path.join(mdir,target)
-        sites.load()
-        init_logging(sites.settings)
         render(sites,style,target,apps,mediaurl)
         
         

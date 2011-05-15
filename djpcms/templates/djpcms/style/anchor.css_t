@@ -1,6 +1,6 @@
 {% extends "medplate/anchor.css_t" %}
 
-{% block body %}{{ block.super }}
+{% block extra_body %}
 a.simple-icon {
     display: inline-block;
 }

@@ -49,7 +49,7 @@ class BaseSiteHandler(object):
         if DJPCMS not in environ:
             environ[DJPCMS] = djpcmsinfo(None,None,site=site)
         setattr(request,DJPCMS,environ[DJPCMS])
-        return request            
+        return request
     
     
 def response_error(f):

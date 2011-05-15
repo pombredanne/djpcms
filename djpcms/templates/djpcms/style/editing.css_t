@@ -1,7 +1,7 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block body %}
-.djpcms-placeholder {{% if placeholder_border %}
+.djpcms-placeholder { {% if placeholder_border %}
     border: {{ placeholder_border }};{% endif %}
 }
 

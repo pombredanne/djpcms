@@ -142,6 +142,7 @@ class ManagementUtility(object):
             self.sites = sites()
         else:
             self.sites = sites
+            self.sites.load()
             self.callable = lambda : self.sites
 
     def main_help_text(self):

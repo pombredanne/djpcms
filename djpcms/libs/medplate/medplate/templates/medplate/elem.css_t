@@ -10,7 +10,7 @@
 
 {% block main_properties %}
 /* {{ tag }} tag properties. */
-{{ tag }} {{% if background %}
+{{ tag }} { {% if background %}
 	background: {{ background }};{% endif %}{% if color %}
 	color: {{ color }};{% endif %}{% if font_family %}
 	font-family:{{ font_family }};{% endif %}{% if font_size %}

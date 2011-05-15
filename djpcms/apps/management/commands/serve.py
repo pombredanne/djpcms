@@ -16,16 +16,16 @@ class Command(BaseCommand):
     )
     help = "Serve the application."
     
-    def handle(self, sites, *args, **options):
+    def handle(self, callable, *args, **options):
         if args:
             port = int(args[0])
         else:
             port = DEFAULT_PORT
         using = options['using']
+        sites = callable()
         if not sites:
             print('No sites installed, cannot serve the aplication')
         elif using:
             sites.settings.HTTP_LIBRARY = using
-        sites.load()
         djpcms.init_logging(sites.settings)
         sites.http.serve(port = port, sites = sites)

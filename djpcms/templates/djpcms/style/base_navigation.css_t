@@ -6,7 +6,7 @@
 	z-index:9999;
 }
 
-{{ tag }} li.ui-state-active {{% if active_background %}
+{{ tag }} li.ui-state-active { {% if active_background %}
     background: {{ active_background }};{% endif %}
 }{% if active_color %}
 {{ tag }} li.ui-state-active a,
@@ -27,7 +27,7 @@
     display: block;
 }
 
-{{ tag }} ul li:hover {{% if secondary_hover_background %}
+{{ tag }} ul li:hover { {% if secondary_hover_background %}
     background: {{ secondary_hover_background }};{% endif %}
 }
 

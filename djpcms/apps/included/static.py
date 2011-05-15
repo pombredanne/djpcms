@@ -12,7 +12,7 @@ from email.utils import parsedate_tz, mktime_tz
 
 from djpcms import views
 from djpcms.utils.importer import import_module
-from djpcms.utils.http import http_date
+from djpcms.http.utils import http_date
 from djpcms.template import loader
 
 # Third party application list.
@@ -73,8 +73,9 @@ It looks for the ``media`` directory in each installed application.'''
         except:
             continue
 
-        path   = module.__path__[0]
-        map[name] = handler(name,path)
+        h = handler(name,module.__path__[0])
+        if h.exists:
+            map[name] = h
     return map
 
 
@@ -157,14 +158,14 @@ class StaticFileView(StaticView):
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
             return http.HttpResponse(status = 304,
-                                     mimetype=mimetype)
+                                     content_type=mimetype,
+                                     encoding = encoding)
         contents = open(fullpath, 'rb').read()
         response = http.HttpResponse(contents,
-                                     mimetype=mimetype)
+                                     content_type=mimetype,
+                                     encoding = encoding)
         http.set_header(response, "Last-Modified", http_date(statobj[stat.ST_MTIME]))
         http.set_header(response, "Content-Length", len(contents))
-        if encoding:
-            http.set_header(response, "Content-Encoding", encoding)
         return response
     
     def was_modified_since(self, header=None, mtime=0, size=0):

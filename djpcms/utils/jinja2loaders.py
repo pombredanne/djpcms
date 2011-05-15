@@ -23,7 +23,7 @@ def application_directories(package_path):
 class FileSystemLoader(loaders.FileSystemLoader):
     
     def __init__(self, searchpath = None, encoding='utf-8'):
-        searchpath = searchpath or sites.settings.SITE_DIRECTORY
+        searchpath = searchpath or sites.settings.TEMPLATE_DIRS
         super(FileSystemLoader,self).__init__(searchpath,encoding)
         
 

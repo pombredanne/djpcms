@@ -1,7 +1,7 @@
 {% extends "djpcms/style/base_navigation.css_t" %}
 
-{% block body %}{{ block.super }}
-{% block nav-container %}
+{% block extra_body %}
+{% block nav_container %}
 .nav-container {
 }
 {% endblock %}

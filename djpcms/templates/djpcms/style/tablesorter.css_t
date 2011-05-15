@@ -28,11 +28,11 @@
     background-color: {{ odd_background_color }};
 }
 {{ tag }} thead tr .ui-state-highlight,
-{{ tag }} thead tr .ui-state-highlight {{% if highlight %} 
+{{ tag }} thead tr .ui-state-highlight { {% if highlight %} 
     background-color: {{ highlight.background }};
     color: {{ highlight.color }};{% endif %}
 }
-{{ tag }} tbody tr.hover td {{% if row_hover_background %}
+{{ tag }} tbody tr.hover td { {% if row_hover_background %}
     background-color: {{ row_hover_background }};{% endif %}{% if row_hover_color %}
     color: {{ row_hover_color }};{% endif %}
 }

@@ -55,12 +55,17 @@ DJPCMS_SITE_MAP                 = True
 DJPCMS_USER_CAN_EDIT_PAGES      = False
 
 #
-JINJA2_TEMPLATE_LOADERS = [('djpcms.utils.jinja2loaders.ApplicationLoader',)]
+JINJA2_TEMPLATE_LOADERS = (
+                           ('djpcms.utils.jinja2loaders.ApplicationLoader',),
+                           ('djpcms.utils.jinja2loaders.FileSystemLoader',)
+                           )
 JINJA2_EXTENSIONS = []
 
 # Date Format
 DATE_FORMAT = 'd M y'
 DATETIME_FORMAT = DATE_FORMAT + ' H:i'
+
+DEFAULT_CHARSET = 'utf-8'
 
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE

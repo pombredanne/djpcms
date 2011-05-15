@@ -1,4 +1,4 @@
-from django.http import *
+from django import http
 from django.core.handlers import wsgi
 from django.contrib.auth import authenticate, login, logout
 
@@ -6,6 +6,12 @@ from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.core.exceptions import *
 
 Request = wsgi.WSGIRequest
+
+class HttpResponse(http.HttpResponse):
+    
+    def __init__(self, content='', status=None, content_type=None, encoding = None):
+        super(HttpResponse,self).__init__(content=content, status=status, content_type=content_type)
+
 
 STATUS_CODE_TEXT = wsgi.STATUS_CODE_TEXT
 
@@ -65,7 +71,6 @@ def finish_response(res, environ, start_response):
         
 
 def serve(port = 0, sites = None, use_reloader = False):
-    sites = sites or gloabl_sites
     from django.core.servers.basehttp import run
     run('localhost', port, DjpCmsHandler(sites))
     

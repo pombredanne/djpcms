@@ -26,7 +26,7 @@ def authenticate(mapper, **credentials):
         from django.contrib.auth import authenticate
         return authenticate(**credentials)
     elif orm == 'stdnet':
-        from stdnet.contrib.sessions.middleware import authenticate
+        from djpcms.contrib.sessions.middleware import authenticate
         return authenticate(**credentials)
     else:
         raise NotImplementedError
@@ -38,7 +38,7 @@ def login(mapper, request, user):
         from django.contrib.auth import login
         return login(request,user)
     elif orm == 'stdnet':
-        from stdnet.contrib.sessions.middleware import login
+        from djpcms.contrib.sessions.middleware import login
         return login(request,user)
     else:
         raise NotImplementedError
@@ -50,7 +50,7 @@ def logout(mapper, request):
         from django.contrib.auth import logout
         return logout(request)
     elif orm == 'stdnet':
-        from stdnet.contrib.sessions.middleware import logout
+        from djpcms.contrib.sessions.middleware import logout
         return logout(request)
     else:
         raise NotImplementedError

@@ -1,29 +1,28 @@
 '''Used for testing purposes only'''
 import sys
+from datetime import datetime, timedelta
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
 from py2py3 import to_bytestring,itervalues,is_bytes_or_string,to_string
-from djpcms import sites
+
+from djpcms.apps.handlers import DjpCmsHandler
+from djpcms.utils.structures import MultiValueDict
 from djpcms.core.exceptions import *
 
-try:
-    from BaseHTTPServer import BaseHTTPRequestHandler
-except:
-    from http.server import BaseHTTPRequestHandler
-
-from .utils import parse_cookie
+from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie,\
+                   BytesIO, cookie_date
 
 
-def to_ascii(*values):
+def to_strings(*values):
     for value in values:
         yield to_string(value)
-        #yield to_bytestring(value,encoding = 'us-ascii')
 
 
-def serve(port = 0, use_reloader = False):
+def serve(port = 0, sites = None, use_reloader = False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""
     server = WSGIServer(('', port), WSGIRequestHandler)
-    server.set_app(sites.wsgi)
+    app = DjpCmsHandler(sites)
+    server.set_app(app)
     server.serve_forever()
     
     
@@ -31,8 +30,20 @@ def set_header(self, key, value):
     self.set_header(key, value)
     
 
+class QueryDict(MultiValueDict):
+    
+    def __init__(self, query_string, encoding):
+        super(QueryDict,self).__init__()
+        self.encoding = encoding
+        for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
+            self.appendlist(to_string(key, encoding, errors='replace'),
+                            to_string(value, encoding, errors='replace'))
+    
+
 class Request(object):
     '''Simple WSGI Request class'''
+    _encoding = None
+    
     def __init__(self, environ):
         self.environ = environ
         self.path = environ.get('PATH_INFO', '/')
@@ -54,6 +65,15 @@ class Request(object):
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
             and self.environ['wsgi.url_scheme'] == 'https'
+            
+    @property
+    def encoding(self):
+        if not self._encoding:
+            try:
+                self._encoding = self.environ['DJPCMS'].site.settings.DEFAULT_CHARSET
+            except:
+                self._encoding = 'utf-8'
+        return self._encoding
 
     def _get_request(self):
         if not hasattr(self, '_request'):
@@ -63,7 +83,7 @@ class Request(object):
     def _get_get(self):
         if not hasattr(self, '_get'):
             # The WSGI spec says 'QUERY_STRING' may be absent.
-            self._get = http.QueryDict(self.environ.get('QUERY_STRING', ''), encoding=self._encoding)
+            self._get = QueryDict(self.environ.get('QUERY_STRING', ''), encoding=self.encoding)
         return self._get
 
     def _set_get(self, get):
@@ -96,6 +116,48 @@ class Request(object):
     FILES = property(_get_files)
     REQUEST = property(_get_request)
     
+    def _load_post_and_files(self):
+        # Populates self._post and self._files
+        if self.method != 'POST':
+            self._post, self._files = QueryDict('', encoding=self._encoding), MultiValueDict()
+            return
+        if self._read_started:
+            self._mark_post_parse_error()
+            return
+
+        if self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
+            self._raw_post_data = ''
+            try:
+                self._post, self._files = self.parse_file_upload(self.META, self)
+            except:
+                # An error occured while parsing POST data.  Since when
+                # formatting the error the request handler might access
+                # self.POST, set self._post and self._file to prevent
+                # attempts to parse POST data again.
+                # Mark that an error occured.  This allows self.__repr__ to
+                # be explicit about it instead of simply representing an
+                # empty POST
+                self._mark_post_parse_error()
+                raise
+        else:
+            self._post, self._files = QueryDict(self.raw_post_data, encoding=self.encoding), MultiValueDict()
+
+    def _get_raw_post_data(self):
+        if not hasattr(self, '_raw_post_data'):
+            if self._read_started:
+                raise Exception("You cannot access raw_post_data after reading from request's data stream")
+            try:
+                content_length = int(self.environ.get('CONTENT_LENGTH', 0))
+            except (ValueError, TypeError):
+                content_length = 0
+            if content_length:
+                self._raw_post_data = self._stream.read(content_length)
+            else:
+                self._raw_post_data = self._stream.read()
+            self._stream = BytesIO(self._raw_post_data)
+        return self._raw_post_data
+    raw_post_data = property(_get_raw_post_data)
+    
     
 make_request = Request
 
@@ -103,19 +165,24 @@ make_request = Request
 
 class HttpResponse(object):
     STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
-    mimetype = 'text/plain'
+    DEFAULT_CONTENT_TYPE = 'text/plain'
     status = 200
     
-    def __init__(self, content, mimetype = None, status = None):
+    def __init__(self, content = '', status = None, content_type = None, encoding = None):
+        self.encoding = encoding
         if is_bytes_or_string(content):
-            content = (to_string(content),)
+            content = (to_bytestring(content),)
         self.content = content
-        self.mimetype = mimetype or self.mimetype
         self.status = status or self.status
         self._headers = {}
+        self.cookies = SimpleCookie()
+        self.content_type = content_type or self.DEFAULT_CONTENT_TYPE
+        self.set_header('Content-Type',content_type)
+        if encoding:
+            self.set_header("Content-Encoding", encoding)
             
     def set_header(self, header, value):
-        header, value = to_ascii(header.lower(), value)
+        header, value = to_strings(header.lower(), value)
         self._headers[header] = (header, value)
 
     def has_header(self, header):
@@ -129,39 +196,46 @@ class HttpResponse(object):
     def status_code(self):
         return int(self.status)
     
-    def set_cookie(self, key, value='', max_age=None, expires=None,
-                   path='/', domain=None, secure=None, httponly=False):
-        """Sets a cookie. The parameters are the same as in the cookie `Morsel`
-        object in the Python standard library but it accepts unicode data, too.
-
-        :param key: the key (name) of the cookie to be set.
-        :param value: the value of the cookie.
-        :param max_age: should be a number of seconds, or `None` (default) if
-                        the cookie should last only as long as the client's
-                        browser session.
-        :param expires: should be a `datetime` object or UNIX timestamp.
-        :param domain: if you want to set a cross-domain cookie.  For example,
-                       ``domain=".example.com"`` will set a cookie that is
-                       readable by the domain ``www.example.com``,
-                       ``foo.example.com`` etc.  Otherwise, a cookie will only
-                       be readable by the domain that set it.
-        :param path: limits the cookie to a given path, per default it will
-                     span the whole domain.
+    def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
+                   domain=None, secure=False, httponly=False):
         """
-        self.headers.add('Set-Cookie', dump_cookie(key, value, max_age,
-                         expires, path, domain, secure, httponly,
-                         self.charset))
+        Sets a cookie.
+
+        ``expires`` can be a string in the correct format or a
+        ``datetime.datetime`` object in UTC. If ``expires`` is a datetime
+        object then ``max_age`` will be calculated.
+        """
+        self.cookies[key] = value
+        if expires is not None:
+            if isinstance(expires, datetime):
+                delta = expires - expires.utcnow()
+                # Add one second so the date matches exactly (a fraction of
+                # time gets lost between converting to a timedelta and
+                # then the date string).
+                delta = delta + timedelta(seconds=1)
+                # Just set max_age - the max_age logic will set expires.
+                expires = None
+                max_age = max(0, delta.days * 86400 + delta.seconds)
+            else:
+                self.cookies[key]['expires'] = expires
+        if max_age is not None:
+            self.cookies[key]['max-age'] = max_age
+            # IE requires expires, so set it if hasn't been already.
+            if not expires:
+                self.cookies[key]['expires'] = cookie_date(time.time() +
+                                                           max_age)
+        if path is not None:
+            self.cookies[key]['path'] = path
+        if domain is not None:
+            self.cookies[key]['domain'] = domain
+        if secure:
+            self.cookies[key]['secure'] = True
+        if httponly:
+            self.cookies[key]['httponly'] = True
 
     def delete_cookie(self, key, path='/', domain=None):
-        """Delete a cookie.  Fails silently if key doesn't exist.
-
-        :param key: the key (name) of the cookie to be deleted.
-        :param path: if the cookie that should be deleted was limited to a
-                     path, the path has to be defined here.
-        :param domain: if the cookie that should be deleted was limited to a
-                       domain, that domain has to be defined here.
-        """
-        self.set_cookie(key, expires=0, max_age=0, path=path, domain=domain)
+        self.set_cookie(key, max_age=0, path=path, domain=domain,
+                        expires='Thu, 01-Jan-1970 00:00:00 GMT')
         
     @property
     def is_streamed(self):
@@ -185,13 +259,16 @@ class HttpResponse(object):
         except KeyError:
             status_text = 'UNKNOWN STATUS CODE'
         status = '%s %s' % (self.status, status_text)
-        #for c in res.cookies.values():
-        #    response_headers.append(('Set-Cookie', str(c.output(header=''))))
+        for c in self.cookies.values():
+            self.set_header('Set-Cookie', c.output(header=''))
         if start_response is not None:
-            start_response(status, itervalues(self._headers))
+            start_response(status, list(itervalues(self._headers)))
         return self
 
     
     
 def finish_response(response, environ, start_response):
     return response(environ, start_response)
+
+
+    

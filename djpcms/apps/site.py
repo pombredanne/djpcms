@@ -42,6 +42,7 @@ def standard_exception_handle(request, e, status = None):
     status = status or getattr(e,'status',None) or 500
     info = request.DJPCMS
     site = info.site
+    settings = site.settings
     if not site or not hasattr(site,'exception_middleware'):
         raise
     for middleware_method in site.exception_middleware():
@@ -68,7 +69,8 @@ def standard_exception_handle(request, e, status = None):
                          ctx)
     return site.http.HttpResponse(html,
                                   status = status,
-                                  mimetype = 'text/html')
+                                  content_type = 'text/html',
+                                  encoding = settings.DEFAULT_CHARSET)
         
 
 class SiteMixin(ResolverMixin):

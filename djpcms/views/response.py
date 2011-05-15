@@ -307,11 +307,11 @@ the parent of the embedded view.'''
                 res = handle_ajax_error(self,e)
             try:
                 return self.http.HttpResponse(res.dumps(),
-                                              mimetype = res.mimetype())
+                                              content_type = res.mimetype())
             except Exception as e:
                 res = handle_ajax_error(self,e)
                 return self.http.HttpResponse(res.dumps(),
-                                              mimetype = res.mimetype())
+                                              content_type = res.mimetype())
     
     def render_to_response(self, context):
         css = self.css
@@ -330,7 +330,9 @@ the parent of the embedded view.'''
         
         context = loader.context(context, self.request)
         html = loader.render(self.template_file, context)
-        return self.http.HttpResponse(html,mimetype = 'text/html')
+        return self.http.HttpResponse(html,
+                                      content_type = 'text/html',
+                                      encoding = self.settings.DEFAULT_CHARSET)
         
     @storegenarator
     def children(self):

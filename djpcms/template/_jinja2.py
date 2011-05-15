@@ -48,7 +48,10 @@ class TemplateHandler(LibraryTemplateHandler):
         else:
             t = self.get_template(template_name)
         t.environment.autoescape = autoescape
-        return t.render(data)
+        if data:
+            return t.render(data)
+        else:
+            return t.render()
     
     def render_from_string(self, template, dictionary=None, autoescape = False):
         t = Template(template)
@@ -57,8 +60,11 @@ class TemplateHandler(LibraryTemplateHandler):
     
     def get_template(self, template_name):
         for env in self.envs:
-            return env.get_template(template_name)
-        raise jinja2.TemplateNotFound(template_name)
+            try:
+                return env.get_template(template_name)
+            except TemplateNotFound:
+                pass
+        raise TemplateNotFound(template_name)
     
     def select_template(self, template_name_list):
         "Given a list of template names, returns the first that can be loaded."

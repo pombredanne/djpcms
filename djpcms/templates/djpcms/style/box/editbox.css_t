@@ -1,6 +1,6 @@
 {% extends "djpcms/style/box/box.css_t" %}
 
-{% block body %}{{ block.super }}
+{% block extra_body %}
 {{ tag }}.movable div.hd {
     cursor: move;
 }

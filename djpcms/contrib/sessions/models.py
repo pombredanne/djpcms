@@ -30,9 +30,8 @@ class User(orm.StdModel):
     
     def set_password(self, raw_password):
         if raw_password:
-            salt = get_hexdigest(str(random.random()), str(random.random()))[:5]
-            hsh = get_hexdigest(salt, raw_password)
-            self.password = '%s$%s' % (salt, hsh)
+            p = encrypt(raw_password.encode(), secret_key())
+            self.password = p.decode()
         else:
             self.set_unusable_password()
             

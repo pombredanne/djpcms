@@ -3,10 +3,11 @@ import base64
 import time
 import random
 import hashlib
-from os import urandom
 
 from stdnet import orm
 from stdnet.utils import pickle, to_bytestring, to_string
+
+from djpcms.utils import encrypt, decrypt
 
 # Use the system (hardware-based) random number generator if it exists.
 if hasattr(random, 'SystemRandom'):
@@ -14,36 +15,14 @@ if hasattr(random, 'SystemRandom'):
 else:
     randrange = random.randrange
 MAX_SESSION_KEY = 18446744073709551616     # 2 << 63
+SALT_SIZE = 8
 
 UNUSABLE_PASSWORD = '!' # This will never be a valid hash
 
 
 def secret_key():
-    return os.environ.get('SESSION_SECRET_KEY','sk')
+    return os.environ.get('SESSION_SECRET_KEY','sk').encode()
     
-
-def encrypt(plaintext):
-    from Crypto.Cipher import ARC4
-    if not plaintext:
-        return ''
-    salt = urandom(settings.SALT_SIZE)
-    arc4 = ARC4.new(salt + secret_key())
-    prnd = smart_str(urandom(256-len(plaintext)))
-    plaintext = smart_str("%3d%s" % (len(plaintext), plaintext))
-    plaintext = plaintext + prnd
-    return "%s$%s" % (b64encode(salt), b64encode(arc4.encrypt(plaintext)))
-
-
-def decrypt(ciphertext):
-    from Crypto.Cipher import ARC4
-    if ciphertext:
-        salt, ciphertext = map(b64decode, ciphertext.split('$'))
-        arc4 = ARC4.new(salt + settings.SECRET_KEY)
-        plaintext = arc4.decrypt(ciphertext)
-        return plaintext[3:3+int(plaintext[:3].strip())]
-    else:
-        return ''
-
 
 class EncodedPickledObjectField(orm.CharField):
     
@@ -61,11 +40,6 @@ class EncodedPickledObjectField(orm.CharField):
         pickled = pickle.dumps(session_dict)
         pickled_sha = md5_constructor(pickled + os.environ.get('SESSION_SECRET_KEY')).hexdigest()
         return base64.encodestring(pickled + pickled_md5)
-    
-
-def get_hexdigest(salt, raw_password):
-    b = to_bytestring(salt + raw_password,errors='ignore')
-    return to_string(hashlib.sha1(b).hexdigest())
 
 
 def check_password(raw_password, enc_password):
@@ -73,8 +47,7 @@ def check_password(raw_password, enc_password):
     Returns a boolean of whether the raw_password was correct. Handles
     encryption formats behind the scenes.
     """
-    salt, hsh = enc_password.split('$')
-    return hsh == get_hexdigest(salt, raw_password)
+    return raw_password.encode() == decrypt(enc_password.encode(),secret_key())
 
 
 class SuspiciousOperation(Exception):
@@ -137,5 +110,5 @@ class UserManager(orm.Manager):
         return user.save()
 
     def create_superuser(self, username, password = None, email = None):
-        return self.create_user(username, email, password, is_superuser = True)
+        return self.create_user(username, password, email, is_superuser = True)
     

@@ -10,6 +10,7 @@ from .strings import *
 from .jsontools import *
 from .numbers import *
 from .urls import *
+from .arc4 import *
 
 if ispy3k:
     import pickle

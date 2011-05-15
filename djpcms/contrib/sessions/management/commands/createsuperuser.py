@@ -12,6 +12,11 @@ from djpcms.contrib.monitor.utils import register_models
 
 from djpcms.contrib.sessions.models import User
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 
 RE_VALID_USERNAME = re.compile('[\w.@+-]+$')
 
@@ -57,7 +62,7 @@ class Command(BaseCommand):
                     input_msg = 'Username'
                     if default_username:
                         input_msg += ' (Leave blank to use %r)' % default_username
-                    username = raw_input(input_msg + ': ')
+                    username = input(input_msg + ': ')
                 if default_username and username == '':
                     username = default_username
                 if not RE_VALID_USERNAME.match(username):

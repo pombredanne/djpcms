@@ -13,6 +13,7 @@ from djpcms.utils.const import SLASH
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
+from djpcms.http.simple import UNKNOWN_STATUS_CODE, STATUS_CODE_TEXT
 
 from .management import find_commands
 from .permissions import SimplePermissionBackend
@@ -60,6 +61,7 @@ def standard_exception_handle(request, e, status = None):
     info.stack_trace = traceback.format_exception(*exc_info)
     stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info.stack_trace))
     ctx  = loader.context({'status':status,
+                           'status_text':STATUS_CODE_TEXT.get(status,UNKNOWN_STATUS_CODE)[0],
                            'stack_trace':stack_trace,
                            'settings':site.settings},
                            request)

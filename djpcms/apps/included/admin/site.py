@@ -23,7 +23,7 @@ class ApplicationGroup(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer a group of :class:`djpcms.views.Applications`.'''
     has_plugins = False
-    list_display = ['name','actions']
+    list_display = ('name','actions')
     home = views.GroupView(in_navigation = 1,
                            view_template = ADMIN_APPLICATION_TEMPLATE)
     

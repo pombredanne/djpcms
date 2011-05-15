@@ -138,7 +138,7 @@ class get_iterable_result(object):
 
     def __call__(self, request, field_name, result, appmodel, **kwargs):
         try:
-            return nicerepr(self.iter.next(),**kwargs)
+            return nicerepr(next(self.iter),**kwargs)
         except StopIteration:
             return None
         

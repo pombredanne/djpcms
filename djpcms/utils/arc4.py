@@ -22,12 +22,16 @@
 #
 import base64
 from os import urandom
+
 try:
     range = xrange
     bord = ord
+    to_string = lambda x : x
+    to_bytestring = to_string 
 except NameError:
     bord = lambda x : x
-
+    to_string = lambda x : x.decode()
+    to_bytestring = lambda x : x.encode()
 
 __all__ = ['rc4crypt','encrypt','decrypt']
 
@@ -36,7 +40,7 @@ __all__ = ['rc4crypt','encrypt','decrypt']
 def _rc4crypt(data, box):
     x = 0
     y = 0
-    for char in data.decode():
+    for char in to_string(data):
         x = (x + 1) % 256
         y = (y + box[x]) % 256
         box[x], box[y] = box[y], box[x]
@@ -51,7 +55,7 @@ def rc4crypt(data, key):
         x = (x + box[i] + bord(key[i % len(key)])) % 256
         box[i], box[x] = box[x], box[i]
     v = ''.join(_rc4crypt(data,box))
-    return v.encode()
+    return to_bytestring(v)
 
 
 def encrypt(plaintext, key, salt_size = 8):
@@ -59,7 +63,7 @@ def encrypt(plaintext, key, salt_size = 8):
         return ''
     salt = urandom(salt_size)
     v = rc4crypt(plaintext,salt + key)
-    n = chr(salt_size).encode()
+    n = to_bytestring(chr(salt_size))
     rs = n+salt+v
     return base64.b64encode(rs)
 
@@ -67,7 +71,7 @@ def encrypt(plaintext, key, salt_size = 8):
 def decrypt(ciphertext, key):
     if ciphertext:
         rs = base64.b64decode(ciphertext)
-        sl = rs[0]+1
+        sl = bord(rs[0])+1
         salt = rs[1:sl]
         ciphertext = rs[sl:]
         return rc4crypt(ciphertext,salt+key)

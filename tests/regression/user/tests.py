@@ -13,9 +13,9 @@ def appurls1():
             )
 
 
-@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
-class TestSiteUser1(test.TestCase, test.UserMixin):
-    appurls = 'regression.userapp.tests.appurls1'
-    NUMVIEWS = USER_NUMVIEWS
+#@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
+#class TestSiteUser1(test.TestCase, test.UserMixin):
+#    appurls = 'regression.userapp.tests.appurls1'
+
     
     

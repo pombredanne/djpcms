@@ -1,5 +1,7 @@
 import os
 
+from py2py3 import is_bytes_or_string
+
 from djpcms.conf import djpcms_defaults
 from djpcms.utils.importer import import_module
 from djpcms.ajaxhtml import ajaxhtml
@@ -35,7 +37,7 @@ class DjpcmsConfig(object):
             self.HTML_CLASSES = ajaxhtml()
         de = self.DEFAULT_TEMPLATE_NAME
         if de:
-            if not hasattr(de,'__iter__'):
+            if is_bytes_or_string(de):
                 de = (de,)
             else:
                 de = tuple(de)

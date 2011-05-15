@@ -10,9 +10,9 @@ if sites.settings.CMS_ORM == 'django':
     
 elif sites.settings.CMS_ORM == 'stdnet':
     
-    from stdnet.contrib.sessions.models import User
+    from djpcms.contrib.sessions.models import User
     
-    installed_apps = ['stdnet.contrib.sessions']
+    installed_apps = ['djpcms.contrib.sessions']
     
     
 class Portfolio(models.Model):

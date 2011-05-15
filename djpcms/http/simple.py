@@ -13,6 +13,9 @@ from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie
                    BytesIO, cookie_date
 
 
+STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
+UNKNOWN_STATUS_CODE = ('UNKNOWN STATUS CODE','')
+
 def to_strings(*values):
     for value in values:
         yield to_string(value)
@@ -28,6 +31,15 @@ def serve(port = 0, sites = None, use_reloader = False):
     
 def set_header(self, key, value):
     self.set_header(key, value)
+    
+
+def path_with_query(request):
+    path = request.path
+    if request.method == 'GET':
+        qs =  request.environ['QUERY_STRING']
+        if qs:
+            return path + '?' + qs
+    return path
     
 
 class QueryDict(MultiValueDict):
@@ -164,7 +176,6 @@ make_request = Request
 
 
 class HttpResponse(object):
-    STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
     DEFAULT_CONTENT_TYPE = 'text/plain'
     status = 200
     
@@ -254,10 +265,7 @@ class HttpResponse(object):
         return False
     
     def __call__(self, environ, start_response):
-        try:
-            status_text = self.STATUS_CODE_TEXT[self.status][0]
-        except KeyError:
-            status_text = 'UNKNOWN STATUS CODE'
+        status_text = STATUS_CODE_TEXT.get(self.status,UNKNOWN_STATUS_CODE)[0]
         status = '%s %s' % (self.status, status_text)
         for c in self.cookies.values():
             self.set_header('Set-Cookie', c.output(header=''))

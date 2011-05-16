@@ -96,6 +96,7 @@ If not specified the :setting:`DEFAULT_TEMPLATE_NAME` is used.'''
         return self in Page.objects.published()
     published.boolean = True
     
+    @property
     def additional_head(self):
         return self.additionaldata.filter(where = 1)
     

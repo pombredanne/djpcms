@@ -6,8 +6,6 @@ from .base import handle, BaseTemplateHandler, TemplateHandler
 # Default Implementation
 loader = TemplateHandler()
 
-# Default Implementation
-#mark_safe = loader.mark_safe
 json_dump_safe = lambda data: loader.mark_safe(json.dumps(data))
 
 

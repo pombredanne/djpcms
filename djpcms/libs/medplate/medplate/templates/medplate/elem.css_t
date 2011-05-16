@@ -54,4 +54,16 @@
 	border-bottom-right-radius: {{ radius_bottom_right }};{% endif %}{% if text_shadow %}
 	text-shadow: {{ text_shadow }};{% endif %}
 }
+
+{% if links %}
+{{ tag }} a:link,
+{{ tag }} a:visited { {% if links.color %}
+    color: {{ links.color }};{% endif %}{% if links.background %}
+    background: {{ links.background }};{% endif %}
+}
+{% if links.hover %}
+{{ tag }} a:hover { {% if links.hover.color %}
+    color: {{ links.hover.color }};{% endif %}{% if links.hover.background %}
+    background: {{ links.hover.background }}{% endif %}
+}{% endif %}{% endif %}
 {% endblock %}

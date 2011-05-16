@@ -18,7 +18,7 @@ class BoxWidget(HtmlWidget):
                      'hd': True,
                      'bd': None if not bd else bd,
                      'ft': None if not ft else ft,
-                     'self': self}
+                     'widget': self}
         super(BoxWidget,self).__init__(**kwargs)
         
     def get_context(self, context):

@@ -83,6 +83,7 @@ class Page(TimeStamp, PageInterface):
         return self in Page.objects.published()
     published.boolean = True
     
+    @property
     def additional_head(self):
         return self.additionaldata.filter(where = 1)
     

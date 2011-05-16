@@ -1,5 +1,7 @@
 from copy import copy
 
+from py2py3 import is_bytes_or_string
+
 from djpcms import template, nodata
 from djpcms.utils.structures import OrderedDict
 
@@ -12,6 +14,16 @@ _context_dictionary = OrderedDict()
 
 
 class _CssContext(object):
+    '''Create a Css template which will be included in the
+css file to be compiled.
+
+:parameter name: A unique code string to identify the context.
+:parameter tag: the `css` base tag for the template (for example ``div.myclass``).
+                Default ``None``.
+:parameter template: The template file used to render the css file.
+                     Default ``"medplate/elem.css_t"``
+'''
+    
     template = 'medplate/elem.css_t'
     
     def __init__(self, name, tag = None, template = None,
@@ -258,18 +270,27 @@ def CssContext(name, parent = None, **kwargs):
     if len(cts) > 1:
         raise ValueError
     return _CssContext(cts[0], parent = parent, **kwargs)
-    
 
-def CssTheme(context, name, data = None):
+    
+def CssTheme(context, theme_name, data = None):
+    '''Add theming to existing css context.'''
     if not isinstance(context,_CssContext):
-        context = get_context(context)
+        if is_bytes_or_string(context):
+            context = [get_context(context)]
+        else:
+            context = [get_context(c) for c in context]
+    else:
+        context = [context]
+    
     if not data:
         data = {}
-    if name in context.themes:
-        theme = context.themes[name]
-        theme.data.update(data)
-    else:
-        _CssTheme(context,name,data)
+    
+    for c in context:
+        if theme_name in c.themes:
+            theme = c.themes[theme_name]
+            theme.data.update(data)
+        else:
+            _CssTheme(c,theme_name,data)
  
     
 def rendercss(style, media_url, template_engine = None):

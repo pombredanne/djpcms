@@ -1,12 +1,16 @@
 '''Used for testing purposes only'''
 import sys
+import re
+import logging
+
 from datetime import datetime, timedelta
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
-from py2py3 import to_bytestring,itervalues,is_bytes_or_string,to_string
+from py2py3 import itervalues,is_string,to_string, ispy3k
 
 from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.utils.structures import MultiValueDict
+from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
 
 from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie,\
@@ -16,16 +20,28 @@ from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie
 STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
 UNKNOWN_STATUS_CODE = ('UNKNOWN STATUS CODE','')
 
-def to_strings(*values):
-    for value in values:
-        yield to_string(value)
+absolute_http_url_re = re.compile(r"^https?://", re.I)
+
+
+if ispy3k:
+    def to_header_strings(*values):
+        for value in values:
+            if isinstance(value,bytes):
+                value = value.decode()
+            yield value
+else:
+    def to_header_strings(*values):
+        for value in values:
+            yield str(value)
 
 
 def serve(port = 0, sites = None, use_reloader = False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""
+    log = logging.getLogger()
     server = WSGIServer(('', port), WSGIRequestHandler)
     app = DjpCmsHandler(sites)
     server.set_app(app)
+    log.info('Serving on port {0}'.format(port))
     server.serve_forever()
     
     
@@ -68,11 +84,6 @@ class Request(object):
             self.data_dict = dict(self.POST.items())
         else:
             self.data_dict = {}
-
-    def get_full_path(self):
-        # RFC 3986 requires query string arguments to be in the ASCII range.
-        # Rather than crash if this doesn't happen, we encode defensively.
-        return '%s%s' % (self.path, self.environ.get('QUERY_STRING', '') and ('?' + iri_to_uri(self.environ.get('QUERY_STRING', ''))) or '')
 
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
@@ -128,6 +139,22 @@ class Request(object):
     FILES = property(_get_files)
     REQUEST = property(_get_request)
     
+    def get_host(self):
+        """Returns the HTTP host using the environment or request headers."""
+        # We try three options, in order of decreasing preference.
+        environ = self.environ
+        if 'HTTP_X_FORWARDED_HOST' in environ:
+            host = environ['HTTP_X_FORWARDED_HOST']
+        elif 'HTTP_HOST' in environ:
+            host = environ['HTTP_HOST']
+        else:
+            # Reconstruct the host using the algorithm from PEP 333.
+            host = environ['SERVER_NAME']
+            server_port = str(environ['SERVER_PORT'])
+            if server_port != (self.is_secure() and '443' or '80'):
+                host = '%s:%s' % (host, server_port)
+        return host
+    
     def _load_post_and_files(self):
         # Populates self._post and self._files
         if self.method != 'POST':
@@ -170,6 +197,27 @@ class Request(object):
         return self._raw_post_data
     raw_post_data = property(_get_raw_post_data)
     
+    def get_full_path(self):
+        # RFC 3986 requires query string arguments to be in the ASCII range.
+        # Rather than crash if this doesn't happen, we encode defensively.
+        return '%s%s' % (self.path, self.environ.get('QUERY_STRING', '') \
+                and ('?' + iri_to_uri(self.environ.get('QUERY_STRING', ''))) or '')
+    
+    def build_absolute_uri(self, location=None):
+        """
+        Builds an absolute URI from the location and the variables available in
+        this request. If no location is specified, the absolute URI is built on
+        ``request.get_full_path()``.
+        """
+        if not location:
+            location = self.get_full_path()
+        if not absolute_http_url_re.match(location):
+            current_uri = '%s://%s%s' % (self.is_secure() and 'https' or 'http',
+                                         self.get_host(), self.path)
+            location = urljoin(current_uri, location)
+        return iri_to_uri(location)
+    
+    
     
 make_request = Request
 
@@ -181,8 +229,16 @@ class HttpResponse(object):
     
     def __init__(self, content = '', status = None, content_type = None, encoding = None):
         self.encoding = encoding
-        if is_bytes_or_string(content):
-            content = (to_bytestring(content),)
+        if not content:
+            content = ()
+        if is_string(content):
+            if encoding:
+                content = content.encode(encoding)
+            else:
+                content = content.encode()
+            content = bytes(content)
+        if isinstance(content,bytes):
+            content = (content,)
         self.content = content
         self.status = status or self.status
         self._headers = {}
@@ -191,9 +247,12 @@ class HttpResponse(object):
         self.set_header('Content-Type',content_type)
         if encoding:
             self.set_header("Content-Encoding", encoding)
-            
+    
+    def __setitem__(self, header, value):
+        self.set_header(header, value)
+        
     def set_header(self, header, value):
-        header, value = to_strings(header.lower(), value)
+        header, value = to_header_strings(header.lower(), value)
         self._headers[header] = (header, value)
 
     def has_header(self, header):
@@ -279,4 +338,9 @@ def finish_response(response, environ, start_response):
     return response(environ, start_response)
 
 
-    
+class HttpResponseRedirect(HttpResponse):
+    status_code = 302
+
+    def __init__(self, redirect_to):
+        super(HttpResponseRedirect, self).__init__()
+        self['Location'] = iri_to_uri(redirect_to)

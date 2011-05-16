@@ -101,7 +101,8 @@ class StaticRootView(StaticView):
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
-            return http.HttpResponse(html, mimetype = 'text/html')
+            return http.HttpResponse(html,
+                                     content_type = 'text/html')
         else:
             raise request.http.Http404
 
@@ -146,7 +147,8 @@ class StaticFileView(StaticView):
                               'files':files,
                               'directory':request.path,
                               'notroot':True})
-        return self.site.http.HttpResponse(html, mimetype = 'text/html')
+        return self.site.http.HttpResponse(html,
+                                           content_type = 'text/html')
         
     def serve_file(self, request, fullpath):
         http = self.site.http

@@ -25,8 +25,8 @@ edit_movable = edit_class + ' ' + movable_class
 # Content wrapper in editing mode.
 # Only called by content_view (function above)
 class EditWrapperHandler(CollapsedWrapper):
-    '''Wrapper for editing content
-    '''
+    '''a :class:`djpcms.plugins.DJPwrapper` for
+editing content.'''
     auto_register = False
     header_classes = CollapsedWrapper.header_classes + ' ui-state-active'
     body_classes = CollapsedWrapper.body_classes + ' plugin-form'
@@ -178,7 +178,7 @@ for editing plugin contents.'''
         except Exception as e:
             return jerror('Could not find target block. {0}'.format(e))
     
-    def render(self, djp, url):
+    def render(self, djp, url = None):
         formhtml = self.get_form(djp,
                                  initial = {'url': url},
                                  force_prefix = True)
@@ -356,7 +356,7 @@ content in a content block.'''
         editdjp = editview(djp.request, instance = instance)
         djp.media += editdjp.media
         editdjp.media = djp.media
-        html = editview.render(editdjp, djp.url)
+        html = editview.render(editdjp, url = djp.url)
         return wrapper(editdjp,instance,html)
             
     def blocks(self, djp, page, blocknum):

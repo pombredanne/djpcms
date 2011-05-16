@@ -357,6 +357,11 @@ CssContext('javascript_logging_paragraph',
 )
 
 #________________________________________ SPECIAL IDS AND CLASSES
+CssContext('server_exception',
+           tag = '.server-exception',
+           data = {'padding': '20px'}
+           )
+
 CssContext('content',tag='#content',
            data={'min_height':'500px',
                  'overflow':'hidden',

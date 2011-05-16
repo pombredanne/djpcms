@@ -2,6 +2,7 @@ Version 0.9.0 - Development
 =======================================
 * **BACKWARD INCOMPATIBLE CHANGES**
 * This is the first release not dependent on ``django``.
+* jinja2_ shipped with the distribution and set as default template engine.
 * Object Relational mapping can be done with ``django`` or ``python-stdnet``.
 * Other ORMs can be registered to the library::
 
@@ -253,5 +254,6 @@ Version 0.4 (2009-Dec-24)
 
 .. _South: http://south.aeracode.org/
 .. _stdnet: http://github.com/lsbardel/python-stdnet
+.. _jinja2: http://jinja.pocoo.org/docs/
 .. _jquery.cicle: http://jquery.malsup.com/cycle/
 .. _sphinx: http://sphinx.pocoo.org 

@@ -24,7 +24,7 @@ for page editing or creation or exit editing.'''
             try:
                 cdjp = self.cdjp = info.djp(request)
             except:
-                cfjp = None
+                cdjp = None
             if cdjp:
                 epage = cdjp.instance
                 self.isediting = isinstance(epage,Page) and \
@@ -118,9 +118,10 @@ def djpcms(request):
         if userapp:
             ctx.update({
                         'login_url': userapp.appviewurl(request,'login'),
-                        'logout_url': userapp.appviewurl(request,'logout'),
-                        'user_url': userapp.userhomeurl(request)
+                        'logout_url': userapp.appviewurl(request,'logout')
                         })
+            if hasattr(userapp,'userhomeurl'):
+                ctx['user_url'] = userapp.userhomeurl(request)
     else:
         grid = get_grid960(plink.page,settings)
     ctx['grid'] = grid

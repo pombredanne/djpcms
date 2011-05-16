@@ -107,7 +107,12 @@
             'log': _log,
             'debug': function(msg){_log(msg,'debug');},
             'info': function(msg){_log(msg,'info');},
-            'error': function(msg){_log(msg,'error');},
+            'error': function(msg, e){
+                if(e) {
+                    msg += " - Line " + e.lineNumber + ": " + e;
+                }
+                _log(msg,'error');
+             },
             'critical': function(msg){_log(msg,'critical');}
         };
     };

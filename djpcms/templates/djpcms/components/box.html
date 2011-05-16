@@ -1,13 +1,13 @@
 {% if hd %}
- <div class="hd {{ self.header_classes }}">
-  <h2>{% if title %}{{ title }}{% endif %}</h2>{% if self.menulist %}
-  <div class="edit-menu">{% for menu in self.menulist %}
+ <div class="hd {{ widget.header_classes }}">
+  <h2>{% if title %}{{ title }}{% endif %}</h2>{% if widget.menulist %}
+  <div class="edit-menu">{% for menu in widget.menulist %}
    {{ menu }}{% endfor %}
   </div>{% endif %}
  </div>{% endif %}
- <div class="bd {{ self.body_classes }}">
+ <div class="bd {{ widget.body_classes }}">
  {{ bd }}
  </div>{% if ft %}
- <div class="ft {{ self.footer_classes }}">
+ <div class="ft {{ widget.footer_classes }}">
  {{ ft }}
  </div>{% endif %}

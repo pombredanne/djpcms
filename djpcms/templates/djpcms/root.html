@@ -35,10 +35,11 @@
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.pagination.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/form.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.tablesorter.js"></script>
-{% endblock %}{% block extra_body_scripts %}{% endblock %}{% block decorator_scripts %}
+{% endblock %}{% block extra_body_scripts %}{% endblock %}
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/djpcms.js"></script>
 {% if media %}{% for js in media.render_js %}
-{{ js }}{% endfor %}{% endif %}{% block body_onready_scripts %}
+{{ js }}{% endfor %}{% endif %}
+{% block decorator_scripts %}{% endblock %}{% block body_onready_scripts %}
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
@@ -49,7 +50,7 @@
         $(document).djpcms().trigger('djpcms-loaded');
     });
 }(jQuery));
-</script>{% endblock %}{% endblock %}
+</script>{% endblock %}
 <!-- END OF END-BODY SCRIPTS -->{% endblock %}
 {% block ads_scripts %}{% endblock %}
 {% if release %}

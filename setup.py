@@ -104,7 +104,6 @@ setup(
         packages     = packages,
         cmdclass     = cmdclasses,
         data_files   = data_files,
-        install_requires = requirements(),
         classifiers = [
             'Development Status :: 4 - Beta',
             'Environment :: Web Environment',
@@ -116,6 +115,8 @@ setup(
             'Programming Language :: Python',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3.1',
+            'Programming Language :: Python :: 3.2',
             'Topic :: Utilities'
         ],
     )

@@ -218,6 +218,9 @@ is derived from this class.
                 return inner
     
     def get_context(self, context, *args, **kwargs):
+        '''Add context to the context dictionary.
+By default does nothing. Subclusses can override this method
+to add custom data.'''
         pass
     
     def inner(self, *args, **kwargs):

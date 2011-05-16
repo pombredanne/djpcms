@@ -41,6 +41,7 @@ def install_lib(basepath, dirname, module_name):
         
         
 def install_libs():
+    '''Install libraries to python Path if needed'''
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(DJPCMS_DIR,'libs')
@@ -48,6 +49,7 @@ def install_libs():
     install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'django-tagging', 'tagging')
     install_lib(dlibs, 'flowrepo', 'flowrepo')
+    install_lib(dlibs, 'jinja2', 'jinja2')
     #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
 
 install_libs()

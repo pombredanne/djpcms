@@ -1,8 +1,6 @@
 import os
 import json
 
-from py2py3 import string_type
-
 from .base import handle, BaseTemplateHandler, TemplateHandler
 
 # Default Implementation
@@ -18,6 +16,8 @@ def make_default_inners():
     from djpcms import DJPCMS_DIR
     from djpcms.models import InnerTemplate
     from djpcms.core.orms import mapper
+    if not InnerTemplete:
+        return
     inner_dir = os.path.join(DJPCMS_DIR,'templates','djpcms','inner')
     load = loader.load_template_source
     mp = mapper(InnerTemplate)

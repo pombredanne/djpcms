@@ -17,6 +17,7 @@ class ObjectPermission(orm.StdModel):
 class User(orm.StdModel):
     username = orm.SymbolField(unique = True)
     password = orm.CharField(required = True)
+    email = orm.CharField()
     is_active = orm.BooleanField(default = True)
     is_superuser = orm.BooleanField(default = False)
     

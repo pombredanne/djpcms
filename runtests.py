@@ -38,8 +38,8 @@ def makeoptions():
     parser.add_option('-g', '--httplib',
                       action="store",
                       dest="httplib",
-                      default='django',
-                      help="HTTP library to use One of django or werkzeug (default django).")
+                      default='',
+                      help="HTTP library to use One of django or nothing (default nothing).")
     parser.add_option("-t", "--type",
                       action="store",
                       dest="test_type",

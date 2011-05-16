@@ -32,11 +32,6 @@ __all__ = ['MakeSite',
 
 logger = logging.getLogger('sites')
 
-
-def make_site(self, route, *args):
-    from djpcms.apps import appsites
-    return appsites.ApplicationSite(self, route, *args)
-    
     
 def standard_exception_handle(request, e, status = None):
     from djpcms.template import loader
@@ -220,15 +215,17 @@ The function returns an instance of
             sys.path.insert(0, base)
         
         # Import settings
-        settings = settings or 'settings'
-        if '.' in settings:
-            settings_module_name = settings
-        else:
-            sett = '{0}.py'.format(os.path.join(path,settings))
-            if os.path.isfile(sett):
-                settings_module_name = '{0}.{1}'.format(name,settings)
-            else:
+        if settings:
+            if '.' in settings:
                 settings_module_name = settings
+            else:
+                sett = '{0}.py'.format(os.path.join(path,settings))
+                if os.path.isfile(sett):
+                    settings_module_name = '{0}.{1}'.format(name,settings)
+                else:
+                    settings_module_name = settings
+        else:
+            settings_module_name = None
         
         settings = get_settings(settings_module_name,
                                 SITE_DIRECTORY = path,

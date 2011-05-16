@@ -20,16 +20,13 @@ def application_directories(package_path):
     return app_template_dirs
 
 
-class FileSystemLoader(loaders.FileSystemLoader):
-    
-    def __init__(self, searchpath = None, encoding='utf-8'):
-        searchpath = searchpath or sites.settings.TEMPLATE_DIRS
-        super(FileSystemLoader,self).__init__(searchpath,encoding)
-        
 
 class ApplicationLoader(loaders.FileSystemLoader):
     
     def __init__(self, package_path='templates', encoding='utf-8'):
         searchpath = application_directories(package_path)
+        for path in sites.settings.TEMPLATE_DIRS:
+            if path not in searchpath:
+                searchpath.append(path)
         super(ApplicationLoader,self).__init__(searchpath,encoding)
     

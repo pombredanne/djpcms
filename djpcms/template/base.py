@@ -131,7 +131,7 @@ class TemplateHandler(BaseTemplateHandler):
     
     def template_variables(self, template_name):
         return handle().template_variables(template_name)
-    
+
 
 class LibraryTemplateHandler(BaseTemplateHandler):
     template_class = None

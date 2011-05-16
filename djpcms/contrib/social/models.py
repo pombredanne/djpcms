@@ -1,14 +1,10 @@
 '''
 Django model for linked accounts
 '''
-from django.db import models
-#from django.db.models import signals
-
-from djpcms.apps.djangosite.fields import JSONField
-from .defaults import User
+from stdnet import orm
 
 
-class LinkedAccount(models.Model):
+class LinkedAccount(orm.StdModel):
     '''Stores authentication token and secret key for a linked account'''
     user       = models.ForeignKey(User, related_name = 'linked_accounts')
     tokendate  = models.DateTimeField()

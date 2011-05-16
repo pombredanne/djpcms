@@ -5,12 +5,13 @@ from djpcms.template import make_default_inners
 
 logger = logging.getLogger('djpcms.execute.inner_templates')
 
+
 class Command(BaseCommand):
     help = "Add default inner templates to the database."
     
-    def handle(self, sites, *args, **options):
+    def handle(self, callable, *args, **options):
         logger.info('Adding default inner templates to database.')
-        sites.load()
+        sites = callable()
         inners = make_default_inners()
         for a in inners:
             logger.info('Added {0}'.format(a))

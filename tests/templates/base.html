@@ -1,18 +1,4 @@
 {% extends "djpcms/base.html" %}
-{% block body-container-bits %} class="{{ grid.container_class }}"{% endblock %}
-{% block site-content-class %}{% endblock %}
 
-{% block site_header %}
-<div id="site-navigation-banner" class="topnav {{ grid.column1 }}">
-{% include "djpcms/components/usernav.html" %}
-</div>
-{{ grid.clear }}
-
-<div class="{{ grid.column1 }}">
- <div class="nav-container">
-  {{ sitenav }}
- </div>
-</div>
-{{ grid.clear }}{% endblock %}
 
 

@@ -14,7 +14,7 @@ def make_default_inners():
     from djpcms import DJPCMS_DIR
     from djpcms.models import InnerTemplate
     from djpcms.core.orms import mapper
-    if not InnerTemplete:
+    if not InnerTemplate:
         return
     inner_dir = os.path.join(DJPCMS_DIR,'templates','djpcms','inner')
     load = loader.load_template_source

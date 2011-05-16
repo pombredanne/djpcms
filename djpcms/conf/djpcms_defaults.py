@@ -56,8 +56,7 @@ DJPCMS_USER_CAN_EDIT_PAGES      = False
 
 #
 JINJA2_TEMPLATE_LOADERS = (
-                           ('djpcms.utils.jinja2loaders.ApplicationLoader',),
-                           ('djpcms.utils.jinja2loaders.FileSystemLoader',)
+                           ('djpcms.template.jinja2loaders.ApplicationLoader',),
                            )
 JINJA2_EXTENSIONS = []
 

@@ -151,7 +151,7 @@ class ManagementUtility(object):
         """
         usage = ['',"Type '%s help <subcommand>' for help on a specific subcommand." % self.prog_name,'']
         usage.append('Available subcommands:')
-        commands = self.sites.get_commands().keys()
+        commands = self.sites.get_commands()
         return '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
 
     def fetch_command(self, subcommand):

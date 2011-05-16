@@ -36,6 +36,9 @@ class TemplateHandler(LibraryTemplateHandler):
     def context_class(self, dict, autoescape=False, **kwargs):
         return dict
     
+    def loaders(self):
+        return (env.loader for env in self.envs)
+        
     def render(self, template_name, data=None, autoescape=False):
         """
         Loads the given template_name and renders it with the given dictionary as
@@ -90,3 +93,12 @@ class TemplateHandler(LibraryTemplateHandler):
 
         fargs = [arg if not hasattr(arg,'__call__') else arg() for arg in args]
         return TemplateLoader(*fargs)
+
+    def load_template_source(self, template_name, dirs=None):
+        for env in self.envs:
+            try:
+                content, location, _ = env.loader.get_source(env,template_name)
+                return content, location
+            except self.TemplateNotFound:
+                continue
+        raise TemplateNotFound

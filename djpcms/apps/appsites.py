@@ -102,7 +102,9 @@ class ApplicationSite(SiteMixin, RouteMixin):
         registered_application = deepcopy(application)
         application.apps = apps
         if registered_application.name in self._nameregistry:
-            raise AlreadyRegistered('Application %s already registered as application' % application)
+            raise AlreadyRegistered('Application with name "{0}"\
+ already registered with site "{1}". {2}'
+.format(application.name,self.path,self._nameregistry[application.name]))
         model = registered_application.model
         if model:
             if model in self._registry:

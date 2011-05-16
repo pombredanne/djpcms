@@ -7,12 +7,12 @@ from py2py3 import ispy3k
 if ispy3k:
     from http.cookies import SimpleCookie, Morsel, CookieError, BaseCookie
     from http.server import BaseHTTPRequestHandler
-    from urllib.parse import parse_qsl
+    from urllib.parse import parse_qsl, urljoin
     from io import BytesIO
 else:
     from Cookie import SimpleCookie, Morsel, CookieError, BaseCookie
     from BaseHTTPServer import BaseHTTPRequestHandler
-    from urlparse import parse_qsl
+    from urlparse import parse_qsl, urljoin
     from cStringIO import StringIO as BytesIO
     
 

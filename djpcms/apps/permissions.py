@@ -1,6 +1,7 @@
 
 
 __all__ = ['PERMISSION_CODES',
+           'PERMISSION_LIST',
            'VIEW',
            'ADD',
            'CHANGE',
@@ -17,10 +18,14 @@ ADD = 20
 CHANGE = 30
 DELETE = 40
 
-PERMISSION_CODES = {VIEW:'VIEW',
-                    ADD:'ADD',
-                    CHANGE:'CHANGE',
-                    DELETE:'DELETE'}
+PERMISSION_LIST = (
+                   (VIEW,'VIEW'),
+                   (ADD,'ADD'),
+                   (CHANGE,'CHANGE'),
+                   (DELETE,'DELETE')
+                  )
+                    
+PERMISSION_CODES = dict(PERMISSION_LIST)
 
 
 def addcode(code,name):

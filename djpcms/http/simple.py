@@ -14,7 +14,7 @@ from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
 
 from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie,\
-                   BytesIO, cookie_date
+                   BytesIO, cookie_date, urljoin
 
 
 STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses

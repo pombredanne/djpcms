@@ -1,25 +1,37 @@
 from stdnet import orm
 
+from djpcms.apps import PERMISSION_CODES, PERMISSION_LIST
+
 from .managers import *
 
 
 class Role(orm.StdModel):
     numeric_code = orm.IntegerField()
-    object_or_model = orm.SymbolField()
+    model_type = orm.ModelField()
+    object_id = orm.SymbolField(required = False)
     
+    @property
+    def object(self):
+        if self.object_id:
+            return None
+        
+    @property
+    def action(self):
+        return PERMISSION_CODES.get(self.numeric_code,'UNKNOWN')
     
-class ObjectPermission(orm.StdModel):
-    '''A general permission model'''
-    role = orm.ForeignKey(Role)
-    group_or_user = orm.SymbolField()
+    def __unicode__(self):
+        return self.action  
     
    
 class User(orm.StdModel):
     username = orm.SymbolField(unique = True)
     password = orm.CharField(required = True)
+    first_name = orm.CharField()
+    last_name = orm.CharField()
     email = orm.CharField()
     is_active = orm.BooleanField(default = True)
     is_superuser = orm.BooleanField(default = False)
+    data = orm.JSONField(sep = '_')
     
     objects = UserManager()
     
@@ -57,8 +69,20 @@ class Group(orm.StdModel):
     '''simple group'''
     name  = orm.SymbolField(unique = True)
     users = orm.ManyToManyField(User, related_name = 'groups')
+    description = orm.CharField()
 
-
+    
+class ObjectPermission(orm.StdModel):
+    '''A general permission model'''
+    role = orm.ForeignKey(Role)
+    user = orm.ForeignKey(User, required = False)
+    group = orm.ForeignKey(Group, required = False)
+    
+    @property
+    def action(self):
+        return self.role.action
+    
+    
 class Session(orm.StdModel):
     '''A simple session model with instances living in Redis.'''
     TEST_COOKIE_NAME = 'testcookie'

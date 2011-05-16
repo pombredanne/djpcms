@@ -4,7 +4,7 @@ from .start import start, make_theme, deepcopy
 theme_name = 'siro'
 jQueryTheme(theme_name,'redmond')
 
-blue = '#2B4E72'
+blue = '#2B4E72'    # Dark blue
 border = '#A6C9E2'
 
 siro = deepcopy(start)
@@ -38,6 +38,7 @@ siro['nav'] = {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',
                'selected_color':'#444',
                'list_margin': '0 5px',
                'anchor_padding': '0 20px',
+               'hover_background':blue,
              }
 
 

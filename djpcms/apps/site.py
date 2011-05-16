@@ -152,7 +152,7 @@ It also initialise admin for models.'''
                 continue
             try:
                 mname = apps.split('.')[-1]
-                admin = import_module(apps+'.admin')
+                admin = import_module('.admin',apps)
                 urls  = getattr(admin,'admin_urls',None)
                 if not urls:
                     continue

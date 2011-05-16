@@ -1,0 +1,54 @@
+{% extends "medplate/elem.css_t" %}
+
+{% block body %}
+{{ tag }} .mtree-tree .top {
+    overflow: hidden;
+}
+{{ tag }} .mtree-table table {
+    width: 100%;
+}
+{{ tag }} .mtree-tree {
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+{{ tag }} .mtree-table {
+    overflow: scroll;
+}
+{{ tag }} .mtree-tree .top, 
+{{ tag }} table thead:first-child {
+    height: 18px;
+    line-height: 18px;
+    padding: 4px;
+    border-right: none;
+    border-left: none;
+    border-top: none;
+}
+{{ tag }} thead:first th {
+    border-right: 1px solid {{ splitter_color }};
+}
+{{ tag }} table th:last-child,
+{{ tag }} table td:last-child {
+    border-right: none;
+}
+{{ tag }} table {
+    length: 100%;
+}
+{{ tag }} .vsplitbar {
+    background: {{ splitter_color }};
+    width: 4px;
+}
+{{ tag }} thead tr.summary { {% if summary_background_color %}
+    background: {{ summary_background_color }}{% endif %}
+}
+{{ tag }} .mtree-table-header {
+    overflow: hidden;
+    width: 100%;
+}
+{{ tag }} .mtree-table-header .views {
+    float: right;
+    margin: 0 20px;
+}
+{{ tag }} .mtree-table-header .views span {
+    margin: 0 10px 0 0;
+}
+{% endblock %}

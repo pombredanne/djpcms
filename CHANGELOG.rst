@@ -20,9 +20,6 @@ Version 0.9.0 - Development
 * Added :meth:`djpcms.views.appsite.Application.get_label_for_field`.
 * Added a :mod:`middleware` module for logging when using ``django`` version less than ``1.3``.
 * Renamed ``ApplicationBase`` as :class:`djpcms.views.appsite.Application``.
-* Two of many steps towards a ``django`` free ``djpcms``. You don't need to specify ``settings`` file if you don't want to,
-  and no need to specify the ``ROOT_URLCONF`` either. Thanks to the :mod:`djpcms.core.defaults`.
-  Refreshing.
 * Redesign of the test suite so that several different applications can be tested.
 * Applications can be reloaded at runtime. Useful for testing, but maybe more.
 * Injecting the instance or ``None`` of current ``url`` into ``request`` object.

@@ -1,0 +1,19 @@
+{% extends "medplate/elem.css_t" %}
+
+{% block body %}
+{{ tag }} li { {% if line_height %}
+    line-height: {{ line_height }};{% endif %}
+    display: block;
+    overflow: hidden;
+}
+{{ tag }} li ins {
+    float: left;
+    margin: 0 4px;
+}
+{{ tag }} li a { {% if anchor_padding %}
+    float: left;
+    padding: {{ anchor_padding }};{% endif %}
+    text-decoration: none;{% if line_height %}
+    line-height: {{ line_height }};{% endif %}
+}
+{% endblock %}

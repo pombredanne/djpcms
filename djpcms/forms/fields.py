@@ -25,8 +25,7 @@ __all__ = ['Field',
            'HiddenField']
 
 
-def standard_validation_error(field,value):
-    return '{0} is required'.format(field.label)
+standard_validation_error = '{0} is required'
     
 
 class Field(object):
@@ -93,7 +92,7 @@ very similar to django forms API.
         self.default = default if default is not None else self.default
         self.initial = initial
         self.required = required if required is not None else self.required
-        self.validation_error = validation_error or self.validation_error
+        self.validation_error = validation_error or standard_validation_error
         self.help_text = escape(help_text)
         self.label = label
         self.widget = widget or self.widget
@@ -121,7 +120,7 @@ very similar to django forms API.
         if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
             if self.required and value is None:
-                raise ValidationError(self.validation_error(bfield,value))
+                raise ValidationError(self.validation_error.format(bfield,value))
         return self._clean(value, bfield)
     
     def _clean(self, value, bfield):
@@ -227,7 +226,7 @@ optional parameter (attribute):
             else:
                 value = value.lower()
         if self.required and not value:
-            raise ValidationError(self.validation_error(bfield,value))
+            raise ValidationError(self.validation_error.format(bfield,value))
         return value
 
 
@@ -266,28 +265,22 @@ class FloatField(IntegerField):
                 return self.validator(value)
             return value
         except:
-            raise ValidationError(self.validation_error.format(value))
+            raise ValidationError(self.validation_error.format(bfield,value))
     
         
 class DateField(Field):
     widget = TextInput(cn = 'dateinput')
-    validation_error = 'Could not recognized date {0}.'
+    validation_error = 'Could not recognized date {1}.'
     
     def _clean(self, value, bfield):
         try:
             return dateparser(value)
         except:
-            raise ValidationError(self.validation_error.format(value))
+            raise ValidationError(self.validation_error.format(bfield,value))
     
 
 class DateTimeField(DateField):
     widget = TextInput(cn = 'dateinput')
-    
-    def _clean(self, value, bfield):
-        try:
-            return dateparser(value)
-        except:
-            raise ValidationError('Could not recognized date {0}'.format(value))
 
     
 class BooleanField(Field):

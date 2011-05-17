@@ -25,6 +25,7 @@ def setup_logging(verbosity):
     if level is None:
         root['handlers'] = ['silent']
     else:
+        LOGGING['handlers']['console']['level'] = level 
         root['handlers'] = ['console']
         root['level'] = level
     djpcms.init_logging(settings)
@@ -115,7 +116,6 @@ class TestSuiteRunner(object):
 
         Returns the number of tests that failed.
         """
-        setup_logging(self.verbosity)
         self.env = env = self.setup_test_environment()
         suite = self.build_suite(modules)
         env.setupdb()

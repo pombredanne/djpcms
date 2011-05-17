@@ -174,7 +174,7 @@ http requests.
     def ajax_post_response(self, djp):
         '''Handle AJAX post requests'''
         request = djp.request
-        data = request.data_dict
+        data = request.REQUEST
         action = forms.get_ajax_action(data)
         if action == forms.CANCEL_KEY:
             next = data.get(forms.REFERER_KEY,None)

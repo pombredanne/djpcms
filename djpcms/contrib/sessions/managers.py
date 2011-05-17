@@ -2,11 +2,13 @@ import os
 import base64
 import time
 import random
-import hashlib
+from datetime import datetime, timedelta
+from hashlib import sha1
 
 from stdnet import orm
 from stdnet.utils import pickle, to_bytestring, to_string
 
+from djpcms import sites
 from djpcms.utils import encrypt, decrypt
 
 # Use the system (hardware-based) random number generator if it exists.
@@ -15,31 +17,39 @@ if hasattr(random, 'SystemRandom'):
 else:
     randrange = random.randrange
 MAX_SESSION_KEY = 18446744073709551616     # 2 << 63
+
+# Configurable in your settings file
 SALT_SIZE = 8
+SESSION_COOKIE_NAME = 'stdnet-sessionid'
+SESSION_USER_KEY = '_auth_user_id'
+
 
 UNUSABLE_PASSWORD = '!' # This will never be a valid hash
+SESSION_EXPIRY = 3600   # 1 day
+REDIRECT_FIELD_NAME = 'next'
+
+
+def get_session_cookie_name():
+    if sites.settings:
+        return sites.settings.get('SESSION_COOKIE_NAME',SESSION_COOKIE_NAME)
+    else:
+        return SESSION_COOKIE_NAME
 
 
 def secret_key():
-    return os.environ.get('SESSION_SECRET_KEY','sk').encode()
-    
+    '''Secret Key used as base key in encryption algorithm'''
+    if sites.settings:
+        return sites.settings.get('SECRET_KEY','sk').encode()
+    else:
+        return b'sk'
 
-class EncodedPickledObjectField(orm.CharField):
-    
-    def to_python(self, value):
-        encoded_data = base64.decodestring(self.data)
-        pickled, tamper_check = encoded_data[:-32], encoded_data[-32:]
-        if md5_constructor(pickled + os.environ.get('SESSION_SECRET_KEY')).hexdigest() != tamper_check:
-            raise SuspiciousOperation("User tampered with session cookie.")
-        try:
-            return pickle.loads(pickled)
-        except:
-            return {}
-        
-    def serialise(self, value):
-        pickled = pickle.dumps(session_dict)
-        pickled_sha = md5_constructor(pickled + os.environ.get('SESSION_SECRET_KEY')).hexdigest()
-        return base64.encodestring(pickled + pickled_md5)
+
+def session_expiry():
+    '''Session expiry in seconds.'''
+    if sites.settings:
+        return sites.settings.get('SESSION_EXPIRY',SESSION_EXPIRY)
+    else:
+        return SESSION_EXPIRY
 
 
 def check_password(raw_password, enc_password):
@@ -65,8 +75,11 @@ class AnonymousUser(object):
 
 class SessionManager(orm.Manager):
     
-    def create(self):
-        return self.model(id = self.new_session_id()).save()
+    def create(self, expiry = None):
+        se = expiry or session_expiry()
+        expiry = datetime.now() + timedelta(seconds = se)
+        return self.model(id = self.new_session_id(),
+                          expiry = expiry).save()
     
     def new_session_id(self):
         "Returns session key that isn't being used."
@@ -77,7 +90,7 @@ class SessionManager(orm.Manager):
         while 1:
             sk = os.environ.get('SESSION_SECRET_KEY') or ''
             val = to_bytestring("%s%s%s%s" % (randrange(0, MAX_SESSION_KEY), pid, time.time(),sk))
-            id = hashlib.sha1(val).hexdigest()
+            id = sha1(val).hexdigest()
             if not self.exists(id):
                 return id
 
@@ -103,7 +116,7 @@ class UserManager(orm.Manager):
             email = ''
 
         user = self.model(username=username,
-                          #email=email,
+                          email=email,
                           is_superuser=is_superuser)
 
         user.set_password(password)

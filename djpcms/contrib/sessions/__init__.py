@@ -1,3 +1,7 @@
+'''\
+Kitchen sink application for Users, Groups, Sessions and Permissions.
+Based on python-stdnet for fast in-memory performance.
+'''
 from .models import ObjectPermission
 
 from djpcms.apps import PERMISSION_CODES

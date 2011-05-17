@@ -4,21 +4,24 @@ from optparse import make_option
 from djpcms.apps.management.base import BaseCommand
 from djpcms.contrib.monitor.utils import register_models
 
-from stdnet.orm import register_applications
+from stdnet.orm import model_iterator
 
 
 class Command(BaseCommand):
-    help = "Flush models in the data-server."
+    help = "Flush stdnet models in the data-server."
     args = '[appname appname.ModelName ...]'
     
     def handle(self, callable, *args, **options):
         sites = callable()
-        settings = sites.settings
-        if args:
-            models = register_models(args, app_defaults = settings.DATASTORE)
-        else:
-            models = register_applications(settings.INSTALLED_APPS,
-                                           app_defaults = settings.DATASTORE)
-        for model in models:
-            model.flush()
-            print('flushed {0}'.format(model))
+        installed = sites.settings.INSTALLED_APPS
+        args = args or installed
+        for arg in args:
+            argo = arg
+            if arg not in installed:
+                arg = 'djpcms.contrib.{0}'.format(arg)
+            if arg in installed:
+                for model in model_iterator(arg):
+                    model.flush()
+                    print('flushed {0}'.format(model._meta))
+            else:
+                print('Application {0} not available'.format(argo))

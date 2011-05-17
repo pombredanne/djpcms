@@ -120,7 +120,7 @@ very similar to django forms API.
         if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
             if self.required and value is None:
-                raise ValidationError(self.validation_error.format(bfield,value))
+                raise ValidationError(self.validation_error.format(bfield.name,value))
         return self._clean(value, bfield)
     
     def _clean(self, value, bfield):
@@ -226,7 +226,7 @@ optional parameter (attribute):
             else:
                 value = value.lower()
         if self.required and not value:
-            raise ValidationError(self.validation_error.format(bfield,value))
+            raise ValidationError(self.validation_error.format(bfield.name,value))
         return value
 
 

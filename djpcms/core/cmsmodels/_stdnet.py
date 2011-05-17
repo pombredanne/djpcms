@@ -162,12 +162,3 @@ class AdditionalPageData(ModelBase):
     class Meta:
         app_label = 'djpcms'
 
-    
-class ObjectPermission(ModelBase):
-    permission = field.IntegerField(default = 0)
-    model = field.ModelField()
-    
-    class Meta:
-        app_label = 'djpcms'
-    
-

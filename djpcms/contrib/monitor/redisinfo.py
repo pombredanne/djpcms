@@ -9,6 +9,7 @@ from djpcms.utils.dates import nicetimedelta
 from djpcms.utils.structures import OrderedDict
 from djpcms.html import icons
 
+
 from stdnet.utils.format import format_number
 
 

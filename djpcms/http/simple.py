@@ -1,8 +1,7 @@
-'''Used for testing purposes only'''
 import sys
 import re
 import logging
-
+import time
 from datetime import datetime, timedelta
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
@@ -60,7 +59,7 @@ def path_with_query(request):
 
 class QueryDict(MultiValueDict):
     
-    def __init__(self, query_string, encoding):
+    def __init__(self, query_string, encoding = None):
         super(QueryDict,self).__init__()
         self.encoding = encoding
         for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
@@ -80,10 +79,6 @@ class Request(object):
         self._post_parse_error = False
         self._stream = self.environ['wsgi.input']
         self._read_started = False
-        if self.method == 'POST':
-            self.data_dict = dict(self.POST.items())
-        else:
-            self.data_dict = {}
 
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
@@ -97,10 +92,16 @@ class Request(object):
             except:
                 self._encoding = 'utf-8'
         return self._encoding
-
+    
     def _get_request(self):
         if not hasattr(self, '_request'):
-            self._request = datastructures.MergeDict(self.POST, self.GET)
+            res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
+            for k,gl in self.GET.lists():
+                if k in res:
+                    res.getlist(k).extend(gl)
+                else:
+                    res.setlist(k,gl[:])
+            self._request = res
         return self._request
 
     def _get_get(self):

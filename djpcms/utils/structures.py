@@ -71,7 +71,7 @@ class MultiValueDict(dict):
             li = []
             self.setlist(key, li)
         else:
-            li = self[key]
+            li = self.getlist(key)
         li.append(value)
 
     def items(self):

@@ -41,7 +41,7 @@ class Paginator(object):
         Get page information form request
         The page should be stored in the request dictionary
         '''
-        self._datadict = d = request.data_dict
+        self._datadict = d = request.REQUEST
         page = 1
         if 'page' in d:
             try:

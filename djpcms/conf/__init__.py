@@ -73,6 +73,12 @@ class DjpcmsConfig(object):
         for sett,value in self._values.items():
             setattr(setting,sett,value)
         
+    def get(self, name, default):
+        try:
+            return getattr(self,name)
+        except AttributeError:
+            return default
+        
     def __getattr__(self, name):
         try:
             return self._values[name]

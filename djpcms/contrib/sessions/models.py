@@ -1,7 +1,6 @@
 from stdnet import orm
 
 from djpcms.apps import PERMISSION_CODES, PERMISSION_LIST
-
 from .managers import *
 
 
@@ -89,15 +88,23 @@ class Session(orm.StdModel):
     TEST_COOKIE_VALUE = 'worked'
     id = orm.SymbolField(primary_key=True)
     data = orm.HashField()
-    started = orm.DateTimeField(index = False, required = False)
-    expiry = orm.DateTimeField(index = False, required = False)
-    expired = orm.BooleanField(default = False)
+    expiry = orm.DateTimeField(index = False)
     modified = True
     
     objects = SessionManager()
     
-    def __str__(self):
+    def __unicode__(self):
         return self.id
+    
+    @property
+    def expired(self):
+        return datetime.now() >= self.expiry
+    
+    def get_userid(self):
+        return self[SESSION_USER_KEY]
+    def set_userid(self, uid): 
+        self[SESSION_USER_KEY] = uid
+    user_id = property(get_userid,set_userid) 
     
     def __contains__(self, key):
         return key in self.data
@@ -123,6 +130,23 @@ class Session(orm.StdModel):
         del self[self.TEST_COOKIE_NAME]
     
 
+class Log(orm.StdModel):
+    '''A database log entry'''
+    datetime = orm.DateTimeField(default=datetime.now)
+    level = orm.SymbolField()
+    msg = orm.CharField()
+    source = orm.CharField()
+    host = orm.CharField()
+    user = orm.SymbolField(required=False)
+    client = orm.CharField()
+
+    def abbrev_msg(self, maxlen=500):
+        if len(self.msg) > maxlen:
+            return '%s ...' % self.msg[:maxlen]
+        return self.msg
+    abbrev_msg.short_description = 'abbreviated msg'
+    
+    
 class WebAccount(orm.StdModel):
     '''
     This model can be used to store log-in information
@@ -152,4 +176,6 @@ class WebAccount(orm.StdModel):
             svalue = ''
         self.e_data = svalue
     data   = property(__get_data,__set_data)
+
+
     

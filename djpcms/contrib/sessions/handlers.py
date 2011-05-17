@@ -3,12 +3,13 @@ import traceback
 import logging
 import platform
 
+from .models import Log, User
+
 HOST = platform.node()
 
 class DatabaseHandler(logging.Handler):
 
     def emit(self, record):
-        from djpcms.contrib.logdb.models import Log
         if hasattr(record, 'source'):
             source = record.source
         else:
@@ -17,18 +18,16 @@ class DatabaseHandler(logging.Handler):
         client = getattr(record,'client','unknown')
         msg = self.format_msg(record)
         try:
-            Log.objects.create(source=source,
-                               level=record.levelname,
-                               msg=msg,
-                               host=HOST,
-                               user=user,
-                               client=client)
+            Log.objects(source=source,
+                       level=record.levelname,
+                       msg=msg,
+                       host=HOST,
+                       user=user,
+                       client=client).save()
         except:
-            # squelching exceptions sucks, but 500-ing because of a logging error sucks more
             pass
         
     def get_user(self, record):
-        from django.contrib.auth.models import User
         try:
             user = record.user
             if not isinstance(user,User):

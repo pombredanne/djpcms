@@ -4,22 +4,17 @@ import sys
 
 from djpcms import sites, LIBRARY_NAME
 from djpcms.test import TEST_TYPES, TestDirectory,\
-                        ContribTestDirectory, SiteTestDirectory
+                        ContribTestDirectory, SiteTestDirectory,\
+                        setup_logging
 import djpcms.contrib as contrib
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module
+
 import examples
 
 logger = logging.getLogger()
 
 CUR_DIR = os.path.split(os.path.abspath(__file__))[0]
-#if CUR_DIR not in sys.path:
-#    sys.path.insert(0,CUR_DIR)
-#EXEMPLE_DIR = os.path.join(os.path.dirname(examples.__file__),'sitedjpcms')
-#sys.path.insert(0,EXEMPLE_DIR)
-#ALL_TEST_PATHS = (TestDirectory(CUR_DIR),
-#                  ContribTestDirectory(CONTRIB_DIR),
-#                  ExampleTestDirectory(os.path.join(EXEMPLE_DIR,'exampleapps'))
 ALL_TESTS = (TestDirectory(CUR_DIR),
              ContribTestDirectory(LIBRARY_NAME,'contrib'))
 
@@ -34,38 +29,23 @@ def get_tests(test_type):
 
 def import_tests(tags, test_type, can_fail):
     model_labels = OrderedDict()
-    model_labels_all = OrderedDict()
     INSTALLED_APPS = sites.settings.INSTALLED_APPS
-    tried = 0
     for t,app in get_tests(test_type):
         model_app = t.app_label(test_type,app)
         if tags and app not in tags:
-            logger.debug("Skipping model %s" % model_app)
             continue
         try:
             import_module(model_app)
         except ImportError:
-            logger.debug("Skipping model %s" % model_app)
+            logger.error("Error importing module {0}.".format(model_app),
+                         exc_info = sys.exc_info())
             continue
-        tried += 1
-        logger.info("Importing model {0}".format(model_app))
-        first = True
-        for model_label in t.all_model_labels(test_type,app):
-            if model_label not in INSTALLED_APPS:
-                if model_label in model_labels_all:
-                    raise ValueError('Application {0} already available in testsing'
-                                     .format(model_label))
-            else:
-                raise ValueError('Application {0} already in INSTALLED_APPS.'
-                             .format(model_label))
-            model_labels_all[model_label] = t
-            if first:
-                first = False
-                model_labels[model_label] = t
-            if model_label not in INSTALLED_APPS: 
-                INSTALLED_APPS.append(model_label)
+        logger.debug("Importing model {0}".format(model_app))
+        model_labels[model_app] = t
+        if model_app not in INSTALLED_APPS: 
+            INSTALLED_APPS.append(model_app)
             
-    if not tried:
+    if not model_labels:
         print('Could not find any tests. Aborting.')
         exit()
         
@@ -113,9 +93,9 @@ def run(tags = None, test_type = None,
         testsite = sites.make(test_type,
                               conf,
                               **config)
+        setup_logging(verbosity)
         sites.load()
-        #sites.settings.setup_django(True)
-        # Inject the test settings to sites global variable
+        
         sites.tests = testsite.settings
         modules = import_tests(tags, test_type, can_fail)
         runner  = TestSuiteRunner(verbosity = verbosity)

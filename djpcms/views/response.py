@@ -296,7 +296,7 @@ the parent of the embedded view.'''
             try:
                 if method not in (m.lower() for m in view.methods(request)):
                     raise ViewDoesNotExist('AJAX "{0}" method not available in view.'.format(method))
-                data = request.data_dict
+                data = request.REQUEST
                 ajax_action = forms.get_ajax_action(data)
                 ajax_view_function = getattr(view,'ajax_%s_response' % method)
                 if ajax_action:

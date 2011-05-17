@@ -51,9 +51,6 @@ class TestDirectory(UnicodeMixin):
     def app_label(self,test_type,app):
         return '{0}.{1}'.format(test_type,app)
     
-    def all_model_labels(self, test_type, app):
-        return (self.app_label(test_type, app),)
-    
     def dirpath(self, test_name):
         return os.path.join(self.path,test_name)
         
@@ -73,18 +70,7 @@ class ContribTestDirectory(TestDirectory):
         return self.path
 
     def app_label(self, test_type, app):
-        return '{0}.{1}'.format(self.contrib,app)
-    
-    def all_model_labels(self, test_type, app):
-        yield '{0}.{1}'.format(self.lib,self.app_label(test_type,app))
-        test_model = os.path.join(self.path,app,'tests','testmodels')
-        if os.path.isdir(test_model):
-            if test_model not in sys.path:
-                sys.path.insert(0,test_model)
-            for d in os.listdir(test_model):
-                if os.path.isdir(os.path.join(test_model,d)):
-                    yield d
-            
+        return '{0}.{1}.{2}'.format(self.lib,self.contrib,app)
         
     def test_module(self, test_name, mod):
         return '{0}.tests.{1}'.format(mod,test_name)

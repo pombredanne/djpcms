@@ -20,7 +20,7 @@ WEEK_DAYS = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 MONTHS3 = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
 
-def cookie_date(expires=None):
+def cookie_date(epoch_seconds=None):
     """Formats the time to ensure compatibility with Netscape's cookie
     standard.
 

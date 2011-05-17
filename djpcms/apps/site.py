@@ -197,8 +197,7 @@ can be passed as key-value pairs:
 The function returns an instance of
 :class:`djpcms.apps.appsites.ApplicationSite`.
 '''
-
-        # if not a directory it may be a file
+        # Finde directory from name. If not a directory it may be a file
         if os.path.isdir(name):
             appdir = name
         elif os.path.isfile(name):
@@ -238,6 +237,7 @@ The function returns an instance of
             sk = getattr(settings,'SECRET_KEY',None)
             if not sk:
                 settings.SECRET_KEY = 'djpcms'
+            os.environ['SECRET_KEY'] = settings.SECRET_KEY 
         
         # Add template media directory to template directories
         path = os.path.join(djpcms.__path__[0],'media','djpcms')

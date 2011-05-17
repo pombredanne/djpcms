@@ -466,9 +466,9 @@ class ModelView(View):
         return model_defaultredirect(self, request, **kwargs)
     
     def get_instances(self, djp):
-        data = djp.request.data_dict
-        if 'ids' in data:
-            return self.appmodel.mapper.filter(id__in = data['ids'])
+        data = djp.request.REQUEST
+        if 'ids[]' in data:
+            return self.appmodel.mapper.filter(id__in = data.getlist('ids[]'))
         
     def ajax__delete(self, djp):
         '''An ajax view for deleting a list of ids.'''
@@ -513,7 +513,7 @@ It returns a queryset.
         request = djp.request
         appmodel = self.appmodel
         slist = appmodel.search_fields
-        search_string = request.data_dict.get(self.search_text,None)
+        search_string = request.REQUEST.get(self.search_text,None)
         if slist and search_string:
             qs = appmodel.mapper.search_text(qs, search_string, slist)    
         return qs

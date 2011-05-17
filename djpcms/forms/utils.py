@@ -128,7 +128,7 @@ def get_form(djp,
     request = djp.request
     referer = request.environ.get('HTTP_REFERER')
     own_view = djp.own_view()
-    data = request.data_dict
+    data = request.REQUEST
     prefix = data.get(PREFIX_KEY,None)
     save_as_new = SAVE_AS_NEW_KEY in data
     inputs = form_factory.default_inputs
@@ -174,9 +174,7 @@ has been submitted.'''
     request = djp.request
     http = djp.http
     is_ajax = request.is_xhr
-    data = request.data_dict
-    POST = request.POST
-    GET = request.GET
+    data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referer = data.get(REFERER_KEY,None)
     fhtml = view.get_form(djp)

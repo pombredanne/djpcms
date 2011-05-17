@@ -15,8 +15,7 @@ package is available'''
     def __init__(self, suite):
         self.suite = suite
         self.libs = []
-        self.check('django')
-        self.check('werkzeug')
+        #self.check('django')
         self.check('sqlalchemy')
         self.check('stdnet')
         self.setup()

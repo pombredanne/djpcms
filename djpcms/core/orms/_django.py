@@ -65,7 +65,10 @@ class OrmWrapper(BaseOrmWrapper):
         self._label_for_field = lambda name: to_string(label_for_field(name, self.model, self.model_admin))
         
     def test(self):
-        from django.db.models.base import ModelBase
+        try:
+            from django.db.models.base import ModelBase
+        except ImportError:
+            raise ValueError
         if not isinstance(self.model,ModelBase):
             raise ValueError
     

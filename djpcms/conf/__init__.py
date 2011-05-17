@@ -94,7 +94,7 @@ class DjpcmsConfig(object):
         '''Set up django if needed'''
         if self.__class__.django_settings:
             return
-        if force or self.HTTP_LIBRARY == 'django' or \
+        if self.HTTP_LIBRARY == 'django' or \
             self.CMS_ORM == 'django' or self.TEMPLATE_ENGINE == 'django' or \
             self.DJANGO:
             ENVIRONMENT_VARIABLE = "DJANGO_SETTINGS_MODULE"

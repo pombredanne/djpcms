@@ -41,7 +41,7 @@ if Page:
             if site in self.sites:
                 self.sites.remove(site)
         
-        def update_sitemap_tree(self, sender, instance = None, **kwargs):
+        def __call__(self, sender, instance = None, **kwargs):
             '''Register the page post save with tree'''
             if isinstance(instance, Page):
                 for site in self.sites:
@@ -50,5 +50,5 @@ if Page:
     
     tree_update = TreeUpdate()
     
-    post_save.connect(tree_update.update_sitemap_tree, sender = Page)
+    post_save.connect(tree_update, sender = Page)
 

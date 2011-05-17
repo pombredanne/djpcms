@@ -1,10 +1,11 @@
 Version 0.9.0 - Development
 =======================================
 * **BACKWARD INCOMPATIBLE CHANGES**
-* This is the first release not dependent on ``django``.
+* Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.
-* Object Relational mapping can be done with ``django`` or ``python-stdnet``.
-* Other ORMs can be registered to the library::
+* This is the first release not dependent on ``django``.
+* Object Relational mapping can be done with stdnet_ or django_. Other ORMs can be
+  registered to the library::
 
     from djpcms import sites   
     sites.register_orm('path.to.my.ormwrapper')
@@ -25,7 +26,7 @@ Version 0.9.0 - Development
 * Injecting the instance or ``None`` of current ``url`` into ``request`` object.
 * Added more docs on views and applications.
 * Added :mod:`djpcms.contrib.social` application with ``OAuth``. Still in ``alpha``.
-* **46 unit tests**. Coverage **51%**.
+* **58 unit tests**. Coverage **51%**.
 
 Version 0.8.5 (2010-Nov-16)
 =======================================
@@ -254,3 +255,4 @@ Version 0.4 (2009-Dec-24)
 .. _jinja2: http://jinja.pocoo.org/docs/
 .. _jquery.cicle: http://jquery.malsup.com/cycle/
 .. _sphinx: http://sphinx.pocoo.org 
+.. _django: http://www.djangoproject.com/

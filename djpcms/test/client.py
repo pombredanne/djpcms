@@ -277,15 +277,16 @@ class ClientRequest(object):
         self.request = None
         root = handler.site.root
         root.start_response.connect(self)
-        loader.context_ready.connect(self.update_context)
+        loader.context_ready.connect(self)
         self.ctx = {}
         
-    def __call__(self, sender, request = None, **kwargs):
-        self.request = request
+    def __call__(self, sender, request = None, context = None, **kwargs):
+        if context:
+            self.ctx.update(context)
+        elif request:
+            self.request = request
         
-    def update_context(self, sender, context = None, **kwargs):
-        self.ctx.update(context)
-        
+
 class Client(RequestFactory):
     """
     A class that can act as a client for testing purposes.

@@ -89,8 +89,8 @@ class DjpcmsConfig(object):
         self._values[name] = value
         for sett in self._settings:
             setattr(sett,name,value)
-            
-    def setup_django(self, force = False):
+    
+    def setup_django(self):
         '''Set up django if needed'''
         if self.__class__.django_settings:
             return

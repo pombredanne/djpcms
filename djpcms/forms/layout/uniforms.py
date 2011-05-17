@@ -60,10 +60,18 @@ class Fieldset(UniFormElement):
         super(Fieldset,self).__init__(**kwargs)
         self.fields = fields
 
-    def inner(self, djp, form, layout):
+    def _data(self, djp, form, layout):
         render_field = self.render_field
         dfields = form.dfields
-        html = '\n'.join((render_field(djp, dfields[field], layout) for field in self.fields))
+        for field in self.fields:
+            if field in dfields:
+                html = render_field(djp, dfields[field], layout)
+            else:
+                html = field.render(djp,form,layout)
+            yield html
+                
+    def inner(self, djp, form, layout):
+        html = '\n'.join(self._data(djp, form, layout))
         if html:
             return self.legend_html + '\n' + html
         else:

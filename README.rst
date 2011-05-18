@@ -92,15 +92,11 @@ and to check out the coverage report::
 
 	coverage report -m
 	
-
-Dependencies and Python 3
-===========================
-
 Optional requirements
 ========================
-The library in its core requires Python_ 2.6 or above, nothing else
-(the jinja2_ template engine is shipped with distribution).
-Optional (reccomended) Requirements
+The core library requires Python_ 2.6 or above, nothing else
+(the jinja2_ template engine is shipped with the distribution).
+Optional (recommended) requirements are
 
 * stdnet_ for Redis object relational mapping.
   It is required by ``djpcms.contrib.monitor`` and ``djpcms.contrib.sessions`` modules.
@@ -126,9 +122,12 @@ JavaScript
 * jQuery Sparklines_ plugin for inline plotting.
 * Modernizr_, a small JavaScript library that detects the availability of native implementations for next-generation web technologies.
 
+In addition, several ideas and code snippets have been taken from django_.
+
+
 .. _pypi: http://pypi.python.org/pypi?:action=display&name=djpcms
 .. _Python: http://www.python.org/
-.. _jinja: http://jinja.pocoo.org/docs/
+.. _jinja2: http://jinja.pocoo.org/docs/
 .. _django: http://www.djangoproject.com/
 .. _jQuery: http://jquery.com/
 .. _fabric: http://docs.fabfile.org/

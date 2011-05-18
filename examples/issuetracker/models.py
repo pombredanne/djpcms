@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from stdnet import orm
-from stdnet.contrib.sessions.models import User
+
+from djpcms.contrib.sessions.models import User
 
 
 class Issue(orm.StdModel):

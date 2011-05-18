@@ -1,20 +1,16 @@
 Version 0.9.0 - Development
 =======================================
-* **BACKWARD INCOMPATIBLE CHANGES**
+* This is essentially a new libary from the previous version. No more django_ dependency
+  and several changes in the API.
 * Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.
-* This is the first release not dependent on ``django``.
+* No external dependencies for the core library.
 * Object Relational mapping can be done with stdnet_ or django_. Other ORMs can be
-  registered to the library::
-
-    from djpcms import sites
-    sites.register_orm('path.to.my.ormwrapper')
-    
-* Introduced new Ajax decorator ``rearrange`` which adds drag & drop
-  functionalities during page editing.
+  registered to the library.    
+* Introduced several new AJAX decorators.
+* New AJAX decorator ``rearrange`` which adds drag & drop functionalities during page editing.
 * Added abstraction for ``User``, ``Request`` and ``Response`` classes.
 * Added ``save as new`` functionality to :class:`djpcms.views.appview.EditView`.
-* Added `rst` markup handled by sphinx_ in :mod:`djpcms.contrib.flowrepo.markups` module.
 * Added ``getdata`` function to ``DjpResponse`` as the preferred way to extract data from the response object.
   In this way it is guaranteed the response object is initialised properly.
 * ``forms.LazyChoiceField`` replaced by ``forms.ChoiceField``, lazy by default.
@@ -23,9 +19,8 @@ Version 0.9.0 - Development
 * Renamed ``ApplicationBase`` as :class:`djpcms.views.appsite.Application``.
 * Redesign of the test suite so that several different applications can be tested.
 * Applications can be reloaded at runtime. Useful for testing, but maybe more.
-* Injecting the instance or ``None`` of current ``url`` into ``request`` object.
+* Four examples in the examples directory.
 * Added more docs on views and applications.
-* Added :mod:`djpcms.contrib.social` application with ``OAuth``. Still in ``alpha``.
 * **72 unit tests**. Coverage **51%**.
 
 Version 0.8.5 (2010-Nov-16)

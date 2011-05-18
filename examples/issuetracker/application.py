@@ -1,6 +1,5 @@
-from djpcms import forms
-from djpcms.forms.layout.uniforms import Layout, blockLabels 
-from djpcms.views import appview
+from djpcms import forms, views
+from djpcms.forms.layout.uniforms import Layout, blockLabels
 from djpcms.apps.included import archive
 
 from .models import Issue
@@ -22,6 +21,7 @@ hform = forms.HtmlForm(AddEditIssueForm,
 
 class IssueTraker(archive.ArchiveApplication):
     inherit = True
+    form = hform
     date_code = 'timestamp'
     STATUS_CODES = (
                     (1, 'Open'),
@@ -35,12 +35,10 @@ class IssueTraker(archive.ArchiveApplication):
                       (4, 'Medimu'),
                       (5, 'Low'),
                       )
-    add = appview.AddView(form = hform,
-                          redirect_to_view = 'search',
-                          force_redirect = True)
-    view = appview.ViewView()
-    edit = appview.ChangeView(form = hform,
-                              redirect_to_view = 'search',
-                              force_redirect = True)
-    delete = appview.DeleteView()
+    add = views.AddView(redirect_to_view = 'search',
+                        force_redirect = True)
+    view = views.ViewView()
+    edit = views.ChangeView(redirect_to_view = 'search',
+                             force_redirect = True)
+    delete = views.DeleteView()
 

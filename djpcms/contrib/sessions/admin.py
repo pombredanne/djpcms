@@ -1,6 +1,6 @@
-from djpcms.apps.included.admin import AdminApplication
+from djpcms.apps.included.admin import AdminApplication, AdminApplicationSimple
 
-from .models import User,ObjectPermission, Role, Group
+from .models import User,ObjectPermission, Role, Group, Log
 from .forms import RoleForm, GroupForm
 
 
@@ -24,5 +24,12 @@ admin_urls = (
                                ObjectPermission,
                                name = 'Object Permissions',
                                list_display = ['role','user','group','action']),
+              AdminApplicationSimple('/logs/',
+                                     Log,
+                                     name='Logs',
+                                     list_display = ('timestamp','level','source','host'),
+                                     object_display = ('timestamp','level','source',
+                                                       'host','msg')
+                                     )
             )
 

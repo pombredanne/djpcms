@@ -18,12 +18,12 @@ class DatabaseHandler(logging.Handler):
         client = getattr(record,'client','unknown')
         msg = self.format_msg(record)
         try:
-            Log.objects(source=source,
-                       level=record.levelname,
-                       msg=msg,
-                       host=HOST,
-                       user=user,
-                       client=client).save()
+            Log(source=source,
+                level=record.levelname,
+                msg=msg,
+                host=HOST,
+                user=user,
+                client=client).save()
         except:
             pass
         

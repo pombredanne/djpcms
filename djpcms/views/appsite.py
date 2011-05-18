@@ -570,7 +570,7 @@ and by the :ref:`auto-complete <autocomplete>`
 functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
-    actions = [('delete','delete',djpcms.DELETE)]
+    actions = [('bulk_delete','delete',djpcms.DELETE)]
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:

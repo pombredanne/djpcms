@@ -469,8 +469,8 @@ class ModelView(View):
         data = djp.request.REQUEST
         if 'ids[]' in data:
             return self.appmodel.mapper.filter(id__in = data.getlist('ids[]'))
-        
-    def ajax__delete(self, djp):
+    
+    def ajax__bulk_delete(self, djp):
         '''An ajax view for deleting a list of ids.'''
         objs = self.get_instances(djp)
         mapper = self.appmodel.mapper

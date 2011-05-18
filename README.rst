@@ -6,12 +6,15 @@
 
 --
 
-Djpcms is a dynamic Content Management System which uses Python with django_ on the server side
-and Javascript with jQuery_ on the browser side. It is designed to handle dynamic applications which require
-high level of customization. Lots of AJAX enabled features including inline editing, autocomplete and
+Djpcms is a dynamic Content Management System which uses Python on the server side
+and Javascript with jQuery_ on the browser side.
+It is designed to handle dynamic applications which require
+high level of customization.
+Lots of AJAX enabled features including inline editing, autocomplete and
 ajax forms.
+It works with Python_ 2.6 and up including python 3 series.
+The template engine is jinja2_ which is shipped with the distribution.
 
-It is based on django models, for now, but it will work for other object relational mappers too!
 
 .. contents::
     :local:
@@ -26,14 +29,15 @@ Features
  * Extendible using ``plugins``.
  * Inline editing of ``plugins`` and ``pages``.
  * Move ``plugins`` in page using drag-and-drop functionalities.
- * ``Autocomplete`` for models when the autocomplete view is added to the model application.
+ * ``Autocomplete`` for models.
  * Extendible AJAX decorators.
- * Tagging with django-tagging_, included in distribution.
+ * Tagging included in distribution.
  * Several battery included application classes.
- * Integration with ``Django`` and South_ support for database migration.
  * Nice form layout with extendible ``uniforms``.
  * Deployment tools using fabric_.
  * Sitemap design.
+ * Integration with ``Django`` models and South_ support
+   for database migration.
 
 
 .. _intro-installing:
@@ -60,9 +64,9 @@ To check the version::
 
 	>>> import djpcms
 	>>> djpcms.__version__
-	'0.8.5'
+	'0.9.0'
 	>>> djpcms.get_version()
-	'0.8.5'
+	'0.9.0'
 	
 	
 Running tests
@@ -75,6 +79,10 @@ On the top level directory type::
 For options in running tests type::
 
     python runtests.py --help
+    
+Tests can also be run for specific tags, For a list of tags type::
+
+    python runtests.py --list
 	
 To access coverage of tests you need to install the coverage_ package and run the tests using::
 
@@ -87,17 +95,15 @@ and to check out the coverage report::
 
 Dependencies and Python 3
 ===========================
-It requires Python_ 2.6 or above. It is not yet compatible with Python 3 series but
-it will be ported as soon as the library is independent from django_ and the API is stable enough.
-As mentioned it idepends on django_, however in the long run, this dependency will be
-removed so that it can be used with other web-frameworks as well.
 
-* django_.
-* PIL_, the python image library.
+Optional requirements
+========================
+The library in its core requires Python_ 2.6 or above, nothing else
+(the jinja2_ template engine is shipped with distribution).
+Optional (reccomended) Requirements
 
-
-Optional requirements:
-
+* stdnet_ for Redis object relational mapping.
+  It is required by ``djpcms.contrib.monitor`` and ``djpcms.contrib.sessions`` modules.
 * fabric_ and pip_ for the ``djpcms.contrib.jdep`` module.
 
 
@@ -108,7 +114,8 @@ by other authors and communities:
 
 Python
 ---------
-* django-tagging_ for tag management. Shipped with the library in the ``libs`` module but a library in its own.
+* jinja2_ for templating. Shipped with the library in the ``libs``
+  module but a library in its own.
 
 JavaScript
 ------------
@@ -121,14 +128,13 @@ JavaScript
 
 .. _pypi: http://pypi.python.org/pypi?:action=display&name=djpcms
 .. _Python: http://www.python.org/
+.. _jinja: http://jinja.pocoo.org/docs/
 .. _django: http://www.djangoproject.com/
 .. _jQuery: http://jquery.com/
-.. _django-tagging: http://code.google.com/p/django-tagging/
-.. _PIL: http://www.pythonware.com/products/pil/
 .. _fabric: http://docs.fabfile.org/
 .. _pip: http://pip.openplans.org/
 .. _South: http://south.aeracode.org/
-.. _stdnet: http://code.google.com/p/python-stdnet/
+.. _stdnet: http://lsbardel.github.com/python-stdnet/
 .. _tablesorter: http://tablesorter.com/
 .. _Modernizr: http://www.modernizr.com/
 .. _jstree: http://www.jstree.com/

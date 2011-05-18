@@ -22,10 +22,10 @@ MAX_SESSION_KEY = 18446744073709551616     # 2 << 63
 SALT_SIZE = 8
 SESSION_COOKIE_NAME = 'stdnet-sessionid'
 SESSION_USER_KEY = '_auth_user_id'
+SESSION_EXPIRY = 3600   # 1 day
 
 
 UNUSABLE_PASSWORD = '!' # This will never be a valid hash
-SESSION_EXPIRY = 3600   # 1 day
 REDIRECT_FIELD_NAME = 'next'
 
 

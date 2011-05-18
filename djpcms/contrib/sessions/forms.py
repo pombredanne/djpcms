@@ -27,4 +27,3 @@ class UserForm(forms.Form):
     first_name = forms.CharField()
     second_name = forms.CharField()
     email = forms.CharField()
-    

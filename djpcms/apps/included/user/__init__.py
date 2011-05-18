@@ -106,8 +106,8 @@ The userhome view'''
                                        parent = 'userhome',
                                        isplugin = True,
                                        form = HtmlForm(PasswordChangeForm))
-    userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
-                            parent = 'userhome')
+    #userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
+    #                        parent = 'userhome')
     
     def for_user(self, djp):
         '''If user instance not available, return None'''

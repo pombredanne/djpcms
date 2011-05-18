@@ -7,7 +7,7 @@ Version 0.9.0 - Development
 * Object Relational mapping can be done with stdnet_ or django_. Other ORMs can be
   registered to the library::
 
-    from djpcms import sites   
+    from djpcms import sites
     sites.register_orm('path.to.my.ormwrapper')
     
 * Introduced new Ajax decorator ``rearrange`` which adds drag & drop
@@ -26,7 +26,7 @@ Version 0.9.0 - Development
 * Injecting the instance or ``None`` of current ``url`` into ``request`` object.
 * Added more docs on views and applications.
 * Added :mod:`djpcms.contrib.social` application with ``OAuth``. Still in ``alpha``.
-* **58 unit tests**. Coverage **51%**.
+* **72 unit tests**. Coverage **51%**.
 
 Version 0.8.5 (2010-Nov-16)
 =======================================

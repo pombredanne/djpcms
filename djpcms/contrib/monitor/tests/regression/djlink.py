@@ -88,16 +88,3 @@ class DjangoStdNetLinkTest(test.TestCase):
         self.assertEqual(self.DjangoUser.objects.all().count(),
                          UserProfile.objects.all().count())
             
-
-class TestRedisMonitor(test.TestCase,test.UserMixin):
-    
-    def setUp(self):
-        self.makesite()
-        self.makesite('/admin/',appurls = self.sites.make_admin_urls)
-        self.sites.load()
-        self.makeusers()
-        self.login()
-        
-    #def testAddServer(self):
-    #    response = self.get('/admin/monitor/redis/add/')
-    #    html = response.content

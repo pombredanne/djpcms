@@ -172,6 +172,7 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
     
     def object_content(self, djp, obj):
         c = super(ArchiveTaggedApplication,self).object_content(djp, obj)
+        return c
         return add_tags(self, c, djp, obj)
     
 

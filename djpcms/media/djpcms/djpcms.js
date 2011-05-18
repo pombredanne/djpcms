@@ -1294,7 +1294,7 @@
         
     if($.tablesorter) {
         /**
-         * A tablesorter widget for enabling actions on rowsS
+         * A tablesorter widget for enabling actions on rowss
          */
         $.tablesorter.addWidget({
             id:"toolbox",
@@ -1342,10 +1342,10 @@
                             }
                         });
                         $('.select_all',me).click(function() {
-                            toggle($('.action-check input').attr({'checked':'checked'}));
+                            toggle($('.action-check input').prop({'checked':true}));
                         });
                         $('.select_none',me).click(function() {
-                            toggle($('.action-check input').attr({'checked':''}));
+                            toggle($('.action-check input').prop({'checked':false}));
                         });
                     }
                 }

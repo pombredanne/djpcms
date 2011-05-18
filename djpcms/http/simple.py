@@ -252,13 +252,16 @@ class HttpResponse(object):
     def __setitem__(self, header, value):
         self.set_header(header, value)
         
+    def __getitem__(self, header):
+        return self._headers[header.lower()]
+        
     def set_header(self, header, value):
         header, value = to_header_strings(header.lower(), value)
         self._headers[header] = (header, value)
 
-    def has_header(self, header):
+    def __contains__(self, header):
         """Case-insensitive check for a header."""
-        return self._headers.has_key(header.lower())
+        return header.lower() in self._headers
     
     def __iter__(self):
         return iter(self.content)
@@ -334,7 +337,9 @@ class HttpResponse(object):
         return self
 
     
-    
+
+Response = HttpResponse
+
 def finish_response(response, environ, start_response):
     return response(environ, start_response)
 

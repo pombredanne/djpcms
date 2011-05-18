@@ -3,11 +3,38 @@ from djpcms.utils.importer import import_module
 
 from stdnet import orm
 
-__all__ = ['register_models',
+__all__ = ['installed_models',
            'LINKED_OBJECT_ATTRIBUTE']
 
 LINKED_OBJECT_ATTRIBUTE = 'djobject'
 
+
+
+from stdnet.orm import model_iterator
+
+
+def installed_models(sites, applications = None):
+    '''Generator of models classes.'''
+    installed = sites.settings.INSTALLED_APPS
+    applications = applications or installed
+    for arg in applications:
+        label = arg
+        model = None
+        argos = label.split('.')
+        if len(argos) == 2:
+            model = argos[1]
+            label = argos[0]
+        if label not in installed:
+            label = 'djpcms.contrib.{0}'.format(label)
+        if label in installed:
+            for mdl in model_iterator(label):
+                if model:
+                    if mdl._meta.name == model:
+                        yield mdl
+                        break
+                else:
+                    yield mdl
+                    
 
 def register_models(apps,**kwargs):
     '''Register models defined in application list ``apps``.'''

@@ -5,9 +5,9 @@ from .models import User, AnonymousUser, Session, get_session_cookie_name
 
 
 def flush_session(request):
+    '''Flush a session by expiring it. Return a new session.'''
     s = request.session
     s.expiry = datetime.now()
-    s.expired = True
     s.save()
     request.session = Session.objects.create()
 

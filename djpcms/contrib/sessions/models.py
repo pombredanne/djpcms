@@ -132,7 +132,7 @@ class Session(orm.StdModel):
 
 class Log(orm.StdModel):
     '''A database log entry'''
-    datetime = orm.DateTimeField(default=datetime.now)
+    timestamp = orm.DateTimeField(default=datetime.now)
     level = orm.SymbolField()
     msg = orm.CharField()
     source = orm.CharField()

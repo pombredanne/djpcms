@@ -13,10 +13,10 @@ include examples/djpcms-site/README.rst
 include examples/djpcms-site/requirements.txt
 include examples/vinoweb/README.rst
 include examples/vinoweb/requirements.txt
-include djpcms/http/cherrypy_wsgi/license.txt
 include djpcms/contrib/jdep/tests/requirements.txt
-include djpcms/libs/jinja2/AUTHORS
+include djpcms/libs/jinja2_3/LICENSE
 include djpcms/libs/jinja2/LICENSE
+include djpcms/dispatch/LICENSE
 recursive-include docs/source/_ext *
 recursive-include docs/source *.txt
 recursive-include tests *

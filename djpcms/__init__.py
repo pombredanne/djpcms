@@ -1,6 +1,6 @@
 '''A dynamic content management system using jQuery and Python'''
 
-VERSION = (0, 9, 'dev')
+VERSION = (0, 9, 0)
 
 def get_version():
     return '.'.join(map(str,VERSION))
@@ -36,6 +36,7 @@ def install_lib(basepath, dirname, module_name):
         try:
             module = __import__(module_name)
             libs.append(module)
+            return module
         except ImportError:
             pass
         
@@ -45,10 +46,13 @@ def install_libs():
     if path_dir not in sys.path:
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(DJPCMS_DIR,'libs')
-    install_lib(dlibs, 'py2py3', 'py2py3')
+    py2py3 = install_lib(dlibs, 'py2py3', 'py2py3')
     install_lib(dlibs, 'medplate', 'medplate')
     install_lib(dlibs, 'jslib', 'jslib')
-    install_lib(dlibs, 'jinja2', 'jinja2')
+    if py2py3.ispy3k:
+        install_lib(dlibs, 'jinja2_3', 'jinja2')
+    else:
+        install_lib(dlibs, 'jinja2', 'jinja2')
     #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
 
 install_libs()

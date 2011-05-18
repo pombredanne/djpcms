@@ -1,5 +1,6 @@
+from .utils import *
 
-def get_http(lib):
+def get_http(lib=None):
     '''Fetch the HTTP library.'''
     if lib == 'django':
         from djpcms.http import _django as mod

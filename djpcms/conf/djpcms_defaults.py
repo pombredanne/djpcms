@@ -66,6 +66,8 @@ DATE_FORMAT = 'd M y'
 DATETIME_FORMAT = DATE_FORMAT + ' H:i'
 
 DEFAULT_CHARSET = 'utf-8'
+TIME_ZONE = 'Europe/London'
+LANGUAGE_CODE = 'en-uk'
 
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE

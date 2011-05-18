@@ -7,61 +7,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(basedir,'sitedjpcms.sqlite'),
-    }
-}
-
-
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
-SERVE_STATIC_FILES = DEBUG
-TIME_ZONE     = 'Europe/London'
-LANGUAGE_CODE = 'en-uk'
-SITE_ID = 1
-USE_I18N = False
-USE_L10N = True
 # This is just a dummy one for you to be able to test
 SECRET_KEY = 'vctw)*^2z!1fzie12zzdxf45)-rc(^7qvd(vabn&1&ogwehidr'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader'
-)
-
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'openid_consumer.middleware.OpenIDMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-AUTHENTICATION_BACKENDS = (
-    'djpcms.permissions.Backend',
-    'djpcms.contrib.social.backends.SocialAuthBackend',
-    #'socialauth.auth_backends.OpenIdBackend',
-    #'socialauth.auth_backends.TwitterBackend',
-    #'socialauth.auth_backends.FacebookBackend',
-    #'socialauth.auth_backends.LinkedInBackend',
+    'djpcms.contrib.sessions.middleware.SessionMiddleware',
 )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.admin',
-    #
-    # third parties
-    'south',
-    'debug_toolbar',
-    #
     'djpcms',
     'djpcms.contrib.admin',
     'djpcms.contrib.jdep',

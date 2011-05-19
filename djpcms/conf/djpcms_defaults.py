@@ -19,7 +19,7 @@ DJPCMS_EMPTY_VALUE = '(None)'
 ADMIN_GROUPING = None
 
 MIDDLEWARE_CLASSES = ()
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = ()  # Additional template dlocation directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
@@ -56,10 +56,8 @@ DJPCMS_SITE_MAP                 = True
 DJPCMS_USER_CAN_EDIT_PAGES      = False
 
 #
-JINJA2_TEMPLATE_LOADERS = (
-                           ('djpcms.template.jinja2loaders.ApplicationLoader',),
-                           )
 JINJA2_EXTENSIONS = []
+JINJA2_TEMPLATE_LOADERS = (('djpcms.template._jinja2.ApplicationLoader',),)
 
 # Date Format
 DATE_FORMAT = 'd M y'

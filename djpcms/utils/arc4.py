@@ -40,11 +40,11 @@ __all__ = ['rc4crypt','encrypt','decrypt']
 def _rc4crypt(data, box):
     x = 0
     y = 0
-    for char in to_string(data):
+    for o in data:
         x = (x + 1) % 256
         y = (y + box[x]) % 256
         box[x], box[y] = box[y], box[x]
-        yield chr(ord(char) ^ box[(box[x] + box[y]) % 256])
+        yield chr(o ^ box[(box[x] + box[y]) % 256])
         
 
 def rc4crypt(data, key):

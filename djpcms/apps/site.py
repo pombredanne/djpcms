@@ -39,17 +39,23 @@ def standard_exception_handle(request, e, status = None):
     info = request.DJPCMS
     site = info.site
     settings = site.settings
+    exc_info = sys.exc_info()
     if not site or not hasattr(site,'exception_middleware'):
         raise
     for middleware_method in site.exception_middleware():
-        response = middleware_method(request, e, status)
-        if response:
-            return response
+        try:
+            response = middleware_method(request, e, status)
+            if response:
+                return response
+        except:
+            exc_info = sys.exc_info()
     for middleware_method in site.request_middleware():
-        response = middleware_method(request)
-        if response:
-            return response
-    exc_info = sys.exc_info()
+        try:
+            response = middleware_method(request)
+            if response:
+                return response
+        except:
+            exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
     logtrace(logger, request, exc_info, status)
     #store stack trace in the DJPCMS environment variable

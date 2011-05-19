@@ -18,11 +18,11 @@ else:
     randrange = random.randrange
 MAX_SESSION_KEY = 18446744073709551616     # 2 << 63
 
-# Configurable in your settings file
+# Default Seetings Values. Configurable in your settings file
 SALT_SIZE = 8
 SESSION_COOKIE_NAME = 'stdnet-sessionid'
 SESSION_USER_KEY = '_auth_user_id'
-SESSION_EXPIRY = 3600   # 1 day
+SESSION_EXPIRY = 24*3600   # 1 day
 
 
 UNUSABLE_PASSWORD = '!' # This will never be a valid hash

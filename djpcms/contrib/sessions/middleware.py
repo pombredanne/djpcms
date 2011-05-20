@@ -34,6 +34,7 @@ def login(request, user):
 
 
 def logout(request):
+    '''Flush session and set user to AnonymousUser'''
     flush_session(request)
     request.user = AnonymousUser()
 

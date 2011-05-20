@@ -1,4 +1,5 @@
 from djpcms import forms
+
 from .models import PERMISSION_LIST, Role, User, Group
 
 

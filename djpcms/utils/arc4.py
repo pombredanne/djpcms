@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+'''RC4, ARC4, ARCFOUR algorithm for encryption.
+
+Adapted from
 #
 #       RC4, ARC4, ARCFOUR algorithm
 #
@@ -20,31 +22,32 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
+'''
 import base64
 from os import urandom
 
 try:
+    # Python 2
     range = xrange
     bord = ord
-    to_string = lambda x : x
-    to_bytestring = to_string 
+    bjoin = lambda g : ''.join((chr(v) for v in g))
 except NameError:
+    # Python 3
     bord = lambda x : x
-    to_string = lambda x : x.decode()
-    to_bytestring = lambda x : x.encode()
+    bjoin = lambda g : bytes(g)
 
 __all__ = ['rc4crypt','encrypt','decrypt']
 
 
-
 def _rc4crypt(data, box):
+    '''Return a generator over encrypted bytes'''
     x = 0
     y = 0
     for o in data:
         x = (x + 1) % 256
         y = (y + box[x]) % 256
         box[x], box[y] = box[y], box[x]
-        yield chr(o ^ box[(box[x] + box[y]) % 256])
+        yield bord(o) ^ box[(box[x] + box[y]) % 256]
         
 
 def rc4crypt(data, key):
@@ -54,8 +57,7 @@ def rc4crypt(data, key):
     for i in range(256):
         x = (x + box[i] + bord(key[i % len(key)])) % 256
         box[i], box[x] = box[x], box[i]
-    v = ''.join(_rc4crypt(data,box))
-    return to_bytestring(v)
+    return bjoin(_rc4crypt(data,box))
 
 
 def encrypt(plaintext, key, salt_size = 8):
@@ -63,7 +65,7 @@ def encrypt(plaintext, key, salt_size = 8):
         return ''
     salt = urandom(salt_size)
     v = rc4crypt(plaintext,salt + key)
-    n = to_bytestring(chr(salt_size))
+    n = bjoin((salt_size,))
     rs = n+salt+v
     return base64.b64encode(rs)
 

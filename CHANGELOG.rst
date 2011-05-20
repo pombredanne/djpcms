@@ -5,8 +5,8 @@ Version 0.9.0 - Development
 * Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.
 * No external dependencies for the core library.
-* Object Relational mapping can be done with stdnet_ or django_. Other ORMs can be
-  registered to the library.    
+* Object Relational mapping can be done with stdnet_, django_ or none at all.
+  External ORMs can be registered to the library.    
 * Introduced several new AJAX decorators.
 * New AJAX decorator ``rearrange`` which adds drag & drop functionalities during page editing.
 * Added abstraction for ``User``, ``Request`` and ``Response`` classes.

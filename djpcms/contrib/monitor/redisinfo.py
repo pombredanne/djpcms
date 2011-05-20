@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from py2py3 import iteritems
 
-from djpcms import forms
+from djpcms import forms, sites
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import nicetimedelta
 from djpcms.utils.structures import OrderedDict
@@ -26,10 +26,9 @@ def niceadd(l,name,value):
 
 def nicedate(t):
     try:
-        from django.conf import settings
         d = datetime.fromtimestamp(t)
-        return '%s %s' % (format(d.date(),settings.DATE_FORMAT),
-                          time_format(d.time(),settings.TIME_FORMAT)) 
+        return '%s %s' % (format(d.date(),site.settings.DATE_FORMAT),
+                          time_format(d.time(),site.settings.TIME_FORMAT)) 
     except:
         return ''
     

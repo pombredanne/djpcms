@@ -1,6 +1,7 @@
 from stdnet import orm
 
 from djpcms.apps import PERMISSION_CODES, PERMISSION_LIST
+
 from .managers import *
 
 

@@ -260,6 +260,7 @@ views::
     force_redirect = False
     headers        = None
     astable        = False
+    isplugin = False
     _form          = None
     _form_ajax     = None
     form_method = 'POST'
@@ -268,7 +269,7 @@ views::
                  parent = None,
                  regex = None,
                  insitemap = True,
-                 isplugin = False,
+                 isplugin = None,
                  description = None,
                  methods       = None,
                  plugin_form   = None,
@@ -292,7 +293,7 @@ views::
         self.name        = None
         self.description = description
         self.parent    = parent
-        self.isplugin  = isplugin
+        self.isplugin  = isplugin if isplugin is not None else self.isplugin
         self.in_nav    = int(in_navigation)
         self.appmodel  = None
         self.insitemap = insitemap
@@ -403,12 +404,13 @@ views::
     def get_form(self, djp,
                  form = None,
                  form_ajax = None,
+                 method = None,
                  **kwargs):
         form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         return self.appmodel.get_form(djp,
                                       form or self._form,
                                       form_ajax = form_ajax,
-                                      method = self.form_method,
+                                      method = method or self.form_method,
                                       **kwargs)
         
     def is_soft(self, djp):

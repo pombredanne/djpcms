@@ -30,17 +30,19 @@ HtmlSearchForm = forms.HtmlForm(
             )
 )
 
-class SearchView(views.View):
-    search_text = 'q'
-    def __init__(self, in_navigation = 0, astable = True,
-                 search_text = None, isplugin = True,
-                 **kwargs):
-        self.search_text = search_text or self.search_text
-        super(SearchView,self).__init__(in_navigation=in_navigation,
+
+class SearchQuery(views.View):
+    isplugin = True
+    def __init__(self, in_navigation = 0, astable = True, **kwargs):
+        super(SearchQuery,self).__init__(in_navigation=in_navigation,
                                         astable=astable,
-                                        isplugin = isplugin,
                                         **kwargs)
-    
+        
+    def render(self, djp):
+        return self.get_form(djp).render(djp)
+
+
+class SearchView(SearchQuery):    
     @property
     def engine(self):
         return self.appmodel.engine    
@@ -51,15 +53,15 @@ The query is build using the search fields specifies in
 :attr:`djpcms.views.appsite.ModelApplication.search_fields`.
 It returns a queryset.
         '''
-        request = djp.request
-        search_string = request.REQUEST.get(self.search_text,None)
-        if search_string:
-            
-            qs = appmodel.mapper.search_text(qs, search_string, slist)    
-        return qs
+        f = self.get_form(djp)
+        if f.is_valid():
+            q = f.form.cleaned_data['q']
+            if q:
+                return self.engine.search(q)
     
     def render(self, djp):
-        return self.get_form(djp).render(djp)
+        qs = self.appquery(djp)
+        return ''
     
     def ajax__autocomplete(self, djp):
         qs = self.appquery(djp)
@@ -73,7 +75,14 @@ It returns a queryset.
 
 class Application(views.Application):
     engine = None
-    search = SearchView(form = HtmlSearchForm)
+    query = SearchQuery(form = HtmlSearchForm,
+                        form_method = 'GET',
+                        form_ajax = False,
+                        description = 'Seach Form')
+    search = SearchView(regex = 'search-results',
+                        form = HtmlSearchForm,
+                        form_method = 'GET',
+                        description = 'Search Results')
     
     def __init__(self,*args,**kwargs):
         self.engine = kwargs.pop('engine',None) or self.engine

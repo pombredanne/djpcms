@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from inspect import isclass
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import format as date_format
@@ -73,7 +74,7 @@ def field_repr(field_name, obj, appmodel = None, **kwargs):
     elif hasattr(obj,field_name):
         try:
             val = getattr(obj,field_name)
-            if hasattr(val,'__call__'):
+            if not isclass(val) and hasattr(val,'__call__'):
                 val = val()
         except Exception as e:
             val = str(e)

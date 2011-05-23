@@ -27,6 +27,8 @@ if ispy3k:
         for value in values:
             if isinstance(value,bytes):
                 value = value.decode()
+            else:
+                value = str(value)
             yield value
 else:
     def to_header_strings(*values):

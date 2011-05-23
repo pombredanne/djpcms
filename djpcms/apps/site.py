@@ -214,8 +214,8 @@ The function returns an instance of
                 appdir = mod.__path__[0]
             except ImportError:
                 raise ValueError('Could not find directory or file {0}'.format(name))
-        path = os.path.realpath(appdir)
-        base,name = os.path.split(path)
+        site_path = os.path.realpath(appdir)
+        base,name = os.path.split(site_path)
         if base not in sys.path:
             sys.path.insert(0, base)
         
@@ -224,7 +224,7 @@ The function returns an instance of
             if '.' in settings:
                 settings_module_name = settings
             else:
-                sett = '{0}.py'.format(os.path.join(path,settings))
+                sett = '{0}.py'.format(os.path.join(site_path,settings))
                 if os.path.isfile(sett):
                     settings_module_name = '{0}.{1}'.format(name,settings)
                 else:
@@ -233,7 +233,7 @@ The function returns an instance of
             settings_module_name = None
         
         settings = get_settings(settings_module_name,
-                                SITE_DIRECTORY = path,
+                                SITE_DIRECTORY = site_path,
                                 SITE_MODULE = name,
                                 **params)
         
@@ -246,6 +246,9 @@ The function returns an instance of
             os.environ['SECRET_KEY'] = settings.SECRET_KEY 
         
         # Add template media directory to template directories
+        path = os.path.join(site_path,'templates')
+        if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
+            settings.TEMPLATE_DIRS += path,
         path = os.path.join(djpcms.__path__[0],'media','djpcms')
         if path not in settings.TEMPLATE_DIRS:
             settings.TEMPLATE_DIRS += path,

@@ -23,7 +23,7 @@ TEMPLATE_DIRS = ()  # Additional template dlocation directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
-HTTP_LIBRARY = None             #'django' # django, werkzeug
+HTTP_LIBRARY = None             #'django' # django
 CMS_ORM = None                  # django, stdnet
 TEMPLATE_ENGINE = 'jinja2'      # django, jinja2
 
@@ -39,12 +39,12 @@ ADMIN_URL_PREFIX = '/admin/'
 
 # Root page for user account urls
 USER_ACCOUNT_HOME_URL           = '/accounts/'
-JS_START_END_PAGE               = 101
-EXTRA_CONTENT_PLUGIN            = None
+JS_START_END_PAGE = 101
+EXTRA_CONTENT_PLUGIN = None
 
 # Analytics
-GOOGLE_ANALYTICS_ID             = None
-LLOOGG_ANALYTICS_ID             = None
+GOOGLE_ANALYTICS_ID = None
+LLOOGG_ANALYTICS_ID = None
 
 SITE_NAVIGATION_LEVELS          = 4
 ENABLE_BREADCRUMBS              = 2

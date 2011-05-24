@@ -1,8 +1,13 @@
 from djpcms import test, forms, sites
 from djpcms.plugins.apps import HtmlSearchForm
 from djpcms.apps.included.contentedit import PageForm, EditContentForm
+from djpcms.apps.included.contactus import ContactForm
 
 from .forms import SimpleForm
+
+
+def dummy_send(*args,**kwargs):
+    pass
 
 
 class TestSimpleForm(test.TestCase):
@@ -100,3 +105,20 @@ class TestSimpleForm(test.TestCase):
         self.assertEqual(choices[0][0],'')
         self.assertEqual(choices[0][1],'raw')
 
+
+
+class TestFormValidation(test.TestCase):
+    
+    def testContantForm(self):
+        d = ContactForm(data = {'body':'blabla'}, send_message = dummy_send)
+        self.assertFalse(d.is_valid())
+        self.assertEqual(len(d.errors),2)
+        self.assertEqual(d.errors['name'], ['name is required'])
+        self.assertEqual(d.errors['email'], ['email is required'])
+        d = ContactForm(data = {'body':'blabla','name':''}, send_message = dummy_send)
+        self.assertFalse(d.is_valid())
+        self.assertEqual(len(d.errors),2)
+        self.assertTrue('name' in d.errors)
+        d = ContactForm(data = {'body':'blabla','name':'pippo','email':'pippo@pippo.com'},
+                        send_message = dummy_send)
+        self.assertTrue(d.is_valid())

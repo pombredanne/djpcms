@@ -1,10 +1,10 @@
-from djpcms.views import appsite, appview
+from djpcms import views
 
-from contactform import ContactForm
+from .contactform import ContactForm
 
 
-class ContactView(appview.View):
-        
+class ContactView(views.View):
+    
     def render(self, djp, **kwargs):
         return self.get_form(djp).render(djp)
     
@@ -18,7 +18,7 @@ class ContactView(appview.View):
         return "Your message has been sent. Thank you!"
 
 
-class ContactUs(appsite.Application):
+class ContactUs(views.Application):
     name = 'Contact Us'
     form = ContactForm
     form_withrequest = True

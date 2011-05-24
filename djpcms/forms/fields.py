@@ -119,8 +119,10 @@ very similar to django forms API.
         '''Clean the field value'''
         if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
-            if self.required and value is None:
+            if self.required and value in NOTHING:
                 raise ValidationError(self.validation_error.format(bfield.name,value))
+            elif not self.required:
+                return value
         return self._clean(value, bfield)
     
     def _clean(self, value, bfield):

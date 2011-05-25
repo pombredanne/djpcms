@@ -378,6 +378,7 @@ Return ``None`` if the view is not available.'''
                  addinputs = True,
                  form_ajax = None,
                  instance  = None,
+                 method = 'POST',
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
@@ -419,6 +420,7 @@ Return ``None`` if the view is not available.'''
                         addinputs= self.submit if addinputs else None,
                         model=model,
                         form_ajax=form_ajax,
+                        method = method,
                         **kwargs)
         
     def submit(self, instance, own_view = False):

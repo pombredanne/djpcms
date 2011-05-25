@@ -23,7 +23,6 @@ TEMPLATE_DIRS = ()  # Additional template dlocation directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
-HTTP_LIBRARY = None             #'django' # django
 CMS_ORM = None                  # django, stdnet
 TEMPLATE_ENGINE = 'jinja2'      # django, jinja2
 

@@ -4,6 +4,7 @@ import traceback
 import logging
 
 import djpcms
+from djpcms import http
 from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
                                    ImproperlyConfigured, DjpcmsException
@@ -13,7 +14,6 @@ from djpcms.utils.const import SLASH
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
-from djpcms.http.simple import UNKNOWN_STATUS_CODE, STATUS_CODE_TEXT
 
 from .management import find_commands
 from .permissions import SimplePermissionBackend
@@ -62,7 +62,7 @@ def standard_exception_handle(request, e, status = None):
     info.stack_trace = traceback.format_exception(*exc_info)
     stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info.stack_trace))
     ctx  = loader.context({'status':status,
-                           'status_text':STATUS_CODE_TEXT.get(status,UNKNOWN_STATUS_CODE)[0],
+                           'status_text':http.STATUS_CODE_TEXT.get(status,http.UNKNOWN_STATUS_CODE)[0],
                            'stack_trace':stack_trace,
                            'settings':site.settings},
                            request)
@@ -70,10 +70,10 @@ def standard_exception_handle(request, e, status = None):
                           'djpcms/errors/'+template,
                           'djpcms/errors/error.html'),
                          ctx)
-    return site.http.HttpResponse(html,
-                                  status = status,
-                                  content_type = 'text/html',
-                                  encoding = settings.DEFAULT_CHARSET)
+    return http.Response(html,
+                         status = status,
+                         content_type = 'text/html',
+                         encoding = settings.DEFAULT_CHARSET)
         
 
 class SiteMixin(ResolverMixin):
@@ -295,7 +295,7 @@ site is already registered at ``route``.'''
             try:
                 res = self.resolve(url[1:])
                 return res[0]
-            except self.http.Http404:
+            except http.Http404:
                 return None
         else:
             return site

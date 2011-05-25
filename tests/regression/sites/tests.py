@@ -1,10 +1,9 @@
 from py2py3 import zip
 
-from djpcms import test, views
+from djpcms import test, views, http
 from djpcms.utils import SLASH
 from djpcms.core.exceptions import ImproperlyConfigured, \
-                                   AlreadyRegistered,\
-                                   Http404
+                                   AlreadyRegistered
 
 
 def get_simpleapps():
@@ -92,7 +91,7 @@ class TestTree(test.TestCase):
         
     def testResolver404(self): 
         site = self._makeApps()
-        self.assertRaises(Http404,
+        self.assertRaises(http.Http404,
                           lambda : self.resolve_test('bla/extra/'))
     
     def _makeApps(self):

@@ -3,7 +3,7 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import UnicodeMixin, forms
+from djpcms import UnicodeMixin, forms, http
 from djpcms.utils.ajax import jredirect, dialog
 from djpcms.html import Media
 from djpcms.template import loader
@@ -131,7 +131,6 @@ http requests.
     def get_context(self, djp, editing = False):
         request = djp.request
         site    = self.site
-        http    = site.http
         page    = djp.page
         inner_template  = None
         context = {'title':djp.title}
@@ -149,7 +148,7 @@ http requests.
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)
-            if isinstance(inner,http.HttpResponse):
+            if isinstance(inner,http.Response):
                 return inner
         
         context['inner'] = inner

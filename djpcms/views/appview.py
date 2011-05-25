@@ -260,14 +260,16 @@ views::
     force_redirect = False
     headers        = None
     astable        = False
+    isplugin = False
     _form          = None
     _form_ajax     = None
+    form_method = 'POST'
     
     def __init__(self,
                  parent = None,
                  regex = None,
                  insitemap = True,
-                 isplugin = False,
+                 isplugin = None,
                  description = None,
                  methods       = None,
                  plugin_form   = None,
@@ -278,8 +280,9 @@ views::
                  template_name = None,
                  view_template = None,
                  force_redirect = None,
-                 form           = None,
-                 form_ajax     = None,
+                 form = None,
+                 form_ajax = None,
+                 form_method = None,
                  headers       = None,
                  astable        = None,
                  table_generator = None,
@@ -290,7 +293,7 @@ views::
         self.name        = None
         self.description = description
         self.parent    = parent
-        self.isplugin  = isplugin
+        self.isplugin  = isplugin if isplugin is not None else self.isplugin
         self.in_nav    = int(in_navigation)
         self.appmodel  = None
         self.insitemap = insitemap
@@ -326,6 +329,7 @@ views::
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
         self._form_ajax  = form_ajax if form_ajax is not None else self._form_ajax
+        self.form_method = form_method or self.form_method
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter
         View.creation_counter += 1
@@ -400,11 +404,13 @@ views::
     def get_form(self, djp,
                  form = None,
                  form_ajax = None,
+                 method = None,
                  **kwargs):
         form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         return self.appmodel.get_form(djp,
                                       form or self._form,
                                       form_ajax = form_ajax,
+                                      method = method or self.form_method,
                                       **kwargs)
         
     def is_soft(self, djp):

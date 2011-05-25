@@ -4,7 +4,7 @@ from datetime import datetime
 
 from py2py3 import to_string
 
-from djpcms import sites, forms
+from djpcms import sites, forms, http
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _
@@ -172,7 +172,6 @@ has been submitted.'''
     view = djp.view
     appmodel = view.appmodel
     request = djp.request
-    http = djp.http
     is_ajax = request.is_xhr
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
@@ -193,7 +192,7 @@ has been submitted.'''
         if is_ajax:
             return jredirect(url = redirect_url)
         else:
-            return http.HttpResponseRedirect(redirect_url)
+            return http.ResponseRedirect(redirect_url)
     
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
@@ -213,7 +212,7 @@ has been submitted.'''
                     return layout.json_messages(f)
                 else:
                     set_request_message(f,request)
-                    return http.HttpResponseRedirect(curr)
+                    return http.ResponseRedirect(curr)
             else:
                 redirect_url = appmodel.changeurl(request, instance)                    
 
@@ -233,7 +232,7 @@ has been submitted.'''
         if is_ajax:
             return jredirect(url = redirect_url)
         else:
-            return http.HttpResponseRedirect(redirect_url)
+            return http.ResponseRedirect(redirect_url)
     else:
         if is_ajax:
             return layout.json_messages(f)
@@ -264,7 +263,7 @@ def deleteinstance(djp, force_redirect = False):
     else:
         messages.info(request,msg)
         next = next or curr
-        return http.HttpResponseRedirect(next)
+        return http.ResponseRedirect(next)
     
     
 

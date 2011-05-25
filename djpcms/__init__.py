@@ -24,19 +24,16 @@ import sys
 parentdir = lambda dir,up=1: dir if not up else parentdir(os.path.split(dir)[0],up-1)
 DJPCMS_DIR = parentdir(os.path.abspath(__file__))
 path_dir = parentdir(DJPCMS_DIR)
-libs = []
 
 
 def install_lib(basepath, dirname, module_name):
     try:
-        __import__(module_name)
+        return __import__(module_name)
     except ImportError:
         dir = os.path.join(basepath,dirname)
         sys.path.insert(0,dir)
         try:
-            module = __import__(module_name)
-            libs.append(module)
-            return module
+            return __import__(module_name)
         except ImportError:
             pass
         

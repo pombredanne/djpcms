@@ -6,11 +6,10 @@ from copy import copy
 
 import djpcms
 from djpcms.apps.site import ApplicationSites
-from djpcms import forms, UnicodeMixin
+from djpcms import forms, UnicodeMixin, http
 from djpcms.views import djpcmsview
 from djpcms.forms.utils import fill_form_data
 from djpcms.utils.importer import import_module
-from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.core.exceptions import *
 
 from .client import Client
@@ -85,7 +84,7 @@ class ApplicationTest(TestCaseBase):
     
     def _pre_setup(self):
         self.sites = djpcms.sites
-        self.handler = DjpCmsHandler(self.sites)
+        self.handler = http.DjpCmsHandler(self.sites)
         if self._env:
             self._env.pre_setup()
     
@@ -141,7 +140,7 @@ Must be used as a base class for TestCase classes'''
         self.sites = ApplicationSites() # The test sites handler. Used for everything
         if tree_update:
             tree_update.register_site(self.sites)
-        self.handler = DjpCmsHandler(self.sites)
+        self.handler = http.DjpCmsHandler(self.sites)
         self.tests = djpcms.sites.settings
         self.tests.TESTING = True
         if self._env:
@@ -165,7 +164,6 @@ Must be used as a base class for TestCase classes'''
                                route = route or '/',
                                CMS_ORM = tests.CMS_ORM,
                                TEMPLATE_ENGINE = tests.TEMPLATE_ENGINE,
-                               HTTP_LIBRARY = tests.HTTP_LIBRARY,
                                APPLICATION_URLS = appurls,
                                INSTALLED_APPS = apps,
                                MIDDLEWARE_CLASSES = tests.MIDDLEWARE_CLASSES)
@@ -203,7 +201,7 @@ class PluginTest(TestCase,UserMixin):
         return c
         
     def request(self, user = None):
-        req = sites.http.HttpRequest()
+        req = http.Request()
         req.user = user
         return req
         

@@ -2,7 +2,9 @@ import os
 from optparse import make_option
 
 import djpcms
+
 from djpcms.apps.management.base import BaseCommand
+from djpcms.http import serve
 
 DEFAULT_PORT = 8060
 
@@ -28,4 +30,4 @@ class Command(BaseCommand):
         elif using:
             sites.settings.HTTP_LIBRARY = using
         djpcms.init_logging(sites.settings)
-        sites.http.serve(port = port, sites = sites)
+        serve(port = port, sites = sites)

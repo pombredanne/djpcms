@@ -1,4 +1,5 @@
 from inspect import isclass
+from datetime import datetime, date
 from copy import copy, deepcopy
 
 from djpcms import sites, nodata, to_string
@@ -119,8 +120,10 @@ very similar to django forms API.
         '''Clean the field value'''
         if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
-            if self.required and value is None:
+            if self.required and value in NOTHING:
                 raise ValidationError(self.validation_error.format(bfield.name,value))
+            elif not self.required:
+                return value
         return self._clean(value, bfield)
     
     def _clean(self, value, bfield):
@@ -273,14 +276,26 @@ class DateField(Field):
     validation_error = 'Could not recognized date {1}.'
     
     def _clean(self, value, bfield):
-        try:
-            return dateparser(value)
-        except:
-            raise ValidationError(self.validation_error.format(bfield,value))
+        if not isinstance(value, date):
+            try:
+                value = dateparser(value)
+            except:
+                raise ValidationError(self.validation_error.format(bfield,value))
+        return self.todate(value)
+    
+    def todate(self, value):
+        if hasattr(value,'date'):
+            value = value.date()
+        return value
     
 
 class DateTimeField(DateField):
     widget = TextInput(cn = 'dateinput')
+    
+    def todate(self, value):
+        if not hasattr(value, 'date'):
+            value = datetime(value.year, value.month, value.day)
+        return value
 
     
 class BooleanField(Field):

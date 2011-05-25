@@ -1,8 +1,13 @@
 from djpcms import UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
 
+from .wrappers import Request, Response
+
 
 DJPCMS = 'DJPCMS'
+
+
+__all__ = ['DjpCmsHandler','WSGI']
 
 
 class djpcmsinfo(UnicodeMixin):
@@ -17,9 +22,9 @@ class djpcmsinfo(UnicodeMixin):
             self.site = view.site
         else:
             self.site = site
-        
-    def __unicode__(self):
-        return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
+    
+    #def __unicode__(self):
+    #    return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
     
     def djp(self, request = None):
         if self.view:
@@ -45,18 +50,15 @@ class BaseSiteHandler(object):
         raise NotImplementedError
     
     def get_request(self, environ, site = None):
-        request = self.site.http.make_request(environ)
         if DJPCMS not in environ:
             environ[DJPCMS] = djpcmsinfo(None,None,site=site)
-        setattr(request,DJPCMS,environ[DJPCMS])
-        return request
+        return Request(environ)
     
     
 def response_error(f):
     
     def _(self, environ, start_response):
         site = self.site
-        http = site.http
         try:
             return f(self, environ, start_response)
         except Exception as e:
@@ -71,12 +73,8 @@ class DjpCmsHandler(BaseSiteHandler):
 delegate the handling to them.'''
     def __call__(self, environ, start_response):
         self.root.request_started.send(self, environ = environ)
-        res = self._handle(environ, start_response)
-        if DJPCMS in environ:
-            site = environ[DJPCMS].site
-        else:
-            site = self.site
-        res = site.http.finish_response(res, environ, start_response)
+        response = self._handle(environ, start_response)
+        res = response(environ, start_response)
         self.root.request_finished.send(self, environ = environ)
         return res
         
@@ -84,9 +82,8 @@ delegate the handling to them.'''
     def _handle(self, environ, start_response):
         site = self.site
         self.site.load()
-        http = self.site.http
         cleaned_path = site.clean_path(environ)
-        if isinstance(cleaned_path,http.HttpResponse):
+        if isinstance(cleaned_path,Response):
             return cleaned_path
         appsite,view,kwargs = site.resolve(environ['PATH_INFO'][1:])
         environ[DJPCMS] = djpcmsinfo(view,kwargs)
@@ -97,14 +94,12 @@ class WSGI(BaseSiteHandler):
     '''Box standard wsgi response handler'''
     @response_error
     def __call__(self, environ, start_response):
-        info = environ[DJPCMS]
-        site = info.site
-        http = site.http
-        HttpResponse = http.HttpResponse
-        response = None
         request = self.get_request(environ)
+        info = request.DJPCMS
+        site = info.site
+        response = None
         djp = info.djp(request)
-        if isinstance(djp,HttpResponse):
+        if isinstance(djp,Response):
             return djp
         info.page = djp.page
         #signals.request_started.send(sender=self.__class__)
@@ -112,7 +107,7 @@ class WSGI(BaseSiteHandler):
         for middleware_method in site.request_middleware():
             response = middleware_method(request)
             if response:
-                return http.finish_response(response, environ, start_response)
+                return response(environ, start_response)
         self.root.start_response.send(sender=self.__class__, request=request)
         response = djp.response()
         info.instance = djp.instance

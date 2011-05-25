@@ -1,15 +1,10 @@
 import time
 from datetime import datetime, timedelta
 
-from djpcms import http
 from djpcms import http, test
 
 
-class HttpTests(test.TestCase):
-    
-    def setUp(self):
-        self.http = http.get_http()
-        self.Request = self.http.Request
+class Http(test.TestCase):
     
     def environ(self, method = 'POST', input = b'', path = None):
         return {'PATH_INFO': path or '/',
@@ -17,7 +12,7 @@ class HttpTests(test.TestCase):
                 'wsgi.input': http.BytesIO(input)}
         
     def testRequest(self):
-        request = self.Request(self.environ('bogus',path='bogus'))
+        request = http.Request(self.environ('bogus',path='bogus'))
         self.assertFalse(request.GET)
         self.assertFalse(request.POST)
         self.assertFalse(request.COOKIES)
@@ -29,7 +24,7 @@ class HttpTests(test.TestCase):
         self.assertEqual(http.parse_cookie('invalid:key=true'), {})
 
     def test_httprequest_location(self):
-        request = self.Request(self.environ())
+        request = http.Request(self.environ())
         self.assertEqual(request.build_absolute_uri(location="https://www.example.com/asdf"),
             'https://www.example.com/asdf')
 
@@ -40,7 +35,7 @@ class HttpTests(test.TestCase):
 
     def test_near_expiration(self):
         "Cookie will expire when an near expiration time is provided"
-        response = self.http.Response(self.environ())
+        response = http.Response(self.environ())
         # There is a timing weakness in this test; The
         # expected result for max-age requires that there be
         # a very slight difference between the evaluated expiration
@@ -56,21 +51,21 @@ class HttpTests(test.TestCase):
 
     def test_far_expiration(self):
         "Cookie will expire when an distant expiration time is provided"
-        response = self.http.Response(self.environ())
+        response = http.Response(self.environ())
         response.set_cookie('datetime', expires=datetime(2028, 1, 1, 4, 5, 6))
         datetime_cookie = response.cookies['datetime']
         self.assertEqual(datetime_cookie['expires'], 'Sat, 01-Jan-2028 04:05:06 GMT')
 
     def test_max_age_expiration(self):
         "Cookie will expire if max_age is provided"
-        response = self.http.Response(self.environ())
+        response = http.Response(self.environ())
         response.set_cookie('max_age', max_age=10)
         max_age_cookie = response.cookies['max_age']
         self.assertEqual(max_age_cookie['max-age'], 10)
         self.assertEqual(max_age_cookie['expires'], http.cookie_date(time.time()+10))
 
     def test_httponly_cookie(self):
-        response = self.http.Response(self.environ())
+        response = http.Response(self.environ())
         response.set_cookie('example', httponly=True)
         example_cookie = response.cookies['example']
         # A compat cookie may be in use -- check that it has worked
@@ -79,7 +74,7 @@ class HttpTests(test.TestCase):
         self.assertTrue(example_cookie['httponly'])
 
     def test_stream(self):
-        request = self.Request(self.environ(input = b'name=value'))
-        self.assertEqual(request.raw_post_data, b'name=value')
+        request = http.Request(self.environ(input = b'name=value'))
+        self.assertEqual(request.raw_post_data(), b'name=value')
         self.assertEqual(request.POST, {'name': ['value']})
 

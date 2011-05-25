@@ -35,11 +35,6 @@ def makeoptions():
                       dest="template",
                       default='jinja2',
                       help="Template library to use. One of django or jinja2 (default django).")
-    parser.add_option('-g', '--httplib',
-                      action="store",
-                      dest="httplib",
-                      default='',
-                      help="HTTP library to use One of django or nothing (default nothing).")
     parser.add_option("-t", "--type",
                       action="store",
                       dest="test_type",
@@ -68,8 +63,7 @@ def run():
     options, tags = makeoptions().parse_args()
     from testsrunner import run
     config = {'CMS_ORM':options.model,
-              'TEMPLATE_ENGINE':options.template,
-              'HTTP_LIBRARY':options.httplib}
+              'TEMPLATE_ENGINE':options.template}
     run(tags,
         test_type = options.test_type,
         can_fail=options.can_fail,

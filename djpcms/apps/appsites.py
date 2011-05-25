@@ -4,6 +4,7 @@ from threading import Lock
 
 from py2py3 import is_bytes_or_string
 
+from djpcms import http
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured, ApplicationNotAvailable
 from djpcms.utils.structures import OrderedDict
@@ -14,7 +15,6 @@ from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\
 from djpcms.template import loader
 
 from .site import SiteMixin
-from .handlers import WSGI
 
 
 class ApplicationSite(SiteMixin, RouteMixin):
@@ -34,7 +34,7 @@ class ApplicationSite(SiteMixin, RouteMixin):
         self._request_middleware = None
         self._response_middleware = None
         self._template_context_processors = None
-        handler = handler or WSGI
+        handler = handler or http.WSGI
         self.handle = handler(self)
         
     def __repr__(self):

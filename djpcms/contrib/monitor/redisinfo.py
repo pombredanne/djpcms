@@ -10,13 +10,27 @@ from djpcms.utils.structures import OrderedDict
 from djpcms.html import icons
 
 
-from stdnet.utils.format import format_number
+def format_int(val):
+    def _iter(n):
+        n = int(val)
+        c = 0
+        for v in reversed(str(abs(n))):
+            if c == 3:
+                c = 0
+                yield ','
+            else:
+                yield v
+    n = int(val)
+    c = ''.join(reversed(_iter(n)))
+    if n < 0:
+        c = '-{0}'.format(c)
+    return c
 
 
 class ServerForm(forms.Form):
     host = forms.CharField(initial = 'localhost')
     port = forms.IntegerField(initial = 6379)
-    notes = forms.CharField(widget = forms.TextArea)
+    notes = forms.CharField(widget = forms.TextArea, required = False)
 
 
 def niceadd(l,name,value):
@@ -96,14 +110,14 @@ class RedisInfo(object):
         server = self.panels['Server'] = []
         niceadd(server, 'Redis version', self.version)
         niceadd(server, 'Process id', info['process_id'])
-        niceadd(server, 'Total keys', format_number(self.tot_keys))
+        niceadd(server, 'Total keys', format_int(self.tot_keys))
         niceadd(server, 'Memory used', info['used_memory_human'])
         niceadd(server, 'Up time', nicetimedelta(info['uptime_in_seconds']))
         niceadd(server, 'Append Only File', 'yes' if info.get('aof_enabled',False) else 'no')
         niceadd(server, 'Virtual Memory enabled', 'yes' if info['vm_enabled'] else 'no')
         niceadd(server, 'Last save', nicedate(info['last_save_time']))
-        niceadd(server, 'Commands processed', format_number(info['total_commands_processed']))
-        niceadd(server, 'Connections received', format_number(info['total_connections_received']))
+        niceadd(server, 'Commands processed', format_int(info['total_commands_processed']))
+        niceadd(server, 'Connections received', format_int(info['total_connections_received']))
     
 
 class RedisInfo22(RedisInfo):
@@ -125,8 +139,6 @@ class RedisInfo22(RedisInfo):
         info = self.info
         for name in self.names:
             self.makepanel(name)
-        #nicedate(persistence['last_save_time'])
-        #format_number(stats['total_commands_processed'])
             
             
 def redis_info(info,path):

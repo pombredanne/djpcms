@@ -3,7 +3,7 @@ import traceback
 from copy import copy
 
 import djpcms
-from djpcms import forms
+from djpcms import forms, http
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
@@ -87,16 +87,13 @@ also include a model instance).
 
     Web site holder.
 '''
-    def __init__(self, request, view, wrapper = None, prefix = None, **kwargs):
+    def __init__(self, request, view, **kwargs):
         self.request    = request
         self.view       = view
         self.kwargs     = kwargs
         site            = view.site
         self.site       = site
         self.settings   = site.settings
-        self.http       = site.http
-        self.wrapper    = wrapper
-        self.prefix     = prefix
     
     def __unicode__(self):
         try:
@@ -268,7 +265,6 @@ the parent of the embedded view.'''
         is_ajax = request.is_xhr
         page    = self.page
         site    = self.site
-        http    = site.http
         method  = request.method.lower()
         
         # Check for page view permissions
@@ -277,7 +273,7 @@ the parent of the embedded view.'''
         
         # chanse to bail out early
         re = view.preprocess(self)
-        if isinstance(re,http.HttpResponse):
+        if isinstance(re,http.Response):
             return re
             
         if not is_ajax:
@@ -306,12 +302,12 @@ the parent of the embedded view.'''
             except Exception as e:
                 res = handle_ajax_error(self,e)
             try:
-                return self.http.HttpResponse(res.dumps(),
-                                              content_type = res.mimetype())
+                return http.Response(res.dumps(),
+                                     content_type = res.mimetype())
             except Exception as e:
                 res = handle_ajax_error(self,e)
-                return self.http.HttpResponse(res.dumps(),
-                                              content_type = res.mimetype())
+                return http.Response(res.dumps(),
+                                     content_type = res.mimetype())
     
     def render_to_response(self, context):
         css = self.css
@@ -330,9 +326,9 @@ the parent of the embedded view.'''
         
         context = loader.context(context, self.request)
         html = loader.render(self.template_file, context)
-        return self.http.HttpResponse(html,
-                                      content_type = 'text/html',
-                                      encoding = self.settings.DEFAULT_CHARSET)
+        return http.Response(html,
+                             content_type = 'text/html',
+                             encoding = self.settings.DEFAULT_CHARSET)
         
     @storegenarator
     def children(self):
@@ -360,7 +356,7 @@ the parent of the embedded view.'''
         if self.is_xhr:
             return jredirect(url = url)
         else:
-            return self.http.HttpResponseRedirect(url)
+            return http.ResponseRedirect(url)
         
     def instancecode(self):
         '''If an instance is available, return a unique code for it. Otherwise return None.''' 

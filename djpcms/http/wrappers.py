@@ -3,17 +3,26 @@ import re
 import logging
 import time
 from datetime import datetime, timedelta
-from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
 from py2py3 import itervalues,is_string,to_string, ispy3k
 
-from djpcms.apps.handlers import DjpCmsHandler
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
 
 from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie,\
                    BytesIO, cookie_date, urljoin
+from .multiparser import MultiPartParser
+
+
+__all__ = ['STATUS_CODE_TEXT',
+           'UNKNOWN_STATUS_CODE',
+           'Request',
+           'Response',
+           'ResponseRedirect',
+           'HttpException',
+           'Http404',
+           'path_with_query']
 
 
 STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
@@ -34,16 +43,6 @@ else:
     def to_header_strings(*values):
         for value in values:
             yield str(value)
-
-
-def serve(port = 0, sites = None, use_reloader = False):
-    """Create a new WSGI server listening on `host` and `port` for `app`"""
-    log = logging.getLogger()
-    server = WSGIServer(('', port), WSGIRequestHandler)
-    app = DjpCmsHandler(sites)
-    server.set_app(app)
-    log.info('Serving on port {0}'.format(port))
-    server.serve_forever()
     
     
 def set_header(self, key, value):
@@ -72,6 +71,7 @@ class QueryDict(MultiValueDict):
 class Request(object):
     '''Simple WSGI Request class'''
     _encoding = None
+    upload_handlers = []
     
     def __init__(self, environ):
         self.environ = environ
@@ -85,15 +85,19 @@ class Request(object):
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
             and self.environ['wsgi.url_scheme'] == 'https'
-            
+    
     @property
     def encoding(self):
         if not self._encoding:
             try:
-                self._encoding = self.environ['DJPCMS'].site.settings.DEFAULT_CHARSET
+                self._encoding = self.DJPCMS.site.settings.DEFAULT_CHARSET
             except:
                 self._encoding = 'utf-8'
         return self._encoding
+    
+    @property
+    def DJPCMS(self):
+        return self.environ.get('DJPCMS',None)
     
     def _get_request(self):
         if not hasattr(self, '_request'):
@@ -161,30 +165,22 @@ class Request(object):
     def _load_post_and_files(self):
         # Populates self._post and self._files
         if self.method != 'POST':
-            self._post, self._files = QueryDict('', encoding=self._encoding), MultiValueDict()
-            return
-        if self._read_started:
-            self._mark_post_parse_error()
-            return
-
-        if self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
+            self._post, self._files = QueryDict('', encoding=self.encoding),\
+                                        MultiValueDict()
+        elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
             self._raw_post_data = ''
-            try:
-                self._post, self._files = self.parse_file_upload(self.META, self)
-            except:
-                # An error occured while parsing POST data.  Since when
-                # formatting the error the request handler might access
-                # self.POST, set self._post and self._file to prevent
-                # attempts to parse POST data again.
-                # Mark that an error occured.  This allows self.__repr__ to
-                # be explicit about it instead of simply representing an
-                # empty POST
-                self._mark_post_parse_error()
-                raise
+            self._post, self._files = self.parse_file_upload(self.META, self)
         else:
-            self._post, self._files = QueryDict(self.raw_post_data, encoding=self.encoding), MultiValueDict()
+            self._post, self._files = QueryDict(self.raw_post_data(),\
+                                         encoding=self.encoding), MultiValueDict()
 
-    def _get_raw_post_data(self):
+    def parse_file_upload(self, META, post_data):
+        """Returns a tuple of (POST QueryDict, FILES MultiValueDict)."""
+        upload_handlers = self.DJPCMS.upload_handlers()
+        parser = MultiPartParser(META, post_data, upload_handlers, self.encoding)
+        return parser.parse()
+    
+    def raw_post_data(self):
         if not hasattr(self, '_raw_post_data'):
             if self._read_started:
                 raise Exception("You cannot access raw_post_data after reading from request's data stream")
@@ -198,7 +194,6 @@ class Request(object):
                 self._raw_post_data = self._stream.read()
             self._stream = BytesIO(self._raw_post_data)
         return self._raw_post_data
-    raw_post_data = property(_get_raw_post_data)
     
     def get_full_path(self):
         # RFC 3986 requires query string arguments to be in the ASCII range.
@@ -220,13 +215,16 @@ class Request(object):
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
     
+    def djp(self, view = None, **kwargs):
+        info = self.DJPCMS
+        if view is None:
+            return info.djp(self)
+        else:
+            return view(self,**kwargs)
+            
     
-    
-make_request = Request
 
-
-
-class HttpResponse(object):
+class Response(object):
     DEFAULT_CONTENT_TYPE = 'text/plain'
     status = 200
     
@@ -339,16 +337,11 @@ class HttpResponse(object):
         return self
 
     
-
-Response = HttpResponse
-
-def finish_response(response, environ, start_response):
-    return response(environ, start_response)
-
-
-class HttpResponseRedirect(HttpResponse):
+class ResponseRedirect(Response):
     status_code = 302
 
     def __init__(self, redirect_to):
-        super(HttpResponseRedirect, self).__init__()
+        super(ResponseRedirect, self).__init__()
         self['Location'] = iri_to_uri(redirect_to)
+
+

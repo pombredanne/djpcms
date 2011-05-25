@@ -7,6 +7,9 @@ class DjpcmsException(Exception):
         super(DjpcmsException,self).__init__(*args,**kwargs)
 
 
+class SuspiciousOperation(DjpcmsException):
+    pass
+
 class ImproperlyConfigured(DjpcmsException):
     '''A :class:`DjpcmsException` raised when djpcms has inconsistent configuration.'''
     pass

@@ -1,6 +1,7 @@
 '''\
 Utilities for displaying interactive table with pagination and actions.
 '''
+from djpcms import http
 from djpcms.template import loader
 from djpcms.utils.text import nicename
 from djpcms.html import icons
@@ -65,7 +66,7 @@ Render a table given a response object ``djp``.
                 model = data.model
             except AttributeError:
                 pass
-        path  = djp.http.path_with_query(djp.request)
+        path  = http.path_with_query(djp.request)
         
         # model available
         if model:

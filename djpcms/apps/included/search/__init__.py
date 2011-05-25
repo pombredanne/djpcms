@@ -32,6 +32,7 @@ HtmlSearchForm = forms.HtmlForm(
 
 
 class SearchQuery(views.View):
+    '''This view renders as a search box'''
     isplugin = True
     def __init__(self, in_navigation = 0, astable = True, **kwargs):
         super(SearchQuery,self).__init__(in_navigation=in_navigation,
@@ -42,7 +43,9 @@ class SearchQuery(views.View):
         return self.get_form(djp).render(djp)
 
 
-class SearchView(SearchQuery):    
+class SearchView(SearchQuery):
+    '''This view renders the search results'''
+    
     @property
     def engine(self):
         return self.appmodel.engine    

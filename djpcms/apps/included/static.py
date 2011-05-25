@@ -10,9 +10,8 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views
+from djpcms import views, http
 from djpcms.utils.importer import import_module
-from djpcms.http.utils import http_date
 from djpcms.template import loader
 
 # Third party application list.
@@ -92,7 +91,6 @@ class StaticRootView(StaticView):
         appmodel = self.appmodel
         site = self.site
         mapping = appmodel.loadapps(site)
-        http = site.http
         directory = request.path
         notroot = directory != '/'
         if appmodel.show_indexes:
@@ -101,10 +99,9 @@ class StaticRootView(StaticView):
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
-            return http.HttpResponse(html,
-                                     content_type = 'text/html')
+            return http.Response(html,content_type = 'text/html')
         else:
-            raise request.http.Http404
+            raise http.Http404
 
 
 class StaticFileView(StaticView):
@@ -112,7 +109,6 @@ class StaticFileView(StaticView):
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
         site = self.site
-        http = site.http
         mapping = appmodel.loadapps(site)
         paths = kwargs['path'].split('/')
         app = paths.pop(0)
@@ -147,11 +143,9 @@ class StaticFileView(StaticView):
                               'files':files,
                               'directory':request.path,
                               'notroot':True})
-        return self.site.http.HttpResponse(html,
-                                           content_type = 'text/html')
+        return http.HttpResponse(html, content_type = 'text/html')
         
     def serve_file(self, request, fullpath):
-        http = self.site.http
         # Respect the If-Modified-Since header.
         statobj = os.stat(fullpath)
         mimetype, encoding = mimetypes.guess_type(fullpath)
@@ -159,15 +153,15 @@ class StaticFileView(StaticView):
         if not self.was_modified_since(request.environ.get('HTTP_IF_MODIFIED_SINCE',None),
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
-            return http.HttpResponse(status = 304,
-                                     content_type=mimetype,
-                                     encoding = encoding)
+            return http.Response(status = 304,
+                                 content_type=mimetype,
+                                 encoding = encoding)
         contents = open(fullpath, 'rb').read()
-        response = http.HttpResponse(contents,
-                                     content_type=mimetype,
-                                     encoding = encoding)
-        http.set_header(response, "Last-Modified", http_date(statobj[stat.ST_MTIME]))
-        http.set_header(response, "Content-Length", len(contents))
+        response = http.Response(contents,
+                                 content_type=mimetype,
+                                 encoding = encoding)
+        response.set_header("Last-Modified", http.http_date(statobj[stat.ST_MTIME]))
+        response.set_header("Content-Length", len(contents))
         return response
     
     def was_modified_since(self, header=None, mtime=0, size=0):
@@ -205,7 +199,6 @@ class FavIconView(StaticFileView):
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
         site = self.site
-        http = site.http
         if not kwargs:
             mapping = appmodel.loadapps(site)
             name = site.settings.SITE_MODULE

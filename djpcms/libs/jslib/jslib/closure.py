@@ -1,5 +1,3 @@
-#!/usr/bin/python2.4
-
 import httplib, urllib, sys
 
 # Define the parameters for the POST request and encode them in

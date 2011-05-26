@@ -143,7 +143,7 @@ class StaticFileView(StaticView):
                               'files':files,
                               'directory':request.path,
                               'notroot':True})
-        return http.HttpResponse(html, content_type = 'text/html')
+        return http.Response(html, content_type = 'text/html')
         
     def serve_file(self, request, fullpath):
         # Respect the If-Modified-Since header.

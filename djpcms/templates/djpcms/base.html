@@ -1,7 +1,7 @@
 {# BATTERY INCLUDED SIMPLE TEMPLATE FOR QUICK DEVELOPMENT #}
 {# YOU NEED TO DEFINE YOUR root.html TEMPLATE TO USE THIS #}
 {% extends "root.html" %}{% block html_container %}{% if not is_popup %}
-<div id="page-header">
+<div id="page-header">{% block site_pre_header %}{% endblock %}
 <div id="site-header"{% block site_header_class %} class="{{ grid.container_class }}"{% endblock %}>
 {% block site_header %}{% endblock %}</div>
 </div>{% endif %}

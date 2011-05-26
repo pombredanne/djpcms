@@ -21,7 +21,7 @@ Version 0.9.0 - Development
 * Applications can be reloaded at runtime. Useful for testing, but maybe more.
 * Four examples in the examples directory.
 * Added more docs on views and applications.
-* **72 unit tests**. Coverage **51%**.
+* **72 unit tests**. Coverage **40%**.
 
 Version 0.8.5 (2010-Nov-16)
 =======================================

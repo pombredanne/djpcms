@@ -791,13 +791,11 @@ This dictionary should be used to render an object within a template. It returns
         This function can be overritten by derived classes
         '''
         request = djp.request
-        wrapper = djp.wrapper
-        prefix = djp.prefix
         app = self
         render = loader.render
         for obj in data:
             content = app.object_content(djp, obj)
-            yield render(self.get_item_template(obj, wrapper), content)
+            yield render(self.get_item_template(obj), content)
     
     def get_object_view_template(self, obj, wrapper):
         '''Return the template file which render the object *obj*.
@@ -811,7 +809,7 @@ The search looks in::
         return ['%s/%s' % (opts.app_label,template_name),
                 'djpcms/components/object.html']
             
-    def get_item_template(self, obj, wrapper):
+    def get_item_template(self, obj):
         '''
         Search item template. Look in
          1 - <<app_label>>/<<module_name>>_list_item.html

@@ -164,6 +164,13 @@ def get_form(djp,
         widget.addClass(str(model._meta).replace('.','-'))
     return widget
 
+
+def return_form_errors(fhtml,djp):
+    if djp.request.is_xhr:
+        return fhtml.layout.json_messages(fhtml.form)
+    else:
+        return djp.view.handle_response(djp)
+    
     
 def saveform(djp, editing = False, force_redirect = False):
     '''Comprehensive save method for forms.

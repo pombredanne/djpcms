@@ -356,6 +356,15 @@ CssContext('javascript_logging_paragraph',
         }
 )
 
+#________________________________________ TABOVERRIDE
+CssContext('taboverride',
+           tag = 'textarea.taboverride',
+           data = {
+                   'font_family': 'monospace',
+                   'margin':'0'
+                   }
+           )
+
 #________________________________________ SPECIAL IDS AND CLASSES
 CssContext('server_exception',
            tag = '.server-exception',

@@ -15,6 +15,7 @@
     color: {{ active_color }};
 }{% endif %}
 
+
 /* level 2 list */
 {{ tag }} ul {
     background: {{ hover_background }};{% if secondary_border %}
@@ -23,6 +24,17 @@
     -moz-box-shadow: {{ drop_down_shadow }};
     box-shadow: {{ drop_down_shadow }};{% endif %}
 }
+
+{{ tag }} li li.ui-state-active { {% if secondary_active_background %}
+    background: {{ secondary_active_background }};{% endif %}
+}{% if secondary_active_color %}
+{{ tag }} li li.ui-state-active a,
+{{ tag }} li li.ui-state-active a:hover,
+{{ tag }} li li.ui-state-active a:visited {
+    color: {{ secondary_active_color }};
+}{% endif %}
+
+
 {{ tag }} li:hover > ul {
     display: block;
 }
@@ -30,6 +42,7 @@
 {{ tag }} ul li:hover { {% if secondary_hover_background %}
     background: {{ secondary_hover_background }};{% endif %}
 }
+
 
 {{ tag }} li ul li {
     line-height:2em;

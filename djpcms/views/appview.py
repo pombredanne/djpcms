@@ -255,6 +255,7 @@ views::
 '''
     default_title = None
     creation_counter = 0
+    description = None
     plugin_form    = None
     view_template  = 'djpcms/components/pagination.html'
     force_redirect = False
@@ -291,7 +292,7 @@ views::
                  inherit_page = True,
                  append_slash = True):
         self.name        = None
-        self.description = description
+        self.description = description if description is not None else self.description
         self.parent    = parent
         self.isplugin  = isplugin if isplugin is not None else self.isplugin
         self.in_nav    = int(in_navigation)
@@ -382,8 +383,8 @@ views::
     def names(self):
         return self.regex.names
     
-    def get_media(self):
-        return self.appmodel.media
+    def media(self):
+        return self.appmodel.media()
     
     def in_navigation(self, request, page):
         if not self.appmodel.hidden:

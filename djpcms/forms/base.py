@@ -14,7 +14,7 @@ from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 from djpcms.utils.const import NOTHING
-from djpcms.html import media_property, List, SubmitInput
+from djpcms.html import List, SubmitInput
 
 from .globals import *
 from .formsets import FormSet
@@ -68,8 +68,6 @@ class FormType(type):
         attrs['base_fields'] = fields
         attrs['base_inlines'] = inlines
         new_class = super(FormType,cls).__new__(cls, name, bases, attrs)
-        if 'media' not in attrs:
-            new_class.media = media_property(new_class)
         return new_class
     
 

@@ -40,7 +40,7 @@ def standard_exception_handle(request, e, status = None):
     site = info.site
     settings = site.settings
     exc_info = sys.exc_info()
-    if not site or not hasattr(site,'exception_middleware'):
+    if site is None or not hasattr(site,'exception_middleware'):
         raise
     for middleware_method in site.exception_middleware():
         try:

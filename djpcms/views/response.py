@@ -3,12 +3,11 @@ import traceback
 from copy import copy
 
 import djpcms
-from djpcms import forms, http
+from djpcms import forms, http, html
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied, PathException
-from djpcms.html import LazyRender, htmldoc
 
 from .navigation import Navigator, Breadcrumbs
 
@@ -158,8 +157,10 @@ which corresponds to ``self``'''
         
     def __get_media(self):
         media = getattr(self,'_media',None)
-        if not media:
-            media = self.view.get_media()
+        if media is None:
+            media = self.view.media()
+            if media is None:
+                media = html.Media()
             setattr(self,'_media',media)
         return media
     def __set_media(self, other):
@@ -243,11 +244,11 @@ the parent of the embedded view.'''
     
     def doc_type(self):
         page = self.page
-        return htmldoc(None if not page else page.doctype).name
+        return html.htmldoc(None if not page else page.doctype).name
     
     def html(self):
         '''Render itself'''
-        return LazyRender(self)
+        return html.LazyRender(self)
             
     def robots(self):
         '''Robots

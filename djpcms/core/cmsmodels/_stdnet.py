@@ -78,6 +78,9 @@ class Page(TimeStamp, PageInterface):
 
     def __unicode__(self):
         return self.url
+    
+    def blocks(self):
+        return self.blockcontents.all()
 
     def published(self):
         return self in Page.objects.published()
@@ -113,7 +116,7 @@ class BlockManager(orm.Manager,BlockContentManager):
     pass
 
 
-class BlockContent(ModelBase, BlockInterface):
+class BlockContent(BlockInterface, ModelBase):
     '''A block content object is responsible storing :class:`djpcms.plugins.DJPplugin`
 and for maintaining their position in a :class:`djpcms.models.Page`.
     '''
@@ -128,9 +131,6 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
     requires_login = field.BooleanField(default = False, index = False)
     
     objects = BlockManager()
-    
-    def __unicode__(self):
-        return self.htmlid()
     
     class Meta:
         app_label = 'djpcms'

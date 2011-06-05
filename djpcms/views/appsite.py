@@ -10,8 +10,7 @@ from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
 
 import djpcms
 from djpcms import forms
-from djpcms.html import ObjectDefinition, Paginator, Table,\
-                        SubmitInput, MediaDefiningClass
+from djpcms.html import ObjectDefinition, Paginator, Table, SubmitInput
 from djpcms.template import loader
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -70,7 +69,7 @@ similar fields on the base classes (in 'bases')."""
     return OrderedDict(views),OrderedDict(apps)
 
 
-class ApplicationMetaClass(MediaDefiningClass):
+class ApplicationMetaClass(type):
     
     def __new__(cls, name, bases, attrs):
         views,apps = get_declared_application_views(bases, attrs)
@@ -216,6 +215,7 @@ of objects. Default is ``None``.'''
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
 
+    in_navigation = None
     actions = []
     astable = None
     # Submit buton customization
@@ -240,7 +240,7 @@ of objects. Default is ``None``.'''
         self.astable = astable if astable is not None else self.astable
         self.root_view = None
         self.template_name = template_name or self.template_name
-        self.in_navigation = in_navigation
+        self.in_navigation = in_navigation if in_navigation is not None else self.in_navigation
         self.editavailable = editavailable
         self.baseurl = RegExUrl(baseurl)
         self.list_per_page = list_per_page or self.list_per_page

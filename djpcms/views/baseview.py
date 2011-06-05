@@ -5,7 +5,6 @@ from py2py3 import range
 import djpcms
 from djpcms import UnicodeMixin, forms, http
 from djpcms.utils.ajax import jredirect, dialog
-from djpcms.html import Media
 from djpcms.template import loader
 from djpcms.utils import parentpath
 
@@ -21,7 +20,7 @@ __all__ = ['RendererMixin',
     
 class RendererMixin(UnicodeMixin,RouteMixin):
     '''\
-A mixin class for rendering objects
+A mixin class for rendering objects as HTML
 
     .. attribute:: appmodel
     
@@ -56,6 +55,9 @@ other wise the ``render`` method of the :attr:`appmodel`.
 belongs to a user, otherwise returns ``None``.'''
         return None
     
+    def media(self):
+        '''The rendere media'''
+        return None    
 
 
 class djpcmsview(RendererMixin):
@@ -79,9 +81,6 @@ http requests.
     logger = logging.getLogger('djpcmsview')
     
     _methods      = ('get','post')
-
-    def get_media(self):
-        return Media()
     
     def __unicode__(self):
         try:

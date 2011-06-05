@@ -10,11 +10,7 @@ from djpcms.utils import mark_safe
 
 urljoin = urlparse.urljoin
 
-__all__ = ['MEDIA_TYPES',
-           'Media',
-           'media_property',
-           'MediaDefiningClass',
-           'BaseMedia']
+__all__ = ['MEDIA_TYPES', 'Media']
 
 
 MEDIA_TYPES = ('css','js')
@@ -77,51 +73,12 @@ class Media(object):
                         self._css.setdefault(medium, []).append(path)
 
     def __add__(self, other):
-        combined = Media()
-        for name in MEDIA_TYPES:
-            getattr(combined, 'add_' + name)(getattr(self, '_' + name, None))
-            getattr(combined, 'add_' + name)(getattr(other, '_' + name, None))
-        return combined
-
-
-def media_property(cls):
-    def _media(self):
-        # Get the media property of the superclass, if it exists
-        if hasattr(super(cls, self), 'media'):
-            base = super(cls, self).media
+        if isinstance(other,Media):
+            combined = Media()
+            for name in MEDIA_TYPES:
+                getattr(combined, 'add_' + name)(getattr(self, '_' + name, None))
+                getattr(combined, 'add_' + name)(getattr(other, '_' + name, None))
+            return combined
         else:
-            base = Media()
+            return self
 
-        # Get the media definition for this class
-        definition = getattr(cls, 'Media', None)
-        if definition:
-            extend = getattr(definition, 'extend', True)
-            if extend:
-                if extend == True:
-                    m = base
-                else:
-                    m = Media()
-                    for medium in extend:
-                        m = m + base[medium]
-                return m + Media(definition)
-            else:
-                return Media(definition)
-        else:
-            return base
-    return property(_media)
-
-
-class MediaDefiningClass(type):
-    "Metaclass for classes that can have media definitions"
-    def __new__(cls, name, bases, attrs):
-        super_new = super(MediaDefiningClass, cls).__new__
-        parents = [b for b in bases if isinstance(b, MediaDefiningClass)]
-        if not parents or attrs.pop('virtual',False):
-            return super_new(cls, name, bases, attrs)
-        new_class = super_new(cls, name, bases, attrs)
-        if 'media' not in attrs:
-            new_class.media = media_property(new_class)
-        return new_class
-    
-
-BaseMedia = MediaDefiningClass('BaseMedia',(object,),{})

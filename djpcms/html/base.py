@@ -7,7 +7,6 @@ from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 from djpcms.template import loader
-from .media import BaseMedia
 
 
 __all__ = ['flatatt',
@@ -118,7 +117,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
 
 
-class HtmlWidget(BaseMedia,HtmlAttrMixin):
+class HtmlWidget(HtmlAttrMixin):
     '''Base class for HTML components.
 It derives from :class:`djpcms.html.BaseMedia` and
 :class:`djpcms.html.HtmlAttrMixin`. Anything which is rendered as HTML
@@ -188,9 +187,9 @@ is derived from this class.
         if self.default_class:
             self.addClass(self.default_class)
         self.addClass(cn)
-        media = self.media
-        media.add_js(js)
-        media.add_css(css)
+        #media = self.media
+        #media.add_js(js)
+        #media.add_css(css)
     
     def ischeckbox(self):
         return False
@@ -233,6 +232,9 @@ the :meth:`render` method.'''
             return loader.render(self.template,context)
         else:
             return ''
+        
+    def media(self):
+        return None
 
 
 class HtmlWrap(HtmlWidget):

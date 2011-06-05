@@ -4,7 +4,7 @@ from py2py3 import iteritems
 
 from djpcms.utils import slugify, merge_dict, escape
 from djpcms.template import loader
-from djpcms.html import BaseMedia, HtmlWidget
+from djpcms.html import HtmlWidget
 from djpcms.html.widgets import *
 
 

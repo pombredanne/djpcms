@@ -45,6 +45,7 @@ class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''
     has_plugins = False
+    in_navigation = 100
     query_template = ADMIN_GROUP_TEMPLATE
     home = views.GroupView(in_navigation = 1)
     

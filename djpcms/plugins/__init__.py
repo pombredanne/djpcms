@@ -3,7 +3,6 @@ import logging
 import json
 
 from djpcms import forms
-from djpcms.html import MediaDefiningClass
 from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str
 from djpcms.utils.text import capfirst, nicename
@@ -35,12 +34,9 @@ def register_application(app, name = None, description = None):
         p = app.get_plugin()
     else:
         p = ApplicationPlugin(app)
-    #media = p.media + app.get_media()
-    #p.__class__.media = media
-    #p.register()
 
 
-class DJPpluginMetaBase(MediaDefiningClass):
+class DJPpluginMetaBase(type):
     '''
     Just a metaclass to differentiate plugins from other calsses
     '''
@@ -97,6 +93,9 @@ This function should be implemented by derived classes.
     def _register(self):
         global _wrapper_dictionary
         _wrapper_dictionary[self.name] = self
+        
+    def media(self):
+        return None
 
 
 class DJPplugin(DJPpluginBase):
@@ -116,9 +115,6 @@ The basics:
     '''A short description to display in forms.'''
     form          = None
     '''Form class for editing the plugin parameters. Default ``None``, the plugin has no arguments.'''
-    form_withrequest = False
-    '''Equivalent to :attr:`djpcms.views.appsite.ModelApplication.form_withrequest`. If set to ``True``,
-    the ``request`` instance is passed to the :attr:`form` constructor. Default is ``False``.'''
     permission      = 'authenticated'
     #storage       = _plugin_dictionary
     #URL           = None
@@ -200,6 +196,9 @@ If your plugin needs input parameters when editing, simple set the
             return self.name == other.name
         return False
     
+    def media(self):
+        return None
+    
 
 class EmptyPlugin(DJPplugin):
     '''
@@ -219,8 +218,6 @@ the plugin will display the search view for that application.
     description = 'Current View'
     
     def render(self, djp, wrapper, prefix, **kwargs):
-        djp.wrapper = wrapper
-        djp.prefix  = prefix
         return djp.view.render(djp)
     
     
@@ -257,13 +254,11 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
                 t_djp = self.app(djp.request, **args)
             else:
                 t_djp = djp
-            t_djp.wrapper = wrapper
-            t_djp.prefix  = prefix
             html = self.app.render(t_djp)
-            # Add media. It must be after having called render!!
-            if djp != t_djp:
-                djp.media += t_djp.media
         return html
+    
+    def media(self):
+        return self.app.media()
     
 
 class JavascriptLogger(DJPplugin):

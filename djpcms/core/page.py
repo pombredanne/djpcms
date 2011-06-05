@@ -25,6 +25,10 @@ class PageInterface(object):
     def numblocks(self):
         raise NotImplementedError
     
+    def blocks(self):
+        '''Iterator over block contents'''
+        raise NotImplementedError
+    
     def create_template(self, name, templ):
         raise NotImplementedError
     
@@ -115,7 +119,7 @@ with the wrapper callable.'''
             wrapper = wrapper or self.wrapper
             if plugin:
                 if site.permissions.has(djp.request,djpcms.VIEW, self):
-                    djp.media += plugin.media
+                    djp.media += plugin.media()
                     html = plugin(djp, self.arguments, wrapper = wrapper)
         except Exception as e:
             if getattr(djp.settings,'TESTING',False):
@@ -132,9 +136,6 @@ with the wrapper callable.'''
             return wrapper(djp, self, html)
         else:
             return html
-        
-    def htmlid(self):
-        return 'blockcontent-{0}'.format(self)
     
     def pluginid(self, extra = ''):
         p = 'plugin-{0}'.format(self)
@@ -144,6 +145,9 @@ with the wrapper callable.'''
             
     def htmlid(self):
         return 'block-{0}'.format(self.id)
+    
+    def __unicode__(self):
+        return self.htmlid()
     
     @classmethod
     def block_from_html_id(cls, htmlid):

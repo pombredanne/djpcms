@@ -34,21 +34,18 @@ HtmlSearchForm = forms.HtmlForm(
 class SearchQuery(views.View):
     '''This view renders as a search box'''
     isplugin = True
-    def __init__(self, in_navigation = 0, astable = True, **kwargs):
-        super(SearchQuery,self).__init__(in_navigation=in_navigation,
-                                        astable=astable,
-                                        **kwargs)
+    astable = True
+    
+    @property
+    def engine(self):
+        return self.appmodel.engine
         
     def render(self, djp):
         return self.get_form(djp).render(djp)
 
 
 class SearchView(SearchQuery):
-    '''This view renders the search results'''
-    
-    @property
-    def engine(self):
-        return self.appmodel.engine    
+    '''This view renders the search results'''    
     
     def appquery(self, djp):
         '''This function implements the search query.
@@ -75,8 +72,8 @@ It returns a queryset.
                                 list(self.appmodel.gen_autocomplete(qs)))
         
     
-
 class Application(views.Application):
+    for_models = None
     engine = None
     query = SearchQuery(form = HtmlSearchForm,
                         form_method = 'GET',

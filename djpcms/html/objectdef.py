@@ -36,15 +36,16 @@ Usage::
     def __init__(self, appmodel, djp, data = None):
         self.appmodel = appmodel
         self.djp = djp
-        self.obj = djp.instance
         self.data = data
+        self.mapper = None if not appmodel else appmodel.mapper
+        self.obj = djp.instance
            
     def __unicode__(self):
         '''Render an object as definition list.'''
         appmodel = self.appmodel
-        mapper = appmodel.mapper
+        mapper = self.mapper
         if self.data:
-            ctx = {'id':mapper.unique_id(self.obj)}
+            ctx = {'id':None if not mapper else mapper.unique_id(self.obj)}
             items = self.data
         else:
             headers = self.appmodel.object_display

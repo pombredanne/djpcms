@@ -8,9 +8,8 @@ from djpcms import sites, forms, http
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _
-from djpcms.utils import force_str
+from djpcms.utils import force_str, ajax
 from djpcms.utils.dates import format
-from djpcms.utils.ajax import jredirect, jremove
 from djpcms.html import HiddenInput
 
 from .globals import *
@@ -44,7 +43,7 @@ Usage::
 '''
     #if request and withdata and request.method == method and own_view:
     data = getattr(request,request.method)
-    if request.method == method:
+    if request.method == method and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
         #data = dict(data.items())
@@ -197,7 +196,7 @@ has been submitted.'''
                 redirect_url = appmodel.searchurl(request) or '/'
 
         if is_ajax:
-            return jredirect(url = redirect_url)
+            return ajax.jredirect(url = redirect_url)
         else:
             return http.ResponseRedirect(redirect_url)
     
@@ -208,6 +207,8 @@ has been submitted.'''
             instance = f.save()
         else:
             instance = f.save_as_new()
+        if ajax.isajax(instance):
+            return instance
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)
@@ -237,7 +238,7 @@ has been submitted.'''
         # We are Redirecting
         set_request_message(f,request)
         if is_ajax:
-            return jredirect(url = redirect_url)
+            return ajax.jredirect(url = redirect_url)
         else:
             return http.ResponseRedirect(redirect_url)
     else:
@@ -263,10 +264,10 @@ def deleteinstance(djp, force_redirect = False):
     msg     = 'Successfully deleted %s' % instance
     if request.is_xhr:
         if next == curr and bid and not force_redirect:
-            return jremove('#%s' % bid)
+            return ajax.jremove('#%s' % bid)
         else:
             messages.info(request,msg)
-            return jredirect(next)
+            return ajax.jredirect(next)
     else:
         messages.info(request,msg)
         next = next or curr

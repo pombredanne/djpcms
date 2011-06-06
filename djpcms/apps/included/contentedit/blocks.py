@@ -146,7 +146,7 @@ for editing plugin contents.'''
         '''Move the content block to a new position and updates all html attributes'''
         request = djp.request
         contentblock = djp.instance
-        data   = request.data_dict
+        data   = request.REQUEST
         try:            
             previous = data.get('previous',None)
             if previous:

@@ -262,6 +262,7 @@ views::
     headers        = None
     astable        = False
     isplugin = False
+    in_nav = 0
     _form          = None
     _form_ajax     = None
     form_method = 'POST'
@@ -277,7 +278,7 @@ views::
                  renderer      = None,
                  title         = None,
                  permission    = None,
-                 in_navigation = 0,
+                 in_navigation = None,
                  template_name = None,
                  view_template = None,
                  force_redirect = None,
@@ -295,7 +296,7 @@ views::
         self.description = description if description is not None else self.description
         self.parent    = parent
         self.isplugin  = isplugin if isplugin is not None else self.isplugin
-        self.in_nav    = int(in_navigation)
+        self.in_nav    = in_navigation if isinstance(in_navigation,int) else self.in_nav
         self.appmodel  = None
         self.insitemap = insitemap
         self.urlbit    = RegExUrl(regex,append_slash)

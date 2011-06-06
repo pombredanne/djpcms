@@ -5,6 +5,9 @@ import json
 from djpcms.utils import force_str
 from djpcms.utils.structures import OrderedDict
 
+def isajax(obj):
+    return isinstance(obj,jsonbase)
+   
    
 class jsonbase(object):
     '''Base class for JSON AJAX utilities'''

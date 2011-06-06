@@ -57,6 +57,10 @@ It returns a queryset.
         if f.is_valid():
             q = f.form.cleaned_data['q']
             if q:
+                if hasattr(self.appmodel,'for_models'):
+                    for_models = self.appmodel.for_models
+                    if for_models:
+                        pass
                 return self.engine.search(q)
     
     def render(self, djp):

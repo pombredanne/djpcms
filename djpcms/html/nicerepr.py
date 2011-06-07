@@ -102,7 +102,10 @@ def results_for_item(djp, headers, result,
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
 '''
     if not appmodel:
-        appmodel = djp.view.site.for_model(result.__class__)
+        try:
+            appmodel = djp.view.site.for_model(result.__class__)
+        except:
+            appmodel = None
     if not mapper and appmodel:
         mapper = appmodel.mapper
     if mapper:

@@ -48,6 +48,7 @@ class Table(object):
                  template_name = None,
                  paginator = None,
                  appmodel = None,
+                 nice_headers_handler = None,
                  nd = 3):
         '''\
 Render a table given a response object ``djp``.
@@ -90,7 +91,8 @@ Render a table given a response object ``djp``.
                                    actions = actions,\
                                    nd = nd, path = path) for d in data)
         
-        self.ctx = {'labels': nice_headers(headers,mapper),
+        nice_headers_handler = nice_headers_handler or nice_headers 
+        self.ctx = {'labels': nice_headers_handler(headers,mapper),
                     'items': items,
                     'toolbox':toolbox,
                     'paginator':paginator}

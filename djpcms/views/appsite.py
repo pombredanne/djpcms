@@ -212,6 +212,7 @@ or in the constructor.
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
     model = None
+    nice_headers_handler = None
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
 
@@ -515,8 +516,11 @@ By default it return a generator of children pages.'''
         
         if astable:
             items = self.table_generator(djp, headers, p.qs)
-            return Table(djp, headers, items, appmodel.model, paginator = p,
-                         appmodel = self).render()
+            return Table(djp, headers, items,
+                         appmodel.model,
+                         paginator = p,
+                         appmodel = self,
+                         nice_headers_handler = self.nice_headers_handler).render()
         else:
             c  = djp.kwargs.copy()
             c.update({'paginator': p,

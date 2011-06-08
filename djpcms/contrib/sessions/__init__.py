@@ -4,6 +4,7 @@ Based on python-stdnet for fast in-memory performance.
 '''
 import djpcms
 from djpcms.apps import PERMISSION_CODES
+from djpcms.utils.importer import module_attribute
 
 from .models import ObjectPermission
 
@@ -29,7 +30,11 @@ def get_backends(backends = None):
         backends = djpcms.sites.settings.AUTHENTICATION_BACKENDS
     if not backends:
         raise ImproperlyConfigured('No authentication backends have been defined. Does AUTHENTICATION_BACKENDS contain anything?')
-    return [backend() for backend in backends]
+    bs = []
+    for backend in backends:
+        b = module_attribute(backend)
+        bs.append(b())
+    return bs
         
         
 def authenticate(**credentials):

@@ -1,6 +1,6 @@
 Version 0.9.0 - Development
 =======================================
-* This is essentially a new libary from the previous version. No more django_ dependency
+* This is essentially a new library from the previous version. No more django_ dependency
   and several radical changes in the API.
 * Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.

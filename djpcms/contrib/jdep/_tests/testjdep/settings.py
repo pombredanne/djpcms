@@ -1,1 +1,0 @@
-from regression.conf import *

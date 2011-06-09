@@ -534,7 +534,7 @@ It returns a queryset.
             
     def ajax__autocomplete(self, djp):
         qs = self.appquery(djp)
-        params = djp.request.data_dict
+        params = djp.request.REQUEST
         if 'maxRows' in params:
             qs = qs[:int(params['maxRows'])]
         return CustomHeaderBody('autocomplete',

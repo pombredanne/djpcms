@@ -945,10 +945,13 @@
     			return;
     		}
     		$('input.color-picker', $this).each(function() {
-    			var div = $('<div class="color-picker"></div>');
-    			var iel = $(this).hide().after(div);
-    			var v = iel.val();
-    			div.append(iel.remove());
+    		    var iel = $(this).hide(),
+    		        div = iel.parent().addClass('color-picker'),
+    		        v = iel.val();
+    			//var div = $('<div class="color-picker"></div>');
+    			//var iel = $(this).hide().after(div);
+    			//var v = iel.val();
+    			//div.append(iel.remove());
     			div.css('backgroundColor', '#' + v);
     			div.ColorPicker({
     				onSubmit: function(hsb, hex, rgb, el) {
@@ -1291,7 +1294,14 @@
     	return {value:cs,negative:isneg};
     }
     
-        
+    
+    /**
+     * ======================================================================
+     * 
+     * TABLESORTER WIDGETS
+     * 
+     * ======================================================================
+     */
     if($.tablesorter) {
         /**
          * A tablesorter widget for enabling actions on rowss
@@ -1351,8 +1361,20 @@
                 }
             }
         });
+        
+        /**
+         * A tablesorter widget enabling selections of different columns
+         */
+        $.tablesorter.addWidget({
+            id:"toolbox",
+            format: function(table) {
+                var tbl = $(table),
+                    me = tbl.prev('.toolbox'),
+                    select = $('select',me);
+            }
+        });
     }
-    		
+    
 }(jQuery));
     
     

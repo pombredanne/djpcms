@@ -33,6 +33,17 @@ Create a toolbox for the table if possible.
         toolbox['actions'] = Select(choices).addData('url',action_url).render()
     if addurl:
         toolbox['links'] = [icons.circle_plus(addurl,'add')]
+    groups = appmodel.column_groups(djp)
+    if groups:
+        data = {}
+        choices = []
+        for name,headers in groups:
+            data[name] = headers
+            choices.append((name,name))
+        s = Select(choices)
+        for name,val in data.items():
+            s.addData(name,val)
+        toolbox['columnviews'] = s.render()
     return toolbox
 
 
@@ -82,7 +93,7 @@ Render a table given a response object ``djp``.
         
         toolbox = None
         actions = False
-        if mapper:
+        if appmodel:
             toolbox = table_toolbox(djp, appmodel)
             actions = 'actions' in toolbox
             

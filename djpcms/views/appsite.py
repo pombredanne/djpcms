@@ -549,6 +549,18 @@ By default it return a generator of children pages.'''
             l = str(q)
             yield l,l,q.id
             
+    def column_groups(self, djp):
+        '''This function can be used to return an iterble over two
+dimensional tuples::
+
+    (view name, [list of headers]),
+    (view2 name, [list of headers])
+
+By default it returns nothing.
+'''
+        return None
+    
+            
     
 class ModelApplication(Application):
     '''An :class:`Application` class for applications

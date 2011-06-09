@@ -27,7 +27,7 @@ admin_urls = (
               AdminApplicationSimple('/logs/',
                                      Log,
                                      name='Logs',
-                                     list_display = ('timestamp','level','source','host'),
+                                     list_display = ('timestamp','level','source','msg','host'),
                                      object_display = ('timestamp','level','source',
                                                        'host','msg')
                                      )

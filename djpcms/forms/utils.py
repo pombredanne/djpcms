@@ -227,7 +227,7 @@ has been submitted.'''
         # Check redirect url
         else:
             redirect_url = view.defaultredirect(request,
-                                                next = referer,
+                                                #next = referer,
                                                 instance = instance)
             
         # not forcing redirect. Check if we can send a JSON message

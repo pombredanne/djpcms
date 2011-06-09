@@ -1,9 +1,0 @@
-.. _jdep:
-
-==============================
-djpcms.contrib.jdep
-==============================
-
-
-.. automodule:: djpcms.contrib.jdep
-   :members:

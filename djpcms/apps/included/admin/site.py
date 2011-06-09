@@ -10,13 +10,51 @@ from djpcms.core.exceptions import ImproperlyConfigured
 __all__ = ['AdminSite',
            'ApplicationGroup',
            'AdminApplicationSimple',
-           'AdminApplication']
+           'AdminApplication',
+           'TabViewMixin']
+
 
 ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
                         'djpcms/admin/groups.html')
 
 ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
                               'djpcms/admin/groups.html')
+
+
+class TabViewMixin(object):
+    view_template = 'djpcms/admin/viewtemplate.html'
+    views_ordering = {'view':0,'change':1}
+
+    def render_object(self, djp):
+        '''A function for rendering a model instance
+    like in the admin interface. Using jQuery UI tabs.
+    This is usually called in the view page of the object.
+    
+    :parameter self: instance of a :class:`djpcms.views.ModelApplication`
+    :parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
+        ctx = []
+        for name,view in iteritems(self.views):
+            if view.object_view:
+                if not isinstance(view,views.DeleteView):
+                    if name == 'view':
+                        html = self.render_object_view(djp)
+                    else:
+                        dv = view(djp.request, **djp.kwargs)
+                        try:
+                            dv.url
+                        except:
+                            continue
+                        html = dv.render()
+                    o  = self.views_ordering.get(name,100)
+                    ctx.append({'name':nicename(name),
+                                'id':name,
+                                'value':html,
+                                'order': o})
+        ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
+        return loader.render(self.view_template,ctx)
+
+    def render_object_view(self, djp):
+        return force_str(ObjectDefinition(self, djp))
 
 
 class ApplicationGroup(views.Application):
@@ -62,41 +100,11 @@ administer models in groups.'''
         return loader.render(self.query_template, {'items':qs})
       
 
-class AdminApplicationSimple(views.ModelApplication):
-    view_template = 'djpcms/admin/viewtemplate.html'
-    ordering = {'view':0,'change':1}
+class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
     has_plugins = False
     search = views.SearchView()
     view   = views.ViewView()
     delete = views.DeleteView()
-    
-    def render_object(self, djp):
-        '''Render an object in its object page.
-        This is usually called in the view page of the object.
-        '''
-        ctx = []
-        for name,view in iteritems(self.views):
-            if view.object_view:
-                if not isinstance(view,views.DeleteView):
-                    if name == 'view':
-                        html = self.render_object_view(djp)
-                    else:
-                        dv = view(djp.request, **djp.kwargs)
-                        try:
-                            dv.url
-                        except:
-                            continue
-                        html = dv.render()
-                    o  = self.ordering.get(name,100)
-                    ctx.append({'name':nicename(name),
-                                'id':name,
-                                'value':html,
-                                'order': o})
-        ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
-        return loader.render(self.view_template,ctx)
-    
-    def render_object_view(self, djp):
-        return force_str(ObjectDefinition(self, djp))
     
     
 class AdminApplication(AdminApplicationSimple):

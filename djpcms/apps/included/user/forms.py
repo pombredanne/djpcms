@@ -85,8 +85,12 @@ class RegisterForm(forms.Form):
         return create_user(self.mapper,cd['username'],cd['password'])
     
 
-#class ForgotForm(forms.Form):
-#    your_email = forms.EmailField()
+class UserChangeForm(forms.Form):
+    first_name = forms.CharField(required = False)
+    last_name = forms.CharField(required = False)
+    email = forms.CharField(required = False)
+    is_superuser = forms.BooleanField(required = False)
+    is_active = forms.BooleanField(required = False)
     
 
 class PasswordChangeForm(RegisterForm):

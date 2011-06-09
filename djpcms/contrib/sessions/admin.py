@@ -1,4 +1,5 @@
-from djpcms.apps.included.admin import AdminApplication, AdminApplicationSimple
+from djpcms.apps.included.admin import AdminApplication, AdminApplicationSimple, TabViewMixin
+from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 
 
 from .models import User,ObjectPermission, Role, Group, Log
 from .forms import RoleForm, GroupForm
@@ -6,11 +7,16 @@ from .forms import RoleForm, GroupForm
 
 NAME = 'Users and Permissions'
 
+class UserAdmin(TabViewMixin,UserApplicationWithFilter):
+    inherit = True
+
+
 admin_urls = (
-              AdminApplication('/users/',
-                               User,
-                               list_display = ('username','first_name','last_name',
-                                               'email','is_active','is_superuser')),
+              UserAdmin('/users/',
+                        User,
+                        name = 'Users',
+                        list_display = ('username','first_name','last_name',
+                                        'email','is_active','is_superuser')),
               AdminApplication('/groups/',
                                Group,
                                form = GroupForm,

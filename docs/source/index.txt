@@ -51,9 +51,10 @@ Contents
    application/index
    html/index
    forms/index
-   contrib/index
    settings
    internals/index
+   contrib/monitor
+   contrib/sessions
    changelog
    license
 

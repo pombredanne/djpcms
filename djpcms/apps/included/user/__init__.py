@@ -13,7 +13,7 @@ as your user model, than you can define the application::
 
 from djpcms.forms import HtmlForm
 
-from .forms import LoginForm, PasswordChangeForm, RegisterForm
+from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm
 from .orm import *
 from .views import *
 
@@ -24,7 +24,7 @@ permission = lambda self, request, obj: False if not request else request.user.i
 
 class UserAppBase(views.ModelApplication):
     '''Base class for user application. Defines several
-utility methods for dealing with users and uaser data.'''
+utility methods for dealing with users and user data.'''
     userpage = False
     home = views.SearchView()
     login = LoginView(template_name = 'login.html',
@@ -32,13 +32,10 @@ utility methods for dealing with users and uaser data.'''
                       form = HtmlForm(LoginForm,
                                       inputs = (('Sign in','login_user'),)))
     logout = LogoutView()
-    add = views.AddView(regex = 'create',
-                        isplugin = True,
-                        in_navigation = 0,
+    add = views.AddView(in_navigation = 0,
                         form = HtmlForm(RegisterForm,
-                        inputs = (('Create','create_user'),)),
+                                        inputs = (('Create','create_user'),)),
                         force_redirect = True)
-    
     
     def userhomeurl(self, request):
         '''The user home page url'''
@@ -85,8 +82,9 @@ No assumption has been taken over which model is used for storing user data.'''
                                        form = HtmlForm(PasswordChangeForm))
         
     def has_add_permission(self, request = None, obj = None):
+        # Add new user permissions
         if request:
-            if not request.user.is_authenticated():
+            if request.user.is_authenticated():
                 return True
         return False
     
@@ -99,11 +97,10 @@ class UserApplicationWithFilter(UserApplication):
 The userhome view'''
     inherit = True
     userpage = True
-    userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
-                        parent = 'home')
+    view = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
+                    parent = 'home')
+    change  = views.ChangeView(form = HtmlForm(UserChangeForm))
     change_password = views.ChangeView(regex = 'change-password',
-                                       in_navigation = 0,
-                                       parent = 'userhome',
                                        isplugin = True,
                                        form = HtmlForm(PasswordChangeForm))
     #userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
@@ -122,3 +119,4 @@ The userhome view'''
         
 class UserDataApplication(views.ModelApplication):
     pass
+

@@ -62,9 +62,6 @@ User
 .. automodule:: djpcms.apps.included.user
    :members:
 
-.. autoclass:: djpcms.apps.included.user.UserApplication
-   :members:
-
 .. _included-taggingapplication:   
 
 Tagging

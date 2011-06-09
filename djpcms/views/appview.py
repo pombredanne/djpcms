@@ -5,6 +5,7 @@ from datetime import datetime
 
 from py2py3 import zip
 
+from djpcms import http
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms.utils import saveform, deleteinstance
@@ -588,7 +589,7 @@ A view of this type has an embedded object available which is used to generate t
                 djp.kwargs['instance'] = instance  
         
         if not instance:
-            raise djp.http.Http404('Could not retrieve model instance\
+            raise http.Http404('Could not retrieve model instance\
  from url arguments: {0}'.format(djp.kwargs))
         
         return super(ObjectView,self).get_url(djp)

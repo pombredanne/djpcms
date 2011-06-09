@@ -1,8 +1,0 @@
-.. _social:
-
-==============================
-djpcms.contrib.social
-==============================
-
-.. automodule:: djpcms.contrib.jdep
-   :members:

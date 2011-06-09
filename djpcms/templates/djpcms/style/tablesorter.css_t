@@ -44,6 +44,12 @@ div.toolbox {
     min-height: {{ toolbox_min_height }};{% endif %}
     /*border: 1px solid {{ body_border_color }};*/
 }
+div.toolbox .row-selector {
+    float: left;
+}
+div.toolbox .column-selector {
+    float: right;
+}
 .action-check .value {
     margin-left: 5px;
 }

@@ -167,10 +167,11 @@ is derived from this class.
     
     def __init__(self, tag = None, cn = None, template = None, js = None,
                  renderer = None, css = None, default_style = None,
-                 **attributes):
+                 inline = None, **attributes):
         attrs = self.attrs
         self.renderer = renderer
         self.tag = tag or self.tag
+        self.inline = inline if inline is not None else self.inline
         self.template = template or self.template
         for attr,value in iteritems(self.attributes):
             if attr in attributes:

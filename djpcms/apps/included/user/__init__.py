@@ -95,6 +95,7 @@ No assumption has been taken over which model is used for storing user data.'''
 class UserApplicationWithFilter(UserApplication):
     '''Application for managing user home pages in the form of "/username/...".
 The userhome view'''
+    
     inherit = True
     userpage = True
     userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,

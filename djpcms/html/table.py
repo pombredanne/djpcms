@@ -7,6 +7,7 @@ from djpcms.utils.text import nicename
 from djpcms.html import icons
 
 from .nicerepr import *
+from .base import HtmlWidget
 from .widgets import Select
 
 __all__ = ['Table']
@@ -14,7 +15,8 @@ __all__ = ['Table']
     
 def table_toolbox(djp, appmodel):
     '''\
-Create a toolbox for the table if possible.
+Create a toolbox for the table if possible. A toolbox is created when
+an application based on database model is available.
 
 :parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
 :parameter appmodel: an instance of a :class:`djpcms.views.Application`.
@@ -103,10 +105,27 @@ Render a table given a response object ``djp``.
                                    nd = nd, path = path) for d in data)
         
         nice_headers_handler = nice_headers_handler or nice_headers 
-        self.ctx = {'labels': nice_headers_handler(headers,mapper),
+        self.ctx = {'headers': list(self.headers(headers)),
                     'items': items,
                     'toolbox':toolbox,
                     'paginator':paginator}
+            
+    def headers(self, headers):
+        '''Generator of hteml headers tags'''
+        if isinstance(headers,dict):
+            data = headers
+        else:
+            data = {}
+        for head in headers:
+            if head in data:
+                inner,description = data[head]
+            else:
+                description = None
+                inner = nicename(head)
+            w = HtmlWidget('th', cn = head)
+            if description:
+                w.addData('description',description)
+            yield w.render(inner = inner)
             
     def render(self):
         return loader.render(self.template_name,self.ctx)

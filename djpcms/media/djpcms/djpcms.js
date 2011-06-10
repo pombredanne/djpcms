@@ -1304,8 +1304,69 @@
      */
     if($.tablesorter) {
         /**
-         * A tablesorter widget for enabling actions on rowss
+         * A tablesorter widget for enabling actions on rows and
+         * different views across columns.
          */
+        $.tablesorter.add_select_rows = function(tbl,me,row_select,url,data) {
+            function handle_callback(e,o) {
+                $.djpcms.jsonCallBack(e,o,table);
+            }
+            
+            function toggle(chk) {
+                chk.each(function() {
+                    var el = $(this),
+                        tr = el.parents('tr');
+                    if(el.is(':checked')) {
+                        tr.addClass('ui-state-highlight');
+                    }
+                    else {
+                        tr.removeClass('ui-state-highlight');
+                    }
+                });
+            }
+            
+            tbl.delegate('.action-check input','click', function() {
+                toggle($(this));
+            });
+            
+            row_select.change(function() {
+                if(this.value) {
+                    var ids = [],
+                        data = $.djpcms.ajaxparams(this.value,{'ids':ids});
+                    $('.action-check input:checked',this.table).each(function() {
+                        ids.push(this.value);
+                    });
+                    $.post(url,
+                           data,
+                           handle_callback,
+                           'json')                       
+                }
+            });
+            $('.select_all',me).click(function() {
+                toggle($('.action-check input').prop({'checked':true}));
+            });
+            $('.select_none',me).click(function() {
+                toggle($('.action-check input').prop({'checked':false}));
+            });
+        };
+        
+        $.tablesorter.add_select_views = function(tbl,me,select,data) {
+            
+            function change_view(value) {
+                if(!value) {return;}
+                var fields = data[this.value],
+                    ths = $('th',tbl);
+                if(fields) {
+                    $.each(fields, function(field) {
+                    })
+                }
+            }
+            
+            select.change(function() {
+                change_view(this.value);
+            });
+        };
+        
         $.tablesorter.addWidget({
             id:"toolbox",
             format: function(table) {
@@ -1314,52 +1375,21 @@
                     row_select = $('.row-selector select',me),
                     col_select = $('.column-selector select',me);
                 
+                if(me.length !== 1) {return;}
                 
-                if(me.length === 1 && row_select.length === 1) {
+                // Actions on rows
+                if(row_select.length === 1) {
                     var data = row_select.data(),
                         url = data['url'];
                     if(url) {
-                        function handle_callback(e,o) {
-                            $.djpcms.jsonCallBack(e,o,table);
-                        }
-                        
-                        function toggle(chk) {
-                            chk.each(function() {
-                                var el = $(this),
-                                    tr = el.parents('tr');
-                                if(el.is(':checked')) {
-                                    tr.addClass('ui-state-highlight');
-                                }
-                                else {
-                                    tr.removeClass('ui-state-highlight');
-                                }
-                            });
-                        }
-                        
-                        tbl.delegate('.action-check input','click', function() {
-                            toggle($(this));
-                        });
-                        
-                        row_select.change(function() {
-                            if(this.value) {
-                                var ids = [],
-                                    data = $.djpcms.ajaxparams(this.value,{'ids':ids});
-                                $('.action-check input:checked',this.table).each(function() {
-                                    ids.push(this.value);
-                                });
-                                $.post(url,
-                                       data,
-                                       handle_callback,
-                                       'json')                       
-                            }
-                        });
-                        $('.select_all',me).click(function() {
-                            toggle($('.action-check input').prop({'checked':true}));
-                        });
-                        $('.select_none',me).click(function() {
-                            toggle($('.action-check input').prop({'checked':false}));
-                        });
+                        $.tablesorter.add_select_rows(tbl,me,row_select,url,data);
                     }
+                }
+                
+                // Actions on columns
+                if(col_select.length === 1) {
+                    var data = row_select.data();
+                    $.tablesorter.add_select_views(tbl,me,col_select,data);
                 }
             }
         });

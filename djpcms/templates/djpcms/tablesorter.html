@@ -20,10 +20,10 @@
   </span>{% endif %}
 </div>
 <table class="tablesorter">{% else %}
-<table class="tablesorter ui-widget">{% endif %}{% if labels %}
+<table class="tablesorter ui-widget">{% endif %}{% if headers %}
 <thead class="ui-widget-header">
- <tr>{% for label in labels %}
-  <th>{{ label }}</th>{% endfor %}
+ <tr>{% for head in headers %}
+  {{ head }}{% endfor %}
  </tr>
 </thead>{% endif %}
 <tbody class="ui-widget-content">{% for item in items %}

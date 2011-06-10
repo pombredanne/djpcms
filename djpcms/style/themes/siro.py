@@ -41,7 +41,6 @@ siro['nav'] = {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',
                'secondary_active_color':'#353432',
                'selected_color':'#444',
                'list_margin': '0 5px',
-               'anchor_padding': '0 20px',
                'hover_background':blue,
              }
 

@@ -1311,10 +1311,12 @@
             format: function(table) {
                 var tbl = $(table),
                     me = tbl.prev('.toolbox'),
-                    select = $('select',me);
+                    row_select = $('.row-selector select',me),
+                    col_select = $('.column-selector select',me);
                 
-                if(me.length === 1 && select.length === 1) {
-                    var data = select.data(),
+                
+                if(me.length === 1 && row_select.length === 1) {
+                    var data = row_select.data(),
                         url = data['url'];
                     if(url) {
                         function handle_callback(e,o) {
@@ -1338,7 +1340,7 @@
                             toggle($(this));
                         });
                         
-                        select.change(function() {
+                        row_select.change(function() {
                             if(this.value) {
                                 var ids = [],
                                     data = $.djpcms.ajaxparams(this.value,{'ids':ids});

@@ -13,7 +13,10 @@ from djpcms.html import box, table
 from .mtree import MtreeMixin, MtreeView
     
 
-class SiteMapView(views.View, MtreeView):
+class SiteMapView(views.SearchView):
+    pass
+
+class _SiteMapView(views.View, MtreeView):
     
     def render(self, djp):
         return self.appmodel.render_tree(djp)
@@ -74,14 +77,13 @@ class SiteMapApplication(views.ModelApplication, MtreeMixin):
              'table': {'min_height': '500px', 'name': 'path'}
              }
     
-    main = SiteMapView(in_navigation = 1)
+    search = SiteMapView()
     
     if Page:
-        search = views.SearchView(regex = 'pages',
-                                  parent = 'main',
-                                  title = lambda djp : 'pages')
-        add = views.AddView(parent = 'main',
-                            force_redirect = True)
+#        search = views.SearchView(regex = 'pages',
+#                                  parent = 'main',
+#                                  title = lambda djp : 'pages')
+        add = views.AddView(force_redirect = True)
         view = views.ViewView()
         change = PageChangeView(force_redirect = True,
                                 template_name = 'djpcms/admin/editpage.html',

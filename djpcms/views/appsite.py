@@ -660,13 +660,18 @@ Re-implement for custom arguments.'''
     def changeurl(self, request, obj, name = 'change'):
         return self.appviewurl(request,name,obj,self.has_change_permission,objrequired=True)
     
-    def viewurl(self, request, obj, name = 'view', field_name = None):
+    def viewurl(self, request, obj, name = None, field_name = None):
         if field_name and self.model:
             value = getattr(obj,field_name,None)
             if hasattr(value,'__class__'):
                 appmodel = self.site.for_model(value.__class__)
                 if appmodel:
                     return appmodel.viewurl(request,value)
+        if not name:
+            for view in self.object_views:
+                if isinstance(view,ViewView):
+                    name = view.name
+                    break
         return self.appviewurl(request,name,obj,objrequired=True)
     
     def searchurl(self, request):

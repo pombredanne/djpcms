@@ -245,7 +245,7 @@ class Response(object):
         self._headers = {}
         self.cookies = SimpleCookie()
         self.content_type = content_type or self.DEFAULT_CONTENT_TYPE
-        self.set_header('Content-Type',content_type)
+        self.set_header('Content-Type',self.content_type)
         if encoding:
             self.set_header("Content-Encoding", encoding)
     
@@ -338,7 +338,7 @@ class Response(object):
 
     
 class ResponseRedirect(Response):
-    status_code = 302
+    status = 302
 
     def __init__(self, redirect_to):
         super(ResponseRedirect, self).__init__()

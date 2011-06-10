@@ -97,10 +97,12 @@ class UserApplicationWithFilter(UserApplication):
 The userhome view'''
     inherit = True
     userpage = True
-    view = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
-                    parent = 'home')
-    change  = views.ChangeView(form = HtmlForm(UserChangeForm))
+    userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
+                        description = 'view')
+    change  = views.ChangeView(parent = 'userhome',
+                               form = HtmlForm(UserChangeForm))
     change_password = views.ChangeView(regex = 'change-password',
+                                       parent = 'userhome',
                                        isplugin = True,
                                        form = HtmlForm(PasswordChangeForm))
     #userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
@@ -116,7 +118,7 @@ The userhome view'''
     def get_view_from_path(self, path):
         path = path.split('/')
         
-        
+
 class UserDataApplication(views.ModelApplication):
     pass
 

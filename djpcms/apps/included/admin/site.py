@@ -33,23 +33,25 @@ class TabViewMixin(object):
     :parameter self: instance of a :class:`djpcms.views.ModelApplication`
     :parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
         ctx = []
-        for name,view in iteritems(self.views):
-            if view.object_view:
-                if not isinstance(view,views.DeleteView):
-                    if name == 'view':
-                        html = self.render_object_view(djp)
-                    else:
-                        dv = view(djp.request, **djp.kwargs)
-                        try:
-                            dv.url
-                        except:
-                            continue
-                        html = dv.render()
-                    o  = self.views_ordering.get(name,100)
-                    ctx.append({'name':nicename(name),
-                                'id':name,
-                                'value':html,
-                                'order': o})
+        request = djp.request
+        for view in self.object_views:
+            if 'get' not in view.methods(request):
+                continue
+            if isinstance(view,views.ViewView):
+                html = self.render_object_view(djp)
+            else:
+                dv = view(djp.request, **djp.kwargs)
+                try:
+                    dv.url
+                    html = dv.render()
+                except:
+                    continue
+            name = view.name
+            o  = self.views_ordering.get(name,100)
+            ctx.append({'name':view.description or nicename(name),
+                        'id':name,
+                        'value':html,
+                        'order': o})
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
         return loader.render(self.view_template,ctx)
 

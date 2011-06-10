@@ -1,4 +1,4 @@
-from djpcms import sites, views
+from djpcms import sites, views, http
 from djpcms.forms.utils import saveform
 
 from .orm import logout
@@ -25,7 +25,7 @@ class LogoutView(views.ModelView):
         user    = request.user
         if user.is_authenticated():
             logout(sites.User, request)
-        return djp.http.HttpResponseRedirect(url)
+        return http.ResponseRedirect(url)
 
 
 
@@ -46,7 +46,7 @@ class LoginView(views.ModelView):
         
     def preprocess(self, djp):
         if djp.request.user.is_authenticated():
-            return djp.http.HttpResponseRedirect('/')
+            return http.ResponseRedirect('/')
         
     def render(self, djp):
         if djp.request.user.is_authenticated():

@@ -25,7 +25,6 @@ TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
 CMS_ORM = None                  # django, stdnet
-TEMPLATE_ENGINE = 'jinja2'      # django, jinja2
 
 MEDIA_URL = '/media/'
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
@@ -38,7 +37,7 @@ ROOT_URLCONF = 'djpcms.apps.djangosite.defaults.urls' # default value for django
 ADMIN_URL_PREFIX = '/admin/'
 
 # Root page for user account urls
-USER_ACCOUNT_HOME_URL           = '/accounts/'
+USER_ACCOUNT_HOME_URL = '/accounts/'
 JS_START_END_PAGE = 101
 EXTRA_CONTENT_PLUGIN = None
 
@@ -46,16 +45,17 @@ EXTRA_CONTENT_PLUGIN = None
 GOOGLE_ANALYTICS_ID = None
 LLOOGG_ANALYTICS_ID = None
 
-SITE_NAVIGATION_LEVELS          = 4
-ENABLE_BREADCRUMBS              = 2
+SITE_NAVIGATION_LEVELS = 4
+ENABLE_BREADCRUMBS = 2
 
-DJPCMS_PLUGINS                  = ['djpcms.plugins.*']
-DJPCMS_WRAPPERS                 = ['djpcms.plugins.extrawrappers']
-DJPCMS_SITE_MAP                 = True
+DJPCMS_PLUGINS = ['djpcms.plugins.*']
+DJPCMS_WRAPPERS = ['djpcms.plugins.extrawrappers']
+DJPCMS_SITE_MAP = True
 
-DJPCMS_USER_CAN_EDIT_PAGES      = False
+DJPCMS_USER_CAN_EDIT_PAGES = False
 
-#
+# JINJA2 Settings
+TEMPLATE_ENGINE = 'jinja2' # django, jinja2
 JINJA2_EXTENSIONS = []
 JINJA2_TEMPLATE_LOADERS = (('djpcms.template._jinja2.ApplicationLoader',),)
 

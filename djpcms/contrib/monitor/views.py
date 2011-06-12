@@ -1,13 +1,17 @@
-from urllib import urlencode
 from datetime import datetime, timedelta
 from distutils.version import StrictVersion
 
-from py2py3 import iteritems
+from py2py3 import iteritems, ispy3k
+
+if ispy3k:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 
 from stdnet.lib.redisinfo import RedisStats
 
 from djpcms import forms
-from djpcms.html import Paginator, table_checkbox
+from djpcms.html import Paginator, table_checkbox, icons, Table
 from djpcms.utils.ajax import jhtmls, jredirect
 from djpcms.utils import lazyattr, gen_unique_id
 from djpcms.template import loader
@@ -26,7 +30,7 @@ class DbQuery(object):
         return self.r.size()
     
     def __iter__(self):
-        return self.data()
+        return self.data().__iter__()
     
     @lazyattr
     def data(self):
@@ -36,8 +40,11 @@ class DbQuery(object):
         data = self.data()[slic]
         type_length = self.r.type_length
         for key in data:
+            keys = key.decode()
             typ,len,ttl = type_length(key)
-            yield (table_checkbox(key,key),typ,len,ttl)
+            if ttl == -1:
+                ttl = icons.no()
+            yield (table_checkbox(keys,keys),typ,len,ttl)
         
         
 class RedisDbView(ViewView):
@@ -49,7 +56,11 @@ class RedisDbView(ViewView):
     def render(self, djp):
         r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
         qs = DbQuery(djp,r)
-        return self.appmodel.render_query(djp,qs)
+        p = Paginator(djp.request, qs, per_page = self.appmodel.list_per_page)
+        return Table(djp,
+                     self.headers,
+                     p.qs,
+                     paginator = p).render()
 
 
 class RedisDbFlushView(RedisDbView):

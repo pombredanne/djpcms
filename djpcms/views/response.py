@@ -298,7 +298,7 @@ the parent of the embedded view.'''
                 ajax_view_function = getattr(view,'ajax_%s_response' % method)
                 if ajax_action:
                     ajax_view = 'ajax__' + ajax_action
-                    ajax_view_function = getattr(view,ajax_view,ajax_view_function)
+                    ajax_view_function = getattr(view.appmodel,ajax_view,ajax_view_function)
                 res = ajax_view_function(self)
             except Exception as e:
                 res = handle_ajax_error(self,e)

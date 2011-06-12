@@ -19,6 +19,7 @@ from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
+from djpcms.utils.ajax import jcollection
 from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
@@ -852,4 +853,20 @@ The search looks in::
 Can be overritten to include request dictionary.'''
         return '%s:%s' % (obj._meta,obj.id)
     
+    def get_instances(self, djp):
+        data = djp.request.REQUEST
+        if 'ids[]' in data:
+            return self.mapper.filter(id__in = data.getlist('ids[]'))
+    
+    def ajax__bulk_delete(self, djp):
+        '''An ajax view for deleting a list of ids.'''
+        objs = self.get_instances(djp)
+        mapper = self.mapper
+        c = jcollection()
+        if objs:
+            for obj in objs:
+                id = mapper.unique_id(obj)
+                obj.delete()
+                c.append(jremove('#'+id))
+        return c
     

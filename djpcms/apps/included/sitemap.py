@@ -10,19 +10,11 @@ from djpcms.models import Page
 from djpcms.core import messages
 from djpcms.html import box, table
 
-from .mtree import MtreeMixin, MtreeView
+from .admin import TabViewMixin
     
 
 class SiteMapView(views.SearchView):
     pass
-
-class _SiteMapView(views.View, MtreeView):
-    
-    def render(self, djp):
-        return self.appmodel.render_tree(djp)
-        
-    def get_root_tree(self, djp):
-        return djp.tree
     
 
 class PageChangeView(views.ChangeView):
@@ -56,7 +48,7 @@ class PageChangeView(views.ChangeView):
                                                           **kwargs)
         
     
-class SiteMapApplication(views.ModelApplication, MtreeMixin):
+class SiteMapApplication(TabViewMixin,views.ModelApplication):
     '''Application to use for admin sitemaps'''
     list_display = ('id', 'url','application','application_view',
                     'template','inner_template','in_navigation','doc_type',
@@ -97,7 +89,4 @@ class SiteMapApplication(views.ModelApplication, MtreeMixin):
         def __init__(self, baseurl, **kwargs):
             views.Application.__init__(self,baseurl,**kwargs)
             
-    
-    class Media:
-        js = MtreeMixin.MTREE_JAVASCRIPT
     

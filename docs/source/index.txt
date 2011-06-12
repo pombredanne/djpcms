@@ -32,9 +32,7 @@ First steps
 
 **Tutorial:**
 :ref:`Part 1 <intro-tutorial01>` |
-:ref:`Part 2 <intro-tutorial02>` |
-:ref:`Part 3 <intro-tutorial03>` |
-:ref:`Part 4 <intro-tutorial04>`
+:ref:`Part 2 <intro-tutorial02>`
 
 **Managing Content:**
 :ref:`Plugins <plugins-index>` |

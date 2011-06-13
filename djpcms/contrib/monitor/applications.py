@@ -1,3 +1,4 @@
+import djpcms
 from djpcms.template import loader
 from djpcms.html import LazyRender
 from djpcms.contrib.monitor import views
@@ -20,6 +21,7 @@ class RedisMonitorApplication(AdminApplication):
     form = ServerForm
     list_per_page = 100
     template_view = ('monitor/monitor.html',)
+    actions = [('flush','flush',djpcms.DELETE)]
     
     db = views.RedisDbView(regex = '(?P<db>\d+)', parent = 'view')
     flush = views.RedisDbFlushView(regex = 'flush', parent = 'db')
@@ -38,8 +40,9 @@ class RedisMonitorApplication(AdminApplication):
             right_panels = ()
         else:
             left_panels = ({'name':k,'value':ObjectDefinition(self,djp,v)} for k,v in info.items())
+            dbs = Table(djp, appmodel = self, **info.pop('keys'))
             right_panels = ({'name':'Databases',
-                             'value':Table(djp, **info.pop('keys')).render()},)
+                             'value':dbs.render()},)
         return loader.render(self.template_view,
                             {'left_panels':left_panels,
                              'right_panels':right_panels})
@@ -48,6 +51,9 @@ class RedisMonitorApplication(AdminApplication):
         dbview = self.getview('db')
         djp = view(request, db = db)
         return djp.url
+
+    def ajax__flush(self, djp):
+        pass
 
     
 class StdModelApplication(views.ModelApplication):

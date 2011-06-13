@@ -55,8 +55,8 @@ class Table(object):
     
     def __init__(self,
                  djp,
-                 headers,
-                 data,
+                 headers = None,
+                 data = None,
                  model = None,
                  template_name = None,
                  paginator = None,

@@ -10,6 +10,7 @@ else:
 
 from stdnet.lib.redisinfo import RedisStats
 
+import djpcms
 from djpcms import forms
 from djpcms.html import Paginator, table_checkbox, icons, Table
 from djpcms.utils.ajax import jhtmls, jredirect
@@ -60,6 +61,7 @@ class RedisDbView(ViewView):
         return Table(djp,
                      self.headers,
                      p.qs,
+                     appmodel = self,
                      paginator = p).render()
 
 

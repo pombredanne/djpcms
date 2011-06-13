@@ -60,9 +60,9 @@ class ChangeTextContent(forms.Form):
 class Text(RenderObject):
     '''The text plugin allows to write content in a straightforward manner.
 You can use several different markup languages or simply raw HTML.'''
-    name               = "text"
-    description        = "Text Editor"
-    long_description   = "Write text or raw HTML"
+    name = "text"
+    description = "Text Editor"
+    long_description = "Write text or raw HTML"
     for_model = SiteContent
     
     def html(self):

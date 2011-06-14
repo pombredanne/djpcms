@@ -1,4 +1,4 @@
-from djpcms.utils import urlquote
+from djpcms.utils import urlencode
 
 __all__ = ['Paginator']
 
@@ -22,7 +22,7 @@ class Paginator(object):
         self.numends    = numends
         self.total      = len(data)
         self.per_page   = max(int(per_page),1)
-        tp              = self.total/self.per_page
+        tp              = int(self.total/self.per_page)
         if self.per_page*tp < self.total:
             tp += 1
         self.pages      = tp
@@ -41,18 +41,16 @@ class Paginator(object):
         Get page information form request
         The page should be stored in the request dictionary
         '''
-        self._datadict = d = request.REQUEST
+        d = dict(request.REQUEST.items())
         page = 1
         if 'page' in d:
             try:
-                page = int(d['page'])
+                page = int(d.pop('page'))
             except:
                 pass
+        self.datadict = urlencode(d)
         return max(min(page,self.pages),1)
     
-    def datadict(self):
-        return urlquote('&'.join(('%s=%s' % item for item in self._datadict.items())))
-        
     def navigation(self):
         if self.pages == 1:
             return ''

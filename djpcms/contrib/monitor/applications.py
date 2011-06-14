@@ -64,6 +64,7 @@ class RedisMixin(object):
 
 class RedisKeyApplication(RedisMixin, views.ModelApplication):
     '''Display information about keys in one database.'''
+    has_plugins = False
     astable = True
     list_per_page = 250
     description = 'Database {0[db]}'
@@ -93,6 +94,7 @@ class RedisKeyApplication(RedisMixin, views.ModelApplication):
 
 
 class RedisDbApplication(RedisMixin,views.ModelApplication):
+    has_plugins = False
     astable = True
     list_display = ('db','keys','expires')
     actions = [('bulk_delete','flush',djpcms.DELETE)]

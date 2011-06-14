@@ -5,6 +5,7 @@ from .const import SLASH
 import re
 
 __all__ = ['urlparse',
+           'urlencode',
            'urlbits',
            'urlfrombits',
            'urlquote',
@@ -17,10 +18,13 @@ __all__ = ['urlparse',
            'SLASH',
            'URI_RESERVED']
 
+
 if ispy3k:
     urlquote = urlparse.quote
+    urlencode = urlparse.urlencode
 else:
     from urllib import quote as urlquote
+    from urllib import urlencode
 
 URI_RESERVED = set((';','/','?',':','@','&','=','+','$',','))
 SLASH2 = SLASH+SLASH

@@ -133,4 +133,7 @@ class DummyMapper(BaseOrmWrapper):
         
     def unique_id(self, obj):
         return hash(obj)
+    
+    def all(self):
+        return self.model.all()
         

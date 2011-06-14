@@ -30,7 +30,6 @@ class Loader(object):
 
 
 if __name__ == '__main__':
-    '''To run type python helloworld.py serve'''
     djpcms.execute(Loader())
 
     

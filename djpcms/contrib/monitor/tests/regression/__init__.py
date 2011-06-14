@@ -1,1 +1,0 @@
-from .stdtests import *

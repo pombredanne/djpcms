@@ -1,16 +1,12 @@
 from djpcms import sites
 from djpcms.utils.importer import import_module
+from djpcms.utils import lazyattr
 
 from stdnet import orm
-
-__all__ = ['installed_models',
-           'LINKED_OBJECT_ATTRIBUTE']
-
-LINKED_OBJECT_ATTRIBUTE = 'djobject'
+from stdnet.lib.redisinfo import RedisStats
 
 
-
-from stdnet.orm import model_iterator
+__all__ = ['installed_models','DbQuery']
 
 
 def installed_models(sites, applications = None):
@@ -27,7 +23,7 @@ def installed_models(sites, applications = None):
         if label not in installed:
             label = 'djpcms.contrib.{0}'.format(label)
         if label in installed:
-            for mdl in model_iterator(label):
+            for mdl in orm.model_iterator(label):
                 if model:
                     if mdl._meta.name == model:
                         yield mdl
@@ -69,3 +65,31 @@ def register_models(apps,**kwargs):
                                                                  models = models,
                                                                  **kwargs))
     return registered_models
+
+
+class DbQuery(object):
+    
+    def __init__(self, djp, r):
+        self.djp   = djp
+        self.r     = RedisStats(r)
+        
+    def __len__(self):
+        return self.r.size()
+    
+    def __iter__(self):
+        return self.data().__iter__()
+    
+    @lazyattr
+    def data(self):
+        return self.r.keys()
+    
+    def __getitem__(self, slic):
+        data = self.data()[slic]
+        type_length = self.r.type_length
+        for key in data:
+            keys = key.decode()
+            typ,len,ttl = type_length(key)
+            if ttl == -1:
+                ttl = icons.no()
+            yield (table_checkbox(keys,keys),typ,len,ttl)
+

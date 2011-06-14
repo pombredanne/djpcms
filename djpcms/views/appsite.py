@@ -43,6 +43,7 @@ def makename(self, name, description):
     self.description = description or self.description or nicename(name)
     self.name = str(slugify(name.lower(),rtx='_'))
 
+
 def get_declared_application_views(bases, attrs):
     """Create a list of Application views instances from the passed in 'attrs', plus any
 similar fields on the base classes (in 'bases')."""

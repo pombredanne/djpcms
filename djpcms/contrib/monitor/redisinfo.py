@@ -59,6 +59,30 @@ def get_version(info):
         return info['redis_version']
     else:
         return info['Server']['redis_version']
+    
+    
+class RedisDbData(object):
+    
+    def __init__(self, db, data):
+        self.db = db
+        self.keys = data['keys']
+        self.expires = data['expires']
+    
+    def all(self):
+        pass
+        
+    
+class RedisData(list):
+    
+    def append(self, db, data):
+        super(RedisData,self).append(RedisDbData(db,data))
+    
+    @property
+    def totkeys(self):
+        keys = 0
+        for db in self:
+            keys += db.keys
+        return keys
 
 
 class RedisInfo(object):
@@ -66,10 +90,17 @@ class RedisInfo(object):
     def __init__(self, version, info, path):
         self.version = version
         self.info = info
-        self.panels = OrderedDict()
         self.path = path
+        self._panels = OrderedDict()
+        self._processed = False
         self.tot_keys = self.makekeys()
-        self.fill()
+        
+    def __get_panels(self):
+        if not self._processed:
+            self._processed = True
+            self.fill()
+        return self._panels
+    panels = property(__get_panels)
     
     def _dbs(self,keydata):
         for k in keydata:
@@ -88,26 +119,28 @@ class RedisInfo(object):
         return self.info['db{0}'.format(n)]
     
     def keys(self, keydata):
+        rd = RedisData()
         tot = 0
         path = self.path
         databases = []
         for k,n,data in self.dbs(keydata):
             keydb = data['keys']
-            url = '{0}{1}/'.format(path,n)
-            link = '<a href="{0}" title="database {1}">{2}</a>'.format(url,n,k)
-            flush = '<a href="{0}flush/" title="flush database {1}">flush</a>'.format(url,n,k)
-            databases.append((link,keydb,data['expires'],flush))
-            tot += keydb
-        self.panels['keys'] = {'headers':('db','keys','expires','actions'),
-                               'data': databases}
-        return tot
+            rd.append(n,data)
+            #url = '{0}{1}/'.format(path,n)
+            #link = '<a href="{0}" title="database {1}">{2}</a>'.format(url,n,k)
+            #databases.append((link,keydb,data['expires']))
+            #tot += keydb
+        self._panels['keys'] = rd
+        #self._panels['keys'] = {'headers':('db','keys','expires'),
+        #                       'data': databases}
+        return rd.totkeys
             
     def makekeys(self):
         return self.keys(self.info)
             
     def fill(self):
         info = self.info
-        server = self.panels['Server'] = []
+        server = self._panels['Server'] = []
         niceadd(server, 'Redis version', self.version)
         niceadd(server, 'Process id', info['process_id'])
         niceadd(server, 'Total keys', format_int(self.tot_keys))
@@ -127,7 +160,7 @@ class RedisInfo22(RedisInfo):
         return self.keys(self.info['Keyspace'])
         
     def makepanel(self, name):
-        pa = self.panels[name] = []
+        pa = self._panels[name] = []
         for k,v in iteritems(self.info[name]):
             if v == 0:
                 v = icons.circle_check()
@@ -144,7 +177,7 @@ class RedisInfo22(RedisInfo):
 def redis_info(info,path):
     version = get_version(info)
     if StrictVersion(version) >= StrictVersion('2.2.0'):
-        return RedisInfo22(version,info,path).panels
+        return RedisInfo22(version,info,path)
     else:
-        return RedisInfo(version,info,path).panels
+        return RedisInfo(version,info,path)
     

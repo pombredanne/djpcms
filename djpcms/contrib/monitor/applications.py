@@ -1,35 +1,81 @@
 import djpcms
+from djpcms import views, html
 from djpcms.template import loader
-from djpcms.html import LazyRender
-from djpcms.contrib.monitor import views
 from djpcms.apps.included.admin import AdminApplication
-from djpcms.html import Table, ObjectDefinition
 from djpcms.utils import mark_safe
 
 from stdnet.lib import redis
 from stdnet.orm import model_iterator
 
-from .redisinfo import redis_info, ServerForm
+from .redisinfo import redis_info, ServerForm, RedisData
 
 
 __all__ = ['RedisMonitorApplication',
            'StdModelApplication']
-    
 
-class RedisMonitorApplication(AdminApplication):
-    inherit = True
-    form = ServerForm
-    list_per_page = 100
-    template_view = ('monitor/monitor.html',)
-    actions = [('flush','flush',djpcms.DELETE)]
-    
-    db = views.RedisDbView(regex = '(?P<db>\d+)', parent = 'view')
-    flush = views.RedisDbFlushView(regex = 'flush', parent = 'db')
+
+class RedisMixin(object):
     
     def get_redis(self, instance, db = None):
         return redis.Redis(host = instance.host,
                            port = instance.port,
                            db = db)
+        
+
+class RedisDbView(views.ModelApplication):
+    '''Display information about keys in one database.'''
+    astable = True
+    #default_title = 'Database {0[db]}'
+    headers = ('key','type','length','time to expiry')
+    
+    home = views.SearchView()
+    
+    def basequery(self, djp, **kwargs):
+        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
+        return DbQuery(djp,r)
+    
+    def render(self, djp):
+        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
+        qs = DbQuery(djp,r)
+        p = Paginator(djp.request, qs, per_page = self.appmodel.list_per_page)
+        return Table(djp,
+                     self.headers,
+                     p.qs,
+                     appmodel = self,
+                     paginator = p).render()
+
+
+class RedisDbApplication(RedisMixin,views.ModelApplication):
+    astable = True
+    list_display = ('db','keys','expires')
+    actions = [('flush','flush',djpcms.DELETE)]
+    
+    home = views.SearchView()
+    view = views.ViewView('/(?P<db>\d+)/')
+    
+    def basequery(self, djp):
+        r = self.get_redis(djp.parent.instance)
+        try:
+            info = redis_info(r.info(),djp.url)
+        except redis.ConnectionError:
+            return ()
+        return info._panels['keys']
+    
+    def ajax__flush(self, djp):
+        data = djp.request.REQUEST
+        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
+        keys = len(r.keys())
+        return jhtmls(identifier = 'td.redisdb%s.keys' % r.db,
+                      html = keys)
+    
+    
+
+class RedisMonitorApplication(RedisMixin,AdminApplication):
+    inherit = True
+    form = ServerForm
+    list_per_page = 100
+    redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
+    template_view = ('monitor/monitor.html',)
         
     def render_object_view(self, djp):
         r = self.get_redis(djp.instance)
@@ -39,8 +85,9 @@ class RedisMonitorApplication(AdminApplication):
             left_panels = [{'name':'Server','value':'No Connection'}]
             right_panels = ()
         else:
-            left_panels = ({'name':k,'value':ObjectDefinition(self,djp,v)} for k,v in info.items())
-            dbs = Table(djp, appmodel = self, **info.pop('keys'))
+            left_panels = ({'name':k,
+                            'value':html.ObjectDefinition(self,djp,v)} for k,v in info.items())
+            dbs = html.Table(djp, appmodel = self, **info.pop('keys'))
             right_panels = ({'name':'Databases',
                              'value':dbs.render()},)
         return loader.render(self.template_view,
@@ -51,10 +98,18 @@ class RedisMonitorApplication(AdminApplication):
         dbview = self.getview('db')
         djp = view(request, db = db)
         return djp.url
+    
+    
 
-    def ajax__flush(self, djp):
-        pass
-
+class StdModelDeleteAllView(views.ModelView):
+    _methods = ('post',)
+    
+    def default_post(self, djp):
+        self.model.flush()
+        next,curr = forms.next_and_current(djp.request)
+        return jredirect(next or curr)
+    
+    
     
 class StdModelApplication(views.ModelApplication):
     '''Display Information about a stdnet model'''
@@ -68,8 +123,7 @@ class StdModelApplication(views.ModelApplication):
                       parent = 'app',
                       renderer = lambda djp: djp.view.appmodel.render_model(djp),
                       title = lambda djp: djp.view.appmodel.model_title(djp))
-    flush = views.StdModelDeleteAllView(regex = 'flush',
-                                        parent = 'view')
+    flush = StdModelDeleteAllView(regex = 'flush', parent = 'view')
     
     def basequery(self, djp):
         models = model_iterator(djp.root.settings.INSTALLED_APPS)
@@ -124,7 +178,7 @@ class StdModelApplication(views.ModelApplication):
         model = self.get_instance(djp)
         if not model:
             raise djp.http.Http404('Model {0[app]}.{0[name]} not available'.format(djp.kwargs))
-        info = ObjectDefinition(self, djp)
+        info = html.ObjectDefinition(self, djp)
         return loader.render('monitor/stdmodel.html',
                              {'meta':model,
                               'info':info})

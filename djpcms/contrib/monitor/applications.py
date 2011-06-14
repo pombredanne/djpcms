@@ -1,95 +1,147 @@
+from datetime import datetime
+
 import djpcms
-from djpcms import views, html
+from djpcms import views, html, forms
+from djpcms.html import icons
 from djpcms.template import loader
 from djpcms.apps.included.admin import AdminApplication
 from djpcms.utils import mark_safe
+from djpcms.utils.text import nicename
+from djpcms.utils.dates import nicetimedelta
 
 from stdnet.lib import redis
+from stdnet.lib.redisinfo import redis_info, RedisData, RedisDbData,\
+                                 RedisDataFormatter
 from stdnet.orm import model_iterator
-
-from .redisinfo import redis_info, ServerForm, RedisData
 
 
 __all__ = ['RedisMonitorApplication',
            'StdModelApplication']
 
 
+class ServerForm(forms.Form):
+    host = forms.CharField(initial = 'localhost')
+    port = forms.IntegerField(initial = 6379)
+    notes = forms.CharField(widget = forms.TextArea, required = False)
+    
+    
+class Formatter(RedisDataFormatter):
+    
+    def format_bool(self, val):
+        if not val:
+            return icons.circle_close()
+        else:
+            return icons.circle_check()
+                
+    def format_name(self, name):
+        return nicename(name)
+    
+    def format_date(self, t):
+        try:
+            d = datetime.fromtimestamp(t)
+            return '%s %s' % (format(d.date(),site.settings.DATE_FORMAT),
+                              time_format(d.time(),site.settings.TIME_FORMAT)) 
+        except:
+            return ''
+        
+    def format_timedelta(self, td):
+        return nicetimedelta(td)
+
+
 class RedisMixin(object):
     
     def get_redis(self, instance, db = None):
-        return redis.Redis(host = instance.host,
-                           port = instance.port,
-                           db = db)
+        r = redis.Redis(host = instance.host,
+                        port = instance.port,
+                        db = db)
+        r.database_instance = instance
+        return r
+    
+    def get_redisdb(self, instance, db):
+        r = self.get_redis(instance, db = int(db))
+        return RedisDbData(rpy = r)
         
 
-class RedisDbView(views.ModelApplication):
+class RedisKeyApplication(RedisMixin, views.ModelApplication):
     '''Display information about keys in one database.'''
     astable = True
-    #default_title = 'Database {0[db]}'
+    list_per_page = 250
+    description = 'Database {0[db]}'
     headers = ('key','type','length','time to expiry')
+    model_id_name = 'db'
     
-    home = views.SearchView()
+    home = views.ViewView('', description = 'Redis database key view')
     
-    def basequery(self, djp, **kwargs):
-        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
-        return DbQuery(djp,r)
+    def get_from_parent_object(self, parent, db):
+        return self.get_redisdb(parent, db)
     
-    def render(self, djp):
-        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
-        qs = DbQuery(djp,r)
-        p = Paginator(djp.request, qs, per_page = self.appmodel.list_per_page)
-        return Table(djp,
-                     self.headers,
-                     p.qs,
-                     appmodel = self,
-                     paginator = p).render()
+    def objectbits(self, obj):
+        if isinstance(obj,self.model):
+            id = obj.rpy.database_instance.id
+            return {'id':id,'db':obj.id}
+        else:
+            return {}
+    
+    def render_object(self, djp):
+        qs = djp.instance.stats()
+        p = html.Paginator(djp.request, qs,
+                           per_page = self.list_per_page)
+        return html.Table(djp,
+                          self.headers,
+                          p.qs,
+                          paginator = p).render()
 
 
 class RedisDbApplication(RedisMixin,views.ModelApplication):
     astable = True
     list_display = ('db','keys','expires')
-    actions = [('flush','flush',djpcms.DELETE)]
+    actions = [('bulk_delete','flush',djpcms.DELETE)]
     
     home = views.SearchView()
-    view = views.ViewView('/(?P<db>\d+)/')
+    keys = RedisKeyApplication('/(?P<db>\d+)/',
+                               RedisDbData,parent='home')
     
     def basequery(self, djp):
-        r = self.get_redis(djp.parent.instance)
+        instance = djp.parent.instance
+        r = self.get_redis(instance)
         try:
-            info = redis_info(r.info(),djp.url)
+            info = redis_info(r)
         except redis.ConnectionError:
             return ()
-        return info._panels['keys']
+        return info.databases
     
-    def ajax__flush(self, djp):
+    def get_instances(self, djp):
         data = djp.request.REQUEST
-        r = self.appmodel.get_redis(djp.instance, db = djp.kwargs['db'])
-        keys = len(r.keys())
-        return jhtmls(identifier = 'td.redisdb%s.keys' % r.db,
-                      html = keys)
-    
+        if 'ids[]' in data:
+            instance = djp.parent.instance
+            return [self.get_redisdb(instance,db) for db in data.getlist('ids[]')]    
     
 
 class RedisMonitorApplication(RedisMixin,AdminApplication):
     inherit = True
     form = ServerForm
     list_per_page = 100
+    formatter = Formatter()
+    
+    list_display = ['host','port','notes']
     redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
     template_view = ('monitor/monitor.html',)
         
     def render_object_view(self, djp):
         r = self.get_redis(djp.instance)
         try:
-            info = redis_info(r.info(),djp.url)
+            info = redis_info(r, formatter = self.formatter)
         except redis.ConnectionError:
             left_panels = [{'name':'Server','value':'No Connection'}]
             right_panels = ()
         else:
+            panels = info.panels()
             left_panels = ({'name':k,
-                            'value':html.ObjectDefinition(self,djp,v)} for k,v in info.items())
-            dbs = html.Table(djp, appmodel = self, **info.pop('keys'))
+                            'value':html.ObjectDefinition(self,djp,v)} for k,v in panels.items())
+            view = self.getview('db-home')(djp.request,**djp.kwargs)
+            dbs = view.render()
             right_panels = ({'name':'Databases',
-                             'value':dbs.render()},)
+                             'value':dbs},)
         return loader.render(self.template_view,
                             {'left_panels':left_panels,
                              'right_panels':right_panels})

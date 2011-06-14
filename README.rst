@@ -34,10 +34,7 @@ Features
  * Tagging included in distribution.
  * Several battery included application classes.
  * Nice form layout with extendible ``uniforms``.
- * Deployment tools using fabric_.
  * Sitemap design.
- * Integration with ``Django`` models and South_ support
-   for database migration.
 
 
 .. _intro-installing:

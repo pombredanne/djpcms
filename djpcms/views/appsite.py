@@ -19,7 +19,7 @@ from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
-from djpcms.utils.ajax import jcollection
+from djpcms.utils.ajax import jcollection, jremove
 from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
@@ -592,6 +592,8 @@ functionality when searching for model instances.'''
     '''Object view names to exclude from object links. Default ``[]``.'''
     actions = [('bulk_delete','delete',djpcms.DELETE)]
     
+    model_id_name = 'id'
+    
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
             raise ValueError('Model is null not defined in application {0}'.format(self))
@@ -612,29 +614,35 @@ functionality when searching for model instances.'''
 It returns dictionary of url bits which are used to uniquely identify a model instance. 
         '''
         if isinstance(obj,self.model):
-            return {'id': obj.id}
+            return {self.model_id_name: getattr(obj,self.model_id_name)}
         else:
             return {}
     
     def get_object(self, request, **kwargs):
-        '''Retrive an instance of self.model from key-values *kwargs* forming the url.
-By default it get the 'id' and get the object::
-
-    try:
-        id = int(kwargs.get('id',None))
-        return self.model.objects.get(id = id)
-    except:
-        return None
-    
-Re-implement for custom arguments.'''
-        if not 'id' in kwargs:
+        '''Retrive an instance of self.model from key-values
+*kwargs* forming the url. By default it get the :attr:`model_id_name`
+and get the object. Re-implement for custom arguments.'''
+        if not self.model_id_name in kwargs:
             return None
-        id = kwargs['id']
-        try:
-            return self.model.objects.get(id = id)
-        except:
-            return None
+        id = kwargs[self.model_id_name]
+        if isinstance(id,self.model):
+            return id
+        else:
+            query = {self.model_id_name:id}
+            try:
+                return self.mapper.get(**query)
+            except:
+                try:
+                    if self.parent:
+                        parent_object = self.parent.appmodel.get_object(request, **kwargs)
+                        if parent_object:
+                            return self.get_from_parent_object(parent_object,id)
+                except:
+                    pass
         
+    def get_from_parent_object(self, parent, id):
+        return parent
+    
     def object_from_form(self, form, commit = True):
         '''Save form and return an instance pof self.model'''
         return form.save(commit = commit)
@@ -663,6 +671,13 @@ Re-implement for custom arguments.'''
         return self.appviewurl(request,name,obj,self.has_change_permission,objrequired=True)
     
     def viewurl(self, request, obj, name = None, field_name = None):
+        '''\
+Evaluate the view urls for an object *obj*.
+
+:parameter request: a Http Request class.
+:parameter obj: instance of model (not necessarely self.model)
+:parameter name: Optional name of the view
+:parameter field_name: Optional name of a field.'''
         if field_name and self.model:
             value = getattr(obj,field_name,None)
             if hasattr(value,'__class__'):

@@ -506,7 +506,7 @@
     			if(!el.length & b.alldocument) {
     				el = $(b.identifier);
     			}
-    			if(el) {
+    			if(el.length) {
     			    var be = $.djpcms.options.remove_effect;
     			    el.fadeIn(be.duration, function() {el.remove();});
     				//el.hide(be.type,{},be.duration,function() {el.remove();});
@@ -631,23 +631,6 @@
             });
         }
     });*/
-    
-    /**
-     * Table-sorter decorator
-     * decorate tables with jquery.tablesorter plugin
-     * Plugin can be found at http://tablesorter.com/
-     */
-    $.djpcms.decorator({
-        id:"tablesorter",
-        config: {
-            selector: 'table.tablesorter',
-            widgets:['zebra','hovering','toolbox']
-        },
-        decorate: function($this,config) {
-            var opts = config.tablesorter;
-            $(opts.selector,$this).tablesorter(opts);
-        }
-    });
     
     $.djpcms.decorator({
         id:"accordion",
@@ -1304,12 +1287,29 @@
      */
     if($.tablesorter) {
         /**
+         * Table-sorter decorator
+         * decorate tables with jquery.tablesorter plugin
+         * Plugin can be found at http://tablesorter.com/
+         */
+        $.djpcms.decorator({
+            id:"tablesorter",
+            config: {
+                selector: 'table.tablesorter',
+                widgets:['zebra','hovering','toolbox']
+            },
+            decorate: function($this,config) {
+                var opts = config.tablesorter;
+                $(opts.selector,$this).tablesorter(opts);
+            }
+        });
+        
+        /**
          * A tablesorter widget for enabling actions on rows and
          * different views across columns.
          */
         $.tablesorter.add_select_rows = function(tbl,me,row_select,url,data) {
             function handle_callback(e,o) {
-                $.djpcms.jsonCallBack(e,o,table);
+                $.djpcms.jsonCallBack(e,o,tbl);
             }
             
             function toggle(chk) {

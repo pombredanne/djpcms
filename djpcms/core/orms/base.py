@@ -99,12 +99,13 @@ wrap existing object relational mappers.
         return user.is_superuser
     
     def unique_id(self, obj = None):
-        '''Create a unique ID for the object'''
+        '''A unique id for Html purposes. Here we remove dots
+since they seems to confuse jQuery selectors.'''
         if obj:
-            id = '%s-%s' % (self.hash,obj.id)
+            id = obj.uuid
         else:
-            id = self.hash
-        return 'o-'+id
+            id = self.model.hash
+        return 'o-{0}'.format(id.replace('.','-'))
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError
@@ -128,11 +129,7 @@ Return an iterable over items'''
 class DummyMapper(BaseOrmWrapper):
     
     def __init__(self, model):
-        self.hash = None
         self.model = model
-        
-    def unique_id(self, obj):
-        return hash(obj)
     
     def all(self):
         return self.model.all()

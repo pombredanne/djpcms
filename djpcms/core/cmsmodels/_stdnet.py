@@ -37,7 +37,10 @@ class TimeStamp(ModelBase):
         
     def save(self, commit = True):
         self.last_modified = datetime.now()
-        return super(TimeStamp,self).save(commit = commit)
+        if commit:
+            return super(TimeStamp,self).save()
+        else:
+            return super(TimeStamp,self)
     
 
 class InnerTemplate(TimeStamp,TemplateInterface):
@@ -51,7 +54,10 @@ class InnerTemplate(TimeStamp,TemplateInterface):
     
     def save(self, commit = True):
         self.blocks_from_content()
-        return super(InnerTemplate,self).save(commit = commit)        
+        if commit:
+            return super(InnerTemplate,self).save()
+        else:
+            return super(InnerTemplate,self)
     
     class Meta:
         app_label = 'djpcms'

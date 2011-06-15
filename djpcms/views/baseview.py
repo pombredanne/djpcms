@@ -78,6 +78,9 @@ http requests.
         Default ``False``.
              
     '''
+    PERM = djpcms.VIEW
+    ICON = None
+    DEFAULT_METHOD = 'get'
     object_view = False
     logger = logging.getLogger('djpcmsview')
     

@@ -8,16 +8,18 @@
    Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
   </span>
   {{ toolbox.actions }}
+ </div>{% endif %}{% if toolbox.links %}
+  <div class="toolbar-menu">
+  <span class="links">{% for link in toolbox.links %}
+   {{ link }}{% endfor %}
+  </span>
  </div>{% endif %}{% if toolbox.columnviews %}
  <div class='column-selector'>
   <span class="selectors">
    Select views
   </span>  
   {{ toolbox.columnviews }}
- </div>{% endif %}{% if toolbox.links %}
-  <span class="links">{% for link in toolbox.links %} 
-   {{ link }}{% endfor %}
-  </span>{% endif %}
+ </div>{% endif %}
 </div>
 <table class="tablesorter">{% else %}
 <table class="tablesorter ui-widget">{% endif %}{% if headers %}

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from py2py3 import zip
 
+import djpcms
 from djpcms import http
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
@@ -284,6 +285,7 @@ views::
                  view_template = None,
                  force_redirect = None,
                  ajax_enabled = None,
+                 icon = None,
                  form = None,
                  form_ajax = None,
                  form_method = None,
@@ -331,6 +333,7 @@ views::
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
         # Overrides
+        self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
         self.ajax_enabled = ajax_enabled if ajax_enabled is not None else self.ajax_enabled
         self._form_ajax = form_ajax if form_ajax is not None else self._form_ajax
@@ -528,6 +531,8 @@ It returns a queryset.
     
 
 class AddView(ModelView):
+    PERM = djpcms.ADD
+    ICON = 'ui-icon-circle-plus'
     default_title = 'add'
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
@@ -610,6 +615,8 @@ method of the :attr:`djpcms.views.View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
+    PERM = djpcms.DELETE
+    DEFAULT_METHOD = 'post'
     default_title = 'delete {0[instance]}'
     _methods      = ('post',)
     
@@ -637,6 +644,7 @@ class DeleteView(ObjectView):
 
 # Edit/Change an object
 class ChangeView(ObjectView):
+    PERM = djpcms.CHANGE
     default_title = 'edit {0[instance]}'
     '''An :class:`ObjectView` class specialised for changing an instance of a model.
     '''

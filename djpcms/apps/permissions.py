@@ -45,13 +45,15 @@ class PermissionBackend(object):
         global PERMISSION_CODES
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     
-    def has(self, request, permission_code, obj, user = None):
+    def has(self, request, permission_code, obj = None, model = None,
+            view = None, user = None):
         raise NotImplementedError
 
 
 class SimplePermissionBackend(PermissionBackend):
     
-    def has(self, request, permission_code, obj, user = None):
+    def has(self, request, permission_code, obj = None, model = None,
+            view = None, user = None):
         if permission_code <= VIEW:
             return True
         else:

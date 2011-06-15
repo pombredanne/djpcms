@@ -37,6 +37,8 @@
     color: {{ row_hover_color }};{% endif %}
 }
 div.toolbox {
+    line-height: 40px;
+    height: 40px;
     text-align: left;{% if toolbox_background_color %}
     background: {{ toolbox_background_color }};{% endif %}
     overflow: hidden;
@@ -56,9 +58,9 @@ div.toolbox .column-selector {
 div.toolbox .selectors {
     margin-left: 10px;
 }
-div.toolbox .links {
-    float: right;
-    margin-right: 10px;
+div.toolbox .toolbar-menu {
+    float: left;
+    margin-left: 10px;
 }
 {% endblock %}
 

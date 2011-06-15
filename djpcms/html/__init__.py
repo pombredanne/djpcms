@@ -24,5 +24,6 @@ from .box import *
 from .nicerepr import *
 from .objectdef import *
 from .widgets import *
+from .apptools import *
 from .table import *
 

@@ -608,6 +608,19 @@
                }
                a.button(opts).removeClass('djph');
            });
+           $('button').each(function() {
+               var b = $(this),
+                data = b.data(),
+                icon = data.icon,
+                text = data.text;
+               if(!text) {
+                    text = icon ? false : true;
+               }
+               b.button({
+                   icons:{primary:icon},
+                   text:text
+               });
+           });
         }
     });
     
@@ -684,7 +697,8 @@
     $.djpcms.decorator({
         id:	"ajax_widgets",
         config: {
-            selector_link: 'a.ajax,button.ajax',
+            selector_link: 'a.ajax,button',
+            selector_redirect: 'button',
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_opacity: '0.5'
@@ -705,13 +719,20 @@
             }
             
     		$(cfg.selector_link,$this).click(function(event) {
-    		    event.preventDefault();               
+    		    event.preventDefault();          
                 var elem = $(this),
                     url = elem.attr('href'),
                     method = elem.data('method') || 'post',
                     action = elem.attr('name'),
                     conf = confirm[name] || elem.data('conf');
-                $.djpcms.ajax_loader(url,action,method,{},conf)();
+                if(url) {
+                    if(!elem.hasClass('ajax')) {
+                        window.location = url;
+                    }
+                    else {
+                        $.djpcms.ajax_loader(url,action,method,{},conf)();
+                    }
+                }
     		});
     		
     		$(cfg.selector_select,$this).change(function(event) {

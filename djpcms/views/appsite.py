@@ -5,14 +5,14 @@ The main object handle several subviews used for searching, adding and manipulat
 '''
 from copy import copy, deepcopy
 from inspect import isgenerator
-from collections import namedtuple
 
-from py2py3 import iteritems, is_string, is_bytes_or_string, to_string
+from py2py3 import iteritems, is_string,\
+                    is_bytes_or_string, to_string
 
 import djpcms
 from djpcms import forms
 from djpcms.html import ObjectDefinition, Paginator, Table, SubmitInput,\
-                        Select, icons
+                        application_action
 from djpcms.template import loader
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -29,8 +29,7 @@ from .appview import View, ViewView
 from .regex import RegExUrl
 
 
-__all__ = ['application_action',
-           'Application',
+__all__ = ['Application',
            'ModelApplication']
 
 SPLITTER = '-'
@@ -110,9 +109,6 @@ def process_views(view,views,app):
             view.parent = app.root_view
         views.remove(view)
         return view
-
-
-application_action = namedtuple('application_action','view display permission')
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
@@ -473,49 +469,6 @@ Return ``None`` if the view is not available.'''
     def get_label_for_field(self, name):
         '''Fallback function for retriving a label for a given field name.'''
         raise AttributeError("Attribute %s not available" % name)
-
-    def links(self,
-              djp,
-              asbuttons = True,
-              exclude = None,
-              include = None):
-        '''Create a list of application links available to the user'''
-        css     = djp.css
-        next    = djp.url
-        request = djp.request
-        post    = ('post',)
-        posts   = []
-        gets    = []
-        exclude = exclude or []
-        for ex in self.exclude_links:
-            if ex not in exclude:
-                exclude.append(ex)
-        content = {'links':gets,
-                   'posturls':posts}
-        kwargs  = djp.kwargs
-        for view in self.views.itervalues():
-            if view.object_view:
-                continue
-            name = view.name
-            if name in exclude:
-                continue
-            djpv = view(request, **kwargs)
-            if view.has_permission(request):
-                url   = '%s?next=%s' % (djpv.url,view.nextviewurl(djp))
-                title = ' title="%s"' % name
-                if asbuttons:
-                    if view.methods(request) == post:
-                        cl = ' class="%s %s"' % (css.ajax,css.nicebutton)
-                    else:
-                        cl = ' class="%s"' % css.nicebutton
-                else:
-                    if view.methods(request) == post:
-                        cl = ' class="%s"' % css.ajax
-                    else:
-                        cl = ' '
-                posts.append(mark_safe('<a href="{0}"{1}{2} name="{3}">{3}</a>'.format(url,cl,title,name)))
-                content['%surl' % name] = url
-        return content
     
     def table_generator(self, djp, headers, qs):
         '''Return an generator from an iterable to be used
@@ -589,42 +542,6 @@ By default it returns nothing.
 '''
         return None
         
-    def table_toolbox(self, djp):
-        '''\
-    Create a toolbox for the table if possible. A toolbox is created when
-    an application based on database model is available.
-    
-    :parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
-    :parameter appmodel: an instance of a :class:`djpcms.views.Application`.
-    '''
-        request = djp.request
-        site = djp.site
-        menu = self.links(djp)
-        addurl = self.addurl(djp.request)
-        action_url = djp.url
-        has = site.permissions.has
-        choices = [('','Actions')]
-        for name,description,pcode in self.table_actions:
-            if has(request, pcode, None):
-                choices.append((name,description))
-        toolbox = {}
-        if len(choices) > 1:
-            toolbox['actions'] = Select(choices).addData('url',action_url).render()
-        if addurl:
-            toolbox['links'] = [icons.circle_plus(addurl,'add')]
-        groups = self.column_groups(djp)
-        if groups:
-            data = {}
-            choices = []
-            for name,headers in groups:
-                data[name] = headers
-                choices.append((name,name))
-            s = Select(choices)
-            for name,val in data.items():
-                s.addData(name,val)
-            toolbox['columnviews'] = s.render()
-        return toolbox
-        
                 
         
 class ModelApplication(Application):
@@ -654,7 +571,6 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    table_actions = ['add']
     
     model_id_name = 'id'
     

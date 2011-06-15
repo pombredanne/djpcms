@@ -8,19 +8,9 @@ from djpcms.html import icons
 
 from .nicerepr import *
 from .base import HtmlWidget
+from .apptools import table_toolbox
 
 __all__ = ['Table']
-
-
-def addviews(djp, appmodel):
-    request = djp.request
-    kwargs = djp.kwargs
-    
-    for view in itervalues(appmodel.views):
-        if isinstance(view,AddView):
-            url = appmodel.appviewurl(request,view)
-            if not url:
-                continue
 
 
 class Table(object):
@@ -70,7 +60,7 @@ Render a table given a response object ``djp``.
         toolbox = None
         actions = False
         if appmodel:
-            toolbox = appmodel.table_toolbox(djp)
+            toolbox = table_toolbox(appmodel,djp)
             actions = 'actions' in toolbox
             
         items  = (results_for_item(djp, headers, d, appmodel,\

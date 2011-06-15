@@ -28,6 +28,7 @@ class ApplicationSite(SiteMixin, RouteMixin):
         self._route = RegExUrl(route)
         self.config = config
         self.settings = config
+        self._permissions = None
         self._registry = {}
         self._nameregistry = OrderedDict()
         self.choices = [('','-----------------')]
@@ -296,7 +297,10 @@ returns the application handler. If the appname is not available, it raises a Ke
     
     @property
     def permissions(self):
-        return self.root.permissions
+        if self._permissions:
+            return self._permissions
+        else:
+            return self.root.permissions
     
     def add_default_inner_template(self, page):
         from djpcms.models import InnerTemplate

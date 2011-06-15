@@ -49,6 +49,7 @@ class PageChangeView(views.ChangeView):
         
     
 class SiteMapApplication(TabViewMixin,views.ModelApplication):
+    has_plugins = False
     '''Application to use for admin sitemaps'''
     list_display = ('id', 'url','application','application_view',
                     'template','inner_template','in_navigation','doc_type',

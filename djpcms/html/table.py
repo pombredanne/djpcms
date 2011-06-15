@@ -8,45 +8,19 @@ from djpcms.html import icons
 
 from .nicerepr import *
 from .base import HtmlWidget
-from .widgets import Select
 
 __all__ = ['Table']
-    
-    
-def table_toolbox(djp, appmodel):
-    '''\
-Create a toolbox for the table if possible. A toolbox is created when
-an application based on database model is available.
 
-:parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
-:parameter appmodel: an instance of a :class:`djpcms.views.Application`.
-'''
+
+def addviews(djp, appmodel):
     request = djp.request
-    site = djp.site
-    addurl = appmodel.addurl(djp.request)
-    action_url = djp.url
-    has = site.permissions.has
-    choices = [('','Actions')]
-    for name,description,pcode in appmodel.actions:
-        if has(request, pcode, None):
-            choices.append((name,description))
-    toolbox = {}
-    if len(choices) > 1:
-        toolbox['actions'] = Select(choices).addData('url',action_url).render()
-    if addurl:
-        toolbox['links'] = [icons.circle_plus(addurl,'add')]
-    groups = appmodel.column_groups(djp)
-    if groups:
-        data = {}
-        choices = []
-        for name,headers in groups:
-            data[name] = headers
-            choices.append((name,name))
-        s = Select(choices)
-        for name,val in data.items():
-            s.addData(name,val)
-        toolbox['columnviews'] = s.render()
-    return toolbox
+    kwargs = djp.kwargs
+    
+    for view in itervalues(appmodel.views):
+        if isinstance(view,AddView):
+            url = appmodel.appviewurl(request,view)
+            if not url:
+                continue
 
 
 class Table(object):
@@ -96,7 +70,7 @@ Render a table given a response object ``djp``.
         toolbox = None
         actions = False
         if appmodel:
-            toolbox = table_toolbox(djp, appmodel)
+            toolbox = appmodel.table_toolbox(djp)
             actions = 'actions' in toolbox
             
         items  = (results_for_item(djp, headers, d, appmodel,\

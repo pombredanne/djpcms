@@ -283,6 +283,7 @@ views::
                  template_name = None,
                  view_template = None,
                  force_redirect = None,
+                 ajax_enabled = None,
                  form = None,
                  form_ajax = None,
                  form_method = None,
@@ -322,8 +323,6 @@ views::
             self.render = renderer
         if permission:
             self._has_permission = permission
-        if methods:
-            self._methods = methods
         if success_message:
             self.success_message = success_message
         if view_template:
@@ -331,7 +330,10 @@ views::
         if force_redirect is not None:
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
-        self._form_ajax  = form_ajax if form_ajax is not None else self._form_ajax
+        # Overrides
+        self._methods = methods if methods else self._methods
+        self.ajax_enabled = ajax_enabled if ajax_enabled is not None else self.ajax_enabled
+        self._form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         self.form_method = form_method or self.form_method
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter

@@ -129,6 +129,6 @@ class TemplateHandler(LibraryTemplateHandler):
             try:
                 content, location, _ = env.loader.get_source(env,template_name)
                 return content, location
-            except self.TemplateNotFound:
+            except TemplateNotFound:
                 continue
         raise TemplateNotFound

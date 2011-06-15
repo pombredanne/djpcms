@@ -209,6 +209,8 @@ has been submitted.'''
             instance = f.save_as_new()
         if ajax.isajax(instance):
             return instance
+        elif instance == f:
+            return layout.json_messages(f)
         smsg     = getattr(view,'success_message',success_message)
         msg      = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)

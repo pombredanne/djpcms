@@ -36,6 +36,7 @@ A mixin class for rendering objects as HTML
     name = None
     description = None
     dialog_width = 400
+    ajax_enabled = False
     
     def render(self, djp):
         '''\

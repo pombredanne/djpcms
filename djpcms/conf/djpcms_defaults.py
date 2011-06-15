@@ -61,7 +61,7 @@ JINJA2_TEMPLATE_LOADERS = (('djpcms.template._jinja2.ApplicationLoader',),)
 
 # Date Format
 DATE_FORMAT = 'd M y'
-DATETIME_FORMAT = DATE_FORMAT + ' H:i'
+TIME_FORMAT = 'H:i'
 
 DEFAULT_CHARSET = 'utf-8'
 TIME_ZONE = 'Europe/London'

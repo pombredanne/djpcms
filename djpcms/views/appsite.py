@@ -571,6 +571,7 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
+    table_links = ['add']
     
     model_id_name = 'id'
     

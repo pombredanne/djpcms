@@ -36,7 +36,7 @@ def application_links(appmodel,
             exclude.append(ex)
     kwargs  = djp.kwargs
     
-    if not include:
+    if include is None:
         include = appmodel.views
         
     for elem in include:

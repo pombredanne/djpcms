@@ -33,6 +33,7 @@ class NiceTimeDelta(object):
             return '{0} seconds'.format(int(delta))
         elif delta < self.hour:
             minutes = int(delta / 60.0)
+            p = '' if minutes == 1 else 's'
             seconds = int(delta - 60*minutes)
             if minutes < self.prec and seconds > 1:
                 return '{0} minute{1} and {2} seconds'.format(minutes,p,seconds)

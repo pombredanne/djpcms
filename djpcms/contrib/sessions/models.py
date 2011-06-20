@@ -141,6 +141,9 @@ class Log(orm.StdModel):
     user = orm.SymbolField(required=False)
     client = orm.CharField()
 
+    class Meta:
+        ordering = '-timestamp'
+        
     def abbrev_msg(self, maxlen=500):
         if len(self.msg) > maxlen:
             return '%s ...' % self.msg[:maxlen]

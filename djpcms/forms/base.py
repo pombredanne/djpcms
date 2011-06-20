@@ -359,11 +359,12 @@ This method works if an instance or a model is available.
 :parameter commit: if ``True`` changes are committed to the model backend.
 :parameter as_new: if ``True`` the instance is saved as a new instance.
 '''
-        self.before_save(commit)
-        obj = self.mapper.save(self.cleaned_data, self.instance, commit)
-        if commit:
-            for fset in self.form_sets.values():
-                fset.save()
+        obj = self.before_save(commit)
+        if not obj:
+            obj = self.mapper.save(self.cleaned_data, self.instance, commit)
+            if commit:
+                for fset in self.form_sets.values():
+                    fset.save()
         return obj
     
     def before_save(self, commit=True):

@@ -13,7 +13,7 @@ def registered_models(bfield):
     site = form.request.DJPCMS.site
     for model,app in site._registry.items():
         if not app.hidden:
-            id = mapper(model).hash
+            id = getattr(mapper(model),'hash',None)
             if id:
                 yield id,str(model._meta)
                 
@@ -47,6 +47,9 @@ class ForModelForm(forms.Form):
 class LatestItemForm(ForModelForm):
     max_display = forms.IntegerField(initial = 10)
     pagination  = forms.BooleanField(initial = False)
+    filter = forms.CharField(required = False)
+    exclude = forms.CharField(required = False)
+    display_if_empty = forms.BooleanField(initial = False)
 
 
 class FormModelForm(ForModelForm):
@@ -250,11 +253,12 @@ class LatestItems(DJPplugin):
             
     def render(self, djp, wrapper, prefix,
                for_model = None, max_display = 5,
-               pagination = False, **kwargs):
+               pagination = False, display_if_empty = False,
+               **kwargs):
         site = djp.site
-        appmodel = site.for_hash(for_model,safe=False)
+        appmodel = site.for_hash(for_model,safe=False,all=True)
         data = appmodel.orderquery(appmodel.basequery(djp))
-        max_display = max(max_display,1)
+        max_display = max(int(max_display),1)
         items = data[0:max_display]
         if not items:
             return ''

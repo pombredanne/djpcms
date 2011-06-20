@@ -181,7 +181,7 @@ If the application is not available, it returns ``None``. Never fails.'''
         else:
             return app
             
-    def for_hash(self, model_hash, safe = True):
+    def for_hash(self, model_hash, safe = True, all = False):
         '''Obtain a :class:`djpcms.views.ModelApplication` for model
  model hash id. If the application is not available, it returns ``None``
  unless ``safe`` is set to ``False`` in which case it throw a
@@ -193,7 +193,7 @@ If the application is not available, it returns ``None``. Never fails.'''
                 return None
             else:
                 raise ValueError('Model type %s not available' % model_hash)
-        appmodel = self.for_model(model)
+        appmodel = self.for_model(model, all = all)
         if not appmodel:
             if not safe:
                 raise ApplicationNotAvailable('Model {0} has\

@@ -341,10 +341,6 @@ Return ``None`` if the view is not available.'''
     def get_the_view(self):
         return self.root_view
     
-    def has_permission(self, request = None, obj = None):
-        '''Return True if the page can be viewed, otherwise False'''
-        return True
-    
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
@@ -630,28 +626,28 @@ and get the object. Re-implement for custom arguments.'''
     
     # APPLICATION URLS
     #----------------------------------------------------------------
-    def appviewurl(self, request, name, obj = None, permissionfun = None, objrequired=False):
+    def appviewurl(self, request, name, obj = None, objrequired=False):
         if objrequired and not isinstance(obj,self.model):
             return None
         try:
             view = name
             if not isinstance(view,View):
                 view = self.getview(name)
-            permissionfun = permissionfun or self.has_view_permission
-            if view and permissionfun(request, obj):
+            if view:
                 djp = view(request, instance = obj)
-                return djp.url
+                if djp.has_permission():
+                    return djp.url
         except:
             return None
         
     def addurl(self, request, name = 'add'):
-        return self.appviewurl(request,name,None,self.has_add_permission)
+        return self.appviewurl(request,name,None)
         
     def deleteurl(self, request, obj, name = 'delete'):
-        return self.appviewurl(request,name,obj,self.has_delete_permission,objrequired=True)
+        return self.appviewurl(request,name,obj,objrequired=True)
         
     def changeurl(self, request, obj, name = 'change'):
-        return self.appviewurl(request,name,obj,self.has_change_permission,objrequired=True)
+        return self.appviewurl(request,name,obj,objrequired=True)
     
     def viewurl(self, request, obj, name = None, field_name = None):
         '''\
@@ -693,22 +689,7 @@ Evaluate the view urls for an object *obj*.
                 return None
         except:
             return None
-    
-    # STANDARD PERMISSIONS
-    #-----------------------------------------------------------------------------------------
-    def has_view_permission(self, request, obj = None):
-        return self.site.permissions.has(request,djpcms.VIEW,obj)
-    
-    def has_add_permission(self, request, obj=None):
-        return self.site.permissions.has(request,djpcms.ADD,obj)
-    
-    def has_change_permission(self, request, obj=None):
-        return self.site.permissions.has(request,djpcms.CHANGE,obj)
-    
-    def has_delete_permission(self, request, obj=None):
-        return self.site.permissions.has(request,djpcms.DELETE,obj)
-    #-----------------------------------------------------------------------------------------------
-    
+
     def basequery(self, djp):
         '''Starting queryset for searching objects in model.
 This can be re-implemented by subclasses.'''

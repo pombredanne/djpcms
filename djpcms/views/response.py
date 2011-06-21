@@ -269,7 +269,7 @@ the parent of the embedded view.'''
         method  = request.method.lower()
         
         # Check for page view permissions
-        if not view.has_permission(request, page, self.instance):
+        if not self.has_permission():
             raise PermissionDenied()
         
         # chanse to bail out early
@@ -348,12 +348,14 @@ the parent of the embedded view.'''
                 yield cdjp
             except:
                 continue
-            
+    
+    def has_permission(self):
+        return self.view.has_permission(self.request, self.page, self.instance)
+        
     @storegenarator
     def auth_children(self):
-        request = self.request
         for c in self.children():
-            if c.view.has_permission(request, c.page):
+            if c.has_permission():
                 yield c
                 
     def redirect(self, url):

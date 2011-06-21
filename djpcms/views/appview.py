@@ -146,16 +146,10 @@ All parameters are optionals and usually a small subset of them needs to be used
     
     Default ``None``.
     
-:keyword permission: A three parameters function which can be used to
-                     replace the default :meth:`_has_permission` method.
-                     Default ``None``. The function
-                     return a boolean and takes the form::
-                     
-                         def permission(view, request, obj):
-                             ...
-                         
-                     where ``self`` is an instance of the view, ``request`` is the HTTP request instance and
-                     ``obj`` is an instance of model or ``None``.
+:keyword permission: A permission flag.
+
+    Default ``None``.
+
 :keyword headers:
 
     List of string to display as table header when the
@@ -323,8 +317,6 @@ views::
             self.table_generator = table_generator
         if renderer:
             self.render = renderer
-        if permission:
-            self._has_permission = permission
         if success_message:
             self.success_message = success_message
         if view_template:
@@ -333,6 +325,7 @@ views::
             self.force_redirect = force_redirect
         self._form     = form if form else self._form
         # Overrides
+        self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
         self.ajax_enabled = ajax_enabled if ajax_enabled is not None else self.ajax_enabled
@@ -427,12 +420,9 @@ views::
         
     def has_permission(self, request = None, page = None, obj = None, user = None):
         if super(View,self).has_permission(request, page, obj, user = user):
-            return self._has_permission(request, obj)
+            return self.site.permissions.has(request, self.PERM, obj)
         else:
             return False
-        
-    def _has_permission(self, request, obj):
-        return self.appmodel.has_permission(request, obj)
     
     def appquery(self, djp):
         '''This function implements the query, based on url entries.
@@ -543,9 +533,6 @@ and handles the saving as default ``POST`` response.'''
                                      in_navigation = in_navigation,
                                      **kwargs)
     
-    def _has_permission(self, request, obj):
-        return self.appmodel.has_add_permission(request, obj)
-    
     def save(self, request, f, commit = True):
         return self.appmodel.object_from_form(f, commit)
     
@@ -625,9 +612,6 @@ class DeleteView(ObjectView):
                                         parent = parent,
                                         **kwargs)
         
-    def _has_permission(self, request, obj):
-        return self.appmodel.has_delete_permission(request, obj)
-    
     def remove_object(self, instance):
         return self.appmodel.remove_object(instance)
     
@@ -650,9 +634,6 @@ class ChangeView(ObjectView):
     '''
     def __init__(self, regex = 'change', parent = 'view', **kwargs):
         super(ChangeView,self).__init__(regex = regex, parent = parent, **kwargs)
-    
-    def _has_permission(self, request, obj):
-        return self.appmodel.has_change_permission(request, obj)
     
     def render(self, djp):
         return self.get_form(djp).render(djp)

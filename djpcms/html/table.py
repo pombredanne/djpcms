@@ -8,7 +8,7 @@ from djpcms.html import icons
 
 from .nicerepr import *
 from .base import HtmlWidget
-from .apptools import table_toolbox
+from .apptools import table_toolbox, table_header
 
 __all__ = ['Table']
 
@@ -76,16 +76,10 @@ Render a table given a response object ``djp``.
             
     def headers(self, headers):
         '''Generator of hteml headers tags'''
-        if isinstance(headers,dict):
-            data = headers
-        else:
-            data = {}
         for head in headers:
-            if head in data:
-                inner,description = data[head]
-            else:
-                description = None
-                inner = nicename(head)
+            if not isinstance(head,table_header):
+                name = nicename(head)
+                head = table_header(head,name,None)
             w = HtmlWidget('th', cn = head)
             if description:
                 w.addData('description',description)

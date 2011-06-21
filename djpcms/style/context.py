@@ -3,7 +3,7 @@ from medplate import CssContext
 from .elements import *
 
 # SOME DEFAULTS
-BOX_HEADER_PADDING = '6px 12px'
+BOX_HEADER_PADDING = '6px 5px'
 BOX_BODY_PADDING = '5px 5px'
 
 #________________________________________ ANCHOR

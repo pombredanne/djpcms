@@ -486,7 +486,7 @@ By default it return a generator of children pages.'''
         appmodel = appmodel or self
         if isgenerator(query):
             query = list(query)
-        p  = Paginator(djp.request, query, per_page = appmodel.list_per_page)
+        p = Paginator(djp.request, query, per_page = appmodel.list_per_page)
         headers = view.headers or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
@@ -568,7 +568,7 @@ functionality when searching for model instances.'''
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
     table_links = ['add']
-    
+    ordering = 'id'
     model_id_name = 'id'
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):

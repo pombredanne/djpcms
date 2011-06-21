@@ -11,8 +11,10 @@ from .widgets import Select
 __all__ = ['application_action',
            'table_menu_link',
            'application_links',
-           'table_toolbox']
+           'table_toolbox',
+           'table_header']
 
+table_header = namedtuple('table_header','code name description')
 application_action = namedtuple('application_action','view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
@@ -120,9 +122,10 @@ an application based on database model is available.
         for name,headers in groups:
             data[name] = headers
             choices.append((name,name))
-        s = Select(choices)
-        for name,val in data.items():
-            s.addData(name,val)
-        toolbox['columnviews'] = s.render()
+        if choices:
+            s = Select(choices)
+            for name,val in data.items():
+                s.addData(name,val)
+            toolbox['columnviews'] = s.render()
     return toolbox
 

@@ -347,9 +347,10 @@ content in a content block.'''
         #if not p or not p.edit_form:
         #    return
         view = self.getview('plugin')
-        if view and self.has_change_permission(request, obj):
+        if view:
             djp = view(request, instance = obj)
-            return djp.url
+            if djp.has_permission():
+                return djp.url
 
     def blockhtml(self, djp, instance, editview, wrapper):
         '''A content block rendered in editing mode'''

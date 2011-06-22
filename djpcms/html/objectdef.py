@@ -50,7 +50,8 @@ Usage::
         else:
             headers = self.appmodel.object_display
             label_for_field = nicename if not mapper else mapper.label_for_field
-            ctx = results_for_item(self.djp,headers,
+            ctx = results_for_item(self.djp,
+                                   headers,
                                    self.obj,
                                    self.appmodel,
                                    escape = smart_escape)

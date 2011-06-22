@@ -168,6 +168,7 @@ class get_app_result(object):
         first = self.first
         url = None
         if field_name:
+            field_name = getattr(field_name,'code',field_name)
             result_repr = field_repr(field_name, result, appmodel = appmodel, nd = nd)
             if(self.first and not appmodel.list_display_links) or \
                     field_name in appmodel.list_display_links:
@@ -184,11 +185,11 @@ class get_app_result(object):
             var = ''
         
         if self.first and self.actions:
-            first = False
+            first = False 
             var = table_checkbox(var, getattr(result,'id',None))
         
         escape = escape or default_escape
         var = escape(var)
         self.first = first
-        return var
+        return {'name':field_name,'value':var}
     

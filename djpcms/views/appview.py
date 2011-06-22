@@ -255,8 +255,7 @@ views::
     plugin_form    = None
     view_template  = 'djpcms/components/pagination.html'
     force_redirect = False
-    headers        = None
-    astable        = False
+    astable = False
     isplugin = False
     in_nav = 0
     _form          = None
@@ -283,8 +282,8 @@ views::
                  form = None,
                  form_ajax = None,
                  form_method = None,
-                 headers       = None,
-                 astable        = None,
+                 list_display = None,
+                 astable = None,
                  table_generator = None,
                  success_message = None,
                  redirect_to_view = None,
@@ -303,7 +302,7 @@ views::
         self.code      = None
         self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view
-        self.headers   = headers or self.headers
+        self.list_display = list_display or self.list_display
         self.astable   = astable if astable is not None else self.astable
         self.template_name = template_name or self.template_name
         if self.template_name:

@@ -80,10 +80,10 @@ Render a table given a response object ``djp``.
             if not isinstance(head,table_header):
                 name = nicename(head)
                 head = table_header(head,name,None)
-            w = HtmlWidget('th', cn = head)
-            if description:
-                w.addData('description',description)
-            yield w.render(inner = inner)
+            w = HtmlWidget('th', cn = head.code)
+            if head.description:
+                w.addData('description',head.description)
+            yield w.render(inner = head.name)
             
     def render(self):
         return loader.render(self.template_name,self.ctx)

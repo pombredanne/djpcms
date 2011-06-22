@@ -225,7 +225,6 @@ or in the constructor.
     list_per_page    = 50
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
-    list_display     = ()
     list_display_links = ()
     '''List of object's field to display. If available, the search view will display a sortable table
 of objects. Default is ``None``.'''
@@ -235,8 +234,6 @@ of objects. Default is ``None``.'''
                                 'djpcms/pagination.html')
 
     in_navigation = None
-    
-    astable = None
     table_actions = []
     table_links = []
     
@@ -253,13 +250,11 @@ of objects. Default is ``None``.'''
                  list_per_page = None, form = None, list_display = None,
                  list_display_links = None, in_navigation = None,
                  description = None, template_name = None, parent = None,
-                 related_field = None, astable = None,
-                 apps = None, **views):
+                 related_field = None, apps = None, **views):
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
         self.site = None
-        self.astable = astable if astable is not None else self.astable
         self.root_view = None
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation if in_navigation is not None else self.in_navigation
@@ -487,7 +482,7 @@ By default it return a generator of children pages.'''
         if isgenerator(query):
             query = list(query)
         p = Paginator(djp.request, query, per_page = appmodel.list_per_page)
-        headers = view.headers or appmodel.list_display
+        headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
         astable = headers and view.astable
@@ -719,9 +714,6 @@ This can be re-implemented by subclasses.'''
         '''Utility function for getting content out of an instance of a model.
 This dictionary should be used to render an object within a template. It returns a dictionary.'''
         request = djp.request
-        changeurl = self.changeurl(request, obj)
-        if changeurl:
-            changeurl = '%s?next=%s' % (changeurl,djp.url)
         content = {'item':      obj,
                    'mapper':    self.mapper,
                    'djp':       djp,

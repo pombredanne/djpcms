@@ -1,3 +1,3 @@
 <div{% if id %} id="{{ id }}"{% endif %} class="object-definition{% if module_name %} {{ module_name }}{% endif %}">{% for row in items %}
-<dl><dt>{{ row.name }}</dt><dd>{{ row.value }}</dd></dl>{% endfor %}
+<dl><dt>{{ row.name }}</dt><dd>{{ row.value.value }}</dd></dl>{% endfor %}
 </div>

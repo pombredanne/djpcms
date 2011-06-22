@@ -66,12 +66,14 @@ wrap existing object relational mappers.
     def model_to_dict(self, instance, fields = None, exclude = None):
         raise NotImplementedError
     
-    def label_for_field(self, name):
-        if hasattr(self.model,name):
-            fun = getattr(self.model,name)
+    def label_for_field(self, field):
+        if hasattr(field,'name'):
+            return field.name
+        elif hasattr(self.model,field):
+            fun = getattr(self.model,field)
             if hasattr(fun,self.short_description):
                 return fun.short_description
-        return nicename(name)
+        return nicename(field)
     
     def getrepr(self, name, instance, nd = 3):
         '''representation of field *name* for *instance*.'''

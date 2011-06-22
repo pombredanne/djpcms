@@ -481,6 +481,8 @@ By default it return a generator of children pages.'''
         appmodel = appmodel or self
         if isgenerator(query):
             query = list(query)
+        if hasattr(query,'ordering') and not query.ordering and self.ordering:
+            query = query.sort_by(self.ordering)
         p = Paginator(djp.request, query, per_page = appmodel.list_per_page)
         headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):

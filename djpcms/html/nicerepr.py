@@ -18,6 +18,7 @@ __all__ = ['nicerepr',
            'table_checkbox',
            'NONE_VALUE']
 
+FIELD_SPLITTER = '__'
 NONE_VALUE = '(None)'
 DEFAULT_DATE_FORMAT = 'd M y'
 DEFAULT_DATETIME_FORMAT = DEFAULT_DATE_FORMAT + ' H:i'
@@ -68,7 +69,17 @@ Prettify a value to be displayed in html.
     
     
 def field_repr(field_name, obj, appmodel = None, **kwargs):
-    '''Retrive a field value from an object'''
+    '''Retrive the value of attribute *field_name*
+from an object *obj* by trying out
+several possibilities in the following order.
+
+* If *field_name* is not defined or empty it returns ``None``.
+* If *field_name* is an attribute of *obj* it returns the value.
+* If *obj* is a dictionary type object and *field_value* is in *obj* it returns the vaue.
+* If *appmodel* is defined it invokes the
+  :meth:`djpcms.views.Application.get_intance_value`
+* Return ``None``
+'''
     if not field_name:
         val = None
     elif hasattr(obj,field_name):
@@ -78,6 +89,17 @@ def field_repr(field_name, obj, appmodel = None, **kwargs):
                 val = val()
         except Exception as e:
             val = str(e)
+    elif hasattr(obj,'__getitem__') and field_name in obj:
+        val = obj[field_name]
+    elif FIELD_SPLITTER in field_name:
+        fnames = field_name.split(FIELD_SPLITTER)
+        if hasattr(obj,fnames[0]):
+            field = getattr(obj,fnames[0])
+            return field_repr(FIELD_SPLITTER.join(fnames[1:]), field, **kwargs)
+        elif appmodel:
+            val = appmodel.get_intance_value(obj, field_name)
+        else:
+            val = None
     elif appmodel:
         val = appmodel.get_intance_value(obj, field_name)
     else:

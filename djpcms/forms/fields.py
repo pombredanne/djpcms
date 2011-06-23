@@ -335,7 +335,7 @@ Additional attributes:
     An optional character to separate elements when the field is used in a html
     autocomplete widget.
     
-    Default ``" "``
+    Default ``", "``
     
 .. attribute:: autocomplete
 
@@ -347,11 +347,13 @@ Additional attributes:
 
     If provided it represents an empty choice
     
+This field works in conjunction with the ``autocomplete`` decorator in
+``djpcms.js``.
 '''
     widget = Select
     
     def _handle_params(self, choices = None, model = None,
-                       separator = ' ', autocomplete = False,
+                       separator = ', ', autocomplete = False,
                        empty_label = None, multiple = False,
                        minLength = 2, maxRows = 20,
                        **kwargs):
@@ -391,21 +393,28 @@ iterable over choices and a model class (if applicable).'''
                 if not model:
                     ch = set((to_string(x[0]) for x in ch))
                     value = to_string(value)
-                if not value in ch:
-                    raise ValidationError('{0} is not a valid choice'.format(value))
+                if self.multiple:
+                    values = value.split(self.separator)
+                else:
+                    values = (value,)
+                for val in values:
+                    if not val in ch:
+                        raise ValidationError('{0} is not a valid choice'.format(value))
+                if self.multiple and model:
+                    value = values
         return value
     
     def get_widget(self, djp, bfield):
         if self.autocomplete:
             ch,model = self.choices_and_model(bfield)
+            value = bfield.value
+            widget = TextInput(cn = 'autocomplete')\
+                        .addData('multiple',self.multiple)\
+                        .addData('minlength',self.minLength)\
+                        .addData('maxrows',self.maxRows)
             if model:                    
-                url = djp.site.get_url(model,'search')    
-                widget = TextInput(cn = 'autocomplete')
-                widget.addData('url',url)\
-                      .addData('multiple',self.multiple)\
-                      .addData('minlength',self.minLength)\
-                      .addData('maxrows',self.maxRows)
-                value = bfield.value
+                url = djp.site.get_url(model,'search')
+                widget.addData('url',url)
                 if value:
                     if self.multiple:
                         raise NotImplemented
@@ -413,10 +422,19 @@ iterable over choices and a model class (if applicable).'''
                         obj = mapper(model).get(id = value)
                         initial_value = ((obj.id,str(obj)),)
                     widget.addData('initial_value',initial_value)
-                return widget
+            else:
+                widget.addData('choices',ch)
+                if value:
+                    chd = dict(ch)
+                    values = []
+                    for val in value.split(self.separator):
+                        if val in chd:
+                            values.append((val,chd[val]))
+                    if values:
+                        widget.addData('initial_value',values)
+            return widget
         return super(ChoiceField,self).get_widget(djp, bfield)
         
-
 
 class EmailField(CharField):
     pass

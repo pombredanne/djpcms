@@ -1,5 +1,7 @@
 /*
  * 
+ * This is a fork of
+ * 
  * TableSorter 2.0 - Client-side table sorting with ease!
  * Version 2.0.5b
  * @requires jQuery v1.2.3
@@ -10,6 +12,8 @@
  * http://www.opensource.org/licenses/mit-license.php
  * http://www.gnu.org/licenses/gpl.html
  * 
+ * 
+ * Subsequently modified
  */
 /**
  * 
@@ -118,6 +122,7 @@
                 iconAsc: "ui-icon ui-icon-triangle-1-n",
                 iconDesc: "ui-icon ui-icon-triangle-1-s",
                 iconFloat: 'right',
+                clientSort: true,
                 sortInitialOrder: "asc",
                 sortMultiSortKey: "shiftKey",
                 sortForce: null,
@@ -358,7 +363,6 @@
 
 
                 if (table.config.appender) {
-
                     table.config.appender(table, rows);
                 }
 

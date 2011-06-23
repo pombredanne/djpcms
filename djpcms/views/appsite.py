@@ -235,7 +235,7 @@ of objects. Default is ``None``.'''
 
     in_navigation = None
     table_actions = []
-    table_links = []
+    table_links = None
     
     # Submit buton customization
     _form_add        = 'add'
@@ -245,6 +245,9 @@ of objects. Default is ``None``.'''
     _form_continue   = 'save & continue'
     _submit_as_new   = None
     '''Set to a value if you want to include a save as new submit input when editing an instance.'''
+
+    DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
+ all {0[model]} from the database?"
     
     def __init__(self, baseurl, editavailable = None, name = None,
                  list_per_page = None, form = None, list_display = None,
@@ -524,6 +527,10 @@ By default it return a generator of children pages.'''
             l = str(q)
             yield l,l,q.id
             
+    def delete_all(self, djp):
+        '''Remove all model instances from database.'''
+        self.mapper.delete_all()
+        
     def column_groups(self, djp):
         '''This function can be used to return an iterble over two
 dimensional tuples::
@@ -547,6 +554,13 @@ User should subclass this for full control on the model application.
 
     The model class which own the application
     
+.. attribute:: ordering
+
+    On optional string indicating the default field for ordering. Starting with
+    a minus means in descending order.
+    
+        Default ``None``
+        
 .. attribute:: mapper
 
     Instance of :class:`djpcms.core.orms.BaseOrmWrapper`. Created from :attr:`model`
@@ -564,8 +578,7 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    table_links = ['add']
-    ordering = 'id'
+    ordering = None
     model_id_name = 'id'
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
@@ -702,9 +715,6 @@ This can be re-implemented by subclasses.'''
                 instance = parent.instance
                 if instance and not isinstance(instance,self.model):
                     qs = qs.filter(**{related_field:instance})
-        return qs
-    
-    def orderquery(self, qs):
         return qs
     
     def object_id(self, djp):

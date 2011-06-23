@@ -123,6 +123,9 @@ Perform a full text search on the model.
 Return an iterable over items'''
         raise NotImplementedError('Cannot perform text search. Not implemented')
 
+    def delete_all(self):
+        self.all().delete()
+        
     @classmethod
     def setup_environment(cls,sites_):
         pass

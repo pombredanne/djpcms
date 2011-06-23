@@ -42,7 +42,11 @@ class TextInput(FieldWidget):
     
     def get_value(self, value):
         if 'initial_value' in self.data:
-            return ', '.join(initial[1] for initial in self.data['initial_value'])
+            initial_value = self.data['initial_value']
+            if isinstance(initial_value,list):
+                return ', '.join(initial[1] for initial in initial_value)
+            else:
+                return initial_value
         else:
             return value
     

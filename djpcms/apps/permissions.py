@@ -6,6 +6,7 @@ __all__ = ['PERMISSION_CODES',
            'ADD',
            'CHANGE',
            'DELETE',
+           'DELETEALL',
            'addcode',
            'PermissionBackend']
 
@@ -17,6 +18,7 @@ VIEW = 10
 ADD = 20
 CHANGE = 30
 DELETE = 40
+DELETEALL = 50
 
 PERMISSION_LIST = (
                    (VIEW,'VIEW'),

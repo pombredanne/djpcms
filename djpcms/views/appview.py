@@ -13,7 +13,7 @@ from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
-from djpcms.utils.ajax import jremove, CustomHeaderBody 
+from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect 
 
 
 __all__ = ['View',
@@ -21,6 +21,7 @@ __all__ = ['View',
            'ModelView',
            'SearchView',
            'AddView',
+           'DeleteAllView',
            'ObjectView',
            'ViewView',
            'DeleteView',
@@ -257,9 +258,10 @@ views::
     force_redirect = False
     astable = False
     isplugin = False
+    regex = None
     in_nav = 0
-    _form          = None
-    _form_ajax     = None
+    _form = None
+    _form_ajax = None
     form_method = 'POST'
     
     def __init__(self,
@@ -270,14 +272,13 @@ views::
                  description = None,
                  methods       = None,
                  plugin_form   = None,
-                 renderer      = None,
-                 title         = None,
-                 permission    = None,
+                 renderer = None,
+                 title = None,
+                 permission = None,
                  in_navigation = None,
                  template_name = None,
                  view_template = None,
                  force_redirect = None,
-                 ajax_enabled = None,
                  icon = None,
                  form = None,
                  form_ajax = None,
@@ -288,7 +289,8 @@ views::
                  success_message = None,
                  redirect_to_view = None,
                  inherit_page = True,
-                 append_slash = True):
+                 append_slash = True,
+                 **kwargs):
         self.name        = None
         self.description = description if description is not None else self.description
         self.parent    = parent
@@ -296,7 +298,8 @@ views::
         self.in_nav    = in_navigation if isinstance(in_navigation,int) else self.in_nav
         self.appmodel  = None
         self.insitemap = insitemap
-        self.urlbit    = RegExUrl(regex,append_slash)
+        self.urlbit    = RegExUrl(regex if regex is not None else self.regex,
+                                  append_slash)
         self.regex     = None
         self.func      = None
         self.code      = None
@@ -327,7 +330,7 @@ views::
         self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
-        self.ajax_enabled = ajax_enabled if ajax_enabled is not None else self.ajax_enabled
+        self.ajax_enabled = kwargs.pop('ajax_enabled',self.ajax_enabled)
         self._form_ajax = form_ajax if form_ajax is not None else self._form_ajax
         self.form_method = form_method or self.form_method
         self.plugin_form = plugin_form or self.plugin_form
@@ -448,6 +451,9 @@ when :attr:`View.astable` attribute is set to ``True``.'''
     def for_user(self, djp):
         return self.appmodel.for_user(djp)
     
+    def warning_message(self, djp):
+        return None
+    
     def __deepcopy__(self, memo):
         return copy(self)  
     
@@ -522,6 +528,7 @@ It returns a queryset.
 class AddView(ModelView):
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
+    ajax_enabled = False
     default_title = 'add'
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
@@ -545,7 +552,27 @@ and handles the saving as default ``POST`` response.'''
         return model_defaultredirect(self, request, next = next,
                                      instance = instance, **kwargs)
 
-            
+
+class DeleteAllView(ModelView):
+    '''An POST only :class:`ModelView` which deletes all objects
+in a model. Quite drastic.'''
+    PERM = djpcms.DELETEALL
+    DEFAULT_METHOD = 'post'
+    ICON = 'ui-icon-alert'
+    default_title = 'delete all objects'
+    ajax_enabled = True
+    regex = 'deleteall'
+    _methods = ('post',)
+    
+    def default_post(self, djp):
+        self.appmodel.delete_all(djp)
+        url = self.appmodel.root_view(djp).url
+        if djp.request.is_xhr:
+            return jredirect(url)
+        else:
+            return http.ResponseRedirect(url)
+        
+        
 class ObjectView(ModelView):
     '''A :class:`ModelView` class view for model instances.
 A view of this type has an embedded object available which is used to generate the full url.'''

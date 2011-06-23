@@ -21,8 +21,8 @@
   {{ toolbox.columnviews }}
  </div>{% endif %}
 </div>
-<table class="tablesorter">{% else %}
-<table class="tablesorter ui-widget">{% endif %}{% if headers %}
+<table class="tablesorter"{{ options }}>{% else %}
+<table class="tablesorter ui-widget"{{ options }}>{% endif %}{% if headers %}
 <thead class="ui-widget-header">
  <tr>{% for head in headers %}
   {{ head }}{% endfor %}

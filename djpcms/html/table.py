@@ -3,8 +3,6 @@ Utilities for displaying interactive table with pagination and actions.
 '''
 from djpcms import http
 from djpcms.template import loader
-from djpcms.utils.text import nicename
-from djpcms.html import icons
 
 from .nicerepr import *
 from .base import HtmlWidget
@@ -72,14 +70,20 @@ Render a table given a response object ``djp``.
         self.ctx = {'headers': list(self.headers(headers)),
                     'items': items,
                     'toolbox':toolbox,
-                    'paginator':paginator}
+                    'paginator':paginator,
+                    'options':''}
+        options = {}
+        if paginator and paginator.multiple:
+            options['clientSort'] = False
+        
+        if options:
+            w = HtmlWidget().addData('options',options)
+            self.ctx['options'] = w.flatatt() 
             
     def headers(self, headers):
         '''Generator of hteml headers tags'''
         for head in headers:
-            if not isinstance(head,table_header):
-                name = nicename(head)
-                head = table_header(head,name,None)
+            head = table_header(head)
             w = HtmlWidget('th', cn = head.code)
             if head.description:
                 w.addData('description',head.description)

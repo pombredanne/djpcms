@@ -3,6 +3,7 @@ from collections import namedtuple
 from py2py3 import itervalues
 
 from djpcms.html import icons
+from djpcms.utils.text import nicename
 
 from .base import HtmlWidget
 from .widgets import Select
@@ -14,10 +15,19 @@ __all__ = ['application_action',
            'table_toolbox',
            'table_header']
 
-table_header = namedtuple('table_header','code name description')
+
+table_header_ = namedtuple('table_header_','code name description function')
 application_action = namedtuple('application_action','view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
+
+def table_header(code, name = None, description = None, function = None):
+    '''Utility for creating an instance of a :class:`table_header_`.'''
+    if isinstance(code,table_header_):
+        return code
+    name = name or nicename(code)
+    function = function or code
+    return table_header_(code,name,description,function)
 
 
 def application_links(appmodel,
@@ -25,7 +35,16 @@ def application_links(appmodel,
                       asbuttons = True,
                       exclude = None,
                       include = None):
-    '''Create a list of application links available to the user'''
+    '''Create a list of application links available to the user.
+This function is used in conjunction with an instance of an :class:`djpcms.views.Application`
+instance.
+
+:parameter appmodel: instance of a :class:`djpcms.views.Application` class.
+:parameter djp: instance of a :class:`djpcms.views.DjpResponse` class.
+:parameter asbuttons: optional flag for displaying links as button tags.
+                        
+                        Default ``True``.
+'''
     tag = 'button' if asbuttons else 'a'
     permissions = djp.site.permissions
     css = djp.css
@@ -46,6 +65,9 @@ def application_links(appmodel,
             view = appmodel.views.get(elem,None)
             if not view:
                 continue
+            ajax_enabled = view.ajax_enabled
+            if ajax_enabled is None:
+                continue
             descr = view.description or view.name
             try:
                 title = view.title(djp)
@@ -57,37 +79,34 @@ def application_links(appmodel,
                                    view.PERM,
                                    view.ICON,
                                    view.DEFAULT_METHOD,
-                                   view.ajax_enabled)
+                                   ajax_enabled)
         else:
             view = appmodel.views.get(elem.view,None)
             if not view:
                 if not hasattr(appmodel,'ajax__{0}'.format(elem.view)):
                     continue
-                
-        if not permissions.has(request,
-                               elem.permission,
-                               model = appmodel.model,
-                               obj = instance, 
-                               view = view):
-            continue
-             
+        
         if not view:
             url = djp.url
         else:
+            view = view(request, **kwargs)
             try:
-                url = view(request, **kwargs).url
+                url = view.url
             except:
                 continue
+            if not view.has_permission():
+                continue
         
-        a = HtmlWidget(tag).addAttr('title',elem.title).addAttr('href',url)\
-                           .addData('method',elem.method)
+        a = HtmlWidget(tag).addAttr('title',elem.title)\
+                           .addData('method',elem.method)\
+                           .addData('warning',view.warning_message())
         if elem.ajax:
             a.addClass(css.ajax)
         if elem.icon:
             if a.tag == 'a':
-                a.addClass(elem.icon)
+                a.addClass(elem.icon).addAttr('href',url)
             else:
-                a.addData('icon', elem.icon)
+                a.addData('icon', elem.icon).addData('href',url)
         links.append(a.render(inner = elem.display))
     return links
 
@@ -124,8 +143,7 @@ an application based on database model is available.
             choices.append((name,name))
         if choices:
             s = Select(choices)
-            for name,val in data.items():
-                s.addData(name,val)
+            s.addData('views',data)
             toolbox['columnviews'] = s.render()
     return toolbox
 

@@ -351,6 +351,9 @@ the parent of the embedded view.'''
     
     def has_permission(self):
         return self.view.has_permission(self.request, self.page, self.instance)
+    
+    def warning_message(self):
+        return self.view.warning_message(self)
         
     @storegenarator
     def auth_children(self):

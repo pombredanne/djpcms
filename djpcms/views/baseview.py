@@ -36,7 +36,7 @@ A mixin class for rendering objects as HTML
     name = None
     description = None
     dialog_width = 400
-    ajax_enabled = False
+    ajax_enabled = None
     list_display = ()
     
     def render(self, djp):
@@ -223,6 +223,9 @@ By default it returns ``next`` if available, otherwise ``request.path``.
         '''Calculate the best possible url for a possible next view.
 By default it is ``djp.url``'''
         return djp.request.path
+    
+    def warning_message(self, djp):
+        return None
 
 
 class pageview(djpcmsview):

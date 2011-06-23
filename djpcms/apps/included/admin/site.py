@@ -4,7 +4,7 @@ from djpcms import views
 from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
-from djpcms.html import ObjectDefinition, icons
+from djpcms.html import ObjectDefinition, application_links
 from djpcms.core.exceptions import ImproperlyConfigured
 
 __all__ = ['AdminSite',
@@ -43,9 +43,9 @@ class TabViewMixin(object):
                 dv = view(djp.request, **djp.kwargs)
                 try:
                     dv.url
-                    html = dv.render()
                 except:
                     continue
+                html = dv.render()
             name = view.name
             o  = self.views_ordering.get(name,100)
             ctx.append({'name':view.description or nicename(name),
@@ -72,13 +72,9 @@ administer a group of :class:`djpcms.views.Applications`.'''
         for r in qs:
             title = r.title
             appmodel = r.view.appmodel
-            url = appmodel.root_view(request,**djp.kwargs).url
-            addurl = appmodel.addurl(request)
-            if addurl:
-                a = icons.circle_plus(addurl,'','add {0}'.format(title))
-            else:
-                a = ''
-            yield ('<a href="{0}">{1}</a>'.format(url,title),a)
+            home = appmodel.root_view(request,**djp.kwargs)
+            links = ''.join(application_links(appmodel,djp))
+            yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 
 class AdminSite(views.Application):
@@ -105,6 +101,7 @@ administer models in groups.'''
 class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
     has_plugins = False
     search = views.SearchView()
+    delete_all = views.DeleteAllView()
     view   = views.ViewView()
     delete = views.DeleteView()
     

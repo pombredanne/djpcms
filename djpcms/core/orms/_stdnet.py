@@ -30,17 +30,8 @@ class OrmWrapper(BaseOrmWrapper):
         if not isinstance(self.model,StdNetType):
             raise ValueError
     
-    def get_view_permission(self):
-        return '%s_view' % self.meta.basekey()
-    
-    def get_add_permission(self):
-        return '%s_add' % self.meta.basekey()
-    
-    def get_change_permission(self):
-        return '%s_change' % self.meta.basekey()
-    
-    def get_delete_permission(self):
-        return '%s_delete' % self.meta.basekey()
+    def delete_all(self):
+        self.model.flush()
         
     def save(self, data, instance = None, commit = True):
         if not instance:

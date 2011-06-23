@@ -721,8 +721,8 @@
     		$(cfg.selector_link,$this).click(function(event) {
     		    event.preventDefault();          
                 var elem = $(this),
-                    url = elem.attr('href'),
                     method = elem.data('method') || 'post',
+                    url = elem.attr('href') || elem.data('href'),
                     action = elem.attr('name'),
                     conf = confirm[name] || elem.data('conf');
                 if(url) {
@@ -1053,6 +1053,7 @@
             selector:'input.autocomplete',
             minLength: 2,
             maxRows: 50,
+            separator: ', ',
         },
         decorate: function($this,config) {
             var opts = config.autocomplete;
@@ -1061,70 +1062,117 @@
                 return val.split( /,\s*/ );
             }
             
-            function get_real_data(val) {
-                var ids = [],
-                    rv = this.data;
-                $.each(split(val),function(i,v) {
-                    var id = rv[v];
-                    if(id) {
-                        ids.push(id);
+            function clean_data(terms,data) {
+                new_data = [];
+                $.each(terms,function(i,val) {
+                    for(i=0;i<data.length;i+=1) {
+                        if(data[i].label == val) {
+                            new_data.push(data[i]);
+                            break;
+                        }
                     }
                 });
-                return ids.join( ", " );
+                return new_data;
+            }
+            
+            // The call back from from to obtain the real data
+            function get_real_data(separator) {
+                return function(val) {
+                    var data = [];
+                    $.each(clean_data(split(val),this.data),function(i,d) {
+                        data.push(d.value);
+                    });
+                    return data.join(separator);
+                }
             }
                 
             $(opts.selector,$this).each(function() {
                 var elem = $(this),
                     data = elem.data(),
                     url = data.url,
+                    choices = data.choices,
                     maxRows = data.maxrows || opts.maxRows,
                     multiple = data.multiple,
-                    elemdata = {'get': get_real_data, 'data': {}},
-                    options, initials;
-                if(url) {
-                    initials = $.data(this,'initial_value');
-                    if(initials) {
-                        $.each(initials, function(i,initial) {
-                            elemdata['data'][initial[1]] = initial[0];
-                        });
-                    }
-                    elem.data('real_value',elemdata);
+                    separator = data.separator || opts.separator,
+                    elemdata = {'get': get_real_data(separator),
+                                'data': []},
+                    initials,
                     options = {
                             minLength: data.minlength || opts.minLength,
-                            source: function(request,response) {
-                                    var ajax_data = {style: 'full',
-                                                     maxRows: maxRows,
-                                                     q: request.term
-                                                     },
-                                        loader = $.djpcms.ajax_loader(url,'autocomplete',
-                                                                      'get',ajax_data),
-                                        that = {'response':response,
-                                                'multiple': multiple,
-                                                'request':request};                                    
-                                    $.proxy(loader,that)();
-                                },
                             select: function(event, ui) {
                                 var item = ui.item,
-                                    display = item.value,
+                                    display = item.label,
                                     real_data = $.data(this,'real_value'),
                                     data = real_data['data'];
-                                if(ui.multiple) {
+                                if(multiple) {
                                     var terms = split(this.value);
                                     terms.pop();
+                                    data = clean_data(terms,data);
                                     terms.push(display);
+                                    new_data.push(item);
                                     terms.push("");
-                                    display = terms.join( ", " );
+                                    display = terms.join(separator);
                                 }
                                 else {
                                     data = {}
                                 }
-                                data[display] = item.real_value;
                                 real_data['data'] = data;
                                 $.data(this,'real_value',real_data);
                                 this.value = display;
                                 return false;
                             }
                     };
+                
+                if(multiple) {
+                    options.focus = function() {
+                        return false;
+                    };
+                    elem.bind("keydown", function( event ) {
+                        if ( event.keyCode === $.ui.keyCode.TAB &&
+                                $( this ).data( "autocomplete" ).menu.active ) {
+                            event.preventDefault();
+                        }
+                    });
+                }
+                initials = $.data(this,'initial_value');
+                if(initials) {
+                    $.each(initials, function(i,initial) {
+                        elemdata['data'].push({value:initial[0],
+                                               label:initial[1]});
+                    });
+                }
+                elem.data('real_value',elemdata);
+                
+                if(choices) {
+                    var sources = [];
+                    $.each(choices,function(i,val) {
+                        sources[i] = {value:val[0],label:val[1]};
+                    });
+                    options.source = function( request, response ) {
+                        if(multiple) {
+                            response( $.ui.autocomplete.filter(
+                                sources, split(request.term).pop() ) );
+                        }
+                        else {
+                            return sources;
+                        }
+                    },
+                    elem.autocomplete(options);
+                }
+                else if(url) {
+                    options.source = function(request,response) {
+                                    var ajax_data = {style: 'full',
+                                                     maxRows: maxRows,
+                                                     q: request.term
+                                                     },
+                                        loader = $.djpcms.ajax_loader(url,
+                                                                    'autocomplete',
+                                                                    'get',ajax_data),
+                                        that = {'response':response,
+                                                'multiple': multiple,
+                                                'request':request};                                    
+                                    $.proxy(loader,that)();
+                                };
                     elem.autocomplete(options);
                 }
             })
@@ -1309,8 +1357,8 @@
     if($.tablesorter) {
         /**
          * Table-sorter decorator
-         * decorate tables with jquery.tablesorter plugin
-         * Plugin can be found at http://tablesorter.com/
+         * decorate tables with jquery.tablesorter plugin.
+         * Add several widgets to tablesorter.
          */
         $.djpcms.decorator({
             id:"tablesorter",
@@ -1319,8 +1367,14 @@
                 widgets:['zebra','hovering','toolbox']
             },
             decorate: function($this,config) {
-                var opts = config.tablesorter;
-                $(opts.selector,$this).tablesorter(opts);
+                var opts = config.tablesorter,
+                    tbl = $(opts.selector);
+                $.each($(opts.selector,$this),function() {
+                    var elem = $(this),
+                        data = elem.data('options') || {};
+                    opts = $.extend(true,data,opts)
+                    elem.tablesorter(opts);
+                });
             }
         });
         
@@ -1371,15 +1425,22 @@
             });
         };
         
-        $.tablesorter.add_select_views = function(tbl,me,select,data) {
-            
+        $.tablesorter.add_select_views = function(tbl,me,select,views) {
+            $.each(views, function(name, fields) {
+                var selected = fields.join(',.');
+                if(selected) {
+                    views[name] = '.'+selected;
+                }
+            });
             function change_view(value) {
                 if(!value) {return;}
-                var fields = data[this.value],
-                    ths = $('th',tbl);
+                var fields = views[value];
+                    
                 if(fields) {
-                    $.each(fields, function(field) {
-                    })
+                    var cols = $('th,td',tbl),
+                        selected = $(fields,tbl);
+                    cols.hide();
+                    selected.show();
                 }
             }
             
@@ -1393,11 +1454,15 @@
             format: function(table) {
                 var tbl = $(table),
                     me = tbl.prev('.toolbox'),
-                    row_select = $('.row-selector select',me),
-                    col_select = $('.column-selector select',me);
+                    row_select, col_select;
                 
+                if(me.data('toolbox')) {
+                    return;
+                }
+                row_select = $('.row-selector select',me),
+                col_select = $('.column-selector select',me);
+                me.data('toolbox',true);
                 if(me.length !== 1) {return;}
-                
                 // Actions on rows
                 if(row_select.length === 1) {
                     var data = row_select.data(),
@@ -1406,24 +1471,23 @@
                         $.tablesorter.add_select_rows(tbl,me,row_select,url,data);
                     }
                 }
-                
                 // Actions on columns
                 if(col_select.length === 1) {
-                    var data = row_select.data();
+                    var data = col_select.data('views');
                     $.tablesorter.add_select_views(tbl,me,col_select,data);
                 }
             }
         });
         
-        /**
-         * A tablesorter widget enabling selections of different columns
-         */
         $.tablesorter.addWidget({
-            id:"toolbox",
+            id:"serversort",
             format: function(table) {
                 var tbl = $(table),
-                    me = tbl.prev('.toolbox'),
-                    select = $('select',me);
+                    me = tbl.prev('.toolbox');
+                if(me.data('serversort')) {
+                    return;
+                }
+                
             }
         });
     }

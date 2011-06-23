@@ -2,13 +2,14 @@ from datetime import date, datetime
 from inspect import isclass
 
 from djpcms.utils.text import nicename
-from djpcms.utils.dates import format as date_format
+from djpcms.utils.dates import smart_time
 from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND, NOTHING
 from djpcms.utils import force_str, mark_safe, significant_format
 from djpcms.utils import escape as default_escape
 
 from .icons import yes,no
 from .widgets import CheckboxInput
+from .apptools import table_header
 
 
 __all__ = ['nicerepr',
@@ -20,9 +21,6 @@ __all__ = ['nicerepr',
 
 FIELD_SPLITTER = '__'
 NONE_VALUE = '(None)'
-DEFAULT_DATE_FORMAT = 'd M y'
-DEFAULT_DATETIME_FORMAT = DEFAULT_DATE_FORMAT + ' H:i'
-
 divchk = '<div class="action-check">'
 spvval = '<span class="value">'
 
@@ -37,8 +35,8 @@ def table_checkbox(val,id):
 def nicerepr(val,
              nd = 3,
              none_value = NONE_VALUE,
-             dateformat = DEFAULT_DATE_FORMAT,
-             datetime_format = DEFAULT_DATETIME_FORMAT,
+             dateformat = None,
+             timeformat = None,
              **kwargs):
     '''\
 Prettify a value to be displayed in html.
@@ -49,13 +47,7 @@ Prettify a value to be displayed in html.
     if val is None:
         return NONE_VALUE
     elif isinstance(val,datetime):
-        time = val.time()
-        if not time:
-            return date_format(val.date(),dateformat)
-        else:
-            return date_format(val,datetime_format)
-    elif isinstance(val,date):
-        return date_format(val,dateformat)
+        return smart_time(val,dateformat,timeformat)
     elif isinstance(val,bool):
         if val:
             return yes()
@@ -164,7 +156,8 @@ class get_iterable_result(object):
 
     def __call__(self, request, field_name, result, appmodel, **kwargs):
         try:
-            return nicerepr(next(self.iter),**kwargs)
+            value = nicerepr(next(self.iter),**kwargs)
+            return {'name':field_name,'value':value}
         except StopIteration:
             return None
         
@@ -184,18 +177,20 @@ class get_app_result(object):
         except:
             return None
     
-    def __call__(self, request, field_name, result, appmodel,
+    def __call__(self, request, head, result, appmodel,
                  nd = 3, path = None, escape = None, **kwargs):
         mapper = self.mapper
         first = self.first
         url = None
-        if field_name:
-            field_name = getattr(field_name,'code',field_name)
-            result_repr = field_repr(field_name, result, appmodel = appmodel, nd = nd)
+        if head:
+            head = table_header(head)
+            result_repr = field_repr(head.function, result,
+                                     appmodel = appmodel, nd = nd)
             if(self.first and not appmodel.list_display_links) or \
-                    field_name in appmodel.list_display_links:
+                    head.code in appmodel.list_display_links:
                 first = False
-                url = appmodel.viewurl(request, result, field_name = field_name)
+                url = appmodel.viewurl(request, result,
+                                       field_name = head.code)
             
             var = result_repr
             if url:
@@ -213,5 +208,6 @@ class get_app_result(object):
         escape = escape or default_escape
         var = escape(var)
         self.first = first
-        return {'name':field_name,'value':var}
+        return {'name':head.code,
+                'value':var}
     

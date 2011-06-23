@@ -5,6 +5,8 @@ from djpcms.forms.layout import DivFormElement, FormLayout, nolabel
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
+from djpcms.http import QueryDict
+from djpcms.utils.text import nicename
 
 
 def registered_models(bfield):
@@ -15,8 +17,10 @@ def registered_models(bfield):
         if not app.hidden:
             id = getattr(mapper(model),'hash',None)
             if id:
-                yield id,str(model._meta)
-                
+                nice = '{0} from {1}'.format(nicename(model._meta.name),
+                                             nicename(model._meta.app_label))
+                yield id,nice
+
 
 def get_contet_choices(bfield):
     model = bfield.form.model
@@ -35,7 +39,9 @@ def get_contet_choices(bfield):
     
     
 class ForModelForm(forms.Form):
-    for_model   = forms.ChoiceField(choices = registered_models)
+    for_model   = forms.ChoiceField(
+                            choices = lambda x : sorted(registered_models(x),
+                                                        key = lambda y : y[1]))
     
     def clean_for_model(self, mhash):
         try:
@@ -44,11 +50,12 @@ class ForModelForm(forms.Form):
             raise forms.ValidationError(str(e))
 
 
-class LatestItemForm(ForModelForm):
+class ModelItemListForm(ForModelForm):
     max_display = forms.IntegerField(initial = 10)
     pagination  = forms.BooleanField(initial = False)
     filter = forms.CharField(required = False)
     exclude = forms.CharField(required = False)
+    order_by = forms.CharField(required = False)
     display_if_empty = forms.BooleanField(initial = False)
 
 
@@ -68,7 +75,8 @@ class FilterModelForm(FormModelForm):
 
 class ModelLinksForm(forms.Form):
     asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
-    layout = forms.ChoiceField(choices = (('horizontal','horizontal'),('vertical','vertical')))
+    layout = forms.ChoiceField(choices = (('horizontal','horizontal'),
+                                          ('vertical','vertical')))
     exclude = forms.CharField(max_length=600,required=False)
     
 
@@ -229,11 +237,11 @@ class ObjectLinks(ModelLinks):
                                               exclude=exclude)
     
     
-class LatestItems(DJPplugin):
-    '''Display the latest items for a Model.'''
-    name = 'latest-items'
-    description    = 'Latest items for a model'
-    form           = LatestItemForm
+class ModelItemsList(DJPplugin):
+    '''Display filtered items for a Model.'''
+    name = 'model-items'
+    description    = 'Filtered Items list for a model'
+    form           = ModelItemListForm
     template_names = {
                       'list': ('djpcms/plugins/latestitems/list.html',),
                       'item': ('djpcms/plugins/latestitems/item.html',)
@@ -250,16 +258,27 @@ class LatestItems(DJPplugin):
         for obj in items:
             content = appmodel.object_content(djp, obj)
             yield loader.render(templates,content)
-            
+    
+    def query(self, val):
+        if val:
+            try:
+                return dict(QueryDict(val).items())
+            except:
+                pass
+        return {}
+    
     def render(self, djp, wrapper, prefix,
                for_model = None, max_display = 5,
-               pagination = False, display_if_empty = False,
+               pagination = False, filter = None,
+               exclude = None, order_by = None,
+               display_if_empty = False,
                **kwargs):
-        site = djp.site
-        appmodel = site.for_hash(for_model,safe=False,all=True)
-        data = appmodel.orderquery(appmodel.basequery(djp))
+        appmodel = djp.site.for_hash(for_model,safe=False,all=True)
+        qs = appmodel.basequery(djp).filter(**self.query(filter))\
+                                    .exclude(**self.query(exclude))\
+                                    .sort_by(order_by)        
         max_display = max(int(max_display),1)
-        items = data[0:max_display]
+        items = qs[0:max_display]
         if not items:
             return ''
         templates = self.get_templates(appmodel.mapper,'list')

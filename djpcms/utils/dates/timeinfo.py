@@ -52,11 +52,10 @@ class NiceTimeDelta(object):
 nicetimedelta = NiceTimeDelta()
 
 
-def smart_time(t):
+def smart_time(t, dateformat = None, timeformat = None):
+    '''Format a date or datetime.'''
     from djpcms import sites
     settings = sites.settings
-    if not settings:
-        return
     if not isinstance(t,date):
         try:
             t = datetime.fromtimestamp(t)
@@ -66,13 +65,13 @@ def smart_time(t):
     if isinstance(t,datetime):
         ti = t.time()
         if ti:
-            ts = 'H:i' if not settings else settings.TIME_FORMAT
+            ts = timeformat or 'H:i' if not settings else settings.TIME_FORMAT
             time = time_format(ti,ts)
             t = t.date()
             if t == date.today():
                 return time
-    ts = 'd M y' if not settings else settings.DATE_FORMAT
-    day = format(d,ts)
+    ts = dateformat or 'd M y' if not settings else settings.DATE_FORMAT
+    day = format(t,ts)
     if time:
         day = '{0} {1}'.format(day,time)
     return day

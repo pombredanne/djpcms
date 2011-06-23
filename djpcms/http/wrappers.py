@@ -17,6 +17,7 @@ from .multiparser import MultiPartParser
 
 __all__ = ['STATUS_CODE_TEXT',
            'UNKNOWN_STATUS_CODE',
+           'QueryDict',
            'Request',
            'Response',
            'ResponseRedirect',
@@ -191,7 +192,8 @@ class Request(object):
             if content_length:
                 self._raw_post_data = self._stream.read(content_length)
             else:
-                self._raw_post_data = self._stream.read()
+                self._raw_post_data = b''
+            #    self._raw_post_data = self._stream.read()
             self._stream = BytesIO(self._raw_post_data)
         return self._raw_post_data
     

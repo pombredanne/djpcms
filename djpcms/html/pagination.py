@@ -11,13 +11,14 @@ class Paginator(object):
     '''
     
     def __init__(self, request, data = None, per_page = 20,
-                 numends = 2, maxentries = 15):
+                 numends = 2, maxentries = 15, ajax = False):
         '''
         @param data:       queryset
         @param page:       page to display
         @param per_page:   number of elements per page
         @param maxentries: Max number of links in the pagination list
         '''
+        self.ajax = ajax
         self.hentries   = max(int(maxentries)/2,2)
         self.numends    = numends
         self.total      = len(data)

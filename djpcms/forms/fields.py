@@ -316,11 +316,12 @@ class BooleanField(Field):
     
 class ChoiceField(Field):
     '''A :class:`Field` which validates against a set of ``choices``.
-Additional attributes:
+It has several additional attributes which can be used to customize its
+behaviour in validation as well as when rendering as an html widget.:
 
 .. attribuite:: choices
 
-    A callable or an iterable over two-dimensional tuples.
+    A callable or any iterable over two-dimensional tuples.
     If a callable, it must accept a one parameter given by
     the bounded field instance.
     
@@ -330,10 +331,16 @@ Additional attributes:
     
     Default ``None``.
     
+.. attribute:: multiple
+
+    ``True`` if multiple choices are possible.
+    
+    Default:: ``False``
+    
 .. attribute:: separator
 
-    An optional character to separate elements when the field is used in a html
-    autocomplete widget.
+    An optional character to separate elements when the field is used in conjunction with
+    javascript autocomplete. This attribute is used only if :attr:`multiple` is set to ``True``.
     
     Default ``", "``
     

@@ -107,11 +107,7 @@ class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
     
     
 class AdminApplication(AdminApplicationSimple):
-    inherit = False
-    has_plugins = False
-    search = views.SearchView()
+    inherit = True
     add    = views.AddView()
-    view   = views.ViewView()
     change = views.ChangeView()
-    delete = views.DeleteView()
 

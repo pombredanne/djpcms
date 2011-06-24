@@ -1,17 +1,11 @@
 .. _djpcms-fields:
 
-.. module:: djpcms.forms
-
 =========
 Fields
 =========
 
 .. automodule:: djpcms.forms.fields
 
-
-
-API
-=======
 
 Field
 ~~~~~~~~

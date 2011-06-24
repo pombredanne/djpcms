@@ -23,3 +23,19 @@ HtmlWidget
 .. autoclass:: djpcms.html.HtmlWidget
    :members:
    :member-order: bysource
+   
+  
+Table
+=============
+
+.. autoclass:: djpcms.html.Table
+   :members:
+   :member-order: bysource
+   
+   
+Media
+=============
+
+.. autoclass:: djpcms.html.Media
+   :members:
+   :member-order: bysource

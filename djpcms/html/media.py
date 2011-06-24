@@ -3,9 +3,11 @@
 Originally from django
 '''
 from itertools import chain
+from copy import deepcopy
 
 from py2py3 import urlparse
 
+from djpcms import sites
 from djpcms.utils import mark_safe
 
 urljoin = urlparse.urljoin
@@ -16,10 +18,30 @@ __all__ = ['MEDIA_TYPES', 'Media']
 MEDIA_TYPES = ('css','js')
 
 class Media(object):
+    '''Originally from django, it is used for manipulating media files such as style sheet and javascript.
+It is used by :class:`djpcms.views.RendererMixin` classes to include extra media into the page they are rendering.
+A typical example::
 
+    >>> from djpcms.html import Media
+    >>> m = Media(js = ['one/jsfile/blabla.js','onother/one/pluto.js'],
+                  css = {'all':['css/style.css','css/theme.css']})
+              
+There are two properties used for rendering, they both return a generator over media files::
+    
+    >>> list(m.render_js)
+    ['<script type="text/javascript" src="one/jsfile/blabla.js"></script>',
+     '<script type="text/javascript" src="onother/one/pluto.js"></script>']
+    
+    >>> list(m.render_css)
+    ['<link href="css/style.css" type="text/css" media="all" rel="stylesheet" />',
+     '<link href="css/theme.css" type="text/css" media="all" rel="stylesheet" />']
+
+'''
+    __slots__ = ('_css','_js')
+    
     def __init__(self, media=None, **kwargs):
         if media:
-            media_attrs = media.__dict__
+            media_attrs = {'_css':media._css,'_js':media_js}
         else:
             media_attrs = kwargs
 
@@ -31,13 +53,13 @@ class Media(object):
 
     @property
     def render_js(self):
+        '''Generator over javascript scripts to be included in the page.'''
         return (mark_safe('<script type="text/javascript" src="%s"></script>'\
                  % self.absolute_path(path)) for path in self._js)
 
     @property
     def render_css(self):
-        # To keep rendering order consistent, we can't just iterate over items().
-        # We need to sort the keys, and iterate over the sorted list.
+        '''Generator over css stylesheets to be included in the page.'''
         media = self._css.keys()
         media.sort()
         return chain(*[
@@ -48,9 +70,7 @@ class Media(object):
     def absolute_path(self, path, prefix=None):
         if path.startswith('http://') or path.startswith('https://') or path.startswith('/'):
             return path
-        if prefix is None:
-            from djpcms import sites
-            prefix = sites.settings.MEDIA_URL
+        prefix = sites.settings.MEDIA_URL if prefix is None and sites.settings else ''
         return urljoin(prefix, path)
 
     def __getitem__(self, name):

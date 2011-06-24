@@ -58,8 +58,9 @@ belongs to a user, otherwise returns ``None``.'''
         return None
     
     def media(self):
-        '''The rendere media'''
-        return None    
+        '''It returns an instance of :class:`djpcms.html.Media` or ``None``. It should be overritten by
+derived classes.'''
+        return None
 
 
 class djpcmsview(RendererMixin):

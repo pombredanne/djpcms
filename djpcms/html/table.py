@@ -6,12 +6,14 @@ from djpcms.template import loader
 
 from .nicerepr import *
 from .base import HtmlWidget
+from .media import Media
 from .apptools import table_toolbox, table_header
 
 __all__ = ['Table']
 
 
 class Table(object):
+    table_media = Media(js = ['djpcms/jquery.dataTables.min.js'])
     template_name = ('tablesorter.html',
                      'djpcms/tablesorter.html')
     
@@ -91,4 +93,8 @@ Render a table given a response object ``djp``.
             
     def render(self):
         return loader.render(self.template_name,self.ctx)
+
+    def media(self):
+        return self.table_media
+
 

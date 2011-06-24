@@ -6,7 +6,7 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http
+from djpcms import http, html
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms.utils import saveform, deleteinstance
@@ -484,16 +484,11 @@ There are three additional parameters that can be set:
 :keyword table_generator: Optional function to generate table content. Default ``None``.
 :keyword search_text: string identifier for text queries.
     '''
+    isplugin = True
+    astable = True
+    in_nav = 1
+    table_media = html.Media(js = ['djpcms/jquery.dataTables.min.js'])
     search_text = 'q'
-    '''identifier for queries. Default ``q``.'''
-    
-    def __init__(self, in_navigation = 1, astable = True,
-                 search_text = None, isplugin = True, **kwargs):
-        self.search_text = search_text or self.search_text
-        super(SearchView,self).__init__(in_navigation=in_navigation,
-                                        astable=astable,
-                                        isplugin = isplugin,
-                                        **kwargs)
     
     def appquery(self, djp):
         '''This function implements the search query.
@@ -511,10 +506,10 @@ It returns a queryset.
         return qs
     
     def render(self, djp):
-        '''Perform the custom query over the model objects and return a paginated result
+        '''Perform the custom query over the model objects and return a paginated result. By default it delegates the
+renderint to the :method:`djpcms.views.Application.render_query` method.
         '''
-        qs = self.appquery(djp)
-        return self.appmodel.render_query(djp, qs)
+        return self.appmodel.render_query(djp, self.appquery(djp))
             
     def ajax__autocomplete(self, djp):
         qs = self.appquery(djp)
@@ -523,6 +518,9 @@ It returns a queryset.
             qs = qs[:int(params['maxRows'])]
         return CustomHeaderBody('autocomplete',
                                 list(self.appmodel.gen_autocomplete(qs)))
+        
+    def media(self):
+        return self.table_media if self.astable else None
     
 
 class AddView(ModelView):

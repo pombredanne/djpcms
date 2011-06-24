@@ -4,18 +4,18 @@ from djpcms import test, forms, html, to_string
 class testHtmlTools(test.TestCase):
     
     def testAttrMixin(self):
-        c = html.HtmlAttrMixin()
+        c = html.Widget()
         c.addClass('ciao').addClass('pippo')
         self.assertTrue('ciao' in c.classes)
         self.assertTrue('pippo' in c.classes)
         f = c.flatatt()
         self.assertTrue(f in (" class='ciao pippo'",
                               " class='pippo ciao'"))
-        c = html.HtmlAttrMixin().addClass('ciao pippo bla')
+        c = html.Widget().addClass('ciao pippo bla')
         self.assertTrue(c.hasClass('bla'))
     
     def testData(self):
-        c = html.HtmlAttrMixin()
+        c = html.Widget()
         c.addData('food','pasta').addData('city','Rome')
         self.assertEqual(c.data['food'],'pasta')
         self.assertEqual(c.data['city'],'Rome')
@@ -27,14 +27,14 @@ class testHtmlTools(test.TestCase):
         random = ['bla',3,'foo']
         table = {'name':'path',
                  'resizable':True}
-        c = html.HtmlAttrMixin().addData('table',table).addData('random',random)
+        c = html.Widget().addData('table',table).addData('random',random)
         self.assertEqual(c.data['table']['name'],'path')
         self.assertEqual(c.data['random'][0],'bla')
         attr = c.flatatt()
         self.assertTrue('data-table' in attr)
         
     def testEmptyAttr(self):
-        c = html.HtmlAttrMixin()
+        c = html.Widget()
         c.addAttr('value','')
         self.assertEqual(c.flatatt(),'')
         c.addAttr('value',None)
@@ -43,10 +43,21 @@ class testHtmlTools(test.TestCase):
         self.assertEqual(c.flatatt()," value='0'")
 
 
+class TestWidgets(test.TestCase):
+    
+    def testAncor(self):
+        a = html.Widget('a', cn = 'bla', href = '/abc/')
+        self.assertEqual(a.attrs['href'],'/abc/')
+        ht = a.render(inner = 'kaput')
+        self.assertTrue('>kaput</a>' in ht)
+        a = html.Widget('a', xxxx = 'ciao')
+        self.assertFalse('xxxx' in a.attrs)
+        
+        
 class TestInputs(test.TestCase):
     
-    def create(self, InputClass, ty, **kwargs):
-        ts = InputClass(value='test', name='pippo', **kwargs)
+    def create(self, name, ty, **kwargs):
+        ts = html.Widget(name, value='test', name='pippo', **kwargs)
         ht = ts.render()
         self.assertTrue(ht.startswith('<input '))
         self.assertTrue(ht.endswith('/>'))
@@ -56,18 +67,18 @@ class TestInputs(test.TestCase):
         return ts
     
     def testTextInput(self):
-        self.create(html.TextInput, 'text')
+        self.create('input:text', 'text')
         
     def testSubmitInput(self):
-        self.create(html.SubmitInput, 'submit')
+        self.create('input:submit', 'submit')
         
     def testPasswordInput(self):
-        self.create(html.PasswordInput, 'password')
+        self.create('input:password', 'password')
         
     def testClasses(self):
-        ts = self.create(html.TextInput, 'text', cn = 'ciao')
+        ts = self.create('input:text', 'text', cn = 'ciao')
         self.assertTrue(ts.hasClass('ciao'))
-        ts = self.create(html.TextInput, 'text', cn = 'ciao ciao')
+        ts = self.create('input:text', 'text', cn = 'ciao ciao')
         self.assertTrue(ts.hasClass('ciao'))
         ht = ts.render()
         self.assertTrue("class='ciao'" in ht)
@@ -95,3 +106,12 @@ class TestInputs(test.TestCase):
         self.assertTrue('</ul>' in ht)
         self.assertTrue('<li>a list item</li>' in ht)
         self.assertTrue('<li>another one</li>' in ht)
+
+
+class TableTests(test.TestCase):
+    
+    def testSimple(self):
+        tbl = html.Table(['first','second'],[])
+        self.assertTrue(tbl.maker.allchildren)
+        #ht = tbl.render()
+        #self.assertTrue(ht)

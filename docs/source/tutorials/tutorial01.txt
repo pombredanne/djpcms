@@ -23,21 +23,21 @@ You can use it as a python library if you like,
 but it is not designed to be flexible enough to accomodate for a large
 variety of usages.
 It does what it is supposed to do, providing support
-for managing contents on the web.
+for managing contents on the web in a fast and efficient manner.
 
 
 Using Djpcms
 ============================== 
 With djpcms you can build web-sites with ease and add *dynamic*
 contents if you can write python code.
-It can be customized using settings files and it can use
-several open-source python libraries to expand its capabilities:
-django_, jinja2_, stdnet_, etc... 
+It can be customized using :ref:`settings files <topics-settings>`
+and it can use several open-source python libraries to expand its capabilities:
+django_, stdnet_, etc... 
 
 
 Hello World!
 =====================================
-The djpcms *hello world!* example
+The djpcms *hello world!* example in few lines of code
 
 .. include:: ../commons/helloworld
 

@@ -25,7 +25,7 @@ There are three types of layout:
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
 from djpcms.html import get_grid960
-from .base import FormLayout, FormLayoutElement, Html, Inputs
+from .base import FormLayout, FormLayoutElement, Inputs, check_fields
 
 
 inlineLabels   = 'inlineLabels'
@@ -59,19 +59,23 @@ class Fieldset(UniFormElement):
     def __init__(self, *fields, **kwargs):
         super(Fieldset,self).__init__(**kwargs)
         self.fields = fields
+    
+    def check_fields(self, missings):
+        check_fields(self.fields,missings)
 
-    def _data(self, djp, form, layout):
+    def data(self, djp, form, layout):
         render_field = self.render_field
         dfields = form.dfields
         for field in self.fields:
             if field in dfields:
                 html = render_field(djp, dfields[field], layout)
             else:
-                html = field.render(djp,form,layout)
+                html = field.render(djp, form, layout)
             yield html
                 
-    def inner(self, djp, form, layout):
-        html = '\n'.join(self._data(djp, form, layout))
+    def inner(self, djp, widget):
+        # Override inner function
+        html = '\n'.join(self._data(djp, widget.form, widget.layout))
         if html:
             return self.legend_html + '\n' + html
         else:
@@ -99,9 +103,14 @@ class Columns(UniFormElement):
         if not self.template:
             raise ValueError('Template not available in uniform Column.')
 
-    def get_context(self, context, djp, form, layout):
+    def check_fields(self, missings):
+        for column in self.columns:
+            check_fields(column,missings)
+            
+    def get_context(self, djp, widget):
         render_field = self.render_field
         dfields = form.dfields
+        layout = widget.layout
         
         def _data(column):
             yield '<div>'

@@ -3,7 +3,7 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import UnicodeMixin, forms, http
+from djpcms import UnicodeMixin, forms, http, html
 from djpcms.utils.ajax import jredirect, dialog
 from djpcms.template import loader
 from djpcms.utils import parentpath
@@ -18,7 +18,7 @@ __all__ = ['RendererMixin',
            'pageview']
     
     
-class RendererMixin(UnicodeMixin,RouteMixin):
+class RendererMixin(UnicodeMixin,RouteMixin,html.Renderer):
     '''\
 A mixin class for rendering objects as HTML
 
@@ -34,7 +34,6 @@ A mixin class for rendering objects as HTML
     appmodel = None
     template_name = None
     name = None
-    description = None
     dialog_width = 400
     ajax_enabled = None
     list_display = ()

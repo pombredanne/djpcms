@@ -2,13 +2,11 @@ from inspect import isclass
 from datetime import datetime, date
 from copy import copy, deepcopy
 
-from djpcms import sites, nodata, to_string
+from djpcms import html, sites, nodata, to_string
 from djpcms.utils import escape, slugify
 from djpcms.utils.const import NOTHING
 from djpcms.utils.dates import parse as dateparser
 from djpcms.core.orms import mapper
-from djpcms.html import TextInput, CheckboxInput, Select,\
-                        HiddenInput
 
 from .globals import *
 
@@ -199,7 +197,7 @@ optional parameter (attribute):
     Default ``None``
 '''
     default = ''
-    widget = TextInput
+    widget = html.TextInput
     
     def _handle_params(self, max_length = 30, char_transform = None,
                        toslug = None, **kwargs):
@@ -235,7 +233,7 @@ optional parameter (attribute):
 
 class IntegerField(Field):
     default = 0
-    widget = TextInput(cn = 'numeric')
+    widget = html.TextInput(default_class = 'numeric')
     convert_error = 'Could not convert {0} to a valid number'
     
     def _handle_params(self, validator = None, **kwargs):
@@ -272,7 +270,7 @@ class FloatField(IntegerField):
     
         
 class DateField(Field):
-    widget = TextInput(cn = 'dateinput')
+    widget = html.TextInput(default_class = 'dateinput')
     validation_error = 'Could not recognized date {1}.'
     
     def _clean(self, value, bfield):
@@ -290,7 +288,6 @@ class DateField(Field):
     
 
 class DateTimeField(DateField):
-    widget = TextInput(cn = 'dateinput')
     
     def todate(self, value):
         if not hasattr(value, 'date'):
@@ -301,7 +298,7 @@ class DateTimeField(DateField):
 class BooleanField(Field):
     default = False
     required = False
-    widget = CheckboxInput
+    widget = html.CheckboxInput()
     
     def clean(self, value, bfield):
         '''Clean the field value'''
@@ -357,7 +354,7 @@ behaviour in validation as well as when rendering as an html widget.:
 This field works in conjunction with the ``autocomplete`` decorator in
 ``djpcms.js``.
 '''
-    widget = Select
+    widget = html.Select()
     
     def _handle_params(self, choices = None, model = None,
                        separator = ', ', autocomplete = False,
@@ -452,5 +449,5 @@ class FileField(CharField):
 
 
 def HiddenField(**kwargs):
-    return CharField(widget=HiddenInput, **kwargs)
+    return CharField(widget=html.HiddenInput(), **kwargs)
 

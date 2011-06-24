@@ -8,23 +8,22 @@ HTML tools
    :members:
    :member-order: bysource
    
-   
-HtmlAttrMixin
+Widget Maker
 ===================
 
-.. autoclass:: djpcms.html.HtmlAttrMixin
+.. autoclass:: djpcms.html.WidgetMaker
    :members:
    :member-order: bysource
    
    
-HtmlWidget
+Widget
 =============
 
-.. autoclass:: djpcms.html.HtmlWidget
+.. autoclass:: djpcms.html.Widget
    :members:
    :member-order: bysource
    
-  
+
 Table
 =============
 
@@ -37,5 +36,13 @@ Media
 =============
 
 .. autoclass:: djpcms.html.Media
+   :members:
+   :member-order: bysource
+
+
+Renderer Mixin
+=================
+
+.. autoclass:: djpcms.html.Renderer
    :members:
    :member-order: bysource

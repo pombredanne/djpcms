@@ -1,7 +1,7 @@
 Version 0.9.0 - Development
 =======================================
-* This is essentially a new library from the previous versions.
-* Radical changes in the API.
+* This is essentially a new library from the previous versions wich brings
+  radical changes in the API and internals.
 * No more django_ dependency.
 * Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.
@@ -9,8 +9,6 @@ Version 0.9.0 - Development
 * Object Relational mapping can be done with stdnet_, django_ or none at all.
 * External ORMs can be registered to the library. Planned.    
 * Introduced several new AJAX decorators.
-* New AJAX decorator ``rearrange`` which adds drag & drop functionalities during page editing.
-* Added abstraction for ``User`` model.
 * Added ``save as new`` functionality to :class:`djpcms.views.appview.EditView`.
 * Added ``getdata`` function to ``DjpResponse`` as the preferred way to extract data from the response object.
   In this way it is guaranteed the response object is initialised properly.

@@ -1,7 +1,6 @@
 import djpcms
-from djpcms import forms, html
+from djpcms import forms, html, plugins
 from djpcms.utils import markups
-from djpcms.plugins import get_plugin, plugingenerator, wrappergenerator
 
 
 __all__ = ['TemplateForm',
@@ -17,7 +16,7 @@ def get_templates(*args):
 
 class TemplateForm(forms.Form):
     name = forms.CharField()
-    template = forms.CharField(widget = forms.TextArea)  
+    template = forms.CharField(widget = html.TextArea)  
 
 
 class PageForm(forms.Form):
@@ -53,7 +52,7 @@ class PageForm(forms.Form):
     
 
 class PluginChoice(forms.ChoiceField):
-    widget = forms.Select(cn = 'ajax')
+    widget = html.Select(default_class = 'ajax')
     
     def __init__(self, *args, **kwargs):
         super(PluginChoice,self).__init__(*args, **kwargs)
@@ -61,7 +60,7 @@ class PluginChoice(forms.ChoiceField):
     def _clean(self, value, bfield):
         '''Overried default value to return a Content Type object
         '''
-        value = get_plugin(value) 
+        value = plugins.get_plugin(value) 
         if not value:
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
@@ -71,10 +70,10 @@ class ContentBlockForm(forms.Form):
     url = forms.HiddenField(required = False)
     title = forms.CharField(required = False)
     plugin_name = PluginChoice(label = 'Plugin',
-                               choices = plugingenerator)
+                               choices = plugins.plugingenerator)
     container_type = forms.ChoiceField(label = 'Container',
-                                       widget = forms.Select(cn = 'ajax'),
-                                       choices = wrappergenerator,
+                                       widget = html.Select(default_class = 'ajax'),
+                                       choices = plugins.wrappergenerator,
                                        help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
     for_not_authenticated = forms.BooleanField(default = False)
     view_permission = forms.CharField(required = False)

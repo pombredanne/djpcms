@@ -24,7 +24,6 @@ from .html import FormWidget
 
 __all__ = ['FormType',
            'Form',
-           'HtmlForm',
            'BoundField']
 
 
@@ -378,81 +377,6 @@ This method works if an instance or a model is available.
         else:
             return ''
         
-
-class HtmlForm(object):
-    '''The :class:`Form` class is designed to be used for validation purposes and therefore it needs this
-wrapper class for web rendering on web pages.
-    
-:parameter form_class: A form class setting the :attr:`form_class` attribute.
-:parameter layout: An optional layout instance which sets the :attr:`layout` attribute.
-                   Default ``None``.
-                   
-Simple usage::
-
-    MyHtmlForm = HtmlForm(MyFormClass) 
-
-
-.. attribute:: form_class
-
-    A class derived from :class:`djpcms.forms.Form` which declares
-    a set of :class:`djpcms.forms.Fields`.
-    
-.. attribute:: layout
-
-    An instance of :class:`djpcms.forms.layout.FormLayout` used to render the :attr:`form_class`.
-    
-.. attribute:: inputs
-
-    An iterable of form inputs.
-    
-    Default:: ``[]``
-'''
-    def __init__(self, form_class,
-                 layout = None,
-                 model = None,
-                 inputs = None):
-        self.form_class = form_class
-        self._layout = layout
-        self.model = model
-        self.inputs = []
-        if inputs:
-            for input in inputs:
-                if not hasattr(input,'render'):
-                    input = SubmitInput(value = input[0],
-                                        name = input[1])
-                self.inputs.append(input)
-        
-    def __get_layout(self):
-        layout = self._layout
-        if not layout:
-            self._layout = layout = DefaultLayout()
-        return layout
-    def __set_layout(self, lay):
-        self._layout = lay
-    layout = property(__get_layout,__set_layout)
-        
-    def __call__(self, model = None, **kwargs):
-        '''Create a :attr:`form_class` instance with
-input paramaters ``kwargs``.'''
-        return self.form_class(model=model or self.model,**kwargs)
-    
-    @property
-    def default_inputs(self):
-        return copy(self.inputs)
-    
-    def widget(self, form, **kwargs):
-        '''Create :class:`djpcms.forms.FormWidget`
-ready to be rendered.
-
-:parameter form: Instance of :attr:`form_class` obtained from the :meth:`__call__`
-                 method.
-:parameter parameters: parameters to be passed to the :class:`djpcms.forms.FormWidget`
-                       constructor.
-'''
-        return FormWidget(form,
-                          layout = self.layout,
-                          **kwargs)
-    
         
 class BoundField(object):
     '''A Wrapper containg a :class:`djpcms.forms.Form` instance,

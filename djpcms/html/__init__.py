@@ -6,7 +6,7 @@ module.
 A simple usage::
 
     >>> from djpcms import html
-    >>> text = html.TextInput(name = 'plugin', value='Random', cn='plg')
+    >>> text = html.Widget('input:text', name = 'plugin', value='Random', cn='plg')
     >>> text.flatatt()
     ' type="text" name="plugin" value="Random" class="plg"'
     >>> text.render()
@@ -15,15 +15,15 @@ A simple usage::
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
 from .utils import *
-from .base import *
 from .media import *
+from .base import *
+from .widgets import *
 from .pagination import *
 from .grid960 import *
 from .htmltype import *
 from .box import *
 from .nicerepr import *
 from .objectdef import *
-from .widgets import *
 from .apptools import *
 from .table import *
 

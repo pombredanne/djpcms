@@ -1,15 +1,10 @@
-from djpcms import forms
-from djpcms.html import HtmlWrap
-from djpcms.forms import FormType, HtmlForm, SubmitInput, HtmlWidget
+from djpcms import forms, html, views, ajax
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.template import loader
-from djpcms.utils.ajax import jhtmls, jremove, dialog, jempty
-from djpcms.utils.ajax import jerror, jattribute, jcollection
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
-from djpcms import views
 
 from .layout import ContentBlockHtmlForm, PLUGIN_DATA_FORM_CLASS
 

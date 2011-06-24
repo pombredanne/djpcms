@@ -30,6 +30,9 @@ class TestSimpleForm(test.TestCase):
         
     def testSimpleHtml(self):
         hf = forms.HtmlForm(SimpleForm)
+        self.assertTrue('action' in hf.attributes)
+        self.assertTrue('enctype' in hf.attributes)
+        self.assertTrue('method' in hf.attributes)
         self.assertTrue(hf.form_class,SimpleForm)
         w = hf.widget(hf.form_class(), action = '/test/')
         self.assertTrue(isinstance(w.form,SimpleForm))

@@ -1,6 +1,6 @@
-from djpcms.utils import merge_dict, escape
+from djpcms.utils import escape
 from djpcms.utils.const import *
-from .base import HtmlWidget
+from .base import WidgetMaker, Widget
 
 
 __all__ = ['TextInput',
@@ -13,12 +13,8 @@ __all__ = ['TextInput',
            'List',
            'SelectWithAction']
 
-
-class FieldWidget(HtmlWidget):
-    attributes = merge_dict(HtmlWidget.attributes, {
-                                                    'value': None,
-                                                    'name': None
-                                                    })
+class FieldWidget(WidgetMaker):
+    attributes = WidgetMaker.makeattr('value','name','title')
     
     def render(self, djp = None, bfield = None):
         if bfield:
@@ -35,10 +31,10 @@ class FieldWidget(HtmlWidget):
         return value
     
 
-class TextInput(FieldWidget):
+class InputWidget(WidgetMaker):
     tag = 'input'
     inline = True
-    attributes = merge_dict(FieldWidget.attributes, {'type':'text'})
+    attributes = FieldWidget.makeattr('type')
     
     def get_value(self, value):
         if 'initial_value' in self.data:
@@ -50,22 +46,26 @@ class TextInput(FieldWidget):
         else:
             return value
     
-    
-class SubmitInput(TextInput):
-    attributes = merge_dict(TextInput.attributes, {'type':'submit'})
-    
-    
-class HiddenInput(TextInput):
-    is_hidden = True
-    attributes = merge_dict(TextInput.attributes, {'type':'hidden'})
-    
-    
-class PasswordInput(TextInput):
-    attributes = merge_dict(TextInput.attributes, {'type':'password'})
-    
+class TextInput(InputWidget):
+    default_attrs = {'type': 'text'}
 
-class CheckboxInput(TextInput):
-    attributes = merge_dict(TextInput.attributes, {'type':'checkbox'})
+
+class PasswordInput(InputWidget):
+    default_attrs = {'type': 'password'}
+    
+    
+class SubmitInput(InputWidget):
+    default_attrs = {'type': 'submit'}
+    
+    
+class HiddenInput(InputWidget):
+    is_hidden = True
+    default_attrs = {'type': 'hidden'}
+    
+    
+class CheckboxInput(InputWidget):
+    default_attrs = {'type':'checkbox'}
+    attributes = InputWidget.makeattr('type','checked')
     
     def get_value(self, val):
         if val:
@@ -75,15 +75,12 @@ class CheckboxInput(TextInput):
         return True
     
     
-class TextArea(TextInput):
+class TextArea(InputWidget):
     tag = 'textarea'
     inline = False
     _value = ''
-    attributes = merge_dict(HtmlWidget.attributes, {
-                                                    'name': None,
-                                                    'rows': 10,
-                                                    'cols': 40
-                                                    })
+    default_attrs  = {'rows': 10, 'cols': 40}
+    attributes = WidgetMaker.makeattr('name','rows','cols')
 
     def get_value(self, value):
         self._value = escape(value)
@@ -129,17 +126,25 @@ class Select(FieldWidget):
                 yield option.format(val,sel,des)
 
 
-class List(HtmlWidget,list):
-    tag = 'ul'
-    inline = False
+
+WidgetMaker('div', default = 'div')
+WidgetMaker('th', default = 'th')
+WidgetMaker('tr', default = 'tr')
+WidgetMaker('ul', default = 'ul')
+WidgetMaker('a', default = 'a', attributes = ('href','title'))
+TextInput(default='input:text')
+InputWidget(default='input:password')
+SubmitInput(default='input:submit')
+HiddenInput(default='input:hidden')
+PasswordInput(default='input:password')
+
+
+class List(Widget, list):
     def __init__(self, data = None, **kwargs):
-        HtmlWidget.__init__(self,**kwargs)
-        if data:
-            list.__init__(self, data)
-        else:
-            list.__init__(self)
-    
-    def inner(self):
+        super(List,self).__init__('ul',**kwargs)
+        list.__init__(self,data) if data else list.__init__(self)
+        
+    def inner(self, djp):
         return '\n'.join((LI + elem + LIEND for elem in self))
     
     

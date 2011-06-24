@@ -1,16 +1,14 @@
 from inspect import isclass
 
-from djpcms.html import List, HtmlWrap, icons
-from djpcms.forms.html import HtmlWidget
-from djpcms.template import loader
-from djpcms.utils.ajax import jhtmls
+from djpcms import html, ajax
 from djpcms.utils.text import nicename
 
-__all__ = ['BaseFormLayout',
+
+__all__ = ['FormWidget',
+           'BaseFormLayout',
            'FormLayout',
            'FormLayoutElement',
            'DivFormElement',
-           'Html',
            'nolabel',
            'TableRelatedFieldset']
 
@@ -18,9 +16,18 @@ __all__ = ['BaseFormLayout',
 nolabel = 'nolabel'
 
 
-class BaseFormLayout(HtmlWidget):
+class FormElementWidget(html.Widget):
+    '''A :class:`djpcms.html.HtmlWidget` used to display
+forms using the :mod:`djpcms.forms.layout` API.'''
+    def __init__(self, maker, form, layout):
+        super(FormWidget,self).__init__(maker)
+        self.form = form
+        self.layout = layout
+    
+
+class BaseFormLayout(html.WidgetMaker):
     '''\
-A :class:`djpcms.html.HtmlWidget` base class for programmatic
+A :class:`djpcms.html.HtmlWidgetMaker` for programmatic
 form layout design.
     
 .. attribute:: field_template
@@ -31,21 +38,26 @@ form layout design.
     Default: ``None``.
 '''
     field_template = None
-    default_style = None
     required_tag = ''
     
-    def __init__(self, default_style = None, required_tag = None,
+    def __init__(self, required_tag = None,
                  field_template = None, legend = None,
-                 **kwargs):
-        self.default_style = default_style or self.default_style
+                 **params):
         self.required_tag = required_tag or self.required_tag
         if legend:
             legend = '{0}'.format(legend)
         else:
             legend = ''
         self.legend_html = legend
-        super(BaseFormLayout,self).__init__(**kwargs)
+        super(BaseFormLayout,self).__init__(**params)
 
+
+def check_fields(fields, missings):
+    for field in fields:
+        if field in missings:
+            missings.discard(field)
+        else:
+            field.check_fields(missings)
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -53,29 +65,10 @@ class FormLayoutElement(BaseFormLayout):
 class for a :class:`djpcms.forms.layout.FormLayout` element.
 It defines how form fields are rendered and it can
 be used to add extra html elements to the form.
-
-:parameter key: An optional string. It is used to easily retrieve the
-                element in the layout which holds it.
-                If specified, the element
-                will be an attribute named ``key`` of the layout itself.
-                
-                Default: ``None``
-                
-:parameter elem_css: defining element class name.
-:parameter kwargs: additional parameters to be passed to the
-                   :class:`djpcms.forms.layout.BaseFormLayout` base class.
 '''
-    elem_css = None
-    template = None
+    def check_fields(self, missings):
+        raise NotImplementedError
     
-    def __init__(self, key = None, elem_css = None, **kwargs):
-        super(FormLayoutElement,self).__init__(**kwargs)
-        self.key = key
-        self.elem_css = elem_css or self.elem_css
-        
-    def make_classes(self):
-        self.addClass(self.elem_css).addClass(self.default_style)
-        
     def render_field(self, djp, bfield, layout):
         '''\
 Render a single bound field using a layout.
@@ -114,16 +107,6 @@ attribute to render the bounded field.
 
     def add_widget_classes(self, field, widget):
         pass
-
-
-class Html(FormLayoutElement):
-    '''A :class:`FormLayoutElement` which renders to `self`.'''
-    def __init__(self, html = '', renderer = None, **kwargs):
-        super(Html,self).__init__(**kwargs)
-        self.html = html
-
-    def inner(self, *args, **kwargs):
-        return self.html
     
 
 class DivFormElement(FormLayoutElement):
@@ -132,6 +115,9 @@ class DivFormElement(FormLayoutElement):
         super(DivFormElement,self).__init__(**kwargs)
         self.fields = fields
 
+    def check_fields(self, missings):
+        check_fields(self.fields,missings)
+        
     def _innergen(self, djp, form, layout):
         attr = self.flatatt()
         dfields = form.dfields
@@ -174,61 +160,41 @@ class FormLayout(BaseFormLayout):
     
     def __init__(self, *fields, **kwargs):
         super(FormLayout,self).__init__(**kwargs)
-        self._allfields = []
         self.add(*fields)
+        
+    def check_fields(self, missings):
+        '''Add missing fields to ``self``. This
+method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
+
+:parameter form: a :class:`djpcms.forms.Form` class.
+'''
+        for field in self.allchildren:
+            if isinstance(field,FormLayoutElement):
+                field.check_fields(missings)
+        if missings:
+            self.add(self.default_element(*missings))
         
     def render(self, djp, form, inputs, **keys):
         ctx  = {'layout':self}
         html = ''
         template = self.template
         form._inputs = inputs
-        for field in self._allfields:
+        for field in self.allchildren:
+            w = field.widget(form, self)
             key = field.key
             if key and key in keys:
-                html += field.render(djp, form, self, inner = keys[key])
+                html += w.render(djp, keys[key])
             else:
-                h = field.render(djp, form, self)
+                h = w.render(djp)
                 if key and template:
                     ctx[field.key] = h
                 else:
                     html += h
-        
-        missing_fields = self.get_missing_fields(form)        
-        if missing_fields:
-            fset  = self.default_element(*missing_fields).addClass(self.default_style)
-            html += fset.render(djp,form,self)
-        
         if form._inputs:
             ctx['inputs'] = Inputs().render(djp,form,self)
         ctx['form']   = html
         ctx['messages'] = ''
-        
         return loader.render(template, ctx)
-        
-    def add(self,*fields):
-        '''Add *fields* to all fields.
-A field must be an instance of :class:`djpcms.forms.layout.FormLayoutElement`.'''
-        for field in fields:
-            if isinstance(field,FormLayoutElement):
-                if not field.default_style:
-                    field.default_style = self.default_style
-                field.make_classes()
-                self._allfields.append(field)
-                if field.key:
-                    setattr(self,field.key,field)
-    
-    def get_rendered_fields(self,form):
-        rf = getattr(form, '_rendered_fields', {})
-        form._rendered_fields = rf
-        return rf
-    
-    def get_missing_fields(self,form):
-        mf = []
-        rendered_fields = self.get_rendered_fields(form)
-        for field in form.fields:
-            if not field.name in rendered_fields:
-                mf.append(field.name)
-        return mf
 
     def json_messages(self, f):
         '''Convert errors in form into a JSON serializable dictionary with keys

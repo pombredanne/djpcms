@@ -5,7 +5,7 @@ from py2py3 import itervalues
 from djpcms.html import icons
 from djpcms.utils.text import nicename
 
-from .base import HtmlWidget
+from .base import Widget
 from .widgets import Select
 
 
@@ -97,9 +97,9 @@ instance.
             if not view.has_permission():
                 continue
         
-        a = HtmlWidget(tag).addAttr('title',elem.title)\
-                           .addData('method',elem.method)\
-                           .addData('warning',view.warning_message())
+        a = Widget(tag).addAttr('title',elem.title)\
+                       .addData('method',elem.method)\
+                       .addData('warning',view.warning_message())
         if elem.ajax:
             a.addClass(css.ajax)
         if elem.icon:

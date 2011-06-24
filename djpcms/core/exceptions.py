@@ -10,6 +10,7 @@ class DjpcmsException(Exception):
 class SuspiciousOperation(DjpcmsException):
     pass
 
+
 class ImproperlyConfigured(DjpcmsException):
     '''A :class:`DjpcmsException` raised when djpcms has inconsistent configuration.'''
     pass
@@ -40,6 +41,12 @@ class ObjectDoesNotExist(ModelException):
 does not exists.'''
     pass
 
+
+class HtmlWidgetError(DjpcmsException):
+    '''A :class:`HtmlWidgetError` raised by :class:`djpcms.html.HtmlWidget` instances
+ when they are not setup properly.'''
+    pass
+    
 class UsernameAlreadyAvailable(Exception):
     pass
 

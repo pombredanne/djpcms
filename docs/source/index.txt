@@ -47,9 +47,10 @@ Contents
    
    api
    application/index
-   html/index
+   html
    forms/index
    settings
+   tutorials/index
    internals/index
    contrib/monitor
    contrib/sessions

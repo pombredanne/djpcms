@@ -1,4 +1,4 @@
-from djpcms import forms
+from djpcms import forms, html
 from djpcms.forms.layout import uniforms
 
 from .forms import *
@@ -24,13 +24,16 @@ HtmlPageForm = forms.HtmlForm(
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,
     layout = uniforms.Layout(
-                          uniforms.Fieldset('plugin_name','container_type','title',
-                                            'view_permission'),
-                          uniforms.Columns(('for_not_authenticated',),
-                                           ('requires_login',),
-                                           default_style=uniforms.inlineLabels3),
-                          # Add an Html element with key so that we can inject extra form data
-                          uniforms.Html(key = 'plugin', tag = 'div').addClass(PLUGIN_DATA_FORM_CLASS)
+                  uniforms.Fieldset('plugin_name','container_type',
+                                    'title','view_permission'),
+                  uniforms.Columns(('for_not_authenticated',),
+                                   ('requires_login',),
+                                   default_style=uniforms.inlineLabels3),
+                  html.Html(key = 'plugin',
+                            tag = 'div',
+                            default_class = PLUGIN_DATA_FORM_CLASS,
+                            description = "Add an Html element with key so that\
+ we can inject extra form data at runtime")
                 )
 )
 

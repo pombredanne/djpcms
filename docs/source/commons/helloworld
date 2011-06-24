@@ -6,8 +6,7 @@
     def urls():
         '''Create a tuple with one application containg one view'''
         return (
-            Application('/',
-                name = 'Hello world!',
+            Application('/', name = 'Hello world!',
                 home = View(renderer = lambda djp : 'Hello world!')
             ),)
                  

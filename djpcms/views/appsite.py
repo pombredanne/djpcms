@@ -494,11 +494,10 @@ By default it return a generator of children pages.'''
         
         if astable:
             items = self.table_generator(djp, headers, p.qs)
-            return Table(djp, headers, items,
-                         appmodel.model,
-                         paginator = p,
-                         appmodel = self,
-                         nice_headers_handler = self.nice_headers_handler).render()
+            return Table(headers,
+                         items,
+                         appmodel = appmodel,
+                         paginator = p).render(djp)
         else:
             c  = djp.kwargs.copy()
             c.update({'paginator': p,

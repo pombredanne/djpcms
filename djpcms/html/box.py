@@ -1,7 +1,7 @@
-from .base import HtmlWidget
+from .base import Widget, WidgetMaker
 
 
-class BoxWidget(HtmlWidget):
+class BoxWidget(WidgetMaker):
     tag = 'div'
     template = ('box.html','djpcms/components/box.html')
     header_classes = 'ui-widget-header'

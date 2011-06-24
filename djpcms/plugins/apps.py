@@ -92,19 +92,20 @@ class SearchForm(forms.Form):
     The search_text name will be used by SearchViews to handle text search
     '''
     q = forms.CharField(required = False,
-                        widget = html.TextInput(cn = 'classy-search autocomplete-off',
+                        widget = html.TextInput(default_class = 'classy-search autocomplete-off',
                                                 title = 'Enter your search text'))
 
-SearchSubmit = html.HtmlWrap(tag = 'div', cn='cx-submit',
-                             inner = html.SubmitInput(cn='cx-search-btn '+forms.NOBUTTON,
-                                                      title = 'Search').render())
+SearchSubmit = html.Widget('div', cn='cx-submit',
+                           inner = html.SubmitInput(
+                                               default_class='cx-search-btn '+forms.NOBUTTON,
+                                               title = 'Search').render())
 HtmlSearchForm = forms.HtmlForm(
         SearchForm,
         inputs = [SearchSubmit],
         layout = FormLayout(
                     DivFormElement('q',
                                    default_style = nolabel,
-                                   cn = 'cx-input'),
+                                   default_class = 'cx-input'),
                     template = ('search_form.html',
                                 'djpcms/components/search_form.html')
             )

@@ -1,4 +1,4 @@
-from djpcms import forms
+from djpcms import forms, html
 
 from .models import PERMISSION_LIST, Role, User, Group
 
@@ -14,7 +14,7 @@ class RoleForm(forms.Form):
     
 class GroupForm(forms.Form):
     name = forms.CharField()
-    description = forms.CharField(widget = forms.TextArea,
+    description = forms.CharField(widget = html.TextArea(),
                                   required = False)
         
     

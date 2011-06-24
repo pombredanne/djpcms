@@ -1,4 +1,4 @@
-from djpcms import sites, forms
+from djpcms import sites, forms, html
 
 from .orm import create_user, authenticate, login
 
@@ -7,8 +7,8 @@ class LoginForm(forms.Form):
     '''The Standard login form
     '''
     username   = forms.CharField(max_length=30,
-                                 widget=forms.TextInput(cn = 'autocomplete-off'))
-    password   = forms.CharField(max_length=60,widget=forms.PasswordInput)
+                                 widget=html.TextInput(default_class = 'autocomplete-off'))
+    password   = forms.CharField(max_length=60,widget=html.PasswordInput())
     
     def clean(self):
         '''process login
@@ -47,9 +47,9 @@ class LoginForm(forms.Form):
 class RegisterForm(forms.Form):
     username = forms.CharField(max_length=32)
     password = forms.CharField(max_length=32,
-                               widget=forms.PasswordInput)
+                               widget=html.PasswordInput())
     re_type  = forms.CharField(max_length=32,
-                               widget=forms.PasswordInput,
+                               widget=html.PasswordInput(),
                                label="Re-enter password")
     #email_address = UniqueEmail(help_text="This will be used for confirmation only.")
     

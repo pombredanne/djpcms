@@ -1,3 +1,4 @@
+from copy import copy
 from inspect import isclass
 
 from py2py3 import iteritems
@@ -15,22 +16,25 @@ class FormWidget(html.Widget):
     '''A :class:`djpcms.html.HtmlWidget` used to display
 forms using the :mod:`djpcms.forms.layout` API.'''
     def __init__(self, maker, form, inputs = None, **kwargs):
-        super(FormWidget,self).__init__(maker,**kwargs)
-        self.form = form
-        self.layout = maker.layout
-        self.inputs = inputs if inputs is not None else []
-        self.addClass(self.layout.form_class)
-        
-    def inner(self, djp = None, **kwargs):
-        return self.layout.render(djp,
-                                  self.form,
-                                  self.inputs,
-                                  **kwargs)
-        
+        super(FormWidget,self).__init__(maker,
+                                        form=form,
+                                        layout=maker.layout,
+                                        inputs = inputs if inputs is not None else [],
+                                        **kwargs)
+        self.addClass(maker.layout.form_class)
+    
+    @property 
+    def form(self):
+        return self.internal['form']
+    
+    @property 
+    def layout(self):
+        return self.internal['layout']
+    
     def is_valid(self):
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
-        return self.form.is_valid()
+        return self.internal['form'].is_valid()
 
 
 class HtmlForm(html.WidgetMaker):
@@ -82,17 +86,20 @@ Simple usage::
                 if not hasattr(input,'render'):
                     input = html.SubmitInput(value = input[0],
                                              name = input[1])
+                #if not isinstance(input,html.WidgetMaker):
+                #    raise TypeError('{0} is not a widgetmaker, cannot addt to form inputs'.format(input))
                 self.inputs.append(input)
         missings = set(form_class.base_fields)
         self.layout.check_fields(missings)
         
-    def __call__(self, model = None, **kwargs):
+    def __call__(self, model = None, inputs = None, **kwargs):
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
-        return self.form_class(model=model or self.model,**kwargs)
+        f = self.form_class(model=model or self.model,**kwargs)
+        return self.widget(form = f, inputs = inputs or self.inputs)
     
-    @property
-    def default_inputs(self):
-        return copy(self.inputs)
+    def inner(self, djp, widget, keys):
+        '''Delegate the inner part of rendering to the layout instance'''
+        return self.layout.inner(djp,widget,keys)
 
 

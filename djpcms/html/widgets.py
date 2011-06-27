@@ -13,30 +13,33 @@ __all__ = ['TextInput',
            'List',
            'SelectWithAction']
 
+
 class FieldWidget(WidgetMaker):
     attributes = WidgetMaker.makeattr('value','name','title')
     
-    def render(self, djp = None, bfield = None):
+    def widget(self, bfield = None, **kwargs):
+        w = super(FieldWidget,self).widget(bfield = bfield,**kwargs)
         if bfield:
-            attrs = self.attrs
+            attrs = w.attrs
             attrs['id'] = bfield.id
             attrs['name'] = bfield.html_name
             if bfield.title:
                 attrs['title'] = bfield.title
             value = self.get_value(bfield.value)
             attrs['value'] = value
-        return super(FieldWidget,self).render(djp,bfield)
+        return w
     
     def get_value(self, value):
         return value
     
 
-class InputWidget(WidgetMaker):
+class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
     attributes = FieldWidget.makeattr('type')
     
     def get_value(self, value):
+        return value
         if 'initial_value' in self.data:
             initial_value = self.data['initial_value']
             if isinstance(initial_value,list):
@@ -102,8 +105,8 @@ class Select(FieldWidget):
     def get_value(self, val):
         pass
     
-    def inner(self, djp, bfield = None):
-        return '\n'.join(self.render_options(djp, bfield))
+    def inner(self, djp, widget, keys):
+        return '\n'.join(self.render_options(djp, widget.internal['bfield']))
 
     def render_options(self, djp, bfield):
         selected_choices = []
@@ -132,6 +135,7 @@ WidgetMaker('th', default = 'th')
 WidgetMaker('tr', default = 'tr')
 WidgetMaker('ul', default = 'ul')
 WidgetMaker('a', default = 'a', attributes = ('href','title'))
+WidgetMaker('button', default = 'button')
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')

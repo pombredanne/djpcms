@@ -16,7 +16,7 @@ def get_templates(*args):
 
 class TemplateForm(forms.Form):
     name = forms.CharField()
-    template = forms.CharField(widget = html.TextArea)  
+    template = forms.CharField(widget = html.TextArea())  
 
 
 class PageForm(forms.Form):

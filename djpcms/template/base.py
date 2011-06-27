@@ -1,9 +1,9 @@
 from djpcms.dispatch import Signal
+from djpcms import sites
 
 
 def handle(engine = None):
-    from djpcms import sites
-    engine = engine or sites.settings.TEMPLATE_ENGINE
+    engine = engine or sites.settings.TEMPLATE_ENGINE if sites.settings else 'jinja2'
     if engine not in _handlers:
         handle = get_engine(engine)
         _handlers[engine] = handle

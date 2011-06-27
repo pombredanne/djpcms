@@ -23,7 +23,8 @@ def render(sites, style, target, apps, mediaurl = None, template_engine = None):
         try:
             imported[modname] = import_module(modname) 
             continue
-        except ImportError:
+        except ImportError as e:
+            print('Cannot import application {0}: {1}'.format(app,e))
             pass
         try:
             modname = 'djpcms.contrib.{0}.style'.format(app)

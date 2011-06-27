@@ -379,7 +379,7 @@ This method works if an instance or a model is available.
         
         
 class BoundField(object):
-    '''A Wrapper containg a :class:`djpcms.forms.Form` instance,
+    '''A Wrapper containing a :class:`djpcms.forms.Form` instance,
 a :class:`djpcms.forms.Field` instance which belongs to the form,
 and field bound data.
 Instances of BoundField are created during form validation
@@ -403,7 +403,7 @@ and shouldn't be used otherwise. It is an utility class.
 '''
     def __init__(self, form, field, name, html_name = None):
         self.form = form
-        self.field = field.copy(self)
+        self.field = field
         self.name = name
         self.html_name = html_name or name
         self.value = None

@@ -25,7 +25,9 @@ There are three types of layout:
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
 from djpcms.html import get_grid960
-from .base import FormLayout, FormLayoutElement, Inputs, check_fields
+from djpcms.template import loader
+
+from .base import FormLayout, FormLayoutElement, Inputs, check_fields, render_field
 
 
 inlineLabels   = 'inlineLabels'
@@ -62,20 +64,9 @@ class Fieldset(UniFormElement):
     
     def check_fields(self, missings):
         check_fields(self.fields,missings)
-
-    def data(self, djp, form, layout):
-        render_field = self.render_field
-        dfields = form.dfields
-        for field in self.fields:
-            if field in dfields:
-                html = render_field(djp, dfields[field], layout)
-            else:
-                html = field.render(djp, form, layout)
-            yield html
                 
-    def inner(self, djp, widget):
-        # Override inner function
-        html = '\n'.join(self._data(djp, widget.form, widget.layout))
+    def inner(self, djp, widget, keys):
+        html = '\n'.join((render_field(self, djp, field, widget) for field in self.fields))
         if html:
             return self.legend_html + '\n' + html
         else:
@@ -98,9 +89,9 @@ class Columns(UniFormElement):
         super(Columns,self).__init__(**kwargs)
         self.columns = columns
         ncols = len(columns)
-        if not self.template:
-            self.template = self.template_dict.get(ncols,None)
-        if not self.template:
+        if not self.template or self.template_name:
+            self.template_name = self.template_dict.get(ncols,None)
+        if not self.template or self.template_name:
             raise ValueError('Template not available in uniform Column.')
 
     def check_fields(self, missings):
@@ -108,31 +99,47 @@ class Columns(UniFormElement):
             check_fields(column,missings)
             
     def get_context(self, djp, widget):
-        render_field = self.render_field
-        dfields = form.dfields
-        layout = widget.layout
-        
-        def _data(column):
-            yield '<div>'
-            for field in column:
-                if not isinstance(field,FormLayoutElement):
-                    field = dfields[field]
-                    yield render_field(djp, field, layout)
-                else:
-                    yield field.render(djp,form,layout)
-            yield '</div>'
-            
+        context = {}
+        div = html.Widget('div')
         for i,column in enumerate(self.columns):
-            context['content%s' % i] = '\n'.join(_data(column))
+            inner = '\n'.join(render_field(self, djp, field, widget) for field in column)
+            context['content%s' % i] = div.render(djp,inner)
             
         context['grid'] = get_grid960(djp)
         return context    
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.'''
-    template = "djpcms/form-layouts/uniform.html"
-    field_template = "djpcms/form-layouts/field.html"
     default_style  = 'inlineLabels'
     form_class = 'uniForm'
     default_element = Fieldset
-    
+    template = loader.template_class('''\
+{% if csrf_token %}{{ csrf_token }}{% endif %}
+<div class="{{ maker.form_messages_container_class }} ctrlHolder">{{ messages }}</div>
+{% for child in children %}
+{{ child }}{% endfor %}{% for si in inputs %}
+{{ si }}{% endfor %}''')
+    field_template = loader.template_class("""\
+{% if is_hidden %}{{ widget }}{% else %}
+<div class='ctrlHolder{% if error %} error{% endif %}{% if field.field.required %} required{% endif %}'>
+    <div id='{{ field.errors_id }}'>{{ errors }}
+    </div>{% if ischeckbox %}
+    <p class='label'></p>
+    <div class='field-widget'>
+    <label for='{{ field.id }}'>
+     {{ widget }}{% if label %}
+      {{ label }}{% endif %}
+    </label>
+    {% if field.help_text %}
+    <div id="hint_{{ field.id }}" class="formHint">{{ field.help_text }}</div>{% endif %}
+    </div>{% else %}{% if label %}
+    <label for="{{ field.id }}" class="label">
+      {{ label }}
+    </label>{% endif %}
+    <div class="field-widget input {{ name }}">
+      {{ widget }}
+    </div>{% if field.help_text %}
+    <div id='hint_{{ field.id }}' class='formHint'>{{ field.help_text }}</div>{% endif %}
+    {% endif %}
+</div>{% endif %}""")
+

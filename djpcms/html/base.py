@@ -37,6 +37,11 @@ def dump_data_value(v):
     return mark_safe(v)
 
 
+default_inner_template = '''\
+{% for child in children %}
+{{ child }}{% endfor %}'''
+
+
 class Renderer(object):
     '''A mixin for all classes which render into html.
 
@@ -88,9 +93,17 @@ Any Operation on this class is similar to jQuery.
             .addClass(maker.default_class)\
             .addClass(cn)
         attributes = maker.attributes
-        for att,val in iteritems(params):
+        for att in list(params):
             if att in attributes:
-                attrs[att] = val
+                attrs[att] = params.pop(att)
+        self.internal = params
+        
+    def __repr__(self):
+        return '{0}({1})'.format(self.__class__.__name__,self.maker)
+    
+    @property
+    def tag(self):
+        return self.maker.tag
             
     def flatatt(self, **attrs):
         '''Return a string with atributes to add to the tag'''
@@ -140,11 +153,8 @@ with key ``name`` and value ``value`` and return ``self``.'''
                     ks.remove(cn)
         return self
     
-    def render(self, djp = None, inner = None):
-        return self.maker.render_from_widget(djp, self, inner)
-    
-    def inner(self, djp):
-        return ''
+    def render(self, djp = None, inner = None, **keys):
+        return self.maker.render_from_widget(djp, self, inner, keys)
 
 
 class WidgetMaker(Renderer):
@@ -237,17 +247,18 @@ it is a class used as factory for HTML components.
     is_hidden = False
     default_style = None
     inline = False
-    template = None
+    template = loader.template_class(default_inner_template)
     template_name = None
     attributes = ('id',)
     default_class = None
     default_attrs = None
     _widget = None
     
-    def __init__(self, tag = None, template = None,
-                 renderer = None, inline = None,
-                 default = False, description = '',
-                 attributes = None, **params):
+    def __init__(self, tag = None, renderer = None,
+                 inline = None, default = False,
+                 description = '',
+                 attributes = None, inner = None,
+                 **params):
         if default:
             default_widgets_makers[default] = self
         self.attributes = set(self.attributes)
@@ -267,6 +278,7 @@ it is a class used as factory for HTML components.
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
         self._widget = self._widget or Widget
+        self._inner = inner
         if self.default_attrs:
             params.update(self.default_attrs)
         for attr in self.attributes:
@@ -286,6 +298,9 @@ it is a class used as factory for HTML components.
         attr = set(attrs)
         attr.update(cls.attributes)
         return attr
+    
+    def __repr__(self):
+        return '{0}{1}'.format(self.__class__.__name__,'-'+self.tag if self.tag else '')
     
     def ischeckbox(self):
         '''Returns ``True`` if this is a checkbox widget.
@@ -309,41 +324,67 @@ It returns self for concatenating data.'''
                     self.children[widget.key] = widget
         return self
   
-    def widget(self, *args, **kwargs):
-        return self._widget(self, *args, **kwargs)
+    def widget(self, **kwargs):
+        '''Create an instance of a :class:`djpcms.html.Widget` for rendering.'''
+        return self._widget(self, **kwargs)
     
     def render(self, djp = None, inner = None, **kwargs):
         return self.widget(**kwargs).render(djp,inner)
     
-    def render_from_widget(self, djp, widget, inner):
+    def render_from_widget(self, djp, widget, inner, keys):
         fattr = widget.flatatt()
         if self.inline:
-            html = '<{0}{1}/>'.format(self.tag,fattr)
+            text = '<{0}{1}/>'.format(self.tag,fattr)
         else:
-            html = inner
-            if html is None:
-                html = self.inner(djp, widget)
+            text = inner or self._inner
+            if text is None:
+                text = self.inner(djp, widget, keys)
             if self.tag:
-                html = '<{0}{1}>{2}</{0}>'.format(self.tag,fattr,html)
+                text = '<{0}{1}>{2}</{0}>'.format(self.tag,fattr,text)
         if self.renderer:
-            html = self.renderer(html)
+            text = self.renderer(text)
         if djp:
             djp.media += self.media()
-        return html
+        return text
     
-    def inner(self, djp, widget):
-        #Render the inner part of the widget
+    def inner(self, djp, widget, keys):
+        '''Render the inner part of the widget. This can be overwritten by derived classes and should
+return the inner part of html. By default it renders the template if it is available, otherwise
+an empty string.'''
         if self.template or self.template_name:
-            context = self.get_context(djp,widget)
+            context = self.get_context(djp,widget,keys)
+            context.update({'maker':self})
             if self.template:
-                raise NotImplemented
+                return self.template.render(context)
             else:
                 return loader.render(self.template_name,context)
         else:
-            return widget.inner(djp)
+            return ''
 
-    def get_context(self, djp, widget):
-        return {}
+    def child_widget(self, child, widget):
+        w = child.widget(**widget.internal)
+        w.internal['parent'] = self
+        return w
+    
+    def get_context(self, djp, widget, key):
+        '''Function called by :meth:`inner` method when the widget needs to be rendered via a template.
+It returns a dictionary of variables to be passed to the template engine.'''
+        ctx = {}
+        # Loop over fields and delivers the goods
+        children = []
+        for child in self.allchildren:
+            w = self.child_widget(child, widget)
+            key = child.key
+            if key and key in keys:
+                text = w.render(djp, keys[key])
+            else:
+                text = w.render(djp)
+                if key:
+                    ctx[child.key] = h
+                    continue
+            children.append(text)
+        ctx['children'] = children
+        return ctx
         
 DefaultMaker = WidgetMaker()
     

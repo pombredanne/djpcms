@@ -95,10 +95,11 @@ class SearchForm(forms.Form):
                         widget = html.TextInput(default_class = 'classy-search autocomplete-off',
                                                 title = 'Enter your search text'))
 
-SearchSubmit = html.Widget('div', cn='cx-submit',
-                           inner = html.SubmitInput(
-                                               default_class='cx-search-btn '+forms.NOBUTTON,
-                                               title = 'Search').render())
+SearchSubmit = html.WidgetMaker('div', default_class='cx-submit',
+                                inner = html.Widget('input:submit',
+                                                    cn='cx-search-btn '+forms.NOBUTTON,
+                                                    title = 'Search').render())
+
 HtmlSearchForm = forms.HtmlForm(
         SearchForm,
         inputs = [SearchSubmit],
@@ -106,8 +107,8 @@ HtmlSearchForm = forms.HtmlForm(
                     DivFormElement('q',
                                    default_style = nolabel,
                                    default_class = 'cx-input'),
-                    template = ('search_form.html',
-                                'djpcms/components/search_form.html')
+                    template_name = ('search_form.html',
+                                     'djpcms/components/search_form.html')
             )
 )
 #

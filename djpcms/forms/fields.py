@@ -94,7 +94,12 @@ very similar to django forms API.
         self.validation_error = validation_error or standard_validation_error
         self.help_text = escape(help_text)
         self.label = label
-        self.widget = widget or self.widget
+        widget = widget or self.widget
+        if isclass(widget):
+            widget = widget()
+        self.widget = widget
+        if not isinstance(self.widget,html.WidgetMaker):
+            raise ValueError("Form field widget of wrong type")
         self.widget_attrs = widget_attrs
         self._handle_params(**kwargs)
         # Increase the creation counter, and save our local copy.
@@ -144,11 +149,6 @@ Get the initial value of field if available.
         if hasattr(default,'__call__'):
             default = default(bfield)
         return default
-    
-    def copy(self, bfield):
-        result = copy(self)
-        result.widget = deepcopy(self.widget)
-        return result
 
     def model(self):
         return None
@@ -158,10 +158,7 @@ Get the initial value of field if available.
         return self.widget.is_hidden
     
     def get_widget(self, djp, bfield):
-        widget = self.widget
-        if isclass(widget):
-            widget = widget()
-        return widget
+        return self.widget.widget(bfield = bfield)
     
 
 class CharField(Field):
@@ -197,7 +194,7 @@ optional parameter (attribute):
     Default ``None``
 '''
     default = ''
-    widget = html.TextInput
+    widget = html.TextInput()
     
     def _handle_params(self, max_length = 30, char_transform = None,
                        toslug = None, **kwargs):

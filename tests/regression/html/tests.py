@@ -52,6 +52,7 @@ class TestWidgets(test.TestCase):
         self.assertTrue('>kaput</a>' in ht)
         a = html.Widget('a', xxxx = 'ciao')
         self.assertFalse('xxxx' in a.attrs)
+        self.assertEqual(a.xxxx,'ciao')
         
         
 class TestInputs(test.TestCase):

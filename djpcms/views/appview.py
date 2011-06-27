@@ -13,7 +13,8 @@ from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
-from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect 
+from djpcms.utils.urls import iri_to_uri
+from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty 
 
 
 __all__ = ['View',
@@ -518,6 +519,21 @@ renderint to the :method:`djpcms.views.Application.render_query` method.
             qs = qs[:int(params['maxRows'])]
         return CustomHeaderBody('autocomplete',
                                 list(self.appmodel.gen_autocomplete(qs)))
+    
+    def ajax_get_response(self, djp):
+        data = djp.request.REQUEST
+        if 'iSortingCols' in data:
+            sort_by = {}
+            for col in range(int(data['iSortingCols'])):
+                c = int(data['iSortCol_{0}'.format(col)])
+                col = html.table_header(self.appmodel.list_display[c])
+                sort_by[col.code] = 'asc'
+            if sort_by:
+                url = iri_to_uri(djp.url,sort_by)
+                return jredirect(url)
+            else:
+                return jempty()
+        return super(SearchView,self).ajax_get_response(djp)
         
     def media(self):
         return self.table_media if self.astable else None

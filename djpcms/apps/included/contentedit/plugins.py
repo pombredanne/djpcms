@@ -23,7 +23,7 @@ class ChangeTextContent(forms.Form):
     site_content = forms.ChoiceField(choices = get_site_content,
                                      empty_label="New Content",
                                      required = False,
-                                     widget = html.Select(cn = forms.AJAX))
+                                     widget = html.Select(default_class = forms.AJAX))
     new_content  = forms.CharField(label = 'New content unique title',
                                    help_text = 'When creating a new content give a unique name you like',
                                    required = False)

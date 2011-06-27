@@ -22,7 +22,7 @@ __all__ = ['RedisMonitorApplication',
 class ServerForm(forms.Form):
     host = forms.CharField(initial = 'localhost')
     port = forms.IntegerField(initial = 6379)
-    notes = forms.CharField(widget = forms.TextArea, required = False)
+    notes = forms.CharField(widget = html.TextArea, required = False)
     
     
 class Formatter(RedisDataFormatter):

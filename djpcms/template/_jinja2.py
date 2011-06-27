@@ -53,15 +53,16 @@ class TemplateHandler(LibraryTemplateHandler):
     def setup(self):
         self.template_class = Template
         self.mark_safe = jinja2.Markup
-        self.escape    = jinja2.escape
+        self.escape = jinja2.escape
         self.conditional_escape = jinja2.escape
         envs = []
         self.envs = envs
-        for elem in self.config.JINJA2_TEMPLATE_LOADERS:
-            code, args = elem[0], elem[1:]
-            loader = self.find_template_loader(code,args)
-            env = jinja2.Environment(loader=loader)
-            envs.append(env)
+        if self.config:
+            for elem in self.config.JINJA2_TEMPLATE_LOADERS:
+                code, args = elem[0], elem[1:]
+                loader = self.find_template_loader(code,args)
+                env = jinja2.Environment(loader=loader)
+                envs.append(env)
     
     def context_class(self, dict, autoescape=False, **kwargs):
         return dict

@@ -4,13 +4,12 @@ from datetime import datetime
 
 from py2py3 import to_string
 
-from djpcms import sites, forms, http
+from djpcms import sites, forms, http, html
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _
 from djpcms.utils import force_str, ajax
 from djpcms.utils.dates import format
-from djpcms.html import HiddenInput
 
 from .globals import *
 
@@ -129,39 +128,37 @@ def get_form(djp,
     own_view = djp.own_view()
     data = request.REQUEST
     prefix = data.get(PREFIX_KEY,None)
+    
     save_as_new = SAVE_AS_NEW_KEY in data
-    inputs = form_factory.default_inputs
+    inputs = form_factory.inputs
     if not inputs and addinputs:
         inputs = addinputs(instance, own_view)
         
     if not prefix and force_prefix:
         prefix = generate_prefix()
-        pinput = forms.HiddenInput(name=PREFIX_KEY,value=prefix)
+        pinput = html.Widget('input:hidden',name=PREFIX_KEY,value=prefix)
         inputs.append(pinput)
         
-    pinput = forms.HiddenInput(name='__referer__',value=referer)
+    pinput = html.Widget('input:hidden',name='__referer__',value=referer)
     inputs.append(pinput)
                 
     # Create the form instance
-    form  = form_factory(**form_kwargs(request     = request,
+    form  = form_factory(inputs = inputs,
+                         **form_kwargs(request     = request,
                                        initial     = initial,
                                        instance    = instance,
                                        prefix      = prefix,
                                        withdata    = withdata,
                                        method      = method,
-                                       own_view    = own_view))
-    
-    # Get the form HTML Widget
-    widget = form_factory.widget(form,
-                                 inputs = inputs,
-                                 action = djp.url,
-                                 method = method.lower())
+                                       own_view    = own_view))\
+            .addAttr('action',djp.url)\
+            .addAttr('method',method.lower())
     
     if form_ajax:
-        widget.addClass(djp.css.ajax)
+        form.addClass(djp.css.ajax)
     if model:
-        widget.addClass(str(model._meta).replace('.','-'))
-    return widget
+        form.addClass(str(model._meta).replace('.','-'))
+    return form
 
 
 def return_form_errors(fhtml,djp):

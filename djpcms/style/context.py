@@ -180,6 +180,29 @@ CssContext('tablesorter',
                    }
            )
 
+#________________________________________ DATATABLE
+CssContext('datatable',
+           tag='.data-table table',
+           template='djpcms/style/datatable.css_t',
+           data = {
+                   'width':'100%',
+                   'text_align': 'left',
+                   'margin': '0 0 15px',
+                   'background': 'transparent',
+                   # head/tail
+                   'odd_background_color':'#ccc',
+                   'head_border_color':'#fff',
+                   #'toolbox_background_color':'#fff',
+                   'body_border_color':'#a6c9e2',
+                   'head_padding': '4px',
+                   #
+                   'toolbox_min_height':'40px',
+                   #
+                   'head_border': '1px solid #a6c9e2',
+                   'row_border':'1px solid transparent'
+                   }
+           )
+
 
 #________________________________________ blockelement
 CssContext('blockelement',

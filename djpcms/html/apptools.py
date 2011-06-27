@@ -131,7 +131,7 @@ an application based on database model is available.
             choices.append((name,description))
     toolbox = {}
     if len(choices) > 1:
-        toolbox['actions'] = Select(choices).addData('url',djp.url).render()
+        toolbox['actions'] = Select(choices).widget().addData('url',djp.url).render(djp)
     if menu:
         toolbox['links'] = menu
     groups = appmodel.column_groups(djp)

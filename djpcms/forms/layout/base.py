@@ -1,11 +1,11 @@
 from inspect import isclass
 
 from djpcms import html, ajax
+from djpcms.template import loader
 from djpcms.utils.text import nicename
 
 
-__all__ = ['FormWidget',
-           'BaseFormLayout',
+__all__ = ['BaseFormLayout',
            'FormLayout',
            'FormLayoutElement',
            'DivFormElement',
@@ -14,15 +14,24 @@ __all__ = ['FormWidget',
 
 
 nolabel = 'nolabel'
+        
 
+def check_fields(fields, missings):
+    for field in fields:
+        if field in missings:
+            missings.discard(field)
+        else:
+            field.check_fields(missings)
+    
+            
+def render_field(self, djp, field, widget):
+    form = widget.internal['form']
+    layout = widget.internal['layout']
+    if field in form.dfields:
+        return self.render_form_field(djp, form.dfields[field], layout)
+    else:
+        return field.widget(form = form, layout = layout).render(djp)
 
-class FormElementWidget(html.Widget):
-    '''A :class:`djpcms.html.HtmlWidget` used to display
-forms using the :mod:`djpcms.forms.layout` API.'''
-    def __init__(self, maker, form, layout):
-        super(FormWidget,self).__init__(maker)
-        self.form = form
-        self.layout = layout
     
 
 class BaseFormLayout(html.WidgetMaker):
@@ -52,24 +61,16 @@ form layout design.
         super(BaseFormLayout,self).__init__(**params)
 
 
-def check_fields(fields, missings):
-    for field in fields:
-        if field in missings:
-            missings.discard(field)
-        else:
-            field.check_fields(missings)
-
-
 class FormLayoutElement(BaseFormLayout):
     '''A :class:`djpcms.forms.layout.BaseFormLayout` 
 class for a :class:`djpcms.forms.layout.FormLayout` element.
 It defines how form fields are rendered and it can
 be used to add extra html elements to the form.
-'''
+'''    
     def check_fields(self, missings):
         raise NotImplementedError
     
-    def render_field(self, djp, bfield, layout):
+    def render_form_field(self, djp, bfield, layout):
         '''\
 Render a single bound field using a layout.
 
@@ -83,15 +84,10 @@ attribute to render the bounded field.
         '''
         form = bfield.form
         name = bfield.name
-        rendered_fields = layout.get_rendered_fields(form)
-        if not bfield.name in rendered_fields:
-            rendered_fields[bfield.name] = bfield
-        else:
-            raise Exception("A field should only be rendered once: %s" % bfield)
         widget = bfield.field.get_widget(djp, bfield)
         self.add_widget_classes(bfield,widget)
         field_template = self.field_template or layout.field_template
-        whtml = widget.render(djp, bfield)
+        whtml = widget.render(djp)
         if not field_template:
             return whtml
         else:
@@ -101,33 +97,29 @@ attribute to render the bounded field.
                    'field':bfield,
                    'error': form.errors.get(name,''), 
                    'widget':whtml,
-                   'is_hidden': widget.is_hidden,
-                   'ischeckbox':widget.ischeckbox()}
-            return loader.render(field_template,ctx)
+                   'is_hidden': widget.maker.is_hidden,
+                   'ischeckbox':widget.maker.ischeckbox()}
+            return field_template.render(ctx)
 
     def add_widget_classes(self, field, widget):
         pass
     
 
 class DivFormElement(FormLayoutElement):
-    
+    tag = 'div'
     def __init__(self, *fields, **kwargs):
         super(DivFormElement,self).__init__(**kwargs)
         self.fields = fields
 
     def check_fields(self, missings):
         check_fields(self.fields,missings)
-        
-    def _innergen(self, djp, form, layout):
-        attr = self.flatatt()
-        dfields = form.dfields
-        for field in self.fields:
-            yield '<div{0}>'.format(attr)
-            yield self.render_field(djp,dfields[field],layout)
-            yield '</div>'
-            
-    def inner(self, djp, form, layout):
-        return '\n'.join(self._innergen(djp, form, layout))
+                
+    def inner(self, djp, widget, keys):
+        html = '\n'.join((render_field(self, djp, field, widget) for field in self.fields))
+        if html:
+            return self.legend_html + '\n' + html
+        else:
+            return html
     
 
 class Inputs(FormLayoutElement):
@@ -173,28 +165,13 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 field.check_fields(missings)
         if missings:
             self.add(self.default_element(*missings))
-        
-    def render(self, djp, form, inputs, **keys):
-        ctx  = {'layout':self}
-        html = ''
-        template = self.template
-        form._inputs = inputs
-        for field in self.allchildren:
-            w = field.widget(form, self)
-            key = field.key
-            if key and key in keys:
-                html += w.render(djp, keys[key])
-            else:
-                h = w.render(djp)
-                if key and template:
-                    ctx[field.key] = h
-                else:
-                    html += h
-        if form._inputs:
-            ctx['inputs'] = Inputs().render(djp,form,self)
-        ctx['form']   = html
+    
+    def get_context(self, djp, widget, keys):
+        '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''
+        ctx = super(FormLayout,self).get_context(djp, widget, keys)
+        ctx['inputs'] = [w.render(djp) for w in widget.internal['inputs']]
         ctx['messages'] = ''
-        return loader.render(template, ctx)
+        return ctx
 
     def json_messages(self, f):
         '''Convert errors in form into a JSON serializable dictionary with keys

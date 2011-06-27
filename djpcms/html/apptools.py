@@ -125,13 +125,16 @@ an application based on database model is available.
                              djp,
                              include = appmodel.table_links)
     has = site.permissions.has
-    choices = [('','Actions')]
+    #choices = [('','Actions')]
+    choices = []
     for name,description,pcode in appmodel.table_actions:
         if has(request, pcode, None):
             choices.append((name,description))
     toolbox = {}
-    if len(choices) > 1:
-        toolbox['actions'] = Select(choices).widget().addData('url',djp.url).render(djp)
+    if choices:
+        toolbox['actions'] = {'choices':choices,
+                              'url':djp.url}
+        #Select(choices).widget().addData('url',djp.url).render(djp)
     if menu:
         toolbox['links'] = menu
     groups = appmodel.column_groups(djp)

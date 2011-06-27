@@ -15,19 +15,26 @@ __all__ = ['Table']
 class TableMaker(WidgetMaker):
     tag = 'div'
     default_class = 'data-table'
-    table_media = Media(js = ['djpcms/jquery.dataTables.min.js','djpcms/djptable.js'])
+    table_media = Media(js = ['djpcms/datatables/jquery.dataTables.js',
+                              'djpcms/datatables/TableTools/js/TableTools.min.js',
+                              'djpcms/djptable.js'],
+                        css = {'screen':['djpcms/datatables/TableTools/css/TableTools_JUI.css']})
     template = None
     template_name = ('datatable.html','djpcms/datatable.html')
     
     def get_context(self, djp, widget, key):
         appmodel = widget.internal['appmodel']
         headers = widget.internal['headers']
+        paginator = widget.internal['paginator']
         body = widget.internal['body']
         toolbox = None
         actions = None
         if appmodel:
             toolbox = table_toolbox(appmodel,djp)
-            actions = 'actions' in toolbox
+            if 'actions' in toolbox:
+                actions = toolbox.pop('actions')
+                widget.addData('actions',actions)
+            
         items  = (results_for_item(djp, headers, d,\
                     appmodel, actions = actions) for d in body)
         return {'headers':list(self.make_headers(headers)),
@@ -46,7 +53,6 @@ class TableMaker(WidgetMaker):
     def media(self):
         return self.table_media
 
-    
 
 class Table(Widget):
     '''Render a table given a response object ``djp``.
@@ -58,11 +64,15 @@ class Table(Widget):
 :parameter template_name: template name
     '''
     maker = TableMaker()
+    size_choices = (10,25,50,100)
     
-    def __init__(self, headers, body, appmodel = None, model = None,
-                 paginator = None, toolbox = True, **params):
+    def __init__(self, headers, body = None, appmodel = None, model = None,
+                 paginator = None, toolbox = True, ajax = None,
+                 size = 25, size_choices = None, **params):
         super(Table,self).__init__(**params)
-        self.toolbox = True
+        self.toolbox = toolbox
+        self.size_choices = size_choices or self.size_choices
+        self.size = size
         self.paginator = paginator
         if appmodel and not model:
             model = appmodel.model
@@ -71,14 +81,19 @@ class Table(Widget):
                 model = body.model
             except AttributeError:
                 pass
+        headers = [table_header(head) for head in headers]
         super(Table,self).__init__(model = model,
                                    appmodel = appmodel,
-                                   headers = [table_header(head) for head in headers],
+                                   headers = headers,
                                    body = body,
                                    paginator = paginator,
                                    **params)
-        self.addData('options',{})
-        if paginator and paginator.multiple:
-            self.data['options']['serverside'] = True
         
+        options = {'aoColumns': [{'sName':head.code} for head in headers]}
+        if paginator and paginator.multiple:
+            options['bProcessing'] = True
+            options['bServerSide'] = True
+            options['datasize'] = {'iTotalRecords':paginator.total,
+                                   'iTotalDisplayRecords':10}    
+        self.addData('options',options)                     
 

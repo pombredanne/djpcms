@@ -182,7 +182,7 @@ CssContext('tablesorter',
 
 #________________________________________ DATATABLE
 CssContext('datatable',
-           tag='.data-table table',
+           tag='.data-table',
            template='djpcms/style/datatable.css_t',
            data = {
                    'width':'100%',
@@ -199,7 +199,19 @@ CssContext('datatable',
                    'toolbox_min_height':'40px',
                    #
                    'head_border': '1px solid #a6c9e2',
-                   'row_border':'1px solid transparent'
+                   'row_border':'1px solid transparent',
+                   #
+                   'pagination_float':'right'
+                   }
+           )
+
+CssContext('datatable_table',
+           tag='.data-table table',
+           data = {
+                   'width':'100%',
+                   'text_align': 'left',
+                   'margin': 0,
+                   'background': 'transparent'
                    }
            )
 

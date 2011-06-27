@@ -3,6 +3,8 @@ from djpcms.utils import urlencode
 __all__ = ['Paginator']
 
 
+sorting_values = {'asc':'','desc':'-'}
+
 class Paginator(object):
     '''
     List pagination
@@ -11,7 +13,9 @@ class Paginator(object):
     '''
     
     def __init__(self, request, data = None, per_page = 20,
-                 numends = 2, maxentries = 15, ajax = False):
+                 numends = 2, maxentries = 15, 
+                 page_menu = None, page = None,
+                 start = None, ajax = False):
         '''
         @param data:       queryset
         @param page:       page to display
@@ -23,21 +27,33 @@ class Paginator(object):
         self.numends    = numends
         self.total      = len(data)
         self.per_page   = max(int(per_page),1)
-        tp              = int(self.total/self.per_page)
+        tp = int(self.total/self.per_page)
         if self.per_page*tp < self.total:
             tp += 1
-        self.pages      = tp
-        self.multiple   = self.pages > 1
-        self.page       = self.pagenumber(request)
+        self.pages = tp
+        self.multiple = self.pages > 1
+        self.qs = data
+        if start is not None:
+            start = int(start)
+            page = int(start/self.per_page)
+            if page*self.per_page <= start:
+                page += 1
+        elif page is None:
+            page = self.pagenumber(request,data)
+        self.page = page
         end             = self.page*self.per_page
         start           = end - self.per_page
         end             = min(end,self.total)
-        self.qs = data[start:end]
+        if self.multiple:
+            self.page_menu = page_menu
+        else:
+            self.page_menu = None
+        self.qs = self.qs[start:end]
         
     def render(self):
         return self.navigation()
         
-    def pagenumber(self, request):
+    def pagenumber(self, request, data):
         '''
         Get page information form request
         The page should be stored in the request dictionary
@@ -49,6 +65,15 @@ class Paginator(object):
                 page = int(d.pop('page'))
             except:
                 pass
+        sort_by = {}
+        for k,v in d.items():
+            s = sorting_values.get(v,None)
+            if s is not None:
+                try:
+                    data = data.sort_by('{0}{1}'.format(s,k))
+                except:
+                    pass
+        self.qs = data
         self.datadict = urlencode(d)
         return max(min(page,self.pages),1)
     

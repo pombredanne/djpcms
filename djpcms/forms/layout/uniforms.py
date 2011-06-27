@@ -27,7 +27,9 @@ There are three types of layout:
 from djpcms.html import get_grid960
 from djpcms.template import loader
 
-from .base import FormLayout, FormLayoutElement, Inputs, check_fields, render_field
+from .base import FormLayout, FormLayoutElement, Inputs, check_fields,\
+                  render_field
+from .tablefield import TableRelatedFieldset
 
 
 inlineLabels   = 'inlineLabels'

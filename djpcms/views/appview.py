@@ -6,7 +6,7 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, html
+from djpcms import http, html, ajax
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms.utils import saveform, deleteinstance
@@ -51,6 +51,37 @@ if an instance is available'''
                                                  next = next,
                                                  instance = instance,
                                                  **kwargs)
+    
+
+def ajax_dataTable(djp,data):
+    view = djp.view
+    appmodel = view.appmodel
+    sort_by = {}
+    qs = view.appquery(djp)
+    headers = view.list_display or appmodel.list_display
+    if hasattr(headers,'__call__'):
+        headers = headers(djp)
+    for col in range(int(data['iSortingCols'])):
+        c = int(data['iSortCol_{0}'.format(col)])
+        col = html.table_header(self.appmodel.list_display[c])
+        qs = qs.sort_by(col.code)
+    start = data['iDisplayStart']
+    p = html.Paginator(djp.request,
+                       qs,
+                       per_page = data['iDisplayLength'],
+                       start = data['iDisplayStart'])
+    items = appmodel.table_generator(djp, headers, p.qs)
+    tbl =  html.Table(headers,
+                      items,
+                      appmodel = appmodel,
+                      paginator = p)
+    ctx = tbl.maker.get_context(djp, tbl, {})
+    aaData = [list(item['display']) for item in ctx['items']]
+    data = {'iTotalRecords':p.total,
+            'iDisplayLength':p.per_page,
+            'sEcho':data['sEcho'],
+            'aaData':aaData}
+    return ajax.simplelem(data)
     
 
 class View(djpcmsview):
@@ -488,7 +519,6 @@ There are three additional parameters that can be set:
     isplugin = True
     astable = True
     in_nav = 1
-    table_media = html.Media(js = ['djpcms/jquery.dataTables.min.js'])
     search_text = 'q'
     
     def appquery(self, djp):
@@ -523,20 +553,8 @@ renderint to the :method:`djpcms.views.Application.render_query` method.
     def ajax_get_response(self, djp):
         data = djp.request.REQUEST
         if 'iSortingCols' in data:
-            sort_by = {}
-            for col in range(int(data['iSortingCols'])):
-                c = int(data['iSortCol_{0}'.format(col)])
-                col = html.table_header(self.appmodel.list_display[c])
-                sort_by[col.code] = 'asc'
-            if sort_by:
-                url = iri_to_uri(djp.url,sort_by)
-                return jredirect(url)
-            else:
-                return jempty()
+            return ajax_dataTable(djp,data)
         return super(SearchView,self).ajax_get_response(djp)
-        
-    def media(self):
-        return self.table_media if self.astable else None
     
 
 class AddView(ModelView):

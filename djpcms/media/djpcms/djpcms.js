@@ -403,6 +403,16 @@
     });
     
     /**
+     * empty callback
+     */
+    $.djpcms.addJsonCallBack({
+        id: "empty",
+        handle: function(data, elem) {
+            return true;
+        }
+    });
+    
+    /**
      * collection callback
      */
     $.djpcms.addJsonCallBack({

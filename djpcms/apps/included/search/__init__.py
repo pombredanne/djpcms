@@ -2,33 +2,8 @@
 Search Applications with Tags.
 '''
 from djpcms import views, forms, html
+from djpcms.plugins.apps import HtmlSearchForm 
 from djpcms.forms.layout import DivFormElement, FormLayout, nolabel
-
-#
-#___________________________________________ A CLASSY SEARCH FORM
-class SearchForm(forms.Form):
-    '''
-    A simple search form used by plugins.apps.SearchBox.
-    The search_text name will be used by SearchViews to handle text search
-    '''
-    q = forms.CharField(required = False,
-                        widget = html.TextInput(cn = 'classy-search autocomplete-off',
-                                                title = 'Enter your search text'))
-
-SearchSubmit = html.HtmlWrap(tag = 'div', cn='cx-submit',
-                             inner = html.SubmitInput(cn='cx-search-btn '+forms.NOBUTTON,
-                                                      title = 'Search').render())
-HtmlSearchForm = forms.HtmlForm(
-        SearchForm,
-        inputs = [SearchSubmit],
-        layout = FormLayout(
-                    DivFormElement('q',
-                                   default_style = nolabel,
-                                   cn = 'cx-input'),
-                    template = ('search_form.html',
-                                'djpcms/components/search_form.html')
-            )
-)
 
 
 class SearchQuery(views.View):

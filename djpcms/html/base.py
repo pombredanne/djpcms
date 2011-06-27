@@ -332,14 +332,15 @@ It returns self for concatenating data.'''
         return self.widget(**kwargs).render(djp,inner)
     
     def render_from_widget(self, djp, widget, inner, keys):
-        fattr = widget.flatatt()
         if self.inline:
+            fattr = widget.flatatt()
             text = '<{0}{1}/>'.format(self.tag,fattr)
         else:
             text = inner or self._inner
             if text is None:
                 text = self.inner(djp, widget, keys)
             if self.tag:
+                fattr = widget.flatatt()
                 text = '<{0}{1}>{2}</{0}>'.format(self.tag,fattr,text)
         if self.renderer:
             text = self.renderer(text)

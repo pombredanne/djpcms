@@ -1,28 +1,8 @@
 {% extends "djpcms/pagination.html" %}
 {% block pagination_class %} class="table-pagination ui-widget"{% endblock %}
 {% block header_class %} ui-widget-header{% endblock %}
-{% block pagination_body %}{% if toolbox %}
-<div class="toolbox ui-widget-header">{% if toolbox.actions %}
- <div class='row-selector'>
-  <span class="selectors">
-   Select: <a class="select_all" href="#">All</a>, <a class="select_none" href="#">None</a>
-  </span>
-  {{ toolbox.actions }}
- </div>{% endif %}{% if toolbox.links %}
-  <div class="toolbar-menu">
-  <span class="links">{% for link in toolbox.links %}
-   {{ link }}{% endfor %}
-  </span>
- </div>{% endif %}{% if toolbox.columnviews %}
- <div class='column-selector'>
-  <span class="selectors">
-   Select views
-  </span>  
-  {{ toolbox.columnviews }}
- </div>{% endif %}
-</div>
-<table>{% else %}
-<table class="ui-widget">{% endif %}{% if headers %}
+{% block pagination_body %}
+<table class="ui-widget">{% if headers %}
 <thead class="ui-widget-header">
  <tr>{% for head in headers %}
   {{ head }}{% endfor %}
@@ -33,4 +13,9 @@
    <td class="{{ val.name }}">{{ val.value }}</td>{% endfor %}
  </tr>{% endfor %}
 </tbody>
+<tfoot class="ui-widget-header">
+ <tr>{% for head in headers %}
+  {{ head }}{% endfor %}
+ </tr>
+</tfoot>
 </table>{% endblock %}

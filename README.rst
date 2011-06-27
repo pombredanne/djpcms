@@ -30,6 +30,7 @@ Features
  * Inline editing of ``plugins`` and ``pages``.
  * Move ``plugins`` in page using drag-and-drop functionalities.
  * ``Autocomplete`` for models.
+ * DataTables_ integration.
  * Extendible AJAX decorators.
  * Tagging included in distribution.
  * Several battery included application classes.
@@ -137,3 +138,4 @@ In addition, several ideas and code snippets have been taken from django_.
 .. _cycle: http://jquery.malsup.com/cycle/
 .. _Sparklines: http://www.omnipotent.net/jquery.sparkline/
 .. _coverage: http://nedbatchelder.com/code/coverage/
+.. _DataTables: http://www.datatables.net/

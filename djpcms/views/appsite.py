@@ -222,7 +222,8 @@ or in the constructor.
     '''The default interaction in forms. If True the default form submmission is performed using ajax. Default ``True``.'''
     form_template    = None
     '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
-    list_per_page    = 50
+    list_per_page = 10
+    list_per_page_choices = (10,25,50,100)
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
     list_display_links = ()
@@ -476,7 +477,7 @@ to render a table.'''
     def basequery(self, djp, **kwargs):
         '''The base query for the application.
 By default it return a generator of children pages.'''
-        return djp.auth_children()        
+        return djp.auth_children()  
     
     def render_query(self, djp, query, appmodel = None):
         '''Render a query as a table or a list of items.'''
@@ -486,7 +487,10 @@ By default it return a generator of children pages.'''
             query = list(query)
         if hasattr(query,'ordering') and not query.ordering and self.ordering:
             query = query.sort_by(self.ordering)
-        p = Paginator(djp.request, query, per_page = appmodel.list_per_page)
+        p = Paginator(djp.request,
+                      query,
+                      per_page = appmodel.list_per_page,
+                      page_menu = appmodel.list_per_page_choices)
         headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)

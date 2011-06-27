@@ -7,10 +7,37 @@
     border: {{ head_border }};{% if head_font_size %}
     font-size: {{ head_font_size }};{% endif %}
     padding: {{ head_padding }};
+    cursor: pointer;
 }
 {{ tag }} thead th div.DataTables_sort_wrapper {
     padding-right: 20px;
     position: relative;
+}
+{{ tag }} thead th div.DataTables_sort_wrapper span {
+    margin-top: -8px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+}
+{{ tag }} div.row-selector {
+    float: left;
+}
+{{ tag }} div.DTTT_container {
+    float: right;
+    margin-bottom: 1em;
+}
+{{ tag }} .dataTables_paginate {
+    float: {{ pagination_float }};
+    text-align: {{ pagination_float }};
+}
+{{ tag }} .dataTables_length {
+    float: left;
+}
+{{ tag }} .fg-toolbar {
+    font-size: 0.8em;
+}
+{{ tag }} .ui-toolbar {
+    padding: 5px;
 }
 {{ tag }} thead tr .header {
     cursor: pointer;

@@ -6,6 +6,7 @@ from djpcms.style.roller import make_theme
 
 theme_name = 'smooth'
 
+
 smooth = {
           'body':{'color':'#222222',
                   'background':'#ffffff'},
@@ -31,6 +32,13 @@ smooth = {
                           'body_border_color':'#a6c9e2',
                           'odd_background_color':'#dbebeb',
                           'row_hover_background':'#d0e5f5'},
+           # dataTable
+           'datatable': {'odd_background_color':'#dcdcdc',
+                         'even_background_color':'transparent',
+                         'even_sort_background':'#dcdcdc',
+                         'odd_sort_background':'#dcdcdc'},
+           #
+           # Navigation
           'nav': {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',
                   'secondary_text_shadow': 'none',
                   # SHADOW OF DROP DOWN MENU

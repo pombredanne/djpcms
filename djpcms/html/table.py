@@ -13,34 +13,44 @@ __all__ = ['Table']
 
 
 class TableMaker(WidgetMaker):
+    '''A widget maker which render a dataTable.'''
     tag = 'div'
     default_class = 'data-table'
     table_media = Media(js = ['djpcms/datatables/jquery.dataTables.js',
                               'djpcms/datatables/TableTools/js/TableTools.min.js',
                               'djpcms/djptable.js'],
                         css = {'screen':['djpcms/datatables/TableTools/css/TableTools_JUI.css']})
-    template = None
-    template_name = ('datatable.html','djpcms/datatable.html')
+    template = loader.template_class('''\
+<table>
+<thead>
+ <tr>{% for head in headers %}
+  <th>{{ head.sTitle }}</th>{% endfor %}
+ </tr>
+</thead>
+<tbody>{% if rows %}{% for row in rows %}
+<tr>{% for item in row %}
+<td>{{ item }}</td>{% endfor %}
+</tr>{% endfor %}{% endif %}
+</tbody>{% if footer %}
+<tfoot>
+ <tr>{% for head in headers %}
+  <th>{{ head.sTitle }}</th>{% endfor %}
+ </tr>
+</tfoot>{% endif %}
+</table>
+''')
     
     def get_context(self, djp, widget, key):
+        ctx = {'headers':widget.data['options']['aoColumns'],
+               'footer':widget.footer}
         appmodel = widget.internal['appmodel']
-        headers = widget.internal['headers']
-        paginator = widget.internal['paginator']
-        body = widget.internal['body']
         toolbox = None
-        actions = None
         if appmodel:
             toolbox = table_toolbox(appmodel,djp)
-            if 'actions' in toolbox:
-                actions = toolbox.pop('actions')
-                widget.addData('actions',actions)
-            
-        items  = (results_for_item(djp, headers, d,\
-                    appmodel, actions = actions) for d in body)
-        return {'headers':list(self.make_headers(headers)),
-                'items':items,
-                'path': http.path_with_query(djp.request),
-                'toolbox':toolbox}
+            widget.data.update(toolbox)
+        if not widget.ajax:
+            ctx['rows'] = widget.items(djp)
+        return ctx
     
     def make_headers(self, headers):
         '''Generator of html headers tags'''
@@ -49,6 +59,16 @@ class TableMaker(WidgetMaker):
             if head.description:
                 w.addData('description',head.description)
             yield w.render(inner = head.name)
+    
+    def aoColumns(self, headers):
+        '''Return an array of column definition to be used by the dataTable
+javascript plugin'''
+        for head in headers:
+            yield {'bSortable':head.sortable,
+                   'sClass':head.code,
+                   'sName':head.code,
+                   'sTitle':head.name,
+                   'sWidth':head.width}
             
     def media(self):
         return self.table_media
@@ -57,20 +77,24 @@ class TableMaker(WidgetMaker):
 class Table(Widget):
     '''Render a table given a response object ``djp``.
 
-:parameter headers: iterable over headers.
-:parameter data: iterable over data to display.
-:parameter model: optional model.
+:parameter headers: iterable over headers. Must be provided.
+:parameter body: optional iterable over data to display.
+:parameter appmodel: optional application model instance.
+:parameter model: optional model class.
 :parameter nd: numeric accuracy for floating point numbers.
 :parameter template_name: template name
     '''
     maker = TableMaker()
     size_choices = (10,25,50,100)
     
-    def __init__(self, headers, body = None, appmodel = None, model = None,
-                 paginator = None, toolbox = True, ajax = None,
-                 size = 25, size_choices = None, **params):
+    def __init__(self, headers, body = None, appmodel = None,
+                 model = None, paginator = None, toolbox = True,
+                 ajax = None, size = 25, size_choices = None,
+                 footer = True, **params):
         super(Table,self).__init__(**params)
         self.toolbox = toolbox
+        self.ajax = ajax
+        self.footer = footer
         self.size_choices = size_choices or self.size_choices
         self.size = size
         self.paginator = paginator
@@ -89,12 +113,24 @@ class Table(Widget):
                                    paginator = paginator,
                                    **params)
         
-        options = {'aoColumns': [{'sName':head.code} for head in headers],
+        options = {'aoColumns': list(self.maker.aoColumns(headers)),
                    'iDisplayLength ':size}
         if ajax or (paginator and paginator.multiple):
             options['bProcessing'] = False
             options['bServerSide'] = True
             if ajax:
-                options['sAjaxSource'] = ajax    
-        self.addData('options',options)                     
+                options['sAjaxSource'] = ajax
+        self.addData('options',options)
 
+    def items(self, djp):
+        appmodel = self.internal['appmodel']
+        headers = self.internal['headers']
+        actions = None
+        if appmodel:
+            toolbox = table_toolbox(appmodel,djp)
+            if 'actions' in toolbox:
+                actions = toolbox.pop('actions')
+            
+        return (results_for_item(djp, headers, d,\
+                appmodel, actions = actions) for d in self.internal['body'])
+        

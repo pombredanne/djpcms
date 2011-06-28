@@ -16,25 +16,29 @@ __all__ = ['application_action',
            'table_header']
 
 
-table_header_ = namedtuple('table_header_','code name description function')
-application_action = namedtuple('application_action','view display permission')
+table_header_ = namedtuple('table_header_',
+                           'code name description function sortable width')
+application_action = namedtuple('application_action',
+                                'view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
 
-def table_header(code, name = None, description = None, function = None):
+def table_header(code, name = None, description = None, function = None,
+                 sortable = True, width = None):
     '''Utility for creating an instance of a :class:`table_header_`.'''
     if isinstance(code,table_header_):
         return code
     name = name or nicename(code)
     function = function or code
-    return table_header_(code,name,description,function)
+    return table_header_(code,name,description,function,sortable,width)
 
 
 def application_links(appmodel,
                       djp,
                       asbuttons = True,
                       exclude = None,
-                      include = None):
+                      include = None,
+                      as_widget = False):
     '''Create a list of application links available to the user.
 This function is used in conjunction with an instance of an :class:`djpcms.views.Application`
 instance.
@@ -74,7 +78,7 @@ instance.
             except:
                 continue
             elem = table_menu_link(view.name,
-                                   view.name,
+                                   nicename(view.name),
                                    title,
                                    view.PERM,
                                    view.ICON,
@@ -97,21 +101,26 @@ instance.
             if not view.has_permission():
                 continue
         
-        a = Widget(tag).addAttr('title',elem.title)\
-                       .addData('method',elem.method)\
-                       .addData('warning',view.warning_message())
-        if elem.ajax:
-            a.addClass(css.ajax)
-        if elem.icon:
-            if a.tag == 'a':
-                a.addClass(elem.icon).addAttr('href',url)
-            else:
-                a.addData('icon', elem.icon).addData('href',url)
-        links.append(a.render(inner = elem.display))
+        if as_widget:
+            a = Widget(tag).addAttr('title',elem.title)\
+                           .addData('method',elem.method)\
+                           .addData('warning',view.warning_message())
+            if elem.ajax:
+                a.addClass(css.ajax)
+            if elem.icon:
+                if a.tag == 'a':
+                    a.addClass(elem.icon).addAttr('href',url)
+                else:
+                    a.addData('icon', elem.icon).addData('href',url)
+            elem = a.render(inner = elem.display)
+        else:
+            elem = elem._asdict()
+            elem['url'] = url
+        links.append(elem)
     return links
 
 
-def table_toolbox(appmodel, djp):
+def table_toolbox(appmodel, djp, all = True):
     '''\
 Create a toolbox for the table if possible. A toolbox is created when
 an application based on database model is available.
@@ -121,11 +130,7 @@ an application based on database model is available.
 '''
     request = djp.request
     site = djp.site
-    menu = application_links(appmodel,
-                             djp,
-                             include = appmodel.table_links)
     has = site.permissions.has
-    #choices = [('','Actions')]
     choices = []
     for name,description,pcode in appmodel.table_actions:
         if has(request, pcode, None):
@@ -134,19 +139,27 @@ an application based on database model is available.
     if choices:
         toolbox['actions'] = {'choices':choices,
                               'url':djp.url}
-        #Select(choices).widget().addData('url',djp.url).render(djp)
+        
+    if not all:
+        return toolbox
+    
+    menu = application_links(appmodel,
+                             djp,
+                             include = appmodel.table_links)
     if menu:
-        toolbox['links'] = menu
-    groups = appmodel.column_groups(djp)
+        toolbox['tools'] = menu
+    groups = list(appmodel.column_groups(djp))
     if groups:
-        data = {}
-        choices = []
-        for name,headers in groups:
-            data[name] = headers
-            choices.append((name,name))
-        if choices:
-            s = Select(choices)
-            s.addData('views',data)
-            toolbox['columnviews'] = s.render()
+        toolbox['groups'] = groups
+    #if groups:
+    #    data = {}
+    #    choices = []
+    #    for name,headers in groups:
+    #        data[name] = headers
+    #        choices.append((name,name))
+    #    if choices:
+    #        s = Select(choices).widget()
+    #        s.addData('views',data)
+    #        toolbox['columnviews'] = s.render()
     return toolbox
 

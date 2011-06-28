@@ -1,4 +1,6 @@
-
+/**
+ * djpcms - dataTable integration utilities
+ */
 
 (function($) {
     /**
@@ -6,18 +8,19 @@
      */
     if($.djpcms && $.fn.dataTable) {
         
+        $.djpcms.dataTable = {};
+        
         /**
          * A tablesorter widget for enabling actions on rows and
          * different views across columns.
          */
-        $.djpcms.add_select_rows = function(tbl,me,opts) {
+        $.djpcms.dataTable.add_select_rows = function(tbl,me,opts) {
             var url = opts.url || '.',
                 select = $('select',me);
             
             function handle_callback(e,o) {
                 $.djpcms.jsonCallBack(e,o,tbl);
             }
-            
             function toggle(chk) {
                 chk.each(function() {
                     var el = $(this),
@@ -56,6 +59,43 @@
             });
         };
         
+        /**
+         * Utility function for setting up columns selections based on groups
+         */
+        $.djpcms.dataTable.addViews = function(tbl,groups) {
+            var r = $('div.col-selector'),
+                select = $("<select><option value=''>Views</option></select>"),
+                views = {},
+                n = 0;
+            
+            $.each(groups, function() {
+                var selected = this.cols.join(',.');
+                if(selected) {
+                    n+=1;
+                    select.append("<option value='" + this.name + "'>" + this.display + "</option>");
+                    views[this.name] = '.'+selected;
+                }
+            });
+            if(n) {
+                r.html("<span class='selectors'>Select a view</span>").append(select);
+                function change_view(value) {
+                    if(!value) {return;}
+                    var fields = views[value];
+                        
+                    if(fields) {
+                        var cols = $('th,td',tbl),
+                            selected = $(fields,tbl);
+                        cols.hide();
+                        selected.show();
+                    }
+                };
+                
+                select.change(function() {
+                    change_view(this.value);
+                });
+            }
+        }
+        
         $.djpcms.decorator({
             id:"datatable",
             config: {
@@ -64,10 +104,10 @@
                 widgets:['zebra','hovering','toolbox'],
                 "aaSorting": [],
                 "sPaginationType": "full_numbers",
-                "sDom": '<"H"<"row-selector">T<"clear">lp<"clear">i>t<"F"ip>',
+                "sDom": '<"H"<"col-selector"><"clear"><"row-selector">T<"clear">lp<"clear">i>t<"F"ip>',
                 "oTableTools": {
                     "aButtons": [
-                                 "copy","print",
+                                 "copy",
                                  {
                                      "sExtends":    "collection",
                                      "sButtonText": "Save",
@@ -113,15 +153,16 @@
                     this.updateDraw(settings, json);
                 }
             },
+            /**
+             * djpcms - datatable decorator
+             */
             decorate: function($this,config) {
                 var opts = config.datatable,
-                    tbl = $(opts.selector),
                     that = this;
                 $.each($(opts.selector,$this),function() {
                     var elem = $(this),
-                        tbl = $('table',elem)
-                        data = elem.data('options') || {},
-                        tbl.data('datasize',data.datasize);
+                        tbl = $('table',elem).hide(),
+                        data = elem.data('options') || {};
                     if(tbl.length == 1) {
                         opts = $.extend(true,data,opts);
                         if (!opts.sAjaxSource) {
@@ -129,7 +170,40 @@
                         }
                         opts.oTableTools.sSwfPath = $.djpcms.options.media_url+
                             "djpcms/datatables/TableTools/swf/copy_cvs_xls_pdf.swf";
+                        
+                        
+                        function redirect(url) {
+                            return function() {
+                                window.location.replace(url);
+                            }
+                        }
+                        //
+                        // Add tools to table tools
+                        if(elem.data('tools')) {
+                            var buttons = [];
+                            $.each(elem.data('tools'),function() {
+                                var b = {
+                                    sExtends: "text",
+                                    sButtonText:this.display,
+                                    sToolTip:this.title,
+                                    fnClick: function(nButton, oConfig, oFlash) {
+                                        oConfig.send();
+                                    }
+                                }
+                                buttons.push(b);
+                                if(this.ajax) {
+                                    b.send = $.djpcms.ajax_loader_from_tool(this);
+                                }
+                                else {
+                                    b.send = redirect(this.url);
+                                }
+                            });
+                            opts.oTableTools.aButtons = buttons;
+                        }
+                        
                         tbl.dataTable(opts);
+                        //
+                        // Add Actions on Rows
                         if(elem.data('actions')) {
                             var s,
                                 actions = elem.data('actions'), 
@@ -141,8 +215,15 @@
                             $.each(actions.choices, function() {
                                 s.append("<option value='" + this[0] + "'>" + this[1] + "</option>");
                             });
-                            $.djpcms.add_select_rows(tbl,r,actions)
+                            $.djpcms.dataTable.add_select_rows(tbl,r,actions);
                         }
+                        
+                        //
+                        // Add column grouping
+                        if(elem.data('groups')) {
+                            $.djpcms.dataTable.addViews(tbl,elem.data('groups'));
+                        }
+                        tbl.show();
                     }
                 });
             } 

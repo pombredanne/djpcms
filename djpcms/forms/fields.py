@@ -368,6 +368,8 @@ This field works in conjunction with the ``autocomplete`` decorator in
         self.minLength = minLength
         self.maxRows = maxRows
         self._raise_error(kwargs)
+        if self.autocomplete:
+            self.widget = html.TextInput(default_class = 'autocomplete')
         
     def choices_and_model(self, bfield):
         '''Return an tuple containing an
@@ -406,13 +408,13 @@ iterable over choices and a model class (if applicable).'''
         return value
     
     def get_widget(self, djp, bfield):
+        widget = super(ChoiceField,self).get_widget(djp, bfield)
         if self.autocomplete:
             ch,model = self.choices_and_model(bfield)
             value = bfield.value
-            widget = TextInput(cn = 'autocomplete')\
-                        .addData('multiple',self.multiple)\
-                        .addData('minlength',self.minLength)\
-                        .addData('maxrows',self.maxRows)
+            widget.addData('multiple',self.multiple)\
+                  .addData('minlength',self.minLength)\
+                  .addData('maxrows',self.maxRows)
             if model:                    
                 url = djp.site.get_url(model,'search')
                 widget.addData('url',url)
@@ -433,8 +435,7 @@ iterable over choices and a model class (if applicable).'''
                             values.append((val,chd[val]))
                     if values:
                         widget.addData('initial_value',values)
-            return widget
-        return super(ChoiceField,self).get_widget(djp, bfield)
+        return widget
         
 
 class EmailField(CharField):

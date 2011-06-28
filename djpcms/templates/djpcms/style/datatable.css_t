@@ -58,6 +58,15 @@
 {{ tag }} tbody tr.odd {
     background-color: {{ odd_background_color }};
 }
+{{ tag }} tbody tr.odd td.sorting_1 {
+    background-color: {{ odd_sort_background }};
+}
+{{ tag }} tbody tr.even {
+    background-color: {{ even_background_color }};
+}
+{{ tag }} tbody tr.even td.sorting_1 {
+    background-color: {{ even_sort_background }};
+}
 {{ tag }} thead tr .ui-state-highlight,
 {{ tag }} thead tr .ui-state-highlight { {% if highlight %} 
     background-color: {{ highlight.background }};

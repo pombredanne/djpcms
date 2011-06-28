@@ -190,7 +190,6 @@ CssContext('datatable',
                    'margin': '0 0 15px',
                    'background': 'transparent',
                    # head/tail
-                   'odd_background_color':'#ccc',
                    'head_border_color':'#fff',
                    #'toolbox_background_color':'#fff',
                    'body_border_color':'#a6c9e2',

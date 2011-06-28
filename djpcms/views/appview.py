@@ -76,9 +76,8 @@ def ajax_dataTable(djp,data):
                       items,
                       appmodel = appmodel,
                       paginator = p)
-    ctx = tbl.maker.get_context(djp, tbl, {})
     aaData = []
-    for item in ctx['items']:
+    for item in tbl.items(djp):
         id = item['id']
         aData = {} if not id else {'DT_RowId':id}
         for i,v in enumerate(item['display']):

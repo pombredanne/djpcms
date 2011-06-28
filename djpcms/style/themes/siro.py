@@ -9,22 +9,20 @@ border = '#A6C9E2'
 
 siro = deepcopy(start)
 
+
+siro.update({
+    'box': {'background':'#a6c9e2', 'radius':0},
+    #
+    # datatable
+    'datatable': {'odd_background_color':'#f2f2f2',
+                  'even_sort_background':'#fbec88',
+                  'odd_sort_background':'#f0e7ad'},
+})
+
 siro['breadcrumbs']['color'] = blue
 siro['flatbox']['border'] = '1px solid '+border
-siro['tablesorter']['odd_background_color'] = '#f2f2f2'
 siro['edit_plugin_body']['background'] = '#dfeffc'
-siro['box'] = {'background':'#a6c9e2',
-               'radius':0}
 
-#'row_hover_background':'#d0e5f5',
-
-#             ,'{'dark':'#353432',
-#       'grey':'#4E4D4A',
-#       'green':'#94BA65',
-#       'blue':'#2B4E72',
-#       'light':'#DCDCDC',
-#       'lightblue':'#5C9CCC',
- #      'border':'#A6C9E2',})
 
 siro['nav'] = {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',
                'secondary_text_shadow': 'none',

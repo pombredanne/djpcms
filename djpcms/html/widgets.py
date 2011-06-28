@@ -10,6 +10,7 @@ __all__ = ['TextInput',
            'CheckboxInput',
            'TextArea',
            'Select',
+           'ListWidget',
            'List',
            'SelectWithAction']
 
@@ -133,7 +134,6 @@ class Select(FieldWidget):
 WidgetMaker('div', default = 'div')
 WidgetMaker('th', default = 'th')
 WidgetMaker('tr', default = 'tr')
-WidgetMaker('ul', default = 'ul')
 WidgetMaker('a', default = 'a', attributes = ('href','title'))
 WidgetMaker('button', default = 'button')
 TextInput(default='input:text')
@@ -142,15 +142,17 @@ SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 
+class ListWidget(WidgetMaker):
+    tag='ul'
+    def inner(self, djp, widget, keys):
+        return '\n'.join((LI + elem + LIEND for elem in widget))
 
 class List(Widget, list):
     def __init__(self, data = None, **kwargs):
         super(List,self).__init__('ul',**kwargs)
         list.__init__(self,data) if data else list.__init__(self)
-        
-    def inner(self, djp):
-        return '\n'.join((LI + elem + LIEND for elem in self))
     
+ListWidget(default = 'ul', widget = List)
     
 def SelectWithAction(choices, action_url, **kwargs):
     a = HtmlWidget('a', cn = 'djph select-action').addAttr('href',action_url)

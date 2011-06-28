@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import djpcms
-from djpcms import views, html, forms
+from djpcms import views, html, forms, sites
 from djpcms.html import icons
 from djpcms.template import loader
 from djpcms.apps.included.admin import AdminApplication
@@ -39,8 +39,8 @@ class Formatter(RedisDataFormatter):
     def format_date(self, t):
         try:
             d = datetime.fromtimestamp(t)
-            return '%s %s' % (format(d.date(),site.settings.DATE_FORMAT),
-                              time_format(d.time(),site.settings.TIME_FORMAT)) 
+            return '%s %s' % (format(d.date(),sites.settings.DATE_FORMAT),
+                              time_format(d.time(),sites.settings.TIME_FORMAT)) 
         except:
             return ''
         

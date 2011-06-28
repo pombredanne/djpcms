@@ -221,9 +221,9 @@ The instance.plugin object is maintained but its fields may change.'''
         else:
             plugin_options = '' if not pform else pform.render(djp)
         instance = form.save(commit = commit)
-        jquery = jhtmls(identifier = '.' + PLUGIN_DATA_FORM_CLASS,
-                        html = plugin_options,
-                        alldocument = False)
+        jquery = ajax.jhtmls(identifier = '.' + PLUGIN_DATA_FORM_CLASS,
+                             html = plugin_options,
+                             alldocument = False)
         preview = self.get_preview(request, instance, url)
         jquery.add('#%s' % instance.pluginid('preview'), preview)
         
@@ -330,7 +330,7 @@ content in a content block.'''
     plugin      = EditPluginView(regex = 'plugin', parent = 'change')
     
     def submit(self, *args, **kwargs):
-        return [SubmitInput(value = "save", name = '_save')]
+        return [html.Widget('input:submit', value = "save", name = '_save')]
     
     def remove_object(self, obj):
         bid = obj.htmlid()

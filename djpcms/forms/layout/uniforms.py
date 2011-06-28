@@ -24,7 +24,7 @@ There are three types of layout:
 
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
-from djpcms.html import get_grid960
+from djpcms import html
 from djpcms.template import loader
 
 from .base import FormLayout, FormLayoutElement, Inputs, check_fields,\
@@ -83,9 +83,10 @@ class Row(Fieldset):
 
 class Columns(UniFormElement):
     '''A :class:`FormLayoutElement` whiche defines a set of columns. Renders to a set of <div>.'''
-    elem_css  = "formColumn"
-    template_dict = {2: 'djpcms/yui/yui-simple.html',
-                     3: 'djpcms/yui/yui-simple3.html'}
+    elem_css = "formColumn"
+    template = None
+    template_dict = {2: ('djpcms/yui/yui-simple.html',),
+                     3: ('djpcms/yui/yui-simple3.html',)}
     
     def __init__(self, *columns, **kwargs):
         super(Columns,self).__init__(**kwargs)
@@ -93,22 +94,21 @@ class Columns(UniFormElement):
         ncols = len(columns)
         if not self.template or self.template_name:
             self.template_name = self.template_dict.get(ncols,None)
-        if not self.template or self.template_name:
+        if not (self.template or self.template_name):
             raise ValueError('Template not available in uniform Column.')
 
     def check_fields(self, missings):
         for column in self.columns:
             check_fields(column,missings)
             
-    def get_context(self, djp, widget):
-        context = {}
+    def get_context(self, djp, widget, keys):
+        ctx = {}
         div = html.Widget('div')
         for i,column in enumerate(self.columns):
             inner = '\n'.join(render_field(self, djp, field, widget) for field in column)
-            context['content%s' % i] = div.render(djp,inner)
-            
-        context['grid'] = get_grid960(djp)
-        return context    
+            ctx['content%s' % i] = div.render(djp,inner)
+        ctx['grid'] = html.get_grid960(djp)
+        return ctx    
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.'''
@@ -119,8 +119,8 @@ class Layout(FormLayout):
 {% if csrf_token %}{{ csrf_token }}{% endif %}
 <div class="{{ maker.form_messages_container_class }} ctrlHolder">{{ messages }}</div>
 {% for child in children %}
-{{ child }}{% endfor %}{% for si in inputs %}
-{{ si }}{% endfor %}''')
+{{ child }}{% endfor %}
+{{ inputs }}''')
     field_template = loader.template_class("""\
 {% if is_hidden %}{{ widget }}{% else %}
 <div class='ctrlHolder{% if error %} error{% endif %}{% if field.field.required %} required{% endif %}'>

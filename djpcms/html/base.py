@@ -256,7 +256,7 @@ it is a class used as factory for HTML components.
     
     def __init__(self, tag = None, renderer = None,
                  inline = None, default = False,
-                 description = '',
+                 description = '', widget = None,
                  attributes = None, inner = None,
                  **params):
         if default:
@@ -277,7 +277,7 @@ it is a class used as factory for HTML components.
         self.template_name = params.pop('template_name',self.template_name)
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
-        self._widget = self._widget or Widget
+        self._widget = widget or self._widget or Widget
         self._inner = inner
         if self.default_attrs:
             params.update(self.default_attrs)
@@ -354,7 +354,7 @@ return the inner part of html. By default it renders the template if it is avail
 an empty string.'''
         if self.template or self.template_name:
             context = self.get_context(djp,widget,keys)
-            context.update({'maker':self})
+            context.update({'maker':self,'widget':widget})
             if self.template:
                 return self.template.render(context)
             else:
@@ -367,7 +367,7 @@ an empty string.'''
         w.internal['parent'] = self
         return w
     
-    def get_context(self, djp, widget, key):
+    def get_context(self, djp, widget, keys):
         '''Function called by :meth:`inner` method when the widget needs to be rendered via a template.
 It returns a dictionary of variables to be passed to the template engine.'''
         ctx = {}

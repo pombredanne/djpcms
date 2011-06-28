@@ -545,7 +545,7 @@ dimensional tuples::
 
 By default it returns nothing.
 '''
-        return None
+        return ()
         
                 
         

@@ -139,7 +139,7 @@ def get_form(djp,
         pinput = html.Widget('input:hidden',name=PREFIX_KEY,value=prefix)
         inputs.append(pinput)
         
-    pinput = html.Widget('input:hidden',name='__referer__',value=referer)
+    pinput = html.Widget('input:hidden',name=REFERER_KEY,value=referer)
     inputs.append(pinput)
                 
     # Create the form instance

@@ -371,6 +371,16 @@
         return sendrequest 
     };
     
+    $.djpcms.ajax_loader_from_tool = function(tool) {
+        if(tool.ajax) {
+            return $.djpcms.ajax_loader(tool.url,
+                                        tool.action,
+                                        tool.method,
+                                        tool.data,
+                                        tool.conf);
+        }
+    }
+    
     /**
      * A modal error dialog
      */

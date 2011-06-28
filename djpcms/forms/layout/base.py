@@ -66,7 +66,7 @@ class for a :class:`djpcms.forms.layout.FormLayout` element.
 It defines how form fields are rendered and it can
 be used to add extra html elements to the form.
 '''
-    default_style = 'ctrlHolder'
+    default_class = 'ctrlHolder'
     
     def check_fields(self, missings):
         raise NotImplementedError
@@ -149,6 +149,7 @@ class FormLayout(BaseFormLayout):
     '''Class for form errors'''
     form_message_class = 'messagelist ui-state-highlight'
     '''Class for form messages'''
+    from_input_class = 'buttonHolder'
     default_element = DivFormElement
     
     def __init__(self, *fields, **kwargs):
@@ -170,7 +171,9 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
     def get_context(self, djp, widget, keys):
         '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''
         ctx = super(FormLayout,self).get_context(djp, widget, keys)
-        ctx['inputs'] = [w.render(djp) for w in widget.internal['inputs']]
+        inputs = '\n'.join((inp.render(djp) for inp in widget.internal['inputs']))
+        w = html.Widget('div',cn=self.from_input_class).addClass(self.default_style)
+        ctx['inputs'] = w.render(djp, inputs)
         ctx['messages'] = ''
         return ctx
 
@@ -178,7 +181,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
         '''Convert errors in form into a JSON serializable dictionary with keys
         given by errors html id.'''
         dfields = f._fields_dict
-        ListDict = jhtmls()
+        ListDict = ajax.jhtmls()
         self._add(ListDict,dfields,f.errors,self.form_error_class)
         self._add(ListDict,dfields,f.messages,self.form_message_class)
         for fset in f.form_sets.values():
@@ -196,7 +199,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             else:
                 name = '.' + self.form_messages_container_class
             ListDict.add(name,
-                         List(data = msg, cn = msg_class).render(),
+                         html.List(data = msg, cn = msg_class).render(),
                          alldocument = False)
 
 

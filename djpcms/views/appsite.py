@@ -222,7 +222,7 @@ or in the constructor.
     '''The default interaction in forms. If True the default form submmission is performed using ajax. Default ``True``.'''
     form_template    = None
     '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
-    list_per_page = 10
+    list_per_page = 25
     list_per_page_choices = (10,25,50,100)
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
@@ -494,14 +494,16 @@ By default it return a generator of children pages.'''
         headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
-        astable = headers and view.astable
         
-        if astable:
+        if view.astable and headers:
             items = self.table_generator(djp, headers, p.qs)
+            ajax = djp.url if view.astable == 'ajax' else None
             return Table(headers,
                          items,
                          appmodel = appmodel,
-                         paginator = p).render(djp)
+                         paginator = p,
+                         size = p.per_page,
+                         ajax = ajax).render(djp)
         else:
             c  = djp.kwargs.copy()
             c.update({'paginator': p,

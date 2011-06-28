@@ -89,11 +89,12 @@ class Table(Widget):
                                    paginator = paginator,
                                    **params)
         
-        options = {'aoColumns': [{'sName':head.code} for head in headers]}
-        if paginator and paginator.multiple:
-            options['bProcessing'] = True
+        options = {'aoColumns': [{'sName':head.code} for head in headers],
+                   'iDisplayLength ':size}
+        if ajax or (paginator and paginator.multiple):
+            options['bProcessing'] = False
             options['bServerSide'] = True
-            options['datasize'] = {'iTotalRecords':paginator.total,
-                                   'iTotalDisplayRecords':10}    
+            if ajax:
+                options['sAjaxSource'] = ajax    
         self.addData('options',options)                     
 

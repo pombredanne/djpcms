@@ -63,8 +63,9 @@ def ajax_dataTable(djp,data):
         headers = headers(djp)
     for col in range(int(data['iSortingCols'])):
         c = int(data['iSortCol_{0}'.format(col)])
-        col = html.table_header(self.appmodel.list_display[c])
-        qs = qs.sort_by(col.code)
+        d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''
+        col = html.table_header(appmodel.list_display[c])
+        qs = qs.sort_by('{0}{1}'.format(d,col.code))
     start = data['iDisplayStart']
     p = html.Paginator(djp.request,
                        qs,
@@ -76,9 +77,15 @@ def ajax_dataTable(djp,data):
                       appmodel = appmodel,
                       paginator = p)
     ctx = tbl.maker.get_context(djp, tbl, {})
-    aaData = [list(item['display']) for item in ctx['items']]
+    aaData = []
+    for item in ctx['items']:
+        id = item['id']
+        aData = {} if not id else {'DT_RowId':id}
+        for i,v in enumerate(item['display']):
+            aData[i] = v['value']
+        aaData.append(aData)
     data = {'iTotalRecords':p.total,
-            'iDisplayLength':p.per_page,
+            'iTotalDisplayRecords':p.total,
             'sEcho':data['sEcho'],
             'aaData':aaData}
     return ajax.simplelem(data)
@@ -517,7 +524,7 @@ There are three additional parameters that can be set:
 :keyword search_text: string identifier for text queries.
     '''
     isplugin = True
-    astable = True
+    astable = 'ajax'
     in_nav = 1
     search_text = 'q'
     
@@ -527,14 +534,17 @@ The query is build using the search fields specifies in
 :attr:`djpcms.views.appsite.ModelApplication.search_fields`.
 It returns a queryset.
         '''
-        qs = super(SearchView,self).appquery(djp)
-        request = djp.request
-        appmodel = self.appmodel
-        slist = appmodel.search_fields
-        search_string = request.REQUEST.get(self.search_text,None)
-        if slist and search_string:
-            qs = appmodel.mapper.search_text(qs, search_string, slist)    
-        return qs
+        if self.astable == 'ajax' and not djp.request.is_xhr:
+            return ()
+        else:
+            qs = super(SearchView,self).appquery(djp)
+            request = djp.request
+            appmodel = self.appmodel
+            slist = appmodel.search_fields
+            search_string = request.REQUEST.get(self.search_text,None)
+            if slist and search_string:
+                qs = appmodel.mapper.search_text(qs, search_string, slist)    
+            return qs
     
     def render(self, djp):
         '''Perform the custom query over the model objects and return a paginated result. By default it delegates the

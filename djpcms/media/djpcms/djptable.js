@@ -74,6 +74,9 @@
                                      "aButtons":    [ "csv", "xls", "pdf" ]
                                  }
                              ]
+                },
+                fnRowCallback: function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+                    return nRow;
                 }
             },
             to_obj : function(aoData) {
@@ -121,12 +124,8 @@
                         tbl.data('datasize',data.datasize);
                     if(tbl.length == 1) {
                         opts = $.extend(true,data,opts);
-                        if(opts.bServerSide) {
-                            opts.bProcessing = false;
-                            opts.sAjaxSource = '.';
-                            if (!opts.sAjaxSource) {
-                                opts.fnServerData = $.proxy(that.fnServerData,that);
-                            }
+                        if (!opts.sAjaxSource) {
+                            opts.fnServerData = $.proxy(that.fnServerData,that);
                         }
                         opts.oTableTools.sSwfPath = $.djpcms.options.media_url+
                             "djpcms/datatables/TableTools/swf/copy_cvs_xls_pdf.swf";

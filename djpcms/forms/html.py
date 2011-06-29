@@ -89,7 +89,7 @@ Simple usage::
                 #if not isinstance(input,html.WidgetMaker):
                 #    raise TypeError('{0} is not a widgetmaker, cannot addt to form inputs'.format(input))
                 self.inputs.append(input)
-        missings = set(form_class.base_fields)
+        missings = list(form_class.base_fields)
         self.layout.check_fields(missings)
         
     def __call__(self, model = None, inputs = None, **kwargs):

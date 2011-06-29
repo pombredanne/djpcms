@@ -97,13 +97,10 @@ Any Operation on this class is similar to jQuery.
             if att in attributes:
                 attrs[att] = params.pop(att)
         self.internal = params
+        self.tag = self.maker.tag
         
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,self.maker)
-    
-    @property
-    def tag(self):
-        return self.maker.tag
             
     def flatatt(self, **attrs):
         '''Return a string with atributes to add to the tag'''
@@ -333,15 +330,18 @@ It returns self for concatenating data.'''
     
     def render_from_widget(self, djp, widget, inner, keys):
         if self.inline:
-            fattr = widget.flatatt()
-            text = '<{0}{1}/>'.format(self.tag,fattr)
+            if widget.tag:
+                fattr = widget.flatatt()
+                text = '<{0}{1}/>'.format(self.tag,fattr)
+            else:
+                text = ''
         else:
             text = inner or self._inner
             if text is None:
                 text = self.inner(djp, widget, keys)
-            if self.tag:
+            if widget.tag:
                 fattr = widget.flatatt()
-                text = '<{0}{1}>{2}</{0}>'.format(self.tag,fattr,text)
+                text = '<{0}{1}>{2}</{0}>'.format(widget.tag,fattr,text)
         if self.renderer:
             text = self.renderer(text)
         if djp:

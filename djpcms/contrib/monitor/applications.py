@@ -152,8 +152,7 @@ class RedisMonitorApplication(RedisMixin,AdminApplication):
         dbview = self.getview('db')
         djp = view(request, db = db)
         return djp.url
-    
-    
+        
 
 class StdModelDeleteAllView(views.ModelView):
     _methods = ('post',)

@@ -19,20 +19,6 @@
     right: 0;
     top: 50%;
 }
-{{ tag }} div.row-selector {
-    float: left;
-}
-{{ tag }} div.DTTT_container {
-    float: right;
-    margin-bottom: 1em;
-}
-{{ tag }} .dataTables_paginate {
-    float: {{ pagination_float }};
-    text-align: {{ pagination_float }};
-}
-{{ tag }} .dataTables_length {
-    float: left;
-}
 {{ tag }} .fg-toolbar {
     font-size: 0.8em;
 }
@@ -81,30 +67,35 @@
     margin: 0;
     padding: 2px 6px;
 }
-div.toolbox {
-    line-height: 40px;
-    height: 40px;
-    text-align: left;{% if toolbox_background_color %}
-    background: {{ toolbox_background_color }};{% endif %}
-    overflow: hidden;
-    padding: 4px 0;{% if toolbox_min_height %}
-    min-height: {{ toolbox_min_height }};{% endif %}
-    /*border: 1px solid {{ body_border_color }};*/
+{# DATATABLE PANELS #}
+
+{{ tag }} div.DTTT_container {
+    float: {{ DTTT_float }};
+    margin: {{ DTTT_margin }};
 }
-div.toolbox .row-selector {
+{{ tag }} .dataTables_paginate {
+    float: {{ pagination_float }};
+    text-align: {{ pagination_float }};
+}
+{{ tag }} .dataTables_length {
     float: left;
 }
-div.toolbox .column-selector {
-    float: right;
+{{ tag }} div.row-selector {
+    float: {{ row_selector_float }};
+    margin: {{ row_selector_margin }};
 }
-.action-check .value {
-    margin-left: 5px;
+{{ tag }} div.row-selector span {
+    margin-right: 1em;
 }
-div.toolbox .selectors {
-    margin-left: 10px;
+{{ tag }} div.col-selector {
+    float: {{ col_selector_float }};
+    margin: {{ col_selector_margin }};
 }
-div.toolbox .toolbar-menu {
-    float: left;
-    margin-left: 10px;
+{{ tag }} div.dataTables_processing {
+    float: {{ processing_float }};
+    margin: {{ processing_margin }};
+}
+{{ tag }} .ui-buttonset {
+    margin-right: 0;
 }
 {% endblock %}

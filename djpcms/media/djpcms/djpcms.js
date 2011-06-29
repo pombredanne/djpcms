@@ -614,7 +614,7 @@
                     el.button();
                 }
             });
-           $('a.button').each(function() {
+           $('a.button',obj).each(function() {
                var a = $(this),
                    sp = a.children('span'),
                    opts,ico;
@@ -628,7 +628,7 @@
                }
                a.button(opts).removeClass('djph');
            });
-           $('button').each(function() {
+           $('button',obj).each(function() {
                var b = $(this),
                 data = b.data(),
                 icon = data.icon,

@@ -21,6 +21,7 @@ __all__ = ['nicerepr',
 
 FIELD_SPLITTER = '__'
 NONE_VALUE = '(None)'
+NONE_VALUE = float('nan')
 divchk = '<div class="action-check">'
 spvval = '<span class="value">'
 

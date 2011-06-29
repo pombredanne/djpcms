@@ -185,7 +185,8 @@ If your plugin needs input parameters when editing, simple set the
                                              own_view = djp.own_view(),
                                              prefix = prefix,
                                              model = self.for_model))
-            return form_class.widget(form, **kwargs)
+            return form
+        #form_class.widget(form, **kwargs)
     
     def _register(self):
         global _plugin_dictionary

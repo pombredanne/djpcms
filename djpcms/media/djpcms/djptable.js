@@ -104,7 +104,7 @@
                 widgets:['zebra','hovering','toolbox'],
                 "aaSorting": [],
                 "sPaginationType": "full_numbers",
-                "sDom": '<"H"<"col-selector"><"clear"><"row-selector">T<"clear">lp<"clear">i>t<"F"ip>',
+                "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">lrp<"clear">i>t<"F"ip>',
                 "oTableTools": {
                     "aButtons": [
                                  "copy",
@@ -162,7 +162,8 @@
                 $.each($(opts.selector,$this),function() {
                     var elem = $(this),
                         tbl = $('table',elem).hide(),
-                        data = elem.data('options') || {};
+                        data = elem.data('options') || {},
+                        buttons = [];
                     if(tbl.length == 1) {
                         opts = $.extend(true,data,opts);
                         if (!opts.sAjaxSource) {
@@ -179,8 +180,8 @@
                         }
                         //
                         // Add tools to table tools
+                        
                         if(elem.data('tools')) {
-                            var buttons = [];
                             $.each(elem.data('tools'),function() {
                                 var b = {
                                     sExtends: "text",
@@ -198,8 +199,10 @@
                                     b.send = redirect(this.url);
                                 }
                             });
-                            opts.oTableTools.aButtons = buttons;
                         }
+                        buttons.push("csv");
+                        buttons.push("pdf");
+                        opts.oTableTools.aButtons = buttons;
                         
                         tbl.dataTable(opts);
                         //

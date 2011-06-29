@@ -200,7 +200,20 @@ CssContext('datatable',
                    'head_border': '1px solid #a6c9e2',
                    'row_border':'1px solid transparent',
                    #
-                   'pagination_float':'right'
+                   # Floating panels
+                   'DTTT_float':'right',
+                   'DTTT_margin':'0 1em 1em 0',
+                   #
+                   'pagination_float':'right',
+                   #
+                   'processing_float':'left',
+                   'processing_margin':'0 0 0 1em',
+                   #
+                   'row_selector_float':'left',
+                   'row_selector_margin':'0',
+                   #
+                   'col_selector_float':'right',
+                   'col_selector_margin':'0 0 1em'
                    }
            )
 

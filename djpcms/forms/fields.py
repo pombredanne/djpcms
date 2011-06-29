@@ -416,7 +416,8 @@ iterable over choices and a model class (if applicable).'''
                   .addData('minlength',self.minLength)\
                   .addData('maxrows',self.maxRows)
             if model:                    
-                url = djp.site.get_url(model,'search')
+                url = ch.url
+                #djp.site.get_url(model,'search')
                 widget.addData('url',url)
                 if value:
                     if self.multiple:

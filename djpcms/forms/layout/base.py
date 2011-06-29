@@ -18,7 +18,7 @@ nolabel = 'nolabel'
 def check_fields(fields, missings):
     for field in fields:
         if field in missings:
-            missings.discard(field)
+            missings.remove(field)
         else:
             field.check_fields(missings)
     

@@ -118,7 +118,7 @@ the dataTable_ jQuery plugin.
                    'iDisplayLength':size,
                    'bPaginate':paginate}
         if ajax or (paginator and paginator.multiple):
-            options['bProcessing'] = False
+            options['bProcessing'] = True
             options['bServerSide'] = True
             if ajax:
                 options['sAjaxSource'] = ajax

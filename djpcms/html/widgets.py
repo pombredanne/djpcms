@@ -134,6 +134,7 @@ class Select(FieldWidget):
 WidgetMaker('div', default = 'div')
 WidgetMaker('th', default = 'th')
 WidgetMaker('tr', default = 'tr')
+WidgetMaker('span', default = 'span')
 WidgetMaker('a', default = 'a', attributes = ('href','title'))
 WidgetMaker('button', default = 'button')
 TextInput(default='input:text')

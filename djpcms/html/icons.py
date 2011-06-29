@@ -4,8 +4,6 @@ from djpcms import to_string
 from djpcms.utils.const import EMPTY
 from djpcms.utils import mark_safe
 
-from .base import HtmlWrap
-
 
 button_class = ' class="button"'
 simple_class = ' class="simple-icon"'

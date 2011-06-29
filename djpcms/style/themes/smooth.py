@@ -33,10 +33,10 @@ smooth = {
                           'odd_background_color':'#dbebeb',
                           'row_hover_background':'#d0e5f5'},
            # dataTable
-           'datatable': {'odd_background_color':'#dcdcdc',
+           'datatable': {'odd_background_color':'#f2f2f2',
                          'even_background_color':'transparent',
-                         'even_sort_background':'#dcdcdc',
-                         'odd_sort_background':'#dcdcdc'},
+                         'even_sort_background':'#fcefa1',
+                         'odd_sort_background':'#f7eeb5'},
            #
            # Navigation
           'nav': {'main_text_shadow': '0 2px 2px rgba(0, 0, 0, 0.5)',

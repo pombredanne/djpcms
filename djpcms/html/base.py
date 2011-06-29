@@ -387,20 +387,8 @@ It returns a dictionary of variables to be passed to the template engine.'''
         ctx['children'] = children
         return ctx
         
-DefaultMaker = WidgetMaker()
-    
-
-class HtmlWrap(Widget):
-    
-    def __init__(self, *args, **kwargs):
-        self._inner = kwargs.pop('inner','')
-        super(HtmlWrap,self).__init__(*args, **kwargs)
         
-    def inner(self, *args, **kwargs):
-        if hasattr(self._inner,'render'):
-            return self._inner.render(*args, **kwargs)
-        else:
-            return to_string(self._inner)
+DefaultMaker = WidgetMaker()
 
 
 class Html(WidgetMaker):

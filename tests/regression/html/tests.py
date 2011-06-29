@@ -107,12 +107,3 @@ class TestInputs(test.TestCase):
         self.assertTrue('</ul>' in ht)
         self.assertTrue('<li>a list item</li>' in ht)
         self.assertTrue('<li>another one</li>' in ht)
-
-
-class TableTests(test.TestCase):
-    
-    def testSimple(self):
-        tbl = html.Table(['first','second'],[])
-        self.assertTrue(tbl.maker.allchildren)
-        #ht = tbl.render()
-        #self.assertTrue(ht)

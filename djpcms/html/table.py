@@ -75,14 +75,15 @@ javascript plugin'''
 
 
 class Table(Widget):
-    '''Render a table given a response object ``djp``.
+    '''A Table :class:`djpcms.html.Widget` packed with functionalities and rendered using
+the dataTable_ jQuery plugin.
 
 :parameter headers: iterable over headers. Must be provided.
 :parameter body: optional iterable over data to display.
-:parameter appmodel: optional application model instance.
+:parameter appmodel: optional :class:`djpcms.views.Application` instance.
 :parameter model: optional model class.
-:parameter nd: numeric accuracy for floating point numbers.
-:parameter template_name: template name
+
+.. _dataTable: http://www.datatables.net/
     '''
     maker = TableMaker()
     size_choices = (10,25,50,100)
@@ -90,7 +91,7 @@ class Table(Widget):
     def __init__(self, headers, body = None, appmodel = None,
                  model = None, paginator = None, toolbox = True,
                  ajax = None, size = 25, size_choices = None,
-                 footer = True, **params):
+                 paginate = True, footer = True, **params):
         super(Table,self).__init__(**params)
         self.toolbox = toolbox
         self.ajax = ajax
@@ -114,7 +115,8 @@ class Table(Widget):
                                    **params)
         
         options = {'aoColumns': list(self.maker.aoColumns(headers)),
-                   'iDisplayLength ':size}
+                   'iDisplayLength':size,
+                   'bPaginate':paginate}
         if ajax or (paginator and paginator.multiple):
             options['bProcessing'] = False
             options['bServerSide'] = True
@@ -123,14 +125,18 @@ class Table(Widget):
         self.addData('options',options)
 
     def items(self, djp):
-        appmodel = self.internal['appmodel']
-        headers = self.internal['headers']
-        actions = None
-        if appmodel:
-            toolbox = table_toolbox(appmodel,djp)
-            if 'actions' in toolbox:
-                actions = toolbox.pop('actions')
-            
-        return (results_for_item(djp, headers, d,\
+        body = self.internal['body']
+        if body:
+            appmodel = self.internal['appmodel']
+            headers = self.internal['headers']
+            actions = None
+            if appmodel:
+                toolbox = table_toolbox(appmodel,djp)
+                if 'actions' in toolbox:
+                    actions = toolbox.pop('actions')
+                
+            return (results_for_item(djp, headers, d,\
                 appmodel, actions = actions) for d in self.internal['body'])
+        else:
+            return ()
         

@@ -42,7 +42,7 @@ def nicerepr(val,
 Prettify a value to be displayed in html.
     
 :parameter val: value to prettify.
-:parameter nd: numerical accuracy for floating points.
+:parameter nd: numerical accuracy for floating point numbers.
 '''
     if val is None:
         return NONE_VALUE
@@ -106,8 +106,7 @@ def nice_headers(headers, mapper = None):
         return (mapper.label_for_field(name) for name in headers)
             
             
-def results_for_item(djp, headers, result,
-                     appmodel = None, mapper = None,
+def results_for_item(djp, headers, result, appmodel = None, 
                      actions = None, **kwargs):
     '''Return an iterable over values in result given by attributes in headers.
     
@@ -115,21 +114,16 @@ def results_for_item(djp, headers, result,
 :parameter result: instance of obhject to estract attributes from.
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
 '''
-    if not appmodel:
-        try:
-            appmodel = djp.view.site.for_model(result.__class__)
-        except:
-            appmodel = None
-    if not mapper and appmodel:
-        mapper = appmodel.mapper
-    if mapper:
-        getr = get_app_result(mapper,actions)
+    if appmodel:
+        getr = get_app_result(appmodel.mapper,actions)
+        id = getr.id(result)
     else:
+        id = None
         if hasattr(result,'__iter__'):
             getr = get_iterable_result(result)
         else:
             getr = get_result()
-    return {'id': getr.id(result),
+    return {'id': id,
             'display': (getr(djp.request,name,result,appmodel,**kwargs)\
                         for name in headers)}
 
@@ -138,9 +132,6 @@ class get_result(object):
     __slots__ = ('first',)
     def __init__(self):
         self.first = True
-        
-    def id(self, result):
-        return None
 
     def __call__(self, request, field_name, result, appmodel, **kwargs):
         return field_repr(field_name, result, appmodel = appmodel, **kwargs)
@@ -150,9 +141,6 @@ class get_iterable_result(object):
     
     def __init__(self, results):
         self.iter = iter(results)
-        
-    def id(self, result):
-        return None
 
     def __call__(self, request, field_name, result, appmodel, **kwargs):
         try:

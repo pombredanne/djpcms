@@ -54,6 +54,7 @@ if an instance is available'''
     
 
 def ajax_dataTable(djp,data):
+    #TODO move this to a different location
     view = djp.view
     appmodel = view.appmodel
     sort_by = {}
@@ -80,8 +81,7 @@ def ajax_dataTable(djp,data):
     for item in tbl.items(djp):
         id = item['id']
         aData = {} if not id else {'DT_RowId':id}
-        for i,v in enumerate(item['display']):
-            aData[i] = v['value']
+        aData.update(((i,v) for i,v in enumerate(item['display'])))
         aaData.append(aData)
     data = {'iTotalRecords':p.total,
             'iTotalDisplayRecords':p.total,

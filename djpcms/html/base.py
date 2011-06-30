@@ -161,8 +161,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def render(self, djp = None, inner = None, keys = None, **kwargs):
-        keys = keys or kwargs
-        return self.maker.render_from_widget(djp, self, inner, keys)
+        return self.maker.render_from_widget(djp, self, inner, keys or kwargs)
 
 
 class WidgetMaker(Renderer):

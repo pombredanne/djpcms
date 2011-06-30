@@ -33,7 +33,10 @@ class TableTests(test.TestCase):
     def testTableWithData(self):
         data = zip(('pippo','pluto','luna'),(3,4,1))
         tbl = html.Table(['first','second'], data)
+        self.assertFalse(tbl.ajax)
         ht = tbl.render()
-        self.assertTrue('<td>pippo</td><td>3</td>' in ht)
+        self.assertTrue('<td>pippo</td>\n<td>3</td>' in ht)
+        self.assertTrue('<td>pluto</td>\n<td>4</td>' in ht)
+        self.assertTrue('<td>luna</td>\n<td>1</td>' in ht)
         
     

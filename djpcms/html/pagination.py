@@ -41,9 +41,9 @@ class Paginator(object):
         elif page is None:
             page = self.pagenumber(request,data)
         self.page = page
-        end             = self.page*self.per_page
-        start           = end - self.per_page
-        end             = min(end,self.total)
+        end = self.page*self.per_page
+        start = end - self.per_page
+        end = min(end,self.total)
         if self.multiple:
             self.page_menu = page_menu
         else:

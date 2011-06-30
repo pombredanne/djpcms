@@ -29,7 +29,7 @@ class TableMaker(WidgetMaker):
  </tr>
 </thead>
 <tbody>{% if rows %}{% for row in rows %}
-<tr>{% for item in row %}
+<tr{% if row.id %} id="{{ row.id }}"{% endif %}>{% for item in row.display %}
 <td>{{ item }}</td>{% endfor %}
 </tr>{% endfor %}{% endif %}
 </tbody>{% if footer %}
@@ -136,8 +136,8 @@ the dataTable_ jQuery plugin.
                 if 'actions' in toolbox:
                     actions = toolbox.pop('actions')
                 
-            return (results_for_item(djp, headers, d,\
-                appmodel, actions = actions) for d in self.internal['body'])
+            return (results_for_item(djp, headers, d, appmodel,
+                                     actions = actions) for d in body)
         else:
             return ()
         

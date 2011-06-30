@@ -80,6 +80,10 @@
 {{ tag }} .dataTables_length {
     float: left;
 }
+{{ tag }} div.dataTables_info {
+    float: {{ dataTables_info_float }};
+    margin: {{ dataTables_info_margin }};
+}
 {{ tag }} div.row-selector {
     float: {{ row_selector_float }};
     margin: {{ row_selector_margin }};

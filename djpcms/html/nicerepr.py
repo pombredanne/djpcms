@@ -15,7 +15,6 @@ from .apptools import table_header
 __all__ = ['nicerepr',
            'field_repr',
            'results_for_item',
-           'nice_headers',
            'table_checkbox',
            'NONE_VALUE']
 
@@ -98,13 +97,6 @@ several possibilities in the following order.
     else:
         val = None
     return nicerepr(val,**kwargs)
-
-    
-def nice_headers(headers, mapper = None):
-    if not mapper:
-        return (nicename(name) for name in headers)
-    else:
-        return (mapper.label_for_field(name) for name in headers)
             
             
 def results_for_item(djp, headers, result, appmodel = None, 
@@ -115,7 +107,7 @@ def results_for_item(djp, headers, result, appmodel = None,
 :parameter result: instance of obhject to estract attributes from.
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
 '''
-    if appmodel:
+    if appmodel and appmodel.mapper:
         getr = get_app_result(appmodel.mapper,actions)
         id = getr.id(result)
     else:
@@ -124,8 +116,9 @@ def results_for_item(djp, headers, result, appmodel = None,
             getr = get_iterable_result(result)
         else:
             getr = get_result()
+    request = djp.request if djp else None
     return {'id': id,
-            'display': (getr(djp.request,name,result,appmodel,**kwargs)\
+            'display': (getr(request,name,result,appmodel,**kwargs)\
                         for name in headers)}
 
 
@@ -145,8 +138,7 @@ class get_iterable_result(object):
 
     def __call__(self, request, field_name, result, appmodel, **kwargs):
         try:
-            value = nicerepr(next(self.iter),**kwargs)
-            return {'name':field_name,'value':value}
+            return nicerepr(next(self.iter),**kwargs)
         except StopIteration:
             return None
         
@@ -197,6 +189,5 @@ class get_app_result(object):
         escape = escape or default_escape
         var = escape(var)
         self.first = first
-        return {'name':head.code,
-                'value':var}
+        return var
     

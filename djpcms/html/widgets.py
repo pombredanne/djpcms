@@ -86,10 +86,10 @@ class TextArea(InputWidget):
     attributes = WidgetMaker.makeattr('name','rows','cols')
 
     def get_value(self, value, widget):
-        widget._value = escape(value)
+        widget.internal['value'] = escape(value)
         
     def inner(self, djp, widget, keys):
-        return widget.internal['_value']
+        return widget.internal['value']
     
     
 class Select(FieldWidget):

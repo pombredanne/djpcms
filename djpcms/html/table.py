@@ -17,10 +17,11 @@ class TableMaker(WidgetMaker):
     tag = 'div'
     default_class = 'data-table'
     table_media = Media(js = ['djpcms/datatables/jquery.dataTables.js',
+                              'djpcms/datatables/ColVis/js/ColVis.js',
                               'djpcms/datatables/TableTools/js/TableTools.min.js',
                               'djpcms/djptable.js'],
                         css = {'screen':['djpcms/datatables/TableTools/css/TableTools_JUI.css']})
-    template = loader.template_class('''\
+    template = '''\
 <table>
 <thead>
  <tr>{% for head in headers %}
@@ -38,7 +39,7 @@ class TableMaker(WidgetMaker):
  </tr>
 </tfoot>{% endif %}
 </table>
-''')
+'''
     
     def get_context(self, djp, widget, key):
         ctx = {'headers':widget.data['options']['aoColumns'],

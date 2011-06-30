@@ -1,6 +1,8 @@
-from djpcms import test, forms, sites
+from djpcms import test, forms, sites, html
 from djpcms.plugins.apps import HtmlSearchForm
-from djpcms.apps.included.contentedit import HtmlPageForm, EditContentForm
+from djpcms.apps.included.contentedit import HtmlPageForm,\
+                                             ContentBlockHtmlForm,\
+                                             HtmlEditContentForm
 from djpcms.apps.included.contactus import ContactForm
 
 from .forms import SimpleForm
@@ -91,8 +93,23 @@ class TestSimpleForm(test.TestCase):
         html = w.render()
         self.assertTrue(html)
         
+    def testBlockForm(self):
+        fw = ContentBlockHtmlForm()
+        form = fw.form
+        self.assertFalse(form.is_bound)
+        self.assertTrue(fw.layout.children)
+        self.assertTrue(len(fw.layout.children),1)
+        plugin = fw.layout.children['plugin']
+        self.assertTrue(isinstance(plugin,html.WidgetMaker))
+        self.assertTrue(plugin.default_class)
+        self.assertEqual(plugin.tag,'div')
+        text = fw.render()
+        self.assertTrue(text)
+        self.assertTrue(plugin.default_class in text)
+        
     def __testContentEditForm(self):
-        form = EditContentForm()
+        fw = HtmlEditContentForm()
+        form = fw.form
         self.assertFalse(form.is_bound)
         #
         # Test the markup field

@@ -25,10 +25,8 @@ There are three types of layout:
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
 from djpcms import html
-from djpcms.template import loader
 
-from .base import FormLayout, FormLayoutElement, Inputs, check_fields,\
-                  render_field
+from .base import FormLayout, FormLayoutElement, SubmitElement, check_fields
 from .tablefield import TableRelatedFieldset
 
 
@@ -59,20 +57,12 @@ class UniFormElement(FormLayoutElement):
 class Fieldset(UniFormElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
     tag = 'fieldset'
-    
-    def __init__(self, *fields, **kwargs):
+    def __init__(self, *children, **kwargs):
         super(Fieldset,self).__init__(**kwargs)
-        self.fields = fields
+        self.allchildren = children
     
-    def check_fields(self, missings):
-        check_fields(self.fields,missings)
-                
-    def inner(self, djp, widget, keys):
-        html = '\n'.join((render_field(self, djp, field, widget) for field in self.fields))
-        if html:
-            return self.legend_html + '\n' + html
-        else:
-            return html
+    def check_fields(self, missings, layout):
+        self.allchildren = check_fields(self.allchildren,missings,layout)
       
 
 class Row(Fieldset):
@@ -89,59 +79,36 @@ class Columns(UniFormElement):
                      3: ('djpcms/yui/yui-simple3.html',)}
     
     def __init__(self, *columns, **kwargs):
-        super(Columns,self).__init__(**kwargs)
-        self.columns = columns
+        super(Columns,self).__init__(**kwargs)        self.allchildren = columns
         ncols = len(columns)
         if not self.template or self.template_name:
             self.template_name = self.template_dict.get(ncols,None)
         if not (self.template or self.template_name):
             raise ValueError('Template not available in uniform Column.')
 
-    def check_fields(self, missings):
-        for column in self.columns:
-            check_fields(column,missings)
+    def check_fields(self, missings, layout):
+        newcolumns = []
+        for column in self.allchildren:
+            if isinstance(column,(list,tuple)):
+                column = layout.default_element(*column)
+            elif not isinstance(column,html.WidgetMaker):
+                column = layout.default_element(column)
+            column.check_fields(missings,layout)
+            newcolumns.append(column)
+        self.allchildren = newcolumns
             
     def get_context(self, djp, widget, keys):
-        ctx = {}
-        div = html.Widget('div')
-        for i,column in enumerate(self.columns):
-            inner = '\n'.join(render_field(self, djp, field, widget) for field in column)
-            ctx['content%s' % i] = div.render(djp,inner)
+        ctx = super(Columns,self).get_context(djp, widget, keys)
+        for i,c in enumerate(ctx.pop('children')):
+            ctx['content%s' % i] = c
         ctx['grid'] = html.get_grid960(djp)
-        return ctx    
+        return ctx
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.'''
     default_style  = 'inlineLabels'
     form_class = 'uniForm'
     default_element = Fieldset
-    template = loader.template_class('''\
-{% if csrf_token %}{{ csrf_token }}{% endif %}
-<div class="{{ maker.form_messages_container_class }} ctrlHolder">{{ messages }}</div>
-{% for child in children %}
-{{ child }}{% endfor %}
-{{ inputs }}''')
-    field_template = loader.template_class("""\
-{% if is_hidden %}{{ widget }}{% else %}
-<div class='ctrlHolder{% if error %} error{% endif %}{% if field.field.required %} required{% endif %}'>
-    <div id='{{ field.errors_id }}'>{{ errors }}
-    </div>{% if ischeckbox %}
-    <p class='label'></p>
-    <div class='field-widget'>
-    <label for='{{ field.id }}'>
-     {{ widget }}{% if label %}
-      {{ label }}{% endif %}
-    </label>
-    {% if field.help_text %}
-    <div id="hint_{{ field.id }}" class="formHint">{{ field.help_text }}</div>{% endif %}
-    </div>{% else %}{% if label %}
-    <label for="{{ field.id }}" class="label">
-      {{ label }}
-    </label>{% endif %}
-    <div class="field-widget input {{ name }}">
-      {{ widget }}
-    </div>{% if field.help_text %}
-    <div id='hint_{{ field.id }}' class='formHint'>{{ field.help_text }}</div>{% endif %}
-    {% endif %}
-</div>{% endif %}""")
+    form_messages_container_class = '{0} ctrlHolder'.format(\
+                                    FormLayout.form_messages_container_class)
 

@@ -239,16 +239,16 @@ class DeleteContentView(views.DeleteView):
     def default_post(self, djp):
         instance = djp.instance
         block  = instance.block
-        jquery = jcollection()
+        jquery = ajax.jcollection()
         blockcontents = self.model.objects.for_page_block(instance.page, block)
         if instance.position == len(blockcontents) - 1:
             return jquery
         
-        jatt   = jattribute()
+        jatt   = ajax.jattribute()
         pos    = 0
         for b in blockcontents:
             if b == instance:
-                jquery.append(jremove('#'+instance.htmlid()))
+                jquery.append(ajax.jremove('#'+instance.htmlid()))
                 b.delete()
                 continue
             if b.position != pos:
@@ -257,7 +257,7 @@ class DeleteContentView(views.DeleteView):
             pos += 1
         jquery.append(jatt)
 
-        if djp.request.is_ajax():
+        if djp.request.is_xhr:
             return jquery
         else:
             refer = sjp.request.environ.get('HTTP_REFERER')

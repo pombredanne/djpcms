@@ -148,7 +148,7 @@ an application based on database model is available.
                              include = appmodel.table_links)
     if menu:
         toolbox['tools'] = menu
-    groups = list(appmodel.column_groups(djp))
+    groups = appmodel.column_groups(djp)
     if groups:
         toolbox['groups'] = groups
     #if groups:

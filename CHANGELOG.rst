@@ -1,6 +1,6 @@
 Version 0.9.0 - Development
 =======================================
-* This is essentially a new library from the previous versions wich brings
+* This is essentially a new library from the previous versions which brings
   radical changes in the API and internals.
 * No more django_ dependency.
 * Working for python 2.6 up to python 3.2.
@@ -18,7 +18,7 @@ Version 0.9.0 - Development
 * Redesign of the test suite so that several different applications can be tested.
 * Applications can be reloaded at runtime. Useful for testing, but maybe more.
 * Examples added.
-* **72 unit tests**. Coverage **40%**.
+* **79 unit tests**. Coverage **40%**.
 
 Version 0.8.5 (2010-Nov-16)
 =======================================

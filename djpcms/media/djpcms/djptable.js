@@ -64,34 +64,59 @@
          */
         $.djpcms.dataTable.addViews = function(tbl,groups) {
             var r = $('div.col-selector'),
-                select = $("<select><option value=''>Views</option></select>"),
+                select = $("<select></select>"),
                 views = {},
-                n = 0;
+                n = 0,
+                initial = false;
             
             $.each(groups, function() {
-                var selected = this.cols.join(',.');
+                var selected = this.cols.join(',.'),
+                    opt;
                 if(selected) {
                     n+=1;
-                    select.append("<option value='" + this.name + "'>" + this.display + "</option>");
+                    opt = $("<option value='" + this.name + "'>" + this.display + "</option>");
+                    if(this.initial && !initial) {
+                        initial = this.name;
+                        opt.attr('selected','selected');
+                    }
+                    select.append(opt);
                     views[this.name] = '.'+selected;
                 }
             });
             if(n) {
                 r.html("<span class='selectors'>Select a view</span>").append(select);
-                function change_view(value) {
-                    if(!value) {return;}
-                    var fields = views[value];
+                
+                function change_view(oTable) {
+                    return function(value) {
+                        if(!value) {return;}
+                        var fields = views[value],
+                            settings = oTable.fnSettings();
                         
-                    if(fields) {
-                        var cols = $('th,td',tbl),
-                            selected = $(fields,tbl);
-                        cols.hide();
-                        selected.show();
+                        if(fields) {
+                            $.each(settings.aoColumns, function(i,col) {
+                                if(fields.indexOf(col.sName) != -1) {
+                                    oTable.fnSetColumnVis(i, true, false);
+                                }
+                                else {
+                                    oTable.fnSetColumnVis(i, false, false);
+                                }
+                            });
+                            ColVis.fnRebuild(oTable);
+                            //var cols = $('th,td',tbl),
+                            //    selected = $(fields,tbl);
+                            //cols.hide();
+                            //selected.show();
+                        }
                     }
                 };
                 
+                select[0].change_view = change_view(tbl);
+                
+                if(initial) {
+                    select[0].change_view(initial);
+                }
                 select.change(function() {
-                    change_view(this.value);
+                    this.change_view(this.value);
                 });
             }
         }
@@ -101,7 +126,7 @@
             config: {
                 selector: 'div.data-table',
                 bJQueryUI: true,
-                widgets:['zebra','hovering','toolbox'],
+                bDeferRender: true,
                 "aaSorting": [],
                 "sPaginationType": "full_numbers",
                 "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">lrp<"clear">i>t<"F"ip>',

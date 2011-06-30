@@ -19,7 +19,6 @@ from djpcms.html import List, SubmitInput
 from .globals import *
 from .formsets import FormSet
 from .fields import Field
-from .html import FormWidget
 
 
 __all__ = ['FormType',

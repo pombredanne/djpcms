@@ -1,7 +1,3 @@
-{% if legend %}
-<div class="legend">
- {{ legend }}
-</div>{% endif %}
 {{ num_forms }}
 {% for header in headers %}{% if header.help_text %}
 <div class="formHint" data-name="{{ header.name }}">{{ header.help_text }}</div>{% endif %}{% endfor %}
@@ -17,11 +13,11 @@
 <tbody>{% for form in forms %}
 <tr>{% for field in form.fields %}{% if field.is_hidden %}
 <td class="djph"></td>{% else %}
-<td{% if field.errors_id %} id='{{ field.errors_id }}'{% endif %}>{{ field.errors }}
+<td id='{{ field.field.errors_id }}'>{{ field.errors }}
 </td>{% endif %}{% endfor %}
 </tr>
 <tr{% if form.id %} id='{{ form.id }}'{% endif %}>{% for field in form.fields %}
-<td{% if field.is_hidden %} class="djph"{% endif %}>{{ field.html }}</td>{% endfor %}
+<td{% if field.is_hidden %} class="djph"{% endif %}>{{ field.inner }}</td>{% endfor %}
 </tr>{% endfor %}
 </tbody>
 </table>

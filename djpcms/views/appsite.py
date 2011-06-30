@@ -30,7 +30,8 @@ from .regex import RegExUrl
 
 
 __all__ = ['Application',
-           'ModelApplication']
+           'ModelApplication',
+           'application_action']
 
 SPLITTER = '-'
 

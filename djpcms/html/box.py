@@ -1,11 +1,12 @@
-from djpcms.template import loader
-
 from .base import Widget, WidgetMaker
+
+
+__all__ = ['BoxWidget','box']
 
 
 class BoxWidget(WidgetMaker):
     tag = 'div'
-    template = loader.template_class('''\
+    template = '''\
 {% if widget.hd %}
  <div class="hd {{ widget.header_classes }}">
   <h2>{% if widget.title %}{{ widget.title }}{% endif %}</h2>{% if widget.menulist %}
@@ -18,7 +19,7 @@ class BoxWidget(WidgetMaker):
  </div>{% if widget.ft %}
  <div class="ft {{ widget.footer_classes }}">
  {{ widget.ft }}
- </div>{% endif %}''')
+ </div>{% endif %}'''
     
 
 class Box(Widget):

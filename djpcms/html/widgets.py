@@ -26,12 +26,11 @@ class FieldWidget(WidgetMaker):
             attrs['name'] = bfield.html_name
             if bfield.title:
                 attrs['title'] = bfield.title
-            value = self.get_value(bfield.value)
-            attrs['value'] = value
+            self.get_value(bfield.value, w)
         return w
     
-    def get_value(self, value):
-        return value
+    def get_value(self, value, widget):
+        widget.addAttr('value',value)
     
 
 class InputWidget(FieldWidget):
@@ -39,7 +38,7 @@ class InputWidget(FieldWidget):
     inline = True
     attributes = FieldWidget.makeattr('type')
     
-    def get_value(self, value):
+    def __get_value(self, value, widget):
         return value
         if 'initial_value' in self.data:
             initial_value = self.data['initial_value']
@@ -71,9 +70,9 @@ class CheckboxInput(InputWidget):
     default_attrs = {'type':'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
     
-    def get_value(self, val):
-        if val:
-            self.attrs['checked'] = 'checked'
+    def get_value(self, value, widget):
+        if value:
+            widget.attrs['checked'] = 'checked'
         
     def ischeckbox(self):
         return True
@@ -86,11 +85,11 @@ class TextArea(InputWidget):
     default_attrs  = {'rows': 10, 'cols': 40}
     attributes = WidgetMaker.makeattr('name','rows','cols')
 
-    def get_value(self, value):
-        self._value = escape(value)
+    def get_value(self, value, widget):
+        widget._value = escape(value)
         
-    def inner(self, *args, **kwargs):
-        return self._value
+    def inner(self, djp, widget, keys):
+        return widget.internal['_value']
     
     
 class Select(FieldWidget):
@@ -103,7 +102,7 @@ class Select(FieldWidget):
         self.choices = choices
         super(Select,self).__init__(**kwargs)
         
-    def get_value(self, val):
+    def get_value(self, val, widget):
         pass
     
     def inner(self, djp, widget, keys):
@@ -131,12 +130,12 @@ class Select(FieldWidget):
 
 
 
-WidgetMaker('div', default = 'div')
-WidgetMaker('th', default = 'th')
-WidgetMaker('tr', default = 'tr')
-WidgetMaker('span', default = 'span')
-WidgetMaker('a', default = 'a', attributes = ('href','title'))
-WidgetMaker('button', default = 'button')
+WidgetMaker(tag = 'div', default = 'div')
+WidgetMaker(tag = 'th', default = 'th')
+WidgetMaker(tag = 'tr', default = 'tr')
+WidgetMaker(tag = 'span', default = 'span')
+WidgetMaker(tag = 'a', default = 'a', attributes = ('href','title'))
+WidgetMaker(tag = 'button', default = 'button')
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')

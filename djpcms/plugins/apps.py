@@ -1,7 +1,7 @@
 import json
 
 from djpcms import forms, html
-from djpcms.forms.layout import DivFormElement, FormLayout, nolabel
+from djpcms.forms.layout import DivFormElement, FormLayout, nolabel, SubmitElement
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
@@ -99,7 +99,8 @@ class SearchForm(forms.Form):
                                                 title = 'Enter your search text'))
 
 
-SearchSubmit = html.WidgetMaker('div', default_class='cx-submit',
+SearchSubmit = html.WidgetMaker(tag = 'div',
+                                default_class='cx-submit',
                                 inner = html.Widget('input:submit',
                                                     cn='cx-search-btn '+forms.NOBUTTON,
                                                     title = 'Search').render())
@@ -108,11 +109,11 @@ HtmlSearchForm = forms.HtmlForm(
         SearchForm,
         inputs = [SearchSubmit],
         layout = FormLayout(
-                    DivFormElement('q',
-                                   default_style = nolabel,
-                                   default_class = 'cx-input'),
-                    template = None,
-                    template_name = ('djpcms/components/search_form.html',)
+                    SubmitElement(tag = None),
+                    DivFormElement('q', default_class = 'cx-input'),
+                    tag = 'div',
+                    default_style = nolabel,
+                    default_class = 'cx-search-bar'
             )
 )
 #

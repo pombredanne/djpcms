@@ -7,37 +7,13 @@ from djpcms import html
 from djpcms.utils import slugify, escape
 
 from .globals import *
+from .layout import FormWidgetMaker
 
 
-__all__ = ['HtmlForm','FormWidget']
+__all__ = ['HtmlForm']
 
 
-class FormWidget(html.Widget):
-    '''A :class:`djpcms.html.HtmlWidget` used to display
-forms using the :mod:`djpcms.forms.layout` API.'''
-    def __init__(self, maker, form, inputs = None, **kwargs):
-        super(FormWidget,self).__init__(maker,
-                                        form=form,
-                                        layout=maker.layout,
-                                        inputs = inputs if inputs is not None else [],
-                                        **kwargs)
-        self.addClass(maker.layout.form_class)
-    
-    @property 
-    def form(self):
-        return self.internal['form']
-    
-    @property 
-    def layout(self):
-        return self.internal['layout']
-    
-    def is_valid(self):
-        '''Proxy for :attr:`forms` ``is_valid`` method.
-See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
-        return self.internal['form'].is_valid()
-
-
-class HtmlForm(html.WidgetMaker):
+class HtmlForm(FormWidgetMaker):
     '''The :class:`Form` class is designed to be used for validation purposes and therefore it needs this
 wrapper class for web rendering on web pages.
     
@@ -66,7 +42,6 @@ Simple usage::
     Default:: ``[]``
 '''
     tag = 'form'
-    _widget = FormWidget
     default_attrs = {'method':'post',
                      'enctype':'multipart/form-data',
                      'action': '.'}
@@ -91,15 +66,16 @@ Simple usage::
                 self.inputs.append(input)
         missings = list(form_class.base_fields)
         self.layout.check_fields(missings)
+        self.add(self.layout)
         
     def __call__(self, model = None, inputs = None, **kwargs):
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model,**kwargs)
-        return self.widget(form = f, inputs = inputs or self.inputs)
+        return self.widget(form = f,
+                           inputs = inputs or self.inputs,
+                           layout = self.layout)\
+                           .addClass(self.layout.form_class)
     
-    def inner(self, djp, widget, keys):
-        '''Delegate the inner part of rendering to the layout instance'''
-        return self.layout.inner(djp,widget,keys)
 
 

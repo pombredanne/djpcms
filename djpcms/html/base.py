@@ -1,4 +1,5 @@
 import json
+from copy import copy
 
 from py2py3 import iteritems
 
@@ -101,7 +102,16 @@ Any Operation on this class is similar to jQuery.
         
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,self.maker)
-            
+    
+    @property
+    def parent(self):
+        return self.internal.get('parent',None)
+    
+    def copy(self, **kwargs):
+        c = copy(self)
+        c.internal.update(kwargs)
+        return c
+        
     def flatatt(self, **attrs):
         '''Return a string with atributes to add to the tag'''
         cs = ''
@@ -150,7 +160,8 @@ with key ``name`` and value ``value`` and return ``self``.'''
                     ks.remove(cn)
         return self
     
-    def render(self, djp = None, inner = None, **keys):
+    def render(self, djp = None, inner = None, keys = None, **kwargs):
+        keys = keys or kwargs
         return self.maker.render_from_widget(djp, self, inner, keys)
 
 
@@ -244,18 +255,17 @@ it is a class used as factory for HTML components.
     is_hidden = False
     default_style = None
     inline = False
-    template = loader.template_class(default_inner_template)
+    template = default_inner_template
     template_name = None
     attributes = ('id',)
     default_class = None
     default_attrs = None
     _widget = None
     
-    def __init__(self, tag = None, renderer = None,
-                 inline = None, default = False,
+    def __init__(self, inline = None, default = False,
                  description = '', widget = None,
                  attributes = None, inner = None,
-                 **params):
+                 renderer = None, **params):
         if default:
             default_widgets_makers[default] = self
         self.attributes = set(self.attributes)
@@ -266,11 +276,11 @@ it is a class used as factory for HTML components.
         self.attrs = attrs = {}
         self.description = description or self.description
         self.renderer = renderer
-        self.tag = tag or self.tag
         self.inline = inline if inline is not None else self.inline
         self.key = params.pop('key',self.key)
         self.template = params.pop('template',self.template)
         self.is_hidden = params.pop('is_hidden',self.is_hidden)
+        self.tag = params.pop('tag',self.tag)
         self.template_name = params.pop('template_name',self.template_name)
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
@@ -356,15 +366,16 @@ an empty string.'''
             context = self.get_context(djp,widget,keys)
             context.update({'maker':self,'widget':widget})
             if self.template:
-                return self.template.render(context)
+                return loader.template_class(self.template).render(context)
             else:
                 return loader.render(self.template_name,context)
         else:
             return ''
 
-    def child_widget(self, child, widget):
+    def child_widget(self, child, widget, **kwargs):
         w = child.widget(**widget.internal)
-        w.internal['parent'] = self
+        w.internal.update(kwargs)
+        w.internal['parent'] = widget
         return w
     
     def get_context(self, djp, widget, keys):
@@ -375,14 +386,14 @@ It returns a dictionary of variables to be passed to the template engine.'''
         children = []
         for child in self.allchildren:
             w = self.child_widget(child, widget)
-            key = child.key
+            key = w.maker.key
             if key and key in keys:
                 text = w.render(djp, keys[key])
             else:
-                text = w.render(djp)
-                if key:
-                    ctx[child.key] = h
-                    continue
+                text = w.render(djp, keys = keys)
+                #if key:
+                #    ctx[key] = text
+                #    continue
             children.append(text)
         ctx['children'] = children
         return ctx

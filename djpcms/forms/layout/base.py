@@ -1,51 +1,134 @@
 from inspect import isclass
 
+from py2py3 import is_bytes_or_string
+
 from djpcms import html, ajax
-from djpcms.template import loader
 from djpcms.utils.text import nicename
 
 
-__all__ = ['BaseFormLayout',
+__all__ = ['FormWidget',
+           'FormWidgetMaker',
+           'BaseFormLayout',
            'FormLayout',
            'FormLayoutElement',
            'DivFormElement',
-           'nolabel']
+           'FormWidgetMaker',
+           'SubmitElement',
+           'nolabel',
+           'SUBMITS']
 
 
 nolabel = 'nolabel'
-        
+SUBMITS = 'submits' # string indicating submits in forms
 
-def check_fields(fields, missings):
+
+def check_fields(fields, missings, layout):
+    '''Utility function for checking fields in layouts'''
+    new_fields = []
     for field in fields:
         if field in missings:
-            missings.remove(field)
+            if field == SUBMITS:
+                field = SubmitElement()
+                field.check_fields(missings,layout)
+            else:
+                missings.remove(field)
+            new_fields.append(field)
+        elif is_bytes_or_string(field):
+            raise ValueError('Field {0} is not part of form'\
+                             .format(field))
         else:
-            field.check_fields(missings)
+            field.check_fields(missings, layout)
+            new_fields.append(field)
+    return new_fields
+
+
+class FormWidget(html.Widget):
+    '''A :class:`djpcms.html.HtmlWidget` used to display
+forms using the :mod:`djpcms.forms.layout` API.'''    
+    @property 
+    def form(self):
+        return self.internal['form']
     
+    @property 
+    def layout(self):
+        return self.internal['layout']
+    
+    @property 
+    def inputs(self):
+        return self.internal['inputs']
+    
+    def is_valid(self):
+        '''Proxy for :attr:`forms` ``is_valid`` method.
+See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
+        return self.form.is_valid()
+ 
+ 
+class FormWidgetMaker(html.WidgetMaker):
+    _widget = FormWidget
             
-def render_field(self, djp, field, widget):
-    form = widget.internal['form']
-    layout = widget.internal['layout']
-    if field in form.dfields:
-        return self.render_form_field(djp, form.dfields[field], layout)
-    else:
-        return field.widget(form = form, layout = layout).render(djp)
 
-    
+class FieldWidget(FormWidgetMaker):
+    template = """\
+{% if is_hidden %}{{ inner }}{% else %}
+<div class='ctrlHolder{% if error %} error{% endif %}
+{% if field.field.required %} required{% endif %}'>
+    <div id='{{ field.errors_id }}'>{{ errors }}
+    </div>{% if ischeckbox %}
+    <p class='label'></p>
+    <div class='field-widget'>
+    <label for='{{ field.id }}'>
+     {{ inner }}{% if label %}
+      {{ label }}{% endif %}
+    </label>
+    {% if field.help_text %}
+    <div id="hint_{{ field.id }}" class="formHint">
+    {{ field.help_text }}</div>{% endif %}
+    </div>{% else %}{% if label %}
+    <label for="{{ field.id }}" class="label">
+      {{ label }}
+    </label>{% endif %}
+    <div class="field-widget input {{ name }}">
+      {{ inner }}
+    </div>{% if field.help_text %}
+    <div id='hint_{{ field.id }}' class='formHint'>
+    {{ field.help_text }}</div>{% endif %}
+    {% endif %}
+</div>{% endif %}"""
 
-class BaseFormLayout(html.WidgetMaker):
+    def get_context(self, djp, widget, keys):
+        bfield = widget.internal['field']
+        layout = widget.layout
+        element = widget.parent.maker
+        form = bfield.form
+        name = bfield.name
+        w = bfield.field.get_widget(djp, bfield)
+        element.add_widget_classes(bfield,w)
+        whtml = w.render(djp)
+        return {'label': None if self.default_style == nolabel\
+                                     else bfield.label,
+                'name': name,
+                'required_tag': element.required_tag or layout.required_tag,
+                'field':bfield,
+                'error': form.errors.get(name,''), 
+                'inner':whtml,
+                'is_hidden': w.maker.is_hidden,
+                'ischeckbox':w.maker.ischeckbox()}
+        
+
+class BaseFormLayout(FormWidgetMaker):
     '''\
-A :class:`djpcms.html.HtmlWidgetMaker` for programmatic
+A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.
     
-.. attribute:: field_template
+.. attribute:: field_widget_maker
 
     A template name or tuple for rendering a bound field. If not provided
     the field will render the widget only.
     
     Default: ``None``.
 '''
-    field_template = None
+    _widget = FormWidget
+    field_widget_maker = FieldWidget()
     required_tag = ''
     
     def __init__(self, required_tag = None,
@@ -58,6 +141,13 @@ form layout design.
             legend = ''
         self.legend_html = legend
         super(BaseFormLayout,self).__init__(**params)
+        
+    def inner(self, djp, widget, keys):
+        html = super(BaseFormLayout,self).inner(djp, widget, keys)
+        if html and self.legend_html:
+            html = '<div class="legend">{0}</div>\n{1}'.\
+                        format(self.legend_html,html)
+        return html
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -68,39 +158,17 @@ be used to add extra html elements to the form.
 '''
     default_class = 'ctrlHolder'
     
-    def check_fields(self, missings):
+    def check_fields(self, missings, layout):
         raise NotImplementedError
     
-    def render_form_field(self, djp, bfield, layout):
-        '''\
-Render a single bound field using a layout.
-
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`.
-:parameter bfield: instance of :class:`djpcms.forms.BoundField` to render.
-:parameter layout: the instance of :class:`djpcms.forms.layout.FormLayout`
-                   to which ``self`` belongs to.
-
-It uses the :attr:`djpcms.forms.layout.BaseFormLayout.field_template`
-attribute to render the bounded field.
-        '''
-        form = bfield.form
-        name = bfield.name
-        widget = bfield.field.get_widget(djp, bfield)
-        self.add_widget_classes(bfield,widget)
-        field_template = self.field_template or layout.field_template
-        whtml = widget.render(djp)
-        if not field_template:
-            return whtml
+    def child_widget(self, child, widget):
+        form = widget.form
+        make = super(FormLayoutElement,self).child_widget
+        if child in form.dfields:
+            return make(self.field_widget_maker,
+                        widget, field = form.dfields[child])
         else:
-            ctx = {'label': None if self.default_style == nolabel else bfield.label,
-                   'name': name,
-                   'required_tag': self.required_tag or layout.required_tag,
-                   'field':bfield,
-                   'error': form.errors.get(name,''), 
-                   'widget':whtml,
-                   'is_hidden': widget.maker.is_hidden,
-                   'ischeckbox':widget.maker.ischeckbox()}
-            return field_template.render(ctx)
+            return make(child, widget)
 
     def add_widget_classes(self, field, widget):
         pass
@@ -108,37 +176,29 @@ attribute to render the bounded field.
 
 class DivFormElement(FormLayoutElement):
     tag = 'div'
-    def __init__(self, *fields, **kwargs):
+    def __init__(self, *children, **kwargs):
         super(DivFormElement,self).__init__(**kwargs)
-        self.fields = fields
+        self.allchildren = children
 
-    def check_fields(self, missings):
-        check_fields(self.fields,missings)
-                
-    def inner(self, djp, widget, keys):
-        html = '\n'.join((render_field(self, djp, field, widget) for field in self.fields))
-        if html:
-            return self.legend_html + '\n' + html
-        else:
-            return html
+    def check_fields(self, missings, layout):
+        self.allchildren = check_fields(self.allchildren,missings,layout)
     
 
-class Inputs(FormLayoutElement):
-    template = 'djpcms/form-layouts/inputs.html'
+class SubmitElement(FormLayoutElement):
+    tag = 'div'
+    default_class = 'buttonHolder'
     
-    def render(self, djp, form, layout):
-        inputs = form._inputs
-        if inputs:
-            form._inputs = None
-            ctx = {'has_inputs': len(inputs),
-                   'style': self.default_style or layout.default_style,
-                   'inputs': (input.render(djp) for input in inputs)}
-            return loader.render(self.template, ctx)
+    def check_fields(self, missings, layout):
+        if SUBMITS in missings:
+            missings.remove(SUBMITS) 
     
+    def get_context(self, djp, widget, keys):
+        return {'children': [input.render(djp) for input in widget.inputs]}
+        
 
 class FormLayout(BaseFormLayout):
     '''Base form class for form layout design'''
-    
+    submit_element = None
     '''Form template'''
     '''Template file for rendering form fields'''
     form_class = None
@@ -154,6 +214,8 @@ class FormLayout(BaseFormLayout):
     
     def __init__(self, *fields, **kwargs):
         super(FormLayout,self).__init__(**kwargs)
+        self.add(html.WidgetMaker(tag = 'div',
+                default_class = self.form_messages_container_class))
         self.add(*fields)
         
     def check_fields(self, missings):
@@ -162,18 +224,23 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
 
 :parameter form: a :class:`djpcms.forms.Form` class.
 '''
+        if SUBMITS not in missings:
+            missings.append(SUBMITS)
         for field in self.allchildren:
             if isinstance(field,FormLayoutElement):
-                field.check_fields(missings)
+                field.check_fields(missings,self)
         if missings:
+            addinputs = False
+            if SUBMITS in missings:
+                addinputs = True
+                missings.remove(SUBMITS)
             self.add(self.default_element(*missings))
+            if addinputs:
+                self.add(SubmitElement())
     
     def get_context(self, djp, widget, keys):
         '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''
         ctx = super(FormLayout,self).get_context(djp, widget, keys)
-        inputs = '\n'.join((inp.render(djp) for inp in widget.internal['inputs']))
-        w = html.Widget('div',cn=self.from_input_class).addClass(self.default_style)
-        ctx['inputs'] = w.render(djp, inputs)
         ctx['messages'] = ''
         return ctx
 
@@ -197,7 +264,8 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             if name in fields:
                 name = '#' + fields[name].errors_id
             else:
-                name = '.' + self.form_messages_container_class
+                cl = '.'.join(self.form_messages_container_class.split(' '))
+                name = '.{0}'.format(cl)
             ListDict.add(name,
                          html.List(data = msg, cn = msg_class).render(),
                          alldocument = False)

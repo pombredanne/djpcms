@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 import logging
+from threading import Lock
 
 import djpcms
 from djpcms import http
@@ -76,7 +77,7 @@ def standard_exception_handle(request, e, status = None):
                          encoding = settings.DEFAULT_CHARSET)
         
 
-class SiteMixin(ResolverMixin):
+class SiteApp(ResolverMixin):
     
     def for_model(self, model):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
@@ -88,22 +89,58 @@ If the application is not available, it returns ``None``. It never fails.'''
         site,view,kwargs = self.resolve(path)
         return view(request, **kwargs)
     
+    def _init(self):
+        self.lock = Lock()
+        self._search_engine = None
+        
+    @property
+    def search_engine(self):
+        if not self._search_engine and self.root is not self:
+            return self.root.search_engine
+        return self._search_engine
+    
+    
 
-class ApplicationSites(SiteMixin, djpcms.UnicodeMixin):
+class ApplicationSites(SiteApp, djpcms.UnicodeMixin):
     '''This class is used as a singletone and holds information
-of djpcms application routes as well as general configuration parameters.'''
+of djpcms application routes as well as general configuration parameters.
+When running a web site powered by djpcms, to access the sites signletone::
+
+    from djpcms import sites
+
+
+The sites singletone has several important attributes:
+
+.. attribute:: root
+
+    The site root. For the sites singletone this is ``None``
+    
+.. attribute:: settings
+
+    web site settings dictionary
+    
+.. attribute:: search_engine
+
+    An instance of a search engine interface
+    
+.. attribute:: User
+
+    The user model used by the site
+    
+'''
     modelwrappers = OrderedDict()
     model_from_hash = {}
     
     def __init__(self):
-        self.clear()
+        self._init()
         self.permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
         self.request_started = Signal()
         self.start_response = Signal()
         self.request_finished = Signal()
         
-    def clear(self):
+    def _init(self):
+        super(ApplicationSites,self)._init()
         self._sites = {}
         self.admins = []
         self._osites = None

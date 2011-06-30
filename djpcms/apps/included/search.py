@@ -1,26 +1,18 @@
-'''\
-Search Applications with Tags.
+'''Search Applications which works with the SearchBox plugin.
 '''
-from djpcms import views, forms, html, sites, ajax
+from djpcms import views, forms, html, ajax
 from djpcms.plugins.apps import HtmlSearchForm
 
 
-class SearchQuery(views.View):
-    '''This view renders as a search box'''
+
+class SearchView(views.View):
+    '''This view renders the search results'''    
     isplugin = True
-    astable = True
     
     @property
     def engine(self):
         return self.appmodel.engine
         
-    def render(self, djp):
-        return self.get_form(djp).render(djp)
-
-
-class SearchView(SearchQuery):
-    '''This view renders the search results'''    
-    
     def model(self, djp):
         if 'model' in djp.kwargs:
             name = djp.kwargs['model']
@@ -41,10 +33,6 @@ It returns a queryset.
             if q:
                 return self.engine.search(q,include=model)
     
-    def render(self, djp):
-        qs = self.appquery(djp)
-        return ''
-    
     def ajax__autocomplete(self, djp):
         qs = self.appquery(djp)
         params = djp.request.REQUEST
@@ -55,17 +43,8 @@ It returns a queryset.
         
     
 class Application(views.Application):
-    for_models = None
     engine = None
-        
-    #query = SearchQuery(form = HtmlSearchForm,
-    #                    form_method = 'GET',
-    #                    form_ajax = False,
-    #                    description = 'Seach Form')
-    #search = SearchView(regex = 'search-results',
-    #                    form = HtmlSearchForm,
-    #                    form_method = 'GET',
-    #                    description = 'Search Results')
+    
     search = SearchView(form = HtmlSearchForm,
                         form_method = 'GET',
                         description = 'Search Results')
@@ -79,10 +58,16 @@ class Application(views.Application):
         self.engine = kwargs.pop('engine',None) or self.engine
         if not self.engine:
             raise ValueError('Search engine not available')
-        self.engine.web_hook = self
-        sites.search_application = self 
         super(Application,self).__init__(*args,**kwargs)
 
+    def registration_done(self):
+        '''Set the search engine application in the site.'''
+        self.site._search_engine = self
 
+    def search_url(self, model):
+        if model:
+            return '{0}{1}/'.format(self.path,model)
+        else:
+            return self.path
     
 

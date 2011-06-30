@@ -9,17 +9,19 @@ from djpcms.http import QueryDict
 from djpcms.utils.text import nicename
 
 
-def registered_models(bfield):
+def registered_models(bfield,required = True):
     '''Generator of model Choices'''
     form = bfield.form
     site = form.request.DJPCMS.site
+    if not required:
+        yield ('','----------')
     for model,app in site._registry.items():
         if not app.hidden:
             id = getattr(mapper(model),'hash',None)
             if id:
                 nice = '{0} from {1}'.format(nicename(model._meta.name),
                                              nicename(model._meta.app_label))
-                yield id,nice
+                yield (id,nice)
 
 
 def get_contet_choices(bfield):
@@ -39,15 +41,16 @@ def get_contet_choices(bfield):
     
     
 class ForModelForm(forms.Form):
-    for_model   = forms.ChoiceField(
-                            choices = lambda x : sorted(registered_models(x),
+    for_model   = forms.ChoiceField(required = False,
+                            choices = lambda x : sorted(registered_models(x,False),
                                                         key = lambda y : y[1]))
     
     def clean_for_model(self, mhash):
-        try:
-            return self.request.DJPCMS.site.for_hash(mhash,safe=False)
-        except Exception as e:
-            raise forms.ValidationError(str(e))
+        if mhash:
+            try:
+                return self.request.DJPCMS.site.for_hash(mhash,safe=False)
+            except Exception as e:
+                raise forms.ValidationError(str(e))
 
 
 class ModelItemListForm(ForModelForm):
@@ -95,6 +98,7 @@ class SearchForm(forms.Form):
                         widget = html.TextInput(default_class = 'classy-search autocomplete-off',
                                                 title = 'Enter your search text'))
 
+
 SearchSubmit = html.WidgetMaker('div', default_class='cx-submit',
                                 inner = html.Widget('input:submit',
                                                     cn='cx-search-btn '+forms.NOBUTTON,
@@ -107,8 +111,8 @@ HtmlSearchForm = forms.HtmlForm(
                     DivFormElement('q',
                                    default_style = nolabel,
                                    default_class = 'cx-input'),
-                    template_name = ('search_form.html',
-                                     'djpcms/components/search_form.html')
+                    template = None,
+                    template_name = ('djpcms/components/search_form.html',)
             )
 )
 #
@@ -118,31 +122,27 @@ class SearchBox(DJPplugin):
     '''A text search for a model rendered as a nice search input.
     '''
     name = 'search-box'
-    description = 'Search a Model' 
-    template_name = ('search_form.html',
-                     'djpcms/components/search_form.html')
+    description = 'Search your Models'
     form = SearchModelForm
     
     def render(self, djp, wrapper, prefix,
                for_model = None, method = 'get',
                tooltip = None, ajax = False,
                **kwargs):
-        site = djp.site
+        engine = djp.site.search_engine
+        if not engine:
+            raise ValueError('No search engine installed with site. Cannot add search plugin.\
+ You need to install one! Check documentation on how to do it.')
         request = djp.request
-        appmodel = site.for_hash(for_model,safe=False)
-        search_url = appmodel.searchurl(request)
-        if search_url:
-            data = request.GET if method == 'get' else request.POST
-            f = HtmlSearchForm(data = data or None)
-            if tooltip:
-                f.dfields['q'].title = tooltip
-            w =  HtmlSearchForm.widget(f,
-                                       inputs = HtmlSearchForm.default_inputs, 
-                                       action = search_url,
-                                       method = method)
-            if ajax:
-                w.addClass(forms.AJAX)
-            return w.render()
+        data = request.GET if method == 'get' else request.POST
+        w = HtmlSearchForm(data = data or None)
+        if tooltip:
+            w.form.dfields['q'].title = tooltip
+        path = engine.search_url(for_model)
+        w.addAttr('action',engine.path).addAttr('method',method)
+        if ajax:
+            w.addClass(forms.AJAX)
+        return w.render(djp)
 
 
 

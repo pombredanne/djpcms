@@ -1,6 +1,5 @@
 import os
 from copy import deepcopy
-from threading import Lock
 
 from py2py3 import is_bytes_or_string
 
@@ -14,21 +13,22 @@ from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\
                          RouteMixin, ALL_URLS
 from djpcms.template import loader
 
-from .site import SiteMixin
+from .site import SiteApp
 
 
-class ApplicationSite(SiteMixin, RouteMixin):
+class ApplicationSite(SiteApp, RouteMixin):
     '''Application site manager
     An instance of this class is used to handle url of
     registered applications.
     '''
     def __init__(self, root, route, config, handler):
-        self.lock = Lock()
+        self._init()
         self.root = root
         self._route = RegExUrl(route)
         self.config = config
         self.settings = config
         self._permissions = None
+        self._search_engine = None
         self._registry = {}
         self._nameregistry = OrderedDict()
         self.choices = [('','-----------------')]

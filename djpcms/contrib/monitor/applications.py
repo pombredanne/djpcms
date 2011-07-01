@@ -99,7 +99,7 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
     list_display = ('db','keys','expires')
     actions = [('bulk_delete','flush',djpcms.DELETE)]
     
-    home = views.SearchView()
+    home = views.SearchView(astable = True)
     keys = RedisKeyApplication('/(?P<db>\d+)/',
                                RedisDbData,parent='home')
     

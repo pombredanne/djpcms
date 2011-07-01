@@ -207,7 +207,7 @@ CssContext('datatable',
                    'pagination_float':'right',
                    #
                    'dataTables_info_float':'left',
-                   'dataTables_info_margin':'0',
+                   'dataTables_info_margin':'0 1em 0 0',
                    #
                    'processing_float':'left',
                    'processing_margin':'0 0 0 1em',

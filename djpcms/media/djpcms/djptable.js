@@ -129,7 +129,7 @@
                 bDeferRender: true,
                 "aaSorting": [],
                 "sPaginationType": "full_numbers",
-                "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">lrp<"clear">i>t<"F"ip>',
+                "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>',
                 "oTableTools": {
                     "aButtons": [
                                  "copy",

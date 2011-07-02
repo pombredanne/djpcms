@@ -148,9 +148,16 @@ class ListWidget(WidgetMaker):
         return '\n'.join((LI + elem + LIEND for elem in widget))
 
 class List(Widget, list):
+    maker = ListWidget()
     def __init__(self, data = None, **kwargs):
-        super(List,self).__init__('ul',**kwargs)
+        super(List,self).__init__(tag='ul',**kwargs)
         list.__init__(self,data) if data else list.__init__(self)
+    
+    def addanchor(self, href, text):
+        if href:
+            a = "<a href='{0}'>{1}</a>".format(href,text)
+            self.append(a)
+    
     
 ListWidget(default = 'ul', widget = List)
     

@@ -59,6 +59,9 @@ class LoginView(views.ModelView):
     
     def success_message(self, instance, mch):
         return ''
+    
+    def has_permission(self, *args, **kwargs):
+        return True
 
 
 class UserView(views.ViewView):

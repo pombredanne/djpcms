@@ -142,3 +142,10 @@ from .apps.management import execute
 from .http import serve
 from .conf import nodata
 from .utils import ajax
+
+def secret_key():
+    '''Secret Key used as base key in encryption algorithm'''
+    if sites.settings:
+        return sites.settings.get('SECRET_KEY','sk').encode()
+    else:
+        return b'sk'

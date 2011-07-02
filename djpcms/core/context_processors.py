@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 
-from djpcms import views, UnicodeMixin, CHANGE, ADD
+from djpcms import views, sites, html, UnicodeMixin, CHANGE, ADD
 from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
@@ -9,11 +9,13 @@ from djpcms.utils import iri_to_uri, escape
 from djpcms.html import grid960, htmldoc, List, icons
 
 
-class PageLink(UnicodeMixin):
+class PageLink(html.List):
     '''Utility for displaying links
 for page editing or creation or exit editing.'''
     def __init__(self, request):
+        super(PageLink,self).__init__()
         self.request = request
+        request = self.request
         info = request.DJPCMS
         self.page = info.page
         # Get the site application for Page
@@ -28,30 +30,23 @@ for page editing or creation or exit editing.'''
             if cdjp:
                 epage = cdjp.instance
                 self.isediting = isinstance(epage,Page) and \
-                                 isinstance(cdjp.view,views.ChangeView)
+                            isinstance(cdjp.view,views.ChangeView)
                 if self.isediting:
                     self.page = epage
-        
-    def __unicode__(self):
-        if not hasattr(self,'_html'):
-            self._html = self.render()
-        return self._html
-    
-    def __len__(self):
-        return len(self.__unicode__())
-    
-    def render(self):
-        if self.app:
             if self.isediting:
-                return self.exitlink(self.cdjp.instance.url)
+                self.append(self.exitlink(self.cdjp.instance.url))
             else:
                 site = self.app.site
                 if not self.page:
                     if Page and site.permissions.has(self.request, ADD, Page):
-                        return self.addlink()
+                        self.append(self.addlink())
                 elif site.permissions.has(self.request, CHANGE, self.page):
-                    return self.changelink()
-        return ''
+                    self.append(self.changelink())
+                self.userlinks()
+        if request.user.is_superuser and sites.settings.PROFILING_KEY:
+            if sites.settings.PROFILING_KEY not in request.REQUEST:
+                self.append('<a href={0}?{1}>profile</a>'.format(request.path,\
+                                                sites.settings.PROFILING_KEY))
     
     def addlink(self):
         path = self.app.addurl(self.request)
@@ -84,7 +79,21 @@ for page editing or creation or exit editing.'''
         return icons.circle_close(path,'exit',
                                   title = 'Exit page editing',button=False)
     
-
+    def userlinks(self):
+        site = self.app.site
+        userapp = site.for_model(site.User)
+        if userapp:
+            request = self.request
+            if request.user.is_authenticated():
+                logout_url =  userapp.appviewurl(request,'logout')
+                self.addanchor(logout_url,'logout')
+                if hasattr(userapp,'userhomeurl'):
+                    user_url = userapp.userhomeurl(request)
+                    self.addanchor(user_url,request.user.username)
+            else:
+                self.addanchor(userapp.appviewurl(request,'login'),'login')
+                
+                
 def get_grid960(page, settings):
     float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
     return grid960(fixed = not float_layout)
@@ -97,7 +106,7 @@ def djpcms(request):
     page = info.page
     settings = site.settings
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
-    plink = PageLink(request)
+    plink = PageLink(request).addClass('horizontal user right')
     user = getattr(request,'user',None)
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
@@ -110,21 +119,8 @@ def djpcms(request):
            'debug': debug,
            'release': not debug,
            'now': datetime.now(),
-           'MEDIA_URL': settings.MEDIA_URL}
-    
-    if not plink.isediting:
-        userapp = site.for_model(site.User)
-        grid = get_grid960(page,settings)
-        if userapp:
-            ctx.update({
-                        'login_url': userapp.appviewurl(request,'login'),
-                        'logout_url': userapp.appviewurl(request,'logout')
-                        })
-            if hasattr(userapp,'userhomeurl'):
-                ctx['user_url'] = userapp.userhomeurl(request)
-    else:
-        grid = get_grid960(plink.page,settings)
-    ctx['grid'] = grid
+           'MEDIA_URL': settings.MEDIA_URL,
+           'grid': get_grid960(plink.page,settings)}
     return ctx
 
 

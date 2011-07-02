@@ -8,7 +8,7 @@ from hashlib import sha1
 from stdnet import orm
 from stdnet.utils import pickle, to_bytestring, to_string
 
-from djpcms import sites
+from djpcms import sites, secret_key
 from djpcms.utils import encrypt, decrypt
 
 # Use the system (hardware-based) random number generator if it exists.
@@ -34,14 +34,6 @@ def get_session_cookie_name():
         return sites.settings.get('SESSION_COOKIE_NAME',SESSION_COOKIE_NAME)
     else:
         return SESSION_COOKIE_NAME
-
-
-def secret_key():
-    '''Secret Key used as base key in encryption algorithm'''
-    if sites.settings:
-        return sites.settings.get('SECRET_KEY','sk').encode()
-    else:
-        return b'sk'
 
 
 def session_expiry():

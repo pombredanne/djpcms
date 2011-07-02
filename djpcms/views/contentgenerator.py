@@ -18,25 +18,20 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         self.djp     = djp
         self.page    = djp.page
         self.view    = djp.view
-        self.request = djp.request
         self.editing = editing
         self.b       = b
         
-    def render(self):
-        '''Render the Block by looping over all the content block items
-        '''
+    def stream(self):
         edit = '' if not self.editing else 'sortable-block '
         id   = block_htmlid(self.page.id,self.b)
-        def stream():
-            yield '<div id="{0}" class="{1}djpcms-block">'.format(id,edit)
-            for ht in self.blocks():
-                if ht:
-                    yield ht
-            yield EMPTY_VALUE + '</div>'
-        return force_str('\n'.join(stream()))
-    
+        yield '<div id="{0}" class="{1}djpcms-block">'.format(id,edit)
+        for ht in self.blocks():
+            if ht:
+                yield ht
+        yield '{0}</div>'.format(EMPTY_VALUE)
+            
     def __unicode__(self):
-        return self.render()
+        return '\n'.join(self.stream())
     
     def blocks(self):
         '''Function called within a template for generating all contents

@@ -38,11 +38,6 @@ def dump_data_value(v):
     return mark_safe(v)
 
 
-default_inner_template = '''\
-{% for child in children %}
-{{ child }}{% endfor %}'''
-
-
 class Renderer(object):
     '''A mixin for all classes which render into html.
 
@@ -162,6 +157,12 @@ with key ``name`` and value ``value`` and return ``self``.'''
     
     def render(self, djp = None, inner = None, keys = None, **kwargs):
         return self.maker.render_from_widget(djp, self, inner, keys or kwargs)
+    
+    @property
+    def html(self):
+        if not hasattr(self,'_html'):
+            self._html = self.render()
+        return self._html
 
 
 class WidgetMaker(Renderer):
@@ -209,14 +210,18 @@ it is a class used as factory for HTML components.
 .. attribute:: template
 
     optional template string for rendering the inner part of the widget.
+    Use with care as it slow down the rendering.
     
-    Default ``None``
+    Default ``None``.
     
 .. attribute:: template_name
 
     optional template file name, or iterable over template file names,
     for rendering the widget. If :attr:`template` is available, this attribute
     has no effect.
+    Use with care as it slow down the rendering.
+    
+    default ``None``.
     
 .. attribute:: key
 
@@ -254,7 +259,7 @@ it is a class used as factory for HTML components.
     is_hidden = False
     default_style = None
     inline = False
-    template = default_inner_template
+    template = None
     template_name = None
     attributes = ('id',)
     default_class = None
@@ -361,15 +366,18 @@ It returns self for concatenating data.'''
         '''Render the inner part of the widget. This can be overwritten by derived classes and should
 return the inner part of html. By default it renders the template if it is available, otherwise
 an empty string.'''
+        context = self.get_context(djp,widget,keys)
         if self.template or self.template_name:
-            context = self.get_context(djp,widget,keys)
             context.update({'maker':self,'widget':widget})
             if self.template:
                 return loader.template_class(self.template).render(context)
             else:
                 return loader.render(self.template_name,context)
         else:
-            return ''
+            return '\n'.join(self.stream(djp,widget,context))
+    
+    def stream(self, djp, widget, context):
+        return context['children']
 
     def child_widget(self, child, widget, **kwargs):
         w = child.widget(**widget.internal)

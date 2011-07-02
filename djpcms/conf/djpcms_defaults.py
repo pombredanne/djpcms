@@ -1,6 +1,7 @@
 import djpcms
 DEBUG = False
 SECRET_KEY = None
+PROFILING_KEY = None
 
 # List of installed application.
 # These must be dotted python paths

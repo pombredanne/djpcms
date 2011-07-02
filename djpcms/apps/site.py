@@ -99,6 +99,13 @@ If the application is not available, it returns ``None``. It never fails.'''
             return self.root.search_engine
         return self._search_engine
     
+    @property
+    def permissions(self):
+        if not self._permissions and self.root is not self:
+            return self.root.permissions
+        else:
+            return self._permissions
+    
     
 
 class ApplicationSites(SiteApp, djpcms.UnicodeMixin):
@@ -130,10 +137,11 @@ The sites singletone has several important attributes:
 '''
     modelwrappers = OrderedDict()
     model_from_hash = {}
+    profilig_key = None
     
     def __init__(self):
         self._init()
-        self.permissions = SimplePermissionBackend()
+        self._permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
         self.request_started = Signal()
         self.start_response = Signal()
@@ -226,7 +234,8 @@ It also initialise admin for models.'''
         return urls
     
     def make(self, name, settings = None, route = None,
-             handler = None, **params):
+             handler = None, permissions = None,
+             **params):
         '''Create a new ``djpcms`` :class:`djpcms.apps.appsites.ApplicationSite`
 from a directory or a file name. Extra configuration parameters,
 can be passed as key-value pairs:
@@ -235,6 +244,7 @@ can be passed as key-value pairs:
 :parameter settings: optional settings file name.
 :parameter route: the base ``url`` for the site applications.
 :parameter handler: an optional string defining the wsgi handler class for the application.
+:parameter permission: An optional :ref:`site permission handler <permissions>`.
 :parameter params: key-value pairs which override the values in the settings file.
 
 The function returns an instance of
@@ -290,7 +300,7 @@ The function returns an instance of
         if path not in settings.TEMPLATE_DIRS:
             settings.TEMPLATE_DIRS += path,
         
-        return self._create_site(route,settings,handler)
+        return self._create_site(route,settings,handler,permissions)
     
     def loadsettings(self, setting_module):
         '''Load settings to override existing settings'''
@@ -311,12 +321,12 @@ site is already registered at ``route``.'''
         else:
             return site
     
-    def _create_site(self,route,settings,handler):
+    def _create_site(self,route,settings,handler,permissions):
         from djpcms.apps import appsites
         route = closedurl(route or '')
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
-        site = appsites.ApplicationSite(self, route, settings, handler)
+        site = appsites.ApplicationSite(self, route, settings, handler, permissions)
         self._sites[site.path] = site
         self._osites = None
         self._urls = None
@@ -443,7 +453,8 @@ admin application will be included.
                 except ImportError:
                     pass # No management module
     
-        return gc            
+        return gc
+           
         
 sites = ApplicationSites()
 

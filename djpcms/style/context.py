@@ -371,11 +371,18 @@ CssContext('tabs',
 
 
 #________________________________________ MESSAGE LIST
+CssContext('messagelist_ul',
+           tag='ul.messagelist',
+           data = {
+                   'margin':'0 0 5px',
+                   }
+           )
 CssContext('messagelist',
            tag='ul.messagelist li',
            data = {
                    'margin':'0 0 3px',
-                   'padding':'4px 12px'}
+                   'padding':'4px 12px'
+                   }
            )
 
 

@@ -21,13 +21,13 @@ class ApplicationSite(SiteApp, RouteMixin):
     An instance of this class is used to handle url of
     registered applications.
     '''
-    def __init__(self, root, route, config, handler):
+    def __init__(self, root, route, config, handler, permissions):
         self._init()
         self.root = root
         self._route = RegExUrl(route)
         self.config = config
         self.settings = config
-        self._permissions = None
+        self._permissions = permissions
         self._search_engine = None
         self._registry = {}
         self._nameregistry = OrderedDict()
@@ -294,13 +294,6 @@ returns the application handler. If the appname is not available, it raises a Ke
     def template_context(self):
         self._load_template_processors()
         return self._template_context_processors
-    
-    @property
-    def permissions(self):
-        if self._permissions:
-            return self._permissions
-        else:
-            return self.root.permissions
     
     def add_default_inner_template(self, page):
         from djpcms.models import InnerTemplate

@@ -1,4 +1,6 @@
-
+'''\
+Permissions are controlled by the plugin the user provides.
+'''
 
 __all__ = ['PERMISSION_CODES',
            'PERMISSION_LIST',
@@ -8,7 +10,9 @@ __all__ = ['PERMISSION_CODES',
            'DELETE',
            'DELETEALL',
            'addcode',
-           'PermissionBackend']
+           'PermissionBackend',
+           'SimplePermissionBackend',
+           'SimpleLoginPermissionBackend']
 
 
 
@@ -61,4 +65,16 @@ class SimplePermissionBackend(PermissionBackend):
         else:
             return request.user.is_superuser
         
-        
+
+class SimpleLoginPermissionBackend(PermissionBackend):
+    
+    def has(self, request, permission_code, obj = None, model = None,
+            view = None, user = None):
+        if request.user.is_authenticated():
+            if permission_code <= VIEW:
+                return True
+            else:
+                return request.user.is_superuser
+        else:
+            return False
+

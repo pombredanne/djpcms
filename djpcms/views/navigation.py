@@ -71,7 +71,7 @@ class Navigator(LazyCounter):
         scn = css.secondary_in_list                
         items = []
         for djp,nav in sorted(((c,c.in_navigation()) for c in djp.children()), key = lambda x : x[1]):
-            if not nav:
+            if not nav or not djp.has_permission():
                 continue
             url = djp.url
             classes = []

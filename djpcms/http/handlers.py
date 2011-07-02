@@ -1,5 +1,6 @@
 from djpcms import UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
+from djpcms.utils.profiler import profile_response
 
 from .wrappers import Request, Response
 
@@ -73,7 +74,12 @@ class DjpCmsHandler(BaseSiteHandler):
 delegate the handling to them.'''
     def __call__(self, environ, start_response):
         self.root.request_started.send(self, environ = environ)
-        response = self._handle(environ, start_response)
+        if self.root.settings.PROFILING_KEY:
+            response = profile_response(environ, start_response,
+                                        self.root.settings.PROFILING_KEY,
+                                        self._handle)
+        else:
+            response = self._handle(environ, start_response)
         res = response(environ, start_response)
         self.root.request_finished.send(self, environ = environ)
         return res

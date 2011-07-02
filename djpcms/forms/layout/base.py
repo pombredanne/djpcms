@@ -68,32 +68,7 @@ class FormWidgetMaker(html.WidgetMaker):
             
 
 class FieldWidget(FormWidgetMaker):
-    template = """\
-{% if is_hidden %}{{ inner }}{% else %}
-<div class='ctrlHolder{% if error %} error{% endif %}
-{% if field.field.required %} required{% endif %}'>
-    <div id='{{ field.errors_id }}'>{{ errors }}
-    </div>{% if ischeckbox %}
-    <p class='label'></p>
-    <div class='field-widget'>
-    <label for='{{ field.id }}'>
-     {{ inner }}{% if label %}
-      {{ label }}{% endif %}
-    </label>
-    {% if field.help_text %}
-    <div id="hint_{{ field.id }}" class="formHint">
-    {{ field.help_text }}</div>{% endif %}
-    </div>{% else %}{% if label %}
-    <label for="{{ field.id }}" class="label">
-      {{ label }}
-    </label>{% endif %}
-    <div class="field-widget input {{ name }}">
-      {{ inner }}
-    </div>{% if field.help_text %}
-    <div id='hint_{{ field.id }}' class='formHint'>
-    {{ field.help_text }}</div>{% endif %}
-    {% endif %}
-</div>{% endif %}"""
+    default_class = 'ctrlHolder'
 
     def get_context(self, djp, widget, keys):
         bfield = widget.internal['field']
@@ -114,6 +89,42 @@ class FieldWidget(FormWidgetMaker):
                 'is_hidden': w.maker.is_hidden,
                 'ischeckbox':w.maker.ischeckbox()}
         
+    def stream(self, w, bfield, elem, whtml, parent):
+        name = bfield.name
+        error = bfield.form.errors.get(name,'')
+        if error:
+            elem.addClass('error')
+        if bfield.field.required:
+            elem.addClass('required')
+        label = '' if parent.default_style == nolabel else bfield.label
+        
+        if w.maker.ischeckbox():
+            yield "<p class='label'></p><div class='field-widget'>\
+<label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
+        else:
+            if label:
+                yield "<label for='{0}' class='label'>{1}</label>"\
+                        .format(bfield.id,label)
+            yield "<div class='field-widget input {0}'>{1}</div>".format(name,whtml)
+            if bfield.help_text:
+                yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
+                        format(bfield.id,bfield.help_text)
+
+                
+    def inner(self, djp, widget, keys):
+        bfield = widget.internal['field']
+        layout = widget.layout
+        parent = widget.parent.maker
+        w = bfield.field.get_widget(djp, bfield)
+        parent.add_widget_classes(bfield,w)
+        whtml = w.render(djp)
+        if w.maker.is_hidden:
+            return whtml
+        else:
+            elem = html.Widget('div', cn = self.default_class)
+            inner = '\n'.join(self.stream(w,bfield,elem,whtml,parent))
+            return elem.render(djp,inner)
+
 
 class BaseFormLayout(FormWidgetMaker):
     '''\

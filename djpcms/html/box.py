@@ -6,20 +6,22 @@ __all__ = ['BoxWidget','box']
 
 class BoxWidget(WidgetMaker):
     tag = 'div'
-    template = '''\
-{% if widget.hd %}
- <div class="hd {{ widget.header_classes }}">
-  <h2>{% if widget.title %}{{ widget.title }}{% endif %}</h2>{% if widget.menulist %}
-  <div class="edit-menu">{% for menu in widget.menulist %}
-   {{ menu }}{% endfor %}
-  </div>{% endif %}
- </div>{% endif %}
- <div class="bd {{ widget.body_classes }}">
- {{ widget.bd }}
- </div>{% if widget.ft %}
- <div class="ft {{ widget.footer_classes }}">
- {{ widget.ft }}
- </div>{% endif %}'''
+    
+    def stream(self, djp, widget, context):
+        ediv = '</div>'  
+        if widget.hd:
+            yield "<div class='hd {0}'>".format(widget.header_classes)
+            if widget.title:
+                yield "<h2>{0}</h2>".format(widget.title)
+            if widget.menulist:
+                yield "<div class='edit-menu'>"
+                for menu in widget.menulist:
+                    yield str(menu)
+                yield ediv
+            yield ediv
+        yield "<div class='bd {0}'>{1}</div>".format(widget.body_classes,widget.bd)
+        if widget.ft:
+            yield "<div class='ft {0}'>{1}</div>".format(widget.footer_classes,widget.ft)
     
 
 class Box(Widget):
@@ -27,6 +29,7 @@ class Box(Widget):
     header_classes = 'ui-widget-header'
     body_classes = 'ui-widget-content'
     footer_classes = 'ui-widget-content'
+    
     def __init__(self, hd = None, bd = None, ft = None, header_classes = None,
                  body_classes = None, footer_classes = None, **kwargs):
         self.menulist = []

@@ -149,3 +149,5 @@ def secret_key():
         return sites.settings.get('SECRET_KEY','sk').encode()
     else:
         return b'sk'
+    
+

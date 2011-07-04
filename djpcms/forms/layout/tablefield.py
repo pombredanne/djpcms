@@ -14,7 +14,6 @@ class TableRelatedFieldset(FormLayoutElement):
 class for handling formsets as tables.'''
     tag = 'div'
     default_style = 'tablerelated'
-    template = None
     template_name = ('djpcms/form-layouts/tableformset.html',)
     field_template = '''\
 {% if is_hidden %}{{ inner }}{% else %}

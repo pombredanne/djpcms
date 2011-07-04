@@ -1096,13 +1096,23 @@
             }
             
             // The call back from from to obtain the real data
-            function get_real_data(separator) {
+            function get_real_data(multiple,separator) {
                 return function(val) {
-                    var data = [];
-                    $.each(clean_data(split(val),this.data),function(i,d) {
-                        data.push(d.value);
-                    });
-                    return data.join(separator);
+                    if(multiple) {
+                        var data = [];
+                        $.each(clean_data(split(val),this.data),function(i,d) {
+                            data.push(d.value);
+                        });
+                        return data.join(separator);
+                    }
+                    else {
+                        if(this.data.length) {
+                            return this.data[0];
+                        }
+                        else {
+                            return val;
+                        }
+                    }
                 }
             }
                 
@@ -1114,7 +1124,7 @@
                     maxRows = data.maxrows || opts.maxRows,
                     multiple = data.multiple,
                     separator = data.separator || opts.separator,
-                    elemdata = {'get': get_real_data(separator),
+                    elemdata = {'get': get_real_data(multiple,separator),
                                 'data': []},
                     initials,
                     options = {

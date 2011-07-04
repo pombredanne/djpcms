@@ -1,10 +1,11 @@
 from djpcms import forms, html
+from djpcms.core.orms import registered_models_tuple
 
 from .models import PERMISSION_LIST, Role, User, Group
 
 
 def get_models(bfield):
-    return []
+    return sorted(registered_models_tuple(), key = lambda x : x[1])
 
 
 class RoleForm(forms.Form):

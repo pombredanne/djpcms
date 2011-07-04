@@ -2,6 +2,8 @@ import stdnet
 
 from py2py3 import iteritems
 
+from djpcms.utils.text import nicename
+
 from .base import BaseOrmWrapper
 
 
@@ -18,6 +20,8 @@ class OrmWrapper(BaseOrmWrapper):
         self.module_name = meta.name
         self.app_label   = meta.app_label
         self.hash = meta.hash
+        self.nicename = '{0} - {1}'.format(nicename(meta.app_label),
+                                      nicename(meta.name))
         #
         self.model_to_dict = model_to_dict
         self.get = self.objects.get

@@ -311,7 +311,7 @@ class BooleanField(Field):
 class ChoiceField(Field):
     '''A :class:`Field` which validates against a set of ``choices``.
 It has several additional attributes which can be used to customize its
-behaviour in validation as well as when rendering as an html widget.:
+behaviour in validation as well as when rendering in html::
 
 .. attribuite:: choices
 
@@ -415,10 +415,12 @@ iterable over choices and a model class (if applicable).'''
             widget.addData('multiple',self.multiple)\
                   .addData('minlength',self.minLength)\
                   .addData('maxrows',self.maxRows)
-            if model:                    
-                url = ch.url
-                #djp.site.get_url(model,'search')
-                widget.addData('url',url)
+            # If the choice field is on a model we need to have a url for searching
+            if model:
+                se = sites.search_engine
+                if se:
+                    url = se.search_url(model)
+                    widget.addData('url',url)
                 if value:
                     if self.multiple:
                         raise NotImplemented

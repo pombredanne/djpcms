@@ -5,6 +5,7 @@ from functools import reduce
 from py2py3 import iteritems, to_string
 
 from djpcms.utils.const import NOTHING
+from djpcms.utils.text import nicename
 
 import django
 
@@ -53,6 +54,8 @@ class OrmWrapper(BaseOrmWrapper):
         self.module_name = meta.module_name
         self.app_label   = meta.app_label
         self.hash = django_hash(self.model)
+        self.nicename = '{0} - {1}'.format(nicename(meta.app_label),
+                                      nicename(meta.name))
         #
         self.objects = self.model.objects
         self.get = self.objects.get

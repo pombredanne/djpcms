@@ -92,12 +92,14 @@ class FieldWidget(FormWidgetMaker):
     def stream(self, w, bfield, elem, whtml, parent):
         name = bfield.name
         error = bfield.form.errors.get(name,'')
-        if error:
-            elem.addClass('error')
         if bfield.field.required:
             elem.addClass('required')
-        label = '' if parent.default_style == nolabel else bfield.label
-        
+        label = '' if parent.default_style == nolabel else bfield.label        
+        if error:
+            elem.addClass('error')
+            
+        yield "<div id='{0}'>{1}</div>".format(bfield.errors_id,error)
+
         if w.maker.ischeckbox():
             yield "<p class='label'></p><div class='field-widget'>\
 <label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
@@ -279,7 +281,8 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 name = '.{0}'.format(cl)
             ListDict.add(name,
                          html.List(data = msg, cn = msg_class).render(),
-                         alldocument = False)
+                         alldocument = False,
+                         removable=True)
 
 
         

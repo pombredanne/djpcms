@@ -56,6 +56,7 @@ class Application(views.Application):
     
     def __init__(self,*args,**kwargs):
         self.engine = kwargs.pop('engine',None) or self.engine
+        self.forallsites = kwargs.pop('forallsites',True)
         if not self.engine:
             raise ValueError('Search engine not available')
         super(Application,self).__init__(*args,**kwargs)
@@ -63,6 +64,9 @@ class Application(views.Application):
     def registration_done(self):
         '''Set the search engine application in the site.'''
         self.site._search_engine = self
+        root = self.site.root
+        if not root._search_engine and self.forallsites:
+            root._search_engine = self
 
     def search_url(self, model):
         if model:

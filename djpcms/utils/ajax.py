@@ -166,10 +166,11 @@ class jhtmls(HeaderBody):
     '''Contains a list of objects
         {identifier, html and type}
     '''
-    def __init__(self, html = None, identifier = None, alldocument = True, type = 'replace'):
+    def __init__(self, html = None, identifier = None, alldocument = True,
+                        type = 'replace', removable = False):
         self.html = OrderedDict()
         if html != None:
-            self.add(identifier, html, type, alldocument)
+            self.add(identifier, html, type, alldocument, removable)
     
     def header(self):
         return 'htmls'
@@ -183,11 +184,13 @@ class jhtmls(HeaderBody):
         else:
             objr['html'] += obj['html']
         
-    def add(self, identifier, html = '', type = 'replace', alldocument = True):
-        obj = {'identifier':    identifier,
-               'html':          html,
-               'type':          type,
-               'alldocument':   alldocument}
+    def add(self, identifier, html = '', type = 'replace',
+                    alldocument = True, removable = False):
+        obj = {'identifier': identifier,
+               'html': html,
+               'type': type,
+               'alldocument': alldocument,
+               'removable': removable}
         self.__update(obj)
         
     def update(self, html):

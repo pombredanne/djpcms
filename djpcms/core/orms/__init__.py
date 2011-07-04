@@ -49,3 +49,11 @@ def getid(obj):
     else:
         return obj
         
+
+def registered_models_tuple():
+    for model in djpcms.sites.registered_models():
+        mp = mapper(model)
+        id = mp.hash
+        if id:
+            yield id,mp.nicename
+            

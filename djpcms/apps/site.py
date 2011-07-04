@@ -454,6 +454,17 @@ admin application will be included.
                     pass # No management module
     
         return gc
+    
+    def registered_models(self):
+        '''Generator of model Choices'''
+        p = set()
+        for site in self.all():
+            for model in site._registry:
+                if model not in p:
+                    p.add(model)
+                    yield model
+    
+    
            
         
 sites = ApplicationSites()

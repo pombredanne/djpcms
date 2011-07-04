@@ -12,5 +12,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sites = callable()
+        if 'stdnet.contrib.searchengine' not in sites.settings.INSTALLED_APPS:
+            print('"stdnet.contrib.searchengine" must be in yout "INSTALLED_APPS" list to use this command.')
+            exit(0)
+        if not args:
+            
         for model in installed_models(sites,args):
             pass

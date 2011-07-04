@@ -32,9 +32,12 @@ wrap existing object relational mappers.
     def __init__(self, model):
         self.model = model
         self.appmodel = None
+        self.hash = None
+        self.nicename = None
         self.test()
         self.setup()
-        sites.model_from_hash[self.hash] = model
+        if self.hash:
+            sites.model_from_hash[self.hash] = model
         
     def setup(self):
         pass
@@ -133,8 +136,8 @@ Return an iterable over items'''
 
 class DummyMapper(BaseOrmWrapper):
     
-    def __init__(self, model):
-        self.model = model
+    def test(self):
+        pass
     
     def all(self):
         return self.model.all()

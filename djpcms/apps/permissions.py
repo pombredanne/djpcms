@@ -28,7 +28,8 @@ PERMISSION_LIST = (
                    (VIEW,'VIEW'),
                    (ADD,'ADD'),
                    (CHANGE,'CHANGE'),
-                   (DELETE,'DELETE')
+                   (DELETE,'DELETE'),
+                   (DELETEALL,'DELETE ALL')
                   )
                     
 PERMISSION_CODES = dict(PERMISSION_LIST)

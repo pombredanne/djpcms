@@ -218,13 +218,15 @@ This class method can be useful when using forms outside web applications.'''
         # Fill the initial dictionary with data from fields and from the instance if available
         initials = self.initial
         instance = self.instance
+        instanceid = instance.id if instance else None
         for name,field in iteritems(self.base_fields):
             if name in initials:
                 continue
-            initial = field.get_initial(self)
-            if initial is not None:
-                initials[name] = initial
-            if self.instance:
+            if not instanceid:
+                initial = field.get_initial(self)
+                if initial is not None:
+                    initials[name] = initial
+            if instance:
                 value = self.value_from_instance(instance,name)
                 if value:
                     initials[name] = value

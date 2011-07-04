@@ -80,7 +80,7 @@ for page editing or creation or exit editing.'''
                                   title = 'Exit page editing',button=False)
     
     def userlinks(self):
-        site = self.app.site
+        site = self.request.DJPCMS.site
         userapp = site.for_model(site.User)
         if userapp:
             request = self.request

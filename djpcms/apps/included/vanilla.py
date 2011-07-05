@@ -12,6 +12,15 @@ This is the plain vanilla of all applications. It has the standard five views
 from djpcms import views
 
 
+class SimpleTabular(views.ModelApplication):
+    '''A very simple application for sdisplaying a table'''
+    table_parameters = {'footer':False,
+                        'data':{'options':{'sDom':'t'}}}
+    table_actions = ()
+    in_navigation = 0
+    search = views.SearchView(astable = True)
+    
+
 class Application(views.ModelApplication):
     search = views.SearchView()
     add = views.AddView()

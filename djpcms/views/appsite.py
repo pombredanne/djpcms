@@ -238,6 +238,7 @@ of objects. Default is ``None``.'''
     in_navigation = None
     table_actions = []
     table_links = None
+    table_parameters = {}
     
     # Submit buton customization
     _form_add        = 'add'
@@ -498,13 +499,16 @@ By default it return a generator of children pages.'''
         
         if view.astable and headers:
             items = self.table_generator(djp, headers, p.qs)
-            ajax = djp.url if view.astable == 'ajax' else None
+            params = deepcopy(self.table_parameters)
+            if 'ajax' not in params:
+                ajax = djp.url if view.astable == 'ajax' else None
+                params['ajax'] = ajax
             return Table(headers,
                          items,
                          appmodel = appmodel,
                          paginator = p,
                          size = p.per_page,
-                         ajax = ajax).render(djp)
+                         **params).render(djp)
         else:
             c  = djp.kwargs.copy()
             c.update({'paginator': p,

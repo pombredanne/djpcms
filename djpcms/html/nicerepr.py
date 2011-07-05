@@ -28,7 +28,7 @@ spvval = '<span class="value">'
 def table_checkbox(val,id):
     if val:
         chk = CheckboxInput(name = 'action-item', value = id).render()
-        val = divchk+chk+spvval+val+SPANEND+DIVEND
+        val = divchk+chk+spvval+str(val)+SPANEND+DIVEND
     return mark_safe(val)
 
 

@@ -190,7 +190,7 @@
                         data = elem.data('options') || {},
                         buttons = [];
                     if(tbl.length == 1) {
-                        opts = $.extend(true,data,opts);
+                        opts = $.extend(true,{},opts,data);
                         if (!opts.sAjaxSource) {
                             opts.fnServerData = $.proxy(that.fnServerData,that);
                         }

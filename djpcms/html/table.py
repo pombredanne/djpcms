@@ -92,8 +92,8 @@ the dataTable_ jQuery plugin.
     def __init__(self, headers, body = None, appmodel = None,
                  model = None, paginator = None, toolbox = True,
                  ajax = None, size = 25, size_choices = None,
-                 paginate = True, footer = True, **params):
-        super(Table,self).__init__(**params)
+                 paginate = True, footer = True,
+                 **params):
         self.toolbox = toolbox
         self.ajax = ajax
         self.footer = footer
@@ -114,7 +114,6 @@ the dataTable_ jQuery plugin.
                                    body = body,
                                    paginator = paginator,
                                    **params)
-        
         options = {'aoColumns': list(self.maker.aoColumns(headers)),
                    'iDisplayLength':size,
                    'bPaginate':paginate}
@@ -123,6 +122,8 @@ the dataTable_ jQuery plugin.
             options['bServerSide'] = True
             if ajax:
                 options['sAjaxSource'] = ajax
+        if 'options' in self.data:
+            options.update(self.data['options'])
         self.addData('options',options)
 
     def items(self, djp):

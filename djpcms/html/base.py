@@ -75,7 +75,8 @@ handling HTML classes, attributes and data on a html rendeble object::
 Any Operation on this class is similar to jQuery.
 '''    
     maker = None
-    def __init__(self, maker = None, cn = None, data = None, **params):
+    def __init__(self, maker = None, cn = None, data = None,
+                 options = None, **params):
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]

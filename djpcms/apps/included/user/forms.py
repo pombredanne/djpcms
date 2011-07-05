@@ -44,25 +44,19 @@ class LoginForm(forms.Form):
         return self.save()
     
 
-class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=32)
+class PasswordChangeForm(forms.Form):
     password = forms.CharField(max_length=32,
                                widget=html.PasswordInput())
     re_type  = forms.CharField(max_length=32,
                                widget=html.PasswordInput(),
                                label="Re-enter password")
-    #email_address = UniqueEmail(help_text="This will be used for confirmation only.")
-    
-    def clean_username(self, value):
-        '''Username must be unique and without spaces'''
-        value = value.replace(' ','')
-        if not value:
-            raise forms.ValidationError('Empty')
-        elif self.mapper.filter(username = value):
-            raise forms.ValidationError('Not available')
-        return value
     
     def clean(self):
+        if not self.user:
+            raise forms.ValidationError('Not logged in')
+        return self.double_check_password()
+    
+    def double_check_password(self):
         data     = self.cleaned_data
         password = data.get("password")
         re_type  = data.get("re_type")
@@ -80,6 +74,28 @@ class RegisterForm(forms.Form):
         return data
     
     def save(self, commit = True):
+        self.user.set_password(self.cleaned_data['password'])
+        self.user.save()
+        return self.user
+        
+ 
+class RegisterForm(PasswordChangeForm):
+    username = forms.CharField(max_length=32)
+    #email_address = UniqueEmail(help_text="This will be used for confirmation only.")
+    
+    def clean_username(self, value):
+        '''Username must be unique and without spaces'''
+        value = value.replace(' ','')
+        if not value:
+            raise forms.ValidationError('Please provide a username')
+        elif self.mapper.filter(username = value):
+            raise forms.ValidationError('Not available')
+        return value
+    
+    def clean(self):
+        return self.double_check_password()
+    
+    def save(self, commit = True):
         '''Create the new user.'''
         cd = self.cleaned_data
         return create_user(self.mapper,cd['username'],cd['password'])
@@ -91,8 +107,4 @@ class UserChangeForm(forms.Form):
     email = forms.CharField(required = False)
     is_superuser = forms.BooleanField(required = False)
     is_active = forms.BooleanField(required = False)
-    
-
-class PasswordChangeForm(RegisterForm):
-    pass
     

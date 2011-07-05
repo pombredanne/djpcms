@@ -211,8 +211,7 @@ Return an iterable over ordered items (by position) in block
     
 class MarkupMixin(object):
     
-    def htmlbody(self):
-        text = self.body
+    def htmlbody(self, text):
         if not text:
             return ''
         mkp = markups.get(self.markup)

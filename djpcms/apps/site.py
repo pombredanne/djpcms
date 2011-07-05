@@ -143,6 +143,7 @@ The sites singletone has several important attributes:
         self._init()
         self._permissions = SimplePermissionBackend()
         self.handle_exception = standard_exception_handle
+        self.on_site_loaded = Signal()
         self.request_started = Signal()
         self.start_response = Signal()
         self.request_finished = Signal()
@@ -231,6 +232,7 @@ It also initialise admin for models.'''
             urls += url(str(regex), site),
         # Load flat pages to site map
         self.tree.load()
+        self.on_site_loaded.send(self)
         return urls
     
     def make(self, name, settings = None, route = None,

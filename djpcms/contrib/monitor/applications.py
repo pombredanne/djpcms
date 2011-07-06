@@ -5,7 +5,7 @@ import djpcms
 from djpcms import views, html, forms, sites
 from djpcms.html import icons
 from djpcms.template import loader
-from djpcms.apps.included.admin import AdminApplication
+from djpcms.apps.included.admin import AdminApplication, TabView
 from djpcms.utils import mark_safe
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import nicetimedelta
@@ -61,6 +61,29 @@ class RedisMixin(object):
     def get_redisdb(self, instance, db):
         r = self.get_redis(instance, db = int(db))
         return RedisDbData(rpy = r)
+        
+
+class RedisTabView(TabView):
+    
+    def render_object_view(self, djp, appmodel, instance):
+        r = appmodel.get_redis(instance)
+        try:
+            info = redis_info(r, formatter = appmodel.formatter)
+        except redis.ConnectionError:
+            left_panels = [{'name':'Server','value':'No Connection'}]
+            right_panels = ()
+        else:
+            panels = info.panels()
+            left_panels = ({'name':k,
+                            'value':html.ObjectDefinition(appmodel,djp,v)}\
+                                             for k,v in panels.items())
+            view = appmodel.getview('db-home')(djp.request,**djp.kwargs)
+            dbs = view.render()
+            right_panels = ({'name':'Databases',
+                             'value':dbs},)
+        return loader.render(appmodel.template_view,
+                            {'left_panels':left_panels,
+                             'right_panels':right_panels})
         
 
 class RedisKeyApplication(RedisMixin, views.ModelApplication):
@@ -124,31 +147,12 @@ class RedisMonitorApplication(RedisMixin,AdminApplication):
     inherit = True
     form = ServerForm
     list_per_page = 100
-    formatter = Formatter()
-    
-    list_display = ['host','port','notes']
-    redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
     template_view = ('monitor/monitor.html',)
-        
-    def render_object_view(self, djp):
-        r = self.get_redis(djp.instance)
-        try:
-            info = redis_info(r, formatter = self.formatter)
-        except redis.ConnectionError:
-            left_panels = [{'name':'Server','value':'No Connection'}]
-            right_panels = ()
-        else:
-            panels = info.panels()
-            left_panels = ({'name':k,
-                            'value':html.ObjectDefinition(self,djp,v)}\
-                                             for k,v in panels.items())
-            view = self.getview('db-home')(djp.request,**djp.kwargs)
-            dbs = view.render()
-            right_panels = ({'name':'Databases',
-                             'value':dbs},)
-        return loader.render(self.template_view,
-                            {'left_panels':left_panels,
-                             'right_panels':right_panels})
+    list_display = ['host','port','notes']
+    formatter = Formatter()
+    object_widgets = views.extend_widgets({'home':RedisTabView()})
+    
+    redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
     
     def dburl(self, db):
         dbview = self.getview('db')

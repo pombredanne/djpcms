@@ -252,8 +252,12 @@ or in the constructor.
     nice_headers_handler = None
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
-    object_widgets = {'home':html.ObjectDef(),
-                      'list':html.ObjectItem(default_class='list-item')}
+    object_widgets = {
+          'home':html.ObjectDef(),
+          'list':html.ObjectItem(default_class='list-item'),
+          'pagination':html.ObjectItem(
+                                default_class='pagination-item')
+          }
     in_navigation = None
     table_actions = []
     table_links = None
@@ -511,13 +515,13 @@ By default it return a generator of children pages.'''
         headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
+        size = appmodel.list_per_page
         
         if view.astable and headers:
             params = deepcopy(self.table_parameters)
             if 'ajax' not in params:
                 ajax = djp.url if view.astable == 'ajax' else None
                 params['ajax'] = ajax
-            size = appmodel.list_per_page
             if params['ajax']:
                 p = Paginator(djp.request,
                               query,
@@ -544,7 +548,10 @@ By default it return a generator of children pages.'''
                       'css': djp.css,
                       'appmodel': appmodel,
                       'headers': headers})
-            c['items'] = self.data_generator(djp, p.qs)
+            maker = self.object_widgets['pagination']
+            c['items'] = (maker.widget(appmodel = self,
+                                       instance = item).render(djp)\
+                          for item in p.qs)
             return loader.render(self.pagination_template_name, c)
 
     def for_user(self, djp):
@@ -804,16 +811,6 @@ This dictionary should be used to render an object within a template. It returns
             pass
         return self.site.for_model(obj.__class__)
     
-    def paginate(self, request, data, prefix, wrapper):
-        '''Paginate data'''
-        object_content = self.object_content
-        template_name = '%s/%s_search_item.html' % (
-                            self.opts.app_label,self.opts.module_name)
-        pa = Paginator(data = data, request = request)
-        render = loader.render
-        for obj in pa.qs:
-            yield render(template_name, object_content(djp, obj))
-    
     def render_object(self, djp, instance = None, context = None, cn = None):
         '''Render an object in its object page.
         This is usually called in the view page of the object.
@@ -834,18 +831,6 @@ This dictionary should be used to render an object within a template. It returns
         id = self.mapper.unique_id(obj)
         obj.delete()
         return id
-    
-    def data_generator(self, djp, data):
-        '''
-        Return a generator for the query.
-        This function can be overritten by derived classes
-        '''
-        request = djp.request
-        app = self
-        render = loader.render
-        for obj in data:
-            content = app.object_content(djp, obj)
-            yield render(self.get_item_template(obj), content)
     
     def get_object_view_template(self, obj, wrapper):
         '''Return the template file which render the object *obj*.

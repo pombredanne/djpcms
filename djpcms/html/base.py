@@ -389,7 +389,7 @@ an empty string.'''
     def get_context(self, djp, widget, keys):
         '''Function called by :meth:`inner` method when the widget needs to be rendered via a template.
 It returns a dictionary of variables to be passed to the template engine.'''
-        ctx = {}
+        ctx = widget.internal
         # Loop over fields and delivers the goods
         children = []
         for child in self.allchildren:

@@ -671,6 +671,7 @@ class DeleteView(ObjectView):
     '''
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
+    ajax_enabled = True
     default_title = 'delete {0[instance]}'
     _methods      = ('post',)
     

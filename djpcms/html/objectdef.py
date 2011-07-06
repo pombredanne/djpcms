@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from py2py3 import zip, to_string
+from py2py3 import zip, to_string, itervalues
 
 from djpcms import UnicodeMixin
 from djpcms.utils import smart_escape
@@ -73,27 +73,31 @@ Usage::
         return loader.render(template, ctx)
         
 
-object_data = namedtuple('object_data','appmodel instance view links')
-
 class ObjectItem(WidgetMaker):
     tag = 'div'
-    def get_data(self, djp, widget):
-        appmodel = widget.internal['appmodel']
-        instance = widget.internal['instance']
-        links = dict(application_links(appmodel,djp,
-                                       instance = instance,
+
+    def get_context(self, djp, widget, keys):
+        ctx = super(ObjectItem,self).get_context(djp, widget, keys)
+        links = dict(application_links(ctx['appmodel'],
+                                       djp,
+                                       instance = ctx['instance'],
                                        asbuttons = False,
                                        as_widget = True))
         view = links.pop('view',None)
-        return object_data(appmodel,instance,view,links)
+        if not view:
+            view = links.pop('change',None)
+        ctx['links'] = links
+        ctx['view'] = view
+        ctx['link_list'] = itervalues(links)
+        return ctx
         
-    def inner(self, djp, widget, keys):
-        data = self.get_data(djp, widget)
-        if data.view:
-            item = data.view
+    def stream(self, djp, widget, context):
+        view = context.get('view',None)
+        if view:
+            item = view
         else:
-            item = str(data.instance)
-        return item
+            item = str(context['instance'])
+        yield item
 
 
 class ObjectDef(ObjectItem):

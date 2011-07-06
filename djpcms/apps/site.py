@@ -62,11 +62,12 @@ def standard_exception_handle(request, e, status = None):
     #store stack trace in the DJPCMS environment variable
     info.stack_trace = traceback.format_exception(*exc_info)
     stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info.stack_trace))
-    ctx  = loader.context({'status':status,
-                           'status_text':http.STATUS_CODE_TEXT.get(status,http.UNKNOWN_STATUS_CODE)[0],
-                           'stack_trace':stack_trace,
-                           'settings':site.settings},
-                           request)
+    ctx = {'status':status,
+           'status_text':http.STATUS_CODE_TEXT.get(status,
+                                http.UNKNOWN_STATUS_CODE)[0],
+           'stack_trace':stack_trace,
+           'settings':site.settings}
+    ctx  = loader.context(ctx, request)
     html = loader.render((template,
                           'djpcms/errors/'+template,
                           'djpcms/errors/error.html'),

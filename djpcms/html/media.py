@@ -92,13 +92,19 @@ There are two properties used for rendering, they both return a generator over m
                     if not self._css.get(medium) or path not in self._css[medium]:
                         self._css.setdefault(medium, []).append(path)
 
-    def __add__(self, other):
+    def add(self, other):
         if isinstance(other,Media):
-            combined = Media()
             for name in MEDIA_TYPES:
-                getattr(combined, 'add_' + name)(getattr(self, '_' + name, None))
-                getattr(combined, 'add_' + name)(getattr(other, '_' + name, None))
-            return combined
-        else:
-            return self
+                getattr(self, 'add_{0}'.format(name))(\
+                            getattr(other, '_{0}'.format(name)))
+        return self
 
+    #def __add__(self, other):
+    #    if isinstance(other,Media):
+    #        combined = Media()
+    #        for name in MEDIA_TYPES:
+    #            getattr(combined, 'add_' + name)(getattr(self, '_' + name, None))
+    #            getattr(combined, 'add_' + name)(getattr(other, '_' + name, None))
+    #        return combined
+    #    else:
+    #        return self

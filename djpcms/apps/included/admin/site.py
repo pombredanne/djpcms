@@ -1,6 +1,6 @@
 from py2py3 import iteritems
 
-from djpcms import views
+from djpcms import views, html
 from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
@@ -21,24 +21,26 @@ ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
                               'djpcms/admin/groups.html')
 
 
-class TabViewMixin(object):
-    view_template = 'djpcms/admin/viewtemplate.html'
-    views_ordering = {'view':0,'change':1}
-
-    def render_object(self, djp):
-        '''A function for rendering a model instance
+class TabView(html.ObjectItem):
+    '''A function for rendering a model instance
     like in the admin interface. Using jQuery UI tabs.
     This is usually called in the view page of the object.
     
     :parameter self: instance of a :class:`djpcms.views.ModelApplication`
     :parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
+    
+    view_template = 'djpcms/admin/viewtemplate.html'
+        
+    def inner(self, djp, widget, keys):
         ctx = []
+        appmodel = widget.internal['appmodel']
+        instance = widget.internal['instance']
         request = djp.request
-        for view in self.object_views:
+        for view in appmodel.object_views:
             if 'get' not in view.methods(request):
                 continue
             if isinstance(view,views.ViewView):
-                html = self.render_object_view(djp)
+                html = self.render_object_view(djp,appmodel,instance)
             else:
                 dv = view(djp.request, **djp.kwargs)
                 try:
@@ -47,7 +49,7 @@ class TabViewMixin(object):
                     continue
                 html = dv.render()
             name = view.name
-            o  = self.views_ordering.get(name,100)
+            o  = appmodel.views_ordering.get(name,100)
             ctx.append({'name':view.description or nicename(name),
                         'id':name,
                         'value':html,
@@ -55,8 +57,12 @@ class TabViewMixin(object):
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
         return loader.render(self.view_template,ctx)
 
-    def render_object_view(self, djp):
-        return force_str(ObjectDefinition(self, djp))
+    def render_object_view(self, djp, appmodel, instance):
+        return force_str(ObjectDefinition(appmodel, djp, instance = instance))
+
+
+class TabViewMixin(object):
+    views_ordering = {'view':0,'change':1}
 
 
 class ApplicationGroup(views.Application):
@@ -73,7 +79,8 @@ administer a group of :class:`djpcms.views.Applications`.'''
             title = r.title
             appmodel = r.view.appmodel
             home = appmodel.root_view(request,**djp.kwargs)
-            links = ''.join(application_links(appmodel,djp,as_widget=True))
+            links = ''.join((l[1] for l in application_links(appmodel,
+                                                    djp,as_widget=True)))
             yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 
@@ -104,6 +111,7 @@ class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
     delete_all = views.DeleteAllView()
     view   = views.ViewView()
     delete = views.DeleteView()
+    object_widgets = views.extend_widgets({'home':TabView()})
     
     
 class AdminApplication(AdminApplicationSimple):

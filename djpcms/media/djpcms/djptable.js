@@ -225,10 +225,11 @@
                                 }
                             });
                         }
-                        buttons.push("csv");
+                        //buttons.push("csv");
                         buttons.push("pdf");
                         opts.oTableTools.aButtons = buttons;
                         
+                        // Create the datatable
                         tbl.dataTable(opts);
                         //
                         // Add Actions on Rows
@@ -238,7 +239,7 @@
                                 r = $('div.row-selector',elem).html(
                             "<span class='selectors'>Select:" +
                             " <a class='select_all' href='#'>All</a>," +
-                            "<a class='select_none' href='#'>None</a></span>");
+                            " <a class='select_none' href='#'>None</a></span>");
                             s = $("<select><option value=''>Actions</option></select>").appendTo(r);
                             $.each(actions.choices, function() {
                                 s.append("<option value='" + this[0] + "'>" + this[1] + "</option>");
@@ -251,6 +252,7 @@
                         if(elem.data('groups')) {
                             $.djpcms.dataTable.addViews(tbl,elem.data('groups'));
                         }
+                        $('.dataTables_filter input').addClass('ui-widget-content');
                         tbl.show();
                     }
                 });

@@ -72,10 +72,6 @@ class SearchModelForm(FormModelForm):
     tooltip  = forms.CharField(required = False, max_length = 50)
 
 
-class FilterModelForm(FormModelForm):
-    pass
-
-
 class ModelLinksForm(forms.Form):
     asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
     layout = forms.ChoiceField(choices = (('horizontal','horizontal'),
@@ -175,38 +171,6 @@ class RenderObject(DJPplugin):
         return djp.site.get_url(self.for_model, 'change', instance = obj, all = True)
       
     
-
-class ModelFilter(DJPplugin):
-    '''Display filters for a model registered in the application registry.'''
-    name = 'model-filter'
-    description = 'Filter a model'
-    form = FilterModelForm
-    
-    def render(self, djp, wrapper, prefix, for_model = None,
-               ajax = False, method = 'get', **kwargs):
-        appmodel, ok = app_model_from_ct(for_model)
-        if not ok:
-            return appmodel
-        filters = appmodel.search_fields
-        if not filters:
-            return ''
-        request = djp.request
-        search_url = appmodel.searchurl(request)
-        if not search_url:
-            return ''
-        model = appmodel.model
-        initial = dict((request.GET or request.POST).items())
-        form = forms.modelform_factory(model, appmodel.form, fields = filters, exclude = [])
-        form.layout = FormLayout()
-        f = UniForm(form(initial = initial),
-                    method = method,
-                    action = search_url)
-        if ajax:
-            f.addClass(djp.css.ajax)
-        f.inputs.append(input(value = 'filter', name = '_filter'))
-        return f.render()
-    
-    
 class ModelLinks(DJPplugin):
     name = 'model-links'
     description = 'Links for a model'
@@ -243,38 +207,28 @@ class ObjectLinks(ModelLinks):
 class ModelItemsList(DJPplugin):
     '''Display filtered items for a Model.'''
     name = 'model-items'
-    description    = 'Filtered Items list for a model'
+    description    = 'Filtered items for a model'
     form           = ModelItemListForm
-    template_names = {
-                      'list': ('djpcms/plugins/latestitems/list.html',),
-                      'item': ('djpcms/plugins/latestitems/item.html',)
-                      }       
-    
-    def get_templates(self, opts, name):
-        template = '{0}/{1}/latestitems/{2}.html'.format(opts.app_label,
-                                                         opts.module_name,
-                                                         name)
-        return (template,) + self.template_names[name]
-        
-    def datagen(self, appmodel, djp, wrapper, items):
-        templates = self.get_templates(appmodel.mapper,'item')
-        for obj in items:
-            content = appmodel.object_content(djp, obj)
-            yield loader.render(templates,content)
     
     def query(self, val):
+        r = {}
         if val:
             try:
-                return dict(QueryDict(val).items())
+                for k,v in QueryDict(val).lists():
+                    if len(v) > 1:
+                        k = '{0}__in'.format(k)
+                    else:
+                        v = v[0]
+                    r[k] = v
             except:
-                pass
-        return {}
+                return r
+        return r
     
     def render(self, djp, wrapper, prefix,
                for_model = None, max_display = 5,
                pagination = False, filter = None,
                exclude = None, order_by = None,
-               display_if_empty = False,
+               display_if_empty = '',
                **kwargs):
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
         qs = appmodel.basequery(djp).filter(**self.query(filter))\
@@ -283,9 +237,10 @@ class ModelItemsList(DJPplugin):
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:
-            return ''
-        templates = self.get_templates(appmodel.mapper,'list')
-        ctx = {'items': self.datagen(appmodel, djp, wrapper, items)}
-        return loader.render(templates,ctx)
+            return display_if_empty
+        w = html.Widget('div', cn = 'filtered-list')
+        render_object = appmodel.render_object
+        inner = '\n'.join(render_object(djp, item, 'list') for item in items)
+        return w.render(djp,inner)
 
     

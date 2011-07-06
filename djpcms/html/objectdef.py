@@ -1,16 +1,20 @@
-from py2py3 import zip
+from collections import namedtuple
+
+from py2py3 import zip, to_string
 
 from djpcms import UnicodeMixin
 from djpcms.utils import smart_escape
 from djpcms.utils.text import nicename
 from djpcms.template import loader
 
+from .base import WidgetMaker, Widget
+from .apptools import application_links
 from .nicerepr import results_for_item
 
 
 OBJECT_DEF_TEMPLATE = 'djpcms/object_definition.html'
 
-__all__ = ['ObjectDefinition']
+__all__ = ['ObjectDefinition','ObjectItem','ObjectDef']
 
 
 #def add_definition(data, name, value):
@@ -33,12 +37,12 @@ Usage::
     >>> str(d)
     
 '''
-    def __init__(self, appmodel, djp, data = None):
+    def __init__(self, appmodel, djp, data = None, instance = None):
         self.appmodel = appmodel
         self.djp = djp
         self.data = data
         self.mapper = None if not appmodel else appmodel.mapper
-        self.obj = djp.instance
+        self.obj = instance if instance is not None else djp.instance
            
     def __unicode__(self):
         '''Render an object as definition list.'''
@@ -68,3 +72,36 @@ Usage::
             template = OBJECT_DEF_TEMPLATE
         return loader.render(template, ctx)
         
+
+object_data = namedtuple('object_data','appmodel instance view links')
+
+class ObjectItem(WidgetMaker):
+    tag = 'div'
+    def get_data(self, djp, widget):
+        appmodel = widget.internal['appmodel']
+        instance = widget.internal['instance']
+        links = dict(application_links(appmodel,djp,
+                                       instance = instance,
+                                       asbuttons = False,
+                                       as_widget = True))
+        view = links.pop('view',None)
+        return object_data(appmodel,instance,view,links)
+        
+    def inner(self, djp, widget, keys):
+        data = self.get_data(djp, widget)
+        if data.view:
+            item = data.view
+        else:
+            item = str(data.instance)
+        return item
+
+
+class ObjectDef(ObjectItem):
+    tag = None
+    
+    def inner(self, djp, widget, keys):
+        appmodel = widget.internal['appmodel']
+        instance = widget.internal['instance']
+        return to_string(ObjectDefinition(appmodel, djp,
+                                          instance=instance))
+            

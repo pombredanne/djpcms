@@ -106,7 +106,10 @@ def djpcms(request):
     page = info.page
     settings = site.settings
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
-    plink = PageLink(request).addClass('horizontal user right')
+    try:
+        plink = PageLink(request).addClass('horizontal user right')
+    except Exception as e:
+        plink = html.Widget()
     user = getattr(request,'user',None)
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
@@ -120,7 +123,7 @@ def djpcms(request):
            'release': not debug,
            'now': datetime.now(),
            'MEDIA_URL': settings.MEDIA_URL,
-           'grid': get_grid960(plink.page,settings)}
+           'grid': get_grid960(page,settings)}
     return ctx
 
 

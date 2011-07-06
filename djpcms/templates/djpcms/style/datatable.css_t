@@ -84,6 +84,10 @@
     float: {{ dataTables_info_float }};
     margin: {{ dataTables_info_margin }};
 }
+{{ tag }} div.dataTables_filter {
+    float: {{ dataTables_filter_float }};
+    margin: {{ dataTables_filter_margin }};
+}
 {{ tag }} div.row-selector {
     float: {{ row_selector_float }};
     margin: {{ row_selector_margin }};

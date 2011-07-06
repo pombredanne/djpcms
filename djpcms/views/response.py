@@ -156,16 +156,14 @@ which corresponds to ``self``'''
         h[1] = ct
         
     def __get_media(self):
-        media = getattr(self,'_media',None)
+        media = getattr(self.request,'_media',None)
         if media is None:
             media = self.view.media()
             if media is None:
                 media = html.Media()
-            setattr(self,'_media',media)
+            setattr(self.request,'_media',media)
         return media
-    def __set_media(self, other):
-        setattr(self,'_media',other)
-    media = property(__get_media,__set_media)
+    media = property(__get_media)
     
     def getdata(self, name):
         '''Extract data out of url dictionary. Return ``None`` if ``name`` is not in the dictionary.'''

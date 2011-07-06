@@ -38,7 +38,8 @@ def application_links(appmodel,
                       asbuttons = True,
                       exclude = None,
                       include = None,
-                      as_widget = False):
+                      as_widget = False,
+                      instance = None):
     '''Create a list of application links available to the user.
 This function is used in conjunction with an instance of an :class:`djpcms.views.Application`
 instance.
@@ -53,13 +54,13 @@ instance.
     permissions = djp.site.permissions
     css = djp.css
     request = djp.request
-    instance = djp.instance
     links = []
     exclude = exclude or []
     for ex in appmodel.exclude_links:
         if ex not in exclude:
             exclude.append(ex)
-    kwargs  = djp.kwargs
+    kwargs  = djp.kwargs.copy()
+    kwargs['instance'] = instance
     
     if include is None:
         include = appmodel.views
@@ -70,16 +71,24 @@ instance.
             if not view:
                 continue
             ajax_enabled = view.ajax_enabled
-            if ajax_enabled is None:
+            if instance:
+                if not view.object_view:
+                    continue
+            elif ajax_enabled is None:
                 continue
             descr = view.description or view.name
+            dview = view(request, **kwargs)
             try:
-                title = view.title(djp)
+                url = dview.url
             except:
                 continue
+            if not dview.has_permission():
+                continue
+            # The special view class
+            #display = nicename(view.name)
             elem = table_menu_link(view.name,
-                                   nicename(view.name),
-                                   title,
+                                   dview.linkname,
+                                   dview.title,
                                    view.PERM,
                                    view.ICON,
                                    view.DEFAULT_METHOD,
@@ -89,30 +98,24 @@ instance.
             if not view:
                 if not hasattr(appmodel,'ajax__{0}'.format(elem.view)):
                     continue
-        
-        if not view:
+                dview = djp
+            else:
+                dview = view(request, **kwargs)
             url = djp.url
-        else:
-            view = view(request, **kwargs)
-            try:
-                url = view.url
-            except:
-                continue
-            if not view.has_permission():
-                continue
         
         if as_widget:
             a = Widget(tag).addAttr('title',elem.title)\
+                           .addData('view',elem.view)\
                            .addData('method',elem.method)\
-                           .addData('warning',view.warning_message())
+                           .addData('warning',view.warning_message(dview))
             if elem.ajax:
                 a.addClass(css.ajax)
-            if elem.icon:
-                if a.tag == 'a':
-                    a.addClass(elem.icon).addAttr('href',url)
-                else:
-                    a.addData('icon', elem.icon).addData('href',url)
-            elem = a.render(inner = elem.display)
+            
+            if a.tag == 'a':
+                a.addAttr('href',url).addClass(elem.icon)
+            else:
+                a.addData('icon', elem.icon).addData('href',url)
+            elem = (elem.view, a.render(inner = elem.display))
         else:
             elem = elem._asdict()
             elem['url'] = url

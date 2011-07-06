@@ -256,7 +256,6 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
             else:
                 t_djp = djp
             html = self.app.render(t_djp)
-            djp.media += t_djp.media
         return html
     
     def media(self):

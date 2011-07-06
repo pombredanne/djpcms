@@ -10,7 +10,7 @@ from py2py3 import iteritems, is_string,\
                     is_bytes_or_string, to_string
 
 import djpcms
-from djpcms import forms
+from djpcms import forms, html
 from djpcms.html import ObjectDefinition, Paginator, Table, SubmitInput,\
                         application_action
 from djpcms.template import loader
@@ -31,7 +31,8 @@ from .regex import RegExUrl
 
 __all__ = ['Application',
            'ModelApplication',
-           'application_action']
+           'application_action',
+           'extend_widgets']
 
 SPLITTER = '-'
 
@@ -112,6 +113,13 @@ def process_views(view,views,app):
         return view
 
 
+def extend_widgets(d, target = None):
+    target = target if target is not None else Application.object_widgets
+    target = target.copy()
+    target.update(d)
+    return target
+
+
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
     '''Base class for djpcms
 applications. It defines a set of views which are somehow related to each other
@@ -161,6 +169,15 @@ or in the constructor.
 
     An list or a tuple over attribute's names to display in pagination views.
     
+        Default ``()``
+    
+.. attribute:: ordering
+
+    On optional string indicating the default field for ordering. Starting with
+    a minus means in descending order.
+    
+        Default ``None``
+        
 .. attribute:: table_actions
 
     A list of :class:`application_action` used by table pagination for bulk actions on
@@ -210,6 +227,7 @@ or in the constructor.
     has_plugins      = True
     hidden           = False
     related_field    = None
+    ordering = None
     '''If ``True`` the application is only used internally and it won't
     appear in any navigation.
     
@@ -228,13 +246,14 @@ or in the constructor.
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
     list_display_links = ()
-    '''List of object's field to display. If available, the search view will display a sortable table
-of objects. Default is ``None``.'''
+    '''List of object's field to display. If available, the search view\
+ will display a sortable table of objects. Default is ``None``.'''
     model = None
     nice_headers_handler = None
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
-
+    object_widgets = {'home':html.ObjectDef(),
+                      'list':html.ObjectItem(default_class='list-item')}
     in_navigation = None
     table_actions = []
     table_links = None
@@ -256,7 +275,8 @@ of objects. Default is ``None``.'''
                  list_per_page = None, form = None, list_display = None,
                  list_display_links = None, in_navigation = None,
                  description = None, template_name = None, parent = None,
-                 related_field = None, apps = None, **views):
+                 related_field = None, apps = None, ordering = None,
+                 **views):
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
@@ -266,6 +286,7 @@ of objects. Default is ``None``.'''
         self.in_navigation = in_navigation if in_navigation is not None else self.in_navigation
         self.editavailable = editavailable
         self.baseurl = RegExUrl(baseurl)
+        self.ordering = ordering or self.ordering
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
         self.list_display_links = list_display_links or self.list_display_links
@@ -487,29 +508,35 @@ By default it return a generator of children pages.'''
         appmodel = appmodel or self
         if isgenerator(query):
             query = list(query)
-        if hasattr(query,'ordering') and not query.ordering and self.ordering:
-            query = query.sort_by(self.ordering)
-        p = Paginator(djp.request,
-                      query,
-                      per_page = appmodel.list_per_page,
-                      page_menu = appmodel.list_per_page_choices)
         headers = view.list_display or appmodel.list_display
         if hasattr(headers,'__call__'):
             headers = headers(djp)
         
         if view.astable and headers:
-            items = self.table_generator(djp, headers, p.qs)
             params = deepcopy(self.table_parameters)
             if 'ajax' not in params:
                 ajax = djp.url if view.astable == 'ajax' else None
                 params['ajax'] = ajax
+            size = appmodel.list_per_page
+            if params['ajax']:
+                p = Paginator(djp.request,
+                              query,
+                              per_page = size,
+                              page_menu = appmodel.list_per_page_choices)
+                query = p.qs
+            else:
+                p = None
             return Table(headers,
-                         items,
+                         body = self.table_generator(djp, headers, query),
                          appmodel = appmodel,
                          paginator = p,
-                         size = p.per_page,
+                         size = size,
                          **params).render(djp)
         else:
+            p = Paginator(djp.request,
+                          query,
+                          per_page = size,
+                          page_menu = appmodel.list_per_page_choices)
             c  = djp.kwargs.copy()
             c.update({'paginator': p,
                       'djp': djp,
@@ -563,13 +590,6 @@ User should subclass this for full control on the model application.
 .. attribute:: model
 
     The model class which own the application
-    
-.. attribute:: ordering
-
-    On optional string indicating the default field for ordering. Starting with
-    a minus means in descending order.
-    
-        Default ``None``
         
 .. attribute:: mapper
 
@@ -588,7 +608,6 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    ordering = None
     model_id_name = 'id'
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
@@ -631,7 +650,8 @@ and get the object. Re-implement for custom arguments.'''
             except:
                 try:
                     if self.parent:
-                        parent_object = self.parent.appmodel.get_object(request, **kwargs)
+                        parent_object = self.parent.appmodel.get_object(\
+                                                    request, **kwargs)
                         if parent_object:
                             return self.get_from_parent_object(parent_object,id)
                 except:
@@ -725,6 +745,8 @@ This can be re-implemented by subclasses.'''
                 instance = parent.instance
                 if instance and not isinstance(instance,self.model):
                     qs = qs.filter(**{related_field:instance})
+        if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
+            qs = qs.sort_by(self.ordering)
         return qs
     
     def object_id(self, djp):
@@ -745,6 +767,7 @@ This dictionary should be used to render an object within a template. It returns
     
     def object_links(self, djp, obj, asbuttons = True, exclude = None):
         '''Create permitted object links'''
+        #TODO: REMOVE
         css     = djp.css
         next    = djp.url
         request = djp.request
@@ -784,17 +807,28 @@ This dictionary should be used to render an object within a template. It returns
     def paginate(self, request, data, prefix, wrapper):
         '''Paginate data'''
         object_content = self.object_content
-        template_name = '%s/%s_search_item.html' % (self.opts.app_label,self.opts.module_name)
+        template_name = '%s/%s_search_item.html' % (
+                            self.opts.app_label,self.opts.module_name)
         pa = Paginator(data = data, request = request)
         render = loader.render
         for obj in pa.qs:
             yield render(template_name, object_content(djp, obj))
     
-    def render_object(self, djp):
+    def render_object(self, djp, instance = None, context = None, cn = None):
         '''Render an object in its object page.
         This is usually called in the view page of the object.
         '''
-        return to_string(ObjectDefinition(self, djp))
+        instance = instance or djp.instance
+        maker = self.object_widgets.get(context,None)
+        if not maker:
+            maker = self.object_widgets.get('home',None)
+        if maker:
+            return maker.widget(id=self.mapper.unique_id(instance),
+                                instance = instance,
+                                appmodel = self,
+                                cn = cn).render(djp)
+        else:
+            return ''
         
     def remove_object(self, obj):
         id = self.mapper.unique_id(obj)

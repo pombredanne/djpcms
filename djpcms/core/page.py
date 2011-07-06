@@ -119,7 +119,7 @@ with the wrapper callable.'''
             wrapper = wrapper or self.wrapper
             if plugin:
                 if site.permissions.has(djp.request,djpcms.VIEW, self):
-                    djp.media += plugin.media()
+                    djp.media.add(plugin.media())
                     html = plugin(djp, self.arguments, wrapper = wrapper)
         except Exception as e:
             if getattr(djp.settings,'TESTING',False):

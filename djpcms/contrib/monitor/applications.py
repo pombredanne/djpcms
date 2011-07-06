@@ -1,4 +1,5 @@
 from datetime import datetime
+from copy import deepcopy
 
 import djpcms
 from djpcms import views, html, forms, sites
@@ -65,11 +66,11 @@ class RedisMixin(object):
 class RedisKeyApplication(RedisMixin, views.ModelApplication):
     '''Display information about keys in one database.'''
     has_plugins = False
-    astable = True
-    list_per_page = 250
     description = 'Database {0[db]}'
     headers = ('key','type','length','time to expiry')
     model_id_name = 'db'
+    table_parameters = {'data': {'options':
+            {'sDom':'<"H"<"row-selector"><"clear">ilp<"clear">f>t'}}}
     
     home = views.ViewView('', description = 'Redis database key view')
     
@@ -85,12 +86,10 @@ class RedisKeyApplication(RedisMixin, views.ModelApplication):
     
     def render_object(self, djp):
         qs = djp.instance.stats()
-        p = html.Paginator(djp.request, qs,
-                           per_page = self.list_per_page)
-        return html.Table(djp,
-                          self.headers,
-                          p.qs,
-                          paginator = p).render()
+        params = deepcopy(self.table_parameters)
+        return html.Table(self.headers,
+                          body = qs.all(),
+                          **params).render(djp)
 
 
 class RedisDbApplication(RedisMixin,views.ModelApplication):
@@ -98,7 +97,8 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
     astable = True
     list_display = ('db','keys','expires')
     actions = [('bulk_delete','flush',djpcms.DELETE)]
-    
+    table_parameters = {'footer': False,
+                        'data': {'options':{'sDom':'<"H"<"row-selector">>t'}}}
     home = views.SearchView(astable = True)
     keys = RedisKeyApplication('/(?P<db>\d+)/',
                                RedisDbData,parent='home')
@@ -116,7 +116,8 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
         data = djp.request.REQUEST
         if 'ids[]' in data:
             instance = djp.parent.instance
-            return [self.get_redisdb(instance,db) for db in data.getlist('ids[]')]    
+            return [self.get_redisdb(instance,db) for db\
+                    in data.getlist('ids[]')]
     
 
 class RedisMonitorApplication(RedisMixin,AdminApplication):
@@ -139,7 +140,8 @@ class RedisMonitorApplication(RedisMixin,AdminApplication):
         else:
             panels = info.panels()
             left_panels = ({'name':k,
-                            'value':html.ObjectDefinition(self,djp,v)} for k,v in panels.items())
+                            'value':html.ObjectDefinition(self,djp,v)}\
+                                             for k,v in panels.items())
             view = self.getview('db-home')(djp.request,**djp.kwargs)
             dbs = view.render()
             right_panels = ({'name':'Databases',
@@ -165,17 +167,19 @@ class StdModelDeleteAllView(views.ModelView):
     
     
 class StdModelApplication(views.ModelApplication):
-    '''Display Information about a stdnet model'''
+    '''Display Information about stdnet models'''
     object_display = ['name','app_label','database','keyprefix','timeout']
     list_display = ['name','app_label','database','keyprefix','timeout']
+    table_parameters = {'ajax':False}
     search = views.View(astable = True)
     app = views.View(astable = True,
                      regex = '(?P<app>{0})'.format(views.SLUG_REGEX),
                      title = lambda djp : djp.kwargs['app'])
-    view = views.View(regex = '(?P<model>{0})'.format(views.SLUG_REGEX),
-                      parent = 'app',
-                      renderer = lambda djp: djp.view.appmodel.render_model(djp),
-                      title = lambda djp: djp.view.appmodel.model_title(djp))
+    view = views.View(
+                  regex = '(?P<model>{0})'.format(views.SLUG_REGEX),
+                  parent = 'app',
+                  renderer = lambda djp: djp.view.appmodel.render_model(djp),
+                  title = lambda djp: djp.view.appmodel.model_title(djp))
     flush = StdModelDeleteAllView(regex = 'flush', parent = 'view')
     
     def basequery(self, djp):
@@ -230,7 +234,8 @@ class StdModelApplication(views.ModelApplication):
     def render_model(self, djp):
         model = self.get_instance(djp)
         if not model:
-            raise djp.http.Http404('Model {0[app]}.{0[name]} not available'.format(djp.kwargs))
+            raise djp.http.Http404('Model {0[app]}.{0[name]} not available'\
+                                   .format(djp.kwargs))
         info = html.ObjectDefinition(self, djp)
         return loader.render('monitor/stdmodel.html',
                              {'meta':model,

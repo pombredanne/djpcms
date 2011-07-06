@@ -350,8 +350,6 @@ content in a content block.'''
     def blockhtml(self, djp, instance, editview, wrapper):
         '''A content block rendered in editing mode'''
         editdjp = editview(djp.request, instance = instance)
-        djp.media += editdjp.media
-        editdjp.media = djp.media
         html = editview.render(editdjp, url = djp.url)
         return wrapper(editdjp,instance,html)
             

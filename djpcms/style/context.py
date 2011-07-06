@@ -209,6 +209,9 @@ CssContext('datatable',
                    'dataTables_info_float':'left',
                    'dataTables_info_margin':'0 1em 0 0',
                    #
+                   'dataTables_filter_float':'right',
+                   'dataTables_filter_margin':'0.5em 0 0 0',
+                   #
                    'processing_float':'left',
                    'processing_margin':'0 0 0 1em',
                    #
@@ -230,6 +233,14 @@ CssContext('datatable_table',
                    }
            )
 
+CssContext('datatable_filter_input',
+           tag ='.data-table .dataTables_filter input',
+           data = {'width': '200px',
+                   'padding': '5px 5px',
+                   #'border':'1px solid'},
+                   'font_size':'110%'
+                   }
+           )
 
 #________________________________________ blockelement
 CssContext('blockelement',

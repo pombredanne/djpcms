@@ -360,7 +360,7 @@ It returns self for concatenating data.'''
         if self.renderer:
             text = self.renderer(text)
         if djp:
-            djp.media += self.media()
+            djp.media.add(self.media())
         return text
     
     def inner(self, djp, widget, keys):

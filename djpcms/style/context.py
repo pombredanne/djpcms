@@ -264,10 +264,9 @@ CssContext('edit_plugin_body',
 
 #________________________________________ BOX
 box = CssContext('box',
-                 tag='div.djpcms-html-box',
+                 tag='.djpcms-html-box',
                  template='djpcms/style/box/box.css_t',
-                 data = {'padding':'2px',
-                         'border': 'none'})
+                 data = {})
 
 CssContext('hd',
            parent = box,

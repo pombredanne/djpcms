@@ -1,6 +1,10 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block body %}
+{{ tag }} .bd.ui-widget-content {
+    background: transparent;
+    border: 0;
+}
 {{ tag }}.collapsed > .bd {
 	display: none;
 }

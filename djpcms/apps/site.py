@@ -418,17 +418,12 @@ admin application will be included.
     
     def for_model(self, model, exclude = None):
         if not model:
-            return
-        r = None
+            raise StopIteration
         for site in self.all():
             if site is not exclude:
                 r2 = site.for_model(model)
                 if r2:
-                    if r:
-                        raise DjpcmsException('Model {0} is registered with \
-    more than one site. Cannot resolve.'.format(model))
-                    r = r2
-        return r
+                    yield r2
     
     def setsettings(self, **kwargs):
         for k,v in kwargs.items():

@@ -177,7 +177,10 @@ If the application is not available, it returns ``None``. Never fails.'''
         except:
             app = None
         if not app and all:
-            return self.root.for_model(model, exclude = self)
+            apps = tuple(self.root.for_model(model, exclude = self))
+            if apps:
+                #TODO. what about if there are more than one?
+                return apps[0]
         else:
             return app
             

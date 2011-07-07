@@ -303,8 +303,8 @@ views::
     form_method = 'POST'
     
     def __init__(self,
-                 parent = None,
                  regex = None,
+                 parent = None,
                  insitemap = True,
                  isplugin = None,
                  description = None,

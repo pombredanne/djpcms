@@ -11,8 +11,6 @@ siro = deepcopy(start)
 
 
 siro.update({
-    'box': {'background':'#a6c9e2', 'radius':0},
-    #
     # datatable
     'datatable': {'odd_background_color':'#f2f2f2',
                   'even_sort_background':'#fbec88',

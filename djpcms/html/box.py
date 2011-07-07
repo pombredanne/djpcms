@@ -6,6 +6,7 @@ __all__ = ['BoxWidget','box']
 
 class BoxWidget(WidgetMaker):
     tag = 'div'
+    default_class = 'djpcms-html-box ui-widget ui-widget-content'
     
     def stream(self, djp, widget, context):
         ediv = '</div>'  
@@ -44,8 +45,9 @@ class Box(Widget):
     
     
 def box(hd = None, bd = None, ft = None, minimize = False,
-        collapsable = False, collapsed = False, delurl = None, **kwargs):
-    b = Box(hd = hd, bd = bd, ft = ft, **kwargs).addClass('djpcms-html-box ui-widget')
+        collapsable = False, collapsed = False,
+        delurl = None, **kwargs):
+    b = Box(hd = hd, bd = bd, ft = ft, **kwargs)
     menulist = b.menulist
     cn = 'ui-icon-circle-triangle-n'
     if collapsed:

@@ -19,7 +19,9 @@ for page editing or creation or exit editing.'''
         info = request.DJPCMS
         self.page = info.page
         # Get the site application for Page
-        self.app = request.DJPCMS.root.for_model(Page)
+        apps = list(request.DJPCMS.root.for_model(Page))
+        if apps:
+            self.app = apps[0]
         self.isediting = False
         self.cdjp = None
         if self.app:

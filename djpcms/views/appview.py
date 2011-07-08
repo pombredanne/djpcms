@@ -312,6 +312,7 @@ views::
                  plugin_form   = None,
                  renderer = None,
                  title = None,
+                 linkname = None,
                  permission = None,
                  in_navigation = None,
                  template_name = None,
@@ -352,7 +353,9 @@ views::
                 t = (t,)
             self.template_name = tuple(t)
         if title:
-            self.title = title 
+            self.title = title
+        if linkname:
+            self.linkname = linkname 
         if table_generator:
             self.table_generator = table_generator
         if renderer:

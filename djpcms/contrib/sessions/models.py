@@ -1,4 +1,4 @@
-from stdnet import orm
+from stdnet import orm, pythonpickle
 
 from djpcms.apps import PERMISSION_CODES, PERMISSION_LIST
 
@@ -88,7 +88,7 @@ class Session(orm.StdModel):
     TEST_COOKIE_NAME = 'testcookie'
     TEST_COOKIE_VALUE = 'worked'
     id = orm.SymbolField(primary_key=True)
-    data = orm.HashField()
+    data = orm.HashField(pickler=pythonpickle)
     expiry = orm.DateTimeField(index = False)
     modified = True
     

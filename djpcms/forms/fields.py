@@ -41,7 +41,8 @@ very similar to django forms API.
     
 .. attribute:: required
 
-    boolean specifying if the field is required or not. If a field is required and
+    boolean specifying if the field is required or not.
+    If a field is required and
     it is not available or empty it will fail validation.
     
     Default: ``None``.
@@ -65,7 +66,8 @@ very similar to django forms API.
     
 .. attribute:: widget_attrs
 
-    dictionary of widget attributes. Used for modifying widget html attributes.
+    dictionary of widget attributes.
+    Used for modifying widget html attributes.
     
     Default: ``None``.
 
@@ -124,7 +126,8 @@ very similar to django forms API.
         if value == nodata or value in NOTHING:
             value = self.get_default(bfield)
             if self.required and value in NOTHING:
-                raise ValidationError(self.validation_error.format(bfield.name,value))
+                raise ValidationError(
+                            self.validation_error.format(bfield.name,value))
             elif not self.required:
                 return value
         return self._clean(value, bfield)
@@ -199,7 +202,8 @@ optional parameter (attribute):
     def _handle_params(self, max_length = 30, char_transform = None,
                        toslug = None, **kwargs):
         if not max_length:
-            raise ValueError('max_length must be provided for {0}'.format(self.__class__.__name__))
+            raise ValueError('max_length must be provided for {0}'\
+                             .format(self.__class__.__name__))
         self.max_length = int(max_length)
         if self.max_length <= 0:
             raise ValueError('max_length must be positive')
@@ -224,7 +228,8 @@ optional parameter (attribute):
             else:
                 value = value.lower()
         if self.required and not value:
-            raise ValidationError(self.validation_error.format(bfield.name,value))
+            raise ValidationError(
+                    self.validation_error.format(bfield.name,value))
         return value
 
 
@@ -275,7 +280,8 @@ class DateField(Field):
             try:
                 value = dateparser(value)
             except:
-                raise ValidationError(self.validation_error.format(bfield,value))
+                raise ValidationError(
+                        self.validation_error.format(bfield,value))
         return self.todate(value)
     
     def todate(self, value):
@@ -333,14 +339,16 @@ behaviour in validation as well as when rendering in html::
     
 .. attribute:: separator
 
-    An optional character to separate elements when the field is used in conjunction with
-    javascript autocomplete. This attribute is used only if :attr:`multiple` is set to ``True``.
+    An optional character to separate elements when the field is used
+    in conjunction with javascript autocomplete.
+    This attribute is used only if :attr:`multiple` is set to ``True``.
     
     Default ``", "``
     
 .. attribute:: autocomplete
 
-    an optional boolean indicating if the field is rendered as an autocomplete widget.
+    an optional boolean indicating if the field is rendered as
+    an autocomplete widget.
     
     Default ``False``.
     
@@ -358,7 +366,8 @@ This field works in conjunction with the ``autocomplete`` decorator in
                        empty_label = None, multiple = False,
                        minLength = 2, maxRows = 20,
                        **kwargs):
-        '''Choices is an iterable or a callable which takes the form as only argument'''
+        '''Choices is an iterable or a callable which takes the
+form as only argument'''
         self.choices = choices
         self._model = model
         self.empty_label = empty_label
@@ -391,7 +400,8 @@ iterable over choices and a model class (if applicable).'''
                     if not isinstance(value,mp.model):
                         value = mp.get(id = value)
                 except:
-                    raise ValidationError('{0} is not a valid choice'.format(value))
+                    raise ValidationError(
+                                '{0} is not a valid choice'.format(value))
             if value:
                 if not model:
                     ch = set((to_string(x[0]) for x in ch))
@@ -402,7 +412,8 @@ iterable over choices and a model class (if applicable).'''
                     values = (value,)
                 for val in values:
                     if not val in ch:
-                        raise ValidationError('{0} is not a valid choice'.format(value))
+                        raise ValidationError(
+                                '{0} is not a valid choice'.format(value))
                 if self.multiple and model:
                     value = values
         return value
@@ -415,7 +426,8 @@ iterable over choices and a model class (if applicable).'''
             widget.addData('multiple',self.multiple)\
                   .addData('minlength',self.minLength)\
                   .addData('maxrows',self.maxRows)
-            # If the choice field is on a model we need to have a url for searching
+            # If the choice field is on a model we need to have
+            # a url for searching
             if model:
                 se = sites.search_engine
                 if se:

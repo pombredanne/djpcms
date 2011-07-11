@@ -419,29 +419,29 @@ iterable over choices and a model class (if applicable).'''
         return value
     
     def get_widget(self, djp, bfield):
-        widget = super(ChoiceField,self).get_widget(djp, bfield)
+        data = None
         if self.autocomplete:
             ch,model = self.choices_and_model(bfield)
             value = bfield.value
-            widget.addData('multiple',self.multiple)\
-                  .addData('minlength',self.minLength)\
-                  .addData('maxrows',self.maxRows)
+            data = {'multiple':self.multiple,
+                    'minlength':self.minLength,
+                    'maxrows':self.maxRows}
             # If the choice field is on a model we need to have
             # a url for searching
             if model:
                 se = sites.search_engine
                 if se:
                     url = se.search_url(model)
-                    widget.addData('url',url)
+                    data['url'] = url
                 if value:
                     if self.multiple:
                         raise NotImplemented
                     else:
                         obj = mapper(model).get(id = value)
                         initial_value = ((obj.id,str(obj)),)
-                    widget.addData('initial_value',initial_value)
+                    data['initial_value'] = initial_value
             else:
-                widget.addData('choices',ch)
+                data['choices'] = ch
                 if value:
                     chd = dict(ch)
                     values = []
@@ -449,8 +449,8 @@ iterable over choices and a model class (if applicable).'''
                         if val in chd:
                             values.append((val,chd[val]))
                     if values:
-                        widget.addData('initial_value',values)
-        return widget
+                        data['initial_value'] = values
+        return self.widget.widget(bfield = bfield, data = data)
         
 
 class EmailField(CharField):

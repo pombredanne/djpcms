@@ -38,20 +38,18 @@ class InputWidget(FieldWidget):
     inline = True
     attributes = FieldWidget.makeattr('type')
     
-    def __get_value(self, value, widget):
-        return value
-        if 'initial_value' in self.data:
-            initial_value = self.data['initial_value']
+    def get_value(self, value, widget):
+        if 'initial_value' in widget.data:
+            initial_value = widget.data['initial_value']
             if isinstance(initial_value,list):
-                return ', '.join(initial[1] for initial in initial_value)
+                value = ', '.join(initial[1] for initial in initial_value)
             else:
-                return initial_value
-        else:
-            return value
+                value = initial_value
+        widget.addAttr('value',value)
+        
     
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
-
 
 class PasswordInput(InputWidget):
     default_attrs = {'type': 'password'}

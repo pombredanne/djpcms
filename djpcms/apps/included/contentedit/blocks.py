@@ -169,9 +169,9 @@ for editing plugin contents.'''
                 contentblock.block = block
                 contentblock.save()
                 #update_page(self.model,page)
-            return jempty()
+            return ajax.jempty()
         except Exception as e:
-            return jerror('Could not find target block. {0}'.format(e))
+            return ajax.jerror('Could not find target block. {0}'.format(e))
     
     def render(self, djp, url = None):
         formhtml = self.get_form(djp,

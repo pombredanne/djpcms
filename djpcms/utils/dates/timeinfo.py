@@ -23,7 +23,7 @@ class NiceTimeDelta(object):
         fudge = self.fudge
         hour = self.hour
         day = self.day
-        tdelta = timedelta(seconds = t)
+        tdelta = timedelta(seconds = t or 0)
         days = tdelta.days
         sdays = day * days
         delta = tdelta.seconds + sdays

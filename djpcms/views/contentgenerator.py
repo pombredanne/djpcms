@@ -41,7 +41,7 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         '''
         from djpcms.models import BlockContent
         if self.editing:
-            appmodel = self.djp.root.for_model(BlockContent)
+            appmodel = self.djp.site.for_model(BlockContent,all=True)
             return appmodel.blocks(self.djp, self.page, self.b)
         else:
             blockcontents = BlockContent.objects.for_page_block(self.page, self.b)

@@ -1,4 +1,5 @@
-from djpcms.apps.included.admin import AdminApplication, AdminApplicationSimple, TabViewMixin
+from djpcms.apps.included.admin import AdminApplication, \
+                                        AdminApplicationSimple, TabViewMixin
 from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 
 
 from .models import User,ObjectPermission, Role, Group, Log

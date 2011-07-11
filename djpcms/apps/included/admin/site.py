@@ -64,6 +64,7 @@ class TabView(html.ObjectItem):
 
 class TabViewMixin(object):
     views_ordering = {'view':0,'change':1}
+    object_widgets = views.extend_widgets({'home':TabView()})
 
 
 class ApplicationGroup(views.Application):
@@ -112,7 +113,6 @@ class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
     delete_all = views.DeleteAllView()
     view   = views.ViewView()
     delete = views.DeleteView()
-    object_widgets = views.extend_widgets({'home':TabView()})
     
     
 class AdminApplication(AdminApplicationSimple):

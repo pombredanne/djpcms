@@ -21,7 +21,10 @@ def installed_models(sites, applications = None):
             model = argos[1]
             label = argos[0]
         if label not in installed:
-            label = 'djpcms.contrib.{0}'.format(label)
+            for inst in installed:
+                if inst.split('.')[-1] == label:
+                    label = inst
+                    break
         if label in installed:
             for mdl in orm.model_iterator(label):
                 if model:

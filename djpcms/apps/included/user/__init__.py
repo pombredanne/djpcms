@@ -19,7 +19,8 @@ from .views import *
 
 from djpcms import views
 
-permission = lambda self, request, obj: False if not request else request.user.is_authenticated()
+permission = lambda self, request, obj: False if not request \
+                else request.user.is_authenticated()
 
 
 class UserAppBase(views.ModelApplication):
@@ -95,7 +96,6 @@ No assumption has been taken over which model is used for storing user data.'''
 class UserApplicationWithFilter(UserApplication):
     '''Application for managing user home pages in the form of "/username/...".
 The userhome view'''
-    
     inherit = True
     userpage = True
     userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,

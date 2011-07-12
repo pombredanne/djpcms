@@ -62,6 +62,10 @@ def ajax_dataTable(djp,data):
     headers = view.list_display or appmodel.list_display
     if hasattr(headers,'__call__'):
         headers = headers(djp)
+    search = data['sSearch']
+    if search:
+        qs = qs.search(search)
+        
     for col in range(int(data['iSortingCols'])):
         c = int(data['iSortCol_{0}'.format(col)])
         d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''

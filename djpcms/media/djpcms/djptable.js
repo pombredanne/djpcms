@@ -10,6 +10,46 @@
         
         $.djpcms.dataTable = {};
         
+        $.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay ) {
+            /*
+             * Inputs:      object:oSettings - dataTables settings object - automatically given
+             *              integer:iDelay - delay in milliseconds
+             * Usage:       $('#example').dataTable().fnSetFilteringDelay(250);
+             * Author:      Zygimantas Berziunas (www.zygimantas.com) and Allan Jardine
+             * License:     GPL v2 or BSD 3 point style
+             * Contact:     zygimantas.berziunas /AT\ hotmail.com
+             */
+            var
+                _that = this,
+                iDelay = (typeof iDelay == 'undefined') ? 250 : iDelay;
+            
+            this.each( function ( i ) {
+                $.fn.dataTableExt.iApiIndex = i;
+                var
+                    $this = this, 
+                    oTimerId = null, 
+                    sPreviousSearch = null,
+                    anControl = $( 'input', _that.fnSettings().aanFeatures.f );
+                
+                    anControl.unbind( 'keyup' ).bind( 'keyup', function() {
+                    var $$this = $this;
+
+                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                        window.clearTimeout(oTimerId);
+                        sPreviousSearch = anControl.val();  
+                        oTimerId = window.setTimeout(function() {
+                            $.fn.dataTableExt.iApiIndex = i;
+                            _that.fnFilter( anControl.val() );
+                        }, iDelay);
+                    }
+                });
+                
+                return this;
+            } );
+            return this;
+        }
+
+        
         /**
          * A tablesorter widget for enabling actions on rows and
          * different views across columns.
@@ -230,7 +270,7 @@
                         opts.oTableTools.aButtons = buttons;
                         
                         // Create the datatable
-                        tbl.dataTable(opts);
+                        tbl.dataTable(opts).fnSetFilteringDelay(1000);
                         //
                         // Add Actions on Rows
                         if(elem.data('actions')) {
@@ -253,6 +293,7 @@
                             $.djpcms.dataTable.addViews(tbl,elem.data('groups'));
                         }
                         $('.dataTables_filter input').addClass('ui-widget-content');
+                        tbl.width('100%');
                         tbl.show();
                     }
                 });

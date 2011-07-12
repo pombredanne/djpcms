@@ -823,7 +823,9 @@ This dictionary should be used to render an object within a template. It returns
             return maker.widget(id=self.mapper.unique_id(instance),
                                 instance = instance,
                                 appmodel = self,
-                                cn = cn).render(djp)
+                                cn = cn)\
+                                .addClass(self.mapper.class_name(instance))\
+                                .render(djp)
         else:
             return ''
         

@@ -14,7 +14,10 @@ from .nicerepr import results_for_item
 
 OBJECT_DEF_TEMPLATE = 'djpcms/object_definition.html'
 
-__all__ = ['ObjectDefinition','ObjectItem','ObjectDef']
+__all__ = ['ObjectDefinition',
+           'ObjectItem',
+           'ObjectDef',
+           'ObjectPagination']
 
 
 #def add_definition(data, name, value):
@@ -109,3 +112,6 @@ class ObjectDef(ObjectItem):
         return to_string(ObjectDefinition(appmodel, djp,
                                           instance=instance))
             
+            
+class ObjectPagination(ObjectItem):
+    default_class = 'pagination-item'

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from inspect import isclass
 
 from djpcms import sites, nodata, UnicodeMixin
 from djpcms.html import icons, nicerepr
@@ -111,6 +112,11 @@ since they seems to confuse jQuery selectors.'''
         else:
             id = self.model.hash
         return 'o-{0}'.format(id.replace('.','-'))
+    
+    def class_name(self, obj = None):
+        if obj:
+            name = obj.__name__ if isclass(obj) else obj.__class__.__name__
+            return name.lower()
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError

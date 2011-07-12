@@ -129,6 +129,11 @@ class Select(FieldWidget):
 
 
 WidgetMaker(tag = 'div', default = 'div')
+WidgetMaker(tag = 'h1', default = 'h1')
+WidgetMaker(tag = 'h2', default = 'h2')
+WidgetMaker(tag = 'h3', default = 'h3')
+WidgetMaker(tag = 'h4', default = 'h4')
+WidgetMaker(tag = 'h5', default = 'h5')
 WidgetMaker(tag = 'th', default = 'th')
 WidgetMaker(tag = 'tr', default = 'tr')
 WidgetMaker(tag = 'span', default = 'span')

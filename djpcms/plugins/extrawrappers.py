@@ -6,7 +6,8 @@ class simplediv(DJPwrapper):
     name = 'flat-element'
     description = 'flat element'
     def wrap(self, djp, cblock, html):
-        return '' if not html else '<div class="{0}">\n'.format(self.name) + html + '\n</div>'
+        return '' if not html else '<div class="{0}">\n'.format(self.name)\
+                        + html + '\n</div>'
 
 
 class PannelWrapper(simplediv):
@@ -26,6 +27,16 @@ class FlatBox(simplediv):
             return super(FlatBox,self).wrap(djp,cblock,bd)
         else:
             return ''
+        
+        
+class ListWithTitle(simplediv):
+    name = 'title-list'
+    
+    def wrap(self, djp, cblock, html):
+        if html and cblock.title:
+            html = '<div class="hd ui-widget-header"><h2>{0}</h2></div>{1}'\
+                            .format(cblock.title,html)
+        return super(ListWithTitle,self).wrap(djp,cblock,html)
     
     
 class BoxWrapper(DJPwrapper):

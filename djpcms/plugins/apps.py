@@ -238,7 +238,8 @@ class ModelItemsList(DJPplugin):
         items = qs[0:max_display]
         if not items:
             return display_if_empty
-        w = html.Widget('div', cn = 'filtered-list')
+        w = html.Widget('div', cn = 'filtered-list')\
+                .addClass(appmodel.mapper.class_name())
         render_object = appmodel.render_object
         inner = '\n'.join(render_object(djp, item, 'list') for item in items)
         return w.render(djp,inner)

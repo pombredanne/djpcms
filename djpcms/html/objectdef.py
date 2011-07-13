@@ -78,6 +78,7 @@ Usage::
 
 class ObjectItem(WidgetMaker):
     tag = 'div'
+    default_class='list-item'
 
     def get_context(self, djp, widget, keys):
         ctx = super(ObjectItem,self).get_context(djp, widget, keys)

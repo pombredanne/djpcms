@@ -352,6 +352,14 @@ CssContext('flatbox',
            )
 
 
+#________________________________________ FLAT BOX
+CssContext('title-list',
+           tag='.title-list .hd',
+           data = {
+            'margin':'0 0 10px'
+        }
+)
+           
 #________________________________________ PLAIN TABLE
 CssContext('table',
            template='djpcms/style/table.css_t',

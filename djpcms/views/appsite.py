@@ -254,9 +254,8 @@ or in the constructor.
                                 'djpcms/pagination.html')
     object_widgets = {
           'home':html.ObjectDef(),
-          'list':html.ObjectItem(default_class='list-item'),
-          'pagination':html.ObjectItem(
-                                default_class='pagination-item')
+          'list':html.ObjectItem(),
+          'pagination':html.ObjectPagination()
           }
     in_navigation = None
     table_actions = []
@@ -287,7 +286,8 @@ or in the constructor.
         self.site = None
         self.root_view = None
         self.template_name = template_name or self.template_name
-        self.in_navigation = in_navigation if in_navigation is not None else self.in_navigation
+        self.in_navigation = in_navigation if in_navigation is not None else\
+                             self.in_navigation
         self.editavailable = editavailable
         self.baseurl = RegExUrl(baseurl)
         self.ordering = ordering or self.ordering

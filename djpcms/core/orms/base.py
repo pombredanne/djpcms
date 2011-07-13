@@ -114,9 +114,9 @@ since they seems to confuse jQuery selectors.'''
         return 'o-{0}'.format(id.replace('.','-'))
     
     def class_name(self, obj = None):
-        if obj:
-            name = obj.__name__ if isclass(obj) else obj.__class__.__name__
-            return name.lower()
+        obj = obj or self.model
+        name = obj.__name__ if isclass(obj) else obj.__class__.__name__
+        return name.lower()
     
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError

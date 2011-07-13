@@ -1,4 +1,9 @@
+import sys
 import logging
+
+from djpcms.utils import logtrace
+
+logger = logging.getLogger('djpcms.core.messanges')
 
 MESSAGE_KEY = 'request-messanges'
 
@@ -36,9 +41,14 @@ def get_messages(request):
     """
     if hasattr(request,'session'):
         if MESSAGE_KEY in request.session:
-            msg = request.session[MESSAGE_KEY]
-            del request.session[MESSAGE_KEY]
-            return msg
+            try:
+                msg = request.session[MESSAGE_KEY]
+                del request.session[MESSAGE_KEY]
+                return msg
+            except:
+                request.session.delete()
+                logtrace(logger, request, exc_info = sys.exc_info(),
+                         status = -1)
     
 
 def get_level(request,level):

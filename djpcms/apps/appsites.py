@@ -5,7 +5,8 @@ from py2py3 import is_bytes_or_string
 
 from djpcms import http
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
-                                   ImproperlyConfigured, ApplicationNotAvailable
+                                   ImproperlyConfigured,\
+                                   ApplicationNotAvailable
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper

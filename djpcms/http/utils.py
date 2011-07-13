@@ -2,7 +2,7 @@ from time import gmtime
 from datetime import datetime, date
 from email.utils import formatdate
 
-from py2py3 import ispy3k
+from py2py3 import ispy3k, to_string
 
 if ispy3k:
     from http.cookies import SimpleCookie, Morsel, CookieError, BaseCookie
@@ -15,6 +15,7 @@ else:
     from urlparse import parse_qsl, urljoin
     from cStringIO import StringIO as BytesIO
     
+from djpcms.utils.structures import MultiValueDict
 
 WEEK_DAYS = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 MONTHS3 = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
@@ -23,7 +24,34 @@ MONTHS3 = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',
 __all__ = ['cookie_date',
            'http_date',
            'parse_cookie',
-           'BytesIO']
+           'BytesIO',
+           'QueryDict',
+           'query_from_string']
+
+
+class QueryDict(MultiValueDict):
+    
+    def __init__(self, query_string, encoding = None):
+        super(QueryDict,self).__init__()
+        self.encoding = encoding
+        for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
+            self.appendlist(to_string(key, encoding, errors='replace'),
+                            to_string(value, encoding, errors='replace'))
+
+
+def query_from_string(self, val):
+    r = {}
+    if val:
+        try:
+            for k,v in QueryDict(val).lists():
+                if len(v) > 1:
+                    k = '{0}__in'.format(k)
+                else:
+                    v = v[0]
+                r[k] = v
+        except:
+            return r
+    return r
 
 
 def cookie_date(epoch_seconds=None):

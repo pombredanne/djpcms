@@ -5,7 +5,7 @@ from djpcms.forms.layout import DivFormElement, FormLayout, nolabel, SubmitEleme
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
-from djpcms.http import QueryDict
+from djpcms.http import query_from_string
 from djpcms.utils.text import nicename
 
 
@@ -210,20 +210,6 @@ class ModelItemsList(DJPplugin):
     description    = 'Filtered items for a model'
     form           = ModelItemListForm
     
-    def query(self, val):
-        r = {}
-        if val:
-            try:
-                for k,v in QueryDict(val).lists():
-                    if len(v) > 1:
-                        k = '{0}__in'.format(k)
-                    else:
-                        v = v[0]
-                    r[k] = v
-            except:
-                return r
-        return r
-    
     def render(self, djp, wrapper, prefix,
                for_model = None, max_display = 5,
                pagination = False, filter = None,
@@ -231,8 +217,8 @@ class ModelItemsList(DJPplugin):
                display_if_empty = '',
                **kwargs):
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
-        qs = appmodel.basequery(djp).filter(**self.query(filter))\
-                                    .exclude(**self.query(exclude))\
+        qs = appmodel.basequery(djp).filter(**query_from_string(filter))\
+                                    .exclude(**query_from_string(exclude))\
                                     .sort_by(order_by)        
         max_display = max(int(max_display),1)
         items = qs[0:max_display]

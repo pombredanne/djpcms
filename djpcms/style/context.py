@@ -226,6 +226,7 @@ CssContext('datatable',
 CssContext('datatable_table',
            tag='.data-table table',
            data = {
+                   'display':'none',
                    'width':'100%',
                    'text_align': 'left',
                    'margin': 0,

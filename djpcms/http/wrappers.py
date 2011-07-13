@@ -4,14 +4,15 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from py2py3 import itervalues,is_string,to_string, ispy3k
+from py2py3 import itervalues, is_string, ispy3k
 
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
 
-from .utils import parse_cookie, BaseHTTPRequestHandler, parse_qsl, SimpleCookie,\
-                   BytesIO, cookie_date, urljoin
+from .utils import parse_cookie, BaseHTTPRequestHandler,\
+                   SimpleCookie, BytesIO, cookie_date, urljoin,\
+                   MultiValueDict, QueryDict
 from .multiparser import MultiPartParser
 
 
@@ -59,16 +60,6 @@ def path_with_query(request):
     return path
     
 
-class QueryDict(MultiValueDict):
-    
-    def __init__(self, query_string, encoding = None):
-        super(QueryDict,self).__init__()
-        self.encoding = encoding
-        for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
-            self.appendlist(to_string(key, encoding, errors='replace'),
-                            to_string(value, encoding, errors='replace'))
-    
-
 class Request(object):
     '''Simple WSGI Request class'''
     _encoding = None
@@ -114,7 +105,8 @@ class Request(object):
     def _get_get(self):
         if not hasattr(self, '_get'):
             # The WSGI spec says 'QUERY_STRING' may be absent.
-            self._get = QueryDict(self.environ.get('QUERY_STRING', ''), encoding=self.encoding)
+            self._get = QueryDict(self.environ.get('QUERY_STRING', ''),
+                                  encoding=self.encoding)
         return self._get
 
     def _set_get(self, get):

@@ -72,6 +72,8 @@ class ApplicationGroup(views.Application):
 administer a group of :class:`djpcms.views.Applications`.'''
     has_plugins = False
     list_display = ('name','actions')
+    table_parameters = {'footer':False,
+                        'data':{'options':{'sDom':'t'}}}
     home = views.GroupView(in_navigation = 1,
                            view_template = ADMIN_APPLICATION_TEMPLATE)
     

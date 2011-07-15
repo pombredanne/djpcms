@@ -39,7 +39,8 @@ class QueryDict(MultiValueDict):
                             to_string(value, encoding, errors='replace'))
 
 
-def query_from_string(self, val):
+def query_from_string(val):
+    '''Conver a string into a parameters for a queryset.'''
     r = {}
     if val:
         try:

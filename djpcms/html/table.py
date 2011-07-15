@@ -16,16 +16,22 @@ class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
     tag = 'div'
     default_class = 'data-table'
-    table_media = Media(js = ['djpcms/datatables/jquery.dataTables.js',
-                              'djpcms/datatables/ColVis/js/ColVis.js',
-                              'djpcms/datatables/TableTools/js/TableTools.min.js',
-                              'djpcms/djptable.js'],
-                        css = {'screen':['djpcms/datatables/TableTools/css/TableTools_JUI.css']})
+    table_media = Media(
+            js = [
+                  'djpcms/datatables/jquery.dataTables.js',
+                  'djpcms/datatables/ColVis/js/ColVis.js',
+                  'djpcms/datatables/TableTools/js/TableTools.min.js',
+                  'djpcms/djptable.js'],
+            css = {'screen':
+                    ['djpcms/datatables/TableTools/css/TableTools_JUI.css']
+                    }
+        )
     template = '''\
 <table>
 <thead>
- <tr>{% for head in headers %}
-  <th>{{ head.sTitle }}</th>{% endfor %}
+ <tr>{% for head in headers %}{% if head.description %}
+  <th class="hint" data-hint="{{ head.description }}">{% else %}
+  <th>{% endif %}{{ head.sTitle }}</th>{% endfor %}
  </tr>
 </thead>
 <tbody>{% if rows %}{% for row in rows %}
@@ -69,15 +75,16 @@ javascript plugin'''
                    'sClass':head.code,
                    'sName':head.code,
                    'sTitle':head.name,
-                   'sWidth':head.width}
+                   'sWidth':head.width,
+                   'description':head.description}
             
     def media(self):
         return self.table_media
 
 
 class Table(Widget):
-    '''A Table :class:`djpcms.html.Widget` packed with functionalities and rendered using
-the dataTable_ jQuery plugin.
+    '''A Table :class:`djpcms.html.Widget` packed with functionalities
+and rendered using the dataTable_ jQuery plugin.
 
 :parameter headers: iterable over headers. Must be provided.
 :parameter body: optional iterable over data to display.

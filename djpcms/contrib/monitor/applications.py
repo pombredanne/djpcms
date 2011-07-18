@@ -8,7 +8,7 @@ from djpcms.template import loader
 from djpcms.apps.included.admin import AdminApplication, TabView
 from djpcms.utils import mark_safe
 from djpcms.utils.text import nicename
-from djpcms.utils.dates import nicetimedelta
+from djpcms.utils.dates import nicetimedelta, smart_time
 
 from stdnet.lib import redis
 from stdnet.lib.redisinfo import redis_info, RedisData, RedisDbData,\
@@ -28,25 +28,16 @@ class ServerForm(forms.Form):
     
 class Formatter(RedisDataFormatter):
     
+    def __init__(self):
+        self.format_date = smart_time
+        self.format_timedelta = nicetimedelta
+        self.format_name = nicename
+    
     def format_bool(self, val):
         if not val:
             return icons.circle_close()
         else:
-            return icons.circle_check()
-                
-    def format_name(self, name):
-        return nicename(name)
-    
-    def format_date(self, t):
-        try:
-            d = datetime.fromtimestamp(t)
-            return '%s %s' % (format(d.date(),sites.settings.DATE_FORMAT),
-                              time_format(d.time(),sites.settings.TIME_FORMAT)) 
-        except:
-            return ''
-        
-    def format_timedelta(self, td):
-        return nicetimedelta(td)
+            return icons.circle_check()        
 
 
 class RedisMixin(object):

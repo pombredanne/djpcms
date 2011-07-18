@@ -26,7 +26,7 @@ class Role(orm.StdModel):
    
 class User(orm.StdModel):
     username = orm.SymbolField(unique = True)
-    password = orm.CharField(required = True)
+    password = orm.CharField(required = True, hidden = True)
     first_name = orm.CharField()
     last_name = orm.CharField()
     email = orm.CharField()

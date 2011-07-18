@@ -56,6 +56,7 @@ class ForModelForm(forms.Form):
 class ModelItemListForm(ForModelForm):
     max_display = forms.IntegerField(initial = 10)
     pagination  = forms.BooleanField(initial = False)
+    text_search = forms.CharField(required = False)
     filter = forms.CharField(required = False)
     exclude = forms.CharField(required = False)
     order_by = forms.CharField(required = False)
@@ -214,12 +215,18 @@ class ModelItemsList(DJPplugin):
                for_model = None, max_display = 5,
                pagination = False, filter = None,
                exclude = None, order_by = None,
+               text_search = None,
                display_if_empty = '',
                **kwargs):
+        if not for_model:
+            return ''
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
-        qs = appmodel.basequery(djp).filter(**query_from_string(filter))\
-                                    .exclude(**query_from_string(exclude))\
-                                    .sort_by(order_by)        
+        qs = appmodel.basequery(djp)
+        if text_search:
+            qs = qs.search(text_search)
+        qs = qs.filter(**query_from_string(filter))\
+               .exclude(**query_from_string(exclude))\
+               .sort_by(order_by)        
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:

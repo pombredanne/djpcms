@@ -1,21 +1,18 @@
-#
-# Collection of plugins which handle tags
-#
-from djpcms import forms, get_site
+from djpcms import forms
 from djpcms.template import loader
 from djpcms.plugins import DJPplugin
+from djpcms.plugins.apps import ForModelForm
 
-from django.contrib.contenttypes.models import ContentType
-
-from tagging.models import Tag, TaggedItem
-from tagging.utils import calculate_cloud, LOGARITHMIC, LINEAR
+LINEAR = 1
+LOGARITHMIC = 2
 
 
-class CloudForm(forms.Form):
-    #for_model = forms.ModelChoiceField(queryset = ContentType.objects.all(), empty_label=None)
+class CloudForm(ForModelForm):
     steps     = forms.IntegerField(initial = 4)
     min_count = forms.IntegerField(initial = 0)
-    type      = forms.ChoiceField(choices = ((LOGARITHMIC,"LOGARITHMIC"),(LINEAR,"LINEAR")), initial = LOGARITHMIC)
+    type      = forms.ChoiceField(choices = ((LOGARITHMIC,"LOGARITHMIC"),
+                                             (LINEAR,"LINEAR")),
+                                  initial = LOGARITHMIC)
 
 
 class tagcloud(DJPplugin):
@@ -34,12 +31,11 @@ class tagcloud(DJPplugin):
                 return tag1,
     
     def render(self, djp, wrapper, prefix,
-               for_model = None, steps = 4, min_count = None, **kwargs):
-        try:
-            formodel = ContentType.objects.get(id = int(for_model)).model_class()
-        except:
+               for_model = None, steps = 4,
+               min_count = None, **kwargs):
+        if not for_model:
             return ''
-        
+        appmodel = djp.site.for_hash(for_model,safe=False,all=True)
         steps     = int(steps)
         if min_count:
             min_count = int(min_count)
@@ -91,9 +87,11 @@ class TagForObject(DJPplugin):
                     tags.append(tag)
                 c = {'tags': tags,
                      'instance': djp.instance}
-                return loader.render_to_string(['bits/object_tags.html',
-                                                'djpcms/bits/object_tags.html'],c)
+                return loader.render_to_string(
+                                ['bits/object_tags.html',
+                                 'djpcms/bits/object_tags.html'],c)
             else:
                 return ''
         except:
             return ''
+

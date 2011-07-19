@@ -20,7 +20,7 @@ def expand_star(mod_name):
     return expanded
 
 
-def import_modules(modules):
+def import_modules(modules, safe = False):
     '''Safely import a list of *modules*
     '''
     for mname in modules:
@@ -32,7 +32,8 @@ def import_modules(modules):
             try:
                 __import__(module)
             except ImportError as e:
-                pass
+                if not safe:
+                    raise
             
 
 def module_attribute(dotpath, default = None, safe = False):

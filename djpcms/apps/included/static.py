@@ -150,7 +150,8 @@ class StaticFileView(StaticView):
         statobj = os.stat(fullpath)
         mimetype, encoding = mimetypes.guess_type(fullpath)
         mimetype = mimetype or 'application/octet-stream'
-        if not self.was_modified_since(request.environ.get('HTTP_IF_MODIFIED_SINCE',None),
+        if not self.was_modified_since(request.environ.get(
+                                            'HTTP_IF_MODIFIED_SINCE',None),
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
             return http.Response(status = 304,
@@ -160,7 +161,8 @@ class StaticFileView(StaticView):
         response = http.Response(contents,
                                  content_type=mimetype,
                                  encoding = encoding)
-        response.set_header("Last-Modified", http.http_date(statobj[stat.ST_MTIME]))
+        response.set_header("Last-Modified",
+                            http.http_date(statobj[stat.ST_MTIME]))
         response.set_header("Content-Length", len(contents))
         return response
     

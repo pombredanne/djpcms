@@ -631,15 +631,14 @@ A view of this type has an embedded object available which is used to generate t
         instance=  None
         if 'instance' in kwargs:
             instance = kwargs['instance']
-        if instance:
-            kwargs.update(self.appmodel.objectbits(instance))
-        else:
+        if not isinstance(instance,self.model):
             request = getattr(djp,'request',None)
             instance = self.appmodel.get_object(request, **kwargs)
             if instance:
-                djp.kwargs['instance'] = instance  
-        
-        if not instance:
+                djp.kwargs['instance'] = instance
+        if instance:
+            kwargs.update(self.appmodel.objectbits(instance))  
+        else:
             raise http.Http404('Could not retrieve model instance\
  from url arguments: {0}'.format(djp.kwargs))
         

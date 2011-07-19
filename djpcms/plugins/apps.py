@@ -1,7 +1,8 @@
 import json
 
 from djpcms import forms, html
-from djpcms.forms.layout import DivFormElement, FormLayout, nolabel, SubmitElement
+from djpcms.forms.layout import DivFormElement, FormLayout, nolabel,\
+                                 SubmitElement
 from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
@@ -41,9 +42,10 @@ def get_contet_choices(bfield):
     
     
 class ForModelForm(forms.Form):
-    for_model   = forms.ChoiceField(required = False,
-                            choices = lambda x : sorted(registered_models(x,False),
-                                                        key = lambda y : y[1]))
+    for_model = forms.ChoiceField(
+                      required = False,
+                      choices = lambda x : sorted(registered_models(x,False),
+                                                    key = lambda y : y[1]))
     
     def clean_for_model(self, mhash):
         if mhash:
@@ -91,16 +93,19 @@ class SearchForm(forms.Form):
     A simple search form used by plugins.apps.SearchBox.
     The search_text name will be used by SearchViews to handle text search
     '''
-    q = forms.CharField(required = False,
-                        widget = html.TextInput(default_class = 'classy-search autocomplete-off',
-                                                title = 'Enter your search text'))
+    q = forms.CharField(
+                required = False,
+                widget = html.TextInput(
+                        default_class = 'classy-search autocomplete-off',
+                        title = 'Enter your search text'))
 
 
-SearchSubmit = html.WidgetMaker(tag = 'div',
-                                default_class='cx-submit',
-                                inner = html.Widget('input:submit',
-                                                    cn='cx-search-btn '+forms.NOBUTTON,
-                                                    title = 'Search').render())
+SearchSubmit = html.WidgetMaker(
+                    tag = 'div',
+                    default_class='cx-submit',
+                    inner = html.Widget('input:submit',
+                                        cn='cx-search-btn '+forms.NOBUTTON,
+                                        title = 'Search').render())
 
 HtmlSearchForm = forms.HtmlForm(
         SearchForm,
@@ -129,8 +134,9 @@ class SearchBox(DJPplugin):
                **kwargs):
         engine = djp.site.search_engine
         if not engine:
-            raise ValueError('No search engine installed with site. Cannot add search plugin.\
- You need to install one! Check documentation on how to do it.')
+            raise ValueError('No search engine installed with site.\
+ Cannot add search plugin. You need to install one!\
+ Check documentation on how to do it.')
         request = djp.request
         data = request.GET if method == 'get' else request.POST
         w = HtmlSearchForm(data = data or None)
@@ -169,7 +175,8 @@ class RenderObject(DJPplugin):
     def edit_url(self, djp, args = None):
         initial = self.arguments(args)
         obj = self.get_object(initial.get('content',None))
-        return djp.site.get_url(self.for_model, 'change', instance = obj, all = True)
+        return djp.site.get_url(self.for_model, 'change',
+                                instance = obj, all = True)
       
     
 class ModelLinks(DJPplugin):
@@ -180,7 +187,8 @@ class ModelLinks(DJPplugin):
     form = ModelLinksForm
     
     def get_links(self, djp, exclude, asbuttons):
-        return djp.view.appmodel.links(djp, asbuttons=asbuttons, exclude=exclude)
+        return djp.view.appmodel.links(djp, asbuttons=asbuttons,
+                                       exclude=exclude)
     
     def render(self, djp, wrapper, prefix, layout = 'horizontal',
                asbuttons = True, exclude = '', **kwargs):

@@ -2,7 +2,8 @@ from datetime import datetime
 from copy import deepcopy
 
 import djpcms
-from djpcms import views, html, forms, sites
+from djpcms import views, html, forms, sites, ajax
+from djpcms.forms.layout import uniforms as uni
 from djpcms.html import icons
 from djpcms.template import loader
 from djpcms.apps.included.admin import AdminApplication, TabView
@@ -12,7 +13,7 @@ from djpcms.utils.dates import nicetimedelta, smart_time
 
 from stdnet.lib import redis
 from stdnet.lib.redisinfo import redis_info, RedisData, RedisDbData,\
-                                 RedisDataFormatter
+                                 RedisDataFormatter, RedisStats
 from stdnet.orm import model_iterator
 
 
@@ -54,6 +55,41 @@ class RedisMixin(object):
         return RedisDbData(rpy = r)
         
 
+class InspectKeyForm(forms.Form,RedisMixin):
+    INFO_CLASS = 'redis-key-data'
+    db = forms.IntegerField(default = 0)
+    key = forms.CharField()
+    inner_template = '''\
+<dl><dt>Type</dt><dd>{0}</dd></dl>\
+<dl><dt>Length</dt><dd>{1}</dd></dl>\
+<dl><dt>Expire</dt><dd>{2}</dd></dl>
+'''
+    
+    def save(self, commit = True):
+        db = self.cleaned_data['db']
+        key = self.cleaned_data['key']
+        r = self.get_redis(self.instance, db = db)
+        v = RedisStats(r)
+        typ,l,ttl,enc = v.type_length(key)
+        if not typ:
+            inner = '<p>key not in database</p>'
+        else:
+            inner = self.inner_template.format(typ,l,ttl)
+        return ajax.jhtmls(inner,
+                           '.{0}'.format(self.INFO_CLASS)) 
+        
+        
+
+InspectKeyFormHtml = forms.HtmlForm(
+        InspectKeyForm,
+        layout = uni.Layout(
+                    uni.Columns('db','key','submits'),
+                    html.WidgetMaker(tag = 'div',
+                        default_class = 'object-definition {0}'\
+                                    .format(InspectKeyForm.INFO_CLASS))),
+        inputs = (('check','check'),)
+)
+        
 class RedisTabView(TabView):
     
     def render_object_view(self, djp, appmodel, instance):
@@ -144,6 +180,8 @@ class RedisMonitorApplication(RedisMixin,AdminApplication):
     object_widgets = views.extend_widgets({'home':RedisTabView()})
     
     redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
+    inspect = views.ChangeView(regex = 'inspect',
+                               form = InspectKeyFormHtml)
     
     def dburl(self, db):
         dbview = self.getview('db')

@@ -616,6 +616,7 @@ functionality when searching for model instances.'''
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
     model_id_name = 'id'
+    model_id_url = None
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
@@ -623,6 +624,8 @@ functionality when searching for model instances.'''
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
         self.object_display = object_display or self.object_display or self.list_display
+        if not self.model_id_url:
+            self.model_id_url = self.model_id_name
         
     def get_root_code(self):
         return self.root_view.code
@@ -631,23 +634,29 @@ functionality when searching for model instances.'''
         return self.model
         
     def objectbits(self, obj):
-        '''Get arguments from model instance used to construct url. By default it is the object id.
-* *obj*: instance of self.model
+        '''Get arguments from model instance used to construct url.
+By default it is the object id.
 
-It returns dictionary of url bits which are used to uniquely identify a model instance. 
-        '''
+:parameter obj: instance of self.model
+
+It returns dictionary of url bits which are used to uniquely
+identify a model instance.'''
+        bits = {}
         if isinstance(obj,self.model):
-            return {self.model_id_name: getattr(obj,self.model_id_name)}
-        else:
-            return {}
+            if self.parent and self.related_field:
+                related = getattr(obj,self.related_field)
+                bits.update(self.parent.appmodel.objectbits(related))
+            bits[self.model_id_url] = getattr(obj,self.model_id_name)
+        
+        return bits
     
     def get_object(self, request, **kwargs):
         '''Retrive an instance of self.model from key-values
 *kwargs* forming the url. By default it get the :attr:`model_id_name`
 and get the object. Re-implement for custom arguments.'''
-        if not self.model_id_name in kwargs:
+        if not self.model_id_url in kwargs:
             return None
-        id = kwargs[self.model_id_name]
+        id = kwargs[self.model_id_url]
         if isinstance(id,self.model):
             return id
         else:

@@ -37,7 +37,8 @@ class PageChangeView(views.ChangeView):
                            'This page has problems. The url is probably wrong')
             c['underlying'] = ''
         else:
-            c['underlying'] = cdjp.view.get_context(cdjp, editing = True)['inner']
+            c['underlying'] = cdjp.view.get_context(cdjp,
+                                                    editing = True)['inner']
         return c     
         
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -62,7 +63,8 @@ class SiteMapApplication(TabViewMixin,views.ModelApplication):
              {'name':'default',
               'fields': ('id','application','in_navigation','is_soft',)},
              {'name':'html',
-              'fields': ('id','route','title','linkname','doc_type','template_file')}
+              'fields': ('id','route','title','linkname',
+                         'doc_type','template_file')}
              ]
     
     _mtree = {

@@ -12,7 +12,8 @@ class DocView(views.View):
     
     def __init__(self, regex = '(?P<url>[\w./-]*)', lang = False,
                  version = False, in_navigation = True, **kwargs):
-        super(DocView,self).__init__(regex = regex, in_navigation = in_navigation, **kwargs)
+        super(DocView,self).__init__(regex = regex,
+                                     in_navigation = in_navigation, **kwargs)
         self.lang    = lang
         self.version = version
     
@@ -65,11 +66,13 @@ class DocView(views.View):
         doc['rellinks'] = rels
         djp.breadcrumbs = self.makebreadcrumbs(djp,doc)
         c = {'doc':     doc,
-             'env':     json.load(open(docroot.child('globalcontext.json'), 'rb')),
+             'env':     json.load(open(docroot.child('globalcontext.json'),
+                                                    'rb')),
              'lang':    lang,
              'version': version,
              'docurl':  url,
-             'update_date': datetime.datetime.fromtimestamp(docroot.child('last_build').mtime()),
+             'update_date': datetime.datetime.fromtimestamp(
+                                    docroot.child('last_build').mtime()),
              #'home': urlresolvers.reverse('document-index', kwargs={'lang':lang, 'version':version}),
              #'search': urlresolvers.reverse('document-search', kwargs={'lang':lang, 'version':version}),
              'redirect_from': request.GET.get('from', None)}
@@ -118,13 +121,16 @@ class DocApplication(views.Application):
     document = DocView(parent = 'index')
     
     def __init__(self, baseurl, editavailable = False, **kwargs):
-        super(DocApplication,self).__init__(baseurl, editavailable=editavailable, **kwargs)
+        super(DocApplication,self).__init__(baseurl,
+                                            editavailable=editavailable,
+                                            **kwargs)
     
     def get_path_args(self, lang, version):
         return (lang, version, "_build", "json")
     
     def get_docroot(self, djp, lang, version):
-        docroot = Path(self.DOCS_PICKLE_ROOT).child(*self.get_path_args(lang, version))
+        docroot = Path(self.DOCS_PICKLE_ROOT).child(
+                                        *self.get_path_args(lang, version))
         if not docroot.exists():
             raise djp.http.Http404()
         return docroot 

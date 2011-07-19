@@ -90,9 +90,11 @@ class Columns(UniFormElement):
         newcolumns = []
         for column in self.allchildren:
             if isinstance(column,(list,tuple)):
-                column = layout.default_element(*column)
+                kwargs = {'default_style':self.default_style}
+                column = layout.default_element(*column, **kwargs)
             elif not isinstance(column,html.WidgetMaker):
-                column = layout.default_element(column)
+                column = layout.default_element(column,
+                                        default_style = self.default_style)
             column.check_fields(missings,layout)
             newcolumns.append(column)
         self.allchildren = newcolumns

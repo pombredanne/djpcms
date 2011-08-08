@@ -7,7 +7,8 @@ from djpcms import forms, http, html
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
 from djpcms.utils import lazyattr, storegenarator, logtrace
-from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied, PathException
+from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied,\
+                                     PathException
 
 from .navigation import Navigator, Breadcrumbs
 
@@ -21,7 +22,8 @@ def handle_ajax_error(self,e):
     if self.root.settings.DEBUG:
         exc_info = sys.exc_info()
         logtrace(self.view.logger, self.request, exc_info)
-        stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(traceback.format_exception(*exc_info)))
+        stack_trace = '<p>{0}</p>'.format(
+                    '</p>\n<p>'.join(traceback.format_exception(*exc_info)))
         return jservererror(self.request, stack_trace)
     else:
         raise e
@@ -50,14 +52,15 @@ def get_template(self):
 
 
 class DjpResponse(djpcms.UnicodeMixin):
-    '''Djpcms response class. It contains information associated with a given path
+    '''Djpcms response class.
+It contains information associated with a given path
 which can, and often is, different from the current request path.
 Usually, it is initialized by::
 
     djp = view(request, **kwargs)
     
-where ``kwargs`` is a dictionary of parameters used to build the ``url`` (it can
-also include a model instance).
+where ``kwargs`` is a dictionary of parameters used to build the ``url``
+(it can also include a model instance).
 
 .. attribute:: request
 
@@ -70,7 +73,8 @@ also include a model instance).
     
 .. attribute:: url
 
-    url associated with response. Note this url is not always the same as request.path.
+    url associated with response.
+    Note this url is not always the same as request.path.
 
 .. attribute:: media
 
@@ -79,8 +83,9 @@ also include a model instance).
     
 .. attribute:: site
 
-    Instance of the :class:`djpcms.apps.appsites.ApplicationSite` which own the response.
-    If the :attr:`view` is available, it is the same value.
+    Instance of the :class:`djpcms.apps.appsites.ApplicationSite`
+    which own the response. If the :attr:`view` is available,
+    it is the same value.
     
 .. attribute:: root
 
@@ -166,7 +171,8 @@ which corresponds to ``self``'''
     media = property(__get_media)
     
     def getdata(self, name):
-        '''Extract data out of url dictionary. Return ``None`` if ``name`` is not in the dictionary.'''
+        '''Extract data out of url dictionary. Return ``None`` if ``name``
+is not in the dictionary.'''
         self.url
         return self.kwargs.get(name,None)
     
@@ -283,14 +289,15 @@ the parent of the embedded view.'''
 
             if method not in (m.lower() for m in view.methods(request)):
                 raise http.HttpException(status = 405,
-                                         msg = 'method {0} is not allowed'.format(method))
+                        msg = 'method {0} is not allowed'.format(method))
         
             return getattr(view,'%s_response' % method)(self)
         else:
             # AJAX RESPONSE
             try:
                 if method not in (m.lower() for m in view.methods(request)):
-                    raise ViewDoesNotExist('AJAX "{0}" method not available in view.'.format(method))
+                    raise ViewDoesNotExist(
+                    'AJAX "{0}" method not available in view.'.format(method))
                 data = request.REQUEST
                 ajax_action = forms.get_ajax_action(data)
                 ajax_view_function = getattr(view,'ajax_%s_response' % method)
@@ -299,7 +306,9 @@ the parent of the embedded view.'''
                     if hasattr(view,ajax_view):
                         ajax_view_function = getattr(view,ajax_view)
                     else:
-                        ajax_view_function = getattr(view.appmodel,ajax_view,ajax_view_function)
+                        ajax_view_function = getattr(view.appmodel,
+                                                     ajax_view,
+                                                     ajax_view_function)
                 res = ajax_view_function(self)
             except Exception as e:
                 res = handle_ajax_error(self,e)
@@ -323,7 +332,8 @@ the parent of the embedded view.'''
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
-                b = Breadcrumbs(self,min_length = self.settings.ENABLE_BREADCRUMBS)
+                b = Breadcrumbs(self,
+                                min_length = self.settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
         context = loader.context(context, self.request)
@@ -335,7 +345,8 @@ the parent of the embedded view.'''
     @storegenarator
     def children(self):
         '''return a generator over children responses. It uses the
-:func:`djpcms.node` to retrive the node in the sitemap and cosequently its children.'''
+:func:`djpcms.node` to retrive the node in the sitemap and
+consequently its children.'''
         node = self.node()
         request = self.request
         kwargs = self.kwargs
@@ -366,7 +377,8 @@ the parent of the embedded view.'''
             return http.ResponseRedirect(url)
         
     def instancecode(self):
-        '''If an instance is available, return a unique code for it. Otherwise return None.''' 
+        '''If an instance is available, return a unique code for it.
+Otherwise return None.''' 
         instance = self.instance
         if not instance:
             return None

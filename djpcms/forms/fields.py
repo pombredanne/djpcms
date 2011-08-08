@@ -364,7 +364,7 @@ This field works in conjunction with the ``autocomplete`` decorator in
     def _handle_params(self, choices = None, model = None,
                        separator = ', ', autocomplete = False,
                        empty_label = None, multiple = False,
-                       minLength = 2, maxRows = 20,
+                       minLength = 2, maxRows = 30,
                        **kwargs):
         '''Choices is an iterable or a callable which takes the
 form as only argument'''
@@ -410,10 +410,11 @@ iterable over choices and a model class (if applicable).'''
                     values = value.split(self.separator)
                 else:
                     values = (value,)
-                for val in values:
-                    if not val in ch:
-                        raise ValidationError(
-                                '{0} is not a valid choice'.format(value))
+                if not model:
+                    for val in values:
+                        if not val in ch:
+                            raise ValidationError(
+                                    '{0} is not a valid choice'.format(value))
                 if self.multiple and model:
                     value = values
         return value
@@ -429,10 +430,7 @@ iterable over choices and a model class (if applicable).'''
             # If the choice field is on a model we need to have
             # a url for searching
             if model:
-                se = sites.search_engine
-                if se:
-                    url = se.search_url(model)
-                    data['url'] = url
+                data['url'] = ch.url(djp)
                 if value:
                     if self.multiple:
                         raise NotImplemented

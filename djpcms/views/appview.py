@@ -545,11 +545,9 @@ It returns a queryset.
         else:
             qs = super(SearchView,self).appquery(djp)
             request = djp.request
-            appmodel = self.appmodel
-            slist = appmodel.search_fields
             search_string = request.REQUEST.get(self.search_text,None)
-            if slist and search_string:
-                qs = appmodel.mapper.search_text(qs, search_string, slist)    
+            if search_string:
+                qs = qs.search(search_string)    
             return qs
     
     def render(self, djp):

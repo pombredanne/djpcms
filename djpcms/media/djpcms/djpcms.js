@@ -1118,7 +1118,7 @@
                     }
                     else {
                         if(this.data.length) {
-                            return this.data[0];
+                            return this.data[0].real_value;
                         }
                         else {
                             return val;
@@ -1155,7 +1155,7 @@
                                     display = terms.join(separator);
                                 }
                                 else {
-                                    data = {}
+                                    data = [item];
                                 }
                                 real_data['data'] = data;
                                 $.data(this,'real_value',real_data);

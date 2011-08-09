@@ -1117,11 +1117,11 @@
                         return data.join(separator);
                     }
                     else {
-                        if(this.data.length) {
+                        if(val && this.data.length) {
                             return this.data[0].real_value;
                         }
                         else {
-                            return val;
+                            return '';
                         }
                     }
                 }

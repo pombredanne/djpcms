@@ -3,7 +3,7 @@ from djpcms.apps.included.admin import AdminApplication, \
 from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 
 
 from .models import User,ObjectPermission, Role, Group, Log
-from .forms import RoleForm, GroupForm
+from .forms import RoleForm, GroupForm, PermissionForm
 
 
 NAME = 'Users and Permissions'
@@ -31,6 +31,7 @@ admin_urls = (
     AdminApplication(
              '/permissions/',
              ObjectPermission,
+             form = PermissionForm,
              name = 'Object Permissions',
              list_display = ['role','user','group','action']),
     AdminApplicationSimple(

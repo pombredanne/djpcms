@@ -7,21 +7,29 @@ from .managers import *
 
 
 class Role(orm.StdModel):
+    '''A role is an association with an action and a model
+or an instance of a model.'''
     numeric_code = orm.IntegerField()
     model_type = orm.ModelField()
     object_id = orm.SymbolField(required = False)
     
     @property
     def object(self):
-        if self.object_id:
-            return None
+        if not hasattr(self,'_object'):
+            if not self.object_id:
+                obj = None
+            else:
+                obj = self.model_type.objects.get(id = self.object_id)
+            self._object = obj
+        return self._object
         
     @property
     def action(self):
         return PERMISSION_CODES.get(self.numeric_code,'UNKNOWN')
     
     def __unicode__(self):
-        return self.action  
+        obj = self.object or self.model_type
+        return '{0} - {1}'.format(self.action,obj)
     
    
 class User(orm.StdModel):
@@ -71,10 +79,13 @@ class Group(orm.StdModel):
     name  = orm.SymbolField(unique = True)
     users = orm.ManyToManyField(User, related_name = 'groups')
     description = orm.CharField()
+    
+    def __unicode__(self):
+        return self.name
 
     
 class ObjectPermission(orm.StdModel):
-    '''A general permission model'''
+    '''A general permission model. It associates a Role to a user or a group'''
     role = orm.ForeignKey(Role)
     user = orm.ForeignKey(User, required = False)
     group = orm.ForeignKey(Group, required = False)

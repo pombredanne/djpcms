@@ -363,7 +363,7 @@ This field works in conjunction with the ``autocomplete`` decorator in
     
     def _handle_params(self, choices = None, model = None,
                        separator = ', ', autocomplete = False,
-                       empty_label = None, multiple = False,
+                       empty_label = '-----------', multiple = False,
                        minLength = 2, maxRows = 30,
                        **kwargs):
         '''Choices is an iterable or a callable which takes the

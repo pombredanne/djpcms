@@ -1,5 +1,6 @@
 from djpcms import forms, html
 from djpcms.core.orms import registered_models_tuple
+from djpcms.core.search import Search
 
 from .models import PERMISSION_LIST, Role, User, Group
 
@@ -9,8 +10,10 @@ def get_models(bfield):
 
 
 class RoleForm(forms.Form):
-    permission = forms.ChoiceField(choices = PERMISSION_LIST)
-    model = forms.ChoiceField(choices = get_models)    
+    numeric_code = forms.ChoiceField(choices = PERMISSION_LIST,
+                                     label = 'permission')
+    model_type = forms.ChoiceField(choices = get_models,
+                                   label = 'model')
     
     
 class GroupForm(forms.Form):
@@ -20,9 +23,23 @@ class GroupForm(forms.Form):
         
     
 class PermissionForm(forms.Form):
-    role = forms.ChoiceField(choices = Role.objects.all)
-    user = forms.ChoiceField(choices = User.objects.all)
-    group = forms.ChoiceField(choices = Group.objects.all)
+    '''To use this form, full text search must be implemented on the user.'''
+    role = forms.ChoiceField(choices = lambda x : Role.objects.all())
+    user = forms.ChoiceField(choices = Search(model = User),
+                             autocomplete = True,
+                             required=  False)
+    group = forms.ChoiceField(choices = lambda x : Group.objects.all(),
+                              required = False)
+    
+    def clean(self):
+        cd = self.cleaned_data
+        user = cd.get('user',None)
+        group = cd.get('group',None)
+        if not user and not group:
+            raise forms.ValidationError('User or group should be provided')
+        elif user and group:
+            raise forms.ValidationError(
+                    'Either user or group should be provided')
     
 
 class UserForm(forms.Form):

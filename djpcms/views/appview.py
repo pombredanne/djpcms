@@ -547,7 +547,7 @@ It returns a queryset.
             request = djp.request
             search_string = request.REQUEST.get(self.search_text,None)
             if search_string:
-                qs = qs.search(search_string)    
+                qs = qs.search(search_string)
             return qs
     
     def render(self, djp):

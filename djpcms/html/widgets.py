@@ -108,6 +108,7 @@ class Select(FieldWidget):
 
     def render_options(self, djp, bfield):
         selected_choices = []
+        field = None
         if bfield:
             field = bfield.field
             choices,model = field.choices_and_model(bfield)
@@ -118,6 +119,8 @@ class Select(FieldWidget):
         option = self._option
         selected = self._selected
         if model:
+            if field and not field.required:
+                yield option.format('','',field.empty_label)
             for val in choices:
                 sel = (val in selected_choices) and selected or EMPTY
                 yield option.format(val.id,sel,val)

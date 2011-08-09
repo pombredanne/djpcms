@@ -16,14 +16,21 @@ from .navigation import Navigator, Breadcrumbs
 __all__ = ['DjpResponse',
            'DummyDjp']
 
-
+def formatline(line):
+    if line.split()[0] == 'File':
+        return '<p>{0}</p>'.format(line)
+    else:
+        return '<h3>{0}</h3>'.format(line)
+    
 def handle_ajax_error(self,e):
     #Internal function for handling AJAX server errors
     if self.root.settings.DEBUG:
         exc_info = sys.exc_info()
         logtrace(self.view.logger, self.request, exc_info)
-        stack_trace = '<p>{0}</p>'.format(
-                    '</p>\n<p>'.join(traceback.format_exception(*exc_info)))
+        lines = traceback.format_exception(*exc_info)
+        stack_trace = '\n'.join((formatline(line) for line in lines))
+        #stack_trace = '<p>{0}</p>'.format(
+        #            '</p>\n<p>'.join(lines))
         return jservererror(self.request, stack_trace)
     else:
         raise e

@@ -106,4 +106,14 @@
 {{ tag }} .ui-buttonset {
     margin-right: 0;
 }
+{# EXTRAS #}
+{{ tag }} .dataTables_scroll {
+    clear: both;
+}
+{{ tag }} table.display {
+    border-collapse: collapse;
+    clear: both;
+    margin: 0 auto;
+    width: 100%;
+}
 {% endblock %}

@@ -226,7 +226,7 @@
                     that = this;
                 $.each($(opts.selector,$this),function() {
                     var elem = $(this),
-                        tbl = $('table',elem).hide(),
+                        tbl = $('table',elem).addClass('main display'),
                         data = elem.data('options') || {},
                         buttons = [];
                     if(tbl.length == 1) {

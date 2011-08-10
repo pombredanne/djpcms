@@ -2,7 +2,7 @@ import os
 import logging
 import json
 
-from djpcms import forms
+from djpcms import forms, to_string
 from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str
 from djpcms.utils.text import capfirst, nicename
@@ -71,8 +71,14 @@ class DJPwrapper(DJPwrapperBase):
     virtual       = True
     
     name          = None
-    '''Unique name. If not provided the class name will be used. Default ``None``.'''
+    '''Unique name. If not provided the class name will be used.
+    
+    Default ``None``.'''
     form_layout   = None
+    
+    _head_template = to_string('<div id="{0}"\
+ class="djpcms-block-element plugin-{1}">\n')
+    _wrap_template = to_string('{0}{1}\n</div>')
 
     def wrap(self, djp, cblock, html):
         '''Wrap content for block and return safe HTML.
@@ -86,9 +92,9 @@ This function should be implemented by derived classes.
     def __call__(self, djp, cblock, html):
         name  = cblock.plugin_name
         id    = cblock.htmlid()
-        head  = '<div id="{0}" class="djpcms-block-element plugin-{1}">\n'.format(id,name)
+        head  = self._head_template.format(id,name)
         inner = self.wrap(djp, cblock, html)
-        return force_str(head + inner + CLOSE_DIV)
+        return self._wrap_template.format(head,inner)
     
     def _register(self):
         global _wrapper_dictionary

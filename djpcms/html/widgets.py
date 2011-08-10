@@ -12,7 +12,8 @@ __all__ = ['TextInput',
            'Select',
            'ListWidget',
            'List',
-           'SelectWithAction']
+           'SelectWithAction',
+           'TextSelect']
 
 
 class FieldWidget(WidgetMaker):
@@ -172,3 +173,35 @@ def SelectWithAction(choices, action_url, **kwargs):
     a = HtmlWidget('a', cn = 'djph select-action').addAttr('href',action_url)
     s = Select(choices = choices, **kwargs).addClass('ajax actions')
     return a.render()+s.render()
+
+
+class TextSelect(WidgetMaker):
+    tag = 'div'
+    default_class = 'text-select'
+    
+    def __init__(self, data, empty_label = None, **kwargs):
+        super(TextSelect,self).__init__(**kwargs)
+        choices = []
+        text = []
+        initial = None
+        if empty_label:
+            initial = ''
+            choices.append(('',empty_label))
+        for name,value,body in data:
+            if initial is None:
+                initial = name
+            choices.append((name,value))
+            text.append((name,body))
+        self.add(Select(choices=choices))
+        self.initial = initial
+        self.body = text
+    
+    def stream(self, djp, widget, context):
+        for child in context['children']:
+            yield child
+        for name,body in self.body:
+            yield Widget(maker='div',
+                         cn = '{0} target'.format(name))\
+                        .render(inner = body)
+    
+        

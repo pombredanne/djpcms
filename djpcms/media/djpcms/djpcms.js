@@ -1320,7 +1320,30 @@
     			});
     	    }());
     	}
-    });	
+    });
+    
+    $.djpcms.decorator({
+        id: "textselect",
+        config: {
+            selector: 'div.text-select select',
+        },
+        description: "A selct widget with text to display",
+        decorate: function($this,config) {
+            // The selectors
+            function text(elem) {
+                var me = $(elem),
+                    pa = me.parent(),
+                    val = me.val(),
+                    el;
+                $('.target',pa).hide();
+                if(val) {
+                    $('.target.'+val,pa).show();
+                }
+            }
+            
+            $(config.textselect.selector,$this).change(function(){text(this)});
+        }
+    });
     
     /**
      * Return an object containing the formatted currency and a flag

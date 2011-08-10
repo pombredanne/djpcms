@@ -163,9 +163,10 @@
 input.color-picker {
 	display: none;
 }
+form.uniForm .inlineLabels .field-widget.color-picker,
 div.color-picker {
 	overflow:hidden;
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     background: url(../images/select2.png);
 }

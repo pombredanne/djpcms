@@ -266,6 +266,7 @@ it is a class used as factory for HTML components.
     default_class = None
     default_attrs = None
     _widget = None
+    _template = to_string('<{0}{1}>{2}</{0}>')
     
     def __init__(self, inline = None, default = False,
                  description = '', widget = None,
@@ -356,7 +357,7 @@ It returns self for concatenating data.'''
                 text = self.inner(djp, widget, keys)
             if widget.tag:
                 fattr = widget.flatatt()
-                text = '<{0}{1}>{2}</{0}>'.format(widget.tag,fattr,text)
+                text = self._template.format(widget.tag,fattr,text)
         if self.renderer:
             text = self.renderer(text)
         if djp:

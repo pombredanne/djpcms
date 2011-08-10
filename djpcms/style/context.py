@@ -223,16 +223,16 @@ CssContext('datatable',
                    }
            )
 
-CssContext('datatable_table',
-           tag='.data-table table',
-           data = {
-                   'display':'none',
-                   'width':'100%',
-                   'text_align': 'left',
-                   'margin': 0,
-                   'background': 'transparent'
-                   }
-           )
+#CssContext('datatable_table',
+#           tag='.data-table table.main',
+#           data = {
+#                   #'display':'none',
+#                   #'width':'100%',
+#                   'text_align': 'left',
+#                   'margin': 0,
+#                   'background': 'transparent'
+#                   }
+#           )
 
 CssContext('datatable_filter_input',
            tag ='.data-table .dataTables_filter input',
@@ -440,6 +440,17 @@ CssContext('taboverride',
                    'margin':'0'
                    }
            )
+
+
+#________________________________________ Text Select
+CssContext('textselect',
+           tag = 'div.text-select .target',
+           data = {
+                   'display': 'none',
+                   'margin':'0'
+                   }
+           )
+
 
 #________________________________________ SPECIAL IDS AND CLASSES
 CssContext('server_exception',

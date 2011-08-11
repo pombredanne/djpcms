@@ -1,3 +1,17 @@
+'''\
+Markup handlers for converting text into html. There are three
+handlers implemented:
+
+* creole
+* Markdown (requires markdown2 package)
+* restructuredText (requires sphinx package)
+
+To use it::
+
+    from djpcms.utils import markups
+    
+    html = markups.get('rst')['handler'](txt)
+'''
 import os
 from djpcms.utils.importer import import_module
 

@@ -21,8 +21,9 @@ class Application(application.Application):
     def setup(self):
         settings = self.config
         cfgdir = settings.SITE_DIRECTORY
-        srcdir = os.path.join(settings.SITE_DIRECTORY,'flowtmp')
-        outdir = os.path.join(settings.MEDIA_ROOT,'site')
+        smod = settings.SITE_MODULE
+        outdir = os.path.join(settings.MEDIA_ROOT,smod,self.code)
+        srcdir = os.path.join(outdir,'_tmp')
         if not os.path.exists(outdir):
             os.mkdir(outdir)
         if not os.path.exists(srcdir):
@@ -30,7 +31,7 @@ class Application(application.Application):
         self.srcdir = srcdir
         self.cfgdir = cfgdir
         self.outdir = outdir
-        self.media_url = '{0}site/'.format(settings.MEDIA_URL)
+        self.media_url = '{0}{1}/{2}/'.format(settings.MEDIA_URL,smod,self.code)
         
     def __call__(self, text):
         sx = Sphinx(self.srcdir,

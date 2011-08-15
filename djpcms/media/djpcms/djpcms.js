@@ -62,59 +62,75 @@
      * A minimalist logging class
      */
     function djplogger() {
+        function error(msg, e){
+            if(e) {
+                msg += " - Line " + e.lineNumber + ": " + e;
+            }
+            return msg;
+        }
+        
         var handlers = [],
             logclass = 'log',
-            defo = ' INFO   - ',
-            _levels = {
-                    'debug':   ' DEBUG  - ',
-                    'info':    defo,
-                    'error':   ' ERROR  - ',
-                    'critical':' CRITIC - '},
-            clog;
+            level = 10,
+            levels = {
+                    debug: {n:10,v:'DEBUG'},
+                    info: {n:20,v:'INFO'},
+                    warn: {n:30,v:'WARN'},
+                    error: {n:40,v:'ERROR',f: error},
+                    critical: {n:50,v:'CRITICAL', f:error}
+                },
+            mapping = {};
+            names = {};
+        $.each(levels,function(fname,val) {
+            mapping[val.n] = val.v;
+            names[val.v] = val.n;
+        });
+        
+        var instance = {
+            'level': function() {return level;},
+            'set_level': function(lev) {
+                var l = names[lev];
+                if(l) {
+                    level = l;
+                }
+            },
+            'addHandler': function(h) {handlers.push(h);}
+        };
             
         if(typeof console !== "undefined" && typeof console.log !== "undefined") {
-            clog = function(msg) {
+            instance.addHandler(function(msg,level) {
                 console.log(msg);
-            };
-        } else {
-            clog = function(msg){};
+            });
         }
             
-        function _log(msg, level) {
-            var mlevel = _levels[level || 'info'],
+        instance.log = function (msg, lvl) {
+            if(lvl < level) {return;}
+            var mlevel = mapping[lvl] || 'UNKN',
                 msg,
                 dte = new Date(),
                 hours = dte.getHours(),
                 minutes = dte.getMinutes(),
                 seconds = dte.getSeconds();
-            if(!mlevel) {
-                mlevel = defo;
-                level = 'info';
-            }
             if(hours < 10) {hours = '0'+hours;}
             if(minutes < 10) {minutes = '0'+minutes;}
             if(seconds < 10) {seconds = '0'+seconds;}
-            msg = hours+':'+minutes+':'+seconds+mlevel+msg;
-            clog(msg);
-            msg = '<pre class="' + logclass + ' '+level+'">'+msg+'</pre>';
+            msg = hours+':'+minutes+':'+seconds+'-'+mlevel+'-'+msg;
+            msg = '<pre class="' + logclass + ' '+mlevel+'">'+msg+'</pre>';
             $.each(handlers, function(i,handle) {
-                handle.prepend(msg);
+                handle(msg,level);
             });
         }
         
-        return {
-            'addHandler': function(h) {handlers.push(h);},
-            'log': _log,
-            'debug': function(msg){_log(msg,'debug');},
-            'info': function(msg){_log(msg,'info');},
-            'error': function(msg, e){
-                if(e) {
-                    msg += " - Line " + e.lineNumber + ": " + e;
+        $.each(levels,function(fname,val) {
+            instance[fname] = function (msg,e) {
+                if(val.f) {
+                    msg = val.f(msg,e);
                 }
-                _log(msg,'error');
-             },
-            'critical': function(msg){_log(msg,'critical');}
-        };
+                instance.log(msg,val.n);
+            }
+        });
+        
+        return instance;
     };
     
     /**
@@ -152,7 +168,9 @@
     	function set_logging_pannel(panel) {
     	    var panel = $(panel);
     	    if(panel.length) {
-    	        logger.addHandler(panel);
+    	        logger.addHandler(function(msg,level) {
+    	            panel.prepend(msg);
+    	        });
     	    }
     	}
     	    	

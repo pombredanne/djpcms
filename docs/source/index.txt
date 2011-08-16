@@ -52,10 +52,16 @@ Contents
    settings
    tutorials/index
    internals/index
-   contrib/monitor
-   contrib/sessions
+   battery
    changelog
    license
+   
+API
+=======
+.. toctree::
+   :maxdepth: 1
+   
+   application/api
 
 
 Indices, glossary and tables

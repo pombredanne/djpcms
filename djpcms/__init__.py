@@ -151,3 +151,8 @@ def secret_key():
         return b'sk'
     
 
+def nest():
+    from djpcms.views import ApplicationSite
+    sites.ApplicationSite = ApplicationSite
+    
+nest()

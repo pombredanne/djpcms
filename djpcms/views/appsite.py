@@ -343,6 +343,9 @@ application {0}. Already available." % name)
         return self.site.route() + self.baseurl
         
     def registration_done(self):
+        '''Invoked by the application site to which the application is
+registered once registraton is done. It can be used to setup global variables
+so that tricky imports can be avoided'''
         pass
     
     def getview(self, code):

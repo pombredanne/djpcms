@@ -15,6 +15,7 @@ MAX_SEARCH_DISPLAY = 20
 CACHE_VIEW_OBJECTS = True
 DJPCMS_IMAGE_UPLOAD_FUNCTION = None
 DJPCMS_EMPTY_VALUE = '(None)'
+SITEMAP_TIMEOUT = 60
 #
 # To group applications admin together. Check the documentation
 ADMIN_GROUPING = None

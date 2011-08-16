@@ -10,6 +10,9 @@ NAME = 'Users and Permissions'
 
 class UserAdmin(TabViewMixin,UserApplicationWithFilter):
     inherit = True
+    
+    def registration_done(self):
+        pass
 
 
 admin_urls = (

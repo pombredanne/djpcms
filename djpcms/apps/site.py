@@ -20,6 +20,7 @@ from .management import find_commands
 from .permissions import SimplePermissionBackend
 
 __all__ = ['MakeSite',
+           'SiteApp',
            'GetOrCreate',
            'RegisterORM',
            'ORMS',
@@ -154,12 +155,12 @@ The sites singletone has several important attributes:
         self._sites = {}
         self.admins = []
         self._osites = None
-        #self._settings = None
         self.settings = None
         self.route = None
         self.tree = None
         self._commands = None
         self.User = None
+        self.Page = None
         
     def __unicode__(self):
         return force_str(self._sites)
@@ -174,7 +175,8 @@ The sites singletone has several important attributes:
     def all(self):
         s = self._osites
         if s is None:
-            self._osites = s = list(OrderedDict(reversed(sorted(self._sites.items(),
+            self._osites = s = list(
+                        OrderedDict(reversed(sorted(self._sites.items(),
                                            key=lambda x : x[0]))).values())
         return s                           
                                            
@@ -187,11 +189,13 @@ The sites singletone has several important attributes:
         raise TypeError('Site object does not support item assignment')
     
     def setup_environment(self):
-        '''Called just before loading :class:`djpcms.apps.appsites.ApplicationSite` instances
-registered. It loops over the objecr relational mappers registered and setup models.
+        '''Called just before loading
+ :class:`djpcms.views.ApplicationSite` instances are registered.
+It loops over the objecr relational mappers registered and setup models.
 It also initialise admin for models.'''
         if not self:
-            raise ImproperlyConfigured('Site container has no sites registered. Cannot setup.')
+            raise ImproperlyConfigured('Site container has no sites registered.\
+ Cannot setup.')
         for wrapper in self.modelwrappers.values():
             wrapper.setup_environment(self)
         self.admins = admins = []
@@ -239,19 +243,22 @@ It also initialise admin for models.'''
     def make(self, name, settings = None, route = None,
              handler = None, permissions = None,
              **params):
-        '''Create a new ``djpcms`` :class:`djpcms.apps.appsites.ApplicationSite`
+        '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`
 from a directory or a file name. Extra configuration parameters,
 can be passed as key-value pairs:
 
-:parameter name: a file or directory name where which specifies the application root-directory.
+:parameter name: a file or directory name where which specifies the
+                 application root-directory.
 :parameter settings: optional settings file name.
 :parameter route: the base ``url`` for the site applications.
-:parameter handler: an optional string defining the wsgi handler class for the application.
+:parameter handler: an optional string defining the wsgi handler
+                    class for the application.
 :parameter permission: An optional :ref:`site permission handler <permissions>`.
-:parameter params: key-value pairs which override the values in the settings file.
+:parameter params: key-value pairs which override the values
+                   in the settings file.
 
 The function returns an instance of
-:class:`djpcms.apps.appsites.ApplicationSite`.
+:class:`djpcms.views.ApplicationSite`.
 '''
         # Finde directory from name. If not a directory it may be a file
         if os.path.isdir(name):
@@ -263,7 +270,8 @@ The function returns an instance of
                 mod = import_module(name)
                 appdir = mod.__path__[0]
             except ImportError:
-                raise ValueError('Could not find directory or file {0}'.format(name))
+                raise ValueError(
+                        'Could not find directory or file {0}'.format(name))
         site_path = os.path.realpath(appdir)
         base,name = os.path.split(site_path)
         if base not in sys.path:
@@ -309,7 +317,8 @@ The function returns an instance of
         '''Load settings to override existing settings'''
         if not self:
             raise ValueError('Cannot load settings. No site installed')
-        setting_module = '{0}.{1}'.format(self.settings.SITE_MODULE,setting_module)
+        setting_module = '{0}.{1}'.format(self.settings.SITE_MODULE,
+                                          setting_module)
         setting_module = import_module(setting_module)
         self.settings.fill(setting_module)
         
@@ -325,11 +334,11 @@ site is already registered at ``route``.'''
             return site
     
     def _create_site(self,route,settings,handler,permissions):
-        from djpcms.apps import appsites
         route = closedurl(route or '')
         if route in self._sites:
-            raise AlreadyRegistered('Site with route {0} already avalable.'.format(route))
-        site = appsites.ApplicationSite(self, route, settings, handler, permissions)
+            raise AlreadyRegistered('Site with route {0}\
+ already avalable.'.format(route))
+        site = self.ApplicationSite(self, route, settings, handler, permissions)
         self._sites[site.path] = site
         self._osites = None
         self._urls = None
@@ -378,9 +387,10 @@ site is already registered at ``route``.'''
         site = self.get_site(page.url)
         
     def make_admin_urls(self, name = 'admin', **params):
-        '''Return a one element tuple containing an :class:`djpcms.apps.included.admin.AdminSite`
-application for displaying the admin site. All application with an ``admin`` module specifying the
-admin application will be included.
+        '''Return a one element tuple containing an
+:class:`djpcms.apps.included.admin.AdminSite`
+application for displaying the admin site. All application with an ``admin``
+module specifying the admin application will be included.
 
 :parameter params: key-value pairs of extra parameters for input in the
                    :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
@@ -490,7 +500,7 @@ derived from :class:`BaseOrmWrapper`.'''
         mod_name = name
     try:
         mod = import_module(mod_name)
-    except ImportError:
+    except ImportError as e:
         return
     model_wrappers[name] = mod.OrmWrapper
 

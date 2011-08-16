@@ -42,7 +42,7 @@ class NodeInfo(object):
         
 
 class Node(UnicodeMixin):
-    '''a :class:`Sitemap` Node'''
+    '''The :class:`Sitemap` Node class.'''
     def __init__(self, urlmap, path = SLASH, view = None):
         self.urlmap = urlmap
         self.path = path
@@ -56,7 +56,10 @@ class Node(UnicodeMixin):
     def children(self, strict = True):
         '''Return a generator of child nodes.
 
-:parameter strict: If ``True`` only direct children will be included. Default ``True``.'''
+:parameter strict: If ``True`` only direct children will be included.
+                   
+                   Default ``True``.
+'''
         path = self.path
         mp   = self.urlmap
         for p in mp:
@@ -68,9 +71,13 @@ class Node(UnicodeMixin):
                     yield mp[p] 
         
     def children_map(self, strict = True):
-        '''Utility method which returns a dictionary of children, where
-        the key is given by the children path.
-        '''
+        '''Utility method which returns a dictionary of children nodes,
+where the key is given by the children path.
+
+:parameter strict: If ``True`` only direct children will be included.
+                   
+                   Default ``True``.
+'''
         return dict((c.path,c) for c in self.children(strict))
     
     @property
@@ -95,7 +102,8 @@ class Node(UnicodeMixin):
         return self.path
     
     def djp(self, request = None, **kwargs):
-        '''Create a :class:`djpcms.views.DjpResponse` object with a dummy request if not available'''
+        '''Create a :class:`djpcms.views.DjpResponse` object with a dummy
+ request if not available'''
         if not request:
             request = DummyRequest(self.site)   
         view = self.get_view()
@@ -105,22 +113,21 @@ class Node(UnicodeMixin):
         '''Return an instance of `:class:`djpcms.views.djpcmsview` at node.'''
         if self.view:
             return self.view
-        elif self.page:
-            site = self.site
-            if site is None:
-                raise PathException('Cannot get view for node {0}'.format(self))
-            else:
-                return pageview(self.page,site)
         else:
-            raise PathException('Cannot get view for node {0}'.format(self))
+            page = self.page 
+            if page:
+                site = self.site
+                if site is not None:
+                    return pageview(page,site)
+        raise PathException('Cannot get view for node {0}'.format(self))
         
     def tojson(self, fields):
         '''Convert ``self`` into an instance of :class:`JsonTreeNode`
 for json serialization.'''
         djp = self.djp()
         node = JsonTreeNode(None, self.path,
-                            values = [field_repr(field['name'], djp) for field in fields],
-                            children = [])
+                values = [field_repr(field['name'], djp) for field in fields],
+                children = [])
         for child in self.children():
             node.add(child.tojson(fields))
         return node
@@ -128,7 +135,6 @@ for json serialization.'''
     
 class SiteMap(dict):
     '''Djpcms sitemap'''
-    refresh_seconds = 3600
     def __init__(self, site):
         super(SiteMap,self).__init__()
         self.site = site
@@ -136,6 +142,7 @@ class SiteMap(dict):
         self[r.path] = r
         self.lastload = None
         self.lock = Lock()
+        self._pages = {}
         
     def addsite(self, site):
         '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
@@ -190,40 +197,31 @@ a view "{1}". Cannot assign a new one "{2}"'.format(node,node.view,view))
             pages = Page.objects.all()
         return self.root
     
-    def tojson(self, fields, views = None, refresh = True):
-        '''Serialize as a JSON string.'''
-        from jslib.jquery_mtree.data import JSONdata
-        data = JSONdata(fields = fields, views = views)
-        root = self.root.tojson(fields)
-        data.add(root)
-        return data
-    
     def get_site(self,path):
         r = self.site.resolver.resolve(path[1:])
         return r[0]
         
     def get_page(self,path):
-        from djpcms.models import Page
-        if Page:
-            mp = mapper(Page)
-            try:
-                return mp.get(url = path)
-            except mp.DoesNotExist:
-                return None
+        self.load()
+        return self._pages.get(path,None)
         
     def load(self):
         '''Load flat pages to sitemap'''
-        from djpcms.models import Page
+        Page = mapper(self.site.Page) if self.site.Page else None
         if Page:
             nt = time()
-            if not self.lastload or nt - self.lastload > self.refresh_seconds:
+            if not self.lastload or nt - self.lastload >\
+                                     self.site.settings.SITEMAP_TIMEOUT:
                 self.lastload = nt
             else:
                 return False
-            for p in mapper(Page).all():
+            pages = {}
+            for p in Page.all():
                 path = p.url
                 if path not in self:
                     self[path] = Node(self, path = path)
+                pages[path] = p
+            self._pages = pages
             return True
         else:
             return False

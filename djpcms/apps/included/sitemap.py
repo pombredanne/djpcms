@@ -67,17 +67,9 @@ class SiteMapApplication(TabViewMixin,views.ModelApplication):
                          'doc_type','template_file')}
              ]
     
-    _mtree = {
-             'plugins': ('core','json','crrm','ui','table','types'),
-             'table': {'min_height': '500px', 'name': 'path'}
-             }
-    
     search = SiteMapView()
     
     if Page:
-#        search = views.SearchView(regex = 'pages',
-#                                  parent = 'main',
-#                                  title = lambda djp : 'pages')
         add = views.AddView(force_redirect = True)
         view = views.ViewView()
         change = PageChangeView(force_redirect = True,
@@ -87,6 +79,9 @@ class SiteMapApplication(TabViewMixin,views.ModelApplication):
         
         def __init__(self, baseurl, **kwargs):
             super(SiteMapApplication,self).__init__(baseurl,Page,**kwargs)
+            
+        def registration_done(self):
+            self.site.root.Page = Page
     
     else:
         def __init__(self, baseurl, **kwargs):

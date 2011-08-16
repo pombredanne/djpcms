@@ -1,18 +1,117 @@
-.. _topics-applications-index:
+.. _views-index:
+
+.. module:: djpcms.views
 
 =========================
 Applications and Views
 =========================
 
-.. automodule:: djpcms.apps
-   :members:
 
-**Contents**
+Sites
+======================
 
-.. toctree::
-   :maxdepth: 2
+The first concept to get familiar when using djpcms is the application site.
 
-   sites
-   application
-   views
-   included
+.. note::
+
+    When using ``djpcms`` to manage a web application, you need to create a 
+    at least one application site. This is easy to do using the
+    :func:`djpcms.MakeSite` high level function.
+
+This is the simplest possible site you can build
+
+.. include:: ../commons/helloworld
+
+
+===============
+Applications
+===============
+
+The Basics
+=========================
+
+Lets assume we have a model called ``Project``, to setup a
+:ref:`djpcms application <topics-applications-index>`
+based on a database model, we create a class derived from
+:class:`djpcms.views.ModelApplication`::
+
+    from djpcms.views import appsite
+    
+    class ProjectApplication(appsite.ModelApplication):
+        pass
+    
+A dynamic application is registered to the site by invoking::
+    
+    appsite.site.register('/project/', Project, ProjectApplication)
+        
+
+This application is pretty useless since it has no 
+:class:`djpcms.views.View` associated with it. Infact,
+such application will throw an :class:`djpcms.core.exceptions.ApplicationUrlException`
+because there are no views associated with it.
+Here is an ``app`` which can be used for something meaningful::
+
+    from djpcms.views import appsite, appview
+    
+    class ProjectApplication(appsite.ModelApplication):
+        search = appview.SearchView()
+        view   = appview.ViewView()
+        
+We can now search and view instances of ``Project``.
+
+
+
+
+View handlers
+=================
+
+As soon as a client requests a url, the primary job of ``djpcms`` is to find and invoke
+a ``view handler``. These view handlers are instances of
+:class:`djpcms.views.djpcmsview` the ``djpcms`` base class
+for handling user requests.
+Views are usually specified in a declarative manner when creating a
+:class`djpcms.views.Application` class. A common pattern is
+to create an application class containg several views which
+are closely related to each other.
+
+For example, the *Vannilla Application* implemented in
+:mod:`djpcms.apps.included.vanilla` module specifies the
+five most common views for a model::
+
+    from djpcms import views
+
+    class Application(views.ModelApplication):
+        search = views.SearchView()
+        add = views.AddView()
+        view = views.ViewView()
+        change = views.ChangeView()
+        delete = views.DeleteView()
+
+By default these views are served at::
+
+    ../
+    ../add/
+    ../(?P<id>\d+)/
+    ../(?P<id>\d+)/change/
+    ../(?P<id>\d+)/delete/
+    
+    
+Overview
+=====================
+If your web-site does not have any application, there is no need
+for you to write any view handler since flat pages are always processed by
+instances of the :class:`djpcms.views.pageview` class. 
+On the other hand if you have dynamic application, the chances are you are going to
+write some code.
+
+As an example lets take the included application in :mod:`djpcms.apps.included.vanilla` ::
+
+    from djpcms import views
+    
+    class Application(views.ModelApplication):
+        search = views.SearchView()
+        add    = views.AddView()
+        view   = views.ViewView()
+        edit   = views.ChangeView() 
+   
+

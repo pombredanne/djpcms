@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http
+from djpcms import http, SiteApp
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -14,7 +14,8 @@ from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\
                          RouteMixin, ALL_URLS
 from djpcms.template import loader
 
-from .site import SiteApp
+
+__all__ = ['ApplicationSite']
 
 
 class ApplicationSite(SiteApp, RouteMixin):
@@ -51,6 +52,10 @@ class ApplicationSite(SiteApp, RouteMixin):
         elif User is not self.root.User:
             raise ImproperlyConfigured('A different User class has been already registered')
     User = property(__get_User,__set_User)
+    
+    @property
+    def Page(self):
+        return self.root.Page
     
     def route(self):
         return self._route

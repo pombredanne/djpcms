@@ -64,7 +64,7 @@
     function djplogger() {
         function error(msg, e){
             if(e) {
-                msg += " - Line " + e.lineNumber + ": " + e;
+                msg += "- File " + e.fileName + " - Line " + e.lineNumber + ": " + e;
             }
             return msg;
         }
@@ -114,8 +114,8 @@
             if(hours < 10) {hours = '0'+hours;}
             if(minutes < 10) {minutes = '0'+minutes;}
             if(seconds < 10) {seconds = '0'+seconds;}
-            msg = hours+':'+minutes+':'+seconds+'-'+mlevel+'-'+msg;
-            msg = '<pre class="' + logclass + ' '+mlevel+'">'+msg+'</pre>';
+            msg = hours+':'+minutes+':'+seconds+' - '+mlevel+' - '+msg;
+            msg = '<pre class="' + logclass + ' '+mlevel.toLowerCase()+'">'+msg+'</pre>';
             $.each(handlers, function(i,handle) {
                 handle(msg,level);
             });

@@ -420,7 +420,22 @@ CssContext('javascript_logging',
            tag = '.djp-logging-panel',
            data = {
                    'overflow': 'scroll',
-                   'height':'400px'}
+                   'height':'400px'},
+           elems = [CssContext('debug',
+                               tag = '.log.debug',
+                               data = {'color':'#9C9C9C'}),
+                    CssContext('info',
+                               tag = '.log.info',
+                               data = {'color':'#339933'}),
+                    CssContext('warn',
+                               tag = '.log.warn',
+                               data = {'color':'#996633'}),
+                    CssContext('error',
+                               tag = '.log.error',
+                               data = {'color':'#CC0033','font_weight':'bold'}),
+                    CssContext('critical',
+                               tag = '.log.critical',
+                               data = {'color':'#CC0033','font_weight':'bold'})]
            )
 CssContext('javascript_logging_paragraph',
            tag = '.djp-logging-panel pre',

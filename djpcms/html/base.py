@@ -124,7 +124,12 @@ Any Operation on this class is similar to jQuery.
         
     def addData(self, name, val):
         if val:
-            self.data[name] = val
+            if name in self.data:
+                val0 = self.data[name]
+                if isinstance(val0,dict) and isinstance(val,dict):
+                    val0.update(val)
+                    return self 
+        self.data[name] = val
         return self
     
     def addClass(self, cn):

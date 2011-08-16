@@ -133,6 +133,7 @@ http requests.
         pass
     
     def get_context(self, djp, editing = False):
+        '''View context as a dictionary.'''
         request = djp.request
         site    = self.site
         page    = djp.page

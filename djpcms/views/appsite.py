@@ -213,6 +213,8 @@ or in the constructor.
     default inner template template
     
     Default ``None``
+    
+.. attribute:: related_field
 '''
     creation_counter = 0
     inherit          = False
@@ -285,6 +287,7 @@ or in the constructor.
         self.apps = deepcopy(self.base_apps)
         self.site = None
         self.root_view = None
+        self.model_url_bits = ()
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation if in_navigation is not None else\
                              self.in_navigation
@@ -335,10 +338,7 @@ application {0}. Already available." % name)
         else:
             v = self.path
         return to_string(v)
-    
-    def appsite(self):
-        return self.parent_app
-    
+
     def route(self):
         return self.site.route() + self.baseurl
         
@@ -374,6 +374,7 @@ Return ``None`` if the view is not available.'''
         #Build views for this application. Called by the application site
         if self.site:
             raise AlreadyRegistered('Application %s already registered as application' % self)
+        parent = self.parent
         self.mapper = None if not self.model else mapper(self.model)
         roots = []
         self.site = application_site
@@ -411,9 +412,23 @@ Return ``None`` if the view is not available.'''
             
         # Pre-process urls
         views = list(self.views.values())
+        names = set(parent.names()) if parent else None
         while views:
             view = process_views(views[0],views,self)
             view.processurlbits(self)
+            if isinstance(view,ViewView):
+                if self.model_url_bits:
+                    raise ApplicationUrlException('Application {0} has more\
+ than one ViewView instance. Not possible.'.format(self))
+                self.model_url_bits = view.names()
+            if names:
+                na2 = names.intersection(view.names())
+                if na2:
+                    k = 'key' if len(na2) == 1 else 'keys'
+                    ks = ','.join(na2)
+                    raise ApplicationUrlException('View "{0}" in application\
+ {1} has {2} "{3}" matching parent view "{4}" of application "{5}"'.\
+                    format(view,self,k,ks,parent,parent.appmodel))            
             if self.has_plugins and view.isplugin:
                 register_application(view)
     
@@ -616,7 +631,7 @@ functionality when searching for model instances.'''
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
     model_id_name = 'id'
-    model_id_url = None
+    model_url_bits = None
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
@@ -624,8 +639,6 @@ functionality when searching for model instances.'''
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
         self.object_display = object_display or self.object_display or self.list_display
-        if not self.model_id_url:
-            self.model_id_url = self.model_id_name
         
     def get_root_code(self):
         return self.root_view.code
@@ -640,23 +653,34 @@ By default it is the object id.
 :parameter obj: instance of self.model
 
 It returns dictionary of url bits which are used to uniquely
-identify a model instance.'''
+identify a model instance.
+This function should not be overitten. Overwrite `_objectbits` instead.'''
         bits = {}
         if isinstance(obj,self.model):
             if self.parent and self.related_field:
                 related = getattr(obj,self.related_field)
                 bits.update(self.parent.appmodel.objectbits(related))
-            bits[self.model_id_url] = getattr(obj,self.model_id_name)
+            bits.update(self._objectbits(obj))
         
         return bits
+    
+    def _objectbits(self, obj):
+        if len(self.model_url_bits) == 1:
+            return {self.model_url_bits[0]: getattr(obj,self.model_id_name)}
+        else:
+            raise ApplicationUrlException(
+                            'Cannot obtain model instance url components')
     
     def get_object(self, request, **kwargs):
         '''Retrive an instance of self.model from key-values
 *kwargs* forming the url. By default it get the :attr:`model_id_name`
 and get the object. Re-implement for custom arguments.'''
-        if not self.model_id_url in kwargs:
+        if len(self.model_url_bits) != 1:
             return None
-        id = kwargs[self.model_id_url]
+        model_id_url = self.model_url_bits[0]
+        if not model_id_url in kwargs:
+            return None
+        id = kwargs[model_id_url]
         if isinstance(id,self.model):
             return id
         else:
@@ -764,11 +788,6 @@ This can be re-implemented by subclasses.'''
         if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
             qs = qs.sort_by(self.ordering)
         return qs
-    
-    def object_id(self, djp):
-        obj = djp.instance
-        if obj:
-            return self.opts.get_object_id(obj)
         
     def object_content(self, djp, obj):
         '''Utility function for getting content out of an instance of a model.

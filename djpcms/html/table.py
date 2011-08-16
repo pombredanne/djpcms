@@ -99,9 +99,10 @@ and rendered using the dataTable_ jQuery plugin.
     def __init__(self, headers, body = None, appmodel = None,
                  model = None, paginator = None, toolbox = True,
                  ajax = None, size = 25, size_choices = None,
-                 paginate = True, footer = True,
+                 paginate = True, footer = True, title = None,
                  **params):
         self.toolbox = toolbox
+        self.title = title
         self.ajax = ajax
         self.footer = footer
         self.size_choices = size_choices or self.size_choices

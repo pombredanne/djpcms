@@ -127,15 +127,15 @@ class RedisKeyApplication(RedisMixin, views.ModelApplication):
     def get_from_parent_object(self, parent, db):
         return self.get_redisdb(parent, db)
     
-    def objectbits(self, obj):
-        if isinstance(obj,self.model):
-            id = obj.rpy.database_instance.id
-            return {'id':id,'db':obj.id}
-        else:
-            return {}
+    #def objectbits(self, obj):
+    #    if isinstance(obj,self.model):
+    #        id = obj.rpy.database_instance.id
+    #        return {'id':id,'db':obj.id}
+    #    else:
+    #        return {}
     
-    def render_object(self, djp):
-        qs = djp.instance.stats()
+    def render_object_view(self, djp, appmodel, instance):
+        qs = instance.stats()
         params = deepcopy(self.table_parameters)
         return html.Table(self.headers,
                           body = qs.all(),
@@ -149,9 +149,13 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
     actions = [('bulk_delete','flush',djpcms.DELETE)]
     table_parameters = {'footer': False,
                         'data': {'options':{'sDom':'<"H"<"row-selector">>t'}}}
+    db_headers = ('key','type','length','time to expiry')
+    db_table_parameters = {'data': {'options':
+            {'sDom':'<"H"<"row-selector"><"clear">ilp<"clear">f>t'}}}
+    
     home = views.SearchView(astable = True)
-    keys = RedisKeyApplication('/(?P<db>\d+)/',
-                               RedisDbData,parent='home')
+    view = views.ViewView(regex = '/(?P<db>\d+)/')
+    #keys = RedisKeyApplication('/(?P<db>\d+)/', RedisDbData, parent='home')
     
     def basequery(self, djp):
         instance = djp.parent.instance
@@ -162,6 +166,9 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
             return ()
         return info.databases
     
+    def get_from_parent_object(self, parent, db):
+        return self.get_redisdb(parent, db)
+    
     def get_instances(self, djp):
         data = djp.request.REQUEST
         if 'ids[]' in data:
@@ -169,8 +176,16 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
             return [self.get_redisdb(instance,db) for db\
                     in data.getlist('ids[]')]
     
+    def render_object_view(self, djp, appmodel, instance):
+        qs = instance.stats()
+        params = deepcopy(self.db_table_parameters)
+        return html.Table(self.db_headers,
+                          body = qs.all(),
+                          **params).render(djp)
+    
 
 class RedisMonitorApplication(RedisMixin,AdminApplication):
+    '''Main application for displaying Redis server information.'''
     inherit = True
     form = ServerForm
     list_per_page = 100

@@ -424,6 +424,9 @@ Return ``None`` if the view is not available.'''
                     raise ApplicationUrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
                 self.model_url_bits = view.names()
+                if not self.model_url_bits:
+                    raise ApplicationUrlException('Application {0} has no\
+ parameters to initialize objects.'.format(self))
             if names:
                 na2 = names.intersection(view.names())
                 if na2:

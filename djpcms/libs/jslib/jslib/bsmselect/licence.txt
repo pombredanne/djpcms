@@ -1,6 +1,0 @@
-bsmselect was originally forked from https://github.com/vicb/bsmSelect
-
-https://github.com/vicb/bsmSelect Licence
-
-    https://github.com/vicb/bsmSelect/blob/master/GPL-LICENSE.txt
-    https://github.com/vicb/bsmSelect/blob/master/MIT-LICENSE.txt

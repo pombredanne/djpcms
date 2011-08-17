@@ -11,14 +11,16 @@ from djpcms.utils import mark_safe
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import nicetimedelta, smart_time
 
-from stdnet.lib import redis
-from stdnet.lib.redisinfo import redis_info, RedisData, RedisDbData,\
-                                 RedisDataFormatter, RedisStats
+from stdnet.lib import redis, redisinfo
 from stdnet.orm import model_iterator
 
 
 __all__ = ['RedisMonitorApplication',
            'StdModelApplication']
+
+
+RedisDbModel = redisinfo.RedisDbData
+RedisKeyModel = redisinfo.RedisKeyData
 
 
 class ServerForm(forms.Form):
@@ -27,7 +29,7 @@ class ServerForm(forms.Form):
     notes = forms.CharField(widget = html.TextArea, required = False)
     
     
-class Formatter(RedisDataFormatter):
+class Formatter(redisinfo.RedisDataFormatter):
     
     def __init__(self):
         self.format_date = smart_time
@@ -50,9 +52,14 @@ class RedisMixin(object):
         r.database_instance = instance
         return r
     
-    def get_redisdb(self, instance, db):
-        r = self.get_redis(instance, db = int(db))
-        return RedisDbData(rpy = r)
+    def get_redisdb(self, server, db):
+        if not hasattr(db,'db'):
+            r = self.get_redis(server, db = int(db))
+            instance = RedisDbModel(rpy = r)
+        else:
+            instance = db
+        instance.server = server
+        return instance
         
 
 class InspectKeyForm(forms.Form,RedisMixin):
@@ -69,7 +76,7 @@ class InspectKeyForm(forms.Form,RedisMixin):
         db = self.cleaned_data['db']
         key = self.cleaned_data['key']
         r = self.get_redis(self.instance, db = db)
-        v = RedisStats(r)
+        v = redisinfo.RedisStats(r)
         typ,l,ttl,enc = v.type_length(key)
         if not typ:
             inner = '<p>key not in database</p>'
@@ -79,7 +86,6 @@ class InspectKeyForm(forms.Form,RedisMixin):
                            '.{0}'.format(self.INFO_CLASS)) 
         
         
-
 InspectKeyFormHtml = forms.HtmlForm(
         InspectKeyForm,
         layout = uni.Layout(
@@ -93,10 +99,8 @@ InspectKeyFormHtml = forms.HtmlForm(
 class RedisTabView(TabView):
     
     def render_object_view(self, djp, appmodel, instance):
-        r = appmodel.get_redis(instance)
-        try:
-            info = redis_info(r, formatter = appmodel.formatter)
-        except redis.ConnectionError:
+        info = instance.redis_info
+        if not info:
             left_panels = [{'name':'Server','value':'No Connection'}]
             right_panels = ()
         else:
@@ -114,57 +118,50 @@ class RedisTabView(TabView):
         
 
 class RedisKeyApplication(RedisMixin, views.ModelApplication):
-    '''Display information about keys in one database.'''
+    '''Display information about a key in one database.'''
     has_plugins = False
-    description = 'Database {0[db]}'
-    headers = ('key','type','length','time to expiry')
-    model_id_name = 'db'
+    list_display = ('key','type','length','time_to_expiry')
+    actions = [('bulk_delete','flush',djpcms.DELETE)]
     table_parameters = {'data': {'options':
             {'sDom':'<"H"<"row-selector"><"clear">ilp<"clear">f>t'}}}
     
-    home = views.ViewView('', description = 'Redis database key view')
+    search = views.SearchView(astable = True)
+    view = views.ViewView(regex = '(?P<key>{0})'.format(views.ALL_REGEX))
+    delete = views.DeleteView()
+    expire = views.ChangeView(regex = 'expire')
     
-    def get_from_parent_object(self, parent, db):
-        return self.get_redisdb(parent, db)
+    def basequery(self, djp):
+        db = djp.parent.instance
+        for k in db.stats().all():
+            k.db = db
+            yield k
     
-    #def objectbits(self, obj):
-    #    if isinstance(obj,self.model):
-    #        id = obj.rpy.database_instance.id
-    #        return {'id':id,'db':obj.id}
-    #    else:
-    #        return {}
-    
-    def render_object_view(self, djp, appmodel, instance):
-        qs = instance.stats()
-        params = deepcopy(self.table_parameters)
-        return html.Table(self.headers,
-                          body = qs.all(),
-                          **params).render(djp)
+    def get_from_parent_object(self, parent, key):
+        return parent.get_key(key)
 
 
 class RedisDbApplication(RedisMixin,views.ModelApplication):
+    '''Display information about a single database in the Redis server.'''
     has_plugins = False
     astable = True
     list_display = ('db','keys','expires')
     actions = [('bulk_delete','flush',djpcms.DELETE)]
     table_parameters = {'footer': False,
                         'data': {'options':{'sDom':'<"H"<"row-selector">>t'}}}
-    db_headers = ('key','type','length','time to expiry')
-    db_table_parameters = {'data': {'options':
-            {'sDom':'<"H"<"row-selector"><"clear">ilp<"clear">f>t'}}}
     
     home = views.SearchView(astable = True)
-    view = views.ViewView(regex = '/(?P<db>\d+)/')
-    #keys = RedisKeyApplication('/(?P<db>\d+)/', RedisDbData, parent='home')
+    view = views.ViewView(regex = '(?P<db>\d+)')
+    keys = RedisKeyApplication('/keys/',
+                               RedisKeyModel,
+                               parent='view',
+                               related_field = 'db')
     
     def basequery(self, djp):
         instance = djp.parent.instance
-        r = self.get_redis(instance)
-        try:
-            info = redis_info(r)
-        except redis.ConnectionError:
-            return ()
-        return info.databases
+        if not instance.redis_info:
+            raise StopIteration
+        for db in instance.redis_info.databases:
+            yield self.get_redisdb(instance,db)
     
     def get_from_parent_object(self, parent, db):
         return self.get_redisdb(parent, db)
@@ -176,32 +173,41 @@ class RedisDbApplication(RedisMixin,views.ModelApplication):
             return [self.get_redisdb(instance,db) for db\
                     in data.getlist('ids[]')]
     
-    def render_object_view(self, djp, appmodel, instance):
-        qs = instance.stats()
-        params = deepcopy(self.db_table_parameters)
-        return html.Table(self.db_headers,
-                          body = qs.all(),
-                          **params).render(djp)
+    def render_object(self, djp, **kwargs):
+        instance = djp.instance
+        stats = instance.stats()
+        data = stats.data
+        view = self.apps['keys'].root_view
+        html = view(djp.request, **djp.kwargs).render()
+        return html
     
 
 class RedisMonitorApplication(RedisMixin,AdminApplication):
     '''Main application for displaying Redis server information.'''
     inherit = True
     form = ServerForm
-    list_per_page = 100
     template_view = ('monitor/monitor.html',)
     list_display = ['host','port','notes']
     formatter = Formatter()
     object_widgets = views.extend_widgets({'home':RedisTabView()})
     
-    redisdb = RedisDbApplication('/db/', RedisData, parent = 'view')
+    redisdb = RedisDbApplication('/db/',
+                                 RedisDbModel,
+                                 parent = 'view',
+                                 related_field = 'server')
     inspect = views.ChangeView(regex = 'inspect',
                                form = InspectKeyFormHtml)
     
-    def dburl(self, db):
-        dbview = self.getview('db')
-        djp = view(request, db = db)
-        return djp.url
+    def get_object(self, request, **kwargs):
+        instance = super(RedisMonitorApplication,self)\
+                        .get_object(request, **kwargs)
+        r = self.get_redis(instance)
+        try:
+            info = redisinfo.redis_info(r, formatter = self.formatter)
+        except redis.ConnectionError:
+            info = None
+        instance.redis_info = info
+        return instance
         
 
 class StdModelDeleteAllView(views.ModelView):

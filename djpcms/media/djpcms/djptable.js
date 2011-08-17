@@ -10,6 +10,16 @@
         
         $.djpcms.dataTable = {};
         
+        // from
+        // http://www.datatables.net/forums/discussion/6106/conditionally-set-column-text-color/p1
+        $.djpcms.dataTable.fnRowCallback = function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+            /* numbers less than or equal to 0 should be in red text */
+            if ( parseFloat(aData[4]) <= 0 ) {
+                $('td:eq(4)', nRow).addClass('redText');
+            }
+            return nRow;
+        };
+        
         $.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay ) {
             /*
              * Inputs:      object:oSettings - dataTables settings object - automatically given

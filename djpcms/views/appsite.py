@@ -1,8 +1,3 @@
-'''
-Application Model Manager
-This module define the base class for implementing Dynamic Page views based on django models
-The main object handle several subviews used for searching, adding and manipulating objects
-'''
 from copy import copy, deepcopy
 from inspect import isgenerator
 
@@ -10,18 +5,17 @@ from py2py3 import iteritems, is_string,\
                     is_bytes_or_string, to_string
 
 import djpcms
-from djpcms import forms, html
-from djpcms.html import ObjectDefinition, Paginator, Table, SubmitInput,\
-                        application_action
+from djpcms import forms, html, ajax
+from djpcms.html import Paginator, Table, SubmitInput, application_action
 from djpcms.template import loader
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException, AlreadyRegistered
+from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException,\
+                                     AlreadyRegistered
 from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
-from djpcms.utils.ajax import jcollection, jremove
 from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
@@ -49,8 +43,8 @@ def makename(self, name, description):
 
 
 def get_declared_application_views(bases, attrs):
-    """Create a list of Application views instances from the passed in 'attrs', plus any
-similar fields on the base classes (in 'bases')."""
+    """Create a list of Application views instances from the passed
+in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit',False)
     views = []
     apps = []
@@ -64,7 +58,8 @@ similar fields on the base classes (in 'bases')."""
     views = sorted(views, key=lambda x: x[1].creation_counter)                     
     apps = sorted(apps, key=lambda x: x[1].creation_counter)
 
-    # If this class is subclassing another Application, and inherit is True add that Application's views.
+    # If this class is subclassing another Application,
+    # and inherit is True add that Application's views.
     # Note that we loop over the bases in *reverse*. This is necessary in
     # order to preserve the correct order of fields.
     if inherit:
@@ -81,7 +76,8 @@ class ApplicationMetaClass(type):
         views,apps = get_declared_application_views(bases, attrs)
         attrs['base_views'] = views
         attrs['base_apps'] = apps
-        new_class = super(ApplicationMetaClass, cls).__new__(cls, name, bases, attrs)
+        new_class = super(ApplicationMetaClass, cls).__new__(cls, name,
+                                                             bases, attrs)
         return new_class
     
 
@@ -96,7 +92,8 @@ def process_views(view,views,app):
             parent  = app.views.get(pkey,None)
             if not parent:
                 raise ApplicationUrlException('Parent view "%s" for view "%s"\
- not in children tree. Check application "%s".' % (pkey,view,app.__class__.__name__))
+ not in children tree. Check application "%s".' %\
+                 (pkey,view,app.__class__.__name__))
             view.parent = parent
         else:
             parent = pkey
@@ -134,15 +131,16 @@ or in the constructor.
                     Check :attr:`baseurl` for more information.
 :parameter editavailable: ``True`` if :ref:`inline editing <inline-editing>`
                           is available for the application.
-:parameter name: Application name. Check :attr:`name` for more information. Default ``None``.
-:parameter in_navigation: If provided it overrides the :attr:`root_view` ``in_nav``
-                          attribute. Default ``None``.
+:parameter name: Application name. Check :attr:`name` for more information.
+                    
+                 Default ``None``.
+:parameter in_navigation: If provided it overrides the
+                          :attr:`root_view` ``in_nav`` attribute.
+                          
+                          Default ``None``.
 :parameter views: Dictionary of :class:`djpcms.views.View` instances.
                     Default: ``None``
-                    
 
-    
-**Attributes**
 
 .. attribute:: baseurl
 
@@ -162,8 +160,8 @@ or in the constructor.
     
 .. attribute:: site
 
-    instance of :class:`djpcms.views.ApplicationSite`, the application site manager
-    to which the application is registered with.
+    instance of :class:`djpcms.views.ApplicationSite`,
+    the application site manager to which the application is registered with.
     
 .. attribute:: list_display
 
@@ -180,9 +178,9 @@ or in the constructor.
         
 .. attribute:: table_actions
 
-    A list of :class:`application_action` used by table pagination for bulk actions on
-    model instances. Fore example, delete or updated several instances with one
-    command.
+    A list of :class:`application_action` used by table pagination for bulk
+    actions on model instances. Fore example, delete or updated several
+    instances with one command.
     
     Default ``[]``
     
@@ -199,7 +197,8 @@ or in the constructor.
     
 .. attribute:: root_view
 
-    An instance of :class:`djpcms.views.View` which represents the root view of the application.
+    An instance of :class:`djpcms.views.View` which represents the root view
+    of the application.
     This attribute is calculated by djpcms and specified by the user.
     
 .. attribute:: form
@@ -240,9 +239,11 @@ or in the constructor.
     
     Default ``post``.'''
     form_ajax        = True
-    '''The default interaction in forms. If True the default form submmission is performed using ajax. Default ``True``.'''
+    '''The default interaction in forms. If True the default form submmission
+ is performed using ajax. Default ``True``.'''
     form_template    = None
-    '''Optional template for form. Can be a callable with parameter ``djp``. Default ``None``.'''
+    '''Optional template for form. Can be a callable with parameter ``djp``.
+    Default ``None``.'''
     list_per_page = 25
     list_per_page_choices = (10,25,50,100)
     '''Number of objects per page. Default is ``30``.'''
@@ -271,7 +272,6 @@ or in the constructor.
     _submit_cancel   = 'cancel'
     _form_continue   = 'save & continue'
     _submit_as_new   = None
-    '''Set to a value if you want to include a save as new submit input when editing an instance.'''
 
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
@@ -302,6 +302,9 @@ or in the constructor.
         self.creation_counter = Application.creation_counter
         Application.creation_counter += 1
         makename(self,name,description)
+        if self.parent and not self.related_field:
+            raise ApplicationUrlException('Parent view {0} specified in\
+ application {1} without a "related_field".'.format(self.parent,self))
         if views:
             for name,view in views.items():
                 if name in self.views:
@@ -376,14 +379,16 @@ Return ``None`` if the view is not available.'''
     def _create_views(self, application_site):
         #Build views for this application. Called by the application site
         if self.site:
-            raise AlreadyRegistered('Application %s already registered as application' % self)
+            raise AlreadyRegistered(
+                    'Application %s already registered as application' % self)
         parent = self.parent
         self.mapper = None if not self.model else mapper(self.model)
         roots = []
         self.site = application_site
         
         if not self.views:
-            raise ApplicationUrlException("There are no views in {0} application. Try setting inherit equal to True.".format(self))
+            raise ApplicationUrlException("There are no views in {0}\
+ application. Try setting inherit equal to True.".format(self))
         
         self.object_views = []
                     
@@ -396,7 +401,8 @@ Return ``None`` if the view is not available.'''
             if not view.parent:
                 if not view.urlbit:
                     if self.root_view:
-                        raise ApplicationUrlException('Could not resolve root application for %s' % self)
+                        raise ApplicationUrlException(\
+                            'Could not resolve root application for %s' % self)
                     self.root_view = view
                 else:
                     roots.append(view)
@@ -407,7 +413,8 @@ Return ``None`` if the view is not available.'''
                 #just pick one. We should not be here really! need more testing.
                 self.root_view = roots[0]
             else:
-                raise ApplicationUrlException("Could not define root application for %s." % self)
+                raise ApplicationUrlException(\
+                        "Could not define root application for %s." % self)
         
         # Set the in_na if required
         if self.in_navigation is not None:
@@ -449,16 +456,21 @@ Return ``None`` if the view is not available.'''
 
 :parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
 :parameter form_class: form class to use.
-:parameter addinputs: boolean flag indicating if submit inputs should be added. Default ``True``.
+:parameter addinputs: boolean flag indicating if submit inputs should be added.
+                    
+                      Default ``True``.
 :parameter form_ajax: if form uses AJAX. Default ``False``.
-:parameter instance: Instance of model or ``None`` or ``False``. If ``False`` no instance will be
-                     passed to the form constructor. If ``None`` the instance will be obtained from
-                     ``djp``. Default ``None``.
+:parameter instance: Instance of model or ``None`` or ``False``. If ``False``
+                     no instance will be passed to the form constructor.
+                     If ``None`` the instance will be obtained from '`djp``.
+                     
+                     Default ``None``.
 '''
         # Check the Form Class
         form_class = form_class or self.form
         if not form_class:
-            raise ValueError('Form class not defined for view "{0}" in application "{1}" @ "{2}".\
+            raise ValueError('Form class not defined for view "{0}" in\
+ application "{1}" @ "{2}".\
  Make sure to pass a class form to the view or application constructor.'\
                     .format(djp.view,self.__class__.__name__,self))
         elif isinstance(form_class,forms.FormType):
@@ -519,7 +531,6 @@ to render a table.'''
         return qs
 
     def addurl(self, request, name = 'add'):
-        '''Retrive the add view url if it exists and user has the right permissions.'''
         return None
     
     def basequery(self, djp, **kwargs):
@@ -621,11 +632,13 @@ User should subclass this for full control on the model application.
         
 .. attribute:: mapper
 
-    Instance of :class:`djpcms.core.orms.BaseOrmWrapper`. Created from :attr:`model`
+    Instance of :class:`djpcms.core.orms.BaseOrmWrapper`.
+    Created from :attr:`model`
 '''
     object_display   = None
-    '''Same as :attr:`list_display` attribute at object level. The field list is used to display
-the object definition. If not available, :attr:`list_display` is used. Default ``None``.'''
+    '''Same as :attr:`list_display` attribute at object level.
+The field list is used to display the object definition.
+If not available, :attr:`list_display` is used. Default ``None``.'''
     filter_fields    = []
     '''List of model fields which can be used to filter'''
     search_fields    = []
@@ -641,10 +654,12 @@ functionality when searching for model instances.'''
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
-            raise ValueError('Model is null not defined in application {0}'.format(self))
+            raise ValueError(
+                'Model is null not defined in application {0}'.format(self))
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
-        self.object_display = object_display or self.object_display or self.list_display
+        self.object_display = object_display or self.object_display or\
+                                 self.list_display
         
     def get_root_code(self):
         return self.root_view.code
@@ -735,17 +750,17 @@ and get the object. Re-implement for custom arguments.'''
     def changeurl(self, request, obj, name = 'change'):
         return self.appviewurl(request,name,obj,objrequired=True)
     
-    def viewurl(self, request, obj, name = None, field_name = None):
+    def viewurl(self, request, instance, name = None, field_name = None):
         '''\
-Evaluate the view urls for an object *obj*.
+Evaluate the view urls for an *instance*.
 
 :parameter request: a Http Request class.
-:parameter obj: instance of model (not necessarely self.model)
+:parameter instance: instance of model (not necessarely self.model)
 :parameter name: Optional name of the view
 :parameter field_name: Optional name of a field.'''
         if field_name and self.model:
-            value = getattr(obj,field_name,None)
-            if hasattr(value,'__class__'):
+            value = getattr(instance,field_name,None)
+            if hasattr(value,'_meta') and not isinstance(value,self.model):
                 appmodel = self.site.for_model(value.__class__)
                 if appmodel:
                     return appmodel.viewurl(request,value)
@@ -754,7 +769,7 @@ Evaluate the view urls for an object *obj*.
                 if isinstance(view,ViewView):
                     name = view.name
                     break
-        return self.appviewurl(request,name,obj,objrequired=True)
+        return self.appviewurl(request,name,instance,objrequired=True)
     
     def searchurl(self, request):
         return self.appviewurl(request,'search')
@@ -797,7 +812,8 @@ This can be re-implemented by subclasses.'''
         
     def object_content(self, djp, obj):
         '''Utility function for getting content out of an instance of a model.
-This dictionary should be used to render an object within a template. It returns a dictionary.'''
+This dictionary should be used to render an object within a template.
+It returns a dictionary.'''
         request = djp.request
         content = {'item':      obj,
                    'mapper':    self.mapper,
@@ -911,11 +927,11 @@ Can be overritten to include request dictionary.'''
         '''An ajax view for deleting a list of ids.'''
         objs = self.get_instances(djp)
         mapper = self.mapper
-        c = jcollection()
+        c = ajax.jcollection()
         if objs:
             for obj in objs:
                 id = mapper.unique_id(obj)
                 obj.delete()
-                c.append(jremove('#'+id))
+                c.append(ajax.jremove('#'+id))
         return c
     

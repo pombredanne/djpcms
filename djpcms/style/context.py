@@ -223,16 +223,15 @@ CssContext('datatable',
                    }
            )
 
-#CssContext('datatable_table',
-#           tag='.data-table table.main',
-#           data = {
-#                   #'display':'none',
+CssContext('datatable_table',
+           tag='.data-table table.main',
+           data = {
+                   'display':'none',
 #                   #'width':'100%',
 #                   'text_align': 'left',
 #                   'margin': 0,
-#                   'background': 'transparent'
-#                   }
-#           )
+                   }
+           )
 
 CssContext('datatable_filter_input',
            tag ='.data-table .dataTables_filter input',

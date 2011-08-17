@@ -28,15 +28,18 @@ __all__ = ['View',
            'DeleteView',
            'ChangeView',
            'ALL_URLS',
+           'ALL_REGEX',
            'IDREGEX',
            'UUID_REGEX',
            'SLUG_REGEX']
 
 
-ALL_URLS = RegExUrl('(?P<path>.*)', append_slash = False)
+ALL_REGEX = '.*'
 IDREGEX = '(?P<id>\d+)'
 SLUG_REGEX = '[-\.\+\#\'\:\w]+'
 UUID_REGEX = '(?P<id>[-\w]+)'
+
+ALL_URLS = RegExUrl('(?P<path>{0})'.format(ALL_REGEX), append_slash = False)
 
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):

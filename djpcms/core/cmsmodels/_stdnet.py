@@ -135,6 +135,8 @@ and for maintaining their position in a :class:`djpcms.models.Page`.
     title          = field.CharField(required = False)
     for_not_authenticated = field.BooleanField(default = False, index = False)
     requires_login = field.BooleanField(default = False, index = False)
+    layout = field.CharField()
+    children = field.ListField('BlockContent')
     
     objects = BlockManager()
     

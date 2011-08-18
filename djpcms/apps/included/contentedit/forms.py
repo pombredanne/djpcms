@@ -6,7 +6,8 @@ from djpcms.utils import markups
 __all__ = ['TemplateForm',
            'PageForm',
            'ContentBlockForm',
-           'EditContentForm']
+           'EditContentForm',
+           'BlockLayoutForm']
 
 
 def get_templates(*args):
@@ -65,6 +66,10 @@ class PluginChoice(forms.ChoiceField):
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
 
+
+class BlockLayoutForm(forms.Form):
+    layout = forms.ChoiceField(choices = djpcms.inner_block_choices)
+    
     
 class ContentBlockForm(forms.Form):
     url = forms.HiddenField(required = False)

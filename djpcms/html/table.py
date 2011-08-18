@@ -102,7 +102,6 @@ and rendered using the dataTable_ jQuery plugin.
                  paginate = True, footer = True, title = None,
                  **params):
         self.toolbox = toolbox
-        self.title = title
         self.ajax = ajax
         self.footer = footer
         self.size_choices = size_choices or self.size_choices
@@ -132,7 +131,7 @@ and rendered using the dataTable_ jQuery plugin.
                 options['sAjaxSource'] = ajax
         if 'options' in self.data:
             options.update(self.data['options'])
-        self.addData('options',options)
+        self.addData('options',options).addAttr('title',title)
 
     def items(self, djp):
         body = self.internal['body']

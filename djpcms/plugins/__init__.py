@@ -153,13 +153,13 @@ By default do nothing.
         '''
         return kwargs
     
-    def __call__(self, djp, args = None, wrapper = None, prefix = None):
-        return self.render(djp, wrapper, prefix, **self.arguments(args))
+    def __call__(self, djp, args = None, block = None, prefix = None):
+        return self.render(djp, block, prefix, **self.arguments(args))
         
     def edit_url(self, djp, args = None):
         return None
     
-    def render(self, djp, wrapper, prefix, **kwargs):
+    def render(self, djp, block, prefix, **kwargs):
         '''Render the plugin. It returns a safe string to be included in the HTML page.
 This is the function plugins need to implement.
 
@@ -224,8 +224,9 @@ the plugin will display the search view for that application.
     name        = 'this'
     description = 'Current View'
     
-    def render(self, djp, wrapper, prefix, **kwargs):
-        return djp.view.render(djp)
+    def render(self, djp, block, prefix, **kwargs):
+        djp.block = block
+        return djp.render()
     
     
 class ApplicationPlugin(DJPplugin):
@@ -249,7 +250,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self
         
-    def render(self, djp, wrapper, prefix, **kwargs):
+    def render(self, djp, block, prefix, **kwargs):
         #kwargs may be an input from a possible plugin form
         app  = self.app
         request = djp.request
@@ -261,7 +262,8 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
                 t_djp = self.app(djp.request, **args)
             else:
                 t_djp = djp
-            html = self.app.render(t_djp)
+            t_djp.block = block
+            html = t_djp.render()
         return html
     
     def media(self):
@@ -271,7 +273,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
 class JavascriptLogger(DJPplugin):
     description = 'Javascript Logging Panel'
     
-    def render(self, djp, wrapper, prefix, **kwargs):
+    def render(self, djp, block, prefix, **kwargs):
         return '<div class="djp-logging-panel"></div>'
     
     

@@ -232,15 +232,16 @@
              * djpcms - datatable decorator
              */
             decorate: function($this,config) {
-                var opts = config.datatable,
+                var datatable = config.datatable,
                     that = this;
-                $.each($(opts.selector,$this),function() {
+                $.each($(datatable.selector,$this),function() {
                     var elem = $(this),
                         tbl = $('table',elem).addClass('main display'),
                         data = elem.data('options') || {},
-                        buttons = [];
+                        buttons = [],
+                        opts;
                     if(tbl.length == 1) {
-                        opts = $.extend(true,{},opts,data);
+                        opts = $.extend(true,{},datatable,data);
                         if (!opts.sAjaxSource) {
                             opts.fnServerData = $.proxy(that.fnServerData,that);
                         }
@@ -255,7 +256,6 @@
                         }
                         //
                         // Add tools to table tools
-                        
                         if(elem.data('tools')) {
                             $.each(elem.data('tools'),function() {
                                 var b = {
@@ -304,7 +304,7 @@
                         }
                         $('.dataTables_filter input').addClass('ui-widget-content');
                         tbl.width('100%');
-                        tbl.show();
+                        elem.show();
                     }
                 });
             } 

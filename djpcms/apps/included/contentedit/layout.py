@@ -6,7 +6,8 @@ from .forms import *
 __all__ = ['HtmlTemplateForm',
            'HtmlPageForm',
            'ContentBlockHtmlForm',
-           'HtmlEditContentForm']
+           'HtmlEditContentForm',
+           'BlockLayoutFormHtml']
 
 PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
 
@@ -20,6 +21,11 @@ HtmlPageForm = forms.HtmlForm(
                           )
 )
 
+
+BlockLayoutFormHtml = forms.HtmlForm(
+    BlockLayoutForm,
+    inputs = (('change','change'),)
+    )
 
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,

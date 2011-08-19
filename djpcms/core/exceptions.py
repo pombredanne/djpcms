@@ -96,3 +96,14 @@ class HttpException(Exception):
 
 class Http404(HttpException):
     status = 404
+    
+    
+class FormException(DjpcmsException):
+    '''A :class:`DjpcmsException` raised when something goes wrong in
+:mod:`djpcms.forms`.'''
+    pass
+
+
+class ValidationError(Exception):
+    '''Raised when a :class:`djpcms.forms.Form` instance does not validate.'''
+    pass

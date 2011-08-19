@@ -120,7 +120,8 @@
                 initial = false;
             
             $.each(groups, function() {
-                var selected = this.cols.join(',.'),
+                var cols = this.cols,
+                    selected = $.isArray(cols) ? this.cols.join(',.') : cols,
                     opt;
                 if(selected) {
                     n+=1;
@@ -175,23 +176,29 @@
             id:"datatable",
             config: {
                 selector: 'div.data-table',
-                bJQueryUI: true,
-                bDeferRender: true,
-                "aaSorting": [],
-                "sPaginationType": "full_numbers",
-                "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>',
-                "oTableTools": {
-                    "aButtons": [
-                                 "copy",
-                                 {
-                                     "sExtends":    "collection",
-                                     "sButtonText": "Save",
-                                     "aButtons":    [ "csv", "xls", "pdf" ]
-                                 }
-                             ]
-                },
-                fnRowCallback: function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
-                    return nRow;
+                fnRowCallbacks: [],
+                options: {
+                    bJQueryUI: true,
+                    bDeferRender: true,
+                    "aaSorting": [],
+                    "sPaginationType": "full_numbers",
+                    "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>',
+                    "oTableTools": {
+                        "aButtons": [
+                                     "copy",
+                                     {
+                                         "sExtends":    "collection",
+                                         "sButtonText": "Save",
+                                         "aButtons":    [ "csv", "xls", "pdf" ]
+                                     }
+                                 ]
+                    },
+                    fnRowCallback: function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+                        $.each($.djpcms.options.datatable.fnRowCallbacks,function(i,func) {
+                            func(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+                        })
+                        return nRow;
+                    }
                 }
             },
             to_obj : function(aoData) {
@@ -241,7 +248,7 @@
                         buttons = [],
                         opts;
                     if(tbl.length == 1) {
-                        opts = $.extend(true,{},datatable,data);
+                        opts = $.extend(true,{},datatable.options,data);
                         if (!opts.sAjaxSource) {
                             opts.fnServerData = $.proxy(that.fnServerData,that);
                         }

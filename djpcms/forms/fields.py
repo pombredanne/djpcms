@@ -66,13 +66,13 @@ very similar to django forms API.
     
 .. attribute:: widget_attrs
 
-    dictionary of widget attributes.
-    Used for modifying widget html attributes.
+    dictionary of widget attributes used for setting the widget
+    html attributes. For example::
+    
+        widget_attrs = {'title':'myt title'}
     
     Default: ``None``.
-
-    instance of :class:`View` or None.
-    '''
+'''
     default = None
     widget = None
     required = True
@@ -102,8 +102,8 @@ very similar to django forms API.
         self.widget = widget
         if not isinstance(self.widget,html.WidgetMaker):
             raise ValueError("Form field widget of wrong type")
-        self.widget_attrs = widget_attrs
-        self._handle_params(**kwargs)
+        self.widget_attrs = widget_attrs or {}
+        self.handle_params(**kwargs)
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
@@ -113,8 +113,17 @@ very similar to django forms API.
         if not self.label:
             self.label = name
         
-    def _handle_params(self, **kwargs):
+    def handle_params(self, **kwargs):
+        '''Called during initialization for handling extra key-valued
+parameters. By default it will raise an error if extra parameters
+are available. Override for customized behaviour.'''
         self._raise_error(kwargs)
+        
+    def value_from_datadict(self, data, files, key):
+        """Given a dictionary of data this field name, returns the value
+of this field. Returns None if it's not provided."""
+        if key in data:
+            return data[key]
         
     def _raise_error(self, kwargs):
         keys = list(kwargs)
@@ -160,8 +169,21 @@ Get the initial value of field if available.
     def is_hidden(self):
         return self.widget.is_hidden
     
+    def html_name(self, name):
+        return name
+    
+    def get_widget_data(self, djp, bfield):
+        '''Return a disctionary of data to be addeded to the widget data
+attribute. By default return ``None``. Override for custom behaviour.'''
+        return None
+    
     def get_widget(self, djp, bfield):
-        return self.widget.widget(bfield = bfield)
+        '''Return an instance of :class:`djpcms.html.Widget` for rendering
+the field in html.'''
+        data = self.get_widget_data(djp, bfield)
+        return self.widget.widget(bfield = bfield)\
+                          .addAttrs(self.widget_attrs)\
+                          .addData(data)
     
 
 class CharField(Field):
@@ -199,8 +221,8 @@ optional parameter (attribute):
     default = ''
     widget = html.TextInput()
     
-    def _handle_params(self, max_length = 30, char_transform = None,
-                       toslug = None, **kwargs):
+    def handle_params(self, max_length = 30, char_transform = None,
+                      toslug = None, **kwargs):
         if not max_length:
             raise ValueError('max_length must be provided for {0}'\
                              .format(self.__class__.__name__))
@@ -238,7 +260,7 @@ class IntegerField(Field):
     widget = html.TextInput(default_class = 'numeric')
     convert_error = 'Could not convert {0} to a valid number'
     
-    def _handle_params(self, validator = None, **kwargs):
+    def handle_params(self, validator = None, **kwargs):
         self.validator = validator
         self._raise_error(kwargs)
         
@@ -361,7 +383,7 @@ This field works in conjunction with the ``autocomplete`` decorator in
 '''
     widget = html.Select()
     
-    def _handle_params(self, choices = None, model = None,
+    def handle_params(self, choices = None, model = None,
                        separator = ', ', autocomplete = False,
                        empty_label = '-----------', multiple = False,
                        minLength = 2, maxRows = 30,
@@ -377,8 +399,19 @@ form as only argument'''
         self.minLength = minLength
         self.maxRows = maxRows
         self._raise_error(kwargs)
+        if multiple:
+            self.widget_attrs['multiple'] = 'multiple'
         if self.autocomplete:
             self.widget = html.TextInput(default_class = 'autocomplete')
+            
+    def html_name(self, name):
+        return name if not self.multiple else '{0}[]'.format(name)
+    
+    def value_from_datadict(self, data, files, key):
+        if self.multiple and hasattr(data,'getlist'):
+            return data.getlist(key)
+        elif key in data:
+            return data[key]
         
     def choices_and_model(self, bfield):
         '''Return an tuple containing an
@@ -405,11 +438,7 @@ iterable over choices and a model class (if applicable).'''
             if value:
                 if not model:
                     ch = set((to_string(x[0]) for x in ch))
-                    value = to_string(value)
-                if self.multiple:
-                    values = value.split(self.separator)
-                else:
-                    values = (value,)
+                values = value if self.multiple else (value,)
                 if not model:
                     for val in values:
                         if not val in ch:
@@ -419,7 +448,7 @@ iterable over choices and a model class (if applicable).'''
                     value = values
         return value
     
-    def get_widget(self, djp, bfield):
+    def get_widget_data(self, djp, bfield):
         data = None
         if self.autocomplete:
             ch,model = self.choices_and_model(bfield)
@@ -448,7 +477,7 @@ iterable over choices and a model class (if applicable).'''
                             values.append((val,chd[val]))
                     if values:
                         data['initial_value'] = values
-        return self.widget.widget(bfield = bfield, data = data)
+        return data
         
 
 class EmailField(CharField):

@@ -200,13 +200,13 @@
     	
     	// Add a new decorator
     	function addDecorator(deco) {
+    	    var config = deco.config || {},
+    	        opts = defaults[deco.id] || {}; 
     		decorators[deco.id] = $.proxy(deco.decorate, deco);
-    		if(deco.config) {
-                defaults[deco.id] = deco.config;
-            }
+    		defaults[deco.id] = $.extend(config,opts);
     	}
     	
-    	// Add a new decorator
+    	// Add a new callback for JSON data
     	function addJsonCallBack(jcb) {
     		jsonCallBacks[jcb.id] = jcb;
     	}
@@ -1092,6 +1092,27 @@
                     multiple: elem.multiple,
                 }
             }));
+        }
+    });
+    
+    $.djpcms.decorator({
+        id: 'asmSelect',
+        config: {
+            defaults: {
+                addItemTarget: 'bottom',
+                animate: true,
+                highlight: true,
+                sortable: false
+            }
+        },
+        decorate: function($this,config) {
+            $.each($('select[multiple="multiple"]',$this), function() {
+                var v = $(this),
+                    data = v.data(),
+                    opts = data.options ? data.options : {},
+                    options  = $.extend(true, {}, config.asmSelect.defaults, opts);
+                v.bsmSelect(options);
+            });
         }
     });
     

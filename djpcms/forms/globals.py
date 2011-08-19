@@ -1,7 +1,7 @@
 # Uniforms Layout is the Default layout
 from uuid import uuid4
 
-from djpcms.core.exceptions import DjpcmsException
+from djpcms import FormException, ValidationError
 from .layout.uniforms import Layout as DefaultLayout
 
 __all__ = ['FormException',
@@ -31,14 +31,6 @@ AJAX_ACTION_KEY = 'xhr'
 AJAX = 'ajax'
 BUTTON = 'button'
 NOBUTTON = 'nobutton'
-
-
-class FormException(DjpcmsException):
-    pass
-
-
-class ValidationError(Exception):
-    pass
 
 
 def generate_prefix():

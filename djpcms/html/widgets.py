@@ -1,6 +1,8 @@
 from djpcms.utils import escape
 from djpcms.utils.const import *
+
 from .base import WidgetMaker, Widget
+from .media import Media
 
 
 __all__ = ['TextInput',
@@ -17,7 +19,7 @@ __all__ = ['TextInput',
 
 
 class FieldWidget(WidgetMaker):
-    attributes = WidgetMaker.makeattr('value','name','title')
+    attributes = WidgetMaker.makeattr('value','name')
     
     def widget(self, bfield = None, **kwargs):
         w = super(FieldWidget,self).widget(bfield = bfield,**kwargs)
@@ -94,8 +96,10 @@ class TextArea(InputWidget):
 class Select(FieldWidget):
     tag = 'select'
     inline = False
+    attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
+    select_media = Media(js = ['djpcms/jquery.bsmselect.js'])
     
     def __init__(self, choices = None, **kwargs):
         self.choices = choices
@@ -113,8 +117,12 @@ class Select(FieldWidget):
         if bfield:
             field = bfield.field
             choices,model = field.choices_and_model(bfield)
-            if bfield.value:
-                selected_choices.append(bfield.value)
+            values = bfield.value
+            if values:
+                if not field.multiple:
+                    values = (values,)
+                for value in values:
+                    selected_choices.append(value)
         else:
             choices,model = self.choices,None
         option = self._option
@@ -130,7 +138,9 @@ class Select(FieldWidget):
                 sel = (val in selected_choices) and selected or EMPTY
                 yield option.format(val,sel,des)
 
-
+    def media(self, widget):
+        if 'multiple' in widget.attrs:
+            return self.select_media
 
 WidgetMaker(tag = 'div', default = 'div')
 WidgetMaker(tag = 'p', default = 'p')

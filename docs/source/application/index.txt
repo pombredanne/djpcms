@@ -23,11 +23,7 @@ This is the simplest possible site you can build
 .. include:: ../commons/helloworld
 
 
-===============
 Applications
-===============
-
-The Basics
 =========================
 
 Lets assume we have a model called ``Project``, to setup a

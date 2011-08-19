@@ -99,12 +99,11 @@ There are two properties used for rendering, they both return a generator over m
                             getattr(other, '_{0}'.format(name)))
         return self
 
-    #def __add__(self, other):
-    #    if isinstance(other,Media):
-    #        combined = Media()
-    #        for name in MEDIA_TYPES:
-    #            getattr(combined, 'add_' + name)(getattr(self, '_' + name, None))
-    #            getattr(combined, 'add_' + name)(getattr(other, '_' + name, None))
-    #        return combined
-    #    else:
-    #        return self
+    def __add__(self, other):
+        if isinstance(other,Media):
+            js = deepcopy(self._js)
+            css = deepcopy(self._css)
+            combined = Media(js = js, css = css)
+            return combined.add(other)
+        else:
+            return self

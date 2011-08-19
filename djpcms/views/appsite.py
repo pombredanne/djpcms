@@ -152,6 +152,12 @@ or in the constructor.
         
     and so forth. Trailing slashes will be appended if missing.
     
+.. attribute:: model
+
+    Model associated with this application
+    
+    Default: ``None``.
+    
 .. attribute:: name
 
     Application name. Calculated from class name if not provided.
@@ -482,14 +488,7 @@ Return ``None`` if the view is not available.'''
         else:
             instance = instance or djp.instance
             
-        if instance:
-            model = instance.__class__
-        else:
-            model = getattr(form_class,'model',None)
-            if not model:
-                model = getattr(self,'model',None)
-        form_class.model = model
-        
+        model = instance.__class__ if instance else self.model
         form_ajax = form_ajax if form_ajax is not None else self.form_ajax
         return get_form(djp,
                         form_class,

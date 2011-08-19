@@ -38,11 +38,11 @@ class TagSet(UnicodeMixin):
 class TagField(forms.CharField):
     '''A specialized field for tags'''
     
-    def _handle_params(self, choices = None, separator = DEFAULT_SEP,
-                       toslug = '-', **kwargs):
+    def handle_params(self, choices = None, separator = DEFAULT_SEP,
+                      toslug = '-', **kwargs):
         self.choices = choices
         self.separator = separator
-        super(TagField,self)._handle_params(toslug = toslug, **kwargs)
+        super(TagField,self).handle_params(toslug = toslug, **kwargs)
 
     def taggen(self, value, bfield):
         supclean = super(TagField,self)._clean    

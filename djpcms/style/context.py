@@ -467,6 +467,14 @@ CssContext('textselect',
            )
 
 
+#________________________________________ bsmSelect
+CssContext('bsmselect',
+           tag = '.bsmContainer',
+           template = 'djpcms/style/bsmselect.css_t',
+           data = {}
+           )
+
+
 #________________________________________ SPECIAL IDS AND CLASSES
 CssContext('server_exception',
            tag = '.server-exception',

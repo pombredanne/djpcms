@@ -26,7 +26,8 @@ There are three types of layout:
 '''
 from djpcms import html
 
-from .base import FormLayout, FormLayoutElement, SubmitElement, check_fields
+from .base import FormLayout, FormLayoutElement, SubmitElement, check_fields,\
+                    nolabel
 from .tablefield import TableRelatedFieldset
 
 

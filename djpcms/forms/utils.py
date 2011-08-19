@@ -27,7 +27,6 @@ def set_request_message(f, request):
 
 
 def form_kwargs(request,
-                instance = None,
                 withdata = True,
                 method = 'POST',
                 own_view = True,
@@ -45,17 +44,6 @@ Usage::
     if request.method == method and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
-        #data = dict(data.items())
-        #if inputs:
-        #    bind = False
-        #    for input in inputs:
-        #        if input._attrs['name'] in data:
-        #            bind = True
-        #else:
-        #    bind = True
-        #if bind:
-        #    kwargs['data'] = data
-        #    kwargs['files'] = request.FILES
     elif data:
         if initial is None:
             initial = data
@@ -63,8 +51,6 @@ Usage::
             initial.update(data)
     kwargs['initial'] = initial
     kwargs['request'] = request
-    if instance:
-        kwargs['instance'] = instance
     return kwargs
 
 
@@ -144,13 +130,14 @@ def get_form(djp,
                 
     # Create the form instance
     form  = form_factory(inputs = inputs,
-                         **form_kwargs(request     = request,
-                                       initial     = initial,
-                                       instance    = instance,
-                                       prefix      = prefix,
-                                       withdata    = withdata,
-                                       method      = method,
-                                       own_view    = own_view))\
+                         **form_kwargs(request = request,
+                                       initial = initial,
+                                       instance = instance,
+                                       model = model,
+                                       prefix = prefix,
+                                       withdata = withdata,
+                                       method = method,
+                                       own_view = own_view))\
             .addAttr('action',djp.url)\
             .addAttr('method',method.lower())
     

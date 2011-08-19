@@ -16,12 +16,62 @@ Forms and Layouts
                                       required= False)
         labels = forms.CharField(required=False)
         
-                
-**Contents**
 
-.. toctree::
-   :maxdepth: 2
-   
-   forms
-   fields
-   layout
+Form Layouts
+=================
+
+While the :class:`djpcms.forms.Form` class handles the validation logic of an input form
+which can be used across a wide range of applications, form layouts,
+introduced in this section, are a HTML specific utility for rendering forms
+according to user specified layouts.
+
+A form layout is a subclass of :class:`djpcms.forms.layout.FormLayout`,
+and it is composed of :class:`djpcms.forms.layout.FormLayoutElement` components.
+
+
+A use case
+==============
+The simpliest way to introduce form layouts is to discuss an example, and here we are
+going to discuss the form used by ``djpcms`` to edit plugins. This form is
+implemented in the :mod:`djpcms.apps.included.contentedit` module::
+
+    from djpcms import forms
+    
+    class ContentBlockForm(forms.Form):
+        url = forms.HiddenField(required = False)
+        title = forms.CharField(required = False)
+        plugin_name = PluginChoice(label = 'Plugin',
+                                   choices = plugingenerator)
+        container_type = forms.ChoiceField(label = 'Container',
+                                           widget = forms.Select(cn = 'ajax'),
+                                           choices = wrappergenerator,
+                                           help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
+        for_not_authenticated = forms.BooleanField(default = False)
+        view_permission = forms.CharField(required = False)
+        requires_login = forms.BooleanField(default = False) 
+
+
+We use the uniforms layout to create a Layout for this form
+(from the :mod:`djpcms.apps.included.contentedit.layout` module)::
+
+    from djpcms.forms.layout import uniforms
+    
+    ContentBlockHtmlForm = forms.HtmlForm(
+    ContentBlockForm,
+    layout = uniforms.Layout(
+                uniforms.Fieldset('plugin_name','container_type','title',
+                                  'view_permission'),
+                uniforms.Columns(('for_not_authenticated',),
+                                 ('requires_login',),
+                                  default_style=uniforms.inlineLabels3),
+                uniforms.Html(tag = 'div').addClass(PLUGIN_DATA_FORM_CLASS)
+       )
+    )
+
+    
+
+
+Uniforms
+============================
+
+.. automodule:: djpcms.forms.layout.uniforms

@@ -51,7 +51,6 @@ Contents
    forms/index
    settings
    tutorials/index
-   internals/index
    battery
    changelog
    license
@@ -62,6 +61,8 @@ API
    :maxdepth: 1
    
    application/api
+   forms/api
+   internals/index
 
 
 Indices, glossary and tables

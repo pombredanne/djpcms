@@ -123,7 +123,7 @@ browser based application as well as remote procedure calls validation.
     
 '''
     prefix_input = '_prefixed'
-    auto_id='id_{0[html_name]}'
+    auto_id='id_{0[name]}'
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
@@ -163,17 +163,7 @@ browser based application as well as remote procedure calls validation.
         self.forms = []
         if not self.is_bound:
             self._fill_initial()
-    
-    @classmethod
-    def initials(cls):
-        '''Iterator over initial field values.
-Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
-This class method can be useful when using forms outside web applications.'''
-        for name,field in iteritems(cls.base_fields):
-            initial = field.get_initial(cls)
-            if initial is not None: 
-                yield name,initial
-        
+
     @property
     def data(self):
         self._unwind()
@@ -181,23 +171,32 @@ This class method can be useful when using forms outside web applications.'''
     
     @property
     def cleaned_data(self):
-        '''Form cleaned data, the data after the validation algorithm has been run'''
+        '''Form cleaned data, the data after the validation
+algorithm has been run. If the form was
+not yet validated, this property will kick off the process and return
+cleaned.'''
         self._unwind()
         return self._cleaned_data
         
     @property
     def errors(self):
-        '''Dictionary of errors, if any, after validation.'''
+        '''Dictionary of errors, if any, after validation. If the form was
+not yet validated, this property will kick off the process and returns errors
+if they occur.'''
         self._unwind()
         return self._errors
     
     @property
     def fields(self):
+        '''List of :class:`djpcms.forms.BoundField` instances after
+validation.'''
         self._unwind()
         return self._fields
     
     @property
     def dfields(self):
+        '''Dictionary of :class:`djpcms.forms.BoundField` instances after
+validation.'''
         self._unwind()
         return self._fields_dict
     
@@ -272,17 +271,15 @@ This class method can be useful when using forms outside web applications.'''
         
         # Loop over form fields
         for name,field in iteritems(self.base_fields):
-            key = self.prefix+name         
+            key = '{0}{1}'.format(self.prefix,field.html_name(name))         
             bfield = BoundField(self,field,name,key)
             fields.append(bfield)
             dfields[name] = bfield
             field_value = None
             
             if is_bound:
-                if key in rawdata:
-                    rawvalue = field_value = rawdata[key]
-                else:
-                    rawvalue = None
+                rawvalue = field_value = field.value_from_datadict(
+                                    rawdata, self._fields, key)
                 if rawvalue not in NOTHING:
                     self.changed = True
                     data[name] = rawvalue
@@ -337,7 +334,11 @@ Messages can be errors or not. If the message is empty, it does nothing.
         return False
     
     def clean(self):
-        '''The form clean method. Called last in the validation algorithm.'''
+        '''The form clean method. Called last in the validation algorithm.
+By default it does nothing but it can be overritten to cross checking
+fields for example. It doesn't need to return anything, just throw a
+:class:`djpcms.ValidationError` in case the cleaning is not successful.
+ '''
         pass
     
     def add_message(self, msg):
@@ -347,9 +348,10 @@ Messages can be errors or not. If the message is empty, it does nothing.
         self.form_message(self.errors, '__all__', msg)
     
     def save_as_new(self, commit = True):
-        self.instance.id = None
-        for fset in self.form_sets.values():
-            fset.set_save_as_new()
+        if self.instance is not None:            
+            self.instance.id = None
+            for fset in self.form_sets.values():
+                fset.set_save_as_new()
         return self.save(commit = commit)
     
     def save(self, commit = True):
@@ -377,6 +379,17 @@ This method works if an instance or a model is available.
             return json.dumps(self.cleaned_data)
         else:
             return ''
+        
+        
+    @classmethod
+    def initials(cls):
+        '''Iterator over initial field values.
+Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
+This class method can be useful when using forms outside web applications.'''
+        for name,field in iteritems(cls.base_fields):
+            initial = field.get_initial(cls)
+            if initial is not None: 
+                yield name,initial
         
         
 class BoundField(object):

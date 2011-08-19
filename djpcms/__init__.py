@@ -50,7 +50,7 @@ def install_libs():
         install_lib(dlibs, 'jinja2_3', 'jinja2')
     else:
         install_lib(dlibs, 'jinja2', 'jinja2')
-    #install_lib(dlibs, 'BeautifulSoup', 'BeautifulSoup')
+    install_lib(dlibs, 'color', 'color')
 
 install_libs()
 

@@ -54,7 +54,7 @@ class Renderer(object):
         '''render ``self`` as html'''
         raise NotImplementedError
     
-    def media(self):
+    def media(self, *args, **kwargs):
         '''It returns an instance of :class:`djpcms.html.Media` or ``None``. It should be overritten by
 derived classes.'''
         return None
@@ -122,14 +122,21 @@ Any Operation on this class is similar to jQuery.
         else:
             return ''
         
-    def addData(self, name, val):
+    def addData(self, name, val = None):
+        '''Add/updated the data attribute.'''
         if val:
             if name in self.data:
                 val0 = self.data[name]
                 if isinstance(val0,dict) and isinstance(val,dict):
                     val0.update(val)
-                    return self 
-        self.data[name] = val
+                    return self
+        elif isinstance(name,dict):
+            add = self.addData
+            for n,v in name.items():
+                add(n, v)
+            return self
+        if name:
+            self.data[name] = val
         return self
     
     def addClass(self, cn):
@@ -147,6 +154,10 @@ with key ``name`` and value ``value`` and return ``self``.'''
         self.attrs[name] = val
         return self
     
+    def addAttrs(self, mapping):
+        self.attrs.update(mapping)
+        return self
+    
     def hasClass(self, cn):
         '''``True`` if ``cn`` is a class of self.'''
         return cn in self.classes
@@ -162,7 +173,8 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def render(self, djp = None, inner = None, keys = None, **kwargs):
-        return self.maker.render_from_widget(djp, self, inner, keys or kwargs)
+        return mark_safe(self.maker.render_from_widget(djp, self, inner,
+                                                       keys or kwargs))
     
     @property
     def html(self):
@@ -175,11 +187,20 @@ class WidgetMaker(Renderer):
     '''Derived from :class:`djpcms.html.Renderer`,
 it is a class used as factory for HTML components.
 
+:parameter inline: If ``True`` the widget is rendered as an inline element::
+    Its value is stored in the :attr:`inline`.
+    
+    Default ``False``.
+
 .. attribute:: tag
 
     A HTML tag (ex. ``div``, ``a`` and so forth)
     
     Default ``None``.
+    
+.. attribute:: attributes
+
+    List of attributes supported by the widget.
     
 .. attribute:: is_hidden
 
@@ -203,15 +224,13 @@ it is a class used as factory for HTML components.
 
     If ``True`` the element is rendered as an inline element::
     
-        <tag ..../>
+        <tag ....>
         
     rather than::
     
         <tag ...>
          ....
         </tag>
-    
-    Default ``False``.
     
 .. attribute:: template
 
@@ -267,7 +286,7 @@ it is a class used as factory for HTML components.
     inline = False
     template = None
     template_name = None
-    attributes = ('id',)
+    attributes = ('id','title','dir','style')
     default_class = None
     default_attrs = None
     _widget = None
@@ -366,7 +385,7 @@ It returns self for concatenating data.'''
         if self.renderer:
             text = self.renderer(text)
         if djp:
-            djp.media.add(self.media())
+            djp.media.add(self.media(widget))
         return text
     
     def inner(self, djp, widget, keys):

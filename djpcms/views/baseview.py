@@ -55,11 +55,6 @@ other wise the ``render`` method of the :attr:`appmodel`.
         '''Return an instance of a user model if the current renderer
 belongs to a user, otherwise returns ``None``.'''
         return None
-    
-    def media(self):
-        '''It returns an instance of :class:`djpcms.html.Media` or ``None``. It should be overritten by
-derived classes.'''
-        return None
 
 
 class djpcmsview(RendererMixin):

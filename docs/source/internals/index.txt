@@ -4,12 +4,26 @@
 Internals
 ==============
 
-.. toctree::
-   :maxdepth: 2
+
+Djp Response
+================
+
+Throughout the library there is constant reference to the :class:`djpcms.views.DjpResponse`
+class as first arguments of several functions.
+Indeed instances of this class carry around information about views, request and responses.
+
+.. autoclass:: djpcms.views.DjpResponse
+   :members:
+   :member-order: bysource
    
-   response
-   core
-   navigation
-   sitemap
-   internals
-   exceptions
+   
+Exceptions
+=================
+
+.. autoclass:: djpcms.DjpcmsException
+
+.. autoclass:: djpcms.ViewDoesNotExist
+
+.. autoclass:: djpcms.FormException
+
+.. autoclass:: djpcms.ValidationError

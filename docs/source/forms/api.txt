@@ -1,0 +1,95 @@
+.. _forms-api:
+
+=============
+Forms API
+=============
+
+Form and Fields
+=====================
+
+Form
+~~~~~~~~
+
+.. autoclass:: djpcms.forms.Form
+   :members:
+   :member-order: bysource
+
+
+Field
+~~~~~~~~
+
+.. autoclass:: djpcms.forms.Field
+   :members:
+   :member-order: bysource
+   
+
+CharField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.CharField
+   :members:
+   :member-order: bysource   
+   
+   
+ChoiceField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.ChoiceField
+   :members:
+   :member-order: bysource
+
+
+HTML and Utilities
+========================
+
+HtmlForm
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.HtmlForm
+   :members:
+   :member-order: bysource
+
+
+BoundField
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.BoundField
+   :members:
+   :member-order: bysource
+
+
+FormWidget
+~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.FormWidget
+   :members:
+   :member-order: bysource
+      
+
+Layouts
+=====================
+
+API
+===========
+
+BaseFormLayout
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.layout.BaseFormLayout
+   :members:
+   :member-order: bysource
+
+FormLayout
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.layout.FormLayout
+   :members:
+   :member-order: bysource
+   
+   
+FormLayoutElement
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: djpcms.forms.layout.FormLayoutElement
+   :members:
+   :member-order: bysource

@@ -820,37 +820,6 @@ This can be re-implemented by subclasses.'''
             qs = qs.sort_by(self.ordering)
         return qs
     
-    def object_links(self, djp, obj, asbuttons = True, exclude = None):
-        '''Create permitted object links'''
-        #TODO: REMOVE, this is deprecated.
-        css     = djp.css
-        next    = djp.url
-        request = djp.request
-        post = ('post',)
-        links = []
-        gets    = []
-        exclude = self.exclude_object_links
-        content = {'links':links,
-                   'module_name':self.mapper.module_name}
-        for view in self.object_views:
-            djpv = view(request, instance = obj)
-            if view.has_permission(request, djpv.page, obj):
-                url = djpv.url
-                name = view.name
-                if name in exclude:
-                    continue
-                if not isinstance(view,ViewView):
-                    url   = '%s?next=%s' % (url,view.nextviewurl(djp))
-                    title = ' title="%s %s"' % (name,obj)
-                    if view.methods(request) == post:
-                        cl = ' class="%s %s"' % (css.ajax,css.nicebutton)
-                    else:
-                        cl = ' class="%s"' % css.nicebutton
-                    links.append(mark_safe('<a href="%s"%s%s name="%s">%s</a>' % 
-                                            (url,cl,title,name,name)))
-                content['%surl' % name] = url
-        return content
-    
     def app_for_object(self, obj):
         try:
             if self.model == obj.__class__:

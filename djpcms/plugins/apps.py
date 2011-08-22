@@ -77,9 +77,12 @@ class SearchModelForm(FormModelForm):
 
 class ModelLinksForm(forms.Form):
     asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
+    for_instance = forms.BooleanField()
     layout = forms.ChoiceField(choices = (('horizontal','horizontal'),
                                           ('vertical','vertical')))
+    for_instance = forms.BooleanField()
     exclude = forms.CharField(max_length=600,required=False)
+    include = forms.CharField(max_length=600,required=False)
     
 
 class ContentForm(forms.Form):
@@ -184,33 +187,30 @@ class ModelLinks(DJPplugin):
     description = 'Links for a model'
     template_name = ('links.html',
                      'djpcms/components/links.html')
+    asbuttons_class = 'asbuttons'
     form = ModelLinksForm
-    
-    def get_links(self, djp, exclude, asbuttons):
-        return djp.view.appmodel.links(djp, asbuttons=asbuttons,
-                                       exclude=exclude)
     
     def render(self, djp, wrapper, prefix, layout = 'horizontal',
-               asbuttons = True, exclude = '', **kwargs):
-        exclude = exclude.split(',')
-        links = self.get_links(djp, exclude, asbuttons)
-        if links['links']:
-            links['layout'] = layout
-            return loader.render(self.template_name, links)
-        else:
-            return ''
-    
-    
-class ObjectLinks(ModelLinks):
-    name = 'edit-object'
-    description = 'Links for a model instance'
-    form = ModelLinksForm
-    
-    def get_links(self, djp, exclude, asbuttons):
-        return djp.view.appmodel.object_links(djp,
-                                              djp.instance,
-                                              asbuttons=asbuttons,
-                                              exclude=exclude)
+               asbuttons = True, exclude = '', include = '',
+               for_instance = False, **kwargs):
+        appmodel = djp.view.appmodel
+        exclude = None if not exclude else exclude.split(',')
+        include = None if not include else include.split(',')
+        instance = None if not for_instance else djp.instance
+        asbuttons = self.asbuttons_class if asbuttons else None
+        links = html.application_links(appmodel,
+                                       djp,
+                                       asbuttons = asbuttons,
+                                       exclude = exclude,
+                                       include = include,
+                                       as_widget = True,
+                                       instance = instance)
+        name = appmodel.mapper.class_name(appmodel.model)
+        return html.List((l[1] for l in links), cn = name)\
+                    .addClass('model-links')\
+                    .addClass(layout)\
+                    .addClass(asbuttons)\
+                    .render(djp)
     
     
 class ModelItemsList(DJPplugin):

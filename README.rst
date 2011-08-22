@@ -114,10 +114,8 @@ Python
 JavaScript
 ------------
 * jQuery_ core and UI are the building block of the browser side of djpcms. 
-* jQuery tablesorter_ plugin for managing dynamic tables.
-* jQuery jstree_ plugin for managing tree components. 
+* jQuery DataTables_ plugin for managing dynamic tables. 
 * jQuery cycle_ plugin for photo galleries. 
-* jQuery Sparklines_ plugin for inline plotting.
 * jQuery bsmSelect_ plugin for multiple select.
 * Modernizr_, a small JavaScript library that detects the availability of native implementations for next-generation web technologies.
 
@@ -133,11 +131,8 @@ In addition, several ideas and code snippets have been taken from django_.
 .. _pip: http://pip.openplans.org/
 .. _South: http://south.aeracode.org/
 .. _stdnet: http://lsbardel.github.com/python-stdnet/
-.. _tablesorter: http://tablesorter.com/
 .. _Modernizr: http://www.modernizr.com/
-.. _jstree: http://www.jstree.com/
 .. _cycle: http://jquery.malsup.com/cycle/
-.. _Sparklines: http://www.omnipotent.net/jquery.sparkline/
 .. _bsmSelect: https://github.com/vicb/bsmSelect
 .. _coverage: http://nedbatchelder.com/code/coverage/
 .. _DataTables: http://www.datatables.net/

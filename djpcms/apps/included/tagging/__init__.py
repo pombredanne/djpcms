@@ -35,14 +35,10 @@ class TagSet(UnicodeMixin):
         return ' '.join(self.tags)
     
 
-class TagField(forms.CharField):
+class TagField(forms.ChoiceField):
     '''A specialized field for tags'''
-    
-    def handle_params(self, choices = None, separator = DEFAULT_SEP,
-                      toslug = '-', **kwargs):
-        self.choices = choices
-        self.separator = separator
-        super(TagField,self).handle_params(toslug = toslug, **kwargs)
+    autocomplete = True
+    multiple = True
 
     def taggen(self, value, bfield):
         supclean = super(TagField,self)._clean    

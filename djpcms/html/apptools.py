@@ -17,20 +17,21 @@ __all__ = ['application_action',
 
 
 table_header_ = namedtuple('table_header_',
-                           'code name description function sortable width')
+'code name description function sortable width extraclass')
 application_action = namedtuple('application_action',
                                 'view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
 
 def table_header(code, name = None, description = None, function = None,
-                 sortable = True, width = None):
+                 sortable = True, width = None, extraclass = None):
     '''Utility for creating an instance of a :class:`table_header_`.'''
     if isinstance(code,table_header_):
         return code
     name = name or nicename(code)
     function = function or code
-    return table_header_(code,name,description,function,sortable,width)
+    return table_header_(code,name,description,function,sortable,width,
+                         extraclass)
 
 
 def application_links(appmodel,
@@ -41,8 +42,8 @@ def application_links(appmodel,
                       as_widget = False,
                       instance = None):
     '''Create a list of application links available to the user.
-This function is used in conjunction with an instance of an :class:`djpcms.views.Application`
-instance.
+This function is used in conjunction with an instance or a model of
+an :class:`djpcms.views.Application` instance.
 
 :parameter appmodel: instance of a :class:`djpcms.views.Application` class.
 :parameter djp: instance of a :class:`djpcms.views.DjpResponse` class.
@@ -62,10 +63,12 @@ instance.
     kwargs  = djp.kwargs.copy()
     kwargs['instance'] = instance
     
-    if include is None:
+    if not include:
         include = appmodel.views
         
     for elem in include:
+        if elem in exclude:
+            continue
         if not isinstance(elem,application_action):
             view = appmodel.views.get(elem,None)
             if not view:
@@ -105,9 +108,11 @@ instance.
         
         if as_widget:
             a = Widget(tag).addAttr('title',elem.title)\
-                           .addData('view',elem.view)\
-                           .addData('method',elem.method)\
-                           .addData('warning',view.warning_message(dview))
+                           .addClass(view.link_class)\
+                           .addData({'view':elem.view,
+                                     'method':elem.method,
+                                     'warning':view.warning_message(dview),
+                                     'text':view.link_text})
             if elem.ajax:
                 a.addClass(css.ajax)
             

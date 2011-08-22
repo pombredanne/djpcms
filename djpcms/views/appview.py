@@ -678,7 +678,9 @@ class DeleteView(ObjectView):
     '''
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
+    ICON = 'ui-icon-alert'
     ajax_enabled = True
+    link_class = 'minibutton ui-state-error-text'
     default_title = 'delete {0[instance]}'
     _methods      = ('post',)
     
@@ -693,6 +695,11 @@ class DeleteView(ObjectView):
     def default_post(self, djp):
         return deleteinstance(djp, force_redirect = self.force_redirect)
     
+    def warning_message(self, djp):
+        return {'title':'Deleting',
+                'body':'<p>Once you have deleted {0}, there is no going back.</p>\
+ <p>Please be certain!</p>'.format(djp.instance)}
+    
     def nextviewurl(self, djp):
         view = djp.view
         if view.object_view and getattr(view,'model',None) == self.model:
@@ -704,6 +711,7 @@ class DeleteView(ObjectView):
 # Edit/Change an object
 class ChangeView(ObjectView):
     PERM = djpcms.CHANGE
+    ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'
     '''An :class:`ObjectView` class specialised for changing an instance of a model.
     '''

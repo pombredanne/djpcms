@@ -342,6 +342,37 @@
         djpcms: $.djpcms.construct
     });
     
+    
+    $.djpcms.confirmation_dialog = function(title, html, callback, opts) {
+        var el = $('<div title="'+title+'"></div>').html(html+""),
+            options = $.extend({},opts,{
+               modal: true,
+               draggable: false,
+               resizable: false,
+               buttons: {
+                   Ok : function() {
+                       $( this ).dialog( "close" );
+                       callback(true);
+                   },
+                   Cancel: function() {
+                       $(this).dialog( "close" );
+                       callback(false);
+                   }
+                }
+            });
+        return el.dialog(options);
+    };
+    
+    $.djpcms.warning_dialog = function(title, warn, callback) {
+        var opts = {
+                dialogClass: 'ui-state-error',
+                autoOpen: false},
+            el = $.djpcms.confirmation_dialog(title, warn, callback, opts);
+        $('.ui-dialog-titlebar, .ui-dialog-buttonpane',el.dialog('widget'))
+                    .addClass('ui-state-error');
+        el.dialog("open");
+        return el;
+    };
     /**
      *  DJPCMS AJAX DATA LOADER CLOSURE.
      *  
@@ -624,6 +655,7 @@
     
     $.djpcms.decorator({
         id:'anchors',
+        description:'Decorate anchors button and submits',
         config: {
             blank_target: true,
             jquery: true
@@ -641,14 +673,14 @@
                     }
                 });
                 $('button',obj).each(function() {
-                    var b = $(this),
-                        data = b.data(),
+                    var el = $(this),
+                        data = el.data(),
                         icon = data.icon,
                         text = data.text;
                     if(!text) {
                          text = icon ? false : true;
                     }
-                    b.button({
+                    el.button({
                         icons:{primary:icon},
                         text:text
                     });
@@ -754,8 +786,7 @@
     $.djpcms.decorator({
         id:	"ajax_widgets",
         config: {
-            selector_link: 'a.ajax,button',
-            selector_redirect: 'button',
+            selector_link: 'a.ajax, button',
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_opacity: '0.5'
@@ -776,20 +807,31 @@
             }
             
     		$(cfg.selector_link,$this).click(function(event) {
-    		    event.preventDefault();          
-                var elem = $(this),
-                    method = elem.data('method') || 'post',
-                    url = elem.attr('href') || elem.data('href'),
-                    action = elem.attr('name'),
-                    conf = confirm[name] || elem.data('conf');
-                if(url) {
-                    if(!elem.hasClass('ajax')) {
-                        window.location = url;
-                    }
-                    else {
+    		    event.preventDefault();
+    		    var elem = $(this),
+    		        ajax = elem.hasClass('ajax'),
+    		        conf = elem.data('warning');
+    		    
+    		    function handleClick(handle) {
+    		        var url = elem.attr('href') || elem.data('href') || '.';
+    		        if(!handle) {return;}
+    		        if(!elem.hasClass('ajax')) {
+    		            window.location = url;
+    		        } else {
+                        var method = elem.data('method') || 'post',
+                            action = elem.attr('name');
                         $.djpcms.ajax_loader(url,action,method,{},conf)();
-                    }
-                }
+    		        }
+    		    }
+    		    
+    		    if(conf) {
+    		        var title = conf.title || '',
+    		            body = conf.body || conf;
+    		        $.djpcms.warning_dialog(title,body,handleClick);
+    		    }
+    		    else {
+    		        handleClick(true);
+    		    }
     		});
     		
     		$(cfg.selector_select,$this).change(function(event) {

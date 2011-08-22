@@ -382,10 +382,12 @@ This field works in conjunction with the ``autocomplete`` decorator in
 ``djpcms.js``.
 '''
     widget = html.Select()
+    autocomplete = False
+    multiple = False
     
     def handle_params(self, choices = None, model = None,
-                       separator = ', ', autocomplete = False,
-                       empty_label = '-----------', multiple = False,
+                       separator = ', ', autocomplete = None,
+                       empty_label = '-----------', multiple = None,
                        minLength = 2, maxRows = 30,
                        **kwargs):
         '''Choices is an iterable or a callable which takes the
@@ -394,8 +396,10 @@ form as only argument'''
         self._model = model
         self.empty_label = empty_label
         self.separator = separator
-        self.autocomplete = autocomplete
-        self.multiple = multiple
+        self.autocomplete = autocomplete if autocomplete is not None else\
+                             self.autocomplete
+        self.multiple = multiple if multiple is not None else\
+                             self.multiple
         self.minLength = minLength
         self.maxRows = maxRows
         self._raise_error(kwargs)

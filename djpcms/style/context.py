@@ -34,15 +34,6 @@ CssContext('anchor-ui',
 )
 
 
-#________________________________________ horizontal_list    -    HORIZONTAL LIST
-CssContext('horizontal_list',
-           tag = '.horizontal li',
-           data = {
-                   'display':'inline',
-                   'margin':'0 5px'
-                   }
-)
-
 CssContext('widget-anchor',
            tag = '.ui-widget-content a',
            template = 'djpcms/style/anchor.css_t',
@@ -126,14 +117,32 @@ CssContext('tablerelated-header',
            
 
 #________________________________________ SUBMITS AND BUTTONS
-#CssContext('button',
-#           tag = '.ui-button',
-#           template='djpcms/style/button.css_t',
-#           data = {
-#             'padding':'0.1em 0.3em',
-#             'line_height':'1.2em'
-#            }
-#)
+CssContext('button',
+           tag = '.ui-button.ui-widget',
+           data = {
+            'font_weight':'bold',
+            }
+)
+CssContext('minibutton',
+           tag = '.minibutton',
+           data = {
+            'font_size':'90%'
+        })
+
+
+#________________________________________ Horizontal navigation
+CssContext('horizontal-list',
+           tag = '.horizontal li',
+           data = {
+                'margin':'0 5px',
+                'display':'inline'
+            })
+CssContext('model-links',
+           tag = 'ul.asbuttons.model-links li',
+           data = {
+                'margin':'0'
+                }
+           )
 
 #________________________________________ TAGS
 CssContext('tags',

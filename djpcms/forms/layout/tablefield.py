@@ -20,7 +20,7 @@ class for handling formsets as tables.'''
 <div {% if error %}class="error"{% endif %}>{% if ischeckbox %}
 {{ inner }}
 {% else %}
-<div class="field-widget input {{ name }}">
+<div class="field-widget input ui-widget-content {{ name }}">
 {{ inner }}
 </div>{% endif %}
 </div>{% endif %}'''

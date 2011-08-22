@@ -75,9 +75,11 @@ http requests.
              
     '''
     PERM = djpcms.VIEW
-    ICON = None
     DEFAULT_METHOD = 'get'
     object_view = False
+    ICON = None
+    link_class = 'minibutton'
+    link_text = True
     logger = logging.getLogger('djpcmsview')
     
     _methods      = ('get','post')

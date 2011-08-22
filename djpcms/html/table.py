@@ -71,8 +71,11 @@ class TableMaker(WidgetMaker):
         '''Return an array of column definition to be used by the dataTable
 javascript plugin'''
         for head in headers:
+            cn = head.code if not head.extraclass else '{0} {1}'\
+                    .format(head.code,head.extraclass)
+            
             yield {'bSortable':head.sortable,
-                   'sClass':head.code,
+                   'sClass':cn,
                    'sName':head.code,
                    'sTitle':head.name,
                    'sWidth':head.width,

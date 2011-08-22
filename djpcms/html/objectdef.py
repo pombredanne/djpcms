@@ -20,9 +20,6 @@ __all__ = ['ObjectDefinition',
            'ObjectPagination']
 
 
-#def add_definition(data, name, value):
-#    data.append({'name':name,'value':value})
-
 class ObjectDefinition(UnicodeMixin):
     '''Utility class for displaying an
 object instance as html.
@@ -78,7 +75,7 @@ Usage::
 
 class ObjectItem(WidgetMaker):
     tag = 'div'
-    default_class='list-item'
+    default_class='item-view'
 
     def get_context(self, djp, widget, keys):
         ctx = super(ObjectItem,self).get_context(djp, widget, keys)
@@ -102,8 +99,8 @@ class ObjectItem(WidgetMaker):
         else:
             item = str(context['instance'])
         yield item
-
-
+    
+    
 class ObjectDef(ObjectItem):
     tag = None
     
@@ -115,4 +112,4 @@ class ObjectDef(ObjectItem):
             
             
 class ObjectPagination(ObjectItem):
-    default_class = 'pagination-item'
+    default_class = 'pagination-item ui-widget-content'

@@ -84,13 +84,18 @@ class TextArea(InputWidget):
     inline = False
     _value = ''
     default_attrs  = {'rows': 10, 'cols': 40}
-    attributes = WidgetMaker.makeattr('name','rows','cols')
+    attributes = WidgetMaker.makeattr('name','rows','cols',
+                                      'disabled','readonly')
+    area_media = Media(js = ['djpcms/taboverride.js'])
 
     def get_value(self, value, widget):
         widget.internal['value'] = escape(value)
         
     def inner(self, djp, widget, keys):
         return widget.internal['value']
+    
+    def media(self, *args):
+        return self.area_media
     
     
 class Select(FieldWidget):
@@ -143,6 +148,7 @@ class Select(FieldWidget):
             return self.select_media
 
 WidgetMaker(tag = 'div', default = 'div')
+WidgetMaker(tag = 'li', default = 'li')
 WidgetMaker(tag = 'p', default = 'p')
 WidgetMaker(tag = 'h1', default = 'h1')
 WidgetMaker(tag = 'h2', default = 'h2')
@@ -163,18 +169,26 @@ PasswordInput(default='input:password')
 class ListWidget(WidgetMaker):
     tag='ul'
     def inner(self, djp, widget, keys):
-        return '\n'.join((LI + elem + LIEND for elem in widget))
+        return '\n'.join(widget._list)
 
-class List(Widget, list):
+class List(Widget):
     maker = ListWidget()
-    def __init__(self, data = None, **kwargs):
+    def __init__(self, data = None, li_class = None, **kwargs):
+        self._list = []
+        self.li_class = li_class
         super(List,self).__init__(tag='ul',**kwargs)
-        list.__init__(self,data) if data else list.__init__(self)
+        if data:
+            for d in data:
+                self.append(d)
     
     def addanchor(self, href, text):
         if href:
             a = "<a href='{0}'>{1}</a>".format(href,text)
             self.append(a)
+            
+    def append(self, elem, cn = None):
+        elem = Widget('li', cn = self.li_class).render(inner = elem)
+        self._list.append(elem)
     
     
 ListWidget(default = 'ul', widget = List)

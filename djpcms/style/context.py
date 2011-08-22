@@ -391,13 +391,13 @@ CssContext('tabs',
 
 #________________________________________ MESSAGE LIST
 CssContext('messagelist_ul',
-           tag='ul.messagelist',
+           tag='ul li.messagelist',
            data = {
                    'margin':'0 0 5px',
                    }
            )
 CssContext('messagelist',
-           tag='ul.messagelist li',
+           tag='ul li.messagelist',
            data = {
                    'margin':'0 0 3px',
                    'padding':'4px 12px'
@@ -474,6 +474,15 @@ CssContext('bsmselect',
            data = {}
            )
 
+
+#________________________________________ PAGINATION
+CssContext('pagination_item',
+           tag = '.pagination-item',
+           data = {
+            'margin':'0 0 20px',
+            'padding': '10px'
+            }
+           )
 
 #________________________________________ SPECIAL IDS AND CLASSES
 CssContext('server_exception',

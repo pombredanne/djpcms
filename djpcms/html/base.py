@@ -317,7 +317,9 @@ it is a class used as factory for HTML components.
         self._widget = widget or self._widget or Widget
         self._inner = inner
         if self.default_attrs:
-            params.update(self.default_attrs)
+            p = self.default_attrs.copy()
+            p.update(params)
+            params = p
         for attr in self.attributes:
             if attr in params:
                 value = params.pop(attr)

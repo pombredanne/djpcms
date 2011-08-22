@@ -131,6 +131,8 @@ css file to be compiled.
     
     def add(self, value):
         if isinstance(value,_CssContext):
+            val = _context_dictionary.pop(value.name,None)
+            value.parent = self
             self.context_dictionary[value.name] = value
             
     def __iter__(self):

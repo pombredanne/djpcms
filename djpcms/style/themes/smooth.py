@@ -17,8 +17,8 @@ smooth = {
                             'text_decoration': 'none',
                             'weight':'normal'},
           'breadcrumbs': {'color':'#333333'},
-          'field-widget-input': {'background':'#ffffff',
-                                 'border':'1px solid #a6c9e2'},
+          #'field-widget-input': {'background':'#ffffff',
+          #                       'border':'1px solid #a6c9e2'},
           'box':{},
           # Uniform
           'uniform label':{'font_weight': 'bold',

@@ -623,42 +623,61 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
     $.djpcms.decorator({
-        id:'jquery-buttons',
+        id:'anchors',
+        config: {
+            blank_target: true,
+            jquery: true
+        },
         decorate: function(obj, config) {
-            var el;
-            $('input[type="submit"]',obj).each(function(){
-                el = $(this);
-                if(!el.hasClass('nobutton')) {
-                    el.button();
-                }
-            });
-           $('a.button',obj).each(function() {
-               var a = $(this),
-                   sp = a.children('span'),
-                   opts,ico;
-               if(sp.length) {
-                   ico = sp[0].className;
-                   sp.remove();
-               }
-               if(ico) {
-                   opts = {icons:{primary:ico}};
-                   if(!a.html()) {opts.text = false;}
-               }
-               a.button(opts).removeClass('djph');
-           });
-           $('button',obj).each(function() {
-               var b = $(this),
-                data = b.data(),
-                icon = data.icon,
-                text = data.text;
-               if(!text) {
-                    text = icon ? false : true;
-               }
-               b.button({
-                   icons:{primary:icon},
-                   text:text
-               });
-           });
+            var options = config.anchors,
+                jquery = options.jquery,
+                bt = options.blank_target;
+           
+            if(jquery) {
+                $('input[type="submit"]',obj).each(function(){
+                    var el = $(this);
+                    if(!el.hasClass('nobutton')) {
+                        el.button();
+                    }
+                });
+                $('button',obj).each(function() {
+                    var b = $(this),
+                        data = b.data(),
+                        icon = data.icon,
+                        text = data.text;
+                    if(!text) {
+                         text = icon ? false : true;
+                    }
+                    b.button({
+                        icons:{primary:icon},
+                        text:text
+                    });
+                });
+            }
+            if(bt || jquery) {
+                $('a',obj).each(function() {
+                    var a = $(this), href;
+                    if(jquery && a.hasClass('button')) {
+                        var sp = a.children('span'),
+                            opts,ico;
+                        if(sp.length) {
+                            ico = sp[0].className;
+                            sp.remove();
+                        }
+                        if(ico) {
+                            opts = {icons:{primary:ico}};
+                            if(!a.html()) {opts.text = false;}
+                        }
+                        a.button(opts).removeClass('djph');
+                    }
+                    if(bt) {
+                        var href = a.attr('href');
+                        if(href && href.substring(0,4) == 'http') {
+                            a.attr('target','_blank');
+                        }
+                    }
+                });
+            }
         }
     });
     
@@ -1010,21 +1029,17 @@
     		});
     	}
     });
-    
-    $.djpcms.decorator({
-    	id:	"anchorbutton",
-    	description: "Decorate anchor as button using jQuery UI",
-    	decorate: function($this,config) {
-    		$('a.nice-button',$this).button();
-    	}
-    });
+
     
     $.djpcms.decorator({
     	id: 'taboverride',
-    	description: "Override tab key to insert 4 spaces",
+    	description: "Override tab key to insert n spaces",
+    	config: {
+    	 spaces: 4    
+    	},
     	decorate: function($this,config) {
     		if($.fn.tabOverride) {
-    			$.fn.tabOverride.setTabSize(4);
+    			$.fn.tabOverride.setTabSize(config.taboverride.spaces);
     			$('textarea.taboverride',$this).tabOverride(true);
     		}
     	}
@@ -1115,6 +1130,32 @@
             });
         }
     });
+    
+    
+    $.djpcms.decorator({
+        id:'message',
+        config: {
+            dismiss: true,
+            fade: 400,
+            float: 'right'
+        },
+        decorate: function($this,config) {
+            var opts = config.message;
+            $('li.messagelist, li.errorlist').each(function(){
+                var li = $(this),
+                    a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
+                        .css({'float':opts.float})
+                        .addClass('ui-corner-all')
+                        .mouseenter(function(){$(this).addClass('ui-state-hover');})
+                        .mouseleave(function(){$(this).removeClass('ui-state-hover');})
+                        .click(function(){$(this).parent('li').fadeOut(opts.fade,'linear',function(){
+                            $(this).remove();
+                            });
+                        });
+                li.append(a);
+            });
+        }
+    });  
     
     $.djpcms.decorator({
         id: "autocomplete",

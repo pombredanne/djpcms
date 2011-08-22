@@ -3,7 +3,8 @@ from inspect import isclass
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
-from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND, SPANEND, NOTHING
+from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND,\
+                               SPANEND, NOTHING
 from djpcms.utils import force_str, mark_safe, significant_format
 from djpcms.utils import escape as default_escape
 
@@ -57,7 +58,10 @@ Prettify a value to be displayed in html.
         try:
             return significant_format(val, n = nd)
         except TypeError:
-            return force_str(val)
+            val = force_str(val)
+            if val.startswith('http://') or val.startswith('https://'):
+                val = mark_safe('<a href="{0}">{0}</a>'.format(val))
+            return val
     
     
 def field_repr(field_name, obj, appmodel = None, **kwargs):

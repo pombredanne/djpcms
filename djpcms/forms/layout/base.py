@@ -107,7 +107,8 @@ class FieldWidget(FormWidgetMaker):
             if label:
                 yield "<label for='{0}' class='label'>{1}</label>"\
                         .format(bfield.id,label)
-            yield "<div class='field-widget input {0}'>{1}</div>".format(name,whtml)
+            yield "<div class='field-widget input {0} ui-widget-content'>\
+ {1}</div>".format(name,whtml)
             if bfield.help_text:
                 yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
                         format(bfield.id,bfield.help_text)
@@ -280,7 +281,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 cl = '.'.join(self.form_messages_container_class.split(' '))
                 name = '.{0}'.format(cl)
             ListDict.add(name,
-                         html.List(data = msg, cn = msg_class).render(),
+                         html.List(data = msg, li_class = msg_class).render(),
                          alldocument = False,
                          removable=True)
 

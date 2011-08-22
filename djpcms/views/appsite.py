@@ -220,6 +220,14 @@ or in the constructor.
     Default ``None``
     
 .. attribute:: related_field
+    
+    When a :attr:`parent` view is defined, this field represent the
+    related field in the model which refers to the parent
+    view instance.
+
+.. attribute:: object_widgets
+    
+    Dictioanry of object renderers.
 '''
     creation_counter = 0
     inherit          = False
@@ -580,9 +588,8 @@ By default it return a generator of children pages.'''
                       'appmodel': appmodel,
                       'headers': headers})
             maker = self.object_widgets['pagination']
-            c['items'] = (maker.widget(appmodel = self,
-                                       instance = item).render(djp)\
-                          for item in p.qs)
+            render = self.render_object
+            c['items'] = (render(djp,item,'pagination') for item in p.qs)
             return loader.render(self.pagination_template_name, c)
 
     def for_user(self, djp):
@@ -648,7 +655,7 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    model_id_name = 'id'
+    model_id_name = None
     model_url_bits = None
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
@@ -685,8 +692,11 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
         return bits
     
     def _objectbits(self, obj):
-        if len(self.model_url_bits) == 1:
-            return {self.model_url_bits[0]: getattr(obj,self.model_id_name)}
+        urls = self.model_url_bits
+        if len(urls) == 1:
+            name = urls[0]
+            bit = self.model_id_name or getattr(obj,name)
+            return {name: bit}
         else:
             raise ApplicationUrlException(
                             'Cannot obtain model instance url components')
@@ -704,7 +714,8 @@ and get the object. Re-implement for custom arguments.'''
         if isinstance(id,self.model):
             return id
         else:
-            query = {self.model_id_name:id}
+            bit = self.model_id_name or model_id_url
+            query = {bit:id}
             try:
                 return self.mapper.get(**query)
             except:
@@ -808,22 +819,10 @@ This can be re-implemented by subclasses.'''
         if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
             qs = qs.sort_by(self.ordering)
         return qs
-        
-    def object_content(self, djp, obj):
-        '''Utility function for getting content out of an instance of a model.
-This dictionary should be used to render an object within a template.
-It returns a dictionary.'''
-        request = djp.request
-        content = {'item':      obj,
-                   'mapper':    self.mapper,
-                   'djp':       djp,
-                   'user':      request.user}
-        content.update(self.object_links(djp,obj))
-        return content
     
     def object_links(self, djp, obj, asbuttons = True, exclude = None):
         '''Create permitted object links'''
-        #TODO: REMOVE
+        #TODO: REMOVE, this is deprecated.
         css     = djp.css
         next    = djp.url
         request = djp.request

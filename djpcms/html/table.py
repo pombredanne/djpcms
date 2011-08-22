@@ -78,7 +78,7 @@ javascript plugin'''
                    'sWidth':head.width,
                    'description':head.description}
             
-    def media(self, widget):
+    def media(self, *args):
         return self.table_media
 
 

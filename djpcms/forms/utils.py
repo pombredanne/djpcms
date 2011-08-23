@@ -188,9 +188,9 @@ has been submitted.'''
     if f.is_valid():
         editing  = editing if not SAVE_AS_NEW_KEY in data else False
         if editing:
-            instance = f.save()
+            instance = view.save(djp,f)
         else:
-            instance = f.save_as_new()
+            instance = view.save_as_new(djp,f)
         if ajax.isajax(instance):
             return instance
         elif instance == f:

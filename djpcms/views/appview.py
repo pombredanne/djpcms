@@ -521,6 +521,12 @@ class ModelView(View):
     '''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
+    
+    def save(self, djp, f, commit = True):
+        return f.save(commit = commit)
+    
+    def save_as_new(self, djp, f, commit = True):
+        return f.save_as_new(commit = commit)
 
     
 class SearchView(ModelView):
@@ -587,9 +593,6 @@ and handles the saving as default ``POST`` response.'''
                                      isplugin = isplugin,
                                      in_navigation = in_navigation,
                                      **kwargs)
-    
-    def save(self, request, f, commit = True):
-        return self.appmodel.object_from_form(f, commit)
     
     def render(self, djp):
         return self.get_form(djp).render(djp)
@@ -721,9 +724,6 @@ class ChangeView(ObjectView):
     
     def render(self, djp):
         return self.get_form(djp).render(djp)
-    
-    def save(self, request, f, commit = True):
-        return self.appmodel.object_from_form(f, commit)
     
     def default_post(self, djp):
         return saveform(djp, True, force_redirect = self.force_redirect)

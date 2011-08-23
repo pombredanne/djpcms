@@ -6,7 +6,8 @@ from py2py3 import iteritems, is_string,\
 
 import djpcms
 from djpcms import forms, html, ajax
-from djpcms.html import Paginator, Table, SubmitInput, application_action
+from djpcms.html import Paginator, Table, SubmitInput, application_action,\
+                        table_header
 from djpcms.template import loader
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
@@ -174,6 +175,13 @@ or in the constructor.
     An list or a tuple over attribute's names to display in pagination views.
     
         Default ``()``
+        
+.. attribute:: list_display_links
+
+    List of object's field to display. If available, the search view
+    will display a sortable table of objects.
+     
+     Default is ``None``.
     
 .. attribute:: ordering
 
@@ -263,8 +271,6 @@ or in the constructor.
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
     list_display_links = ()
-    '''List of object's field to display. If available, the search view\
- will display a sortable table of objects. Default is ``None``.'''
     model = None
     nice_headers_handler = None
     pagination_template_name = ('pagination.html',
@@ -640,11 +646,16 @@ User should subclass this for full control on the model application.
 
     Instance of :class:`djpcms.core.orms.BaseOrmWrapper`.
     Created from :attr:`model`
+    
+.. attribute:: object_display
+
+    Same as :attr:`list_display` attribute at object level.
+    The field list is used to display the object definition.
+    If not available, :attr:`list_display` is used.
+    
+    Default ``None``.
 '''
     object_display   = None
-    '''Same as :attr:`list_display` attribute at object level.
-The field list is used to display the object definition.
-If not available, :attr:`list_display` is used. Default ``None``.'''
     filter_fields    = []
     '''List of model fields which can be used to filter'''
     search_fields    = []
@@ -664,8 +675,9 @@ functionality when searching for model instances.'''
                 'Model is null not defined in application {0}'.format(self))
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
-        self.object_display = object_display or self.object_display or\
-                                 self.list_display
+        object_display = object_display or self.object_display or\
+                         self.list_display
+        self.object_display = [table_header(head) for head in object_display] 
         
     def get_root_code(self):
         return self.root_view.code

@@ -145,7 +145,11 @@ which corresponds to ``self``'''
                 return self.tree[self.view.path]
             else:
                 raise
-    
+
+    @property
+    def name(self):
+        return self.view.name
+        
     @property
     def linkname(self):
         return self.view.linkname(self)

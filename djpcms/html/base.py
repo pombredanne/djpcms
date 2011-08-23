@@ -62,9 +62,9 @@ derived classes.'''
 
 class Widget(object):
     '''A class which exposes jQuery-alike API for
-handling HTML classes, attributes and data on a html rendeble object::
+handling HTML classes, attributes and data on a html object::
 
-    >>> a = Widget().addClass('bla foo').addAttr('name','pippo')
+    >>> a = Widget('div').addClass('bla foo').addAttr('name','pippo')
     >>> a.classes
     {'foo', 'bla'}
     >>> a.attrs
@@ -76,14 +76,17 @@ Any Operation on this class is similar to jQuery.
 '''    
     maker = None
     def __init__(self, maker = None, cn = None, data = None,
-                 options = None, **params):
+                 options = None, data_stream = None,
+                 css = None, **params):
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
         self.maker = maker
+        self.data_stream = data_stream
         self.classes = set()
+        self._css = css or {}
         self.data = data or {}
         self.attrs = attrs = maker.attrs.copy()
         self.addClass(maker.default_style)\
@@ -115,6 +118,8 @@ Any Operation on this class is similar to jQuery.
         if self.classes:
             cs = ' '.join(self.classes)
             attrs['class'] = cs
+        if self._css:
+            attrs['style'] = ''.join(('{0}:{1};'.format(k,v) for k,v in self._css.items()))
         for k,v in self.data.items():
             attrs['data-{0}'.format(k)] = dump_data_value(v)
         if attrs:
@@ -139,6 +144,10 @@ Any Operation on this class is similar to jQuery.
             self.data[name] = val
         return self
     
+    def css(self, mapping):
+        self._css.update(mapping)
+        return self
+        
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
         if cn:
@@ -296,8 +305,6 @@ it is a class used as factory for HTML components.
                  description = '', widget = None,
                  attributes = None, inner = None,
                  renderer = None, **params):
-        if default:
-            default_widgets_makers[default] = self
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
@@ -331,6 +338,14 @@ it is a class used as factory for HTML components.
         if params:
             keys = list(params)
             raise TypeError("__init__() got an unexpected keyword argument '{0}'".format(keys[0]))
+        key = None
+        if default:
+            key = default
+        elif self.tag not in default_widgets_makers:
+            key = self.tag
+        
+        if key:
+            default_widgets_makers[key] = self
     
     @classmethod
     def makeattr(cls, *attrs):
@@ -396,7 +411,8 @@ return the inner part of html. By default it renders the template if it is avail
 an empty string.'''
         context = self.get_context(djp,widget,keys)
         if self.template or self.template_name:
-            context.update({'maker':self,'widget':widget})
+            context.update({'maker':self,
+                            'widget':widget})
             if self.template:
                 return loader.template_class(self.template).render(context)
             else:
@@ -405,7 +421,18 @@ an empty string.'''
             return '\n'.join(self.stream(djp,widget,context))
     
     def stream(self, djp, widget, context):
-        return context['children']
+        '''This method is called when rendering without templates.
+It returns an iterable over chunks of html to be displayed in the
+inner part of the widget.'''
+        if widget.data_stream:
+            data2html = self.data2html
+            for chunk in widget.data_stream:
+                yield data2html(chunk)
+        for child in context['children']:
+            yield child
+        
+    def data2html(self, data):
+        return data
 
     def child_widget(self, child, widget, **kwargs):
         w = child.widget(**widget.internal)

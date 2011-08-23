@@ -4,7 +4,7 @@ from djpcms import views, html
 from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
-from djpcms.html import ObjectDefinition, application_links
+from djpcms.html import application_links, application_views
 from djpcms.core.exceptions import ImproperlyConfigured
 
 __all__ = ['AdminSite',
@@ -41,7 +41,7 @@ class TabView(html.ObjectItem):
             if 'get' not in view.methods(request):
                 continue
             if isinstance(view,views.ViewView):
-                html = self.render_object_view(djp,appmodel,instance)
+                html = appmodel.render_object(djp,instance,context='object')
             else:
                 dv = view(djp.request, **djp.kwargs)
                 try:
@@ -58,13 +58,11 @@ class TabView(html.ObjectItem):
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
         return loader.render(self.view_template,ctx)
 
-    def render_object_view(self, djp, appmodel, instance):
-        return force_str(ObjectDefinition(appmodel, djp, instance = instance))
-
 
 class TabViewMixin(object):
     views_ordering = {'view':0,'change':1}
-    object_widgets = views.extend_widgets({'home':TabView()})
+    object_widgets = views.extend_widgets({'home':TabView(),
+                                           'object':html.ObjectDef()})
 
 
 class ApplicationGroup(views.Application):
@@ -83,8 +81,8 @@ administer a group of :class:`djpcms.views.Applications`.'''
             title = r.title
             appmodel = r.view.appmodel
             home = appmodel.root_view(request,**djp.kwargs)
-            links = ''.join((l[1] for l in application_links(appmodel,
-                                                    djp,as_widget=True)))
+            links = ''.join((l[1] for l in application_links(\
+                                application_views(appmodel,djp))))
             yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 

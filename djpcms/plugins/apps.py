@@ -198,13 +198,13 @@ class ModelLinks(DJPplugin):
         include = None if not include else include.split(',')
         instance = None if not for_instance else djp.instance
         asbuttons = self.asbuttons_class if asbuttons else None
-        links = html.application_links(appmodel,
-                                       djp,
-                                       asbuttons = asbuttons,
-                                       exclude = exclude,
-                                       include = include,
-                                       as_widget = True,
-                                       instance = instance)
+        links = html.application_links(
+                            html.application_views(appmodel,
+                                                   djp,
+                                                   exclude = exclude,
+                                                   include = include,
+                                                   instance = instance),
+                            asbuttons = asbuttons)
         name = appmodel.mapper.class_name(appmodel.model)
         if links:
             return html.List((l[1] for l in links), cn = name)\

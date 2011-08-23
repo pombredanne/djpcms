@@ -165,30 +165,6 @@ CssContext('object_definitions',
                    }
            )
 
-
-#________________________________________ TABLESORTER
-CssContext('tablesorter',
-           tag='table.tablesorter',
-           template='djpcms/style/tablesorter.css_t',
-           data = {
-                   'width':'100%',
-                   'text_align': 'left',
-                   'margin': '0 0 15px',
-                   'background': 'transparent',
-                   # head/tail
-                   'odd_background_color':'#ccc',
-                   'head_border_color':'#fff',
-                   #'toolbox_background_color':'#fff',
-                   'body_border_color':'#a6c9e2',
-                   'head_padding': '4px',
-                   #
-                   'toolbox_min_height':'40px',
-                   #
-                   'head_border': '1px solid #a6c9e2',
-                   'row_border':'1px solid transparent'
-                   }
-           )
-
 #________________________________________ DATATABLE
 CssContext('datatable',
            tag='.data-table',
@@ -230,7 +206,15 @@ CssContext('datatable',
                    #
                    'col_selector_float':'right',
                    'col_selector_margin':'0 0 1em'
-                   }
+                   },
+           elems = [CssContext('datatable-title',
+                               tag = 'h3.table-title',
+                               data = {
+                                'padding':'4px',
+                                'margin':'0',
+                                'font-size':'110%'
+                            })
+                    ]
            )
 
 CssContext('datatable_table',

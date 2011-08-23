@@ -109,9 +109,9 @@ class FieldWidget(FormWidgetMaker):
                         .format(bfield.id,label)
             yield "<div class='field-widget input {0} ui-widget-content'>\
  {1}</div>".format(name,whtml)
-            if bfield.help_text:
-                yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
-                        format(bfield.id,bfield.help_text)
+        if bfield.help_text:
+            yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
+                    format(bfield.id,bfield.help_text)
 
                 
     def inner(self, djp, widget, keys):

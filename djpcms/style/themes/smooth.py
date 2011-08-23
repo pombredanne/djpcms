@@ -26,11 +26,6 @@ smooth = {
           'tablerelated-legend': {'font_size': '110%',
                                   'font_weight':'bold'
                                   },
-          # Tablesorter
-          'tablesorter': {'head_border_color':'#fff',
-                          'body_border_color':'#a6c9e2',
-                          'odd_background_color':'#dbebeb',
-                          'row_hover_background':'#d0e5f5'},
            # dataTable
            'datatable': {'odd_background_color':'#f2f2f2',
                          'even_background_color':'transparent',

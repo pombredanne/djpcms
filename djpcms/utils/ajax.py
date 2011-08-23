@@ -5,6 +5,7 @@ import json
 from djpcms.utils import force_str
 from djpcms.utils.structures import OrderedDict
 
+
 def isajax(obj):
     return isinstance(obj,jsonbase)
    
@@ -30,10 +31,6 @@ as JSON string.
     def mimetype(self):
         return 'application/javascript'
     
-    def render(self, template, ctx, autoescape = False):
-        from djpcms.template import loader
-        return loader.render(template,ctx,autoescape)
-        
     def mark_safe(self, s):
         from djpcms.template import loader
         return loader.mark_safe(s)
@@ -120,12 +117,11 @@ class jempty(HeaderBody):
 
 
 class jservererror(HeaderBody):
-    template_name = ('errors/post-error.html',
-                     'djpcms/errors/post-error.html')
+    template = '''<h3>0{path}</h3>\n0{error}'''
+    
     def __init__(self, request, err):
-        self.html = self.render(self.template_name,
-                                 {'error':err,
-                                  'request': request})
+        self.html = self.template.format({'error':err,
+                                          'path': request.path})
     
     def header(self):
         return 'servererror'

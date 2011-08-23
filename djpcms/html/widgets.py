@@ -15,7 +15,8 @@ __all__ = ['TextInput',
            'ListWidget',
            'List',
            'SelectWithAction',
-           'TextSelect']
+           'TextSelect',
+           'DefinitionList']
 
 
 class FieldWidget(WidgetMaker):
@@ -147,29 +148,23 @@ class Select(FieldWidget):
         if 'multiple' in widget.attrs:
             return self.select_media
 
-WidgetMaker(tag = 'div', default = 'div')
-WidgetMaker(tag = 'li', default = 'li')
-WidgetMaker(tag = 'p', default = 'p')
-WidgetMaker(tag = 'h1', default = 'h1')
-WidgetMaker(tag = 'h2', default = 'h2')
-WidgetMaker(tag = 'h3', default = 'h3')
-WidgetMaker(tag = 'h4', default = 'h4')
-WidgetMaker(tag = 'h5', default = 'h5')
-WidgetMaker(tag = 'th', default = 'th')
-WidgetMaker(tag = 'tr', default = 'tr')
-WidgetMaker(tag = 'span', default = 'span')
+for tag in ('div','p','h1','h2','h3','h4','h5','th','tr','span','button'):
+    WidgetMaker(tag = tag)
+    
+    
 WidgetMaker(tag = 'a', default = 'a', attributes = ('href','title'))
-WidgetMaker(tag = 'button', default = 'button')
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 
+
 class ListWidget(WidgetMaker):
     tag='ul'
     def inner(self, djp, widget, keys):
         return '\n'.join(widget._list)
+
 
 class List(Widget):
     maker = ListWidget()
@@ -192,6 +187,19 @@ class List(Widget):
     
     
 ListWidget(default = 'ul', widget = List)
+
+
+class DefinitionListMaker(WidgetMaker):
+    tag = 'div'
+    
+    def data2html(self, data):
+        return '<dl><dt>{0}</dt><dd>{1}</dd></dl>'.format(*data)
+    
+
+class DefinitionList(Widget):
+    maker = DefinitionListMaker()
+
+
     
 def SelectWithAction(choices, action_url, **kwargs):
     a = HtmlWidget('a', cn = 'djph select-action').addAttr('href',action_url)

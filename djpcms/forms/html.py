@@ -62,7 +62,8 @@ Simple usage::
                     input = html.SubmitInput(value = input[0],
                                              name = input[1])
                 #if not isinstance(input,html.WidgetMaker):
-                #    raise TypeError('{0} is not a widgetmaker, cannot addt to form inputs'.format(input))
+                #    raise TypeError('{0} is not a widgetmaker,
+                # cannot addt to form inputs'.format(input))
                 self.inputs.append(input)
         missings = list(form_class.base_fields)
         self.layout.check_fields(missings)

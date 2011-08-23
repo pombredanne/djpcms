@@ -29,6 +29,7 @@ wrap existing object relational mappers.
     DoesNotExist = None
     '''Exception raise when an object is not available'''
     short_description = 'short_description'
+    module_name = None
     
     def __init__(self, model):
         self.model = model

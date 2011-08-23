@@ -11,6 +11,7 @@ from .widgets import Select
 
 __all__ = ['application_action',
            'table_menu_link',
+           'application_views',
            'application_links',
            'table_toolbox',
            'table_header']
@@ -34,14 +35,12 @@ def table_header(code, name = None, description = None, function = None,
                          extraclass)
 
 
-def application_links(appmodel,
+def application_views(appmodel,
                       djp,
-                      asbuttons = True,
                       exclude = None,
                       include = None,
-                      as_widget = False,
                       instance = None):
-    '''Create a list of application links available to the user.
+    '''Create a list of application views available to the user.
 This function is used in conjunction with an instance or a model of
 an :class:`djpcms.views.Application` instance.
 
@@ -51,9 +50,7 @@ an :class:`djpcms.views.Application` instance.
                         
                         Default ``True``.
 '''
-    tag = 'button' if asbuttons else 'a'
     permissions = djp.site.permissions
-    css = djp.css
     request = djp.request
     links = []
     exclude = exclude or []
@@ -89,7 +86,7 @@ an :class:`djpcms.views.Application` instance.
                 continue
             # The special view class
             #display = nicename(view.name)
-            elem = table_menu_link(view.name,
+            elem = table_menu_link(dview,
                                    dview.linkname,
                                    dview.title,
                                    view.PERM,
@@ -106,27 +103,42 @@ an :class:`djpcms.views.Application` instance.
                 dview = view(request, **kwargs)
             url = djp.url
         
-        if as_widget:
-            a = Widget(tag).addAttr('title',elem.title)\
-                           .addClass(view.link_class)\
-                           .addData({'view':elem.view,
-                                     'method':elem.method,
-                                     'warning':view.warning_message(dview),
-                                     'text':view.link_text})
-            if elem.ajax:
-                a.addClass(css.ajax)
-            
-            if a.tag == 'a':
-                a.addAttr('href',url).addClass(elem.icon)
-            else:
-                a.addData('icon', elem.icon).addData('href',url)
-            elem = (elem.view, a.render(inner = elem.display))
-        else:
-            elem = elem._asdict()
-            elem['url'] = url
-        links.append(elem)
-    return links
+        elem = elem._asdict()
+        elem['url'] = url
+        yield elem
 
+
+def views_serializable(views):
+    for elem in views:
+        elem['view'] = elem['view'].name
+        yield elem
+        
+        
+def application_links(views, asbuttons = True):
+    '''\
+:parameter asbuttons: optional flag for displaying links as button tags.
+'''
+    tag = 'button' if asbuttons else 'a'
+    for elem in views:
+        djp = elem['view']
+        view = djp.view
+        css = djp.css
+        a = Widget(tag).addAttr('title',elem['title'])\
+                           .addClass(view.link_class)\
+                           .addData({'view':view.name,
+                                     'method':elem['method'],
+                                     'warning':view.warning_message(djp),
+                                     'text':view.link_text})
+        if elem['ajax']:
+            a.addClass(css.ajax)
+        
+        if a.tag == 'a':
+            a.addAttr('href',elem['url']).addClass(elem['icon'])
+        else:
+            a.addData('icon', elem['icon']).addData('href',elem['url'])
+        yield (view.name, a.render(inner = elem['display'])) 
+    
+    
 
 def table_toolbox(appmodel, djp, all = True):
     '''\
@@ -151,9 +163,10 @@ an application based on database model is available.
     if not all:
         return toolbox
     
-    menu = application_links(appmodel,
-                             djp,
-                             include = appmodel.table_links)
+    menu = list(views_serializable(\
+                    application_views(appmodel,
+                                      djp,
+                                      include = appmodel.table_links)))
     if menu:
         toolbox['tools'] = menu
     groups = appmodel.column_groups(djp)

@@ -26,7 +26,8 @@ class TableMaker(WidgetMaker):
                     ['djpcms/datatables/TableTools/css/TableTools_JUI.css']
                     }
         )
-    template = '''\
+    template = '''{% if title %}
+<h3 class='table-title ui-widget-header'>{{ title }}</h3>{% endif %}
 <table>
 <thead>
  <tr>{% for head in headers %}{% if head.description %}
@@ -48,8 +49,10 @@ class TableMaker(WidgetMaker):
 '''
     
     def get_context(self, djp, widget, key):
+        title = djp.block.title if djp.block else None
         ctx = {'headers':widget.data['options']['aoColumns'],
-               'footer':widget.footer}
+               'footer':widget.footer,
+               'title':title}
         appmodel = widget.internal['appmodel']
         toolbox = None
         if appmodel:

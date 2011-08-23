@@ -148,7 +148,7 @@ class Select(FieldWidget):
         if 'multiple' in widget.attrs:
             return self.select_media
 
-for tag in ('div','p','h1','h2','h3','h4','h5','th','tr','span','button'):
+for tag in ('div','p','h1','h2','h3','h4','h5','th','li','tr','span','button'):
     WidgetMaker(tag = tag)
     
     
@@ -189,6 +189,7 @@ class List(Widget):
 ListWidget(default = 'ul', widget = List)
 
 
+#___________________________________________________ LIST DEFINITION
 class DefinitionListMaker(WidgetMaker):
     tag = 'div'
     

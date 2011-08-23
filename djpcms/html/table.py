@@ -145,7 +145,7 @@ and rendered using the dataTable_ jQuery plugin.
             appmodel = self.internal['appmodel']
             headers = self.internal['headers']
             actions = None
-            if appmodel:
+            if appmodel and self.toolbox:
                 toolbox = table_toolbox(appmodel,djp)
                 if 'actions' in toolbox:
                     actions = toolbox.pop('actions')

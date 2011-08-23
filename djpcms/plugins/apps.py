@@ -62,6 +62,11 @@ class ModelItemListForm(ForModelForm):
     filter = forms.CharField(required = False)
     exclude = forms.CharField(required = False)
     order_by = forms.CharField(required = False)
+    headers = forms.CharField(required = False,
+                              help_text = 'space separated list of headers.\
+ If supplied, the widget will be displayed as a table with header given\
+ by this input.')
+    table_footer = forms.BooleanField(initial = False)
     display_if_empty = forms.BooleanField(initial = False)
 
 
@@ -220,12 +225,13 @@ class ModelItemsList(DJPplugin):
     description    = 'Filtered items for a model'
     form           = ModelItemListForm
     
-    def render(self, djp, wrapper, prefix,
+    def render(self, djp, block, prefix,
                for_model = None, max_display = 5,
                pagination = False, filter = None,
                exclude = None, order_by = None,
-               text_search = None,
+               text_search = None, headers = None,
                display_if_empty = '',
+               table_footer = False,
                **kwargs):
         if not for_model:
             return ''
@@ -240,10 +246,31 @@ class ModelItemsList(DJPplugin):
         items = qs[0:max_display]
         if not items:
             return display_if_empty
-        w = html.Widget('div', cn = 'filtered-list')\
-                .addClass(appmodel.mapper.class_name())
-        render_object = appmodel.render_object
-        inner = '\n'.join(render_object(djp, item, 'list') for item in items)
-        return w.render(djp,inner)
+        if headers:
+            heads = appmodel.headers
+            # fetch headers from appmodel
+            thead = []
+            for head in headers.split():
+                if head in heads:
+                    thead.append(heads[head])
+        else:
+            thead = None
+                    
+        if thead:
+            data = {'options': {'sDom':'t'}}
+            w = html.Table(thead,
+                           body = appmodel.table_generator(djp, thead, qs),
+                           appmodel = appmodel,
+                           footer = table_footer,
+                           data = data,
+                           toolbox = False)
+            return w.render(djp)
+        else:
+            w = html.Widget('div', cn = 'filtered-list')\
+                    .addClass(appmodel.mapper.class_name())
+            render_object = appmodel.render_object
+            inner = '\n'.join(render_object(djp, item, 'list')\
+                              for item in items)
+            return w.render(djp,inner)
 
     

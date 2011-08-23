@@ -98,6 +98,7 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
 
     Web site holder.
 '''
+    block = None
     def __init__(self, request, view, **kwargs):
         self.request    = request
         self.view       = view

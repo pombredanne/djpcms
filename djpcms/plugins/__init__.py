@@ -154,6 +154,7 @@ By default do nothing.
         return kwargs
     
     def __call__(self, djp, args = None, block = None, prefix = None):
+        djp.block = block
         return self.render(djp, block, prefix, **self.arguments(args))
         
     def edit_url(self, djp, args = None):

@@ -338,6 +338,12 @@ view {0}. Already available." % name)
                     raise ApplicationUrlException("Could not define add \
 application {0}. Already available." % name)
                 self.apps[name] = app
+                
+        heads = {}
+        for head in self.list_display or ():
+            head = table_header(head)
+            heads[head.code] = head
+        self.headers = heads
     
     def __deepcopy__(self,memo):
         obj = copy(self)

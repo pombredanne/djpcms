@@ -59,6 +59,9 @@ def standard_exception_handle(request, e, status = None):
         except:
             exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
+    template2 = 'errors/{0}'.format(template)
+    template3 = 'djpcms/{0}'.format(template2)
+    
     logtrace(logger, request, exc_info, status)
     #store stack trace in the DJPCMS environment variable
     info.stack_trace = traceback.format_exception(*exc_info)
@@ -69,8 +72,7 @@ def standard_exception_handle(request, e, status = None):
            'stack_trace':stack_trace,
            'settings':site.settings}
     ctx  = loader.context(ctx, request)
-    html = loader.render((template,
-                          'djpcms/errors/'+template,
+    html = loader.render((template,template2,template3,
                           'djpcms/errors/error.html'),
                          ctx)
     return http.Response(html,

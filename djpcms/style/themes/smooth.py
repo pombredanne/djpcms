@@ -24,8 +24,7 @@ smooth = {
           'uniform label':{'font_weight': 'bold',
                            'color': '#666666'},
           'tablerelated-legend': {'font_size': '110%',
-                                  'font_weight':'bold',
-                                  'color': '#666666'
+                                  'font_weight':'bold'
                                   },
           # Tablesorter
           'tablesorter': {'head_border_color':'#fff',

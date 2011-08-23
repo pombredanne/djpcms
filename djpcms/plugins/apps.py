@@ -206,11 +206,12 @@ class ModelLinks(DJPplugin):
                                        as_widget = True,
                                        instance = instance)
         name = appmodel.mapper.class_name(appmodel.model)
-        return html.List((l[1] for l in links), cn = name)\
-                    .addClass('model-links')\
-                    .addClass(layout)\
-                    .addClass(asbuttons)\
-                    .render(djp)
+        if links:
+            return html.List((l[1] for l in links), cn = name)\
+                        .addClass('model-links')\
+                        .addClass(layout)\
+                        .addClass(asbuttons)\
+                        .render(djp)
     
     
 class ModelItemsList(DJPplugin):

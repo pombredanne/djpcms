@@ -679,6 +679,7 @@ class DeleteView(ObjectView):
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
+    force_redirect = True
     ajax_enabled = True
     link_class = 'minibutton ui-state-error-text'
     default_title = 'delete {0[instance]}'

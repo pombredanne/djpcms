@@ -820,7 +820,7 @@
     		        } else {
                         var method = elem.data('method') || 'post',
                             action = elem.attr('name');
-                        $.djpcms.ajax_loader(url,action,method,{},conf)();
+                        $.djpcms.ajax_loader(url,action,method,{})();
     		        }
     		    }
     		    

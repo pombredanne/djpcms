@@ -234,29 +234,22 @@ has been submitted.'''
             return view.handle_response(djp)
         
 
-def deleteinstance(djp, force_redirect = False):
+def deleteinstance(djp, force_redirect = True):
     '''Delete an instance from database'''
     instance = djp.instance
     view    = djp.view
     request = djp.request
+    #next = request.environ.get('HTTP_REFERER')
+    bid = view.appmodel.remove_object(instance)
+    msg = 'Successfully deleted %s' % instance
+    if request.is_xhr and bid and not force_redirect:
+        return ajax.jremove('#%s' % bid)
     
-    curr = request.environ.get('HTTP_REFERER')
-    next = None
-    if next:
-        next = request.build_absolute_uri(next)
-    next = next or curr
-        
-    bid     = view.appmodel.remove_object(instance)
-    msg     = 'Successfully deleted %s' % instance
+    messages.info(request,msg)
+    root_url = view.appmodel.root_view(djp, **djp.kwargs).url
     if request.is_xhr:
-        if next == curr and bid and not force_redirect:
-            return ajax.jremove('#%s' % bid)
-        else:
-            messages.info(request,msg)
-            return ajax.jredirect(next)
+        return ajax.jredirect(root_url)
     else:
-        messages.info(request,msg)
-        next = next or curr
         return http.ResponseRedirect(next)
     
     

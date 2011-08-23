@@ -144,6 +144,7 @@ form layout design.
     _widget = FormWidget
     field_widget_maker = FieldWidget()
     required_tag = ''
+    legend_class = 'legend ui-state-default'
     
     def __init__(self, required_tag = None,
                  field_template = None, legend = None,
@@ -159,8 +160,8 @@ form layout design.
     def inner(self, djp, widget, keys):
         html = super(BaseFormLayout,self).inner(djp, widget, keys)
         if html and self.legend_html:
-            html = '<div class="legend">{0}</div>\n{1}'.\
-                        format(self.legend_html,html)
+            html = '<div class="{0}">{1}</div>\n{2}'.\
+                        format(self.legend_class,self.legend_html,html)
         return html
 
 

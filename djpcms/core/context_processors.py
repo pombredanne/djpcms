@@ -136,11 +136,10 @@ def messages(request):
     lmsg = []
     if messages:
         for level in sorted(messages):
-            msg = List(messages[level], cn = 'messagelist')
-            if level < logging.ERROR:
-                msg.addClass('ui-state-highlight')
-            else:
-                msg.addClass('ui-state-error')
+            msg = List(messages[level], li_class = 'messagelist')
+            lic = 'messagelist ui-state-highlight' if level < logging.ERROR\
+                    else 'messagelist ui-state-error'
+            msg = List(messages[level], li_class = lic)
             lmsg.append(msg.render())
     return {'messages': lmsg}
 

@@ -5,6 +5,7 @@ from docutils.core import publish_parts
 from sphinx.application import Sphinx
 
 import djpcms
+from djpcms import sites
 from djpcms.utils import gen_unique_id
 from djpcms.utils.markups import application
 from .builders import SingleStringHTMLBuilder
@@ -17,9 +18,10 @@ Sphinx.info = info
 class Application(application.Application):
     code = 'rst'
     name = 'reStructuredText'
+    _setup = None
     
     def setup(self):
-        settings = self.config
+        settings = sites.settings
         cfgdir = settings.SITE_DIRECTORY
         smod = settings.SITE_MODULE
         outdir = os.path.join(settings.MEDIA_ROOT,smod,self.code)
@@ -34,6 +36,9 @@ class Application(application.Application):
         self.media_url = '{0}{1}/{2}/'.format(settings.MEDIA_URL,smod,self.code)
         
     def __call__(self, text):
+        if not self._setup:
+            self.setup()
+            self._setup = True
         sx = Sphinx(self.srcdir,
                     self.cfgdir,
                     self.outdir,

@@ -46,7 +46,7 @@ class DjangoAdmin(object):
 third_party_applications.append(DjangoAdmin())
 
 
-def application_map(applications):
+def application_map(applications, safe = True):
     '''Very very useful function for finding static media directories.
 It looks for the ``media`` directory in each installed application.'''
     map = {}
@@ -70,6 +70,8 @@ It looks for the ``media`` directory in each installed application.'''
         try:
             module = import_module(app)
         except:
+            if not safe:
+                raise
             continue
 
         h = handler(name,module.__path__[0])

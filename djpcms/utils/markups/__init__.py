@@ -62,7 +62,6 @@ def load():
                 except ImportError as e:
                     pass
                 else:
-                    app.setup()
                     add(d,app.name,app)
         _loaded = True
         

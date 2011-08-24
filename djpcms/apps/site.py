@@ -164,6 +164,9 @@ The sites singletone has several important attributes:
         self.User = None
         self.Page = None
         
+    def clear(self):
+        self._init()
+        
     def __unicode__(self):
         return force_str(self._sites)
         

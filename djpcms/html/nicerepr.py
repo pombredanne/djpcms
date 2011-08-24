@@ -3,33 +3,32 @@ from inspect import isclass
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
-from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, SLASH, DIVEND,\
-                               SPANEND, NOTHING
+from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, NOTHING
 from djpcms.utils import force_str, mark_safe, significant_format
 from djpcms.utils import escape as default_escape
 
 from .icons import yes,no
-from .widgets import CheckboxInput
+from .base import Widget
 from .apptools import table_header
 
 
 __all__ = ['nicerepr',
            'field_repr',
            'results_for_item',
-           'table_checkbox',
+           'action_checkbox',
            'NONE_VALUE']
 
 FIELD_SPLITTER = '__'
 NONE_VALUE = '(None)'
 NONE_VALUE = float('nan')
-divchk = '<div class="action-check">'
-spvval = '<span class="value">'
+divchk = '<div class="action-check">{0}<span class="value">{1}</span></div>'
 
 
-def table_checkbox(val,id):
+def action_checkbox(val, id):
+    '''Return html for the action checkbox'''
     if val:
-        chk = CheckboxInput(name = 'action-item', value = id).render()
-        val = divchk+chk+spvval+str(val)+SPANEND+DIVEND
+        chk = Widget('input:checkbox', name = 'action-item', value = id)
+        val = divchk.format(chk.render(),val)
     return mark_safe(val)
 
 
@@ -169,7 +168,7 @@ class get_app_result(object):
         url = None
         if head:
             head = table_header(head)
-            result_repr = field_repr(head.function, result,
+            result_repr = field_repr(head.code, result,
                                      appmodel = appmodel, nd = nd)
             if(self.first and not appmodel.list_display_links) or \
                     head.code in appmodel.list_display_links:
@@ -180,7 +179,10 @@ class get_app_result(object):
             var = result_repr
             if url:
                 if url != path:
-                    var = mark_safe('<a href="{0}" title="{1}">{1}</a>'.format(url, var))
+                    title = field_repr(head.function, result,
+                                       appmodel = appmodel, nd = nd)
+                    var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
+                                    .format(url, var, title))
                 else:
                     var = mark_safe('<a>{0}</a>'.format(var))
         else:
@@ -188,7 +190,7 @@ class get_app_result(object):
         
         if self.first and self.actions:
             first = False 
-            var = table_checkbox(var, getattr(result,'id',None))
+            var = action_checkbox(var, getattr(result,'id',None))
         
         escape = escape or default_escape
         var = escape(var)

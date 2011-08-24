@@ -44,6 +44,7 @@ def get_contet_choices(bfield):
 class ForModelForm(forms.Form):
     for_model = forms.ChoiceField(
                       required = False,
+                      widget = html.Select(default_class = 'ajax'),
                       choices = lambda x : sorted(registered_models(x,False),
                                                     key = lambda y : y[1]))
     

@@ -41,7 +41,7 @@ class TabView(html.ObjectItem):
             if 'get' not in view.methods(request):
                 continue
             if isinstance(view,views.ViewView):
-                html = appmodel.render_object(djp,instance,context='object')
+                html = self.render_object_view(djp, appmodel, instance)
             else:
                 dv = view(djp.request, **djp.kwargs)
                 try:
@@ -57,6 +57,12 @@ class TabView(html.ObjectItem):
                         'order': o})
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
         return loader.render(self.view_template,ctx)
+    
+    def  render_object_view(self, djp, appmodel, instance):
+        if 'object' in appmodel.object_widgets:
+            return appmodel.render_object(djp,instance,context='object')
+        else:
+            return ''
 
 
 class TabViewMixin(object):

@@ -6,7 +6,8 @@ __all__ = ['BoxWidget','box']
 
 class BoxWidget(WidgetMaker):
     tag = 'div'
-    default_class = 'djpcms-html-box ui-widget ui-widget-content'
+    default_class = 'djpcms-html-box'
+    default_style = 'ui-widget ui-widget-content'
     
     def stream(self, djp, widget, context):
         ediv = '</div>'  
@@ -35,7 +36,7 @@ class Box(Widget):
                  body_classes = None, footer_classes = None, **kwargs):
         self.menulist = []
         self.header_classes = header_classes or self.header_classes
-        self.body_classes = body_classes or self.header_classes
+        self.body_classes = body_classes or self.body_classes
         self.footer_classes = header_classes or self.footer_classes
         self.title = None if not hd else hd
         self.hd = 'hd'

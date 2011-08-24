@@ -20,7 +20,7 @@ __all__ = ['TextInput',
 
 
 class FieldWidget(WidgetMaker):
-    attributes = WidgetMaker.makeattr('value','name')
+    attributes = WidgetMaker.makeattr('value','name','disabled')
     
     def widget(self, bfield = None, **kwargs):
         w = super(FieldWidget,self).widget(bfield = bfield,**kwargs)
@@ -158,6 +158,7 @@ InputWidget(default='input:password')
 SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
+CheckboxInput(default='input:checkbox')
 
 
 class ListWidget(WidgetMaker):

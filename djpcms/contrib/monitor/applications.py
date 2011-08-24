@@ -105,9 +105,12 @@ class RedisTabView(TabView):
             right_panels = ()
         else:
             panels = info.panels()
-            left_panels = ({'name':k,
-                            'value':html.ObjectDefinition(appmodel,djp,v)}\
-                                             for k,v in panels.items())
+            hd = html.DefinitionList
+            left_panels = ({\
+            'name':k,
+            'value':hd(data_stream = ((l['name'],l['value']) for l in panel),
+                       cn = 'object-definition')\
+                .render(djp)} for k,panel in panels.items())
             view = appmodel.getview('db-home')(djp.request,**djp.kwargs)
             dbs = view.render()
             right_panels = ({'name':'Databases',
@@ -189,7 +192,8 @@ class RedisMonitorApplication(RedisMixin,AdminApplication):
     template_view = ('monitor/monitor.html',)
     list_display = ['host','port','notes']
     formatter = Formatter()
-    object_widgets = views.extend_widgets({'home':RedisTabView()})
+    object_widgets = views.extend_widgets({'home':RedisTabView()},
+                                          AdminApplication.object_widgets)
     
     redisdb = RedisDbApplication('/db/',
                                  RedisDbModel,

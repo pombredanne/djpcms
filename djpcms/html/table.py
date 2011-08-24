@@ -55,7 +55,8 @@ class TableMaker(WidgetMaker):
                'title':title}
         appmodel = widget.internal['appmodel']
         toolbox = None
-        if appmodel:
+        # If toolbox is required
+        if appmodel and widget.toolbox:
             toolbox = table_toolbox(appmodel,djp)
             widget.data.update(toolbox)
         if not widget.ajax:

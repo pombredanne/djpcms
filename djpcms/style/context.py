@@ -236,6 +236,16 @@ CssContext('datatable_filter_input',
                    }
            )
 
+CssContext('action-check',
+           tag = '.action-check',
+           elems = CssContext(
+                    'action-check-input',
+                     tag = 'input',
+                     data = {
+                        'margin':'0 5px 0 0'
+                    })
+           )
+
 #________________________________________ blockelement
 CssContext('blockelement',
            tag = '.djpcms-block-element, .edit-block',

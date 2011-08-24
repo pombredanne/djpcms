@@ -72,8 +72,11 @@ def ajax_dataTable(djp,data):
     for col in range(int(data['iSortingCols'])):
         c = int(data['iSortCol_{0}'.format(col)])
         d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''
-        col = html.table_header(appmodel.list_display[c])
-        qs = qs.sort_by('{0}{1}'.format(d,col.code))
+        if c < len(appmodel.list_display):
+            name = appmodel.list_display[c]
+            col = appmodel.headers.get(name,None)
+            if col:
+                qs = qs.sort_by('{0}{1}'.format(d,col.function))
     start = data['iDisplayStart']
     p = html.Paginator(djp.request,
                        qs,

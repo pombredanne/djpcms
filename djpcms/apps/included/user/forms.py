@@ -37,11 +37,9 @@ class LoginForm(forms.Form):
             msg = 'username or password not recognized'
         raise forms.ValidationError(msg)
     
-    def save(self):
+    def save(self,commit=True):
         return self.cleaned_data['user']
-    
-    def save_as_new(self):
-        return self.save()
+    save_as_new = save
     
 
 class PasswordChangeForm(forms.Form):

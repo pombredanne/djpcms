@@ -73,8 +73,8 @@ def ajax_dataTable(djp,data):
         c = int(data['iSortCol_{0}'.format(col)])
         d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''
         if c < len(appmodel.list_display):
-            name = appmodel.list_display[c]
-            col = appmodel.headers.get(name,None)
+            head = appmodel.list_display[c]
+            col = appmodel.headers.get(head.code,None)
             if col:
                 qs = qs.sort_by('{0}{1}'.format(d,col.function))
     start = data['iDisplayStart']

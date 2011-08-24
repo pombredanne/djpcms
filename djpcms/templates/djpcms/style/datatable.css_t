@@ -7,7 +7,6 @@
     border: {{ head_border }};{% if head_font_size %}
     font-size: {{ head_font_size }};{% endif %}
     padding: {{ head_padding }};
-    cursor: pointer;
 }
 {{ tag }} thead th div.DataTables_sort_wrapper {
     padding-right: 20px;

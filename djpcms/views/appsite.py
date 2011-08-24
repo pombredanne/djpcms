@@ -338,7 +338,8 @@ view {0}. Already available." % name)
                     raise ApplicationUrlException("Could not define add \
 application {0}. Already available." % name)
                 self.apps[name] = app
-                
+        
+        # Fill headers dictionary
         heads = {}
         for head in self.list_display or ():
             head = table_header(head)
@@ -682,8 +683,11 @@ functionality when searching for model instances.'''
         self.model  = model
         super(ModelApplication,self).__init__(baseurl, **kwargs)
         object_display = object_display or self.object_display or\
-                         self.list_display
-        self.object_display = [table_header(head) for head in object_display] 
+                         self.list_display or ()
+        self.object_display = d = []
+        for head in object_display:
+            head = table_header(head)
+            d.append(self.headers.get(head.code,head)) 
         
     def get_root_code(self):
         return self.root_view.code

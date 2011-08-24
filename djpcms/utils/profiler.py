@@ -60,10 +60,16 @@ def summary_for_files(stats_str, mystats, mygroups, sum):
         percall = float(fields[3])
         cumtime =float(fields[4])
         percall2 = float(fields[5])
-        file,func = fields[6].split(':')
-        p = func.find('(')
-        lineno = func[:p]
-        func = func[p+1:-1]
+        file_func = fields[6].split(':')
+        if len(file_func) == 2:
+            func = file_func[1]
+            p = func.find('(')
+            lineno = func[:p]
+            func = func[p+1:-1]
+        else:
+            func = ''
+            leneno = ''
+        file = file_func[0]
         sum += time
 
         if not file in mystats:

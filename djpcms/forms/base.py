@@ -74,17 +74,22 @@ BaseForm = FormType('BaseForm',(UnicodeMixin,),{})
 
 
 class Form(BaseForm):
-    '''Base class for validation forms with JSON messages. This class can be used for
-browser based application as well as remote procedure calls validation.
+    '''Base class for validation forms with JSON messages.
+This class can be used for browser based application as well as remote
+procedure calls validation.
 
 :parameter data: dictionary type object containing data to validate.
 :parameter files: dictionary type object containing files to upload.
-:parameter initial: dictionary type object containing initial values for form fields (see  :class:`djpcms.forms.Field`).
+:parameter initial: dictionary type object containing initial values for
+    form fields (see  :class:`djpcms.forms.Field`).
 :parameter prefix: Optional string to use as prefix for field keys.
-:parameter model: An optional model class. The model must be registered with the library (see :func:`djpcms.RegisterORM`).
-:parameter instance: An optional instance of a model class. The model must be registered with the library (see :func:`djpcms.RegisterORM`).
-:parameter request: An optional Http Request object of any kind. Not used by the class itself but stored
-                    in the :attr:`request` attribute for convenience.
+:parameter model: An optional model class. The model must be registered with
+    the library (see :func:`djpcms.RegisterORM`).
+:parameter instance: An optional instance of a model class. The model must
+    be registered with the library (see :func:`djpcms.RegisterORM`).
+:parameter request: An optional Http Request object of any kind.
+    Not used by the class itself but stored in the :attr:`request`
+    attribute for convenience.
 :parameter site: An optional site instance when used in a web site.
 
 .. attribute:: is_bound
@@ -97,8 +102,9 @@ browser based application as well as remote procedure calls validation.
     
 .. attribute:: request
 
-    An instance of a Http request class stored for convenience. The Form itself does
-    not use it, however user's implementations may want to access it.
+    An instance of a Http request class stored for convenience.
+    The Form itself does not use it, however user's implementations
+    may want to access it.
     In custom validation functions for example. Default ``None``.
     
 .. attribute:: widget_attrs
@@ -116,8 +122,9 @@ browser based application as well as remote procedure calls validation.
     
 .. attribute:: form_sets
 
-    A list of :class:`djpcms.forms.FormSet` instances. If available, the formsets are used to
-    create a given number of sub-forms which are included in the current form.
+    A list of :class:`djpcms.forms.FormSet` instances. If available,
+    formsets are used to create a given number of sub-forms which are
+    included in the current form.
     
     Default: ``[]``.
     
@@ -214,7 +221,8 @@ validation.'''
             return site.root
     
     def _fill_initial(self):
-        # Fill the initial dictionary with data from fields and from the instance if available
+        # Fill the initial dictionary with data from fields and from
+        # the instance if available
         initials = self.initial
         instance = self.instance
         instanceid = instance.id if instance else None
@@ -227,7 +235,7 @@ validation.'''
                     initials[name] = initial
             if instance:
                 value = self.value_from_instance(instance,name)
-                if value:
+                if value is not None:
                     initials[name] = value
     
     def value_from_instance(self, instance, name):
@@ -250,7 +258,8 @@ validation.'''
         return None
         
     def _unwind(self):
-        '''unwind the form by building bound fields and validating if it is bound.'''
+        '''unwind the form by building bound fields and validating
+if it is bound.'''
         if hasattr(self,'_data'):
             return
         self._data = data = {}
@@ -260,7 +269,7 @@ validation.'''
         if rawdata:
             rawdata.update(self.rawdata)
         else:
-            rawdata = self.rawdata
+            rawdata = self.rawdata 
         self._fields = fields = []
         self._fields_dict = dfields = {}
         
@@ -429,7 +438,10 @@ and shouldn't be used otherwise. It is an utility class.
         self.help_text = field.help_text
         self.id = form.auto_id.format(self.__dict__)
         self.errors_id = self.id + '-errors'
-        
+    
+    def __repr__(self):
+        return '{0}: {1}'.format(self.name,self.value)
+    
     @property
     def is_hidden(self):
         return self.field.is_hidden
@@ -444,6 +456,7 @@ algorithm on :attr:`field`.'''
         """Returns the data for this BoundField,
 or None if it wasn't given.
         """
-        return self.field.widget.value_from_datadict(self.form.data, self.form.files, self.html_name)
+        return self.field.widget.value_from_datadict(
+                        self.form.data,self.form.files, self.html_name)
     data = property(_data)
 

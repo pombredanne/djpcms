@@ -20,14 +20,19 @@ class FormSet(UnicodeMixin):
     '''A factory class for foreign key model fields. Instances
 of this class are declared in the body of :class:`djpcms.forms.Form`.
 
-:parameter form_class: A :class:`djpcms.forms.Form` class used to create the form set.
+:parameter form_class: A :class:`djpcms.forms.Form` class used to
+                       create the formset.
 :parameter model: A model class which generate instances from form data.
 :parameter related_name: The field attribute name in ``model`` which
-                         specifyes the related model.
-:parameter clean: A function which takes the formset instance as parameter and perform the
-                  last validation check.
+                         specifies the related model.
+:parameter clean: A function which takes the formset instance as parameter
+                  and perform the last validation check.
                   
-                  Default ``None``.'''
+                  Default ``None``.
+:parameter instances_from_related: a callable for retrieving instances
+    from the related instance.
+                                   
+    Default ``None``'''
     creation_counter = 0
     NUMBER_OF_FORMS_CODE = 'NUMBER_OF_FORMS'
     
@@ -36,15 +41,19 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
                  model,
                  related_name,
                  clean = None,
-                 initial_length = 3):
+                 initial_length = 3,
+                 instances_from_related = None):
         self.form_class = form_class
         self.model = model
         self.mapper = mapper(model)
         self.related_name = related_name
         self.clean = clean
-        if 'id' not in self.form_class.base_fields:
-            self.form_class.base_fields['id'] = CharField(required = False,
-                                                          widget = HiddenInput())
+        self.instances_from_related = instances_from_related
+        base_fields = self.form_class.base_fields
+        # Add the id field if not already available
+        if 'id' not in base_fields:
+            base_fields['id'] = CharField(required = False,
+                                          widget = HiddenInput())
         self.name = None
         self.creation_counter = FormSet.creation_counter
         self.initial_length = initial_length
@@ -87,13 +96,19 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
         instances = [] 
         if is_bound:
             if nf not in form.rawdata:
-                raise ValidationError('Could not find number of "{0}" forms'.format(self.name))
+                raise ValidationError(\
+                    'Could not find number of "{0}" forms'.format(self.name))
             num_forms = int(form.rawdata[nf])
         else:
             related = form.instance
             num_forms = self.initial_length
             if related.id:
-                instances = list(self.mapper.filter(**{self.related_name:related}))
+                if self.instances_from_related:
+                    instances = self.instances_from_related(related)
+                else:
+                    instances = self.mapper.filter(\
+                                    **{self.related_name:related})
+                instances = list(instances)
                 num_forms += len(instances)
         
         self.num_forms = HiddenInput(name = nf, value = num_forms)
@@ -129,6 +144,7 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
                             data = form.rawdata,
                             request = form.request,
                             instance = instance)
+        f._index = idx
         if not f.is_valid():
             if not f.changed:
                 f._errors = {}

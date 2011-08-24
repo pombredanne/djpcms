@@ -53,7 +53,8 @@
 	-moz-border-radius-bottomright: {{ radius_bottom_right }};
 	border-bottom-right-radius: {{ radius_bottom_right }};{% endif %}{% if text_shadow %}
 	text-shadow: {{ text_shadow }};{% endif %}{% if opacity %}
-	opacity: {{ opacity }};{% endif %}
+	opacity: {{ opacity }};{% endif %}{% if cursor %}
+	cursor: {{ cursor }};{% endif %}
 }
 
 {% if links %}

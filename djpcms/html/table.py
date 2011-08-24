@@ -1,5 +1,9 @@
 '''\
 Utilities for displaying interactive table with pagination and actions.
+
+It uses the Datatable jQuery plugin on the client side.
+
+http://www.datatables.net/
 '''
 from djpcms import http
 from djpcms.template import loader
@@ -49,7 +53,9 @@ class TableMaker(WidgetMaker):
 '''
     
     def get_context(self, djp, widget, key):
-        title = djp.block.title if djp.block else None
+        title = None
+        if djp:
+            title = djp.block.title if djp.block else None
         ctx = {'headers':widget.data['options']['aoColumns'],
                'footer':widget.footer,
                'title':title}
@@ -75,11 +81,14 @@ class TableMaker(WidgetMaker):
         '''Return an array of column definition to be used by the dataTable
 javascript plugin'''
         for head in headers:
-            cn = head.code if not head.extraclass else '{0} {1}'\
-                    .format(head.code,head.extraclass)
-            
+            cn = [head.code]
+            if head.extraclass:
+                cn.append(head.extraclass)
+            so = head.sortable
+            if so:
+                cn.append('sortable')
             yield {'bSortable':head.sortable,
-                   'sClass':cn,
+                   'sClass':' '.join(cn),
                    'sName':head.code,
                    'sTitle':head.name,
                    'sWidth':head.width,

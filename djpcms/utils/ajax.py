@@ -117,7 +117,7 @@ class jempty(HeaderBody):
 
 
 class jservererror(HeaderBody):
-    template = '''<h3>0{path}</h3>\n0{error}'''
+    template = '''<h3>{0[path]}</h3>\n{0[error]}'''
     
     def __init__(self, request, err):
         self.html = self.template.format({'error':err,

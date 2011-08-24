@@ -213,28 +213,26 @@ CssContext('datatable',
                                 'padding':'4px',
                                 'margin':'0',
                                 'font-size':'110%'
-                            })
+                            }),
+                    CssContext('datatable_filter_input',
+                               tag ='.dataTables_filter input',
+                               data = {'width': '200px',
+                                       'padding': '5px 5px',
+                                       #'border':'1px solid'},
+                                       'font_size':'110%'
+                            }),
+                    CssContext('datatable_table',
+                               tag='table.main',
+                               data = {
+                            }),
+                    CssContext('datatable_thead',
+                               tag='th.sortable',
+                               data = {
+                                'cursor': 'pointer'
+                            }),
                     ]
            )
 
-CssContext('datatable_table',
-           tag='.data-table table.main',
-           data = {
-#                   'display':'none',
-#                   #'width':'100%',
-#                   'text_align': 'left',
-#                   'margin': 0,
-                   }
-           )
-
-CssContext('datatable_filter_input',
-           tag ='.data-table .dataTables_filter input',
-           data = {'width': '200px',
-                   'padding': '5px 5px',
-                   #'border':'1px solid'},
-                   'font_size':'110%'
-                   }
-           )
 
 CssContext('action-check',
            tag = '.action-check',

@@ -112,7 +112,8 @@ def safepath(path, rtx = '-'):
 def slugify(value, rtx = '-'):
     '''Normalizes string, removes non-alpha characters,
 and converts spaces to hyphens *rtx* character'''
-    value = unicodedata.normalize('NFKD', force_str(value)).encode('ascii', 'ignore')
+    value = unicodedata.normalize('NFKD', force_str(value))\
+                .encode('ascii', 'ignore')
     value = force_str(re.sub('[^\w\s-]', '', value.decode()).strip())
     return re.sub('[-\s]+', rtx, value)
 

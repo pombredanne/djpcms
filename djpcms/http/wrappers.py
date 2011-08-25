@@ -69,7 +69,8 @@ class Request(object):
         self.environ = environ
         self.path = environ.get('PATH_INFO', '/')
         self.method = environ['REQUEST_METHOD'].upper()
-        self.is_xhr = environ.get('HTTP_X_REQUESTED_WITH',None) == 'XMLHttpRequest'
+        self.is_xhr = environ.get('HTTP_X_REQUESTED_WITH',None) ==\
+                                     'XMLHttpRequest'
         self._post_parse_error = False
         self._stream = self.environ['wsgi.input']
         self._read_started = False
@@ -165,18 +166,20 @@ class Request(object):
             self._post, self._files = self.parse_file_upload(self.META, self)
         else:
             self._post, self._files = QueryDict(self.raw_post_data(),\
-                                         encoding=self.encoding), MultiValueDict()
+                                    encoding=self.encoding), MultiValueDict()
 
     def parse_file_upload(self, META, post_data):
         """Returns a tuple of (POST QueryDict, FILES MultiValueDict)."""
         upload_handlers = self.DJPCMS.upload_handlers()
-        parser = MultiPartParser(META, post_data, upload_handlers, self.encoding)
+        parser = MultiPartParser(META, post_data,
+                                 upload_handlers, self.encoding)
         return parser.parse()
     
     def raw_post_data(self):
         if not hasattr(self, '_raw_post_data'):
             if self._read_started:
-                raise Exception("You cannot access raw_post_data after reading from request's data stream")
+                raise Exception("You cannot access raw_post_data after reading\
+ from request's data stream")
             try:
                 content_length = int(self.environ.get('CONTENT_LENGTH', 0))
             except (ValueError, TypeError):
@@ -193,7 +196,7 @@ class Request(object):
         # RFC 3986 requires query string arguments to be in the ASCII range.
         # Rather than crash if this doesn't happen, we encode defensively.
         return '%s%s' % (self.path, self.environ.get('QUERY_STRING', '') \
-                and ('?' + iri_to_uri(self.environ.get('QUERY_STRING', ''))) or '')
+            and ('?' + iri_to_uri(self.environ.get('QUERY_STRING', ''))) or '')
     
     def build_absolute_uri(self, location=None):
         """
@@ -220,18 +223,17 @@ class Request(object):
 
 class Response(object):
     DEFAULT_CONTENT_TYPE = 'text/plain'
+    DEFAULT_ENCODING = 'utf-8'
     status = 200
     
-    def __init__(self, content = '', status = None, content_type = None, encoding = None):
-        self.encoding = encoding
+    def __init__(self, content = '', status = None, content_type = None,
+                 encoding = None):
+        self.encoding = encoding or self.DEFAULT_ENCODING
         if not content:
             content = ()
         if is_string(content):
-            if encoding:
-                content = content.encode(encoding)
-            else:
-                content = content.encode()
-            content = bytes(content)
+            content = content.encode(self.encoding)
+            #content = bytes(content)
         if isinstance(content,bytes):
             content = (content,)
         self.content = content

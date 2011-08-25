@@ -55,7 +55,7 @@ Prettify a value to be displayed in html.
             return no()
     else:
         try:
-            return significant_format(val, n = nd)
+            return significant_format(val, n = nd, thousand_sep = None)
         except TypeError:
             val = force_str(val)
             if val.startswith('http://') or val.startswith('https://'):
@@ -70,7 +70,8 @@ several possibilities in the following order.
 
 * If *field_name* is not defined or empty it returns ``None``.
 * If *field_name* is an attribute of *obj* it returns the value.
-* If *obj* is a dictionary type object and *field_value* is in *obj* it returns the vaue.
+* If *obj* is a dictionary type object and *field_value* is in *obj*
+     it returns the vaue.
 * If *appmodel* is defined it invokes the
   :meth:`djpcms.views.Application.get_intance_value`
 * Return ``None``

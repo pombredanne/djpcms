@@ -1,7 +1,7 @@
 from djpcms import UnicodeMixin
 from djpcms.core.exceptions import PermissionDenied
-from djpcms.utils.profiler import profile_response
 
+from .profiler import profile_response
 from .wrappers import Request, Response
 
 
@@ -77,7 +77,8 @@ delegate the handling to them.'''
         if self.root.settings.PROFILING_KEY:
             response = profile_response(environ, start_response,
                                         self.root.settings.PROFILING_KEY,
-                                        self._handle)
+                                        self._handle,
+                                        self.site.settings)
         else:
             response = self._handle(environ, start_response)
         res = response(environ, start_response)

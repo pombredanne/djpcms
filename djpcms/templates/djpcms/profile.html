@@ -1,14 +1,35 @@
 {% extends "root.html" %}
 {% block html_container %}
-<div class="yui3-g">
-    <div class="yui3-u-2-3">
-       <div class='headers'>
-        {{ headers }}
-       </div>
-       {{ table }}
-    </div>
-    <div class="yui3-u-1-3">
-        {{ group }}
-    </div>
-</div>
-{% endblock %}
+<div id="site-body" class="{{ grid.container_class }}">
+	<div  class="{{ grid.column1 }}">
+	 <div class='headers'>
+	  {{ headers }}
+	 </div>
+	</div>
+	{{ grid.clear }}
+	<div class="ui-tabs whole-page">
+	 <div  class="{{ grid.column1 }}">
+	  <ul>
+	    <li><a href="#functions">Functions</a></li>
+	    <li><a href="#modules">Modules</a></li>
+	  </ul>
+	</div>
+	{{ grid.clear }}
+	<div id="functions">
+	 <div class="{{ grid.column1 }}">
+	  {{ table }}
+	 </div>
+	 {{ grid.clear }}
+	</div>
+
+	<div id="modules">
+	 <div class="{{ grid.column_1_3 }}">
+	 {{ modules }}
+	 </div>
+	 <div class="{{ grid.column_2_3 }}">
+	 {{ files }}
+	 </div>
+	 {{ grid.clear }}
+	</div>
+	</div>
+</div>{% endblock %}

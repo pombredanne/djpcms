@@ -23,12 +23,16 @@ def significant_format(number, decimal_sep = '.', thousand_sep=',', n = 3):
             str_number = str(number)
     except:
         pass
+    
     if str_number is None:            
         sn1 = str(number)
         str_number = significant(number, n)
         if len(sn1) < len(str_number):
             str_number = sn1
         number = float(number)
+        
+    if not thousand_sep:
+        return str_number 
     
     # sign
     if number < 0:

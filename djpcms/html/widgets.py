@@ -28,8 +28,8 @@ class FieldWidget(WidgetMaker):
             attrs = w.attrs
             attrs['id'] = bfield.id
             attrs['name'] = bfield.html_name
-            if bfield.title:
-                attrs['title'] = bfield.title
+            if bfield.help_text:
+                attrs['title'] = bfield.help_text
             self.get_value(bfield.value, w)
         return w
     

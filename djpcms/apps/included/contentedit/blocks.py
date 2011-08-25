@@ -323,10 +323,11 @@ content in a content block.'''
     def blockhtml(self, djp, instance, editview, wrapper):
         '''A content block rendered in editing mode'''
         editdjp = editview(djp.request, instance = instance)
-        layoutview = self.getview('layout')
-        html0 =  layoutview(djp.request, instance = instance).render()
         html = editview.render(editdjp, url = djp.url)
-        return wrapper(editdjp,instance,html0+html)
+        #layoutview = self.getview('layout')
+        #html0 =  layoutview(djp.request, instance = instance).render()
+        # html = html0 + html
+        return wrapper(editdjp,instance,html)
             
     def blocks(self, djp, page, blocknum):
         '''Return a generator of edit blocks.

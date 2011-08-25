@@ -130,7 +130,7 @@ procedure calls validation.
     
 '''
     prefix_input = '_prefixed'
-    auto_id='id_{0[name]}'
+    auto_id='id_{0[html_name]}'
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
@@ -430,7 +430,6 @@ and shouldn't be used otherwise. It is an utility class.
         self.name = name
         self.html_name = html_name or name
         self.value = None
-        self.title = None
         if field.label is None:
             self.label = nicename(name)
         else:

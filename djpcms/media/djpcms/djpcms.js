@@ -1087,57 +1087,7 @@
     	}
     });
     
-    $.djpcms.decorator({
-        id: "formhint",
-        config: {
-            tooltip:{x:10,y:30,effect:'clip',fadetime:200}
-        },
-        popup: function(elem, c, cursorhelp) {
-            if(elem.data('hint')) {
-                if(cursorhelp) {
-                    elem.css({cursor:'help'});
-                }
-                elem.mouseenter(function(e){
-                         var t = c.tooltip,
-                             p = $.djpcms.panel(),
-                             x = e.pageX + c.tooltip.x,
-                             y = e.pageY - c.tooltip.y,
-                             text = $.data(this,'hint'),
-                             width = $.djpcms.smartwidth(text),
-                             height = p.width(width).html($.data(this,'hint')).height(),
-                             y = Math.max(e.pageY - height - t.y,10);
-                         p.css({'left':x,'top':y}).show(t.effect,{},t.fadetime);})
-                     .mouseleave(function() {
-                         $.djpcms.panel().hide();
-                     });
-            }
-        },
-        decorate: function($this,config) {
-            var that = this,
-                c = config.formhint;
-            $('.formHint',$this).each(function(){
-                var el = $(this),
-                    html = el.html(),
-                    label = $('label',el.parent());
-                
-                if(!label.length) {
-                    var name = el.data('name');
-                    if(name) {
-                        label = $('th.'+name,el.parents('form'));
-                    }
-                }
-                if(label.length && html) {
-                    $.data(label[0],'hint',html);
-                    that.popup(label,c,true);
-                }
-            });
-            $('.hint',$this).each(function(){
-                that.popup($(this),c);
-            });
-        }
-    });
-    
-    
+
     $.djpcms.addJsonCallBack({
         id: "autocomplete",
         handle: function(data, elem) {

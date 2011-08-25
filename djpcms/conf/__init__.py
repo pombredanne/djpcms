@@ -44,6 +44,7 @@ class DjpcmsConfig(object):
         else:
             de = ()
         self.DEFAULT_TEMPLATE_NAME = de
+        self.application_settings()
         
     def __repr__(self):
         return self._values.__repr__()
@@ -58,11 +59,8 @@ class DjpcmsConfig(object):
     def fill(self, mod, override = True):
         v = self._values
         for sett in dir(mod):
-            if sett == sett.upper():
-                default = v.get(sett, nodata)
-                val     = getattr(mod, sett)
-                if default is nodata or override:
-                    v[sett] = val
+            if sett == sett.upper() and (sett not in v or override):
+                v[sett] = getattr(mod, sett)
                     
     def has(self, name):
         return name in self._settings
@@ -90,6 +88,17 @@ class DjpcmsConfig(object):
         for sett in self._settings:
             setattr(sett,name,value)
     
+    def application_settings(self):
+        for app in self.INSTALLED_APPS:
+            if app == 'djpcms':
+                continue
+            name = '{0}.conf'.format(app)
+            try:
+                mod = import_module(name)
+            except ImportError:
+                continue
+            self.fill(mod, override = False)
+            
     def setup_django(self):
         '''Set up django if needed'''
         if self.__class__.django_settings:

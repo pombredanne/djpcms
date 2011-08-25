@@ -29,6 +29,7 @@ BlockLayoutFormHtml = forms.HtmlForm(
 
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,
+    inputs = (('save',forms.SAVE_KEY),),
     layout = uniforms.Layout(
                   uniforms.Fieldset('plugin_name','container_type',
                                     'title','view_permission'),

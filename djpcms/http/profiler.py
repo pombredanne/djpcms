@@ -15,6 +15,8 @@ import tempfile
 import cProfile as profiler
 import pstats
 
+from djpcms.utils import mark_safe
+
 from .wrappers import Response
 
 from py2py3 import StringIO

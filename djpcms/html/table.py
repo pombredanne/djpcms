@@ -35,12 +35,12 @@ class TableMaker(WidgetMaker):
 <table>
 <thead>
  <tr>{% for head in headers %}{% if head.description %}
-  <th class="hint" data-hint="{{ head.description }}">{% else %}
+  <th class="hint" title="{{ head.description }}">{% else %}
   <th>{% endif %}{{ head.sTitle }}</th>{% endfor %}
  </tr>
 </thead>
 <tbody>{% if rows %}{% for row in rows %}
-<tr{% if row.id %} id="{{ row.id }}"{% endif %}>{% for item in row.display %}
+<tr{% if row.id %} class="{{ row.id }}"{% endif %}>{% for item in row.display %}
 <td>{{ item }}</td>{% endfor %}
 </tr>{% endfor %}{% endif %}
 </tbody>{% if footer %}

@@ -20,7 +20,7 @@ SITEMAP_TIMEOUT = 60
 # To group applications admin together. Check the documentation
 ADMIN_GROUPING = None
 
-MIDDLEWARE_CLASSES = ()
+MIDDLEWARE_CLASSES = ('djpcms.middleware.gzip.GZipMiddleware',)
 AUTHENTICATION_BACKENDS = ('djpcms.contrib.sessions.backends.ModelBackend',)
 TEMPLATE_DIRS = ()  # Additional template dlocation directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
@@ -35,7 +35,7 @@ DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
 
 # django settings
 DJANGO = False
-ROOT_URLCONF = 'djpcms.apps.djangosite.defaults.urls' # default value for django
+ROOT_URLCONF = 'djpcms.apps.djangosite.defaults.urls'
 ADMIN_URL_PREFIX = '/admin/'
 
 # Root page for user account urls
@@ -45,7 +45,6 @@ EXTRA_CONTENT_PLUGIN = None
 
 # Analytics
 GOOGLE_ANALYTICS_ID = None
-LLOOGG_ANALYTICS_ID = None
 
 SITE_NAVIGATION_LEVELS = 4
 ENABLE_BREADCRUMBS = 2

@@ -50,11 +50,14 @@ Simple usage::
     def __init__(self, form_class,
                  layout = None,
                  model = None,
-                 inputs = None, **params):
+                 inputs = None,
+                 ajax = True,
+                 **params):
         super(HtmlForm,self).__init__(**params)
         self.form_class = form_class
         self.layout = layout or DefaultLayout()
         self.model = model
+        self.ajax = ajax
         self.inputs = []
         if inputs:
             for input in inputs:
@@ -69,14 +72,20 @@ Simple usage::
         self.layout.check_fields(missings)
         self.add(self.layout)
         
-    def __call__(self, model = None, inputs = None, **kwargs):
+    def __call__(self, model = None, inputs = None,
+                 action = '.', **kwargs):
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model,**kwargs)
-        return self.widget(form = f,
-                           inputs = inputs or self.inputs,
-                           layout = self.layout)\
-                           .addClass(self.layout.form_class)
+        w =  self.widget(form = f,
+                         inputs = inputs or [],
+                         layout = self.layout,
+                         method = self.attrs['method'],
+                         action = action)\
+                            .addClass(self.layout.form_class)
+        if self.ajax:
+            w.addClass('ajax')
+        return w
     
 
 

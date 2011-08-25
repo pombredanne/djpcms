@@ -242,8 +242,6 @@ class Response(object):
         self.cookies = SimpleCookie()
         self.content_type = content_type or self.DEFAULT_CONTENT_TYPE
         self.set_header('Content-Type',self.content_type)
-        if encoding:
-            self.set_header("Content-Encoding", encoding)
     
     def __setitem__(self, header, value):
         self.set_header(header, value)
@@ -324,10 +322,17 @@ class Response(object):
         return False
     
     def __call__(self, environ, start_response):
+        '''Close the response'''
         status_text = STATUS_CODE_TEXT.get(self.status,UNKNOWN_STATUS_CODE)[0]
         status = '%s %s' % (self.status, status_text)
+        
+
         for c in self.cookies.values():
             self.set_header('Set-Cookie', c.output(header=''))
+        
+        if "Content-Encoding" not in self and self.encoding:
+            self.set_header("Content-Encoding", self.encoding)
+            
         if start_response is not None:
             start_response(status, list(itervalues(self._headers)))
         return self

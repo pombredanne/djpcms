@@ -14,7 +14,7 @@ from djpcms.utils.dates import format
 from .globals import *
 
 logger = logging.getLogger('djpcms.forms')
-
+Widget = html.Widget
 
 
 def set_request_message(f, request):
@@ -41,7 +41,7 @@ Usage::
 '''
     #if request and withdata and request.method == method and own_view:
     data = getattr(request,request.method)
-    if request.method == method and data:
+    if request.method.lower() == method.lower() and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
     elif data:
@@ -80,28 +80,39 @@ def success_message(instance, mch):
         return '{0[name]} succesfully {0[mch]}'.format(c)
     else:
         return '0[mch]'.format(c)
+    
+    
+def form_inputs(instance, own_view = False):
+    '''Generate the submits elements to be added to the model form.
+    '''
+    if instance:
+        sb = [Widget('input:submit', value = 'save', name = SAVE_KEY),
+              Widget('input:submit', value = 'save as new', name = SAVE_AS_NEW_KEY)]
+    else:
+        sb = [Widget('input:submit', value = 'add', name = SAVE_KEY)]
+        
+    if own_view:
+        sb.append(Widget('input:submit', value = 'save & continue',
+                         name = SAVE_AND_CONTINUE_KEY))
+        sb.append(Widget('input:submit', value = 'cancel',
+                         name = CANCEL_KEY))
+    return sb
 
 
 def get_form(djp,
              form_factory,
-             method = 'POST',
              initial = None,
              prefix = None,
              addinputs = None,
              withdata = True,
              instance  = None,
              model = None,
-             form_withrequest = None,
-             template = None,
-             form_ajax = False,
-             withinputs = True,
              force_prefix = True):
     '''Comprehensive method for building a
 :class:`djpcms.forms.HtmlForm` instance:
     
 :parameter djp: instance of :class:`djpcms.views.DjpResponse`.
 :parameter form_factory: A required instance of :class:`djpcms.forms.HtmlForm`.
-:parameter method: optional string indicating submit method. Default ``POST``.
 :parameter initial: If not none, a dictionary of initial values.
 :parameter prefix: Optional prefix string to use in the form.
 :parameter addinputs: An optional function for creating inputs.
@@ -117,32 +128,29 @@ def get_form(djp,
     
     save_as_new = SAVE_AS_NEW_KEY in data
     inputs = form_factory.inputs
-    if not inputs and addinputs:
-        inputs = addinputs(instance, own_view)
-        
+    if inputs:
+        inputs = [inp.widget() for inp in inputs]
+    elif addinputs:
+        inputs = form_inputs(instance, own_view)
+    
     if not prefix and force_prefix:
         prefix = generate_prefix()
-        pinput = html.Widget('input:hidden',name=PREFIX_KEY,value=prefix)
-        inputs.append(pinput)
+        inputs.append(Widget('input:hidden',name=PREFIX_KEY,value=prefix))
         
-    pinput = html.Widget('input:hidden',name=REFERER_KEY,value=referer)
-    inputs.append(pinput)
+    inputs.append( Widget('input:hidden',name=REFERER_KEY,value=referer))
                 
     # Create the form instance
     form  = form_factory(inputs = inputs,
+                         action = djp.url,
                          **form_kwargs(request = request,
                                        initial = initial,
                                        instance = instance,
                                        model = model,
                                        prefix = prefix,
                                        withdata = withdata,
-                                       method = method,
-                                       own_view = own_view))\
-            .addAttr('action',djp.url)\
-            .addAttr('method',method.lower())
+                                       method = form_factory.attrs['method'],
+                                       own_view = own_view))
     
-    if form_ajax:
-        form.addClass(djp.css.ajax)
     if model:
         form.addClass(str(model._meta).replace('.','-'))
     return form

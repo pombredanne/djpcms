@@ -2,7 +2,7 @@ import subprocess
 
 from django.conf import settings
 
-from djpcms.contrib.compressor.filters import FilterBase, FilterError
+from medplate.filters import FilterBase, FilterError
 
 BINARY = getattr(settings, 'COMPRESS_CLOSURE_COMPILER_BINARY', 'java -jar compiler.jar')
 ARGUMENTS = getattr(settings, 'COMPRESS_CLOSURE_COMPILER_ARGUMENTS', '')

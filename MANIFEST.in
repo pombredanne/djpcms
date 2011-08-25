@@ -20,9 +20,9 @@ recursive-include djpcms/tests/templates *
 recursive-include djpcms/media *
 recursive-include djpcms/fixtures *
 recursive-include examples *.py
-recursive-include examples/sitedjpcms/templates *
-recursive-include examples/sitedjpcms/media *
-recursive-include examples/sitedjpcms/examples/issuetraker/templates *
-recursive-include examples/sitedjpcms/examples/issuetraker/media *
-recursive-include examples/sitedjpcms/examples/vinoweb/templates *
-recursive-include examples/sitedjpcms/examples/vinoweb/media *
+recursive-include examples/djpsite/templates *
+recursive-include examples/djpsite/media *
+recursive-include examples/djpsite/examples/issuetraker/templates *
+recursive-include examples/djpsite/examples/issuetraker/media *
+recursive-include examples/djpsite/examples/vinoweb/templates *
+recursive-include examples/djpsite/examples/vinoweb/media *

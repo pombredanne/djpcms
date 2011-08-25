@@ -309,8 +309,6 @@ views::
     regex = None
     in_nav = 0
     _form = None
-    _form_ajax = None
-    form_method = 'POST'
     
     def __init__(self,
                  regex = None,
@@ -330,8 +328,6 @@ views::
                  force_redirect = None,
                  icon = None,
                  form = None,
-                 form_ajax = None,
-                 form_method = None,
                  list_display = None,
                  astable = None,
                  table_generator = None,
@@ -376,14 +372,12 @@ views::
             self.view_template = view_template
         if force_redirect is not None:
             self.force_redirect = force_redirect
-        self._form     = form if form else self._form
+        self._form = form if form else self._form
         # Overrides
         self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
         self.ajax_enabled = kwargs.pop('ajax_enabled',self.ajax_enabled)
-        self._form_ajax = form_ajax if form_ajax is not None else self._form_ajax
-        self.form_method = form_method or self.form_method
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter
         View.creation_counter += 1
@@ -455,17 +449,8 @@ views::
         '''True if this application view represents the root view of the application.'''
         return self.appmodel.root_view is self
     
-    def get_form(self, djp,
-                 form = None,
-                 form_ajax = None,
-                 method = None,
-                 **kwargs):
-        form_ajax = form_ajax if form_ajax is not None else self._form_ajax
-        return self.appmodel.get_form(djp,
-                                      form or self._form,
-                                      form_ajax = form_ajax,
-                                      method = method or self.form_method,
-                                      **kwargs)
+    def get_form(self, djp, form = None, **kwargs):
+        return self.appmodel.get_form(djp, form or self._form, **kwargs)
         
     def is_soft(self, djp):
         page = djp.page

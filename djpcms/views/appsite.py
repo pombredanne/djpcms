@@ -285,13 +285,6 @@ or in the constructor.
     table_links = None
     table_parameters = {}
     
-    # Submit buton customization
-    _form_add        = 'add'
-    _form_edit       = 'change'
-    _form_save       = 'done'
-    _submit_cancel   = 'cancel'
-    _form_continue   = 'save & continue'
-    _submit_as_new   = None
 
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
@@ -472,12 +465,7 @@ Return ``None`` if the view is not available.'''
             if self.has_plugins and view.isplugin:
                 register_application(view)
     
-    def get_form(self, djp,
-                 form_class,
-                 addinputs = True,
-                 form_ajax = None,
-                 instance  = None,
-                 method = 'POST',
+    def get_form(self, djp, form_class, addinputs = True, instance  = None,
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
@@ -510,36 +498,12 @@ Return ``None`` if the view is not available.'''
             instance = instance or djp.instance
             
         model = instance.__class__ if instance else self.model
-        form_ajax = form_ajax if form_ajax is not None else self.form_ajax
         return get_form(djp,
                         form_class,
                         instance = instance,
-                        addinputs= self.submit if addinputs else None,
+                        addinputs=addinputs,
                         model=model,
-                        form_ajax=form_ajax,
-                        method = method,
                         **kwargs)
-        
-    def submit(self, instance, own_view = False):
-        '''Generate the submits elements to be added to the model form.
-        '''
-        if instance:
-            sb = [SubmitInput(value = self._form_save,
-                              name = forms.SAVE_KEY)]
-            if self._submit_as_new:
-                sb.append(SubmitInput(value = self._submit_as_new,
-                                      name = forms.SAVE_AS_NEW_KEY))
-        else:
-            sb = [SubmitInput(value = self._form_add,
-                              name = forms.SAVE_KEY)]
-        if own_view:
-            if self._form_continue:
-                sb.append(SubmitInput(value = self._form_continue,
-                                      name = forms.SAVE_AND_CONTINUE_KEY))
-            if self._submit_cancel:
-                sb.append(SubmitInput(value = self._submit_cancel,
-                                      name = forms.CANCEL_KEY))
-        return sb
 
     def get_label_for_field(self, name):
         '''Fallback function for retriving a label for a given field name.'''

@@ -13,6 +13,7 @@ __all__ = ['application_action',
            'table_menu_link',
            'application_views',
            'application_links',
+           'application_link',
            'table_toolbox',
            'table_header']
 
@@ -138,6 +139,9 @@ def application_links(views, asbuttons = True):
             a.addData('icon', elem['icon']).addData('href',elem['url'])
         yield (view.name, a.render(inner = elem['display'])) 
     
+
+def application_link(view, asbutton = True):
+    return list(application_links((view,),asbutton))[0][1]
     
 
 def table_toolbox(appmodel, djp, all = True):

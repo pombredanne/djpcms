@@ -15,8 +15,7 @@ class Loader(object):
             self.loaded = True
             djpcms.MakeSite(__file__,
                             APPLICATION_URLS = self.urls,
-                            DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',),
-                            DEBUG = True,
+                            DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',)
                             )
         return djpcms.sites
     

@@ -1,7 +1,7 @@
 import re
 
 from djpcms.utils.text import compress_string
-from djpcms.utils.cache import patch_vary_headers
+from djpcms.http.utils import patch_vary_headers
 
 re_accepts_gzip = re.compile(r'\bgzip\b')
 
@@ -35,12 +35,18 @@ class GZipMiddleware(object):
         if not re_accepts_gzip.search(ae):
             return response
 
-        content = '\n'.join(response.content)
-        if len(content) < 200:
+        content = response.content
+        if not content:
             return response
         
-        response.content = (compress_string(content),)
+        c = content[0]
+        for r in content[1:]:
+            c += r
+            
+        if len(c) < 200:
+            return response
+        
+        response.content = (compress_string(c),)
         response['Content-Encoding'] = 'gzip'
-        #response['Content-Length'] = str(len(response.content))
         return response
     

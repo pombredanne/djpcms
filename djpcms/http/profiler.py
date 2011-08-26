@@ -44,21 +44,33 @@ class mod_helper(object):
             
 
 
+def add_app_group(app,apps,groupre):
+    app = app.split('.')[0]
+    if app not in apps:
+        rex = "^.*/" + app + "/(.*)"
+        groupre.append((mod_helper(app),re.compile(rex)))
+        apps.add(app)
+    
+    
 def group_prefix(settings):
+    '''Loop over applications so that we can group them during profiling'''
     global group_prefix_re
     if group_prefix_re is None:
         group_prefix_re = []
         apps = set()
+        deferred = ['jinja2']
         for app in settings.INSTALLED_APPS:
-            app = app.split('.')[0]
-            if app not in apps:
-                rex = "^.*/" + app + "/(.*)"
-                group_prefix_re.append((mod_helper(app),re.compile(rex)))
-                apps.add(app)
+            if app == 'djpcms':
+                deferred.append(app)
+                continue
+            add_app_group(app,apps,group_prefix_re)
+        for app in deferred:
+            add_app_group(app,apps,group_prefix_re)
     
         # module in site_packages
-        rex = "^.*/site-packages/(\w+)/(.*)"
-        group_prefix_re.append((mod_helper(),re.compile(rex)))
+        for rex in ("^.*/site-packages/(\w+)/(.*)",
+                    "^.*/dist-packages/(\w+)/(.*)"):
+            group_prefix_re.append((mod_helper(),re.compile(rex))) 
     return group_prefix_re
     
 
@@ -119,7 +131,7 @@ def make_stat_table(stats_str,settings):
     header = ('calls','totcalls','tottime','percall','cumtime','percall',
               'module', 'filename','lineno','function')
     data = list(summary_for_files(stats_str,groups,sum,sumc,settings))
-    table = html.Table(header,data)
+    table = html.Table(header, data, footer = False)
     
     data2 = []
     data3 = []
@@ -127,9 +139,12 @@ def make_stat_table(stats_str,settings):
         data2.append((mod,val['time'],val['cumtime']))
         for filename,ft in val['files'].items():
             data3.append((mod,filename,ft['time'],ft['cumtime']))
-    table2 = html.Table(('module','time','cumtime'),data2)        
+    table2 = html.Table(('module','time','cumtime'),data2,
+                        footer = False,
+                        data = {'options':{'sDom':'t'}})        
     table3 = html.Table(('module','filename','time','cumtime'),
-                        data3)
+                        data3,
+                        footer = False)
     return {'media':table.maker.media(),
             'table':table.render(),
             'modules':table2.render(),

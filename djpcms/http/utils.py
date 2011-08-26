@@ -1,4 +1,7 @@
+import time
 from time import gmtime
+import hashlib
+import re
 from datetime import datetime, date
 from email.utils import formatdate
 
@@ -173,3 +176,41 @@ def dump_cookie(key, value='', max_age=None, expires=None, path='/',
         if v is not None and v is not False:
             morsel[k] = str(v)
     return morsel.output(header='').lstrip()
+
+
+cc_delim_re = re.compile(r'\s*,\s*')
+
+
+def patch_vary_headers(response, newheaders):
+    """\
+Adds (or updates) the "Vary" header in the given HttpResponse object.
+newheaders is a list of header names that should be in "Vary". Existing
+headers in "Vary" aren't removed.
+
+For information on the Vary header, see:
+
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44
+    """
+    # Note that we need to keep the original order intact, because cache
+    # implementations may rely on the order of the Vary contents in, say,
+    # computing an MD5 hash.
+    if 'Vary' in response:
+        vary_headers = cc_delim_re.split(response['Vary'])
+    else:
+        vary_headers = []
+    # Use .lower() here so we treat headers as case-insensitive.
+    existing_headers = set([header.lower() for header in vary_headers])
+    additional_headers = [newheader for newheader in newheaders
+                          if newheader.lower() not in existing_headers]
+    response['Vary'] = ', '.join(vary_headers + additional_headers)
+
+
+def has_vary_header(response, header_query):
+    """
+    Checks to see if the response has a given header name in its Vary header.
+    """
+    if not response.has_header('Vary'):
+        return False
+    vary_headers = cc_delim_re.split(response['Vary'])
+    existing_headers = set([header.lower() for header in vary_headers])
+    return header_query.lower() in existing_headers

@@ -39,9 +39,8 @@ def handle_ajax_error(self,e):
 def get_template(self):
     page = self.page
     # First Check if page has a template
-    if page:
-        if page.template:
-            return page.template
+    if page and page.template:
+        return page.template
     view = self.view
     t = view.template_name
     if not t and view.appmodel:

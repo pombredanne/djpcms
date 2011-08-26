@@ -68,5 +68,14 @@ DEFAULT_CHARSET = 'utf-8'
 TIME_ZONE = 'Europe/London'
 LANGUAGE_CODE = 'en-uk'
 
+# STATIC FILES
+DEFAULT_STYLE_SHEET = []
+HEAD_JAVASCRIPT = ["{{ MEDIA_URL }}djpcms/modernizr-1.7.min.js",
+                   "{{ MEDIA_URL }}djpcms/jquery.min.js"]
+DEFAULT_FOOT_JAVASCRIPT = ["{{ MEDIA_URL }}djpcms/jquery-ui-1.8.13.min.js"
+                           "{{ MEDIA_URL }}djpcms/jquery.cookie.js",
+                           "{{ MEDIA_URL }}djpcms/jquery.pagination.js",
+                           "{{ MEDIA_URL }}djpcms/form.js"]
+
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE

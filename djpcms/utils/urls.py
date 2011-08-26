@@ -97,8 +97,9 @@ def routejoin(*routes):
 
 
 def parentpath(url):
+    slash = '/'
     s = urlparse.urlparse(url)
-    bits = s.path.split(SLASH)
+    bits = s.path.split(slash)
     c = 0
     for bit in reversed(bits):
         c += 1
@@ -106,11 +107,11 @@ def parentpath(url):
             break
     bits = bits[:-c]
     if bits:
-        path = SLASH.join(bits)
+        path = slash.join(bits)
         if not path:
-            path = SLASH
-        elif path[-1] != SLASH:
-            path += SLASH
+            path = slash
+        elif path[-1] != slash:
+            path += slash
         s = list(s)
         s[2] = path
         s[3] = s[4] = s[5] = ''

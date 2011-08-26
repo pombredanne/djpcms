@@ -186,10 +186,10 @@ If your plugin needs input parameters when editing, simple set the
         if form_class:
             if isinstance(form_class,forms.FormType):
                 form_class = forms.HtmlForm(form_class)
+            form_class.tag = None
             initial = self.arguments(args) or None
             form =  form_class(**form_kwargs(request = djp.request,
                                              initial = initial,
-                                             own_view = djp.own_view(),
                                              prefix = prefix,
                                              model = self.for_model))
             return form

@@ -7,7 +7,6 @@ from djpcms.apps.management.base import BaseCommand
 
 from medplate import rendercss
 
-default_style = 'smooth'
 
 def render(sites, style, target, apps, mediaurl = None, template_engine = None):
     module = None
@@ -24,7 +23,8 @@ def render(sites, style, target, apps, mediaurl = None, template_engine = None):
             imported[modname] = import_module(modname) 
             continue
         except ImportError as e:
-            print('Cannot import application {0}: {1}'.format(app,e))
+            print('NOTE: Cannot import application {0}. MESSAGE: {1}'\
+                        .format(app,e))
             pass
         try:
             modname = 'djpcms.contrib.{0}.style'.format(app)
@@ -59,9 +59,10 @@ class Command(BaseCommand):
                     action='store',
                     dest='target',
                     default='',
-                    help='Target path of css file. For example "media/site/site.css". If\
- not provided, a file called style.css will be created and put in "media/<sitename>/<stylename>.css",\
- if the directory "media/<sitename>/" is available, otherwise in the local directory.'),
+                    help='Target path of css file. For example\
+ "media/site/site.css". If not provided, a file called {{ STYLE }}.css will\
+ be created and put in "media/<sitename>" directory, if available,\
+ otherwise in the local directory.'),
         make_option('-m','--media',
                     action='store',
                     dest='mediaurl',
@@ -77,8 +78,9 @@ class Command(BaseCommand):
         mediaurl = options['mediaurl']
         apps = args
         sites = callable()
+        style = style or sites.settings.STYLING
         if not target:
-            target = style + '.css'
+            target = '{0}.css'.format(style)
             mdir = os.path.join(sites.settings.SITE_DIRECTORY,
                                 'media',
                                 sites.settings.SITE_MODULE)

@@ -15,7 +15,10 @@ from .arc4 import *
 if ispy3k:
     import pickle
 else:
-    import cPickle as pickle
+    try:
+        import cPickle as pickle
+    except ImportError:
+        import pickle
 
 
 def gen_unique_id():

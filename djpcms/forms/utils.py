@@ -27,9 +27,8 @@ def set_request_message(f, request):
 
 
 def form_kwargs(request,
-                withdata = True,
-                method = 'POST',
-                own_view = True,
+                withdata = False,
+                method = 'post',
                 inputs = None,
                 initial = None,
                 **kwargs):
@@ -38,10 +37,15 @@ Usage::
 
     form = MyForm(**form_kwargs(request))
 
+:parameter withdata: if set to ``True`` force a bound form if data is
+    available, otherwise it bound the form only if the request method is the
+    same as the form method.
+                     
+    Default ``False``.
+    
 '''
-    #if request and withdata and request.method == method and own_view:
     data = getattr(request,request.method)
-    if request.method.lower() == method.lower() and data:
+    if (withdata or request.method.lower() == method.lower()) and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
     elif data:
@@ -104,8 +108,8 @@ def get_form(djp,
              initial = None,
              prefix = None,
              addinputs = None,
-             withdata = True,
-             instance  = None,
+             withdata = False,
+             instance = None,
              model = None,
              force_prefix = True):
     '''Comprehensive method for building a
@@ -122,7 +126,6 @@ def get_form(djp,
 '''
     request = djp.request
     referer = request.environ.get('HTTP_REFERER')
-    own_view = djp.own_view()
     data = request.REQUEST
     prefix = data.get(PREFIX_KEY,None)
     
@@ -131,7 +134,7 @@ def get_form(djp,
     if inputs:
         inputs = [inp.widget() for inp in inputs]
     elif addinputs:
-        inputs = form_inputs(instance, own_view)
+        inputs = form_inputs(instance,  djp.own_view())
     
     if not prefix and force_prefix:
         prefix = generate_prefix()
@@ -148,8 +151,7 @@ def get_form(djp,
                                        model = model,
                                        prefix = prefix,
                                        withdata = withdata,
-                                       method = form_factory.attrs['method'],
-                                       own_view = own_view))
+                                       method = form_factory.attrs['method']))
     
     if model:
         form.addClass(str(model._meta).replace('.','-'))
@@ -195,7 +197,7 @@ has been submitted.'''
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing  = editing if not SAVE_AS_NEW_KEY in data else False
-        if editing:
+        if editing or not f.model:
             instance = view.save(djp,f)
         else:
             instance = view.save_as_new(djp,f)

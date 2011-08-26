@@ -21,24 +21,29 @@ class Loader(object):
             self.loaded = True
             djpcms.MakeSite(__file__,
                 APPLICATION_URLS = self.urls,
-                DJPCMS_PLUGINS = ('djpcms.plugins.*',
-                                  'djpcms.apps.included.contentedit.plugins'),
                 INSTALLED_APPS = ('djpcms',
                                   'medplate',
-                                  # issuetracker must be last for styling
                                   'playground'),
-                PROFILING_KEY = 'prof'
+                ENABLE_BREADCRUMBS = 1,
+                # the favicon to use is in the djpcms module
+                FAVICON_MODULE = 'djpcms',
+                # the profiling key to profile
+                PROFILING_KEY = 'prof',
+                DEBUG = True
                 )
         return djpcms.sites
     
     def urls(self):
         from djpcms.apps.included import static
-        from playground.application import PlayGround
+        from playground.application import PlayGround, Geonames
         
+        # we serve static files too in this case
         return (
+                static.FavIcon(),
                 static.Static(djpcms.sites.settings.MEDIA_URL,
                               show_indexes=True),
-                PlayGround('/'),
+                Geonames('/geo/'),
+                PlayGround('/')
                 )
     
     

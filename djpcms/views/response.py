@@ -117,10 +117,6 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
         return mapper(model)
     
     @property
-    def css(self):
-        return self.settings.HTML_CLASSES
-    
-    @property
     def urldata(self):
         self.url
         return self.kwargs
@@ -171,15 +167,9 @@ which corresponds to ``self``'''
         h = self._headers['content-type']
         h[1] = ct
         
-    def __get_media(self):
-        media = getattr(self.request,'_media',None)
-        if media is None:
-            media = self.view.media()
-            if media is None:
-                media = html.Media()
-            setattr(self.request,'_media',media)
-        return media
-    media = property(__get_media)
+    @property
+    def media(self):
+        return self.request.DJPCMS.media
     
     def getdata(self, name):
         '''Extract data out of url dictionary. Return ``None`` if ``name``
@@ -332,11 +322,10 @@ the parent of the embedded view.'''
                                      content_type = res.mimetype())
     
     def render_to_response(self, context):
-        css = self.css
+        settings = self.settings
         sitenav = Navigator(self,
-                            classes = css.main_nav,
-                            levels = self.settings.SITE_NAVIGATION_LEVELS)
-        
+                            classes = settings.HTML.main_nav,
+                            levels = settings.SITE_NAVIGATION_LEVELS)
         context.update({'robots':     self.robots(),
                         'media':      self.media,
                         'sitenav':    sitenav})

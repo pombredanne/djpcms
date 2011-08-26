@@ -4,7 +4,8 @@ from py2py3 import is_bytes_or_string
 
 from djpcms.conf import djpcms_defaults
 from djpcms.utils.importer import import_module
-from djpcms.ajaxhtml import ajaxhtml
+
+from .html import Html
 
 
 class NoData(object):
@@ -32,9 +33,7 @@ class DjpcmsConfig(object):
             self.fill(settings_module)
         self.__dict__['path'] = path
         self.update(kwargs)
-        ajax = self.HTML_CLASSES
-        if not ajax:
-            self.HTML_CLASSES = ajaxhtml()
+        self.HTML = Html()
         de = self.DEFAULT_TEMPLATE_NAME
         if de:
             if is_bytes_or_string(de):
@@ -76,7 +75,13 @@ class DjpcmsConfig(object):
             return getattr(self,name)
         except AttributeError:
             return default
-        
+       
+    def __contains__(self, name):
+        return name in self._values
+    
+    def __getitem__(self, name):
+        return self._values[name]
+    
     def __getattr__(self, name):
         try:
             return self._values[name]

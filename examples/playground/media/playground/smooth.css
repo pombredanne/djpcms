@@ -1,8 +1,11 @@
 
 /*
------------------------------------------------
-body
------------------------------------------------ */
+------------------------------------------------------------------
+------------------------------------------------------------------
+Created by medplate  2011-08-26T15:07:55.620000
+------------------------------------------------------------------
+------------------------------------------------------------------ */
+
 
 /*
  * jQuery UI CSS Framework @VERSION
@@ -1184,41 +1187,6 @@ form.uniForm  label {
 
 
 
-
-
-
-
-
-/*
------------------------------------------------
-.field-widget.input
------------------------------------------------ */
-
-
-/* .field-widget.input tag properties. */
-.field-widget.input { 
-	padding: 3px 3px;
-}
-
-
-
-
-.field-widget.input input[type="text"],
-.field-widget.input input[type="password"],
-.field-widget.input textarea,
-.field-widget.input select {
-    border: none;
-    padding: 0;
-    width:100%;
-    background: transparent;
-}
-
-.field-widget.input input:focus,
-.field-widget.input textarea:focus,
-.field-widget.input select:focus {
-    border: none;
-    outline: none; /*This is for google chrome*/
-}
 
 
 
@@ -2624,6 +2592,134 @@ div.text-select .target {
 .djph { 
 	display: none;
 }
+
+
+
+
+
+
+
+
+/*
+-----------------------------------------------
+.field-widget.input
+----------------------------------------------- */
+
+
+/* .field-widget.input tag properties. */
+.field-widget.input { 
+	padding: 0.3em;
+}
+
+
+
+
+.field-widget.input input[type="text"],
+.field-widget.input input[type="password"],
+.field-widget.input textarea,
+.field-widget.input select {
+    border: none;
+    padding: 0;
+    width:100%;
+    background: transparent;
+}
+
+.field-widget.input input:focus,
+.field-widget.input textarea:focus,
+.field-widget.input select:focus {
+    border: none;
+    outline: none; /*This is for google chrome*/
+}
+
+
+
+
+
+/*
+-----------------------------------------------
+input.ui-button
+----------------------------------------------- */
+
+
+/* input.ui-button tag properties. */
+input.ui-button { 
+	padding: 0.3em 0.5em;
+}
+
+
+
+
+
+
+
+
+/*
+-----------------------------------------------
+#page-footer
+----------------------------------------------- */
+
+
+/* #page-footer tag properties. */
+#page-footer { 
+	font-size:90%;
+	overflow: hidden;
+	padding: 20px 0 0;
+}
+
+
+
+
+
+
+
+
+/*
+-----------------------------------------------
+#page-header
+----------------------------------------------- */
+
+
+/* #page-header tag properties. */
+#page-header { 
+	background: #ccc;
+}
+
+
+
+
+
+
+
+
+/*
+-----------------------------------------------
+.geo-entry
+----------------------------------------------- */
+
+
+/* .geo-entry tag properties. */
+.geo-entry { 
+	padding: 7px;
+	margin: 0 0 10px 0;
+}
+
+
+
+
+
+
+
+/*
+-----------------------------------------------
+.geo-entry .object-definition
+----------------------------------------------- */
+
+
+/* .geo-entry .object-definition tag properties. */
+.geo-entry .object-definition { 
+	margin: 0;
+}
+
 
 
 

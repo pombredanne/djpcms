@@ -1,43 +1,12 @@
-from djpcms import UnicodeMixin
-from djpcms.core.exceptions import PermissionDenied
-
 from .profiler import profile_response
 from .wrappers import Request, Response
+from .cache import djpcmsinfo
 
 
 DJPCMS = 'DJPCMS'
 
 
 __all__ = ['DjpCmsHandler','WSGI']
-
-
-class djpcmsinfo(UnicodeMixin):
-    
-    def __init__(self,view,kwargs,page=None,site=None,instance=None):
-        self.view = view
-        self.kwargs = kwargs if kwargs is not None else {}
-        self.page = page
-        self.instance = instance
-        self.context_cache = None
-        if view:
-            self.site = view.site
-        else:
-            self.site = site
-    
-    #def __unicode__(self):
-    #    return '{0}, {1}, {2}, {3}'.format(self.site,self.view,self.page,self.kwargs)
-    
-    def djp(self, request = None):
-        if self.view:
-            return self.view(request, **self.kwargs)
-    
-    @property
-    def root(self):
-        return self.site.root
-    
-    @property
-    def tree(self):
-        return self.site.tree
     
 
 class BaseSiteHandler(object):

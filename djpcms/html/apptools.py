@@ -123,7 +123,7 @@ def application_links(views, asbuttons = True):
     for elem in views:
         djp = elem['view']
         view = djp.view
-        css = djp.css
+        css = djp.settings.HTML
         a = Widget(tag).addAttr('title',elem['title'])\
                            .addClass(view.link_class)\
                            .addData({'view':view.name,

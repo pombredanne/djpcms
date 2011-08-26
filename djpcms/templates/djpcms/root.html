@@ -15,7 +15,6 @@
 </style>
 <!-- END OF STYLING -->
 <script type="text/javascript" src="{{ MEDIA_URL }}djpcms/modernizr-1.7.min.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.min.js"></script>
 {% block extra_head %}{% endblock %}{% endblock %}
 </head>
 
@@ -29,28 +28,20 @@
 </div>
 <!-- END OF BODY CONTAINER -->
 
-{% block body_scripts %}<!-- START OF END-BODY SCRIPTS -->{% block defaults_body_scripts %}
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery-ui-1.8.13.min.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.cookie.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/jquery.pagination.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/form.js"></script>
-{% endblock %}{% block extra_body_scripts %}{% endblock %}
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/djpcms.js"></script>
-{% if media %}{% for js in media.render_js %}
-{{ js }}{% endfor %}{% endif %}
-{% block decorator_scripts %}{% endblock %}{% block body_onready_scripts %}
+{% if media %}<!-- START OF SCRIPTS -->
+{{ media.all_js }}
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
-        var options = {{ css.tojson }};
+        var options = {{ settings.HTML.tojson }};
         options.media_url = "{{ MEDIA_URL }}";
         options.debug     = {% if debug %}true{% else %}false{% endif %};
         $.djpcms.set_options(options);
         $(document).djpcms().trigger('djpcms-loaded');
     });
 }(jQuery));
-</script>{% endblock %}
-<!-- END OF END-BODY SCRIPTS -->{% endblock %}
+</script>
+<!-- END OF END-BODY SCRIPTS -->{% endif %}
 {% block ads_scripts %}{% endblock %}
 {% if release %}
 {% block analytics_scripts %}{% endblock %}{% endif %} 

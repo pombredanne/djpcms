@@ -200,12 +200,12 @@ and you'll see the profiling results in your browser."""
     stats_str = stats_str[6:]
     data = data_stream(stats_str,100)
     ctx = make_stat_table(data,settings)
-    ctx.update({'headers':headers,
+    ctx.update({'settings':sites.settings,
+                'headers':headers,
                 'path':environ['PATH_INFO'],
                 'stats':stats_str,
                 'htmldoc':html.htmldoc(),
                 'grid':html.grid960(fixed=False),
-                'css':sites.settings.HTML_CLASSES,
                 'MEDIA_URL': sites.settings.MEDIA_URL})
     content = loader.render('djpcms/profile.html', ctx)
     return Response(content, content_type = 'text/html')

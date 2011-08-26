@@ -116,7 +116,6 @@ def djpcms(request):
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
            'base_template': base_template,
-           'css':settings.HTML_CLASSES,
            'htmldoc': htmldoc(None if not page else page.doctype),
            'request': request,
            'user': user,
@@ -124,6 +123,7 @@ def djpcms(request):
            'debug': debug,
            'release': not debug,
            'now': datetime.now(),
+           'settings': settings,
            'MEDIA_URL': settings.MEDIA_URL,
            'grid': get_grid960(page,settings)}
     return ctx

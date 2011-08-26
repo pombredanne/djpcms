@@ -1,4 +1,5 @@
 from copy import copy
+from datetime import datetime
 
 from py2py3 import is_bytes_or_string
 
@@ -200,7 +201,8 @@ class _CssBody(_CssContext):
                                      data = data)
         
     def extra_data(self, loader, data, style):
-        data['jquery'] = jqueryui(data,loader,style)
+        data.update({'jquery': jqueryui(data,loader,style),
+                     'date_created': datetime.now().isoformat()})
         
 
 class DummyBody(_CssContext):

@@ -10,7 +10,6 @@ DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
 APPLICATION_URLS = None
-HTML_CLASSES = None
 MAX_SEARCH_DISPLAY = 20
 CACHE_VIEW_OBJECTS = True
 DJPCMS_IMAGE_UPLOAD_FUNCTION = None
@@ -28,7 +27,6 @@ TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
 
 CMS_ORM = None                  # django, stdnet
 
-MEDIA_URL = '/media/'
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
@@ -69,13 +67,15 @@ TIME_ZONE = 'Europe/London'
 LANGUAGE_CODE = 'en-uk'
 
 # STATIC FILES
+MEDIA_URL = '/media/'
+FAVICON_MODULE = None
+JQUERY_VERSION = '1.6.2'
+JQUERY_UI_VERSION = '1.8.16'
 DEFAULT_STYLE_SHEET = []
-HEAD_JAVASCRIPT = ["{{ MEDIA_URL }}djpcms/modernizr-1.7.min.js",
-                   "{{ MEDIA_URL }}djpcms/jquery.min.js"]
-DEFAULT_FOOT_JAVASCRIPT = ["{{ MEDIA_URL }}djpcms/jquery-ui-1.8.13.min.js"
-                           "{{ MEDIA_URL }}djpcms/jquery.cookie.js",
-                           "{{ MEDIA_URL }}djpcms/jquery.pagination.js",
-                           "{{ MEDIA_URL }}djpcms/form.js"]
+DEFAULT_JAVASCRIPT = ["djpcms/jquery.cookie.js",
+                      #"{0[MEDIA_URL]}djpcms/jquery.pagination.js",
+                      "djpcms/form.js",
+                      "djpcms/djpcms.js"]
 
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE

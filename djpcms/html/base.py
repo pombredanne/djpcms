@@ -10,6 +10,8 @@ from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 from djpcms.template import loader
 
+from .media import Media
+
 
 __all__ = ['flatatt',
            'Renderer',
@@ -57,7 +59,7 @@ class Renderer(object):
     def media(self, *args, **kwargs):
         '''It returns an instance of :class:`djpcms.html.Media` or ``None``. It should be overritten by
 derived classes.'''
-        return None
+        return Media()
 
 
 class Widget(object):

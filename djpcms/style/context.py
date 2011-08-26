@@ -97,14 +97,6 @@ CssContext('label',
            tag = ' label',
            parent = 'uniform'
            )
-
-CssContext('field-widget-input',
-           tag = '.field-widget.input',
-           template = 'djpcms/style/field-widget.css_t',
-           data = {
-                   'padding': '3px 3px'
-                   }
-)
 CssContext('tablerelated-legend',
            tag = '.tablerelated .legend'
 )

@@ -490,6 +490,12 @@ when :attr:`View.astable` attribute is set to ``True``.'''
     def warning_message(self, djp):
         return None
     
+    def save(self, djp, f, commit = True):
+        return f.save(commit = commit)
+    
+    def save_as_new(self, djp, f, commit = True):
+        return f.save_as_new(commit = commit)
+    
     def __deepcopy__(self, memo):
         return copy(self)  
     
@@ -509,12 +515,6 @@ class ModelView(View):
     '''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
-    
-    def save(self, djp, f, commit = True):
-        return f.save(commit = commit)
-    
-    def save_as_new(self, djp, f, commit = True):
-        return f.save_as_new(commit = commit)
 
     
 class SearchView(ModelView):

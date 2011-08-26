@@ -1,1 +1,23 @@
-{% extends "djpcms/base.html" %}
+{% extends "djpcms/base.html" %}{% block site_header %}
+<div class="{{ grid.column1 }}">
+ {{ breadcrumbs }}
+</div>
+{{ grid.clear }}
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block page_body %}
+<div class="{{ grid.column_1_4 }}">{% if sitenav %}
+   {{ sitenav }}{% else %}{{ grid.empty }}{% endif %}
+  </div>
+  <div class="{{ grid.column_3_4 }}">
+   {{ inner }}
+  </div>
+ {{ grid.clear }}{% endblock %}
+   
+{% block site_footer %}
+<a id="python-link" href="/" style="float:right;">
+<img width=200 border="0" alt="python" src="{{ settings.PYTHON_LOGO_URL }}">
+</a>
+{% endblock %}

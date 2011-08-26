@@ -136,7 +136,7 @@ of this field. Returns None if it's not provided."""
             value = self.get_default(bfield)
             if self.required and value in NOTHING:
                 raise ValidationError(
-                            self.validation_error.format(bfield.name,value))
+                            self.validation_error.format(bfield.label,value))
             elif not self.required:
                 return value
         return self._clean(value, bfield)

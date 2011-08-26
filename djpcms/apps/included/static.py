@@ -1,8 +1,9 @@
 '''\
-Dependcies: **None**
+Dependcies: ``None``
 
-Useful application for serving static files.
-Useful during development.
+Useful application for serving static files during development.
+
+It also provides several utilities for fetching external media.
 '''
 import os
 import re
@@ -10,7 +11,7 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views, http
+from djpcms import views, http, sites
 from djpcms.utils.importer import import_module
 from djpcms.template import loader
 
@@ -18,6 +19,7 @@ from djpcms.template import loader
 third_party_applications = []
 
 _media = None
+
 
 class pathHandler(object):
     
@@ -204,8 +206,9 @@ class FavIconView(StaticFileView):
         appmodel = self.appmodel
         site = self.site
         if not kwargs:
+            settings = site.settings
             mapping = appmodel.loadapps(site)
-            name = site.settings.SITE_MODULE
+            name = settings.FAVICON_MODULE or settings.SITE_MODULE
             if name in mapping:
                 hd = mapping[name]
                 fullpath = os.path.join(hd.absolute_path,'favicon.ico')
@@ -242,5 +245,9 @@ class Static(StaticBase):
 
 
 class FavIcon(StaticBase):
+    '''Simply add FavIcon() to your urls to serve the favicon.'''
     main = FavIconView(append_slash = False)
     
+    def __init__(self, *args, **kwargs):
+        super(FavIcon,self).__init__('/favicon.ico',*args,**kwargs)
+

@@ -63,7 +63,7 @@ class Navigator(LazyCounter):
     @lazyattr
     def items(self, urlselects = None, secondary_after = 100, **kwargs):
         djp = self.djp
-        css = djp.css
+        css = djp.settings.HTML
         if urlselects is None:
             urlselects = []
             djp = self.buildselects(djp,urlselects)

@@ -23,7 +23,7 @@ _media = None
 
 class pathHandler(object):
     
-    def __init__(self, name, path, mediadir = 'media'):
+    def __init__(self, name, path, mediadir):
         self.name     = name
         self.base     = path
         self.mpath    = os.path.join(path,mediadir)
@@ -40,8 +40,8 @@ class DjangoAdmin(object):
         if app == 'django.contrib.admin':
             return self
         
-    def __call__(self, name, path):
-        h = pathHandler(name,path)
+    def __call__(self, name, path, mediadir):
+        h = pathHandler(name,path,mediadir)
         h.absolute_path = h.mpath
         return h
 
@@ -52,6 +52,7 @@ def application_map(applications, safe = True):
     '''Very very useful function for finding static media directories.
 It looks for the ``media`` directory in each installed application.'''
     map = {}
+    mediadir = 'media'
     for app in applications:
         processed = False
         for tp in third_party_applications:
@@ -76,7 +77,7 @@ It looks for the ``media`` directory in each installed application.'''
                 raise
             continue
 
-        h = handler(name,module.__path__[0])
+        h = handler(name,module.__path__[0],mediadir)
         if h.exists:
             map[name] = h
     return map

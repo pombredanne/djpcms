@@ -298,7 +298,6 @@ views::
     
     Default ``True``.
 '''
-    default_title = None
     creation_counter = 0
     description = None
     plugin_form    = None
@@ -407,31 +406,12 @@ views::
     
     def get_url(self, djp):
         return self.route().get_url(**djp.kwargs)
-        
-    def title(self, djp):
-        title = None
-        page = djp.page
-        if page:
-            title = page.title
-        if not title:
-            title = self.default_title or self.appmodel.description
-        return title.format(djp.kwargs)
-    
-    def linkname(self, djp):
-        link = None
-        page = djp.page
-        if page:
-            link = page.link
-        if not link:
-            return self.title(djp)
-        else:
-            return link.format(djp.kwargs)
     
     def names(self):
         return self.regex.names
     
-    def media(self):
-        return self.appmodel.media()
+    def media(self,*args):
+        return self.appmodel.media(*args)
     
     def in_navigation(self, request, page):
         if not self.appmodel.hidden:
@@ -573,6 +553,7 @@ class AddView(ModelView):
     ICON = 'ui-icon-circle-plus'
     ajax_enabled = False
     default_title = 'add'
+    default_link = 'add'
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
     def __init__(self, regex = 'add', isplugin = True,
@@ -600,6 +581,7 @@ in a model. Quite drastic.'''
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
     default_title = 'delete all objects'
+    default_link = 'delete all objects'
     ajax_enabled = True
     regex = 'deleteall'
     _methods = ('post',)
@@ -645,11 +627,10 @@ class ViewView(ObjectView):
     '''An :class:`djpcms.views.ObjectView` class specialised for displaying an object.
     '''
     default_title = '{0[instance]}'
+    default_link = '{0[instance]}'
+    
     def __init__(self, regex = IDREGEX, **kwargs):
         super(ViewView,self).__init__(regex = regex, **kwargs)
-    
-    def linkname(self, djp):
-        return str(djp.instance)
         
     def render(self, djp):
         '''Override the :meth:`djpcms.views.djpcmsview.render` method
@@ -669,11 +650,12 @@ class DeleteView(ObjectView):
     '''
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
-    ICON = 'ui-icon-alert'
+    ICON = 'ui-icon ui-icon-trash'
     force_redirect = True
     ajax_enabled = True
     link_class = 'minibutton ui-state-error-text'
     default_title = 'delete {0[instance]}'
+    default_link = 'delete'
     _methods      = ('post',)
     
     def __init__(self, regex = 'delete', parent = 'view', **kwargs):
@@ -689,8 +671,9 @@ class DeleteView(ObjectView):
     
     def warning_message(self, djp):
         return {'title':'Deleting',
-                'body':'<p>Once you have deleted {0}, there is no going back.</p>\
- <p>Please be certain!</p>'.format(djp.instance)}
+                'body':'<p>Once you have deleted <b>{0}</b>,\
+ there is no going back.</p>\
+ <p>Are you really sure? If so press OK.</p>'.format(djp.instance)}
     
     def nextviewurl(self, djp):
         view = djp.view
@@ -702,11 +685,13 @@ class DeleteView(ObjectView):
 
 # Edit/Change an object
 class ChangeView(ObjectView):
+    '''An :class:`ObjectView` class specialised for changing an instance of a model.
+    '''
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'
-    '''An :class:`ObjectView` class specialised for changing an instance of a model.
-    '''
+    default_link = 'edit'
+    
     def __init__(self, regex = 'change', parent = 'view', **kwargs):
         super(ChangeView,self).__init__(regex = regex, parent = parent, **kwargs)
     

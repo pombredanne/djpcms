@@ -18,7 +18,10 @@ HtmlPageForm = forms.HtmlForm(
     layout = uniforms.Layout(
                           uniforms.Fieldset('url','title','link','in_navigation','inner_template'),
                           uniforms.Row('requires_login','soft_root')
-                          )
+                          ),
+    inputs = (('done',forms.SAVE_KEY),
+              ('save',forms.SAVE_AND_CONTINUE_KEY)
+              )
 )
 
 

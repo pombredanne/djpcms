@@ -131,7 +131,7 @@ def get_form(djp,
     
     save_as_new = SAVE_AS_NEW_KEY in data
     inputs = form_factory.inputs
-    if inputs:
+    if inputs is not None:
         inputs = [inp.widget() for inp in inputs]
     elif addinputs:
         inputs = form_inputs(instance,  djp.own_view())
@@ -241,7 +241,7 @@ has been submitted.'''
         if is_ajax:
             return layout.json_messages(f)
         else:
-            return view.handle_response(djp)
+            return view.get_response(djp)
         
 
 def deleteinstance(djp, force_redirect = True):

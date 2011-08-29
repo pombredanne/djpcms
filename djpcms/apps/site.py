@@ -163,6 +163,7 @@ The sites singletone has several important attributes:
         self._commands = None
         self.User = None
         self.Page = None
+        self.storage = None
         
     def clear(self):
         self._init()

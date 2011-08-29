@@ -59,10 +59,13 @@ class TestDirectory(UnicodeMixin):
 
 class ContribTestDirectory(TestDirectory):
 
-    def __init__(self, lib, contrib):
+    def __init__(self, lib, contrib = None):
         self.lib = lib
         self.contrib = contrib
-        module = import_module('{0}.{1}'.format(lib,contrib))
+        if self.contrib:
+            module = import_module('{0}.{1}'.format(lib,contrib))
+        else:
+            module = import_module(lib)
         self.path = os.path.dirname(module.__file__)
         
     def dirpath(self, test_name):
@@ -73,6 +76,7 @@ class ContribTestDirectory(TestDirectory):
         
     def test_module(self, test_name, mod):
         return '{0}.tests.{1}'.format(mod,test_name)
+
 
 def SiteTestDirectory(TestDirectory):
     pass

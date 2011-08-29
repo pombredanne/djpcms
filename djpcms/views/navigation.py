@@ -1,31 +1,30 @@
 '''Utility module for creating a navigations and breadcrumbs
 '''
-from py2py3 import itervalues, to_string
-
-from djpcms import sites, UnicodeMixin
+import djpcms
 from djpcms.utils.const import *
-from djpcms.template import loader
-from djpcms.utils import lazyattr
+from djpcms.utils import mark_safe
     
 
-class LazyCounter(UnicodeMixin):
+class LazyHtml(djpcms.UnicodeMixin):
     '''A lazy view counter used to build navigations type iterators
     '''
     def __new__(cls, djp, **kwargs):
-        obj = super(LazyCounter, cls).__new__(cls)
+        obj = super(LazyHtml, cls).__new__(cls)
         obj.djp = djp
         obj.classes = kwargs.pop('classes',None)
         obj.kwargs = kwargs
         return obj
-
-    def __len__(self):
-        return len(self.items())
     
     def __unicode__(self):
-        return self.render()
+        if not hasattr(self,'_html'):
+            self._html = mark_safe(self.render())
+        return self._html
+    
+    def render(self):
+        raise NotImplemented
     
 
-class Navigator(LazyCounter):
+class Navigator(LazyHtml):
     '''A navigator for the web site
     '''
     def __init__(self, *args, **kwargs):
@@ -35,7 +34,7 @@ class Navigator(LazyCounter):
         self.levels  = self.kwargs.pop('levels',2)
         self.mylevel = self.kwargs.pop('mylevel',0)
         self.liclass = self.kwargs.pop('liclass',None)
-        
+    
     def make_item(self, djp, classes):
         return Navigator(djp,
                          levels = self.levels,
@@ -60,7 +59,6 @@ class Navigator(LazyCounter):
             return self.buildselects(parent, urlselects)
         return djp
     
-    @lazyattr
     def items(self, urlselects = None, secondary_after = 100, **kwargs):
         djp = self.djp
         css = djp.settings.HTML
@@ -68,8 +66,7 @@ class Navigator(LazyCounter):
             urlselects = []
             djp = self.buildselects(djp,urlselects)
             self.kwargs['urlselects'] = urlselects
-        scn = css.secondary_in_list                
-        items = []
+        scn = css.secondary_in_list
         for djp,nav in sorted(((c,c.in_navigation()) for c in djp.children()), key = lambda x : x[1]):
             if not nav or not djp.has_permission():
                 continue
@@ -81,17 +78,9 @@ class Navigator(LazyCounter):
                 classes.append(css.link_active)
             elif css.link_default:
                 classes.append(css.link_default)
-            items.append(self.make_item(djp, ' '.join(classes)))
-        return items
-
-    @lazyattr
-    def render(self):
-        if self.mylevel <= self.levels:
-            return '\n'.join(self.lines())
-        else:
-            return ''
+            yield self.make_item(djp, ' '.join(classes))
     
-    def lines(self):
+    def stream(self):
         items = self.items(**self.kwargs)
         if self.url:
             yield '<a href="{0}">{1}</a>'.format(self.url,self.name)
@@ -105,53 +94,74 @@ class Navigator(LazyCounter):
                     yield '<li class="{0}">'.format(item.liclass)
                 else:
                     yield LI
-                yield to_string(item)
+                yield item.__unicode__()
                 yield LIEND
             yield ULEND
             
+    def render(self):
+        if self.mylevel <= self.levels:
+            return '\n'.join(self.stream())
+        else:
+            return ''
+            
 
-class Breadcrumbs(LazyCounter):
+class Breadcrumbs(LazyHtml):
     '''
     Breadcrumbs for current page
     '''
-    template = ("breadcrumbs.html",
-                "djpcms/components/breadcrumbs.html")
+    _separator = '<li><span class="breadcrumbs-separator">&rsaquo;</span></li>'
+    _inner = "<li class='position{0[position]}'><a href='{0[url]}'\
+ title='{0[title]}'>{0[name]}</a></li>"
+    _outer = "<li class='position{0[position]}'>{0[name]}</li>"
+    _container = '<div class="breadcrumbs">{0}</div>'
     
     def __init__(self, *args, **kwargs):
         self.min_length = self.kwargs.pop('min_length',1)
-    
-    def make_item(self, djp, classes, first):
-        c = {'name':    djp.title,
-             'classes': ' '.join(classes)}
-        if not first:
+        
+    def items(self):
+        djp = self.djp
+        crumbs = []
+        while djp:
+            c = {'name': djp.breadcrumb,
+                 'last': False}
             try:
                 c['url'] = djp.url
+                c['title'] = djp.title
             except:
                 pass
-        return c
-        
-    @lazyattr
-    def items(self):
-        first   = True
-        classes = []
-        djp     = self.djp
-        crumbs  = []
-        while djp:
-            val     = self.make_item(djp,classes,first)
-            first = False
-            djp   = djp.parent
-            crumbs.append(val)
+            djp = djp.parent
+            crumbs.append(c)
         
         cutoff = self.min_length
         if len(crumbs) >= cutoff:
             cutoff -= 1
             if cutoff:
                 crumbs = crumbs[:-cutoff]
-            return list(reversed(crumbs))
+            crumbs[0]['last'] = True
+            for p,c in enumerate(reversed(crumbs)):
+                c['position'] = p+1
+                yield c
         else:
-            return []
-    
-    @lazyattr
+            raise StopIteration
+        
+    def stream(self):
+        sep = self._separator
+        inn = self._inner
+        for item in self.items():
+            if item['last']:
+                yield self._outer.format(item)
+            else:
+                if 'url' in item: 
+                    yield self._inner.format(item)
+                else:
+                    yield self._outer.format(item)
+                yield self._separator
+                
     def render(self):
-        return loader.render(self.template,{'breadcrumbs':self.items()})
+        lis = '\n'.join(self.stream())
+        if lis:
+            r = self._container.format('<ul>{0}</ul>'.format(lis))
+        else:
+            r = self._container.format('')
+        return r
 

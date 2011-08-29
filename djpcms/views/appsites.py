@@ -41,7 +41,8 @@ class ApplicationSite(SiteApp, RouteMixin):
         self.handle = handler(self)
         
     def __repr__(self):
-        return '{0} - {1}'.format(self.path,'loaded' if self.isloaded else 'not loaded')
+        return '{0} - {1}'.format(self.path,'loaded' if self.isloaded\
+                                   else 'not loaded')
     __str__ = __repr__
     
     def __get_User(self):
@@ -50,8 +51,19 @@ class ApplicationSite(SiteApp, RouteMixin):
         if not self.root.User:
             self.root.User = User
         elif User is not self.root.User:
-            raise ImproperlyConfigured('A different User class has been already registered')
+            raise ImproperlyConfigured(
+                        'A different User class has been already registered')
     User = property(__get_User,__set_User)
+    
+    def __get_storage(self):
+        return self.root.storage
+    def __set_storage(self, storage):
+        if not self.root.storage:
+            self.root.storage = storage
+        else:
+            raise ImproperlyConfigured(
+                    'A different storage class has been already registered')
+    storage = property(__get_storage,__set_storage)
     
     @property
     def Page(self):

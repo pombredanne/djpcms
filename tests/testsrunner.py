@@ -30,6 +30,7 @@ def get_tests(test_type):
 def import_tests(tags, test_type, can_fail):
     model_labels = OrderedDict()
     INSTALLED_APPS = sites.settings.INSTALLED_APPS
+    applications = []
     for t,app in get_tests(test_type):
         model_app = t.app_label(test_type,app)
         if tags and app not in tags:
@@ -44,7 +45,15 @@ def import_tests(tags, test_type, can_fail):
         model_labels[model_app] = t
         if model_app not in INSTALLED_APPS: 
             INSTALLED_APPS.append(model_app)
-            
+        applications.append(model_app)
+    
+    for app in INSTALLED_APPS:
+        if app == 'djpcms' or app.startswith('djpcms.') or app in applications:  
+            continue
+        if tags and app not in tags:
+            continue
+        model_labels[app] = ContribTestDirectory(app)
+        
     if not model_labels:
         print('Could not find any tests. Aborting.')
         exit()

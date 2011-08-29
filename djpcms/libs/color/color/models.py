@@ -1,7 +1,8 @@
 from djpcms import html, forms
 
 
-COLOR_MEDIA = html.Media(js = ['color/js/colorpicker.js'])
+COLOR_MEDIA = html.Media(js = ['color/js/colorpicker.js',
+                               'color/color.js'])
 
 
 class ColorInput(html.TextInput):

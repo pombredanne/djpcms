@@ -7,6 +7,7 @@ from djpcms.utils import escape, slugify
 from djpcms.utils.const import NOTHING
 from djpcms.utils.dates import parse as dateparser
 from djpcms.core.orms import mapper
+from djpcms.core.files import File
 
 from .globals import *
 
@@ -335,8 +336,27 @@ class BooleanField(Field):
             else:
                 return bool(value)
     
+
+class MultileField(Field):
+    multiple = False
     
-class ChoiceField(Field):
+    def handle_params(self, multiple = None, **kwargs):
+        self.multiple = multiple if multiple is not None else\
+                             self.multiple
+        if self.multiple:
+            self.widget_attrs['multiple'] = 'multiple'
+    
+    def html_name(self, name):
+        return name if not self.multiple else '{0}[]'.format(name)
+    
+    def _value_from_datadict(self, data, key):
+        if self.multiple and hasattr(data,'getlist'):
+            return data.getlist(key)
+        elif key in data:
+            return data[key]
+    
+    
+class ChoiceField(MultileField):
     '''A :class:`Field` which validates against a set of ``choices``.
 It has several additional attributes which can be used to customize its
 behaviour in validation as well as when rendering in html::
@@ -383,11 +403,10 @@ This field works in conjunction with the ``autocomplete`` decorator in
 '''
     widget = html.Select()
     autocomplete = False
-    multiple = False
     
     def handle_params(self, choices = None, model = None,
                        separator = ', ', autocomplete = None,
-                       empty_label = '-----------', multiple = None,
+                       empty_label = '-----------',
                        minLength = 2, maxRows = 30,
                        **kwargs):
         '''Choices is an iterable or a callable which takes the
@@ -398,24 +417,15 @@ form as only argument'''
         self.separator = separator
         self.autocomplete = autocomplete if autocomplete is not None else\
                              self.autocomplete
-        self.multiple = multiple if multiple is not None else\
-                             self.multiple
         self.minLength = minLength
         self.maxRows = maxRows
         self._raise_error(kwargs)
-        if multiple:
-            self.widget_attrs['multiple'] = 'multiple'
         if self.autocomplete:
             self.widget = html.TextInput(default_class = 'autocomplete')
-            
-    def html_name(self, name):
-        return name if not self.multiple else '{0}[]'.format(name)
+        super(ChoiceField,self).handle_params(**kwargs)
     
     def value_from_datadict(self, data, files, key):
-        if self.multiple and hasattr(data,'getlist'):
-            return data.getlist(key)
-        elif key in data:
-            return data[key]
+        return self._value_from_datadict(data,key)
         
     def choices_and_model(self, bfield):
         '''Return an tuple containing an
@@ -488,8 +498,16 @@ class EmailField(CharField):
     pass
 
 
-class FileField(CharField):
-    pass
+class FileField(MultileField):
+    widget = html.FileInput()
+    
+    def value_from_datadict(self, data, files, key):
+        res = self._value_from_datadict(files,key)
+        if self.multiple:
+            return [File(d.file,d.filename,d.content_type,d.size) for d in res]
+        elif res:
+            d = res
+            return File(d.file,d.filename,d.content_type,d.size)
 
 
 def HiddenField(**kwargs):

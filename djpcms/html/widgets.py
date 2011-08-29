@@ -1,4 +1,5 @@
-from djpcms.utils import escape
+from djpcms import sites
+from djpcms.utils import escape, js
 from djpcms.utils.const import *
 
 from .base import WidgetMaker, Widget
@@ -12,6 +13,7 @@ __all__ = ['TextInput',
            'CheckboxInput',
            'TextArea',
            'Select',
+           'FileInput',
            'ListWidget',
            'List',
            'SelectWithAction',
@@ -54,6 +56,7 @@ class InputWidget(FieldWidget):
     
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
+
 
 class PasswordInput(InputWidget):
     default_attrs = {'type': 'password'}
@@ -147,7 +150,13 @@ class Select(FieldWidget):
     def media(self, widget):
         if 'multiple' in widget.attrs:
             return self.select_media
-
+        
+        
+class FileInput(InputWidget):
+    default_attrs = {'type': 'file'}
+    attributes = InputWidget.makeattr('multiple')
+        
+        
 for tag in ('div','p','h1','h2','h3','h4','h5','th','li','tr','span','button'):
     WidgetMaker(tag = tag)
     

@@ -9,10 +9,10 @@
 <div id="page-body">
  <div id="site-body"{% block site_body_class %} class="{{ grid.container_class }}"{% endblock %}>{% block page_prebody %}
    <div class="{{ grid.column1 }}">{% block breadcrumbs %}{% if breadcrumbs %}
-    {{ breadcrumbs }}{% else %}{% if title %}
-    <div class="breadcrumbs">
-    {{ title }}
-    </div>{% endif %}{% endif %}{% endblock %}
+     {{ breadcrumbs }}{% else %}{% if title %}
+     <div class="breadcrumbs">
+     {{ title }}
+     </div>{% endif %}{% endif %}{% endblock %}
    </div>{{ grid.clear }}{% endblock %}{% if messages %}{% block page_messages %}
     <div id="page-messages" class="{{ grid.column1 }}">{% for message in messages %}
      {{ message }}{% endfor %}

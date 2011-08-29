@@ -61,9 +61,7 @@ css file to be compiled.
             if name in cd:
                 raise KeyError('Css context {0} already available'.format(name))
             cd[name] = self
-        if elems:
-            for elem in elems:
-                self.add(elem)
+        self.update(elems = elems)
         
     def __str__(self):
         return self.tag()
@@ -127,8 +125,12 @@ css file to be compiled.
     def extra_data(self, loader, data, style):
         pass
     
-    def update(self, data):
-        self.data.update(data)
+    def update(self, data = None, elems = None, **kwargs):
+        if data:
+            self.data.update(data)
+        if elems:
+            for elem in elems:
+                self.add(elem)
     
     def add(self, value):
         if isinstance(value,_CssContext):
@@ -266,9 +268,7 @@ def CssContext(name, parent = None, **kwargs):
             break
         
     if context and not cts:
-        data = kwargs.get('data',None)
-        if data:
-            context.data.update(data)
+        context.update(**kwargs)
         return context
     
     if len(cts) > 1:
@@ -305,8 +305,5 @@ def rendercss(style, media_url, template_engine = None):
         root = DummyBody() 
     return root.render(style, media_url, template_engine)
     
-    
-def jQueryTheme(theme_name,jquery_theme):
-    '''Associate a theme name with a jquery theme name'''
-    jquery_style_mapping[theme_name] = jquery_theme
+
  

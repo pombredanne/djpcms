@@ -42,15 +42,8 @@ which updates the input ``dictionary`` with library dependent information.
         '''
         c = dictionary
         if request:
-            info = request.DJPCMS
-            if info.context_cache is None:
-                info.context_cache = context_cache = {}
-                site_processors = info.site.template_context()
-                if processors is not None:
-                    site_processors += tuple(processors)
-                for processor in site_processors:
-                    context_cache.update(processor(request))
-            c.update(info.context_cache)
+            ccache = request.DJPCMS.context(request)
+            c.update(ccache)
         self.context_ready.send(self, context = c)
         return c
     

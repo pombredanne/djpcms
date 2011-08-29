@@ -7,7 +7,7 @@ from djpcms import html
 from djpcms.utils import slugify, escape
 
 from .globals import *
-from .layout import FormWidgetMaker
+from .layout import FormWidgetMaker, FormLayout
 
 
 __all__ = ['HtmlForm']
@@ -58,8 +58,9 @@ Simple usage::
         self.layout = layout or DefaultLayout()
         self.model = model
         self.ajax = ajax
-        self.inputs = []
-        if inputs:
+        self.inputs = None
+        if inputs is not None:
+            self.inputs = []
             for input in inputs:
                 if not hasattr(input,'render'):
                     input = html.SubmitInput(value = input[0],
@@ -87,5 +88,3 @@ input paramaters ``kwargs``.'''
             w.addClass('ajax')
         return w
     
-
-

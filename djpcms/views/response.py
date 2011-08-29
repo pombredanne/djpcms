@@ -6,7 +6,7 @@ import djpcms
 from djpcms import forms, http, html
 from djpcms.utils.ajax import jredirect, jservererror
 from djpcms.template import loader
-from djpcms.utils import lazyattr, storegenarator, logtrace
+from djpcms.utils import lazyattr, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied,\
                                      PathException
 
@@ -148,11 +148,21 @@ which corresponds to ``self``'''
         
     @property
     def linkname(self):
-        return self.view.linkname(self)
+        if not hasattr(self,'_linkname'):
+            self._linkname = self.view.linkname(self)
+        return self._linkname
     
     @property    
     def title(self):
-        return self.view.title(self)
+        if not hasattr(self,'_title'):
+            return self.view.title(self)
+        return self._title
+    
+    @property    
+    def breadcrumb(self):
+        if not hasattr(self,'_breadcrumb'):
+            return self.view.breadcrumb(self)
+        return self._breadcrumb
     
     def for_user(self):
         return self.view.for_user(self)
@@ -185,6 +195,7 @@ is not in the dictionary.'''
         '''\
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
+        self.media.add(self.view.media(self))
         return self.view.render(self)
     
     def djp(self, view):
@@ -342,7 +353,7 @@ the parent of the embedded view.'''
                              content_type = 'text/html',
                              encoding = self.settings.DEFAULT_CHARSET)
         
-    @storegenarator
+    @djpcms.storegenarator
     def children(self):
         '''return a generator over children responses. It uses the
 :func:`djpcms.node` to retrive the node in the sitemap and
@@ -358,13 +369,15 @@ consequently its children.'''
             except:
                 continue
     
+    @djpcms.memoized
     def has_permission(self):
         return self.view.has_permission(self.request, self.page, self.instance)
     
+    @djpcms.memoized
     def warning_message(self):
         return self.view.warning_message(self)
         
-    @storegenarator
+    @djpcms.storegenarator
     def auth_children(self):
         for c in self.children():
             if c.has_permission():

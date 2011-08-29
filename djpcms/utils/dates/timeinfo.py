@@ -65,13 +65,16 @@ def smart_time(t, dateformat = None, timeformat = None):
     if isinstance(t,datetime):
         ti = t.time()
         if ti:
-            ts = timeformat or 'H:i' if not settings else settings.TIME_FORMAT
-            time = time_format(ti,ts)
+            if not timeformat:
+                timeformat = 'H:i' if not settings else settings.TIME_FORMAT
+            time = time_format(ti,timeformat)
             t = t.date()
             if t == date.today():
                 return time
-    ts = dateformat or 'd M y' if not settings else settings.DATE_FORMAT
-    day = format(t,ts)
+    if not dateformat:
+        dateformat = 'd M y' if not settings else settings.DATE_FORMAT
+        
+    day = format(t,dateformat)
     if time:
         day = '{0} {1}'.format(day,time)
     return day

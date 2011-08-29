@@ -13,7 +13,7 @@ from djpcms.core.exceptions import *
 from .utils import parse_cookie, BaseHTTPRequestHandler,\
                    SimpleCookie, BytesIO, cookie_date, urljoin,\
                    MultiValueDict, QueryDict
-from .multiparser import MultiPartParser
+from .multipart import parse_form_data
 
 
 __all__ = ['STATUS_CODE_TEXT',
@@ -163,17 +163,11 @@ class Request(object):
                                         MultiValueDict()
         elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
             self._raw_post_data = ''
-            self._post, self._files = self.parse_file_upload(self.META, self)
+            self._post, self._files = parse_form_data(self.environ,
+                                                      self.encoding)
         else:
             self._post, self._files = QueryDict(self.raw_post_data(),\
                                     encoding=self.encoding), MultiValueDict()
-
-    def parse_file_upload(self, META, post_data):
-        """Returns a tuple of (POST QueryDict, FILES MultiValueDict)."""
-        upload_handlers = self.DJPCMS.upload_handlers()
-        parser = MultiPartParser(META, post_data,
-                                 upload_handlers, self.encoding)
-        return parser.parse()
     
     def raw_post_data(self):
         if not hasattr(self, '_raw_post_data'):

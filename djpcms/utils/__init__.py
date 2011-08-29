@@ -63,28 +63,6 @@ It stores the result for futures uses.
     _.__doc__ = f.__doc__
     
     return _
-
-
-def storegenarator(f):
-    '''Decorator which can be used on a member function
-returning a generator. It stores the generated results for future use.
-    '''
-    name = '_generated_%s' % f.__name__
-    def _(self, *args, **kwargs):
-        if not hasattr(self,name):
-            items = []
-            setattr(self,name,items)
-            append = items.append
-            for g in f(self, *args, **kwargs):
-                append(g)
-                yield g
-        else:
-            for g in getattr(self,name):
-                yield g
-                
-    _.__doc__ = f.__doc__
-    
-    return _
         
 
 class lazyjoin(object):

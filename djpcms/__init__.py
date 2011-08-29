@@ -51,6 +51,7 @@ def install_libs():
     else:
         install_lib(dlibs, 'jinja2', 'jinja2')
     install_lib(dlibs, 'color', 'color')
+    install_lib(dlibs, 'fileupload', 'fileupload')
 
 install_libs()
 
@@ -142,6 +143,7 @@ from .apps.management import execute
 from .http import serve
 from .conf import nodata
 from .utils import ajax
+from .utils.decorators import *
 
 def secret_key():
     '''Secret Key used as base key in encryption algorithm'''

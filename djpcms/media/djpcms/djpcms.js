@@ -147,7 +147,7 @@
             appqueue = [],
             logger = djplogger(),
             defaults = {
-    	        media_url: "/media-site/",
+    	        media_url: "/media/",
     	        confirm_actions:{
     	            'delete': 'Please confirm delete',
     	            'flush': 'Please confirm flush'
@@ -766,7 +766,7 @@
             $('.ui-tabs',$this).tabs(config.tabs).show(c.effect,{},c.fadetime);
         }
     });
-    
+
     $.djpcms.decorator({
         id:'ui-state-hover',
     	decorate: function(obj, config) {
@@ -1037,37 +1037,6 @@
     			this_.cycle({fx: type_,
     					  speed: speed_,
     					  timeout: timeout_});
-    		});
-    	}
-    });
-    
-    $.djpcms.decorator({
-    	id:"color_picker",
-    	decorate: function($this, config) {
-    		if(!$.fn.ColorPickerSetColor) {
-    			return;
-    		}
-    		$('input.color-picker', $this).each(function() {
-    		    var iel = $(this).hide(),
-    		        div = iel.parent().addClass('color-picker'),
-    		        v = iel.val();
-    			//var div = $('<div class="color-picker"></div>');
-    			//var iel = $(this).hide().after(div);
-    			//var v = iel.val();
-    			//div.append(iel.remove());
-    			div.css('backgroundColor', '#' + v);
-    			div.ColorPicker({
-    				onSubmit: function(hsb, hex, rgb, el) {
-    					var elem = $(el);
-    					$('input',elem).val(hex);
-    					elem.css('backgroundColor', '#' + hex);
-    					elem.ColorPickerHide();
-    				},
-    				onBeforeShow: function () {
-    					var v = $('input',this).val();
-    					$(this).ColorPickerSetColor(v);
-    				}
-    			});
     		});
     	}
     });
@@ -1482,151 +1451,6 @@
     	return {value:cs,negative:isneg};
     }
     
-    
-    /**
-     * ======================================================================
-     * 
-     * TABLESORTER WIDGETS
-     * 
-     * ======================================================================
-     */
-    if($.tablesorter) {
-        /**
-         * Table-sorter decorator
-         * decorate tables with jquery.tablesorter plugin.
-         * Add several widgets to tablesorter.
-         */
-        $.djpcms.decorator({
-            id:"tablesorter",
-            config: {
-                selector: 'table.tablesorter',
-                widgets:['zebra','hovering','toolbox']
-            },
-            decorate: function($this,config) {
-                var opts = config.tablesorter,
-                    tbl = $(opts.selector);
-                $.each($(opts.selector,$this),function() {
-                    var elem = $(this),
-                        data = elem.data('options') || {};
-                    opts = $.extend(true,data,opts)
-                    elem.tablesorter(opts);
-                });
-            }
-        });
-        
-        /**
-         * A tablesorter widget for enabling actions on rows and
-         * different views across columns.
-         */
-        $.tablesorter.add_select_rows = function(tbl,me,row_select,url,data) {
-            function handle_callback(e,o) {
-                $.djpcms.jsonCallBack(e,o,tbl);
-            }
-            
-            function toggle(chk) {
-                chk.each(function() {
-                    var el = $(this),
-                        tr = el.parents('tr');
-                    if(el.is(':checked')) {
-                        tr.addClass('ui-state-highlight');
-                    }
-                    else {
-                        tr.removeClass('ui-state-highlight');
-                    }
-                });
-            }
-            
-            tbl.delegate('.action-check input','click', function() {
-                toggle($(this));
-            });
-            
-            row_select.change(function() {
-                if(this.value) {
-                    var ids = [],
-                        data = $.djpcms.ajaxparams(this.value,{'ids':ids});
-                    $('.action-check input:checked',this.table).each(function() {
-                        ids.push(this.value);
-                    });
-                    $.post(url,
-                           data,
-                           handle_callback,
-                           'json')                       
-                }
-            });
-            $('.select_all',me).click(function() {
-                toggle($('.action-check input').prop({'checked':true}));
-            });
-            $('.select_none',me).click(function() {
-                toggle($('.action-check input').prop({'checked':false}));
-            });
-        };
-        
-        $.tablesorter.add_select_views = function(tbl,me,select,views) {
-            $.each(views, function(name, fields) {
-                var selected = fields.join(',.');
-                if(selected) {
-                    views[name] = '.'+selected;
-                }
-            });
-            function change_view(value) {
-                if(!value) {return;}
-                var fields = views[value];
-                    
-                if(fields) {
-                    var cols = $('th,td',tbl),
-                        selected = $(fields,tbl);
-                    cols.hide();
-                    selected.show();
-                }
-            }
-            
-            select.change(function() {
-                change_view(this.value);
-            });
-        };
-        
-        $.tablesorter.addWidget({
-            id:"toolbox",
-            format: function(table) {
-                var tbl = $(table),
-                    me = tbl.prev('.toolbox'),
-                    row_select, col_select;
-                
-                if(me.data('toolbox')) {
-                    return;
-                }
-                row_select = $('.row-selector select',me),
-                col_select = $('.column-selector select',me);
-                me.data('toolbox',true);
-                if(me.length !== 1) {return;}
-                // Actions on rows
-                if(row_select.length === 1) {
-                    var data = row_select.data(),
-                        url = data['url'];
-                    if(url) {
-                        $.tablesorter.add_select_rows(tbl,me,row_select,url,data);
-                    }
-                }
-                // Actions on columns
-                if(col_select.length === 1) {
-                    var data = col_select.data('views');
-                    $.tablesorter.add_select_views(tbl,me,col_select,data);
-                }
-            }
-        });
-        
-        $.tablesorter.addWidget({
-            id:"serversort",
-            format: function(table) {
-                var tbl = $(table),
-                    me = tbl.prev('.toolbox');
-                if(me.data('serversort')) {
-                    return;
-                }
-                
-            }
-        });
-    }
     
 }(jQuery));
     

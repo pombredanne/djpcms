@@ -67,12 +67,6 @@ div.edit-menu a {
 	height:14px;
 	width:14px;
 }
-a.editable {
-	background:transparent url("{{ MEDIA_URL }}djpcms/img/icons/pencil.png") no-repeat;
-}
-a.deletable {
-	background:transparent url("{{ MEDIA_URL }}djpcms/img/icons/cross.png") no-repeat;
-}
 a:link.headerlink,
 a:visited.headerlink {
 	color: transparent;
@@ -97,18 +91,6 @@ a:hover.headerlink {
 .djp-autocomplete div.selected {
 	float: left;
 	width: 98%;
-}
-.djp-autocomplete a.deletable {
-	float: left;
-	border:medium none;
-	display:inline;
-	height:1.2em;
-	margin:0 0 0 3px;
-	padding:0;
-	text-indent:-9999em;
-	width:20px;
-	cursor:pointer;
-	background: url("{{ MEDIA_URL }}djpcms/img/icons/cross.png") no-repeat center;
 }
 	
 .djp-autocomplete div.to_delete {

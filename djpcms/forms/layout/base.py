@@ -13,6 +13,8 @@ __all__ = ['FormWidget',
            'FormLayoutElement',
            'DivFormElement',
            'FormWidgetMaker',
+           'FieldWidget',
+           'FormLayout',
            'SubmitElement',
            'nolabel',
            'SUBMITS']
@@ -51,7 +53,7 @@ forms using the :mod:`djpcms.forms.layout` API.'''
     
     @property 
     def layout(self):
-        return self.internal['layout']
+        return self.internal.get('layout',None)
     
     @property 
     def inputs(self):
@@ -89,7 +91,7 @@ class FieldWidget(FormWidgetMaker):
                 'is_hidden': w.maker.is_hidden,
                 'ischeckbox':w.maker.ischeckbox()}
         
-    def stream(self, w, bfield, elem, whtml, parent):
+    def _stream(self, w, bfield, elem, whtml, parent):
         name = bfield.name
         error = bfield.form.errors.get(name,'')
         if bfield.field.required:
@@ -113,8 +115,7 @@ class FieldWidget(FormWidgetMaker):
         #    yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
         #            format(bfield.id,bfield.help_text)
 
-                
-    def inner(self, djp, widget, keys):
+    def stream(self, djp, widget, context):
         bfield = widget.internal['field']
         layout = widget.layout
         parent = widget.parent.maker
@@ -122,11 +123,11 @@ class FieldWidget(FormWidgetMaker):
         parent.add_widget_classes(bfield,w)
         whtml = w.render(djp)
         if w.maker.is_hidden:
-            return whtml
+            yield whtml
         else:
             elem = html.Widget('div', cn = self.default_class)
-            inner = '\n'.join(self.stream(w,bfield,elem,whtml,parent))
-            return elem.render(djp,inner)
+            inner = '\n'.join(self._stream(w,bfield,elem,whtml,parent))
+            yield elem.render(djp,inner)
 
 
 class BaseFormLayout(FormWidgetMaker):
@@ -148,7 +149,9 @@ form layout design.
     
     def __init__(self, required_tag = None,
                  field_template = None, legend = None,
+                 field_widget_maker = None,
                  **params):
+        self.field_widget_maker = field_widget_maker or self.field_widget_maker
         self.required_tag = required_tag or self.required_tag
         if legend:
             legend = '{0}'.format(legend)
@@ -171,10 +174,12 @@ class for a :class:`djpcms.forms.layout.FormLayout` element.
 It defines how form fields are rendered and it can
 be used to add extra html elements to the form.
 '''
-    default_class = 'ctrlHolder'
-    
+    def __init__(self, *children, **kwargs):
+        super(FormLayoutElement,self).__init__(**kwargs)
+        self.allchildren = children
+        
     def check_fields(self, missings, layout):
-        raise NotImplementedError
+        self.allchildren = check_fields(self.allchildren,missings,layout)
     
     def child_widget(self, child, widget):
         form = widget.form
@@ -191,12 +196,6 @@ be used to add extra html elements to the form.
 
 class DivFormElement(FormLayoutElement):
     tag = 'div'
-    def __init__(self, *children, **kwargs):
-        super(DivFormElement,self).__init__(**kwargs)
-        self.allchildren = children
-
-    def check_fields(self, missings, layout):
-        self.allchildren = check_fields(self.allchildren,missings,layout)
     
 
 class SubmitElement(FormLayoutElement):
@@ -228,10 +227,21 @@ class FormLayout(BaseFormLayout):
     default_element = DivFormElement
     
     def __init__(self, *fields, **kwargs):
+        self.setup(kwargs)
         super(FormLayout,self).__init__(**kwargs)
-        self.add(html.WidgetMaker(tag = 'div',
-                default_class = self.form_messages_container_class))
+        if self.form_messages_container_class:
+            self.add(html.WidgetMaker(tag = 'div',
+                    default_class = self.form_messages_container_class))
         self.add(*fields)
+        
+    def setup(self, kwargs):
+        attrs = ('form_messages_container_class',
+                 'form_error_class',
+                 'form_message_class',
+                 'from_input_class')
+        for att in attrs:
+            if att in kwargs:
+                setattr(self,att,kwargs.pop(att))
         
     def check_fields(self, missings):
         '''Add missing fields to ``self``. This
@@ -278,9 +288,11 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
         for name,msg in container.items():
             if name in fields:
                 name = '#' + fields[name].errors_id
-            else:
+            elif self.form_messages_container_class:
                 cl = '.'.join(self.form_messages_container_class.split(' '))
                 name = '.{0}'.format(cl)
+            else:
+                continue
             ListDict.add(name,
                          html.List(data = msg, li_class = msg_class).render(),
                          alldocument = False,

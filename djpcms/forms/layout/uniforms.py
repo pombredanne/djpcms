@@ -40,15 +40,12 @@ inlineFormsets = 'blockLabels2'
 
 
 WIDGET_CLASSES = {'CharField': 'textInput',
-                  'DateField': 'dateInput'}
-
-
-def default_csrf():
-    return 'django.middleware.csrf.CsrfViewMiddleware' in sites.settings.MIDDLEWARE_CLASSES
+                  'DateField': 'dateInput'}
 
 
 class UniFormElement(FormLayoutElement):
-            
+    default_class = 'ctrlHolder'
+    
     def add_widget_classes(self, field, widget):
         cls = field.field.__class__.__name__
         if cls in WIDGET_CLASSES:

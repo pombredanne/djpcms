@@ -55,8 +55,7 @@ files such as style sheet and javascript.
         settings = self.settings or {}
         prefix = settings.get('MEDIA_URL','')
         absolute = self.absolute_path
-        media = self._css.keys()
-        media.sort()
+        media = sorted(self._css)
         return chain(*[
             (mark_safe('<link href="%s" type="text/css" media="%s"\
  rel="stylesheet" />' % (absolute(path,prefix), medium))

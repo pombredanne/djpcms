@@ -216,7 +216,7 @@ class DateFormat(TimeFormat):
         name = self.timezone and self.timezone.tzname(self.data) or None
         if name is None:
             name = self.format('O')
-        return unicode(name)
+        return str(name)
 
     def U(self):
         "Seconds since the Unix epoch (January 1 1970 00:00:00 GMT)"
@@ -257,7 +257,7 @@ class DateFormat(TimeFormat):
 
     def y(self):
         "Year, 2 digits; e.g. '99'"
-        return unicode(self.data.year)[2:]
+        return str(self.data.year)[2:]
 
     def Y(self):
         "Year, 4 digits; e.g. '1999'"

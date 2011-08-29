@@ -6,7 +6,7 @@ from djpcms.models import Page
 from djpcms.core.exceptions import ApplicationNotAvailable
 from djpcms.core.messages import get_messages
 from djpcms.utils import iri_to_uri, escape
-from djpcms.html import grid960, htmldoc, List, icons
+from djpcms.html import grid960, htmldoc, List
 
 
 class PageLink(html.List):
@@ -58,8 +58,8 @@ for page editing or creation or exit editing.'''
             kwargs = info.kwargs.copy()
             kwargs['url'] = self.request.path if not view else view.path
             path = iri_to_uri(path,kwargs)
-            return icons.circle_plus(path,'add page',
-                                     title="add page contents",button=False)
+            return html.Widget('a', title="add page contents", cn = 'add',
+                               href = path).render(inner = 'add page')
         else:
             return ''
     
@@ -67,9 +67,9 @@ for page editing or creation or exit editing.'''
         path = self.app.changeurl(self.request, self.page)
         if path:
             path = iri_to_uri(path,self.request.DJPCMS.kwargs)
-            return icons.pencil(path,'edit',
+            return html.Widget('a', href = path,
                                 title = 'Edit page contents',
-                                button=False)
+                                cn = 'add').render(inner = 'edit')
         else:
             return ''
 
@@ -78,8 +78,8 @@ for page editing or creation or exit editing.'''
             path = path % dict(self.request.GET.items())
         except KeyError:
             return ''
-        return icons.circle_close(path,'exit',
-                                  title = 'Exit page editing',button=False)
+        return html.Widget('a', href = path, cn = 'exit',
+                            title = 'Exit page editing').render(inner = 'exit')
     
     def userlinks(self):
         site = self.request.DJPCMS.site
@@ -108,10 +108,11 @@ def djpcms(request):
     page = info.page
     settings = site.settings
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
+    grid = get_grid960(page,settings)
     try:
-        plink = PageLink(request).addClass('horizontal user right')
+        plink = PageLink(request).addClass('horizontal user-nav')
     except Exception as e:
-        plink = html.Widget()
+        plink = html.Widget(data_stream = (grid.empty,))
     user = getattr(request,'user',None)
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
@@ -125,7 +126,7 @@ def djpcms(request):
            'now': datetime.now(),
            'settings': settings,
            'MEDIA_URL': settings.MEDIA_URL,
-           'grid': get_grid960(page,settings)}
+           'grid': grid}
     return ctx
 
 

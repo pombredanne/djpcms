@@ -71,6 +71,7 @@ MEDIA_URL = '/media/'
 FAVICON_MODULE = None
 JQUERY_VERSION = '1.6.2'
 JQUERY_UI_VERSION = '1.8.16'
+SWFOBJECT_VERSION = '2.2'
 DEFAULT_STYLE_SHEET = []
 DEFAULT_JAVASCRIPT = ["djpcms/jquery.cookie.js",
                       #"{0[MEDIA_URL]}djpcms/jquery.pagination.js",

@@ -56,8 +56,12 @@ class geosearch(views.View):
 just perform the query.'''
         q = f.cleaned_data['q']
         res = self.appmodel.api.search(q)
-        g = geo_entry.widget
-        html = '\n'.join((g(data_stream = elem).render(djp) for elem in res))
+        if res:
+            g = geo_entry.widget
+            html = '\n'.join((g(data_stream = elem).render(djp) for elem in res))
+        else:
+            html = '<p>Your search - <b>{0}</b> -\
+ did not match any documents.</p>'.format(q)
         return ajax.jhtmls(html,'#geo-search-result')
     
 

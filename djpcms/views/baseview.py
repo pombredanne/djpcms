@@ -79,6 +79,8 @@ http requests.
     object_view = False
     ICON = None
     link_class = 'minibutton'
+    default_title = None
+    default_link = None
     link_text = True
     logger = logging.getLogger('djpcmsview')
     
@@ -106,19 +108,25 @@ http requests.
         return self._methods
         
     def title(self, djp):
-        '''View title.'''
+        '''View title'''
         page = djp.page
-        if page:
-            return page.title
-        else:
-            return None
+        title = page.title if page else None
+        if not title:
+            title = self.default_title or \
+                    (self.appmodel.name if self.appmodel else 'view')
+        return title.format(djp.kwargs)
     
     def linkname(self, djp):
+        '''Name to display in hyperlinks to this view.'''
         page = djp.page
-        if page:
-            return page.link
-        else:
-            return 'link'
+        link = page.link if page else None
+        if not link:
+            link = self.default_link or \
+                    (self.appmodel.name if self.appmodel else 'view')
+        return link.format(djp.kwargs)
+    
+    def breadcrumb(self, djp):
+        return self.linkname(djp)
     
     def specialkwargs(self, page, kwargs):
         return kwargs
@@ -161,9 +169,13 @@ http requests.
         context = self.get_context(djp)
         return djp.render_to_response(context)
     
-    def post_response(self, djp):
+    def default_post(self, djp):
         '''Get response handler.'''
         raise NotImplementedError('Post response not implemented')
+    
+    def post_response(self, djp):
+        '''Get response handler.'''
+        return self.default_post(djp)
     
     def ajax_get_response(self, djp):
         html = self.render(djp)

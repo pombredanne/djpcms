@@ -180,8 +180,11 @@ class get_app_result(object):
             var = result_repr
             if url:
                 if url != path:
-                    title = field_repr(head.function, result,
-                                       appmodel = appmodel, nd = nd)
+                    if head.function != head.code:
+                        title = field_repr(head.function, result,
+                                           appmodel = appmodel, nd = nd)
+                    else:
+                        title = head.name
                     var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
                                     .format(url, var, title))
                 else:

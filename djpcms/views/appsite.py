@@ -561,7 +561,6 @@ By default it return a generator of children pages.'''
             c.update({'paginator': p,
                       'djp': djp,
                       'url': djp.url,
-                      'css': djp.css,
                       'appmodel': appmodel,
                       'headers': headers})
             maker = self.object_widgets['pagination']
@@ -823,11 +822,11 @@ This can be re-implemented by subclasses.'''
         if not maker:
             maker = self.object_widgets.get('home',None)
         if maker:
-            return maker.widget(id=self.mapper.unique_id(instance),
-                                instance = instance,
+            return maker.widget(instance = instance,
                                 appmodel = self,
                                 cn = cn)\
                                 .addClass(self.mapper.class_name(instance))\
+                                .addClass(self.mapper.unique_id(instance))\
                                 .render(djp)
         else:
             return ''

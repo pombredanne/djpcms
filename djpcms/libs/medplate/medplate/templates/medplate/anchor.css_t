@@ -1,13 +1,13 @@
 {# ANCHORS #}
 {% extends "medplate/elem.css_t" %}
 
-{% block body %}
-a:link,
-a:visited {
+{% block body %}{% if color %}
+{{ tag }}:link,
+{{ tag }}:visited {
     color: {{ color }};
-}
-a:hover {
-    color: {{ color_hover }};{% if background_hover %}
+}{% endif %}
+{{ tag }}:hover { {% if color_hover %}
+    color: {{ color_hover }};{% endif %}{% if background_hover %}
     background: {{ background_hover }}{% endif %}
 }
 {% endblock %}

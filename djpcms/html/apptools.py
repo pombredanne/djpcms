@@ -125,7 +125,7 @@ def application_links(views, asbuttons = True):
         view = djp.view
         css = djp.settings.HTML
         a = Widget(tag).addAttr('title',elem['title'])\
-                           .addClass(view.link_class)\
+                           .addClass(view.name)\
                            .addData({'view':view.name,
                                      'method':elem['method'],
                                      'warning':view.warning_message(djp),
@@ -136,7 +136,8 @@ def application_links(views, asbuttons = True):
         if a.tag == 'a':
             a.addAttr('href',elem['url']).addClass(elem['icon'])
         else:
-            a.addData('icon', elem['icon']).addData('href',elem['url'])
+            a.addData('icon', elem['icon']).addData('href',elem['url'])\
+             .addClass(view.link_class)
         yield (view.name, a.render(inner = elem['display'])) 
     
 

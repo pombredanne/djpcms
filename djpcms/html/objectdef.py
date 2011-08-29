@@ -21,10 +21,6 @@ __all__ = ['ObjectItem',
 class ObjectItem(WidgetMaker):
     tag = 'div'
     default_class='item-view'
-
-    def addid(self, widget, context):
-        id = context['appmodel'].mapper.unique_id(context['instance'])
-        widget.addAttr('id',id)
          
     def definition_list(self, djp, context):
         appmodel = context['appmodel']
@@ -72,7 +68,6 @@ class ObjectDef(ObjectItem):
         
     def stream(self, djp, widget, context):
         dl = self.definition_list(djp, context)
-        self.addid(dl, context)
         yield dl.render(djp)
 
     

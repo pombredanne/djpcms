@@ -270,6 +270,7 @@ if it is bound.'''
             rawdata.update(self.rawdata)
         else:
             rawdata = self.rawdata 
+        files = self._files
         self._fields = fields = []
         self._fields_dict = dfields = {}
         
@@ -288,7 +289,7 @@ if it is bound.'''
             
             if is_bound:
                 rawvalue = field_value = field.value_from_datadict(
-                                    rawdata, self._fields, key)
+                                    rawdata, files, key)
                 if rawvalue not in NOTHING:
                     self.changed = True
                     data[name] = rawvalue

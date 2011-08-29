@@ -1,0 +1,36 @@
+{% extends "medplate/elem.css_t" %}
+
+{% block body %}
+{{ tag }} .bd.ui-widget-content {
+    background: transparent;
+    border: 0;
+}
+{{ tag }}.collapsed > .bd {
+	display: none;
+}
+{{ tag }} .edit-menu {
+	height: 18px;
+}
+{{ tag }} .edit-menu a {
+    display:inline;
+    float:left;
+    border:none;
+    margin:0 0 0 3px;
+    text-indent:-9999em;
+    padding:0;
+    height:14px;
+    width:14px;
+	height: 18px;
+    margin: 0 0 0;
+    padding: 1px;
+    right: 0.3em;
+    width: 19px;
+}
+{{ tag }} a span.ui-icon {
+	display: block;
+	margin: 1px;
+}
+div.edit-menu {
+    float: right;
+}
+{% endblock %}

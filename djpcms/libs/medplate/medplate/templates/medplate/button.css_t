@@ -1,0 +1,16 @@
+{% extends "medplate/elem.css_t" %}
+
+{% block body %}{% if padding %}
+input{{ tag }} {
+    padding: {{ padding }};
+}
+/*
+a{{ tag }} {
+    padding: {{ padding }};
+}
+{{ tag }} span.ui-button-text {
+    padding:  0 0 0 1.5em;
+}
+*/
+{% endif %}
+{% endblock %}

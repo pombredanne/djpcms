@@ -1,0 +1,85 @@
+{% extends "medplate/base_navigation.css_t" %}
+
+{% block extra_body %}
+{% block nav_container %}
+.nav-container {
+}
+{% endblock %}
+{{ tag }} li,
+{{ tag }} li a {
+	height:{{ height }};
+	line-height:{{ height }};
+	border:0;
+}
+{{ tag }} li a {
+	text-decoration:none;{% if main_text_shadow %}
+	text-shadow: {{ main_text_shadow }};{% endif %}{% if nav_float %}
+	float: {{ nav_float }};
+	display:block;{% endif %}
+	color: {{ color }};
+	font-weight: {{ font_weight }};
+	padding:{{ anchor_padding }};
+}
+{{ tag }} li {
+    cursor:pointer;{% if nav_float %}
+    float:{{ nav_float }};{% endif %}{% if li_display %}
+    display:{{ li_display }};{% endif %}
+    text-align:center;
+    position:relative;
+    top:0;
+    list-style-type:none;
+	-webkit-border-radius: {{ inner_radius }};
+	-moz-border-radius: {{ inner_radius }};
+	margin: {{ list_margin }};
+}
+
+{{ tag }} li:hover {
+	background: {{ hover_background }};
+}{% if hover_color %}
+
+{{ tag }} li:hover a {
+	color: {{ hover_color }};
+}{% endif %}
+
+{% if selected_background %}
+{{ tag }} li.selected {
+	background: {{ selected_background }};
+}{% endif %}
+
+{% if selected_color %}
+{{ tag }} li.selected a {
+	color: {{ selected_color }};
+}{% endif %}
+ 
+ 
+/* Subnavigation
+----------------------------------------------- */
+{{ tag }} li ul {
+    position: absolute;
+    top: {{ height }};
+	cursor: default;
+	width: auto;
+	height: auto;
+}
+{{ tag }} li ul li {
+	padding:0;
+	margin:0;
+	border:none;
+	width:auto;
+	max-width:none;
+}
+
+/*   level 3+ list
+--------------------------------------------- */
+{{ tag }} ul ul {
+    position: absolute;
+    left: {{ left3plus }};
+    top: {{ top3plus }};
+}
+
+/* secondary list
+----------------------------------------------- */
+{{ tag }} li.secondary {
+	float:right;
+}
+{% endblock %}

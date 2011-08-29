@@ -1,0 +1,7 @@
+{% extends "medplate/box/box.css_t" %}
+
+{% block extra_body %}
+{{ tag }}.movable div.hd {
+    cursor: move;
+}
+{% endblock %}

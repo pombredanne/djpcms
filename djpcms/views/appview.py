@@ -26,6 +26,7 @@ __all__ = ['View',
            'ObjectView',
            'ViewView',
            'DeleteView',
+           'ObjectActionView',
            'ChangeView',
            'ALL_URLS',
            'ALL_REGEX',
@@ -641,7 +642,7 @@ method of the :attr:`djpcms.views.View.appmodel` attribute.
         return self.appmodel.render_object(djp)
     
     def sitemapchildren(self):
-        return self.appmodel.sitemapchildren(self)    
+        return self.appmodel.sitemapchildren(self)
     
     
 # Delete an object. POST method only. not GET method should modify databse
@@ -681,23 +682,30 @@ class DeleteView(ObjectView):
             return self.appmodel.root_view(djp).url
         else: 
             return djp.url
+    
+    
+class ObjectActionView(ObjectView):
+    '''An :class:`ObjectView` class specialised for performing actions
+on an instance of a model.'''
+    def __init__(self, parent = 'view', **kwargs):
+        super(ObjectActionView,self).__init__(parent = parent, **kwargs)
+        
+    def render(self, djp):
+        return self.get_form(djp).render(djp)
+    
+    def default_post(self, djp):
+        return saveform(djp, force_redirect = self.force_redirect)  
       
 
 # Edit/Change an object
-class ChangeView(ObjectView):
-    '''An :class:`ObjectView` class specialised for changing an instance of a model.
-    '''
+class ChangeView(ObjectActionView):
+    '''An :class:`ObjectActionView` class specialised for changing
+an instance of a model.'''
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'
     default_link = 'edit'
     
-    def __init__(self, regex = 'change', parent = 'view', **kwargs):
-        super(ChangeView,self).__init__(regex = regex, parent = parent, **kwargs)
-    
-    def render(self, djp):
-        return self.get_form(djp).render(djp)
-    
-    def default_post(self, djp):
-        return saveform(djp, True, force_redirect = self.force_redirect)
+    def __init__(self, regex = 'change', **kwargs):
+        super(ChangeView,self).__init__(regex = regex, **kwargs)
     

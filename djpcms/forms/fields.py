@@ -89,6 +89,7 @@ very similar to django forms API.
                  label = None,
                  widget = None,
                  widget_attrs = None,
+                 disabled = None,
                  **kwargs):
         self.name = None
         self.default = default if default is not None else self.default
@@ -97,13 +98,17 @@ very similar to django forms API.
         self.validation_error = validation_error or standard_validation_error
         self.help_text = escape(help_text)
         self.label = label
+        self.disabled = disabled
         widget = widget or self.widget
         if isclass(widget):
             widget = widget()
         self.widget = widget
         if not isinstance(self.widget,html.WidgetMaker):
             raise ValueError("Form field widget of wrong type")
-        self.widget_attrs = widget_attrs or {}
+        widget_attrs = widget_attrs or {}
+        self.widget_attrs = widget_attrs.copy()
+        if self.disabled:
+            self.widget_attrs['disabled'] = 'disabled'
         self.handle_params(**kwargs)
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
@@ -181,10 +186,14 @@ attribute. By default return ``None``. Override for custom behaviour.'''
     def get_widget(self, djp, bfield):
         '''Return an instance of :class:`djpcms.html.Widget` for rendering
 the field in html.'''
+        name = bfield.name
         data = self.get_widget_data(djp, bfield)
-        return self.widget.widget(bfield = bfield)\
-                          .addAttrs(self.widget_attrs)\
-                          .addData(data)
+        w = self.widget.widget(bfield = bfield)\
+                       .addAttrs(self.widget_attrs)\
+                       .addData(data)
+        #if name in bfield.form.hidden_fields:
+        #    w.css('type','hidden')
+        return w
     
 
 class CharField(Field):
@@ -478,8 +487,9 @@ iterable over choices and a model class (if applicable).'''
                     if self.multiple:
                         raise NotImplemented
                     else:
-                        obj = mapper(model).get(id = value)
-                        initial_value = ((obj.id,str(obj)),)
+                        if not isinstance(value,model):
+                            value = mapper(model).get(id = value)
+                        initial_value = ((value.id,str(value)),)
                     data['initial_value'] = initial_value
             else:
                 data['choices'] = ch

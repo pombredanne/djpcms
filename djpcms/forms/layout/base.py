@@ -122,10 +122,12 @@ class FieldWidget(FormWidgetMaker):
         w = bfield.field.get_widget(djp, bfield)
         parent.add_widget_classes(bfield,w)
         whtml = w.render(djp)
-        if w.maker.is_hidden:
+        if w.attr('type') == 'hidden':
             yield whtml
         else:
             elem = html.Widget('div', cn = self.default_class)
+            if w.attr('disabled') == 'disabled':
+                elem.addClass('disabled')
             inner = '\n'.join(self._stream(w,bfield,elem,whtml,parent))
             yield elem.render(djp,inner)
 

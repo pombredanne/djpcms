@@ -98,7 +98,14 @@ CssContext('uniform',
                    'buttonholder_padding': "10px 0",
                    'error_color': '#af4c4c',
                    'error_background': '#ffbfbf'
-                   }
+                   },
+           elems = [CssContext('uniform-disabled',
+                        tag = '.disabled',
+                        data = {
+                         'opacity': 0.6,
+                         }
+                    )
+                    ]
            )
 CssContext('uniformHint',
            tag = '.formHint',
@@ -134,13 +141,21 @@ CssContext('minibutton',
         })
 
 
-#________________________________________ Horizontal navigation
+#________________________________________ Simple Horizontal navigation
 CssContext('horizontal-list',
            tag = '.horizontal li',
            data = {
                 'margin':'0 5px',
                 'display':'inline'
-            })
+            },
+           elems = [CssContext(
+                'horizontal-list-buttons',
+                tag = 'button',
+                data = {
+                        'margin':'0 0 5px'
+                })
+                ]
+    )
 CssContext('model-links',
            tag = 'ul.asbuttons.model-links li',
            data = {
@@ -546,9 +561,10 @@ default_data_theme = (
                   'selected_color':'#444',
                   #'padding': '2px 0',     # Padding for outer ul
                   'height': '30px',
-                  'inner_radius': '10px',
                   'list_margin': '0 5px',
                   'anchor_padding': '0 20px',
+                  # Set the radius
+                  'inner_radius': '10px',
                   'radius': '14px'}),
            ('edit_plugin_body', {'background':'#BAE28D'})
            )

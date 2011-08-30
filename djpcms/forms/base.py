@@ -147,7 +147,7 @@ procedure calls validation.
         self.model = model
         self.instance = instance
         self.messages = {}
-        self.hidden_fields = []
+        self.hidden_fields = set()
         self.request = request
         self._site = site
         self.changed = False

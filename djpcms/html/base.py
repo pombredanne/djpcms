@@ -167,6 +167,9 @@ with key ``name`` and value ``value`` and return ``self``.'''
         self.attrs.update(mapping)
         return self
     
+    def attr(self, name):
+        return self.attrs.get(name,None)
+    
     def hasClass(self, cn):
         '''``True`` if ``cn`` is a class of self.'''
         return cn in self.classes

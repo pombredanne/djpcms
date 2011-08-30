@@ -18,7 +18,7 @@ def user_and_session():
         from django.conrib.auth.models import User
         from django.conrib.sessions.models import Session
     elif sites.tests.CMS_ORM == 'stdnet':
-        from stdnet.conrib.sessions.models import User, Session
+        from djpcms.contrib.sessions.models import User, Session
     else:
         User, Session = None, None
     

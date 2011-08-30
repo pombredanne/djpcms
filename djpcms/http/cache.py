@@ -1,4 +1,4 @@
-from djpcms.utils import js
+from djpcms.utils import js, media
 
 
 class djpcmsinfo(object):
@@ -29,12 +29,11 @@ managing settings.'''
     def media(self):
         if not hasattr(self,'_media'):
             settings = self.site.settings
-            vmedia = self.view.media()
-            media = vmedia.__class__(settings = settings)
-            media.add_js(js.jquery_paths(settings))
-            media.add_js(settings.DEFAULT_JAVASCRIPT)
-            media.add(vmedia)
-            self._media = media
+            m = media.Media(settings = settings)
+            m.add_js(js.jquery_paths(settings))
+            m.add_js(settings.DEFAULT_JAVASCRIPT)
+            m.add(self.view.media())
+            self._media = m
         return self._media
     
     def djp(self, request = None):

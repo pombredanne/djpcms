@@ -4,7 +4,10 @@ from djpcms.apps.included.contentedit import HtmlPageForm,\
                                              ContentBlockHtmlForm,\
                                              HtmlEditContentForm
 from djpcms.apps.included.contactus import ContactForm
+from djpcms.apps.included.user import UserChangeForm
 
+
+from regression.models import user_and_session
 from .forms import SimpleForm
 
 
@@ -43,7 +46,8 @@ class TestSimpleForm(test.TestCase):
         
     def testInitial(self):
         hf = forms.HtmlForm(SimpleForm)
-        w = hf(initial = {'name':'luca','age':39,'profession':2}).addAttr('action','/test/')
+        w = hf(initial = {'name':'luca','age':39,'profession':2})\
+                    .addAttr('action','/test/')
         text = w.render()
         self.assertTrue('luca' in text)
         self.assertTrue('39' in text)
@@ -124,6 +128,28 @@ class TestSimpleForm(test.TestCase):
         self.assertEqual(choices[0][0],'')
         self.assertEqual(choices[0][1],'raw')
 
+    def testUserChangeForm(self):
+        '''Test the UserChangeForm which provides boolean fields which
+by default are true and some which are false.'''
+        initials = dict(UserChangeForm.initials())
+        self.assertEqual(initials,{'is_active':True})
+        html_form = forms.HtmlForm(UserChangeForm)
+        fw = html_form()
+        text = fw.render()
+        self.assertTrue("type='checkbox'" in text)
+        self.assertTrue("checked='checked" in text)
+    
+    @test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")    
+    def testUserChangeFormWidthModel(self):
+        '''Test the UserChangeForm which provides boolean fields which
+by default are true and some which are false.'''
+        User, _ = user_and_session()
+        html_form = forms.HtmlForm(UserChangeForm, model = User)
+        fw = html_form()
+        text = fw.render()
+        self.assertTrue("type='checkbox'" in text)
+        self.assertTrue("checked='checked" in text)
+        
 
 class TestFormValidation(test.TestCase):
     
@@ -131,12 +157,14 @@ class TestFormValidation(test.TestCase):
         d = ContactForm(data = {'body':'blabla'}, send_message = dummy_send)
         self.assertFalse(d.is_valid())
         self.assertEqual(len(d.errors),2)
-        self.assertEqual(d.errors['name'], ['name is required'])
-        self.assertEqual(d.errors['email'], ['email is required'])
-        d = ContactForm(data = {'body':'blabla','name':''}, send_message = dummy_send)
+        self.assertEqual(d.errors['name'], ['Name is required'])
+        self.assertEqual(d.errors['email'], ['E-mail is required'])
+        d = ContactForm(data = {'body':'blabla','name':''},
+                        send_message = dummy_send)
         self.assertFalse(d.is_valid())
         self.assertEqual(len(d.errors),2)
         self.assertTrue('name' in d.errors)
-        d = ContactForm(data = {'body':'blabla','name':'pippo','email':'pippo@pippo.com'},
+        d = ContactForm(data = {'body':'blabla','name':'pippo',
+                                'email':'pippo@pippo.com'},
                         send_message = dummy_send)
         self.assertTrue(d.is_valid())

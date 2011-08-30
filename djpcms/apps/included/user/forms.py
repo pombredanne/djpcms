@@ -7,7 +7,7 @@ class LoginForm(forms.Form):
     '''The Standard login form
     '''
     username   = forms.CharField(max_length=30,
-                                 widget=html.TextInput(default_class = 'autocomplete-off'))
+                    widget=html.TextInput(default_class = 'autocomplete-off'))
     password   = forms.CharField(max_length=60,widget=html.PasswordInput())
     
     def clean(self):
@@ -103,6 +103,6 @@ class UserChangeForm(forms.Form):
     first_name = forms.CharField(required = False)
     last_name = forms.CharField(required = False)
     email = forms.CharField(required = False)
-    is_superuser = forms.BooleanField(required = False)
-    is_active = forms.BooleanField(required = False)
+    is_superuser = forms.BooleanField()
+    is_active = forms.BooleanField(initial = True)
     

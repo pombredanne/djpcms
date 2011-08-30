@@ -102,8 +102,8 @@ class ApplicationTest(TestCaseBase):
         skipping = getattr(self.__class__, "__unittest_skip__", False)
         if not skipping:
             self._pre_setup()
-        self.client = Client(self.handler)
-        super(ApplicationTest, self).__call__(result)
+            self.client = Client(self.handler)
+            super(ApplicationTest, self).__call__(result)
         if not skipping:
             self._post_teardown()
             

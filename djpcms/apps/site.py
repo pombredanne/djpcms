@@ -5,10 +5,10 @@ import logging
 from threading import Lock
 
 import djpcms
-from djpcms import http
 from djpcms.conf import get_settings
 from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
-                                   ImproperlyConfigured, DjpcmsException
+                                   ImproperlyConfigured, DjpcmsException,\
+                                   Http404
 from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
@@ -36,6 +36,7 @@ logger = logging.getLogger('sites')
 
     
 def standard_exception_handle(request, e, status = None):
+    from djpcms import http
     from djpcms.template import loader
     status = status or getattr(e,'status',None) or 500
     info = request.DJPCMS
@@ -173,6 +174,11 @@ The sites singletone has several important attributes:
         
     def __len__(self):
         return len(self._sites)
+    
+    @property
+    def ApplicationSite(self):
+        from djpcms.views import ApplicationSite
+        return ApplicationSite
     
     @property
     def root(self):
@@ -360,7 +366,7 @@ site is already registered at ``route``.'''
             try:
                 res = self.resolve(url[1:])
                 return res[0]
-            except http.Http404:
+            except Http404:
                 return None
         else:
             return site

@@ -1,9 +1,8 @@
 from djpcms import sites
-from djpcms.utils import escape, js
+from djpcms.utils import escape, js, media
 from djpcms.utils.const import *
 
 from .base import WidgetMaker, Widget
-from .media import Media
 
 
 __all__ = ['TextInput',
@@ -90,7 +89,7 @@ class TextArea(InputWidget):
     default_attrs  = {'rows': 10, 'cols': 40}
     attributes = WidgetMaker.makeattr('name','rows','cols',
                                       'disabled','readonly')
-    area_media = Media(js = ['djpcms/taboverride.js'])
+    area_media = media.Media(js = ['djpcms/taboverride.js'])
 
     def get_value(self, value, widget):
         widget.internal['value'] = escape(value)
@@ -98,7 +97,7 @@ class TextArea(InputWidget):
     def inner(self, djp, widget, keys):
         return widget.internal['value']
     
-    def media(self, *args):
+    def media(self, djp = None):
         return self.area_media
     
     
@@ -108,7 +107,7 @@ class Select(FieldWidget):
     attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
-    select_media = Media(js = ['djpcms/jquery.bsmselect.js'])
+    select_media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
     
     def __init__(self, choices = None, **kwargs):
         self.choices = choices
@@ -147,9 +146,8 @@ class Select(FieldWidget):
                 sel = (val in selected_choices) and selected or EMPTY
                 yield option.format(val,sel,des)
 
-    def media(self, widget):
-        if 'multiple' in widget.attrs:
-            return self.select_media
+    def media(self, djp = None):
+        return self.select_media
         
         
 class FileInput(InputWidget):

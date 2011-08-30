@@ -410,8 +410,8 @@ views::
     def names(self):
         return self.regex.names
     
-    def media(self,*args):
-        return self.appmodel.media(*args)
+    def media(self,djp=None):
+        return self.appmodel.media(djp)
     
     def in_navigation(self, request, page):
         if not self.appmodel.hidden:

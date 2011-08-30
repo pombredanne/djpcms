@@ -4,13 +4,11 @@ from copy import copy
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import sites, UnicodeMixin, is_string, to_string
+from djpcms import UnicodeMixin, is_string, to_string
 from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 from djpcms.template import loader
-
-from .media import Media
 
 
 __all__ = ['flatatt',
@@ -56,10 +54,10 @@ class Renderer(object):
         '''render ``self`` as html'''
         raise NotImplementedError
     
-    def media(self, *args, **kwargs):
-        '''It returns an instance of :class:`djpcms.html.Media` or ``None``. It should be overritten by
-derived classes.'''
-        return Media()
+    def media(self, djp = None):
+        '''It returns an instance of :class:`djpcms.html.Media`.
+It should be overritten by derived classes.'''
+        return None
 
 
 class Widget(object):
@@ -404,7 +402,7 @@ It returns self for concatenating data.'''
         if self.renderer:
             text = self.renderer(text)
         if djp:
-            djp.media.add(self.media(widget))
+            djp.media.add(self.media(djp))
         return text
     
     def inner(self, djp, widget, keys):

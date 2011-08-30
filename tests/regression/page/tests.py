@@ -23,7 +23,7 @@ class TestPage(test.TestCase,test.PageMixin):
         self.makesite()
         self.sites.load()
         self.inners = self.makeInnerTemplates()
-        self.appmodel = self.sites.for_model(Strategy)
+        self.appmodel = list(self.sites.for_model(Strategy))[0]
         
     def testRoot(self):
         self._make_root()

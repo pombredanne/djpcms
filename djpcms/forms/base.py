@@ -229,10 +229,13 @@ validation.'''
         for name,field in iteritems(self.base_fields):
             if name in initials:
                 continue
+            # The instance is a new one (no id). precedence to the
+            # initial of the form field
             if not instanceid:
                 initial = field.get_initial(self)
                 if initial is not None:
                     initials[name] = initial
+                    continue
             if instance:
                 value = self.value_from_instance(instance,name)
                 if value is not None:

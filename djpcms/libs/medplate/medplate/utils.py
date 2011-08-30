@@ -1,7 +1,13 @@
 import os
 
+import djpcms
 from djpcms.template import loader
 from djpcms.apps.included.static import application_map
+
+if djpcms.ispy3k:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 
 def config_file(self, fname, ctx, dir = None):
@@ -22,11 +28,64 @@ def config_file(self, fname, ctx, dir = None):
         return data
         
 
-class nginx_reverse_proxy(object):
+class nginx_reverse_proxy_config(object):
     '''Nginx as reverse proxy for serving media files'''
-    nginx = 'nginx.conf'
+    template = 'medplate/servers/nginx.conf_t'
     default_parameters = {}
     
+    def __init__(self, appname, applications, target = None,
+                 server = 'http://localhost:8060',
+                 server_port = None, logdir = None,
+                 redirects = None):
+        if not target:
+            target = '{0}_nginx.conf'.format(appname)
+        if appname not in applications:
+            raise djpcms.ImproperlyConfigured('Application name must be\
+ in applications list')
+        target = os.path.abspath(target)
+        self.data = None
+        sp = urlparse(server)
+        loc = sp.netloc.split(':')
+        if len(loc) == 2:
+            host = loc[0]
+            port = int(loc[1])
+        else:
+            raise djpcms.ImproperlyConfigured(
+                        'Provide the server as http://host:port')
+        secure = sp.scheme.lower() == 'https'
+        if not server_port:
+            server_port = 443 if secure else 80
+        if host == 'localhost':
+            host = '_'
+        self.params = self.default_parameters.copy()
+        self.params['secure'] = secure
+        self.params['server_port'] = server_port
+        self.params['port'] = port
+        self.params['logdir'] = logdir
+        apps = application_map(applications, safe=False)
+        self.params['apps'] = apps.values()
+        self.params['site'] = apps[appname]
+        self.target = target or 'nginx.conf'
+        redirects = redirects or []
+        dnss = [host] + redirects
+        ndns = [r.replace('.','\.') for r in dnss]
+        self.params['dns'] = host
+        self.params['redirects'] = redirects
+        self.params['all_redirects'] = '|'.join(ndns)
+    
+    def save(self):
+        if not self.data:
+            self.data = loader.render(self.template,
+                                      self.params)
+            f = open(self.target,'w')
+            f.write(self.data)
+            f.close()
+            self.data = None
+            return self.target
+    
+    def build(self):
+        pass
+                
     def get_context(self, context):
         p = self.default_parameters.copy()
         p.update(context)
@@ -38,9 +97,7 @@ class nginx_reverse_proxy(object):
         ndns = [r.replace('.','\.') for r in dns]
         ser.all_redirects = '|'.join(ndns)
         ser.apps = application_map(site.settings.INSTALLED_APPS,
-                                    safe=False).values()           
-        if dir is None:
-            dir = None if not release else environ['confdir']
+                                    safe=False).values()
         environ['nginx'] = self.config_file(self.nginx,ctx,dir=dir)
         if not release:
             from __builtin__ import globals

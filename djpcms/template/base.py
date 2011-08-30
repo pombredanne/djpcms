@@ -3,7 +3,8 @@ from djpcms import sites
 
 
 def handle(engine = None):
-    engine = engine or sites.settings.TEMPLATE_ENGINE if sites.settings else 'jinja2'
+    engine = engine or sites.settings.TEMPLATE_ENGINE if\
+                      sites.settings else 'jinja2'
     if engine not in _handlers:
         handle = get_engine(engine)
         _handlers[engine] = handle

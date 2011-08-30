@@ -19,30 +19,26 @@ def makeoptions():
                       action="store_true",
                       dest="show_list",
                       default=False,
-                      help="Show the list of available test labels for a given test type")
+                      help="Show the list of available test labels for\
+ a given test type")
     parser.add_option("-f", "--skipfail",
                       action="store_false",
                       dest="can_fail",
                       default=False,
-                      help="If set, the tests will run even if there is an import error in tests")
+                      help="If set, the tests will run even if there is\
+ an import error in tests")
     parser.add_option("-m", "--model",
                       action="store",
                       dest="model",
-                      default='stdnet',
-                      help="The object relational mapper to use. One of django, stdnet (default django)")
-    parser.add_option('-p', '--template',
-                      action="store",
-                      dest="template",
-                      default='jinja2',
-                      help="Template library to use. One of django or jinja2 (default django).")
+                      default='',
+                      help="The object relational mapper to use.\
+ One nothing or one of django, stdnet (default nothing)")
     parser.add_option("-t", "--type",
                       action="store",
                       dest="test_type",
                       default='regression',
                       help="Test type, possible choices are:\
- regression (default)\
- bench\
- profile")
+ regression (default), bench, profile")
     return parser
 
 
@@ -62,8 +58,7 @@ addpath()
 def run():
     options, tags = makeoptions().parse_args()
     from testsrunner import run
-    config = {'CMS_ORM':options.model,
-              'TEMPLATE_ENGINE':options.template}
+    config = {'CMS_ORM':options.model}
     run(tags,
         test_type = options.test_type,
         can_fail=options.can_fail,

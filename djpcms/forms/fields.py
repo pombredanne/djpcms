@@ -345,6 +345,7 @@ class MultileField(Field):
                              self.multiple
         if self.multiple:
             self.widget_attrs['multiple'] = 'multiple'
+        self._raise_error(kwargs)
     
     def html_name(self, name):
         return name if not self.multiple else '{0}[]'.format(name)
@@ -419,7 +420,6 @@ form as only argument'''
                              self.autocomplete
         self.minLength = minLength
         self.maxRows = maxRows
-        self._raise_error(kwargs)
         if self.autocomplete:
             self.widget = html.TextInput(default_class = 'autocomplete')
         super(ChoiceField,self).handle_params(**kwargs)
@@ -455,7 +455,7 @@ iterable over choices and a model class (if applicable).'''
                 values = value if self.multiple else (value,)
                 if not model:
                     for val in values:
-                        if not val in ch:
+                        if not str(val) in ch:
                             raise ValidationError(
                                     '{0} is not a valid choice'.format(value))
                 if self.multiple and model:

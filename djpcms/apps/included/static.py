@@ -11,7 +11,7 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views, http, sites
+from djpcms import views, http
 from djpcms.utils.importer import import_module
 from djpcms.template import loader
 
@@ -29,6 +29,7 @@ class pathHandler(object):
         self.mpath    = os.path.join(path,mediadir)
         self.absolute_path = os.path.join(self.mpath,name)
         self.exists   = os.path.exists(self.mpath)
+        self.url = '/{0}/{1}/'.format(mediadir,name)
 
 
 class DjangoAdmin(object):

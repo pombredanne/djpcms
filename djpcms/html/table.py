@@ -5,12 +5,10 @@ It uses the Datatable jQuery plugin on the client side.
 
 http://www.datatables.net/
 '''
-from djpcms import http
-from djpcms.template import loader
+from djpcms.utils import media
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker
-from .media import Media
 from .apptools import table_toolbox, table_header
 
 __all__ = ['Table']
@@ -20,7 +18,7 @@ class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
     tag = 'div'
     default_class = 'data-table'
-    table_media = Media(
+    table_media = media.Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
                   'djpcms/datatables/ColVis/js/ColVis.js',
@@ -94,7 +92,7 @@ javascript plugin'''
                    'sWidth':head.width,
                    'description':head.description}
             
-    def media(self, *args):
+    def media(self, djp = None):
         return self.table_media
 
 

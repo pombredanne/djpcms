@@ -15,7 +15,6 @@ A simple usage::
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
 from .utils import *
-from .media import *
 from .base import *
 from .widgets import *
 from .pagination import *

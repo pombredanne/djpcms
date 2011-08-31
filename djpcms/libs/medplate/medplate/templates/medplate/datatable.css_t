@@ -111,4 +111,7 @@
     margin: 0 auto;
     width: 100%;
 }
+{{ tag }} .center {
+	text-align: center;
+}
 {% endblock %}

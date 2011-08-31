@@ -13,10 +13,16 @@
  */
 /**
  * 
- * djpcms site handle
+ * djpcms site handle.
  * 
- * @param _media_url_base,	String base url for media files
- * @param options_, Object page-specific options
+ * It fires two events on the container it is built on.
+ * 
+ * "djpcms-before-loading" just before loading
+ * "djpcms-after-loading" just after loading
+ * 
+ * Usage on the main page
+ * 
+ * $(document).djpcms();
  */
 (function($) {
     
@@ -274,9 +280,12 @@
     	 */
     	function _construct() {
     		return this.each(function() {
-    			var config = defaults;
-    			var me = $(this);
-    			var lp = $('.djp-logging-panel',me);
+    			var config = defaults,
+    				me = $(this),
+    				lp = $('.djp-logging-panel',me);
+    			
+    			me.trigger('djpcms-before-loading');
+    			
     			if(lp) {
     				set_logging_pannel(lp);
     			}
@@ -285,6 +294,7 @@
     				logger.info('Adding decorator ' + id);
     				decorator(me,config);
     			});
+    			
     			if(this == document) {
     			    $.data(this,'djpcms',config);
     			    $.each(appqueue, function(i,app) {
@@ -292,6 +302,8 @@
     			    });
     			    appqueue = [];
     			}
+    			
+    			me.trigger('djpcms-after-loading');
     		});
     	}
     	

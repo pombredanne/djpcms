@@ -49,9 +49,9 @@ Contents
    application/index
    html
    forms/index
-   settings
    tutorials/index
    battery
+   settings
    changelog
    license
    

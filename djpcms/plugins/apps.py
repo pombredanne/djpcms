@@ -1,9 +1,4 @@
-import json
-
 from djpcms import forms, html
-from djpcms.forms.layout import DivFormElement, FormLayout, nolabel,\
-                                 SubmitElement
-from djpcms.template import loader
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
 from djpcms.http import query_from_string
@@ -77,10 +72,6 @@ class FormModelForm(ForModelForm):
     ajax        = forms.BooleanField(initial = False)
 
 
-class SearchModelForm(FormModelForm):
-    tooltip  = forms.CharField(required = False, max_length = 50)
-
-
 class ModelLinksForm(forms.Form):
     asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
     for_instance = forms.BooleanField()
@@ -94,70 +85,8 @@ class ModelLinksForm(forms.Form):
 class ContentForm(forms.Form):
     content = forms.ChoiceField(choices = get_contet_choices,
                                 autocomplete = True)
-
-#
-#___________________________________________ A CLASSY SEARCH FORM
-class SearchForm(forms.Form):
-    '''
-    A simple search form used by plugins.apps.SearchBox.
-    The search_text name will be used by SearchViews to handle text search
-    '''
-    q = forms.CharField(
-                required = False,
-                widget = html.TextInput(
-                        default_class = 'classy-search autocomplete-off',
-                        title = 'Enter your search text'))
-
-
-SearchSubmit = html.WidgetMaker(
-                    tag = 'div',
-                    default_class='cx-submit',
-                    inner = html.Widget('input:submit',
-                                        cn='cx-search-btn '+forms.NOBUTTON,
-                                        title = 'Search').render())
-
-HtmlSearchForm = forms.HtmlForm(
-        SearchForm,
-        inputs = [SearchSubmit],
-        layout = FormLayout(
-                    SubmitElement(tag = None),
-                    DivFormElement('q', default_class = 'cx-input'),
-                    tag = 'div',
-                    default_style = nolabel,
-                    default_class = 'cx-search-bar'
-            )
-)
 #
 #______________________________________________ PLUGINS
-
-class SearchBox(DJPplugin):
-    '''A text search for a model rendered as a nice search input.
-    '''
-    name = 'search-box'
-    description = 'Search your Models'
-    form = SearchModelForm
-    
-    def render(self, djp, wrapper, prefix,
-               for_model = None, method = 'get',
-               tooltip = None, ajax = False,
-               **kwargs):
-        engine = djp.site.search_engine
-        if not engine:
-            raise ValueError('No search engine installed with site.\
- Cannot add search plugin. You need to install one!\
- Check documentation on how to do it.')
-        request = djp.request
-        data = request.GET if method == 'get' else request.POST
-        w = HtmlSearchForm(data = data or None)
-        if tooltip:
-            w.form.dfields['q'].title = tooltip
-        path = engine.search_url(for_model)
-        w.addAttr('action',engine.path).addAttr('method',method)
-        if ajax:
-            w.addClass(forms.AJAX)
-        return w.render(djp)
-
-
 
 class RenderObject(DJPplugin):
     '''Render a database object'''

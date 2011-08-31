@@ -190,6 +190,9 @@ If the application is not available, it returns ``None``. Never fails.'''
             return
         if hasattr(model,'model'):
             model = model.model
+        app = self.for_hash(model, safe = True)
+        if app:
+            return app
         try:
             app = self._registry.get(model,None)
         except:

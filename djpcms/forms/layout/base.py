@@ -71,29 +71,30 @@ class FormWidgetMaker(html.WidgetMaker):
 
 class FieldWidget(FormWidgetMaker):
     default_class = 'ctrlHolder'
-
+    
     def get_context(self, djp, widget, keys):
         bfield = widget.internal['field']
-        layout = widget.layout
-        element = widget.parent.maker
-        form = bfield.form
-        name = bfield.name
-        w = bfield.field.get_widget(djp, bfield)
-        element.add_widget_classes(bfield,w)
-        whtml = w.render(djp)
-        return {'label': None if self.default_style == nolabel\
-                                     else bfield.label,
-                'name': name,
-                'required_tag': element.required_tag or layout.required_tag,
-                'field':bfield,
-                'error': form.errors.get(name,''), 
-                'inner':whtml,
-                'is_hidden': w.maker.is_hidden,
-                'ischeckbox':w.maker.ischeckbox()}
+        parent = widget.parent.maker
+        w = bfield.widget(djp)
+        parent.add_widget_classes(bfield,w)
+        return {'field':bfield,
+                'name':bfield.name,
+                'inner':w.render(djp),
+                'widget':w,
+                'parent':parent,
+                'error': bfield.form.errors.get(bfield.name,''),
+                'ischeckbox':w.maker.ischeckbox(),
+                'hidden':w.attr('type')=='hidden'}
         
-    def _stream(self, w, bfield, elem, whtml, parent):
+    def _stream(self,elem, context):
+        bfield =  context['field']
+        parent = context['parent']
+        whtml = context['inner']
+        w = context['widget']
+        if w.attr('disabled') == 'disabled':
+            elem.addClass('disabled')
         name = bfield.name
-        error = bfield.form.errors.get(name,'')
+        error = context['error']
         if bfield.field.required:
             elem.addClass('required')
         label = '' if parent.default_style == nolabel else bfield.label        
@@ -102,7 +103,7 @@ class FieldWidget(FormWidgetMaker):
             
         yield "<div id='{0}'>{1}</div>".format(bfield.errors_id,error)
 
-        if w.maker.ischeckbox():
+        if context['ischeckbox']:
             yield "<p class='label'></p><div class='field-widget'>\
 <label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
         else:
@@ -116,19 +117,11 @@ class FieldWidget(FormWidgetMaker):
         #            format(bfield.id,bfield.help_text)
 
     def stream(self, djp, widget, context):
-        bfield = widget.internal['field']
-        layout = widget.layout
-        parent = widget.parent.maker
-        w = bfield.field.get_widget(djp, bfield)
-        parent.add_widget_classes(bfield,w)
-        whtml = w.render(djp)
-        if w.attr('type') == 'hidden':
-            yield whtml
+        if context['hidden']:
+            yield context['inner']
         else:
             elem = html.Widget('div', cn = self.default_class)
-            if w.attr('disabled') == 'disabled':
-                elem.addClass('disabled')
-            inner = '\n'.join(self._stream(w,bfield,elem,whtml,parent))
+            inner = '\n'.join(self._stream(elem,context))
             yield elem.render(djp,inner)
 
 
@@ -171,8 +164,10 @@ form layout design.
 
 
 class FormLayoutElement(BaseFormLayout):
-    '''A :class:`djpcms.forms.layout.BaseFormLayout` 
-class for a :class:`djpcms.forms.layout.FormLayout` element.
+    '''base class af form layout components. A instance of this class
+render one or several form fields and it is part of
+an instance of a :class:`djpcms.forms.layout.FormLayout`.
+
 It defines how form fields are rendered and it can
 be used to add extra html elements to the form.
 '''
@@ -181,6 +176,8 @@ be used to add extra html elements to the form.
         self.allchildren = children
         
     def check_fields(self, missings, layout):
+        '''Check if the specified fields are available in the form and
+remove available fields from the missing set.'''
         self.allchildren = check_fields(self.allchildren,missings,layout)
     
     def child_widget(self, child, widget):

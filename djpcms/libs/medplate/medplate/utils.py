@@ -42,7 +42,6 @@ class nginx_reverse_proxy_config(object):
         if appname not in applications:
             raise djpcms.ImproperlyConfigured('Application name must be\
  in applications list')
-        target = os.path.abspath(target)
         self.data = None
         sp = urlparse(server)
         loc = sp.netloc.split(':')
@@ -53,11 +52,14 @@ class nginx_reverse_proxy_config(object):
             raise djpcms.ImproperlyConfigured(
                         'Provide the server as http://host:port')
         secure = sp.scheme.lower() == 'https'
-        if not server_port:
-            server_port = 443 if secure else 80
-        if host == 'localhost':
-            host = '_'
+        default_server_port = 443 if secure else 80
+        server_port = server_port or default_server_port
+        server_port_for_host = ''
+        if server_port != default_server_port:    
+            server_port_for_host = ':{0}'.format(server_port)
+        
         self.params = self.default_parameters.copy()
+        self.params['server_port_for_host'] = server_port_for_host 
         self.params['secure'] = secure
         self.params['server_port'] = server_port
         self.params['port'] = port
@@ -73,15 +75,22 @@ class nginx_reverse_proxy_config(object):
         self.params['redirects'] = redirects
         self.params['all_redirects'] = '|'.join(ndns)
     
-    def save(self):
+    def write(self):
         if not self.data:
             self.data = loader.render(self.template,
                                       self.params)
-            f = open(self.target,'w')
+            f = self.target
+            if not hasattr(f,'write'):
+                self.target = os.path.abspath(self.target)
+                f = open(self.target,'w')
             f.write(self.data)
-            f.close()
-            self.data = None
-            return self.target
+            self.file = f
+        return self.file
+        
+    def save(self):
+        f = self.write()
+        f.close()
+        self.data = None
     
     def build(self):
         pass

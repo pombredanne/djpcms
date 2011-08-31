@@ -3,11 +3,11 @@ from djpcms.html import icons
 from djpcms.template import loader
 from djpcms.utils.text import nicename
 
-from .base import FormLayoutElement, FieldWidget, check_fields
+from .base import FormLayoutElement, check_fields
 
 
 __all__ = ['TableRelatedFieldset']
-
+        
 
 class TableRelatedFieldset(FormLayoutElement):
     '''A :class:`djpcms.forms.layout.FormLayoutElement`
@@ -16,7 +16,7 @@ class for handling formsets as tables.'''
     default_style = 'tablerelated'
     template_name = ('djpcms/form-layouts/tableformset.html',)
     field_template = '''\
-{% if is_hidden %}{{ inner }}{% else %}
+{% if hidden %}{{ inner }}{% else %}
 <div {% if error %}class="error"{% endif %}>{% if ischeckbox %}
 {{ inner }}
 {% else %}

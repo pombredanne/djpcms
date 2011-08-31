@@ -428,6 +428,7 @@ and shouldn't be used otherwise. It is an utility class.
 
     The :attr:`field` name to be used in HTML.
 '''
+    _widget = None
     def __init__(self, form, field, name, html_name = None):
         self.form = form
         self.field = field
@@ -454,12 +455,27 @@ and shouldn't be used otherwise. It is an utility class.
 algorithm on :attr:`field`.'''
         self.value = self.field.clean(value, self)
         return self.value
+    
+    def widget(self, djp = None):
+        widget = self._widget
+        field = self.field
+        if not widget:
+            data = field.get_widget_data(djp,self)
+            widget = field.widget.widget()\
+                         .addAttrs(field.widget_attrs)\
+                         .addData(data)
+        widget.internal['bfield'] = self
+        widget.addAttrs({'id': self.id,
+                         'name':self.html_name,
+                         'title':self.help_text})
+        widget.maker.set_value(self.value, widget)
+        return widget
 
     def _data(self):
         """Returns the data for this BoundField,
 or None if it wasn't given.
         """
         return self.field.widget.value_from_datadict(
-                        self.form.data,self.form.files, self.html_name)
+                        self.form.data, self.form.files, self.html_name)
     data = property(_data)
 

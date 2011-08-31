@@ -183,18 +183,6 @@ Get the initial value of field if available.
 attribute. By default return ``None``. Override for custom behaviour.'''
         return None
     
-    def get_widget(self, djp, bfield):
-        '''Return an instance of :class:`djpcms.html.Widget` for rendering
-the field in html.'''
-        name = bfield.name
-        data = self.get_widget_data(djp, bfield)
-        w = self.widget.widget(bfield = bfield)\
-                       .addAttrs(self.widget_attrs)\
-                       .addData(data)
-        #if name in bfield.form.hidden_fields:
-        #    w.css('type','hidden')
-        return w
-    
 
 class CharField(Field):
     '''\

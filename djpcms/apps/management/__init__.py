@@ -222,3 +222,4 @@ def execute(sites, argv=None, **params):
     '''Execute a command against a sites instance'''
     utility = ManagementUtility(sites,argv,**params)
     utility.execute()
+    return utility.sites

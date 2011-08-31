@@ -23,18 +23,7 @@ __all__ = ['TextInput',
 class FieldWidget(WidgetMaker):
     attributes = WidgetMaker.makeattr('value','name','disabled')
     
-    def widget(self, bfield = None, **kwargs):
-        w = super(FieldWidget,self).widget(bfield = bfield,**kwargs)
-        if bfield:
-            attrs = w.attrs
-            attrs['id'] = bfield.id
-            attrs['name'] = bfield.html_name
-            if bfield.help_text:
-                attrs['title'] = bfield.help_text
-            self.get_value(bfield.value, w)
-        return w
-    
-    def get_value(self, value, widget):
+    def set_value(self, value, widget):
         widget.addAttr('value',value)
     
 
@@ -43,16 +32,7 @@ class InputWidget(FieldWidget):
     inline = True
     attributes = FieldWidget.makeattr('type')
     
-    def get_value(self, value, widget):
-        if 'initial_value' in widget.data:
-            initial_value = widget.data['initial_value']
-            if isinstance(initial_value,list):
-                value = ', '.join(initial[1] for initial in initial_value)
-            else:
-                value = initial_value
-        widget.addAttr('value',value)
         
-    
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
 
@@ -74,7 +54,7 @@ class CheckboxInput(InputWidget):
     default_attrs = {'type':'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
     
-    def get_value(self, value, widget):
+    def set_value(self, value, widget):
         if value:
             widget.attrs['checked'] = 'checked'
         
@@ -91,7 +71,7 @@ class TextArea(InputWidget):
                                       'disabled','readonly')
     area_media = media.Media(js = ['djpcms/taboverride.js'])
 
-    def get_value(self, value, widget):
+    def set_value(self, value, widget):
         widget.internal['value'] = escape(value)
         
     def inner(self, djp, widget, keys):
@@ -112,39 +92,42 @@ class Select(FieldWidget):
     def __init__(self, choices = None, **kwargs):
         self.choices = choices
         super(Select,self).__init__(**kwargs)
-        
-    def get_value(self, val, widget):
-        pass
     
-    def inner(self, djp, widget, keys):
-        return '\n'.join(self.render_options(djp, widget.internal['bfield']))
-
-    def render_options(self, djp, bfield):
-        selected_choices = []
-        field = None
+    def set_value(self, val, widget):
+        bfield =  widget.internal.get('bfield',None)
         if bfield:
             field = bfield.field
-            choices,model = field.choices_and_model(bfield)
-            values = bfield.value
-            if values:
-                if not field.multiple:
-                    values = (values,)
-                for value in values:
-                    selected_choices.append(value)
+            choices, model = field.choices_and_model(bfield)
+            widget.internal['model'] = model
+            widget.internal['choices'] = choices
+        if val:
+            selected_choices = val if widget.attr('multiple') else (val,)
         else:
-            choices,model = self.choices,None
+            selected_choices = ()
+        widget.internal['selected_choices'] = selected_choices
+
+    def inner(self, djp, widget, keys):
+        return '\n'.join(self.render_options(djp, widget))
+    
+    def render_options(self, djp, widget):
+        selected_choices = widget.internal['selected_choices']
+        model = widget.internal.get('model',None)
+        choices = widget.internal.get('choices',None)
         option = self._option
         selected = self._selected
         if model:
+            field = widget.internal['bfield'].field
             if field and not field.required:
                 yield option.format('','',field.empty_label)
             for val in choices:
                 sel = (val in selected_choices) and selected or EMPTY
                 yield option.format(val.id,sel,val)
-        else:
+        elif choices:
             for val,des in choices:
                 sel = (val in selected_choices) and selected or EMPTY
                 yield option.format(val,sel,des)
+        else:
+            raise StopIteration
 
     def media(self, djp = None):
         return self.select_media

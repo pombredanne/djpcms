@@ -1,8 +1,42 @@
 '''Search Applications which works with the SearchBox plugin.
 '''
-from djpcms import views, forms, html, ajax
-from djpcms.plugins.apps import HtmlSearchForm
+from djpcms import views, forms, html, ajax, ImproperlyConfigured
 
+from .forms import HtmlSearchForm
+
+
+def get_search_url(djp, for_model = None):
+    if for_model:
+        appmodel = djp.site.for_model(for_model, all = True)
+        if appmodel and hasattr(appmodel.model._meta,'searchengine'):
+            return appmodel.path
+    else:
+        engine = djp.site.search_engine
+        if engine:
+            return engine.path
+    
+
+class Search(object):
+    '''Utility class for searching models'''
+        
+    def __init__(self, model = None):
+        self.model = model
+    
+    #@property
+    #def engine(self):
+    #    if not self._engine and self.model:
+    #        self._engine = getattr(self.model._meta,'searchengine',None)
+    #    return self._engine
+            
+    def url(self, djp):
+        '''Return the url for searching'''
+        if self.model:
+            app = djp.site.for_model(self.model, all = True)
+            if app:
+                return app.path
+        search_app = djp.site.search_engine
+        if search_app:
+            return search_app.search_url(self.model)
 
 
 class SearchView(views.View):
@@ -58,7 +92,7 @@ class Application(views.Application):
         self.engine = kwargs.pop('engine',None) or self.engine
         self.forallsites = kwargs.pop('forallsites',True)
         if not self.engine:
-            raise ValueError('Search engine not available')
+            raise ImproperlyConfigured('Search engine not available')
         super(Application,self).__init__(*args,**kwargs)
 
     def registration_done(self):

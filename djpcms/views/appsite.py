@@ -680,8 +680,7 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
         urls = self.model_url_bits
         if len(urls) == 1:
             name = urls[0]
-            bit = self.model_id_name or getattr(obj,name)
-            return {name: bit}
+            return {name: getattr(obj,self.model_id_name or name)}
         else:
             raise ApplicationUrlException(
                             'Cannot obtain model instance url components')

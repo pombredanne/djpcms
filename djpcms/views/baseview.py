@@ -191,7 +191,8 @@ http requests.
         action = forms.get_ajax_action(data)
         if action == forms.CANCEL_KEY:
             next = data.get(forms.REFERER_KEY,None)
-            next = self.defaultredirect(djp.request, next = next, **djp.kwargs)
+            next = self.defaultredirect(djp.request, next = next,
+                                        **djp.kwargs)
             return jredirect(next)
         return self.default_post(djp)
     

@@ -1102,7 +1102,7 @@
         },
         decorate: function($this,config) {
             var opts = config.message;
-            $('li.messagelist, li.errorlist').each(function(){
+            $('li.messagelist, li.errorlist',$this).each(function(){
                 var li = $(this),
                     a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
                         .css({'float':opts.float})

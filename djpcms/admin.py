@@ -3,7 +3,7 @@ from djpcms.models import Page, InnerTemplate, BlockContent, SiteContent
 from djpcms.apps.included.sitemap import SiteMapApplication
 from djpcms.utils import markups, mark_safe
 
-NAME = 'Content Management'
+NAME = 'CMS'
 ROUTE = 'cms'
 
 # If Content Management System is available, enable admin for it

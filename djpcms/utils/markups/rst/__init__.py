@@ -24,7 +24,7 @@ class Application(application.Application):
         settings = sites.settings
         cfgdir = settings.SITE_DIRECTORY
         smod = settings.SITE_MODULE
-        outdir = os.path.join(settings.MEDIA_ROOT,smod,self.code)
+        outdir = os.path.join(cfgdir,'media',smod,self.code)
         srcdir = os.path.join(outdir,'_tmp')
         if not os.path.exists(outdir):
             os.mkdir(outdir)

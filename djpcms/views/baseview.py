@@ -113,7 +113,7 @@ http requests.
         title = page.title if page else None
         if not title:
             title = self.default_title or \
-                    (self.appmodel.name if self.appmodel else 'view')
+                    (self.appmodel.description if self.appmodel else 'view')
         return title.format(djp.kwargs)
     
     def linkname(self, djp):
@@ -122,7 +122,7 @@ http requests.
         link = page.link if page else None
         if not link:
             link = self.default_link or \
-                    (self.appmodel.name if self.appmodel else 'view')
+                    (self.appmodel.description if self.appmodel else 'view')
         return link.format(djp.kwargs)
     
     def breadcrumb(self, djp):

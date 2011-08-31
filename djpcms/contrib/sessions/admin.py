@@ -6,7 +6,7 @@ from .models import User,ObjectPermission, Role, Group, Log
 from .forms import RoleForm, GroupForm, PermissionForm
 
 
-NAME = 'Users and Permissions'
+NAME = 'Permissions'
 
 class UserAdmin(TabViewMixin,UserApplicationWithFilter):
     inherit = True

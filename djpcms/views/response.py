@@ -277,6 +277,10 @@ the parent of the embedded view.'''
     def response(self):
         '''return the type of response or an instance of HttpResponse
         '''
+        # Check for page view permissions
+        if not self.has_permission():
+            raise PermissionDenied()
+        
         view    = self.view
         request = self.request
         is_ajax = request.is_xhr
@@ -284,11 +288,7 @@ the parent of the embedded view.'''
         site    = self.site
         method  = request.method.lower()
         
-        # Check for page view permissions
-        if not self.has_permission():
-            raise PermissionDenied()
-        
-        # chanse to bail out early
+        # chance to bail out early
         re = view.preprocess(self)
         if isinstance(re,http.Response):
             return re

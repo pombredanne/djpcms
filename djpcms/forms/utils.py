@@ -165,18 +165,20 @@ def return_form_errors(fhtml,djp):
         return djp.view.handle_response(djp)
     
     
-def saveform(djp, editing = False, force_redirect = False):
+def saveform(djp, force_redirect = False):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted.'''
     view = djp.view
     appmodel = view.appmodel
     request = djp.request
+    instance = djp.instance
     is_ajax = request.is_xhr
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referer = data.get(REFERER_KEY,None)
     fhtml = view.get_form(djp)
+    editing = isinstance(instance,appmodel.model)
     
     layout = fhtml.layout
     f = fhtml.form

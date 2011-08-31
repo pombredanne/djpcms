@@ -52,6 +52,12 @@ class PermissionBackend(object):
         global PERMISSION_CODES
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     
+    def authenticated(self, request, obj, default = False):
+        if getattr(obj,'requires_login',default):
+            return request.user.is_authenticated()
+        else:
+            return True
+    
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
         raise NotImplementedError
@@ -61,17 +67,20 @@ class SimplePermissionBackend(PermissionBackend):
     
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
-        if permission_code <= VIEW:
-            return True
+        if self.authenticated(request,obj):
+            if permission_code <= VIEW:
+                return True
+            else:
+                return request.user.is_superuser
         else:
-            return request.user.is_superuser
+            return False
         
 
 class SimpleLoginPermissionBackend(PermissionBackend):
     
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
-        if request.user.is_authenticated():
+        if self.authenticated(request,obj,True):
             if permission_code <= VIEW:
                 return True
             else:

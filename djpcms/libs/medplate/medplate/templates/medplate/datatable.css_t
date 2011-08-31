@@ -36,10 +36,6 @@
 {{ tag }} tbody tr:last-child {
     border-bottom: 1px solid {{ body_border_color }};
 }
-{{ tag }} tbody td {
-    padding: 4px;
-    vertical-align: top;
-}
 {{ tag }} tbody tr.odd {
     background-color: {{ odd_background_color }};
 }

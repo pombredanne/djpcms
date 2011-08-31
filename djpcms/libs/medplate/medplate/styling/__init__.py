@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 
 from djpcms.utils.importer import import_module 
 
@@ -17,9 +18,9 @@ def jQueryTheme(theme_name,jquery_theme):
 def make_theme(theme_name, data, jquery_theme):
     '''Create a theme'''
     for name,values in default_data_theme:
-        CssTheme(name, theme_name, data = values)
+        CssTheme(name, theme_name, data = deepcopy(values))
     for name,values in data:
-        CssTheme(name, theme_name, data = values)
+        CssTheme(name, theme_name, data = deepcopy(values))
     jQueryTheme(theme_name,jquery_theme)
 
 

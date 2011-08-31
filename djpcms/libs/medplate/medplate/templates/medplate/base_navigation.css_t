@@ -1,11 +1,6 @@
 {% extends "medplate/elem.css_t" %}
 
 {% block body %}
-{{ tag }} ul {
-	display: none;
-	z-index:9999;
-}
-
 {{ tag }} li.ui-state-active { {% if active_background %}
     background: {{ active_background }};{% endif %}
 }{% if active_color %}
@@ -18,6 +13,8 @@
 
 /* level 2 list */
 {{ tag }} ul {
+    display: {{ secondary_display }};
+    z-index:9999;
     background: {{ hover_background }};{% if secondary_border %}
     border: {{ secondary_border }};{% endif %}{% if drop_down_shadow %}
     -webkit-box-shadow: {{ drop_down_shadow }};
@@ -43,6 +40,14 @@
     background: {{ secondary_hover_background }};{% endif %}
 }
 
+{% if secondary_hover_color %}
+{{ tag }} ul li:hover ul a {
+    color: {{ hover_color }};
+}
+{{ tag }} ul li:hover a {
+    color: {{ secondary_hover_color }};
+}{% endif %}
+
 
 {{ tag }} li ul li {
     line-height:2em;
@@ -55,7 +60,7 @@
 {{ tag }} li ul li a {
     line-height:2em;
     height:2em;
-    text-align:left;
+    text-align: {{ float }};
     width: {{ secondary_width }};
     cursor:pointer !important;
     white-space:nowrap;

@@ -9,6 +9,7 @@
 {{ tag }} li a {
 	height:{{ height }};
 	line-height:{{ height }};
+	float: left;
 	border:0;
 }
 {{ tag }} li a {
@@ -54,12 +55,13 @@
  
 /* Subnavigation
 ----------------------------------------------- */
-{{ tag }} li ul {
+{{ tag }} ul {
     position: absolute;
     top: {{ height }};
 	cursor: default;
 	width: auto;
-	height: auto;
+	height: auto;{% if right_align %}
+	right: 0;{% endif %}
 }
 {{ tag }} li ul li {
 	padding:0;
@@ -72,8 +74,9 @@
 /*   level 3+ list
 --------------------------------------------- */
 {{ tag }} ul ul {
-    position: absolute;
-    left: {{ left3plus }};
+    position: absolute; {% if right_align %}
+    right: {{ left3plus }};{% else %}
+    left: {{ left3plus }};{% endif %}
     top: {{ top3plus }};
 }
 

@@ -17,15 +17,17 @@ def boxradius(radius, border = 2, measure = 'px'):
     
 def horizontal_navigation(data):
     '''Calculate css for horizontal navigation'''
-    align = data.pop('align','left')
-    if align == 'left':
-        data['nav_float'] = 'left'
-    elif align == 'right':
-        data['nav_float'] = 'right'
+    align = data.get('float','left')
+    data['float'] = align
+    data['right_align'] = False
+    if align == 'right':
+        data['right_align'] = True
     else:
-        data['li_display'] = 'inline'
-        data['overflow'] = 'hidden'
-        data['display'] = 'inline'
+        data['nav_float'] = 'left'
+    #data['nav_float'] = 'right'
+    data['li_display'] = 'inline'
+    #data['overflow'] = 'hidden'
+    #data['display'] = 'inline'
     anchor_horizontal_padding = data.pop('anchor_horizontal_padding',20)
     secondary_anchor_width = data.pop('secondary_anchor_width',100)
     secondary_border_with = data.pop('secondary_border_with',0)
@@ -38,7 +40,8 @@ def horizontal_navigation(data):
     border_color = data.pop('secondary_border_color',None)
     if secondary_border_with:
         data['secondary_border'] = '{0}px solid {1}'.format(secondary_border_with,
-                                                            border_color)
+                                                            border_color) 
+    data['secondary_display'] = data.get('secondary_display','none')
     return data
 
 

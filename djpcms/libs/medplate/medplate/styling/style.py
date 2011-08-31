@@ -251,6 +251,12 @@ CssContext('datatable',
                                data = {
                                 'cursor': 'pointer'
                             }),
+                    CssContext('datatable-tbody-td',
+                               tag='tbody td',
+                               data = {
+                                'vertical_align': 'center',
+                                'padding':'4px'
+                            }),
                     ]
            )
 

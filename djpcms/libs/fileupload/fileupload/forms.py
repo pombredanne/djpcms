@@ -40,18 +40,15 @@ jquery.templates/beta1/jquery.tmpl.min.js',
             css = {'screen':['fileupload/jquery.fileupload-ui.css']})
     
     def stream(self, djp, widget, context):
-        bfield = widget.internal['field']
-        w = bfield.field.get_widget(djp, bfield)
-        whtml = w.render(djp)
         yield '<label class="fileinput-button">\
 <span>Add files...</span>\
-{0}\
+{0[inner]}\
 </label>\
 <button type="submit" class="start">Start upload</button>\
 <button type="reset" class="cancel">Cancel upload</button>\
-<button type="button" class="delete">Delete files</button>'.format(whtml)
+<button type="button" class="delete">Delete files</button>'.format(context)
 
-    def media(self,*args):
+    def media(self, djp = None):
         return self._media
 
 

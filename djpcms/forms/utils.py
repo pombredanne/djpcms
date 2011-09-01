@@ -178,7 +178,8 @@ has been submitted.'''
     curr = request.environ.get('HTTP_REFERER')
     referer = data.get(REFERER_KEY,None)
     fhtml = view.get_form(djp)
-    editing = isinstance(instance,appmodel.model)
+    model = appmodel.model
+    editing = isinstance(instance,model) if model else False
     
     layout = fhtml.layout
     f = fhtml.form

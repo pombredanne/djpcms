@@ -149,7 +149,8 @@ class ManagementUtility(object):
         """
         Returns the script's main help text, as a string.
         """
-        usage = ['',"Type '%s help <subcommand>' for help on a specific subcommand." % self.prog_name,'']
+        usage = ['',"Type '%s help <subcommand>' for help on a specific\
+ subcommand." % self.prog_name,'']
         usage.append('Available subcommands:')
         commands = self.sites.get_commands()
         return '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
@@ -162,8 +163,8 @@ class ManagementUtility(object):
         try:
             app_name = self.sites.get_commands()[subcommand]
         except KeyError:
-            sys.stderr.write("Unknown command: %r\nType '%s help' for usage.\n" % \
-                (subcommand, self.prog_name))
+            sys.stderr.write("Unknown command: %r\nType '%s help'\
+ for usage.\n" % (subcommand, self.prog_name))
             sys.exit(1)
         if isinstance(app_name, BaseCommand):
             # If the command is already loaded, use it directly.
@@ -215,7 +216,8 @@ class ManagementUtility(object):
             parser.print_lax_help()
             sys.stderr.write(self.main_help_text() + '\n')
         else:
-            self.fetch_command(subcommand).run_from_argv(self.callable, self.argv)
+            self.fetch_command(subcommand).run_from_argv(self.callable,
+                                                         self.argv)
 
 
 def execute(sites, argv=None, **params):

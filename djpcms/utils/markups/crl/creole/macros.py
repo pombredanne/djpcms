@@ -24,8 +24,8 @@ def dbimage(body, *args, **kwargs):
     try:
         elem = Image.objects.get(name = body)
     except:
-        return u''
-    return u''
+        return ''
+    return ''
 addmacro(dbimage)
 
 
@@ -55,7 +55,7 @@ def image(body, *args, **kwargs):
     try:
         img = Image.objects.get(slug = body)
     except:
-        return u''
+        return ''
     kwargs['title'] = kwargs.pop('title',None) or img.description or img.name
     kwargs['alt']   = kwargs.pop('alt',None) or img.name
     kwargs['src']   = img.url

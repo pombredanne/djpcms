@@ -3,17 +3,24 @@ import time
 from docutils.core import publish_parts
 
 from sphinx.application import Sphinx
-
 import djpcms
-from djpcms import sites
 from djpcms.utils import gen_unique_id
 from djpcms.utils.markups import application
+
 from .builders import SingleStringHTMLBuilder
 
 def info(self, *args,**kwargs):
     pass
 
+
 Sphinx.info = info
+
+
+class DjpSphinx(Sphinx):
+    
+    def __init__(self):
+        pass
+
 
 class Application(application.Application):
     code = 'rst'
@@ -21,7 +28,7 @@ class Application(application.Application):
     _setup = None
     
     def setup(self):
-        settings = sites.settings
+        settings = djpcms.sites.settings
         cfgdir = settings.SITE_DIRECTORY
         smod = settings.SITE_MODULE
         outdir = os.path.join(cfgdir,'media',smod,self.code)
@@ -42,7 +49,10 @@ class Application(application.Application):
         sx = Sphinx(self.srcdir,
                     self.cfgdir,
                     self.outdir,
-                    self.srcdir,SingleStringHTMLBuilder.name)
+                    self.srcdir,
+                    SingleStringHTMLBuilder.name,
+                    status = None,
+                    warning = None)
         sx.media_url = self.media_url
         master_doc = gen_unique_id()
         mc = (master_doc,'env')

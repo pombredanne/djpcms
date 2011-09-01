@@ -116,7 +116,11 @@ def views_serializable(views):
         
         
 def application_links(views, asbuttons = True):
-    '''\
+    '''A generator of two dimensional tuples containing
+the view name and a rendered html tag (either an anchor or a button).
+
+:parameter views: iterator over views obtained from
+                    :func:`djpcms.html.application_views`
 :parameter asbuttons: optional flag for displaying links as button tags.
 '''
     tag = 'button' if asbuttons else 'a'
@@ -134,7 +138,8 @@ def application_links(views, asbuttons = True):
             a.addClass(css.ajax)
         
         if a.tag == 'a':
-            a.addAttr('href',elem['url']).addClass(elem['icon'])
+            a.addAttr('href',elem['url'])
+            #a.addClass(elem['icon'])
         else:
             a.addData('icon', elem['icon']).addData('href',elem['url'])\
              .addClass(view.link_class)

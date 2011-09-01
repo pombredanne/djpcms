@@ -2,11 +2,11 @@ from djpcms.apps.included.admin import AdminApplication, \
                                         AdminApplicationSimple, TabViewMixin
 from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 
 
-from .models import User,ObjectPermission, Role, Group, Log
+from .models import User, ObjectPermission, Role, Group, Log, Session
 from .forms import RoleForm, GroupForm, PermissionForm
 
 
-NAME = 'Permissions'
+NAME = 'Authentication'
 
 class UserAdmin(TabViewMixin,UserApplicationWithFilter):
     inherit = True
@@ -18,29 +18,36 @@ class UserAdmin(TabViewMixin,UserApplicationWithFilter):
 admin_urls = (
     UserAdmin('/users/',
               User,
-              name = 'Users',
+              name = 'users',
               list_display = ('username','first_name','last_name',
                               'email','is_active','is_superuser')),
     AdminApplication('/groups/',
                      Group,
+                     name = 'groups',
                      form = GroupForm,
                      list_display = ('name','description')),
     AdminApplication('/roles/',
                      Role,
+                     name = 'roles',
                      form = RoleForm,
-                     name = 'Roles',
                      list_display = ('action','numeric_code',
                                      'model_type','object')),
     AdminApplication(
              '/permissions/',
              ObjectPermission,
+             name = 'permissions',
              form = PermissionForm,
-             name = 'Object Permissions',
              list_display = ['role','user','group','action']),
+    AdminApplicationSimple(
+               '/sessions/',
+               Session,
+               name='sessions',
+               list_display = ('id','expiry')
+               ),
     AdminApplicationSimple(
                '/logs/',
                Log,
-               name='Logs',
+               name='logs',
                list_display = ('timestamp','level','source',
                                'msg','host','user'),
                object_display = ('timestamp','level','source',

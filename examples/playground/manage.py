@@ -4,13 +4,12 @@ To run the server simply::
 
     python manage.py serve
     
-To create style sheet::
+To create the style sheet::
 
-    python manage.py style -s smooth
+    python manage.py style
 
 '''
 import djpcms
-from djpcms.apps.management import execute
 
 
 class Loader(object):
@@ -48,4 +47,4 @@ class Loader(object):
     
     
 if __name__ == '__main__':
-    execute(Loader())
+    djpcms.execute(Loader())

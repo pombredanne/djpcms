@@ -444,24 +444,24 @@ CssContext('breadcrumbs',
 
 
 #________________________________________ JAVASCRIPT LOGGING PLUGIN
-CssContext('javascript_logging',
+CssContext('jslog',
            tag = '.djp-logging-panel',
            data = {
-                   'overflow': 'scroll',
+                   'overflow': 'auto',
                    'height':'400px'},
-           elems = [CssContext('debug',
+           elems = [CssContext('jslog-debug',
                                tag = '.log.debug',
                                data = {'color':'#9C9C9C'}),
-                    CssContext('info',
+                    CssContext('jslog-info',
                                tag = '.log.info',
                                data = {'color':'#339933'}),
-                    CssContext('warn',
+                    CssContext('jslog-warn',
                                tag = '.log.warn',
                                data = {'color':'#996633'}),
-                    CssContext('error',
+                    CssContext('jslog-error',
                                tag = '.log.error',
                                data = {'color':'#CC0033','font_weight':'bold'}),
-                    CssContext('critical',
+                    CssContext('jslog-critical',
                                tag = '.log.critical',
                                data = {'color':'#CC0033','font_weight':'bold'})]
            )

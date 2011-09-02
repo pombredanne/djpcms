@@ -12,7 +12,11 @@ from .defaults import body_defaults, jqueryui, jquery_style_mapping
 
 _root = None
 _context_dictionary = OrderedDict()
+_themes = set()
 
+def themes(exclude = None):
+    exclude = exclude or ()
+    return tuple(sorted((t for t in _themes if t not in exclude)))
 
 class _CssContext(object):
     '''Create a Css template which will be included in the
@@ -289,6 +293,7 @@ def CssTheme(context, theme_name, data = None):
     if not data:
         data = {}
     
+    _themes.add(theme_name)
     for c in context:
         if theme_name in c.themes:
             theme = c.themes[theme_name]

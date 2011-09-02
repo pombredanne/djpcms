@@ -20,7 +20,8 @@
 	font-style:{{ font_style }};{% endif %}{% if font_variant %}
 	font-variant:{{ font_variant }};{% endif %}{% if font_weight %}
 	font-weight:{{ font_weight }};{% endif %}{% if line_height %}
-	line-height: {{ line_height }};{% endif %}{% if text_align %}
+	line-height: {{ line_height }};{% endif %}{% if vertical_align %}
+	vertical-align: {{ vertical_align }};{% endif %}{% if text_align %}
 	text-align: {{ text_align }};{% endif %}{% if text_transform %}
 	text-transform: {{ text_transform }};{% endif %}{% if text_decoration %}
 	text-decoration: {{ text_decoration }};{% endif %}{% if overflow %}

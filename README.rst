@@ -10,8 +10,8 @@ Djpcms is a dynamic Content Management System which uses Python on the server si
 and Javascript with jQuery_ on the browser side.
 It is designed to handle dynamic applications which require
 high level of customization.
-Lots of AJAX enabled features including inline editing, autocomplete and
-ajax forms.
+Lots of AJAX enabled features including inline editing, autocomplete,
+ajax forms, dynamic tables and more.
 It works with Python_ 2.6 and up including python 3 series.
 The template engine is jinja2_ which is shipped with the distribution.
 
@@ -110,6 +110,7 @@ Python
 ---------
 * jinja2_ for templating. Shipped with the library in the ``libs``
   module but a library in its own.
+* django_ for ideas and actual chunks of code.
 
 JavaScript
 ------------
@@ -117,9 +118,8 @@ JavaScript
 * jQuery DataTables_ plugin for managing dynamic tables. 
 * jQuery cycle_ plugin for photo galleries. 
 * jQuery bsmSelect_ plugin for multiple select.
-* Modernizr_, a small JavaScript library that detects the availability of native implementations for next-generation web technologies.
-
-In addition, several ideas and code snippets have been taken from django_.
+* Modernizr_, a small JavaScript library that detects the availability o
+  native implementations for next-generation web technologies.
 
 
 .. _pypi: http://pypi.python.org/pypi?:action=display&name=djpcms

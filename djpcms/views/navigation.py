@@ -1,6 +1,7 @@
 '''Utility module for creating a navigations and breadcrumbs
 '''
 import djpcms
+from djpcms.html import Widget
 from djpcms.utils.const import *
 from djpcms.utils import mark_safe
     
@@ -81,21 +82,17 @@ class Navigator(LazyHtml):
             yield self.make_item(djp, ' '.join(classes))
     
     def stream(self):
-        items = self.items(**self.kwargs)
+        lis = '\n'.join((Widget('li').addClass(item.liclass)\
+                                     .render(inner = item) for\
+                                      item in self.items(**self.kwargs)))
         if self.url:
             yield '<a href="{0}">{1}</a>'.format(self.url,self.name)
-        if items:
+        if lis:
             if self.classes:
                 yield '<ul class="{0}">'.format(self.classes)
             else:
                 yield UL
-            for item in items:
-                if item.liclass:
-                    yield '<li class="{0}">'.format(item.liclass)
-                else:
-                    yield LI
-                yield item.__unicode__()
-                yield LIEND
+            yield lis
             yield ULEND
             
     def render(self):

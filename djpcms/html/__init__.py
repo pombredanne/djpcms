@@ -25,4 +25,5 @@ from .nicerepr import *
 from .objectdef import *
 from .apptools import *
 from .table import *
+from .tabs import *
 

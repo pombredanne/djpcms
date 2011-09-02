@@ -1,4 +1,5 @@
 import djpcms
+
 DEBUG = False
 SECRET_KEY = None
 PROFILING_KEY = None
@@ -22,8 +23,9 @@ ADMIN_GROUPING = None
 MIDDLEWARE_CLASSES = ('djpcms.middleware.gzip.GZipMiddleware',)
 AUTHENTICATION_BACKENDS = ('djpcms.contrib.sessions.backends.ModelBackend',)
 TEMPLATE_DIRS = ()  # Additional template dlocation directories
-TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
-                               "djpcms.core.context_processors.messages")
+DEFAULT_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
+                              "djpcms.core.context_processors.messages")
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_CONTEXT_PROCESSORS
 
 CMS_ORM = None                  # django, stdnet
 

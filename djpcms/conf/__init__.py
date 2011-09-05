@@ -58,8 +58,16 @@ class DjpcmsConfig(object):
     def fill(self, mod, override = True):
         v = self._values
         for sett in dir(mod):
-            if sett == sett.upper() and (sett not in v or override):
-                v[sett] = getattr(mod, sett)
+            if sett == sett.upper():
+                setts = sett.split('__')
+                d = v
+                for s in setts[:-1]:
+                    if s not in d:
+                        d[s] = {}
+                    d = d[s]
+                s = setts[-1]
+                if s not in d or override:
+                    d[s] = getattr(mod, sett)
                     
     def has(self, name):
         return name in self._settings

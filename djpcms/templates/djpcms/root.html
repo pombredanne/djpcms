@@ -5,17 +5,14 @@
 {% block blockkeywords %}<meta name="keywords" content="{% block site_keywords %}{% endblock %}"/>{% endblock %}
 {% block blockdescriptions %}<meta name="description" content="{% block site_description %}{% endblock %}"/>{% endblock %}
 <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% block sitetitle %}{% endblock %}{% endblock %}</title>
-<!-- Global IE fix to avoid layout crash when single word size wider than column width -->
-<!--[if IE]><style type="text/css"> body {word-wrap: break-word;}</style><![endif]-->{% if pagelink %}{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
-{{ head }}{% endfor %}{% endif %}{% endif %}{% block head_content %}
-<!--  STYLING -->{% block style_reset %}
-{% include "djpcms/bits/reset.html" %}{% endblock %}{% block view_media %}{% if media %}{% for css in media.render_css %}
-{{ css }}{% endfor %}{% endif %}{% endblock %}{% block extra_style %}{% endblock %}
-<style type="text/css">{% block body_extra_style %}{% endblock %}
-</style>
+{% if pagelink %}{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
+{{ head }}{% endfor %}{% endif %}{% endif %}
+<!--  STYLING -->
+{% include "djpcms/gridcss.html" %}
+{% block extra_style %}{% endblock %}{% block head_style %}{% if media %}
+{% for css in media.render_css %}
+{{ css }}{% endfor %}{% endif %}{% endblock %}
 <!-- END OF STYLING -->
-<script type="text/javascript" src="{{ MEDIA_URL }}djpcms/modernizr-1.7.min.js"></script>
-{% block extra_head %}{% endblock %}{% endblock %}
 </head>
 
 <body{% block bodybits %}{% endblock %}>{% block pre_body %}{% if prebody %}

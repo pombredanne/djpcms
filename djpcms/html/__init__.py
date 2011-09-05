@@ -27,3 +27,21 @@ from .apptools import *
 from .table import *
 from .tabs import *
 
+
+def block(stream, id = None, cn = None, djp = None):
+    div = Widget('div', id = id, cn = 'djpcms-block').addClass(cn)
+    return div.render(djp = djp, inner = '\n'.join(stream))
+
+
+class blockelement(Widget):
+    maker = 'div'
+    wrap_class = 'djpcms-block-element'
+    
+    def __init__(self, b, **kwargs):
+        self._b = b
+        super(blockelement,self).__init__(**kwargs)
+        self.addClass(self.wrap_class)
+
+    def render(self, djp = None, inner = None):
+        inner = self._b.render(djp)
+        return super(blockelement,self).render(djp,inner)

@@ -34,25 +34,6 @@ CssContext('anchor',
         }
 )
 
-CssContext('widget-anchor',
-           tag = '.ui-widget-content a',
-           template = 'medplate/anchor.css_t',
-           data = {
-                   'text_decoration': 'none',
-                   'weight':'normal',
-                   }
-           )
-
-
-CssContext('anchor-ui',
-           tag = 'a.ui-hoverable',
-           data = {
-            'display':'inline',
-            'border':'none',
-            'width':'18px',
-            'height':'18px',
-        }
-)
                     
 #________________________________________ nav    -     MAIN NAVIGATION
 CssContext('nav',
@@ -295,28 +276,36 @@ CssContext('edit_plugin_body',
 box = CssContext('box',
                  tag='.djpcms-html-box',
                  template='medplate/box/box.css_t',
-                 data = {})
-
-CssContext('hd',
-           parent = box,
-           tag='.hd',
-           template='medplate/box/header.css_t',
-           data={'padding':BOX_HEADER_PADDING,
-                 #'text_transform':'uppercase',
-                 'title_size':'110%',
-                 'font_weight':'normal',
-                 'overflow':'hidden'}),
-CssContext('bd',
-           parent = box,
-           tag='.bd',
-           data={'padding':BOX_BODY_PADDING,
-                 'border':'none'}),
-CssContext('ft',
-           parent = box,
-           tag='.ft',
-           data={'padding':BOX_BODY_PADDING,
-                 'overflow':'hidden',
-                 'border':'none'})
+                 data = {},
+                 elems = [
+                    CssContext(
+                        'box-hd',
+                        tag='.hd',
+                        data={'padding':BOX_HEADER_PADDING,
+                              'overflow':'hidden'},
+                        elems = [
+                            CssContext(
+                                'box-hd-h2',
+                                tag='h2',
+                                data={#'text_transform':'uppercase',
+                                      'font_size':'110%',
+                                      'font_weight':'normal',
+                                      'float':'left',
+                                      'padding':'0',
+                                      'margin':'0'},
+                                )
+                        ]),
+                    CssContext('box-bd',
+                               tag='.bd',
+                               data={'padding':BOX_BODY_PADDING,
+                                     'border':'none'}),
+                    CssContext('box-ft',
+                               tag='.ft',
+                               data={'padding':BOX_BODY_PADDING,
+                                     'overflow':'hidden',
+                                     'border':'none'})
+                    ]
+)
 
 
 #________________________________________ EDITING
@@ -367,16 +356,25 @@ CssContext('flatbox',
            data = {'overflow':'hidden',
                    'margin':0,
                    'padding':0},
-           elems = [CssContext('hd',
-                               tag='div.hd',
-                               template='medplate/box/header.css_t',
-                               data={'font_weight': 'bold',
-                                     'title_size':'110%',
-                                     'padding':BOX_HEADER_PADDING,
-                                     'overflow':'hidden'}),
-                    CssContext('bd',
-                               tag='div.bd',
-                               data={'padding':BOX_BODY_PADDING})
+           elems = [CssContext('flatbox-hd',
+                            tag='div.hd',
+                            data={'padding':BOX_HEADER_PADDING,
+                                  'overflow':'hidden'},
+                            elems = [
+                            CssContext(
+                                'fltbox-hd-h2',
+                                tag='h2',
+                                data={#'text_transform':'uppercase',
+                                      'font_size':'110%',
+                                      'font_weight':'normal',
+                                      'float':'left',
+                                      'padding':'0',
+                                      'margin':'0'},
+                                )
+                            ]),
+                    CssContext('flatbox-bd',
+                            tag='div.bd',
+                            data={'padding':BOX_BODY_PADDING})
                     ]
            )
 
@@ -532,10 +530,6 @@ default_data_theme = (
                    'background':'#ffffff'}),
           ('flatbox', {'background':'#ffffff',
                       'border':'1px solid #4297d7'}),
-          ('widget-anchor', {'color':'#026890',
-                            'color_hover':'#6eac2c',
-                            'text_decoration': 'none',
-                            'weight':'normal'}),
           ('breadcrumbs', {'color':'#333333'}),
           ('box',{}),
           # Uniform

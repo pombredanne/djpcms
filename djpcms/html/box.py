@@ -1,7 +1,7 @@
 from .base import Widget, WidgetMaker
 
 
-__all__ = ['BoxWidget','box']
+__all__ = ['BoxWidget','Box','box']
 
 
 class BoxWidget(WidgetMaker):
@@ -61,3 +61,4 @@ def box(hd = None, bd = None, ft = None, minimize = False,
     if delurl:
         menulist.append('<a class="ajax" href="{0}"><span class="ui-icon ui-icon-closethick"></span></a>'.format(delurl))
     return b.render()
+

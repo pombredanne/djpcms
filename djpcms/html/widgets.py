@@ -1,5 +1,5 @@
 from djpcms import sites
-from djpcms.utils import escape, js, media
+from djpcms.utils import escape, js, media, gen_unique_id
 from djpcms.utils.const import *
 
 from .base import WidgetMaker, Widget
@@ -110,9 +110,9 @@ class Select(FieldWidget):
         return '\n'.join(self.render_options(djp, widget))
     
     def render_options(self, djp, widget):
-        selected_choices = widget.internal['selected_choices']
+        selected_choices = widget.internal.get('selected_choices',())
         model = widget.internal.get('model',None)
-        choices = widget.internal.get('choices',None)
+        choices = widget.internal.get('choices',self.choices) or ()
         option = self._option
         selected = self._selected
         if model:
@@ -149,6 +149,7 @@ SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 CheckboxInput(default='input:checkbox')
+Select()
 
 
 class ListWidget(WidgetMaker):
@@ -199,33 +200,18 @@ def SelectWithAction(choices, action_url, **kwargs):
     return a.render()+s.render()
 
 
-class TextSelect(WidgetMaker):
-    tag = 'div'
-    default_class = 'text-select'
-    
-    def __init__(self, data, empty_label = None, **kwargs):
-        super(TextSelect,self).__init__(**kwargs)
-        choices = []
-        text = []
-        initial = None
-        if empty_label:
-            initial = ''
-            choices.append(('',empty_label))
-        for name,value,body in data:
-            if initial is None:
-                initial = name
-            choices.append((name,value))
-            text.append((name,body))
-        self.add(Select(choices=choices))
-        self.initial = initial
-        self.body = text
-    
-    def stream(self, djp, widget, context):
-        for child in context['children']:
-            yield child
-        for name,body in self.body:
-            yield Widget(maker='div',
-                         cn = '{0} target'.format(name))\
-                        .render(inner = body)
-    
+class TextSelect(object):
+
+    def __init__(self, choices, html, **kwargs):
+        '''If no htmlid is provided, a new widget containing the target html
+    is created and data is an iterable over three elements tuples.'''
+        htmlid = gen_unique_id()[:8]
+        self.select = Widget('select', choices = choices, cn = 'text-select')\
+                    .addData('target','#{0}'.format(htmlid))
+        self.html = '\n'.join((Widget('div', cn = '{0} target'.format(name))\
+                          .render(inner=body) for name,body in html))
+        self.target = Widget('div',id=htmlid).render(inner=html)
         
+    def render(self, djp = None):
+        return '\n'.join((self.select.render(),self.target))
+    

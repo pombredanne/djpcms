@@ -20,12 +20,12 @@ SITEMAP_TIMEOUT = 60
 # To group applications admin together. Check the documentation
 ADMIN_GROUPING = None
 
+#MIDDLEWARE AND TEMPLATE PROCESSORS
 MIDDLEWARE_CLASSES = ('djpcms.middleware.gzip.GZipMiddleware',)
 AUTHENTICATION_BACKENDS = ('djpcms.contrib.sessions.backends.ModelBackend',)
 TEMPLATE_DIRS = ()  # Additional template dlocation directories
-DEFAULT_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
-                              "djpcms.core.context_processors.messages")
-TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_CONTEXT_PROCESSORS
+TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
+                               "djpcms.core.context_processors.messages")
 
 CMS_ORM = None                  # django, stdnet
 
@@ -75,10 +75,15 @@ JQUERY_VERSION = '1.6.2'
 JQUERY_UI_VERSION = '1.8.16'
 SWFOBJECT_VERSION = '2.2'
 DEFAULT_STYLE_SHEET = []
-DEFAULT_JAVASCRIPT = ["djpcms/jquery.cookie.js",
+DEFAULT_JAVASCRIPT = ['djpcms/modernizr-1.7.min.js',
+                      'djpcms/jquery.cookie.js',
                       #"{0[MEDIA_URL]}djpcms/jquery.pagination.js",
                       "djpcms/form.js",
                       "djpcms/djpcms.js"]
+
+#SPHINX CONFIG
+SPHINX__EXTENSIONS = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath',
+                      'sphinx.ext.extlinks']
 
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE

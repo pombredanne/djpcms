@@ -1,4 +1,0 @@
-#
-#   DARK HIVE THEME
-#
-data = ()

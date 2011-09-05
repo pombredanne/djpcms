@@ -2,7 +2,7 @@ import os
 import time
 from docutils.core import publish_parts
 
-from sphinx.application import Sphinx
+from sphinx import application as Sphinx
 import djpcms
 from djpcms.utils import gen_unique_id
 from djpcms.utils.markups import application
@@ -16,10 +16,8 @@ def info(self, *args,**kwargs):
 Sphinx.info = info
 
 
-class DjpSphinx(Sphinx):
-    
-    def __init__(self):
-        pass
+class DjpSphinx(Sphinx.Sphinx):
+    pass
 
 
 class Application(application.Application):
@@ -38,7 +36,7 @@ class Application(application.Application):
         if not os.path.exists(srcdir):
             os.mkdir(srcdir)
         self.srcdir = srcdir
-        self.cfgdir = cfgdir
+        self.confoverrides = settings.SPHINX
         self.outdir = outdir
         self.media_url = '{0}{1}/{2}/'.format(settings.MEDIA_URL,smod,self.code)
         
@@ -46,13 +44,14 @@ class Application(application.Application):
         if not self._setup:
             self.setup()
             self._setup = True
-        sx = Sphinx(self.srcdir,
-                    self.cfgdir,
-                    self.outdir,
-                    self.srcdir,
-                    SingleStringHTMLBuilder.name,
-                    status = None,
-                    warning = None)
+        sx = DjpSphinx(self.srcdir,
+                       None,
+                       self.outdir,
+                       self.srcdir,
+                       SingleStringHTMLBuilder.name,
+                       confoverrides=self.confoverrides,
+                       status = None,
+                       warning = None)
         sx.media_url = self.media_url
         master_doc = gen_unique_id()
         mc = (master_doc,'env')

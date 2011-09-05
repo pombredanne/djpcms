@@ -6,3 +6,4 @@ from .sitemap import *
 from .regex import *
 from .navigation import *
 from .appsites import *
+from .contentgenerator import *

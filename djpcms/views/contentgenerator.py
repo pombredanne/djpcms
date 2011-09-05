@@ -1,7 +1,11 @@
 from djpcms import UnicodeMixin
 from djpcms.utils import force_str
 from djpcms.core.page import block_htmlid
-from djpcms.html import EMPTY_VALUE
+from djpcms.html import EMPTY_VALUE, Widget, blockelement
+
+
+__all__ = ['BlockContentGen']
+
 
 
 class BlockContentGen(UnicodeMixin):
@@ -12,7 +16,7 @@ Within each ``block`` there may be one or more ``contents``.
 
 The edit mode block elements are rendered using the EDIT_BLOCK_TEMPLATES templates (see at top of file)
     '''
-    def __init__(self, djp, b, editing):
+    def __init__(self, djp, b, editing = False):
         '''Initialize generator: *djp* is an instance of :class:`djpcms.views.response.DjpResponse`
 and *b* is an integer indicating the ``block`` number in the page.'''
         self.djp     = djp
@@ -23,8 +27,11 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         
     def stream(self):
         edit = '' if not self.editing else 'sortable-block '
-        id   = block_htmlid(self.page.id,self.b)
-        yield '<div id="{0}" class="{1}djpcms-block">'.format(id,edit)
+        if self.page:
+            id   = block_htmlid(self.page.id,self.b)
+            yield '<div id="{1}" class="{0}djpcms-block">'.format(edit,id)
+        else:
+            yield '<div class="{0}djpcms-block">'.format(edit)
         for ht in self.blocks():
             if ht:
                 yield ht
@@ -44,8 +51,9 @@ and *b* is an integer indicating the ``block`` number in the page.'''
             appmodel = self.djp.site.for_model(BlockContent,all=True)
             return appmodel.blocks(self.djp, self.page, self.b)
         else:
-            blockcontents = BlockContent.objects.for_page_block(self.page, self.b)
-            return self._blocks(blockcontents)
+            b = BlockContent.objects.for_page_block(self.page, self.b)\
+                 if self.page else (blockelement(b) for b in self.b)
+            return self._blocks(b)
         
     def _blocks(self, blockcontents):
         '''

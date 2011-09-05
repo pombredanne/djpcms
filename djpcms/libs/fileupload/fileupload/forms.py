@@ -1,5 +1,5 @@
 from djpcms import forms, html, sites, ajax
-from djpcms.utils import media
+from djpcms.utils import js, media
 from djpcms.forms import layout
 
 
@@ -32,8 +32,7 @@ class UploadForm(forms.Form):
 class FileInputHtml(layout.FieldWidget):
     tag = 'div'
     default_class = "fileupload-buttonbar"
-    _media = media.Media(js = ['http://ajax.aspnetcdn.com/ajax/\
-jquery.templates/beta1/jquery.tmpl.min.js',
+    _media = media.Media(js = [js.jquerytemplate(),
                                 'fileupload/jquery.fileupload.js',
                                 'fileupload/jquery.fileupload-ui.js',
                                 'fileupload/upload.js'],

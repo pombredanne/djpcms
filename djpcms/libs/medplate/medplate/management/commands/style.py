@@ -87,6 +87,7 @@ class Command(BaseCommand):
             if os.path.isdir(mdir):
                 target = os.path.join(mdir,target)
         render(sites,style,target,apps,mediaurl)
+        print('Saved style on file "{0}"'.format(target))
         
         
         

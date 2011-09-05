@@ -10,7 +10,6 @@ Created by medplate  {{ date_created }}
 {% endblock %}
 
 {% block include_media %}
-{% include "medplate/css/normalize.css" %}
 {% if jquery %}
 {{ jquery }}{% endif %}
 {% include "medplate/css/yui3-grids.css" %}{% endblock %}

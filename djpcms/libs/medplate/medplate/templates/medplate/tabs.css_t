@@ -3,6 +3,7 @@
 
 div.ui-tabs.whole-page {
     padding: 0;
+    background: transparent;
 }
 
 .ui-tabs.whole-page .ui-tabs-panel {

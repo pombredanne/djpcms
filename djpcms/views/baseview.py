@@ -3,8 +3,7 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import UnicodeMixin, forms, http, html
-from djpcms.utils.ajax import jredirect, dialog
+from djpcms import UnicodeMixin, forms, http, html, ajax
 from djpcms.template import loader
 from djpcms.utils import parentpath
 
@@ -34,7 +33,7 @@ A mixin class for rendering objects as HTML
     appmodel = None
     template_name = None
     name = None
-    dialog_width = 400
+    dialog_width = 'auto'
     ajax_enabled = None
     list_display = ()
     
@@ -55,6 +54,13 @@ other wise the ``render`` method of the :attr:`appmodel`.
         '''Return an instance of a user model if the current renderer
 belongs to a user, otherwise returns ``None``.'''
         return None
+    
+    def redirect(self, request, url):
+        '''An utility which return a redirect response'''
+        if request.is_xhr:
+            return ajax.jredirect(url)
+        else:
+            return http.ResponseRedirect(url)
 
 
 class djpcmsview(RendererMixin):
@@ -179,10 +185,10 @@ http requests.
     
     def ajax_get_response(self, djp):
         html = self.render(djp)
-        return dialog(hd = djp.title,
-                      bd = html,
-                      width = self.dialog_width,
-                      modal = True)
+        return ajax.dialog(hd = djp.title,
+                           bd = html,
+                           width = 'self.dialog_width',
+                           modal = True)
     
     def ajax_post_response(self, djp):
         '''Handle AJAX post requests'''
@@ -193,7 +199,7 @@ http requests.
             next = data.get(forms.REFERER_KEY,None)
             next = self.defaultredirect(djp.request, next = next,
                                         **djp.kwargs)
-            return jredirect(next)
+            return ajax.jredirect(next)
         return self.default_post(djp)
     
     def has_permission(self, request, page = None, obj = None, user = None):

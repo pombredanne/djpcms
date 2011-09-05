@@ -41,6 +41,7 @@ CssContext('nav',
            template='medplate/horizontal_navigation.css_t',
            process = horizontal_navigation,
            data = {
+                   'margin':'0',
                    'display':'block',
                    'anchor_horizontal_padding': 20,
                    # Useful! Control the with of drop-down
@@ -144,7 +145,9 @@ CssContext('model-links',
                 }
            )
 
-CssContext('user-nav', tag = '.user-nav')
+CssContext('user-nav',
+           tag = 'ul.user-nav',
+           data = {'margin':'0'})
 
 #________________________________________ TAGS
 CssContext('tags',

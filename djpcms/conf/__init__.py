@@ -58,8 +58,9 @@ class DjpcmsConfig(object):
     def fill(self, mod, override = True):
         v = self._values
         for sett in dir(mod):
-            if sett == sett.upper():
-                setts = sett.split('__')
+            setts = sett.split('__')
+            s = setts[0]
+            if s == s.upper():
                 d = v
                 for s in setts[:-1]:
                     if s not in d:

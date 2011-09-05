@@ -2,7 +2,6 @@
 
 Originally from django
 '''
-from itertools import chain
 from copy import deepcopy
 
 from py2py3 import urlparse
@@ -48,20 +47,22 @@ files such as style sheet and javascript.
     @property
     def all_js(self):
         return '\n'.join(self.render_js())
-
+    
     @property
     def render_css(self):
-        '''Generator over css stylesheets to be included in the page.'''
         settings = self.settings or {}
         prefix = settings.get('MEDIA_URL','')
         absolute = self.absolute_path
-        media = sorted(self._css)
-        return chain(*[
-            (mark_safe('<link href="%s" type="text/css" media="%s"\
- rel="stylesheet" />' % (absolute(path,prefix), medium))
-                    for path in self._css[medium])
-                for medium in media])
-
+        for medium in sorted(self._css):
+            paths = self._css[medium]
+            medium = '' if medium == 'all' else " media='{0}'".format(medium)
+            for path in paths:
+                link = "<link href='{0}' type='text/css'{1}\
+ rel='stylesheet' />".format(absolute(path[0],prefix), medium)
+                if len(path) == 2:
+                    link = '<!--[if {0}]>{1}<![endif]-->'.format(path[1],link)
+                yield mark_safe(link)
+        
     def absolute_path(self, path, prefix=None):
         if path.startswith('http://') or path.startswith('https://')\
          or path.startswith('/'):
@@ -82,11 +83,15 @@ files such as style sheet and javascript.
 
     def add_css(self, data):
         if data:
+            css = self._css
             for medium, paths in data.items():
+                if medium not in css:
+                    css[medium] = []
+                medium = css[medium]
                 for path in paths:
-                    if not self._css.get(medium) or path not in\
-                         self._css[medium]:
-                        self._css.setdefault(medium, []).append(path)
+                    if not isinstance(path,(tuple,list)):
+                        path = (path,)
+                    medium.append(path)
 
     def add(self, other):
         if isinstance(other,Media):

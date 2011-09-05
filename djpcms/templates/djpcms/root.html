@@ -7,11 +7,10 @@
 <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% block sitetitle %}{% endblock %}{% endblock %}</title>
 {% if pagelink %}{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
 {{ head }}{% endfor %}{% endif %}{% endif %}
-<!--  STYLING -->
-{% include "djpcms/gridcss.html" %}
-{% block extra_style %}{% endblock %}{% block head_style %}{% if media %}
+<!--  STYLING -->{% block head_style %}{% if media %}
 {% for css in media.render_css %}
-{{ css }}{% endfor %}{% endif %}{% endblock %}
+{{ css }}{% endfor %}{% endif %}
+{% block extra_style %}{% endblock %}{% endblock %}
 <!-- END OF STYLING -->
 </head>
 

@@ -32,6 +32,7 @@ managing settings.'''
             m = media.Media(settings = settings)
             m.add_js(js.jquery_paths(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
+            m.add_css(settings.DEFAULT_STYLE_SHEET)
             m.add(self.view.media())
             self._media = m
         return self._media

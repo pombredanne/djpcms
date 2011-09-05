@@ -130,7 +130,6 @@ procedure calls validation.
     
 '''
     prefix_input = '_prefixed'
-    auto_id='id_{0[html_name]}'
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
@@ -283,9 +282,9 @@ if it is bound.'''
         form_message = self.form_message
         
         # Loop over form fields
-        for name,field in iteritems(self.base_fields):
-            key = '{0}{1}'.format(self.prefix,field.html_name(name))         
-            bfield = BoundField(self,field,name,key)
+        for name,field in iteritems(self.base_fields):         
+            bfield = BoundField(self,field,name,self.prefix)
+            key = bfield.html_name
             fields.append(bfield)
             dfields[name] = bfield
             field_value = None
@@ -429,18 +428,21 @@ and shouldn't be used otherwise. It is an utility class.
     The :attr:`field` name to be used in HTML.
 '''
     _widget = None
-    def __init__(self, form, field, name, html_name = None):
+    auto_id='id_{0[for_name]}'
+    
+    def __init__(self, form, field, name, prefix):
         self.form = form
         self.field = field
         self.name = name
-        self.html_name = html_name or name
+        self.for_name = '{0}{1}'.format(prefix,name)
+        self.html_name = field.html_name(self.for_name)
         self.value = None
         if field.label is None:
             self.label = nicename(name)
         else:
             self.label = field.label
         self.help_text = field.help_text
-        self.id = form.auto_id.format(self.__dict__)
+        self.id = self.auto_id.format(self.__dict__)
         self.errors_id = self.id + '-errors'
     
     def __repr__(self):

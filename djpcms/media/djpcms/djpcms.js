@@ -1378,23 +1378,43 @@
     $.djpcms.decorator({
         id: "textselect",
         config: {
-            selector: 'div.text-select select',
+            selector: 'select.text-select',
         },
         description: "A selct widget with text to display",
         decorate: function($this,config) {
+            var elems = $(config.textselect.selector,$this);
+            
             // The selectors
             function text(elem) {
                 var me = $(elem),
-                    pa = me.parent(),
                     val = me.val(),
-                    el;
-                $('.target',pa).hide();
-                if(val) {
-                    $('.target.'+val,pa).show();
+                    target = me.data('target');
+                if(target) {
+                    $('.target',target).hide();
+                    if(val) {
+                        $('.target.'+val,target).show();
+                    }
                 }
             }
             
-            $(config.textselect.selector,$this).change(function(){text(this)});
+            $.each(elems,function() {
+                var me = $(this),
+                    target = me.data('target');
+                if(target) {
+                    var t = $(target,$this);
+                    if(!t.length) {
+                        t = $(target)
+                    }
+                    if(t.length) {
+                        me.data('target',t);
+                        text(me);
+                    }
+                    else {
+                        me.data('target',null);
+                    }
+                }
+            });
+            elems.change(function(){text(this)});
         }
     });
     

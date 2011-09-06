@@ -1,11 +1,13 @@
 import os
 import time
-from docutils.core import publish_parts
 
 from sphinx import application as Sphinx
+
 import djpcms
 from djpcms.utils import gen_unique_id
 from djpcms.utils.markups import application
+
+from py2py3 import StringIO
 
 from .builders import SingleStringHTMLBuilder
 
@@ -13,11 +15,66 @@ def info(self, *args,**kwargs):
     pass
 
 
-Sphinx.info = info
-
 
 class DjpSphinx(Sphinx.Sphinx):
-    pass
+    '''Need to hack sphinx since there is no proper way to manage configuration
+without a config file. The problem are the extensions.'''
+    def __init__(self, srcdir, outdir, doctreedir, buildername,
+                 confoverrides, freshenv=False, tags=None):
+        extensions = confoverrides.get('extensions',{})
+        confoverrides = confoverrides or {}
+        self.next_listener_id = 0
+        self._extensions = {}
+        self._listeners = {}
+        self.domains = Sphinx.BUILTIN_DOMAINS.copy()
+        self.builderclasses = Sphinx.BUILTIN_BUILDERS.copy()
+        self.builder = None
+        self.env = None
+
+        self.srcdir = srcdir
+        self.confdir = None
+        self.outdir = outdir
+        self.doctreedir = doctreedir
+        self._status = StringIO()
+        self._warning = StringIO()
+        self.quiet = True
+        self._warncount = 0
+        self.warningiserror = False
+
+        self._events = Sphinx.events.copy()
+
+        # status code for command-line application
+        self.statuscode = 0
+
+        # read config
+        self.tags = Sphinx.Tags(tags)
+        self.config = Sphinx.Config(None, None, confoverrides, self.tags)
+        self.config.check_unicode(self.warn)
+        self.confdir = self.srcdir
+        for e in extensions:
+            if e not in self.config.extensions:
+                self.config.extensions.append(e)
+
+        # backwards compatibility: activate old C markup
+        self.setup_extension('sphinx.ext.oldcmarkup')
+        # load all user-given extension modules
+        for extension in self.config.extensions:
+            self.setup_extension(extension)
+        # the config file itself can be an extension
+        if self.config.setup:
+            self.config.setup(self)
+
+        # now that we know all config values, collect them from conf.py
+        self.config.init_values()
+        # set up translation infrastructure
+        self._init_i18n()
+        # set up the build environment
+        self._init_env(freshenv)
+        # set up the builder
+        self._init_builder(buildername)
+        
+    def info(self, *args,**kwargs):
+        pass
 
 
 class Application(application.Application):
@@ -45,13 +102,10 @@ class Application(application.Application):
             self.setup()
             self._setup = True
         sx = DjpSphinx(self.srcdir,
-                       None,
                        self.outdir,
                        self.srcdir,
                        SingleStringHTMLBuilder.name,
-                       confoverrides=self.confoverrides,
-                       status = None,
-                       warning = None)
+                       confoverrides=self.confoverrides)
         sx.media_url = self.media_url
         master_doc = gen_unique_id()
         mc = (master_doc,'env')

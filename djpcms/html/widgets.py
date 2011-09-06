@@ -200,18 +200,17 @@ def SelectWithAction(choices, action_url, **kwargs):
     return a.render()+s.render()
 
 
-class TextSelect(object):
-
-    def __init__(self, choices, html, **kwargs):
+class TextSelect(Widget):
+    
+    def __init__(self, choices, html):
         '''If no htmlid is provided, a new widget containing the target html
     is created and data is an iterable over three elements tuples.'''
         htmlid = gen_unique_id()[:8]
-        self.select = Widget('select', choices = choices, cn = 'text-select')\
+        select = Widget('select', choices = choices, cn = 'text-select')\
                     .addData('target','#{0}'.format(htmlid))
-        self.html = '\n'.join((Widget('div', cn = '{0} target'.format(name))\
+        html = '\n'.join((Widget('div', cn = '{0} target'.format(name))\
                           .render(inner=body) for name,body in html))
-        self.target = Widget('div',id=htmlid).render(inner=html)
+        target = Widget('div',id=htmlid).render(inner=html)
+        super(TextSelect,self).__init__(data_stream = (select.render(),target))
         
-    def render(self, djp = None):
-        return '\n'.join((self.select.render(),self.target))
     

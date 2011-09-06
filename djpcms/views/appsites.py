@@ -1,5 +1,6 @@
 import os
 from copy import deepcopy
+from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
@@ -241,6 +242,7 @@ returns the application handler. If the appname is not available, it raises a Ke
     
     def get_instanceurl(self, instance, view_name = 'view', **kwargs):
         '''Calculate a url given a instance'''
+        #TODO REMOVE IT
         app = self.for_model(instance.__class__)
         if app:
             view = app.getview(view_name)
@@ -251,12 +253,27 @@ returns the application handler. If the appname is not available, it raises a Ke
                     return None
         return None
     
-    def get_url(self, model, view_name, request = None,
-                instance = None, all = False, **kwargs):
-        '''Build a url from a model, a view name and optionally a model instance'''
-        if not isinstance(model,type):
-            instance = model
-            model = instance.__class__
+    def get_url(self, model_or_instance, view_name = None, request = None,
+                all = False, **kwargs):
+        '''Build a url from a *model_or_instance* input and an
+optional view name.
+
+:parameter model_or_instance: a model or an instance of a model.
+:parameter view_name: an optional view name. If not defined the view_name will
+                be "search" if `model_or_instance` is a model, otherwise
+                "view" if it is an instance of a model.
+                
+This method is safe and return None if no url is found.
+'''
+        if isclass(model_or_instance):
+            model = model_or_instance
+            instance = None
+            view_name = view_name or 'search'
+        else:
+            instance = model_or_instance
+            model = model_or_instance.__class__
+            view_name = view_name or 'view'
+            
         app = self.for_model(model, all = all)
         if app:
             view = app.getview(view_name)

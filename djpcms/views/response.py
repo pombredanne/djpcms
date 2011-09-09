@@ -278,35 +278,35 @@ the parent of the embedded view.'''
         '''return the type of response or an instance of HttpResponse
         '''
         # Check for page view permissions
-        if not self.has_permission():
-            raise PermissionDenied()
-        
-        view    = self.view
         request = self.request
         is_ajax = request.is_xhr
-        page    = self.page
-        site    = self.site
-        method  = request.method.lower()
-        
-        # chance to bail out early
-        re = view.preprocess(self)
-        if isinstance(re,http.Response):
-            return re
+        try:
+            if not self.has_permission():
+                raise PermissionDenied()
             
-        if not is_ajax:
-            # If user not authenticated set a test cookie
-            if hasattr(request,'user'):
-                if not request.user.is_authenticated() and method == 'get':
-                    request.session.set_test_cookie()
-
-            if method not in (m.lower() for m in view.methods(request)):
-                raise http.HttpException(status = 405,
-                        msg = 'method {0} is not allowed'.format(method))
-        
-            return getattr(view,'%s_response' % method)(self)
-        else:
-            # AJAX RESPONSE
-            try:
+            view    = self.view
+            page    = self.page
+            site    = self.site
+            method  = request.method.lower()
+            
+            # chance to bail out early
+            re = view.preprocess(self)
+            if isinstance(re,http.Response):
+                return re
+                
+            if not is_ajax:
+                # If user not authenticated set a test cookie
+                if hasattr(request,'user'):
+                    if not request.user.is_authenticated() and method == 'get':
+                        request.session.set_test_cookie()
+    
+                if method not in (m.lower() for m in view.methods(request)):
+                    raise http.HttpException(status = 405,
+                            msg = 'method {0} is not allowed'.format(method))
+            
+                return getattr(view,'%s_response' % method)(self)
+            else:
+                # AJAX RESPONSE
                 if method not in (m.lower() for m in view.methods(request)):
                     raise ViewDoesNotExist(
                     'AJAX "{0}" method not available in view.'.format(method))
@@ -322,15 +322,15 @@ the parent of the embedded view.'''
                                                      ajax_view,
                                                      ajax_view_function)
                 res = ajax_view_function(self)
-            except Exception as e:
-                res = handle_ajax_error(self,e)
-            try:
                 return http.Response(res.dumps(),
                                      content_type = res.mimetype())
-            except Exception as e:
+        except Exception as e:
+            if is_ajax:
                 res = handle_ajax_error(self,e)
                 return http.Response(res.dumps(),
-                                     content_type = res.mimetype())
+                                         content_type = res.mimetype())
+            else:
+                raise
     
     def render_to_response(self, context):
         settings = self.settings

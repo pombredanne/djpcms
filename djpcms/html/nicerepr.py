@@ -87,15 +87,6 @@ several possibilities in the following order.
             val = str(e)
     elif hasattr(obj,'__getitem__') and field_name in obj:
         val = obj[field_name]
-    elif FIELD_SPLITTER in field_name:
-        fnames = field_name.split(FIELD_SPLITTER)
-        if hasattr(obj,fnames[0]):
-            field = getattr(obj,fnames[0])
-            return field_repr(FIELD_SPLITTER.join(fnames[1:]), field, **kwargs)
-        elif appmodel:
-            val = appmodel.get_intance_value(obj, field_name)
-        else:
-            val = None
     elif appmodel:
         val = appmodel.get_intance_value(obj, field_name)
     else:

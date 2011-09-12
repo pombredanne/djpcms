@@ -76,9 +76,8 @@ several possibilities in the following order.
   :meth:`djpcms.views.Application.get_intance_value`
 * Return ``None``
 '''
-    if not field_name:
-        val = None
-    elif hasattr(obj,field_name):
+    val = None
+    if hasattr(obj,field_name):
         try:
             val = getattr(obj,field_name)
             if not isclass(val) and hasattr(val,'__call__'):
@@ -87,10 +86,10 @@ several possibilities in the following order.
             val = str(e)
     elif hasattr(obj,'__getitem__') and field_name in obj:
         val = obj[field_name]
-    elif appmodel:
-        val = appmodel.get_intance_value(obj, field_name)
-    else:
-        val = None
+    
+    if appmodel:
+        val = appmodel.get_intance_value(obj, field_name, val)
+
     return nicerepr(val,**kwargs)
             
             

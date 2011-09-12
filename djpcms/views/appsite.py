@@ -573,12 +573,8 @@ By default it return a generator of children pages.'''
             djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
             return djp.for_user()
             
-    def get_intance_value(self, obj, field_name):
-        fname = 'objectfunction__%s' % field_name
-        if hasattr(self,fname):
-            return getattr(self,fname)(obj)
-        else:
-            return None
+    def get_intance_value(self, obj, field_name, val = None):
+        return val
         
     def gen_autocomplete(self, qs):
         for q in qs:

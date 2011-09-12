@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from py2py3 import itervalues, is_string, ispy3k
+from py2py3 import itervalues, is_string, ispy3k, to_bytestring
 
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
@@ -123,7 +123,8 @@ class Request(object):
 
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
-            self._cookies = parse_cookie(self.environ.get('HTTP_COOKIE', ''))
+            c = to_bytestring(self.environ.get('HTTP_COOKIE', b''))
+            self._cookies = parse_cookie(c)
         return self._cookies
 
     def _set_cookies(self, cookies):

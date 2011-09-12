@@ -1,4 +1,4 @@
-from djpcms.style import CssContext, object_definition
+from medplate import CssContext, object_definition
 
 CssContext('redisserver',
            tag = 'div.object-definition.redisserver',

@@ -97,7 +97,8 @@ class ApplicationSite(SiteApp, RouteMixin):
                 appurls = appurls()
         # loop over reversed sorted applications
         if appurls:
-            for application in reversed(sorted(appurls, key = lambda x : x.baseurl)):
+            for application in reversed(\
+                            sorted(appurls, key = lambda x : x.baseurl)):
                 self._register(application)
         url = self.make_url
         urls = ()
@@ -111,11 +112,13 @@ class ApplicationSite(SiteApp, RouteMixin):
     @property
     def applications(self):
         '''The list of registered applications'''
-        return list(reversed(sorted(self._nameregistry.values(), key = lambda x : x.path)))
+        return list(reversed(sorted(\
+                    self._nameregistry.values(), key = lambda x : x.path)))
     
     def _register(self, application, parent = None):
         if not isinstance(application,Application):
-            raise DjpcmsException('Cannot register application. Is is not a valid one.')
+            raise DjpcmsException('Cannot register application.\
+ Is is not a valid one.')
         
         apps = application.apps
         application.apps = None
@@ -128,7 +131,8 @@ class ApplicationSite(SiteApp, RouteMixin):
         model = registered_application.model
         if model:
             if model in self._registry:
-                raise AlreadyRegistered('Model %s already registered as application' % model)
+                raise AlreadyRegistered('Model %s already registered\
+ as application' % model)
             self._registry[model] = registered_application
             
         # Handle parent application if available
@@ -137,7 +141,8 @@ class ApplicationSite(SiteApp, RouteMixin):
             if not parent_view:
                 parent_view = parent.root_view
             elif parent_view not in parent.views:
-                raise ApplicationUrlException("Parent {0} not available in views.".format(parent))
+                raise ApplicationUrlException("Parent {0} not available\
+ in views.".format(parent))
             else:
                 parent_view = parent.views[parent_view]
             registered_application.parent = parent_view
@@ -227,7 +232,8 @@ If the application is not available, it returns ``None``. Never fails.'''
     
     def getapp(self, appname):
         '''Given a *appname* in the form of appname-appview
-returns the application handler. If the appname is not available, it raises a KeyError'''
+returns the application handler. If the appname is not available,
+it raises a KeyError'''
         names = appname.split('-')
         if len(names) == 2:
             name     = names[0]
@@ -237,7 +243,8 @@ returns the application handler. If the appname is not available, it raises a Ke
                 return appmodel.getview(app_code)
         appmodel = self._nameregistry.get(appname,None)
         if appmodel is None:
-            raise ApplicationNotAvailable('Application {0} not available.'.format(appname))
+            raise ApplicationNotAvailable('Application {0}\
+ not available.'.format(appname))
         return appmodel.root_view
     
     def get_instanceurl(self, instance, view_name = 'view', **kwargs):
@@ -287,23 +294,27 @@ This method is safe and return None if no url is found.
                     return None
         return None
     
+    
+    def _load_middleware_object(self,mwobj):
+        if hasattr(mwobj,'process_request'):
+            self._request_middleware.append(mwobj.process_request)
+        if hasattr(mwobj,'process_response'):
+            self._response_middleware.append(mwobj.process_response)
+        if hasattr(mwobj,'process_exception'):
+            self._exception_middleware.append(mwobj.process_exception)
+            
     def _load_middleware(self):
         if self._request_middleware is None:
-            self._request_middleware = mw = []
-            self._response_middleware = rw = []
-            self._exception_middleware = ew = []
+            self._request_middleware = []
+            self._response_middleware = []
+            self._exception_middleware = []
             self.lock.acquire()
             try:
+                self._load_middleware_object(self.permissions)
                 for middleware_path in self.settings.MIDDLEWARE_CLASSES:
                     mwcls = module_attribute(middleware_path,safe=True)
                     if mwcls:
-                        mwobj = mwcls()
-                        if hasattr(mwobj,'process_request'):
-                            mw.append(mwobj.process_request)
-                        if hasattr(mwobj,'process_response'):
-                            rw.append(mwobj.process_response)
-                        if hasattr(mwobj,'process_exception'):
-                            ew.append(mwobj.process_exception)
+                        self._load_middleware_object(mwcls())
             finally:
                 self.lock.release()
                 

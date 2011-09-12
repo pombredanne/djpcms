@@ -1,3 +1,18 @@
+'''\
+Dependencies: **None**
+
+An application which displays a table with all applications
+registered in the same ApplicationSite::
+
+    from djpcms.apps.included.admin import AdminSite
+    from djpcms.apps.included.sitemap import SiteMapView
+    
+    admin_urls = (
+                  SiteAdmin('/', name = 'admin'),
+                  SiteMapView('/sitemap/', name = 'sitemap'),
+                 )
+                  
+'''
 from py2py3 import iteritems
 
 from djpcms import views, html
@@ -125,4 +140,3 @@ class AdminApplication(AdminApplicationSimple):
     inherit = True
     add    = views.AddView()
     change = views.ChangeView()
-

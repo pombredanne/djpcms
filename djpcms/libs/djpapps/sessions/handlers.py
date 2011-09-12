@@ -7,6 +7,7 @@ from .models import Log, User
 
 HOST = platform.node()
 
+
 class DatabaseHandler(logging.Handler):
 
     def emit(self, record):

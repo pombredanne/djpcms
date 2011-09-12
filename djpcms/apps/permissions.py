@@ -10,9 +10,7 @@ __all__ = ['PERMISSION_CODES',
            'DELETE',
            'DELETEALL',
            'addcode',
-           'PermissionBackend',
-           'SimplePermissionBackend',
-           'SimpleLoginPermissionBackend']
+           'PermissionBackend']
 
 
 
@@ -45,11 +43,16 @@ def addcode(code,name):
          PERMISSION_CODES[code] = name
          return code
      
+
+class AuthenticationError(Exception):
+    pass
+     
      
 class PermissionBackend(object):
-        
+    '''Base class for permissions backends'''
+    AuthenticationError = AuthenticationError
+    
     def permission_choices():
-        global PERMISSION_CODES
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     
     def authenticated(self, request, obj, default = False):
@@ -60,31 +63,32 @@ class PermissionBackend(object):
     
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
-        raise NotImplementedError
-
-
-class SimplePermissionBackend(PermissionBackend):
+        return True
     
-    def has(self, request, permission_code, obj = None, model = None,
-            view = None, user = None):
-        if self.authenticated(request,obj):
-            if permission_code <= VIEW:
-                return True
-            else:
-                return request.user.is_superuser
-        else:
-            return False
-        
-
-class SimpleLoginPermissionBackend(PermissionBackend):
+    def authenticate(self, **params):
+        raise self.AuthenticationError('Cannot authenticate user')
     
-    def has(self, request, permission_code, obj = None, model = None,
-            view = None, user = None):
-        if self.authenticated(request,obj,True):
-            if permission_code <= VIEW:
-                return True
+    def login(mapper, request, user):
+        pass
+    
+    def logout(self, request):
+        pass
+    
+    def authenticate_and_login(self, request, **params):
+        '''authenticate and login user. If it fails raises
+a AuthenticationError exception.'''
+        user = self.authenticate(**params)
+        if user is not None and user.is_authenticated():
+            if user.is_active:
+                self.login(request, user)
+                try:
+                    request.session.delete_test_cookie()
+                except:
+                    pass
+                return user
             else:
-                return request.user.is_superuser
+                msg = '%s is not active' % username
         else:
-            return False
+            msg = 'username or password not recognized'
+        raise self.AuthenticationError(msg)
 

@@ -8,9 +8,8 @@ from optparse import make_option
 
 from djpcms import sites
 from djpcms.apps.management.base import BaseCommand
-from djpcms.contrib.monitor.utils import register_models
 
-from djpcms.contrib.sessions.models import User
+from sessions.models import User
 
 try:
     input = raw_input

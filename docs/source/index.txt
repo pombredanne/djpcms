@@ -4,8 +4,7 @@
 DJPCMS
 ====================
 
-.. rubric:: A dynamic Content Management System using Javascript and Python.
-            Pluggable, easy to use and no ideological prejudice.
+.. rubric:: Dynamic jQuery-Python Content Management System.
 
 
 Get it

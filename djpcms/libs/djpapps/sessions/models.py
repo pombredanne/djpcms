@@ -1,7 +1,7 @@
 from stdnet import orm
 from stdnet.utils import encoders
 
-from djpcms.apps import PERMISSION_CODES, PERMISSION_LIST
+from djpcms import PERMISSION_CODES
 
 from .managers import *
 
@@ -162,36 +162,4 @@ class Log(orm.StdModel):
         return self.msg
     abbrev_msg.short_description = 'abbreviated msg'
     
-    
-class WebAccount(orm.StdModel):
-    '''
-    This model can be used to store log-in information
-    for a web-account. The log-in details such as username, password pin number etc...
-    are encrypted and saved into the database as an encrypted string
-    '''
-    user   = orm.ForeignKey(User)
-    name   = orm.CharField()
-    url    = orm.CharField()
-    e_data = orm.CharField()
-        
-    def __unicode__(self):
-        return '%s - %s' % (self.name, self.url)
-
-    def encrypted_property(name):
-        return property(get_value(name), set_value(name))
-    
-    def __get_data(self):
-        if self.e_data:
-            return decrypt(self.e_data)
-        else:
-            return ''
-    def __set_data(self, value):
-        if value:
-            svalue = encrypt(value)
-        else:
-            svalue = ''
-        self.e_data = svalue
-    data   = property(__get_data,__set_data)
-
-
     

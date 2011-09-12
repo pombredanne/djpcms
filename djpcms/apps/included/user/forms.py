@@ -1,7 +1,5 @@
 from djpcms import sites, forms, html
 
-from .orm import create_user, authenticate, login
-
 
 class LoginForm(forms.Form):
     '''The Standard login form
@@ -14,28 +12,11 @@ class LoginForm(forms.Form):
         '''process login
         '''
         data = self.cleaned_data
-        request = self.request
-        msg  = ''
-        username = data.get('username',None)
-        password = data.get('password',None)
-        User = sites.User
-        if not User:
-            raise forms.ValidationError('No user')
-        user = authenticate(User, username = username, password = password)
-        if user is not None and user.is_authenticated():
-            if user.is_active:
-                login(User,request,user)
-                try:
-                    request.session.delete_test_cookie()
-                except:
-                    pass
-                data['user'] = user
-                return data
-            else:
-                msg = '%s is not active' % username
-        else:
-            msg = 'username or password not recognized'
-        raise forms.ValidationError(msg)
+        backend = self.request.DJPCMS.site.permissions
+        try:
+            data['user'] = backend.authenticate_and_login(self.request,**data)
+        except backend.AuthenticationError as e:
+            raise forms.ValidationError(str(e))
     
     def save(self,commit=True):
         return self.cleaned_data['user']

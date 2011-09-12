@@ -1,5 +1,6 @@
 from djpcms.apps.management.base import BaseCommand
-from djpcms.contrib.monitor import installed_models                    
+
+from monitor import installed_models                    
 
 class Command(BaseCommand):
     help = "Flush stdnet models in the data-server."

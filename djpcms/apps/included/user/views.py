@@ -1,8 +1,6 @@
 from djpcms import sites, views, http
 from djpcms.forms.utils import saveform
 
-from .orm import logout
-
 __all__ = ['LogoutView','LoginView','UserView','UserDataView']
 
 
@@ -22,9 +20,7 @@ class LogoutView(views.ModelView):
         request = djp.request
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
-        user    = request.user
-        if user.is_authenticated():
-            logout(sites.User, request)
+        djp.site.permissions.logout(request)
         return http.ResponseRedirect(url)
 
 

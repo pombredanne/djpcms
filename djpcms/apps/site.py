@@ -17,7 +17,7 @@ from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
 
 from .management import find_commands
-from .permissions import SimplePermissionBackend
+from .permissions import PermissionBackend
 
 __all__ = ['MakeSite',
            'SiteApp',
@@ -146,7 +146,7 @@ The sites singletone has several important attributes:
     
     def __init__(self):
         self._init()
-        self._permissions = SimplePermissionBackend()
+        self._permissions = PermissionBackend()
         self.handle_exception = standard_exception_handle
         self.on_site_loaded = Signal()
         self.request_started = Signal()
@@ -256,13 +256,21 @@ It also initialise admin for models.'''
              handler = None, permissions = None,
              **params):
         '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`
-from a directory or a file name. Extra configuration parameters,
+from a directory or a file *name*. Extra configuration parameters,
 can be passed as key-value pairs:
 
-:parameter name: a file or directory name where which specifies the
+:parameter name: file or directory name which specifies the
                  application root-directory.
-:parameter settings: optional settings file name.
+                 
+:parameter settings: optional settings file name specified as a dotted path
+    relative ro the application directory.
+    
+    Default ``None``
+    
 :parameter route: the base ``url`` for the site applications.
+
+    Default ``None``
+    
 :parameter handler: an optional string defining the wsgi handler
                     class for the application.
 :parameter permission: An optional :ref:`site permission handler <permissions>`.

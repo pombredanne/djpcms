@@ -2,9 +2,8 @@ import logging
 
 from djpcms import test, views, http
 
-from djpcms.contrib.sessions.models import Session,Log,\
-                                           get_session_cookie_name
-from djpcms.contrib.sessions.handlers import DatabaseHandler
+from sessions.models import Session,Log, get_session_cookie_name
+from sessions.handlers import DatabaseHandler
 
 
 def urls(self):

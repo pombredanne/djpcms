@@ -26,16 +26,20 @@ DJPCMS_DIR = parentdir(os.path.abspath(__file__))
 path_dir = parentdir(DJPCMS_DIR)
 
 
-def install_lib(basepath, dirname, module_name):
-    try:
-        return __import__(module_name)
-    except ImportError:
-        dir = os.path.join(basepath,dirname)
-        sys.path.insert(0,dir)
+def install_lib(basepath, dirname, module_name = None):
+    if module_name:
         try:
             return __import__(module_name)
         except ImportError:
-            pass
+            dir = os.path.join(basepath,dirname)
+            sys.path.insert(0,dir)
+            try:
+                return __import__(module_name)
+            except ImportError:
+                pass
+    else:
+        dir = os.path.join(basepath,dirname)
+        sys.path.insert(0,dir)
         
         
 def install_libs():
@@ -45,13 +49,11 @@ def install_libs():
     dlibs = os.path.join(DJPCMS_DIR,'libs')
     py2py3 = install_lib(dlibs, 'py2py3', 'py2py3')
     install_lib(dlibs, 'medplate', 'medplate')
-    install_lib(dlibs, 'jslib', 'jslib')
     if py2py3.ispy3k:
         install_lib(dlibs, 'jinja2_3', 'jinja2')
     else:
         install_lib(dlibs, 'jinja2', 'jinja2')
-    install_lib(dlibs, 'color', 'color')
-    install_lib(dlibs, 'fileupload', 'fileupload')
+    install_lib(dlibs, 'djpapps')
 
 install_libs()
 

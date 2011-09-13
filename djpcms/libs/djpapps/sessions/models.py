@@ -40,7 +40,7 @@ class User(orm.StdModel):
     email = orm.CharField()
     is_active = orm.BooleanField(default = True)
     is_superuser = orm.BooleanField(default = False)
-    data = orm.JSONField(sep = '_')
+    data = orm.JSONField()
     
     objects = UserManager()
     

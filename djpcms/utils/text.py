@@ -15,7 +15,9 @@ def capfirst(x):
     else:
         return x
 
-nicename = lambda name : force_str(capfirst(name.replace('-',' ').replace('_',' ')))
+def nicename(name):
+    name = ' '.join(name.replace('-',' ').replace('_',' ').split())
+    return force_str(capfirst(name))
 
 
 

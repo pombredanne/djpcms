@@ -59,13 +59,12 @@ if an instance is available'''
 
 def ajax_dataTable(djp,data):
     #TODO move this to a different location
+    #VERY TEMPORARY HERE
     view = djp.view
     appmodel = view.appmodel
     sort_by = {}
     qs = view.appquery(djp)
-    headers = view.list_display or appmodel.list_display
-    if hasattr(headers,'__call__'):
-        headers = headers(djp)
+    headers = appmodel.list_display
     search = data['sSearch']
     if search:
         qs = qs.search(search)
@@ -75,9 +74,9 @@ def ajax_dataTable(djp,data):
         d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''
         if c < len(appmodel.list_display):
             head = appmodel.list_display[c]
-            col = appmodel.headers.get(head.code,None)
+            col = appmodel.headers.get(head,None)
             if col:
-                qs = qs.sort_by('{0}{1}'.format(d,col.function))
+                qs = qs.sort_by('{0}{1}'.format(d,col.attrname))
     start = data['iDisplayStart']
     p = html.Paginator(djp.request,
                        qs,

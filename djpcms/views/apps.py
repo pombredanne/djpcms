@@ -334,9 +334,12 @@ application {0}. Already available." % name)
         
         # Fill headers dictionary
         heads = {}
+        ld = []
         for head in self.list_display or ():
             head = table_header(head)
             heads[head.code] = head
+            ld.append(head)
+        self.list_display = tuple(ld)
         self.headers = heads
     
     def __deepcopy__(self,memo):
@@ -528,9 +531,7 @@ By default it return a generator of children pages.'''
         appmodel = appmodel or self
         if isgenerator(query):
             query = list(query)
-        headers = view.list_display or appmodel.list_display
-        if hasattr(headers,'__call__'):
-            headers = headers(djp)
+        headers = appmodel.list_display
         size = appmodel.list_per_page
         
         if view.astable and headers:

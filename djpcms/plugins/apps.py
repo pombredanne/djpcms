@@ -149,6 +149,14 @@ class ModelLinks(DJPplugin):
                         .render(djp)
     
     
+def attrquery(heads,query):
+    for k in query:
+        v = query[k]
+        if k in heads:
+            k = heads[k].attrname
+        yield k,v
+    
+    
 class ModelItemsList(DJPplugin):
     '''Display filtered items for a Model.'''
     name = 'model-items'
@@ -166,19 +174,27 @@ class ModelItemsList(DJPplugin):
         if not for_model:
             return ''
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
+        heads = appmodel.headers
+        if order_by:
+            decr = False
+            if order_by.startswith('-'):
+                order_by = order_by[1:]
+                decr = True
+            order_by = html.attrname_from_header(heads,order_by)
+            if decr:
+                order_by = '-{0}'.format(order_by)
         qs = appmodel.basequery(djp)
         if text_search:
             qs = qs.search(text_search)
-        qs = qs.filter(**query_from_string(filter))\
-               .exclude(**query_from_string(exclude))\
-               .sort_by(order_by)        
+        qs = qs.filter(**dict(attrquery(heads,query_from_string(filter))))\
+               .exclude(**dict(attrquery(heads,query_from_string(exclude))))\
+               .sort_by(order_by)
+               
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:
             return display_if_empty
         if headers:
-            heads = appmodel.headers
-            # fetch headers from appmodel
             thead = []
             for head in headers.split():
                 if head in heads:

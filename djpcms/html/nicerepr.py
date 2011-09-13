@@ -159,7 +159,7 @@ class get_app_result(object):
         url = None
         if head:
             head = table_header(head)
-            result_repr = field_repr(head.code, result,
+            result_repr = field_repr(head.attrname, result,
                                      appmodel = appmodel, nd = nd)
             if(self.first and not appmodel.list_display_links) or \
                     head.code in appmodel.list_display_links:

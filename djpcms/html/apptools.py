@@ -15,25 +15,34 @@ __all__ = ['application_action',
            'application_links',
            'application_link',
            'table_toolbox',
-           'table_header']
+           'table_header',
+           'attrname_from_header']
 
 
 table_header_ = namedtuple('table_header_',
-'code name description function sortable width extraclass')
+'code name description function sortable width extraclass attrname')
 application_action = namedtuple('application_action',
                                 'view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
 
 def table_header(code, name = None, description = None, function = None,
-                 sortable = True, width = None, extraclass = None):
+                 attrname = None, sortable = True, width = None,
+                 extraclass = None):
     '''Utility for creating an instance of a :class:`table_header_`.'''
     if isinstance(code,table_header_):
         return code
     name = name or nicename(code)
     function = function or code
+    attrname = attrname or code
     return table_header_(code,name,description,function,sortable,width,
-                         extraclass)
+                         extraclass,attrname)
+    
+
+def attrname_from_header(header,code):
+    if code and code in header:
+        code = header[code].attrname
+    return code
 
 
 def application_views(appmodel,

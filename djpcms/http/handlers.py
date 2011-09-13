@@ -86,7 +86,7 @@ class WSGI(BaseSiteHandler):
                 return response(environ, start_response)
         self.root.start_response.send(sender=self.__class__, request=request)
         response = djp.response()
-        info.instance = djp.instance
+        #info.instance = djp.instance
         # Response middleware
         for middleware_method in site.response_middleware():
             middleware_method(request,response)

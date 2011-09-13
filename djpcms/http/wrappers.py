@@ -123,7 +123,9 @@ class Request(object):
 
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
-            c = to_bytestring(self.environ.get('HTTP_COOKIE', b''))
+            c = self.environ.get('HTTP_COOKIE', '')
+            if not ispy3k:
+                c = to_bytestring(c)
             self._cookies = parse_cookie(c)
         return self._cookies
 

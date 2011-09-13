@@ -14,7 +14,6 @@ as your user model, than you can define the application::
 from djpcms.forms import HtmlForm
 
 from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm
-from .orm import *
 from .views import *
 
 from djpcms import views

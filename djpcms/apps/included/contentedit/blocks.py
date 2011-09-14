@@ -239,8 +239,10 @@ class ContentSite(views.ModelApplication):
     '''AJAX enabled :class:`djpcms.views.ModelApplication` for changing
 content in a content block.'''
     has_plugins = False
+    model_id_name = 'id'
+    
     search = views.SearchView()
-    view = views.ViewView()
+    view = views.ViewView(regex = '(?P<contentblock>\d+)')
     change = ChangeContentView()
     layout = ChangeLayoutView(regex = 'layout', form = BlockLayoutFormHtml)
     delete = DeleteContentView()

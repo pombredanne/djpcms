@@ -12,7 +12,7 @@ It's a content management system for *dynamic*
 web applications which uses python_
 on the server side and javascript on browser-side.
 The Javascript is largely built on top of jQuery_ and
-several open-source jQuery plugins.
+several open-source jQuery plugins (:ref:`check the list here <jquery-plugins>`)
 
 
 What Djpcms is NOT?

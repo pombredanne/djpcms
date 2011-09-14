@@ -112,6 +112,8 @@ Python
   module but a library in its own.
 * django_ for ideas and actual chunks of code.
 
+.. _jquery-plugins:
+
 JavaScript
 ------------
 * jQuery_ core and UI are the building block of the browser side of djpcms. 

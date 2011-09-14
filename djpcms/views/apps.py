@@ -621,6 +621,16 @@ User should subclass this for full control on the model application.
     If not available, :attr:`list_display` is used.
     
     Default ``None``.
+    
+.. attribute:: model_id_name
+
+    the attribute name of the underlying
+    :attr:`djpcms.views.ModelApplication.model` which is used for building the
+    url of an :ref:`instance view <instance-views>`.
+    If not provided, the name will be given by the regex of the instnace
+    views.
+    
+    Default ``None``.
 '''
     object_display   = None
     filter_fields    = []

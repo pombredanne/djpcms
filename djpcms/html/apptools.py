@@ -1,4 +1,5 @@
 from collections import namedtuple
+from inspect import isgenerator
 
 from py2py3 import itervalues
 
@@ -159,14 +160,34 @@ def application_link(view, asbutton = True):
     return list(application_links((view,),asbutton))[0][1]
     
 
-def table_toolbox(appmodel, djp, all = True):
+def headers_from_groups(appmodel, groups):
+    ld = appmodel.list_display
+    ldsubset = set()
+    for group in groups:
+        ldsubset.update(group['cols'])
+    for col in ld:
+        if col.code in ldsubset:
+            yield col
+            
+            
+def table_toolbox(djp, all = True):
     '''\
-Create a toolbox for the table if possible. A toolbox is created when
+Create a toolbox for a table if possible. A toolbox is created when
 an application based on database model is available.
 
 :parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
 :parameter appmodel: an instance of a :class:`djpcms.views.Application`.
+:rtype: A dictionary containing information for building the toolbox.
+    If the toolbox is not available it returns ``None``.
 '''
+    view = djp.view
+    appmodel = view.appmodel
+    if not appmodel:
+        return
+    astable = djp.view.astable
+    if not astable or not appmodel.list_display:
+        return
+    
     request = djp.request
     site = djp.site
     has = site.permissions.has
@@ -174,7 +195,9 @@ an application based on database model is available.
     for name,description,pcode in appmodel.table_actions:
         if has(request, pcode, None):
             choices.append((name,description))
-    toolbox = {}
+    
+    toolbox = {'as':astable}
+    
     if choices:
         toolbox['actions'] = {'choices':choices,
                               'url':djp.url}
@@ -188,18 +211,15 @@ an application based on database model is available.
                                       include = appmodel.table_links)))
     if menu:
         toolbox['tools'] = menu
-    groups = appmodel.column_groups(djp)
+    groups = appmodel.table_column_groups(djp)
+    if isgenerator(groups):
+        groups = tuple(groups)
     if groups:
-        toolbox['groups'] = groups
-    #if groups:
-    #    data = {}
-    #    choices = []
-    #    for name,headers in groups:
-    #        data[name] = headers
-    #        choices.append((name,name))
-    #    if choices:
-    #        s = Select(choices).widget()
-    #        s.addData('views',data)
-    #        toolbox['columnviews'] = s.render()
+        if len(groups) > 1:
+            toolbox['groups'] = groups
+        toolbox['headers'] = tuple(headers_from_groups(appmodel,groups))
+    else:
+        toolbox['headers'] = appmodel.list_display
+
     return toolbox
 

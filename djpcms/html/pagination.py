@@ -12,7 +12,7 @@ class Paginator(object):
     navigate through the search.
     '''
     
-    def __init__(self, request, data = None, per_page = 20,
+    def __init__(self, total = 0, per_page = 20,
                  numends = 2, maxentries = 15, 
                  page_menu = None, page = None,
                  start = None, ajax = False):
@@ -22,33 +22,32 @@ class Paginator(object):
         @param per_page:   number of elements per page
         @param maxentries: Max number of links in the pagination list
         '''
+        self.total = total
+        self.per_page = max(int(per_page),1)
+        
         self.ajax = ajax
-        self.hentries   = max(int(maxentries)/2,2)
-        self.numends    = numends
-        self.total      = len(data)
-        self.per_page   = max(int(per_page),1)
+        self.hentries = max(int(maxentries)/2,2)
+        self.numends = numends
         tp = int(self.total/self.per_page)
         if self.per_page*tp < self.total:
             tp += 1
         self.pages = tp
         self.multiple = self.pages > 1
-        self.qs = data
-        if start is not None:
-            start = int(start)
-            page = int(start/self.per_page)
-            if page*self.per_page <= start:
-                page += 1
-        elif page is None:
-            page = self.pagenumber(request,data)
+        start = int(start)
+        page = int(start/self.per_page)
+        if page*self.per_page <= start:
+            page += 1
         self.page = page
         end = self.page*self.per_page
-        start = end - self.per_page
-        end = min(end,self.total)
+        self.start = end - self.per_page
+        self.end = min(end,self.total)
         if self.multiple:
             self.page_menu = page_menu
         else:
             self.page_menu = None
-        self.qs = self.qs[start:end]
+            
+    def slice_data(self, data):
+        return data[self.start:self.end]
         
     def render(self):
         return self.navigation()

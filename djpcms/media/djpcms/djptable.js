@@ -1,26 +1,30 @@
+/*jslint browser: true */
+/*global jQuery: true, ColVis: true */
+
 /**
  * djpcms - dataTable integration utilities
  */
 
-(function($) {
+(function ($) {
+	"use strict";
     /**
      * DJPCMS Decorator for Econometric ploting
      */
-    if($.djpcms && $.fn.dataTable) {
+    if ($.djpcms && $.fn.dataTable) {
         
         $.djpcms.dataTable = {};
         
         // from
         // http://www.datatables.net/forums/discussion/6106/conditionally-set-column-text-color/p1
-        $.djpcms.dataTable.fnRowCallback = function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+        $.djpcms.dataTable.fnRowCallback = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             /* numbers less than or equal to 0 should be in red text */
-            if ( parseFloat(aData[4]) <= 0 ) {
+            if (parseFloat(aData[4]) <= 0) {
                 $('td:eq(4)', nRow).addClass('redText');
             }
             return nRow;
         };
         
-        $.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay ) {
+        $.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
             /*
              * Inputs:      object:oSettings - dataTables settings object - automatically given
              *              integer:iDelay - delay in milliseconds
@@ -29,151 +33,150 @@
              * License:     GPL v2 or BSD 3 point style
              * Contact:     zygimantas.berziunas /AT\ hotmail.com
              */
-            var
-                _that = this,
-                iDelay = (typeof iDelay == 'undefined') ? 250 : iDelay;
+            var that = this;
+            iDelay = (typeof iDelay === 'undefined') ? 250 : iDelay;
             
-            this.each( function ( i ) {
+            this.each(function (i) {
                 $.fn.dataTableExt.iApiIndex = i;
-                var
-                    $this = this, 
+                var $this = this, 
                     oTimerId = null, 
                     sPreviousSearch = null,
-                    anControl = $( 'input', _that.fnSettings().aanFeatures.f );
+                    anControl = $('input', that.fnSettings().aanFeatures.f);
                 
-                    anControl.unbind( 'keyup' ).bind( 'keyup', function() {
-                    var $$this = $this;
-
-                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                anControl.unbind('keyup').bind('keyup', function () {
+                    if (sPreviousSearch === null || sPreviousSearch !== anControl.val()) {
                         window.clearTimeout(oTimerId);
                         sPreviousSearch = anControl.val();  
-                        oTimerId = window.setTimeout(function() {
+                        oTimerId = window.setTimeout(function () {
                             $.fn.dataTableExt.iApiIndex = i;
-                            _that.fnFilter( anControl.val() );
+                            that.fnFilter(anControl.val());
                         }, iDelay);
                     }
                 });
                 
                 return this;
-            } );
+            });
             return this;
-        }
+        };
 
         
         /**
          * A tablesorter widget for enabling actions on rows and
          * different views across columns.
          */
-        $.djpcms.dataTable.add_select_rows = function(tbl,me,opts) {
+        $.djpcms.dataTable.add_select_rows = function (tbl, me, opts) {
             var url = opts.url || '.',
-                select = $('select',me);
+                select = $('select', me);
             
-            function handle_callback(e,o) {
-                $.djpcms.jsonCallBack(e,o,tbl);
+            function handle_callback(e, o) {
+                $.djpcms.jsonCallBack(e, o, tbl);
             }
             function toggle(chk) {
-                chk.each(function() {
+                chk.each(function () {
                     var el = $(this),
                         tr = el.parents('tr');
-                    if(el.is(':checked')) {
+                    if (el.is(':checked')) {
                         tr.addClass('ui-state-highlight');
-                    }
-                    else {
+                    } else {
                         tr.removeClass('ui-state-highlight');
                     }
                 });
             }
             
-            tbl.delegate('.action-check input','click', function() {
+            tbl.delegate('.action-check input', 'click', function () {
                 toggle($(this));
             });
             
-            select.change(function() {
-                if(this.value) {
+            select.change(function () {
+                if (this.value) {
                     var ids = [],
-                        data = $.djpcms.ajaxparams(this.value,{'ids':ids});
-                    $('.action-check input:checked',this.table).each(function() {
+                        data = $.djpcms.ajaxparams(this.value, {'ids': ids});
+                    $('.action-check input:checked', this.table).each(function () {
                         ids.push(this.value);
                     });
                     $.post(url,
                            data,
                            handle_callback,
-                           'json')                       
+                           'json');                       
                 }
             });
-            $('.select_all',me).click(function() {
-                toggle($('.action-check input').prop({'checked':true}));
+            $('.select_all', me).click(function () {
+                toggle($('.action-check input').prop({'checked': true}));
             });
-            $('.select_none',me).click(function() {
-                toggle($('.action-check input').prop({'checked':false}));
+            $('.select_none', me).click(function () {
+                toggle($('.action-check input').prop({'checked': false}));
             });
         };
         
         /**
          * Utility function for setting up columns selections based on groups
          */
-        $.djpcms.dataTable.addViews = function(tbl,groups) {
+        $.djpcms.dataTable.addViews = function (tbl, groups) {
             var r = $('div.col-selector'),
                 select = $("<select></select>"),
                 views = {},
                 n = 0,
                 initial = false;
             
-            $.each(groups, function() {
+            function change_view(oTable) {
+                return function (value) {
+                    if (!value) {
+                    	return;
+                    }
+                    var fields = views[value],
+                        settings = oTable.fnSettings();
+                    
+                    if (fields) {
+                        $.each(settings.aoColumns, function (i, col) {
+                            if (fields.indexOf(col.sName) !== -1) {
+                                oTable.fnSetColumnVis(i, true, false);
+                            } else {
+                                oTable.fnSetColumnVis(i, false, false);
+                            }
+                        });
+                        ColVis.fnRebuild(oTable);
+                        //var cols = $('th,td',tbl),
+                        //    selected = $(fields,tbl);
+                        //cols.hide();
+                        //selected.show();
+                    }
+                };
+            }
+        	
+            $.each(groups, function () {
                 var cols = this.cols,
                     selected = $.isArray(cols) ? this.cols.join(',.') : cols,
                     opt;
-                if(selected) {
-                    n+=1;
+                if (selected) {
+                    n += 1;
                     opt = $("<option value='" + this.name + "'>" + this.display + "</option>");
-                    if(this.initial && !initial) {
+                    if (this.initial && !initial) {
                         initial = this.name;
-                        opt.attr('selected','selected');
+                        opt.attr('selected', 'selected');
                     }
                     select.append(opt);
-                    views[this.name] = '.'+selected;
+                    views[this.name] = '.' + selected;
                 }
             });
-            if(n) {
+            if (n) {
                 r.html("<span class='selectors'>Select a view</span>").append(select);
-                
-                function change_view(oTable) {
-                    return function(value) {
-                        if(!value) {return;}
-                        var fields = views[value],
-                            settings = oTable.fnSettings();
-                        
-                        if(fields) {
-                            $.each(settings.aoColumns, function(i,col) {
-                                if(fields.indexOf(col.sName) != -1) {
-                                    oTable.fnSetColumnVis(i, true, false);
-                                }
-                                else {
-                                    oTable.fnSetColumnVis(i, false, false);
-                                }
-                            });
-                            ColVis.fnRebuild(oTable);
-                            //var cols = $('th,td',tbl),
-                            //    selected = $(fields,tbl);
-                            //cols.hide();
-                            //selected.show();
-                        }
-                    }
-                };
                 
                 select[0].change_view = change_view(tbl);
                 
-                if(initial) {
+                if (initial) {
                     select[0].change_view(initial);
                 }
-                select.change(function() {
+                select.change(function () {
                     this.change_view(this.value);
                 });
             }
-        }
+        };
         
+        /*
+         * djpcms - datatable decorator
+         */
         $.djpcms.decorator({
-            id:"datatable",
+            id: "datatable",
             config: {
                 selector: 'div.data-table',
                 fnRowCallbacks: [],
@@ -185,63 +188,81 @@
                     "sDom": '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>',
                     "oTableTools": {
                         "aButtons": [
-                                     "copy",
-                                     {
-                                         "sExtends":    "collection",
-                                         "sButtonText": "Save",
-                                         "aButtons":    [ "csv", "xls", "pdf" ]
-                                     }
-                                 ]
+                            "copy",
+                            {
+                            	"sExtends": "collection",
+                                "sButtonText": "Save",
+                                "aButtons": [ "csv", "xls", "pdf" ]
+                            }
+                        ]
                     },
-                    fnRowCallback: function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
-                        $.each($.djpcms.options.datatable.fnRowCallbacks,function(i,func) {
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $.each($.djpcms.options.datatable.fnRowCallbacks, function (i, func) {
                             func(nRow, aData, iDisplayIndex, iDisplayIndexFull);
-                        })
+                        });
                         return nRow;
                     }
                 }
             },
-            to_obj : function(aoData) {
+            to_obj: function (aoData) {
                 var obj = {};
-                $.each(aoData,function(){
+                $.each(aoData, function () {
                     obj[this.name] = this.value;
-                })
+                });
                 return obj;
             },
-            fnServerData : function ( sSource, aoData, fnCallback, settings ) {
+            /*
+             * The function used to load the data
+             */
+            fnServerData: function (sSource, aoData, fnCallback, settings) {
                 var info = this.to_obj(aoData),
                     sc = info.iSortingCols,
                     cols = info.sColumns.split(','),
                     instance = settings.oInstance,
                     params = {},
-                    i;
-                for(i=0;i<sc;i++) {
-                    var co = info['iSortCol_'+i];
-                    params[cols[co]] = info['sSortDir_'+i];
+                    vars = {},
+                    href = window.location.search,
+                    i,
+                    co,
+                    hashes;
+                for (i= 0; i< sc; i++) {
+                    co = info['iSortCol_' + i];
+                    params[cols[co]] = info['sSortDir_' + i];
                 }
-                if(sc) {
-                    var href = window.location.search,
-                        hashes = href.slice(href.indexOf('?') + 1).split('&'),
-                        vars = {};
+                if (sc) {
+                    hashes = href.slice(href.indexOf('?') + 1).split('&');
                     //$.each(hashes,function() {
                     //    var hash = this.split('=');
                     //    vars[hash[0]] = hash[1];
                     //});
                     params = $.param($.extend(params,vars));
-                    window.location.replace(window.location.pathname+'?'+params);
-                }
-                else {
-                    var json = instance.data('datasize');
-                    this.updateDraw(settings, json);
+                    window.location.replace(window.location.pathname + '?' + params);
+                } else {
+                    this.updateDraw(settings, instance.data('datasize'));
                 }
             },
+            ajaxServerData: function ( sSource, aoData, fnCallback ) {
+    			$.ajax({
+    				"dataType": 'json', 
+    				"type": "POST", 
+    				"url": sSource, 
+    				"data": aoData, 
+    				"success": fnCallback
+    			});
+    		},
             /**
-             * djpcms - datatable decorator
+             * Decorate function
              */
-            decorate: function($this,config) {
+            decorate: function($this, config) {
                 var datatable = config.datatable,
                     that = this;
-                $.each($(datatable.selector,$this),function() {
+                function redirect(url) {
+                    return function () {
+                        window.location.replace(url);
+                    }
+                }
+                // Loop over each selected table element
+                $.each($(datatable.selector, $this),function () {
                     var elem = $(this),
                         tbl = $('table',elem).addClass('main display'),
                         data = elem.data('options') || {},
@@ -249,18 +270,13 @@
                         opts;
                     if(tbl.length == 1) {
                         opts = $.extend(true,{},datatable.options,data);
-                        if (!opts.sAjaxSource) {
+                        if (opts.sAjaxSource) {
+                        	opts.fnServerData = that.ajaxServerData;
+                        } else {
                             opts.fnServerData = $.proxy(that.fnServerData,that);
                         }
                         opts.oTableTools.sSwfPath = $.djpcms.options.media_url+
                             "djpcms/datatables/TableTools/swf/copy_cvs_xls_pdf.swf";
-                        
-                        
-                        function redirect(url) {
-                            return function() {
-                                window.location.replace(url);
-                            }
-                        }
                         //
                         // Add tools to table tools
                         if(elem.data('tools')) {

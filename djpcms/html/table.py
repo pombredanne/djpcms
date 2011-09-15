@@ -6,12 +6,14 @@ It uses the Datatable jQuery plugin on the client side.
 http://www.datatables.net/
 '''
 from djpcms.utils import media
+from djpcms.utils import ajax
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker
-from .apptools import table_toolbox, table_header
+from .apptools import table_header, table_toolbox
+from .pagination import Paginator 
 
-__all__ = ['Table']
+__all__ = ['Table','dataTableResponse']
 
 
 class TableMaker(WidgetMaker):
@@ -61,7 +63,7 @@ class TableMaker(WidgetMaker):
         toolbox = None
         # If toolbox is required
         if appmodel and widget.toolbox:
-            toolbox = table_toolbox(appmodel,djp)
+            toolbox = table_toolbox(djp, appmodel)
             widget.data.update(toolbox)
         if not widget.ajax:
             ctx['rows'] = widget.items(djp)
@@ -103,7 +105,13 @@ and rendered using the dataTable_ jQuery plugin.
 :parameter headers: iterable over headers. Must be provided.
 :parameter body: optional iterable over data to display.
 :parameter appmodel: optional :class:`djpcms.views.Application` instance.
-:parameter model: optional model class.
+:parameter model: optional model class. If not provided the model in appmodel
+    will be used.
+:parameter toolbox: optional dictionary with table toolbox data. Created using
+    the :func:`djpcms.html.table_toolbox` function.
+:parameter footer: flag indicating if a table footer is required.
+
+    Default ``False``.
 
 .. _dataTable: http://www.datatables.net/
     '''
@@ -111,9 +119,9 @@ and rendered using the dataTable_ jQuery plugin.
     size_choices = (10,25,50,100)
     
     def __init__(self, headers, body = None, appmodel = None,
-                 model = None, paginator = None, toolbox = True,
+                 model = None, paginator = None, toolbox = None,
                  ajax = None, size = 25, size_choices = None,
-                 paginate = True, footer = True, title = None,
+                 paginate = True, footer = False, title = None,
                  **params):
         self.toolbox = toolbox
         self.ajax = ajax
@@ -154,12 +162,102 @@ and rendered using the dataTable_ jQuery plugin.
             headers = self.internal['headers']
             actions = None
             if appmodel and self.toolbox:
-                toolbox = table_toolbox(appmodel,djp)
-                if 'actions' in toolbox:
-                    actions = toolbox.pop('actions')
+                if 'actions' in self.toolbox:
+                    actions = self.toolbox.pop('actions')
                 
             return (results_for_item(djp, headers, d, appmodel,
                                      actions = actions) for d in body)
         else:
             return ()
         
+
+def dataTableResponse(djp, qs = None, toolbox = None, params = None):
+    '''dataTable ajax response'''
+    view = djp.view
+    request = djp.request
+    inputs = request.REQUEST
+    appmodel = view.appmodel
+    params = params or {}
+    render = not request.is_xhr
+    toolbox = toolbox or table_toolbox(djp,appmodel)
+    headers = toolbox['headers']
+    nh = len(headers)
+    body = None
+    paginate = None
+    start = 0
+    per_page = appmodel.list_per_page
+    page_menu = None
+    if qs is None:
+        qs = view.appquery(djp)
+    
+    # We are rendering
+    if not render:
+        sort_by = {}
+        search = inputs.get('sSearch')
+        if search:
+            qs = qs.search(search)
+        sortcols = inputs.get('iSortingCols')
+        if sortcols:
+            head = None
+            for col in range(int(sortcols)):
+                c = int(inputs['iSortCol_{0}'.format(col)])
+                if c < nh:
+                    d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
+                             else ''
+                    head = headers[c]
+                    qs = qs.sort_by('{0}{1}'.format(d,head.attrname))
+                
+        start = inputs.get('iDisplayStart')
+        per_page = inputs.get('iDisplayLength') or per_page
+        paginate = True
+        
+    try:
+        total = qs.count()
+    except:
+        total = len(qs)
+    
+    if render:
+        # if the ajax flag is not defined in parameters
+        if 'ajax' not in params:
+            params['ajax'] = djp.url if toolbox.pop('as') == 'ajax' else None
+        body = None
+        if params.get('ajax'):
+            if total > 1.3*per_page:
+                page_menu = appmodel.list_per_page_choices
+                paginate = True
+            
+    if paginate:
+        paginate = Paginator(total = total,
+                             per_page = per_page,
+                             start = start,
+                             page_menu = page_menu)
+        if not render:
+            body = paginate.slice_data(qs)
+    else:
+        body = qs
+        
+    if body:
+        body = appmodel.table_generator(djp,headers,body)
+        
+    tbl = Table(headers, body,
+                appmodel = appmodel,
+                paginator = paginate,
+                toolbox = toolbox,
+                **params)
+
+    
+    if render:
+        return tbl.render(djp)
+    else:
+        aaData = []
+        for item in tbl.items(djp):
+            id = item['id']
+            aData = {} if not id else {'DT_RowId':id}
+            aData.update(((i,v) for i,v in enumerate(item['display'])))
+            aaData.append(aData)
+        data = {'iTotalRecords':total,
+                'iTotalDisplayRecords':total,
+                'sEcho':inputs.get('sEcho'),
+                'aaData':aaData}
+        return ajax.simplelem(data)
+    

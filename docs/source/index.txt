@@ -29,7 +29,7 @@ First steps
 :ref:`Overview and Installing <intro-overview>` |
 :ref:`Changelog <changelog>`
 
-**Tutorial:**
+**Tutorials:**
 :ref:`Part 1 <intro-tutorial01>` |
 :ref:`Part 2 <intro-tutorial02>`
 
@@ -46,8 +46,8 @@ Contents
    
    api
    application/index
-   html
    forms/index
+   html/doc
    tutorials/index
    battery
    settings
@@ -61,6 +61,7 @@ API
    
    application/api
    forms/api
+   html/api
    internals/index
 
 

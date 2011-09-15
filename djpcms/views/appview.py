@@ -57,14 +57,15 @@ if an instance is available'''
                                                  **kwargs)
     
 
-def ajax_dataTable(djp,data):
+def ajax_dataTable(djp, data):
+    '''dataTable ajax response'''
     #TODO move this to a different location
     #VERY TEMPORARY HERE
     view = djp.view
     appmodel = view.appmodel
     sort_by = {}
     qs = view.appquery(djp)
-    headers = appmodel.list_display
+    toolbox = html.table_toolbox(djp,appmodel)
     search = data['sSearch']
     if search:
         qs = qs.search(search)
@@ -83,9 +84,10 @@ def ajax_dataTable(djp,data):
                        per_page = data['iDisplayLength'],
                        start = data['iDisplayStart'])
     items = appmodel.table_generator(djp, headers, p.qs)
-    tbl =  html.Table(headers,
+    tbl =  html.Table(toolbox['headers'],
                       items,
                       appmodel = appmodel,
+                      toolbox = toolbox,
                       paginator = p)
     aaData = []
     for item in tbl.items(djp):
@@ -101,21 +103,22 @@ def ajax_dataTable(djp,data):
     
 
 class View(djpcmsview):
-    '''A specialised view class derived from :class:`djpcms.views.baseview.djpcmsview`
-and used for handling views which belongs to
-:ref:`djpcms applications <topics-applications-index>`.
+    '''A specialized view class for handling views
+which belongs to :ref:`djpcms applications <topics-applications-index>`.
 
 Application views are specified as class attributes of
-:class:`djpcms.views.appsite.Application` and therefore initialised
+:class:`djpcms.views.appsite.Application` and therefore initialized
 at start up.
 
 Views which derives from this class are special in the sense that they can also
 appear as content of :class:`djpcms.plugins.DJPplugin` if
-the :attr:`isplugin` attribute is set to ``True`` during construction.
+the :attr:`isplugin` attribute is set to ``True``.
+
 In other words, application views can automagically be turned into plugins
 so that they can be rendered in any page of your site.
 
-All parameters are optionals and usually a small subset of them needs to be used.
+All parameters are optionals and usually a small subset of them needs
+to be used.
 
 :keyword parent:
 
@@ -171,7 +174,8 @@ All parameters are optionals and usually a small subset of them needs to be used
     
 :keyword methods:
 
-    Tuple used to specify the response method allowed ('get', 'post', put') ro ``None``.
+    Tuple used to specify the response method allowed
+    ('get', 'post', put').
     If specified it replaces the :attr:`_methods` attribute.
     
     Default ``None``.
@@ -227,8 +231,8 @@ views::
     
 .. attribute:: appmodel
 
-    Instance of :class:`djpcms.views.Application` which defines the view. This attribute
-    is evaluate at runtime and it is not psecified by the user.
+    Instance of :class:`djpcms.views.Application` which defines the view.
+    This attribute is evaluate at runtime and it is not psecified by the user.
     
 .. attribute:: parent
 
@@ -240,17 +244,20 @@ views::
     
 .. attribute:: isapp
 
-    if ``True`` the view will be added to the application list and can have its own page object. Default ``False``.
+    if ``True`` the view will be added to the application list and can have
+    its own page object. Default ``False``.
     
 .. attribute:: isplugin
 
-    if ``True`` the view can be rendered as :class:`djpcms.plugins.ApplicationPlugin`.
+    if ``True`` the view can be rendered as
+    :class:`djpcms.plugins.ApplicationPlugin`.
     
     Default ``False``.
 
 .. attribute:: in_navigation
 
-    If ``0`` the view won't appear in :ref:`Navigation <topics-included-navigator>`.
+    If ``0`` the view won't appear in
+    :ref:`Navigation <topics-included-navigator>`.
     
     Default: ``0``
     
@@ -270,7 +277,8 @@ views::
 .. attribute:: redirect_to_view
 
     String indicating a redirection to another view within the same application.
-    Used in view with forms to define the behavior after a form has been subbmitted.
+    Used in view with forms to define the behavior after a form has been
+    subbmitted.
     It is used in :meth:`djpcms.views.basevew.djpcmsview.defaultredirect`
     to calculate the redirect url.
     
@@ -294,7 +302,8 @@ views::
     
 .. attribute:: inherit_page
 
-    If ``True`` and a page is not available for the view, the parent view page will be used (recursive).
+    If ``True`` and a page is not available for the view, the parent view
+    page will be used (recursive).
     
     Default ``True``.
 '''
@@ -336,10 +345,12 @@ views::
                  append_slash = True,
                  **kwargs):
         self.name        = None
-        self.description = description if description is not None else self.description
+        self.description = description if description is not None\
+                             else self.description
         self.parent    = parent
         self.isplugin  = isplugin if isplugin is not None else self.isplugin
-        self.in_nav    = in_navigation if isinstance(in_navigation,int) else self.in_nav
+        self.in_nav    = in_navigation if isinstance(in_navigation,int)\
+                                 else self.in_nav
         self.appmodel  = None
         self.insitemap = insitemap
         self.urlbit    = RegExUrl(regex if regex is not None else self.regex,
@@ -426,7 +437,8 @@ views::
             return 0
     
     def isroot(self):
-        '''True if this application view represents the root view of the application.'''
+        '''True if this application view represents the root
+ view of the application.'''
         return self.appmodel.root_view is self
     
     def get_form(self, djp, form = None, **kwargs):
@@ -436,7 +448,8 @@ views::
         page = djp.page
         return False if not page else page.soft_root       
         
-    def has_permission(self, request = None, page = None, obj = None, user = None):
+    def has_permission(self, request = None, page = None, obj = None,
+                       user = None):
         if super(View,self).has_permission(request, page, obj, user = user):
             return self.site.permissions.has(request, self.PERM, obj)
         else:
@@ -444,12 +457,14 @@ views::
     
     def appquery(self, djp):
         '''This function implements the query, based on url entries.
-By default it calls the :func:`djpcms.views.appsite.Application.basequery` function.'''
+By default it calls the :func:`djpcms.views.appsite.Application.basequery`
+function.'''
         return self.appmodel.basequery(djp)
     
     def table_generator(self, djp, qs):
-        '''Generator of a table view. This function is invoked by :meth:`View.render_query`
-when :attr:`View.astable` attribute is set to ``True``.'''
+        '''Generator of a table view. This function is invoked by
+:meth:`View.render_query` when :attr:`View.astable` attribute is
+set to ``True``.'''
         return self.appmodel.table_generator(djp, qs)
     
     def data_generator(self, djp, qs):
@@ -482,7 +497,8 @@ when :attr:`View.astable` attribute is set to ``True``.'''
     
 class GroupView(View):
     '''An application to display list of children applications.
-It is the equivalent of :class:`SearchView` for :class:`djpcms.views.Application`
+It is the equivalent of :class:`SearchView`
+for :class:`djpcms.views.Application`
 without a model.'''
     astable = True # Table view by default
     def render(self, djp):
@@ -491,7 +507,8 @@ without a model.'''
     
     
 class ModelView(View):
-    '''A :class:`View` class for views in :class:`djpcms.views.appsite.ModelApplication`.
+    '''A :class:`View` class for views in
+:class:`djpcms.views.appsite.ModelApplication`.
     '''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
@@ -502,8 +519,14 @@ class SearchView(ModelView):
 By default :attr:`View.in_navigation` is set to ``True``.
 There are three additional parameters that can be set:
 
-:keyword astable: used to force the view not as a table. Default ``True``.
-:keyword table_generator: Optional function to generate table content. Default ``None``.
+:keyword astable: used to force the view not as a table.
+
+    Default ``True``.
+    
+:keyword table_generator: Optional function to generate table content.
+
+     Default ``None``.
+     
 :keyword search_text: string identifier for text queries.
     '''
     isplugin = True
@@ -517,18 +540,16 @@ The query is build using the search fields specifies in
 :attr:`djpcms.views.appsite.ModelApplication.search_fields`.
 It returns a queryset.
         '''
-        if self.astable == 'ajax' and not djp.request.is_xhr:
-            return ()
-        else:
-            qs = super(SearchView,self).appquery(djp)
-            request = djp.request
-            search_string = request.REQUEST.get(self.search_text,None)
-            if search_string:
-                qs = qs.search(search_string)
-            return qs
+        qs = super(SearchView,self).appquery(djp)
+        request = djp.request
+        search_string = request.REQUEST.get(self.search_text,None)
+        if search_string:
+            qs = qs.search(search_string)
+        return qs
     
     def render(self, djp):
-        '''Perform the custom query over the model objects and return a paginated result. By default it delegates the
+        '''Perform the custom query over the model objects and return a
+paginated result. By default it delegates the
 renderint to the :method:`djpcms.views.Application.render_query` method.
         '''
         return self.appmodel.render_query(djp, self.appquery(djp))
@@ -542,10 +563,8 @@ renderint to the :method:`djpcms.views.Application.render_query` method.
                                 list(self.appmodel.gen_autocomplete(qs)))
     
     def ajax_get_response(self, djp):
-        data = djp.request.REQUEST
-        if 'iSortingCols' in data:
-            return ajax_dataTable(djp,data)
-        return super(SearchView,self).ajax_get_response(djp)
+        return html.dataTableResponse(djp)
+    ajax_post_response = ajax_get_response
     
 
 class AddView(ModelView):
@@ -597,7 +616,8 @@ in a model. Quite drastic.'''
         
 class ObjectView(ModelView):
     '''A :class:`ModelView` class view for model instances.
-A view of this type has an embedded object available which is used to generate the full url.'''
+A view of this type has an embedded object available which is used to 
+generate the full url.'''
     object_view = True
     
     def get_url(self, djp):
@@ -624,8 +644,8 @@ A view of this type has an embedded object available which is used to generate t
     
 
 class ViewView(ObjectView):
-    '''An :class:`djpcms.views.ObjectView` class specialised for displaying an object.
-    '''
+    '''An :class:`djpcms.views.ObjectView` class specialised for displaying
+an object.'''
     default_title = '{0[instance]}'
     default_link = '{0[instance]}'
     

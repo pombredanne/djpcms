@@ -1,0 +1,14 @@
+.. _djpcms-html:
+
+.. module:: djpcms.html
+
+=================
+HTML tools
+=================
+
+
+Table
+==========
+
+Creating and manipulating tables of data can be a complex task especially
+when dealing with large ammount of data.

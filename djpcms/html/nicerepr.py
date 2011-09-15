@@ -112,8 +112,8 @@ def results_for_item(djp, headers, result, appmodel = None,
             getr = get_result()
     request = djp.request if djp else None
     return {'id': id,
-            'display': (getr(request,name,result,appmodel,**kwargs)\
-                        for name in headers)}
+            'display': (getr(request,head,result,appmodel,**kwargs)\
+                        for head in headers)}
 
 
 class get_result(object):
@@ -121,8 +121,8 @@ class get_result(object):
     def __init__(self):
         self.first = True
 
-    def __call__(self, request, field_name, result, appmodel, **kwargs):
-        return field_repr(field_name, result, appmodel = appmodel, **kwargs)
+    def __call__(self, request, head, result, appmodel, **kwargs):
+        return field_repr(head.attrname, result, appmodel = appmodel, **kwargs)
     
     
 class get_iterable_result(object):
@@ -130,7 +130,7 @@ class get_iterable_result(object):
     def __init__(self, results):
         self.iter = iter(results)
 
-    def __call__(self, request, field_name, result, appmodel, **kwargs):
+    def __call__(self, request, head, result, appmodel, **kwargs):
         try:
             return nicerepr(next(self.iter),**kwargs)
         except StopIteration:
@@ -157,30 +157,26 @@ class get_app_result(object):
         mapper = self.mapper
         first = self.first
         url = None
-        if head:
-            head = table_header(head)
-            result_repr = field_repr(head.attrname, result,
-                                     appmodel = appmodel, nd = nd)
-            if(self.first and not appmodel.list_display_links) or \
-                    head.code in appmodel.list_display_links:
-                first = False
-                url = appmodel.viewurl(request, result,
-                                       field_name = head.code)
-            
-            var = result_repr
-            if url:
-                if url != path:
-                    if head.function != head.code:
-                        title = field_repr(head.function, result,
-                                           appmodel = appmodel, nd = nd)
-                    else:
-                        title = head.name
-                    var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
-                                    .format(url, var, title))
+        result_repr = field_repr(head.attrname, result,
+                                 appmodel = appmodel, nd = nd)
+        if(self.first and not appmodel.list_display_links) or \
+                head.code in appmodel.list_display_links:
+            first = False
+            url = appmodel.viewurl(request, result,
+                                   field_name = head.code)
+        
+        var = result_repr
+        if url:
+            if url != path:
+                if head.function != head.code:
+                    title = field_repr(head.function, result,
+                                       appmodel = appmodel, nd = nd)
                 else:
-                    var = mark_safe('<a>{0}</a>'.format(var))
-        else:
-            var = ''
+                    title = head.name
+                var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
+                                .format(url, var, title))
+            else:
+                var = mark_safe('<a>{0}</a>'.format(var))
         
         if self.first and self.actions:
             first = False 

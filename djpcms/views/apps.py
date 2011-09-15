@@ -350,11 +350,13 @@ application {0}. Already available." % name)
         
     @property
     def settings(self):
+        '''application site settings'''
         if self.site:
             return self.site.settings
         
     @property
     def tree(self):
+        '''application site tree'''
         if self.site:
             return self.site.tree
         
@@ -525,38 +527,20 @@ to render a table.'''
 By default it return a generator of children pages.'''
         return djp.auth_children()  
     
-    def render_query(self, djp, query, appmodel = None):
+    def render_query(self, djp, query):
         '''Render a query as a table or a list of items.'''
-        view = djp.view
-        appmodel = appmodel or self
         if isgenerator(query):
             query = list(query)
-        headers = appmodel.list_display
-        size = appmodel.list_per_page
+            
+        toolbox = html.table_toolbox(djp)
         
-        if view.astable and headers:
+        if toolbox:
             params = deepcopy(self.table_parameters)
-            if 'ajax' not in params:
-                ajax = djp.url if view.astable == 'ajax' else None
-                params['ajax'] = ajax
-            if params['ajax']:
-                p = Paginator(djp.request,
-                              query,
-                              per_page = size,
-                              page_menu = appmodel.list_per_page_choices)
-                query = p.qs
-            else:
-                p = None
-            return Table(headers,
-                         body = self.table_generator(djp, headers, query),
-                         appmodel = appmodel,
-                         paginator = p,
-                         size = size,
-                         **params).render(djp)
+            return html.dataTableResponse(djp, query, toolbox, params)
         else:
             p = Paginator(djp.request,
                           query,
-                          per_page = size,
+                          per_page = appmodel.list_per_page,
                           page_menu = appmodel.list_per_page_choices)
             c  = djp.kwargs.copy()
             c.update({'paginator': p,
@@ -586,17 +570,19 @@ By default it return a generator of children pages.'''
         '''Remove all model instances from database.'''
         self.mapper.delete_all()
         
-    def column_groups(self, djp):
-        '''This function can be used to return an iterble over two
-dimensional tuples::
+    def table_column_groups(self, djp):
+        '''A hook for returning group of table headers before sending
+data to the client.
+
+:parameter djp: instance of :class:`djpcms.views.DjpResponse`.
+
+:rtype: an iterable over two dimensional tuples::
 
     (view name, [list of headers]),
     (view2 name, [list of headers])
 
-By default it returns nothing.
-'''
-        return ()
-        
+    By default it returns ``None``.'''
+        pass
                 
         
 class ModelApplication(Application):

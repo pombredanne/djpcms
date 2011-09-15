@@ -1,7 +1,7 @@
-.. _djpcms-html:
+.. _djpcms-html-api:
 
 =================
-HTML tools
+HTML API
 =================
 
 .. automodule:: djpcms.html
@@ -27,15 +27,24 @@ Widget
 Table
 =============
 
+Table widget
+~~~~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: djpcms.html.Table
    :members:
    :member-order: bysource
    
    
+Table toolbox
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: djpcms.html.table_toolbox   
+ 
+   
 Media
 =============
 
-.. autoclass:: djpcms.html.Media
+.. autoclass:: djpcms.utils.media.Media
    :members:
    :member-order: bysource
 

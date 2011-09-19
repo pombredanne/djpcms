@@ -119,7 +119,8 @@ Any Operation on this class is similar to jQuery.
             cs = ' '.join(self.classes)
             attrs['class'] = cs
         if self._css:
-            attrs['style'] = ''.join(('{0}:{1};'.format(k,v) for k,v in self._css.items()))
+            attrs['style'] = ''.join(('{0}:{1};'.format(k,v)\
+                                       for k,v in self._css.items()))
         for k,v in self.data.items():
             attrs['data-{0}'.format(k)] = dump_data_value(v)
         if attrs:
@@ -340,7 +341,8 @@ it is a class used as factory for HTML components.
                     attrs[attr] = value
         if params:
             keys = list(params)
-            raise TypeError("__init__() got an unexpected keyword argument '{0}'".format(keys[0]))
+            raise TypeError("__init__() got an unexpected keyword argument\
+ '{0}'".format(keys[0]))
         key = None
         if default:
             key = default
@@ -357,7 +359,8 @@ it is a class used as factory for HTML components.
         return attr
     
     def __repr__(self):
-        return '{0}{1}'.format(self.__class__.__name__,'-'+self.tag if self.tag else '')
+        return '{0}{1}'.format(self.__class__.__name__,'-'+\
+                               self.tag if self.tag else '')
     
     def ischeckbox(self):
         '''Returns ``True`` if this is a checkbox widget.
@@ -409,8 +412,9 @@ It returns self for concatenating data.'''
         return text
     
     def inner(self, djp, widget, keys):
-        '''Render the inner part of the widget. This can be overwritten by derived classes and should
-return the inner part of html. By default it renders the template if it is available, otherwise
+        '''Render the inner part of the widget. This can be overwritten by
+derived classes and should return the inner part of html.
+By default it renders the template if it is available, otherwise
 an empty string.'''
         context = self.get_context(djp,widget,keys)
         if self.template or self.template_name:

@@ -34,6 +34,7 @@ A mixin class for rendering objects as HTML
     template_name = None
     name = None
     dialog_width = 'auto'
+    dialog_height = 'auto'
     ajax_enabled = None
     list_display = ()
     
@@ -187,7 +188,8 @@ http requests.
         html = self.render(djp)
         return ajax.dialog(hd = djp.title,
                            bd = html,
-                           width = 'self.dialog_width',
+                           width = self.dialog_width,
+                           height = self.dialog_height,
                            modal = True)
     
     def ajax_post_response(self, djp):

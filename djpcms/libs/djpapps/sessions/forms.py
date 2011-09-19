@@ -1,8 +1,8 @@
-from djpcms import forms, html
+from djpcms import forms, html, PERMISSION_LIST
 from djpcms.core.orms import registered_models_tuple
-from djpcms.core.search import Search
+from djpcms.apps.included import search
 
-from .models import PERMISSION_LIST, Role, User, Group
+from .models import Role, User, Group
 
 
 def get_models(bfield):
@@ -25,7 +25,7 @@ class GroupForm(forms.Form):
 class PermissionForm(forms.Form):
     '''To use this form, full text search must be implemented on the user.'''
     role = forms.ChoiceField(choices = lambda x : Role.objects.all())
-    user = forms.ChoiceField(choices = Search(model = User),
+    user = forms.ChoiceField(choices = search.Search(model = User),
                              autocomplete = True,
                              required=  False)
     group = forms.ChoiceField(choices = lambda x : Group.objects.all(),

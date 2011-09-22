@@ -100,7 +100,7 @@ class Session(orm.StdModel):
     TEST_COOKIE_NAME = 'testcookie'
     TEST_COOKIE_VALUE = 'worked'
     id = orm.SymbolField(primary_key=True)
-    data = orm.HashField(pickler=encoders.PythonPickle())
+    data = orm.HashField(value_pickler=encoders.PythonPickle())
     expiry = orm.DateTimeField(index = False)
     modified = True
     

@@ -38,8 +38,8 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
     
     def __init__(self,
                  form_class,
-                 model,
-                 related_name,
+                 model = None,
+                 related_name = None,
                  clean = None,
                  initial_length = 3,
                  instances_from_related = None):

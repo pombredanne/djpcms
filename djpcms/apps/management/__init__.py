@@ -1,16 +1,17 @@
 #
 # MANAGEMENT COMMANDS LOGIC
-# ADAPTED FROM DJANGO
 #
 import os
 import sys
-from optparse import OptionParser, NO_DEFAULT
-import imp
+import argparse
 
 import djpcms
 from djpcms.utils.importer import import_module
-from djpcms.apps.management.base import BaseCommand, CommandError,\
-                                        handle_default_options
+
+from .base import Command, CommandError, CommandOption
+                                        
+__all__ = ['Command','CommandError','CommandOption',
+           'call_command','execute']
 
 
 def find_commands(management_dir):
@@ -72,61 +73,6 @@ def call_command(name, *args, **options):
     return klass.execute(*args, **defaults)
 
 
-class LaxOptionParser(OptionParser):
-    """
-    An option parser that doesn't raise any errors on unknown options.
-
-    This is needed because the --settings and --pythonpath options affect
-    the commands (and thus the options) that are available to the user.
-    """
-    def error(self, msg):
-        pass
-
-    def print_help(self):
-        """Output nothing.
-
-        The lax options are included in the normal option parser, so under
-        normal usage, we don't need to print the lax options.
-        """
-        pass
-
-    def print_lax_help(self):
-        """Output the basic options available to every command.
-
-        This just redirects to the default print_help() behaviour.
-        """
-        OptionParser.print_help(self)
-
-    def _process_args(self, largs, rargs, values):
-        """
-        Overrides OptionParser._process_args to exclusively handle default
-        options and ignore args and other options.
-
-        This overrides the behavior of the super class, which stop parsing
-        at the first unrecognized option.
-        """
-        while rargs:
-            arg = rargs[0]
-            try:
-                if arg[0:2] == "--" and len(arg) > 2:
-                    # process a single long option (possibly with value(s))
-                    # the superclass code pops the arg off rargs
-                    self._process_long_opt(rargs, values)
-                elif arg[:1] == "-" and len(arg) > 1:
-                    # process a cluster of short options (possibly with
-                    # value(s) for the last one only)
-                    # the superclass code pops the arg off rargs
-                    self._process_short_opts(rargs, values)
-                else:
-                    # it's either a non-default option or an arg
-                    # either way, add it to the args list so we can keep
-                    # dealing with options
-                    del rargs[0]
-                    raise Exception
-            except:
-                largs.append(arg)
-
-
 class ManagementUtility(object):
     """
     Encapsulates the logic of the django-admin.py and manage.py utilities.
@@ -135,8 +81,10 @@ class ManagementUtility(object):
     by editing the self.commands dictionary.
     """
     def __init__(self, sites, argv=None):
-        self.argv = argv or sys.argv[:]
-        self.prog_name = os.path.basename(self.argv[0])
+        if argv is None:
+            argv = sys.argv[:]
+        self.prog_name = os.path.basename(argv[0])
+        self.argv = argv[1:]
         if hasattr(sites,'__call__'):
             self.callable = sites
             self.sites = sites()
@@ -145,19 +93,28 @@ class ManagementUtility(object):
             self.sites.load()
             self.callable = lambda : self.sites
 
-    def main_help_text(self):
+    def get_parser(self):
+        return argparse.ArgumentParser(usage = self.get_usage())
+        
+    def get_usage(self):
         """
         Returns the script's main help text, as a string.
         """
-        usage = ['',"Type '%s help <subcommand>' for help on a specific\
- subcommand." % self.prog_name,'']
-        usage.append('Available subcommands:')
+        settings = self.sites.settings
         commands = self.sites.get_commands()
-        return '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
+        usage = "\nType '{0} help <subcommand>' for help on a specific\
+ subcommand.\n\nAvailable subcommands:\n".format(self.prog_name)
+        cmds = '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
+        text = '{0}\n{1}'.format(usage,cmds)
+        if settings.DESCRIPTION:
+            text = '{0}\n{1}'.format(settings.DESCRIPTION,text)
+        if settings.EPILOG:
+            text = '{0}\n{1}'.format(text,settings.EPILOG)
+        return text
 
     def fetch_command(self, subcommand):
-        """Tries to fetch the given subcommand, printing a message with the
-        appropriate command called from the command line (usually
+        """Tries to fetch the given *subcommand*, printing a message with the
+appropriate command called from the command line (usually
         "django-admin.py" or "manage.py") if it can't be found.
         """
         try:
@@ -166,7 +123,7 @@ class ManagementUtility(object):
             sys.stderr.write("Unknown command: %r\nType '%s help'\
  for usage.\n" % (subcommand, self.prog_name))
             sys.exit(1)
-        if isinstance(app_name, BaseCommand):
+        if isinstance(app_name, Command):
             # If the command is already loaded, use it directly.
             klass = app_name
         else:
@@ -174,50 +131,27 @@ class ManagementUtility(object):
         return klass
 
     def execute(self):
-        """
-        Given the command-line arguments, this figures out which subcommand is
-        being run, creates a parser appropriate to that command, and runs it.
-        """
-        # Preprocess options to extract --settings and --pythonpath.
-        # These options could affect the commands that are available, so they
-        # must be processed early.
-        parser = LaxOptionParser(usage="%prog subcommand [options] [args]",
-                                 version=djpcms.get_version(),
-                                 option_list=BaseCommand.option_list)
-        try:
-            options, args = parser.parse_args(self.argv)
-            handle_default_options(options)
-        except:
-            pass # Ignore any option errors at this point.
-
-        try:
-            subcommand = self.argv[1]
-        except IndexError:
-            subcommand = 'help' # Display help if no arguments were given.
-            
-        # Allow for django commands
-        if subcommand == 'django':
+        """Given the command-line arguments, this figures out which
+subcommand is being run, creates a parser appropriate to that command,
+and runs it."""
+        argv = self.argv
+        command = argv[0] if argv else 'help'
+        
+        # Allow for django commands, for example
+        # python manage.py django syncdb
+        if not command:
+            parser = self.get_parser()
+            parser.parse_args(argv)
+            sys.exit(1)
+        elif command == 'django':
             from django.core.management import ManagementUtility
-            argv = sys.argv[:1] + sys.argv[2:]
+            argv = [sys.prog_name] + argv[1:]
             utility = ManagementUtility(argv)
             utility.execute()
-        elif subcommand == 'help':
-            if len(args) > 2:
-                self.fetch_command(args[2]).print_help(self.prog_name, args[2])
-            else:
-                parser.print_lax_help()
-                sys.stderr.write(self.main_help_text() + '\n')
-                sys.exit(1)
-        # Special-cases:
-        elif self.argv[1:] == ['--version']:
-            # LaxOptionParser already takes care of printing the version.
-            pass
-        elif self.argv[1:] == ['--help']:
-            parser.print_lax_help()
-            sys.stderr.write(self.main_help_text() + '\n')
         else:
-            self.fetch_command(subcommand).run_from_argv(self.callable,
-                                                         self.argv)
+            self.fetch_command(command).run_from_argv(self.callable,
+                                                      command,
+                                                      argv[1:])
 
 
 def execute(sites, argv=None, **params):

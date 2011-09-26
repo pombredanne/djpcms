@@ -3,6 +3,8 @@ import djpcms
 DEBUG = False
 SECRET_KEY = None
 PROFILING_KEY = None
+DESCRIPTION = 'djpcms framework'
+EPILOG = 'Have fun!'
 
 # List of installed application.
 # These must be dotted python paths

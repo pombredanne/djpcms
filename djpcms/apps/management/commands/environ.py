@@ -1,7 +1,7 @@
-from djpcms.apps.management.base import BaseCommand
+import djpcms
 
-class Command(BaseCommand):
+class Command(djpcms.Command):
     help = "Load the environment."
     
-    def handle(self, callable, *args, **options):
+    def handle(self, callable, options):
         callable()

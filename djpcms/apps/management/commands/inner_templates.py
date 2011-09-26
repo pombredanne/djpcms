@@ -1,15 +1,15 @@
 import logging
 
-from djpcms.apps.management.base import BaseCommand
+import djpcms
 from djpcms.template import make_default_inners
 
 logger = logging.getLogger('djpcms.execute.inner_templates')
 
 
-class Command(BaseCommand):
+class Command(djpcms.Command):
     help = "Add default inner templates to the database."
     
-    def handle(self, callable, *args, **options):
+    def handle(self, callable, options):
         logger.info('Adding default inner templates to database.')
         sites = callable()
         inners = make_default_inners()

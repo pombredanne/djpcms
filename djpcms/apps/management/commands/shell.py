@@ -4,11 +4,11 @@ from optparse import make_option
 from djpcms.apps.management.base import BaseCommand
 
 
-class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--plain',
+class Command(djpcms.Command):
+    option_list = (
+            djpcms.CommandOption(cli = '--plain',
                     action='store_true',
-                    dest='plain',
+                    default=False,
                     help='Tells djpcms to use plain Python, not IPython.'),
         )
     help = "Runs a Python interactive interpreter. Tries to use IPython,\
@@ -44,11 +44,11 @@ class Command(BaseCommand):
                 pass
         raise ImportError
 
-    def handle(self, callable, *args, **options):
+    def handle(self, callable, options):
         # XXX: (Temporary) workaround for ticket #1796: force early loading of all
         # models from installed apps.
         sites = callable()
-        use_plain = options.get('plain', False)
+        use_plain = options.plain
         try:
             if use_plain:
                 raise ImportError

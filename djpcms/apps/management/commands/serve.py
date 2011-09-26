@@ -1,27 +1,25 @@
 import os
-from optparse import make_option
 
 import djpcms
-from djpcms.apps.management.base import BaseCommand
 from djpcms.http import serve
 
 DEFAULT_PORT = 8060
 
 
-class Command(BaseCommand):
-    option_list = BaseCommand.option_list
+class Command(djpcms.Command):
     help = "Serve the application."
-    args = '[optional port number]'
+    option_list = (
+                   djpcms.CommandOption('port',nargs='?',type=int,
+                                        default=DEFAULT_PORT,
+                                        description='Optional port number'),
+                   )
     
-    def handle(self, callable, *args, **options):
+    def handle(self, callable, options):
         sites = callable()
         if not sites:
             print('No sites installed, cannot serve the application')
             return
         
-        if args:
-            port = int(args[0])
-        else:
-            port = DEFAULT_PORT
+        port = options.port
         djpcms.init_logging(sites.settings)
         serve(port = port, sites = sites)

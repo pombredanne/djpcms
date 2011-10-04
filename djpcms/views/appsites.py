@@ -38,7 +38,7 @@ class ApplicationSite(SiteApp, RouteMixin):
         self._request_middleware = None
         self._response_middleware = None
         self._template_context_processors = None
-        handler = handler or http.WSGI
+        handler = handler or http.WSGIsite
         self.handle = handler(self)
         
     def __repr__(self):

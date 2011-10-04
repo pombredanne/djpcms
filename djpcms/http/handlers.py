@@ -6,7 +6,7 @@ from .cache import djpcmsinfo
 DJPCMS = 'DJPCMS'
 
 
-__all__ = ['DjpCmsHandler','WSGI']
+__all__ = ['WSGI','WSGIsite']
     
 
 class BaseSiteHandler(object):
@@ -15,9 +15,6 @@ class BaseSiteHandler(object):
         self.site = site
         self.handle_exception = site.handle_exception
         self.root = self.site.root
-        
-    def __call__(self, environ, start_response):
-        raise NotImplementedError
     
     def get_request(self, environ, site = None):
         if DJPCMS not in environ:
@@ -38,8 +35,8 @@ def response_error(f):
     return _
     
     
-class DjpCmsHandler(BaseSiteHandler):
-    '''Base DjpCms wsgi handler. It looks for application sites and
+class WSGI(BaseSiteHandler):
+    '''WSGI handler. It looks for application sites and
 delegate the handling to them.'''
     def __call__(self, environ, start_response):
         self.root.request_started.send(self, environ = environ)
@@ -66,36 +63,34 @@ delegate the handling to them.'''
         return appsite.handle(environ, start_response)
             
     
-class WSGI(BaseSiteHandler):
+class WSGIsite(BaseSiteHandler):
     '''Box standard wsgi response handler'''
     @response_error
     def __call__(self, environ, start_response):
         request = self.get_request(environ)
         info = request.DJPCMS
         site = info.site
-        response = None
-        djp = info.djp(request)
-        if isinstance(djp,Response):
-            return djp
-        info.page = djp.page
-        #signals.request_started.send(sender=self.__class__)
-        # Request middleware
-        for middleware_method in site.request_middleware():
-            response = middleware_method(request)
-            if response:
-                return response(environ, start_response)
-        self.root.start_response.send(sender=self.__class__, request=request)
-        response = djp.response()
-        #info.instance = djp.instance
-        # Response middleware
-        for middleware_method in site.response_middleware():
-            middleware_method(request,response)
+        response = info.djp(request)
+        if not isinstance(response,Response):
+            djp = response
+            response = None
+            info.page = djp.page
+            #signals.request_started.send(sender=self.__class__)
+            # Request middleware
+            for middleware_method in site.request_middleware():
+                response = middleware_method(request)
+                if response:
+                    break
+                
+            if response is None:
+                self.root.start_response.send(sender=self.__class__,
+                                              request=request)
+                response = djp.response()
+            
+                # Response middleware
+                for middleware_method in site.response_middleware():
+                    response = middleware_method(request,response)
+            
         return response
     
 
-class WebSocketWSGI(object):
-    
-    def _handle_response(self, environ, start_response):
-        raise NotImplementedError
-    
-    

@@ -255,7 +255,7 @@ class Response(object):
         return header.lower() in self._headers
     
     def __iter__(self):
-        return iter(self.content)
+        return iter(self.content)        
         
     @property
     def status_code(self):
@@ -329,9 +329,16 @@ class Response(object):
         
         if "Content-Encoding" not in self and self.encoding:
             self.set_header("Content-Encoding", self.encoding)
+             
+        if not self.is_streamed:
+            cl = 0
+            for x in self:
+                cl += len(x)
+            self.set_header("Content-Length", cl)
             
         if start_response is not None:
             start_response(status, list(itervalues(self._headers)))
+            
         return self
 
     

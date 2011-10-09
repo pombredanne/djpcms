@@ -20,9 +20,8 @@ __all__ = ['ApplicationSite']
 
 
 class ApplicationSite(SiteApp, RouteMixin):
-    '''Application site manager
-    An instance of this class is used to handle url of
-    registered applications.
+    '''Application site manager. An instance of this class 
+handles urls of :class:`Application`  registered with it.
     '''
     def __init__(self, root, route, config, handler, permissions):
         self._init()

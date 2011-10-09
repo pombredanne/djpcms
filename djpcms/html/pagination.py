@@ -14,8 +14,8 @@ class Paginator(object):
     
     def __init__(self, total = 0, per_page = 20,
                  numends = 2, maxentries = 15, 
-                 page_menu = None, page = None,
-                 start = None, ajax = False):
+                 page_menu = None, page = 1,
+                 start = 0):
         '''
         @param data:       queryset
         @param page:       page to display
@@ -24,8 +24,6 @@ class Paginator(object):
         '''
         self.total = total
         self.per_page = max(int(per_page),1)
-        
-        self.ajax = ajax
         self.hentries = max(int(maxentries)/2,2)
         self.numends = numends
         tp = int(self.total/self.per_page)

@@ -1,7 +1,5 @@
 .. _views-index:
 
-.. module:: djpcms.views
-
 =========================
 Applications and Views
 =========================

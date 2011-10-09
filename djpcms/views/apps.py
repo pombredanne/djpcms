@@ -120,9 +120,9 @@ def extend_widgets(d, target = None):
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
     '''Base class for djpcms
-applications. It defines a set of views which are somehow related to each other
-and shares a common application object ``appmodel`` which is an instance of
-this class.
+applications. It defines a set of :class:`View` which are somehow related
+to each other and shares a common application object :attr:`View.appmodel`
+which is an instance of this class.
 
 Application views are instances of :class:`djpcms.views.View` class and
 are specified as class attributes of a :class:`Application` class
@@ -528,7 +528,10 @@ By default it return a generator of children pages.'''
         return djp.auth_children()  
     
     def render_query(self, djp, query):
-        '''Render a query as a table or a list of items.'''
+        '''Render a *query* as a table or a list of items.
+
+:param query: an iterable over items.
+'''
         if isgenerator(query):
             query = list(query)
             
@@ -538,19 +541,23 @@ By default it return a generator of children pages.'''
             params = deepcopy(self.table_parameters)
             return html.dataTableResponse(djp, query, toolbox, params)
         else:
-            p = Paginator(djp.request,
-                          query,
-                          per_page = appmodel.list_per_page,
-                          page_menu = appmodel.list_per_page_choices)
+            try:
+                total = query.count()
+            except:
+                total = len(query)
+            p = Paginator(total = total,
+                          per_page = self.list_per_page,
+                          page_menu = self.list_per_page_choices)
             c  = djp.kwargs.copy()
             c.update({'paginator': p,
                       'djp': djp,
                       'url': djp.url,
-                      'appmodel': appmodel,
-                      'headers': headers})
+                      'appmodel': self,
+                      'headers': self.headers})
             maker = self.object_widgets['pagination']
             render = self.render_object
-            c['items'] = (render(djp,item,'pagination') for item in p.qs)
+            qs = query[p.start:p.end]
+            c['items'] = (render(djp,item,'pagination') for item in qs)
             return loader.render(self.pagination_template_name, c)
 
     def for_user(self, djp):

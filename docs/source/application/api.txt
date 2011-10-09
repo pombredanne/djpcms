@@ -1,3 +1,4 @@
+.. module:: djpcms.views
 
 =============
 Views API
@@ -9,7 +10,7 @@ Views API
 Application Site
 ===========================
 
-.. autoclass:: djpcms.views.ApplicationSite
+.. autoclass:: ApplicationSite
    :members:
    :member-order: bysource
    
@@ -22,7 +23,7 @@ Applications
 Application
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.Application
+.. autoclass:: Application
    :members:
    :member-order: bysource
    
@@ -30,7 +31,7 @@ Application
 ModelApplication Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.ModelApplication
+.. autoclass:: ModelApplication
    :members:
    :member-order: bysource
    

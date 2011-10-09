@@ -1,5 +1,0 @@
-.. _topics-javascript-content:
-
-============================
-Browser side and Javascript
-============================

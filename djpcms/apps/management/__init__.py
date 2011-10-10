@@ -102,7 +102,7 @@ class ManagementUtility(object):
         """
         settings = self.sites.settings
         commands = self.sites.get_commands()
-        usage = "\nType '{0} help <subcommand>' for help on a specific\
+        usage = "\nType '{0} <subcommand> --help' for help on a specific\
  subcommand.\n\nAvailable subcommands:\n".format(self.prog_name)
         cmds = '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
         text = '{0}\n{1}'.format(usage,cmds)
@@ -139,7 +139,7 @@ and runs it."""
         
         # Allow for django commands, for example
         # python manage.py django syncdb
-        if not command:
+        if command == 'help':
             parser = self.get_parser()
             parser.parse_args(argv)
             sys.exit(1)

@@ -1,15 +1,15 @@
 import os
 from optparse import make_option
 
-from djpcms.apps.management.base import BaseCommand
+import djpcms
 
 
 class Command(djpcms.Command):
     option_list = (
-            djpcms.CommandOption(cli = '--plain',
-                    action='store_true',
-                    default=False,
-                    help='Tells djpcms to use plain Python, not IPython.'),
+            djpcms.CommandOption('plain',('-p','--plain'),
+                action='store_true',
+                default=False,
+                description='Tells djpcms to use plain Python, not IPython.'),
         )
     help = "Runs a Python interactive interpreter. Tries to use IPython,\
  if it's available."

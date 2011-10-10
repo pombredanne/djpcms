@@ -6,8 +6,7 @@ import re
 import sys
 from optparse import make_option
 
-from djpcms import sites
-from djpcms.apps.management.base import BaseCommand
+import djpcms
 
 from sessions.models import User
 
@@ -43,8 +42,7 @@ def get_default_username():
     return default_username
 
 
-class Command(BaseCommand):
-    option_list = BaseCommand.option_list
+class Command(djpcms.Command):
     help = 'Used to create a superuser.'
 
     def handle(self, *args, **options):

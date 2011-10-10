@@ -39,7 +39,7 @@ class GZipMiddleware(object):
         if not content:
             return response
         
-        c = ''.join(content)
+        c = b''.join(content)
         if len(c) < 200:
             return response
         

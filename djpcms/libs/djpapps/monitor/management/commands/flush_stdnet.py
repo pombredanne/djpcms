@@ -1,13 +1,16 @@
-from djpcms.apps.management.base import BaseCommand
+import djpcms
 
 from monitor import installed_models                    
 
-class Command(BaseCommand):
+class Command(djpcms.Command):
     help = "Flush stdnet models in the data-server."
-    args = '[appname appname.ModelName ...]'
+    option_list = (
+                   djpcms.CommandOption('apps',nargs='*',
+                        description='appname appname.ModelName ...'),
+                   )
     
-    def handle(self, callable, *args, **options):
+    def handle(self, callable, options):
         sites = callable()
-        for model in installed_models(sites,args):
+        for model in installed_models(sites,options.apps):
             model.flush()
             print('flushed {0}'.format(model._meta))

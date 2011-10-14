@@ -91,9 +91,13 @@ def init_logging(settings, clear_all = False):
     if settings:
         LOGGING = settings.LOGGING
         if settings.DEBUG:
+            handlers = ['console']
+            if hasattr(settings, 'LOG_TO_FILE') and settings.LOG_TO_FILE:
+                if LOGGING['handlers'].has_key('file'):
+                    handlers.append('file')
             LOGGING['handlers']['console']['level'] = 'DEBUG' 
             LOGGING['root'] = {
-                            'handlers': ['console'],
+                            'handlers': handlers,
                             'level': 'DEBUG',
                             }
         dictConfig(settings.LOGGING)
@@ -141,7 +145,7 @@ LOGGING_SAMPLE = {
 
 from .core.exceptions import *
 from .apps import *
-from .apps.management import *
+from .apps.management import execute
 from .conf import nodata
 from .utils import ajax
 from .utils.decorators import *

@@ -116,7 +116,7 @@ LOGGING_SAMPLE = {
             'class': 'djpcms.utils.log.NullHandler',
         },
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
@@ -126,13 +126,8 @@ LOGGING_SAMPLE = {
         }
     },
     'loggers': {
-        'django.request':{
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.db.backends':{
-            'handlers': ['silent'],
+        'djpcms.request':{
+            #'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         }

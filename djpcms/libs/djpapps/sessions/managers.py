@@ -96,7 +96,8 @@ class SessionManager(orm.Manager):
     
 class UserManager(orm.Manager):
     
-    def create_user(self, username, password=None, email=None, is_superuser = False):
+    def create_user(self, username, password=None, email=None,
+                    is_superuser = False):
         if email:
             try:
                 email_name, domain_part = email.strip().split('@', 1)

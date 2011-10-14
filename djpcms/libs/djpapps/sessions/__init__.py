@@ -84,6 +84,12 @@ class PermissionBackend(djpcms.PermissionBackend):
         self.flush_session(request)
         request.user = AnonymousUser()
         
+    def create_user(self, *args, **kwargs):
+        return User.objects.create_user(*args, **kwargs)
+    
+    def create_superuser(self, *args, **kwargs):
+        return User.objects.create_superuser(*args, **kwargs)
+        
     def process_request(self, request):
         cookie_name = get_session_cookie_name()
         session_key = request.COOKIES.get(cookie_name, None)

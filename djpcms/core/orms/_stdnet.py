@@ -22,12 +22,11 @@ class OrmWrapper(BaseOrmWrapper):
         self.hash = meta.hash
         self.nicename = '{0} - {1}'.format(nicename(meta.app_label),
                                       nicename(meta.name))
-        #
         self.model_to_dict = model_to_dict
-        self.get = self.objects.get
-        self.all = self.objects.all
-        self.filter = self.objects.filter
         self.DoesNotExist = self.model.DoesNotExist
+        
+    def __getattr__(self, name):
+        return getattr(self.objects,name)
         
     def test(self):
         from stdnet.orm import StdNetType

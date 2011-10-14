@@ -1,7 +1,7 @@
 import logging
 import sys
 
-getLogger = logging.getLogger
+
 
 # Make sure a NullHandler is available
 # This was added in Python 2.7/3.2
@@ -12,7 +12,6 @@ except ImportError:
         def emit(self, record):
             pass
         
-
 # Make sure that dictConfig is available
 # This was added in Python 2.7/3.2
 try:
@@ -20,12 +19,37 @@ try:
 except ImportError:
     from djpcms.utils.dictconfig import dictConfig
     
+# We can't log memory info without psutil
+try:
+    from psutil import Process
+    from os import getpid
+    _p = Process(getpid())
+except:
+    _p = None
+
+def get_mem_rss():
+    if _p:
+        return _p.get_memory_info().rss/1024
+    else:
+        return 0.0
     
-logger = getLogger('djpcms')
+class ProcessInfoLogger(logging.Logger):
+    """Custom logger that allows process information to be logged.
+    Supported items:
+        *:mem_rss: resident set size, in KB
+    """ 
+    def makeRecord(self, *args, **kwargs):
+        rv = logging.Logger.makeRecord(self, *args, **kwargs)
+        if _p:
+            rv.mem_rss = get_mem_rss()
+        return rv
+
+logging.setLoggerClass(ProcessInfoLogger)
+logger = logging.getLogger('djpcms')
+
 if not logger.handlers:
     logger.addHandler(NullHandler())
-    
-    
+        
 class AdminEmailHandler(logging.Handler):
     """An exception log handler that emails log entries to site admins
 

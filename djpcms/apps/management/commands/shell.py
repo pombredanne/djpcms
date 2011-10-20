@@ -1,5 +1,4 @@
 import os
-from optparse import make_option
 
 import djpcms
 

@@ -30,7 +30,13 @@ table_menu_link = namedtuple('table_menu_link',
 def table_header(code, name = None, description = None, function = None,
                  attrname = None, sortable = True, width = None,
                  extraclass = None):
-    '''Utility for creating an instance of a :class:`table_header_`.'''
+    '''Utility for creating an instance of a :class:`table_header_` namedtuple.
+    
+:param code: unique code for the header
+:param attrname: optional attribute name, if not supplied the *code* will be
+    used. The attrname is the actual attribute name in the object, and
+    therefore the actual field in the database. 
+'''
     if isinstance(code,table_header_):
         return code
     name = name or nicename(code)

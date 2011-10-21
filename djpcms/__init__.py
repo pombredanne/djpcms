@@ -90,17 +90,18 @@ def init_logging(settings, clear_all = False):
 
     if settings:
         LOGGING = settings.LOGGING
-        if settings.DEBUG:
-            handlers = ['console']
-            if hasattr(settings, 'LOG_TO_FILE') and settings.LOG_TO_FILE:
-                if LOGGING['handlers'].has_key('file'):
-                    handlers.append('file')
-            LOGGING['handlers']['console']['level'] = 'DEBUG' 
-            LOGGING['root'] = {
-                            'handlers': handlers,
-                            'level': 'DEBUG',
-                            }
-        dictConfig(settings.LOGGING)
+        if LOGGING:
+            if settings.DEBUG:
+                handlers = ['console']
+                if hasattr(settings, 'LOG_TO_FILE') and settings.LOG_TO_FILE:
+                    if LOGGING['handlers'].has_key('file'):
+                        handlers.append('file')
+                LOGGING['handlers']['console']['level'] = 'DEBUG' 
+                LOGGING['root'] = {
+                                'handlers': handlers,
+                                'level': 'DEBUG',
+                                }
+            dictConfig(settings.LOGGING)
         
 
 LOGGING_SAMPLE = {

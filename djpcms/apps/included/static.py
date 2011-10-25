@@ -111,6 +111,7 @@ class StaticRootView(StaticView):
 
 
 class StaticFileView(StaticView):
+    DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     
     def __call__(self, request, **kwargs):
         appmodel = self.appmodel
@@ -155,7 +156,7 @@ class StaticFileView(StaticView):
         # Respect the If-Modified-Since header.
         statobj = os.stat(fullpath)
         mimetype, encoding = mimetypes.guess_type(fullpath)
-        mimetype = mimetype or 'application/octet-stream'
+        mimetype = mimetype or self.DEFAULT_CONTENT_TYPE
         if not self.was_modified_since(request.environ.get(
                                             'HTTP_IF_MODIFIED_SINCE',None),
                                        statobj[stat.ST_MTIME],

@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from py2py3 import itervalues, is_string, ispy3k, to_bytestring
+from py2py3 import itervalues, ispy3k, to_bytestring
 
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
@@ -216,22 +216,28 @@ class Request(object):
         else:
             return view(self,**kwargs)
             
-    
 
 class Response(object):
+    '''A wrapper for response contents.
+    
+.. attribute:: content
+    
+    an iterable over contents
+    
+.. attribute:: status
+
+    Integer indicating the response status code
+    '''
     DEFAULT_CONTENT_TYPE = 'text/plain'
-    DEFAULT_ENCODING = 'utf-8'
+    #DEFAULT_ENCODING = 'utf-8'
     status = 200
     
     def __init__(self, content = '', status = None, content_type = None,
                  encoding = None):
-        self.encoding = encoding or self.DEFAULT_ENCODING
+        self.encoding = encoding
         if not content:
             content = ()
-        if is_string(content):
-            content = content.encode(self.encoding)
-            #content = bytes(content)
-        if isinstance(content,bytes):
+        elif isinstance(content,bytes):
             content = (content,)
         self.content = content
         self.status = status or self.status

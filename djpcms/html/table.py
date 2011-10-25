@@ -60,10 +60,8 @@ class TableMaker(WidgetMaker):
                'footer':widget.footer,
                'title':title}
         appmodel = widget.internal['appmodel']
-        toolbox = None
-        # If toolbox is required
-        if appmodel and widget.toolbox:
-            toolbox = table_toolbox(djp, appmodel)
+        toolbox = widget.toolbox
+        if toolbox:
             widget.data.update(toolbox)
         if not widget.ajax:
             ctx['rows'] = widget.items(djp)
@@ -179,8 +177,11 @@ def dataTableResponse(djp, qs = None, toolbox = None, params = None):
     appmodel = view.appmodel
     params = params or {}
     render = not request.is_xhr
+    # The table toolbox
     toolbox = toolbox or table_toolbox(djp,appmodel)
     headers = toolbox['headers']
+    # Attributes to load from query
+    load_only = tuple((h.attrname for h in headers))
     nh = len(headers)
     body = None
     paginate = None
@@ -213,9 +214,13 @@ def dataTableResponse(djp, qs = None, toolbox = None, params = None):
         
     try:
         total = qs.count()
+        query = True
     except:
         total = len(qs)
     
+    if query:
+        qs = qs.load_only(*load_only)
+        
     if render:
         # if the ajax flag is not defined in parameters
         if 'ajax' not in params:

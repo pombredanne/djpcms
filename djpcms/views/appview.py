@@ -57,51 +57,6 @@ if an instance is available'''
                                                  **kwargs)
     
 
-def ajax_dataTable(djp, data):
-    '''dataTable ajax response'''
-    #TODO move this to a different location
-    #VERY TEMPORARY HERE
-    view = djp.view
-    appmodel = view.appmodel
-    sort_by = {}
-    qs = view.appquery(djp)
-    toolbox = html.table_toolbox(djp,appmodel)
-    search = data['sSearch']
-    if search:
-        qs = qs.search(search)
-        
-    for col in range(int(data['iSortingCols'])):
-        c = int(data['iSortCol_{0}'.format(col)])
-        d = '-' if data['sSortDir_{0}'.format(col)] == 'desc' else ''
-        if c < len(appmodel.list_display):
-            head = appmodel.list_display[c]
-            col = appmodel.headers.get(head,None)
-            if col:
-                qs = qs.sort_by('{0}{1}'.format(d,col.attrname))
-    start = data['iDisplayStart']
-    p = html.Paginator(djp.request,
-                       qs,
-                       per_page = data['iDisplayLength'],
-                       start = data['iDisplayStart'])
-    items = appmodel.table_generator(djp, headers, p.qs)
-    tbl =  html.Table(toolbox['headers'],
-                      items,
-                      appmodel = appmodel,
-                      toolbox = toolbox,
-                      paginator = p)
-    aaData = []
-    for item in tbl.items(djp):
-        id = item['id']
-        aData = {} if not id else {'DT_RowId':id}
-        aData.update(((i,v) for i,v in enumerate(item['display'])))
-        aaData.append(aData)
-    data = {'iTotalRecords':p.total,
-            'iTotalDisplayRecords':p.total,
-            'sEcho':data['sEcho'],
-            'aaData':aaData}
-    return ajax.simplelem(data)
-    
-
 class View(djpcmsview):
     '''A specialized view class for handling views
 which belongs to :ref:`djpcms applications <topics-applications-index>`.

@@ -6,7 +6,7 @@ from py2py3 import is_bytes_or_string, iteritems
 import djpcms
 from djpcms import http
 from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist, PathException
-from djpcms.utils import force_str, SLASH, threadsafe
+from djpcms.utils import force_str, SLASH
 
 
 class Resolver404(Exception):
@@ -16,8 +16,6 @@ class Resolver404(Exception):
 class ResolverMixin(object):
     '''A lazy class for resolving urls.
 The main function here is the ``resolve`` method'''
-    
-    @threadsafe
     def load(self):
         '''Load urls and set-up sites'''
         if getattr(self,'_urls',None) is None:

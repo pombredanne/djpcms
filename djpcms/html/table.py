@@ -216,10 +216,11 @@ def dataTableResponse(djp, qs = None, toolbox = None, params = None):
         total = qs.count()
         query = True
     except:
+        query = False
         total = len(qs)
     
-    if query:
-        qs = qs.load_only(*load_only)
+    #if query:
+    #    qs = qs.load_only(*load_only)
         
     if render:
         # if the ajax flag is not defined in parameters

@@ -3,7 +3,7 @@ from djpcms.apps.included.admin import AdminApplication, \
                                         AdminApplicationSimple, TabViewMixin
 from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 
 
-from .models import User, ObjectPermission, Role, Group, Log, Session
+from .models import User, ObjectPermission, Role, Group, Session
 from .forms import RoleForm, GroupForm, PermissionForm
 
 
@@ -45,14 +45,5 @@ admin_urls = (
                name='sessions',
                list_display = ('id','expiry')
                ),
-    AdminApplicationSimple(
-               '/logs/',
-               Log,
-               name='logs',
-               list_display = ('timestamp','level','source',
-                               'msg','host','user'),
-               object_display = ('timestamp','level','source',
-                                 'host','msg')
-               )
 )
 

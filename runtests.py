@@ -1,72 +1,30 @@
 #!/usr/bin/env python
-import os
-import sys
-from optparse import OptionParser
-sys.path.insert(0,os.path.split(os.path.abspath(__file__))[0])
+'''djpcms test suite. Requires pulsar::
 
-import djpcms
-
-
-def makeoptions():
-    parser = OptionParser()
-    parser.add_option("-v", "--verbosity",
-                      type = int,
-                      action="store",
-                      dest="verbosity",
-                      default=1,
-                      help="Tests verbosity level, one of 0, 1, 2 or 3")
-    parser.add_option("-l", "--list",
-                      action="store_true",
-                      dest="show_list",
-                      default=False,
-                      help="Show the list of available test labels for\
- a given test type")
-    parser.add_option("-f", "--skipfail",
-                      action="store_false",
-                      dest="can_fail",
-                      default=False,
-                      help="If set, the tests will run even if there is\
- an import error in tests")
-    parser.add_option("-m", "--model",
-                      action="store",
-                      dest="model",
-                      default='',
-                      help="The object relational mapper to use.\
- One nothing or one of django, stdnet (default nothing)")
-    parser.add_option("-t", "--type",
-                      action="store",
-                      dest="test_type",
-                      default='regression',
-                      help="Test type, possible choices are:\
- regression (default), bench, profile")
-    return parser
+    pip install pulsar
+'''
+import pulsar
+from pulsar.apps.test import TestSuite, TestOptionPlugin
+from pulsar.apps.test.plugins import bench, httpclient
 
 
-def addpath():
-    # add this directory to the Python Path so that tests and examples are visible
-    p = os.path
-    path = p.split(p.abspath(__file__))[0]
-    if path not in sys.path:
-        sys.path.insert(0, path)
-    path = p.join(path,'tests')
-    if path not in sys.path:
-        sys.path.insert(0, path)
+class ORM(TestOptionPlugin):
+    flags = ["--cms"]
+    desc = 'Backend for CMS models'
+    default = ''
     
-addpath()
-
-
-def run():
-    options, tags = makeoptions().parse_args()
-    from testsrunner import run
-    config = {'CMS_ORM':options.model}
-    run(tags,
-        test_type = options.test_type,
-        can_fail=options.can_fail,
-        verbosity=options.verbosity,
-        show_list=options.show_list,
-        config = config)
+    def configure(self, cfg):
+        settings.DEFAULT_BACKEND = cfg.server
+        
     
 
-if __name__ == '__main__':
-    run()
+if __name__ == '__main__':    
+    suite = TestSuite(description = 'Djpcms Asynchronous test suite',
+                      modules = ('tests',),
+                      plugins = (bench.BenchMark(),
+                                 httpclient.HttpClient())
+                      )
+    
+    suite.start()
+
     

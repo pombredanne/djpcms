@@ -282,4 +282,3 @@ and sending AJAX requests.'''
         '''To be implemented by derived classes'''
         form = self.plugin.form
         return fill_form_data(form(request = request)) if form else {}
-    

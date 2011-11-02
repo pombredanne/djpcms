@@ -76,7 +76,7 @@ def standard_exception_handle(request, e, status = None):
     html = loader.render((template,template2,template3,
                           'djpcms/errors/error.html'),
                          ctx)
-    return http.Response(html,
+    return http.Response(html.encode('latin-1','replace'),
                          status = status,
                          content_type = 'text/html',
                          encoding = settings.DEFAULT_CHARSET)

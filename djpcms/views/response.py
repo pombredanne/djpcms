@@ -322,13 +322,13 @@ the parent of the embedded view.'''
                                                      ajax_view,
                                                      ajax_view_function)
                 res = ajax_view_function(self)
-                return http.Response(res.dumps(),
+                return http.Response(res.dumps().encode('latin-1','replace'),
                                      content_type = res.mimetype())
         except Exception as e:
             if is_ajax:
                 res = handle_ajax_error(self,e)
-                return http.Response(res.dumps(),
-                                         content_type = res.mimetype())
+                return http.Response(res.dumps().encode('latin-1','replace'),
+                                     content_type = res.mimetype())
             else:
                 raise
     

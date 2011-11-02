@@ -80,18 +80,18 @@ class ManagementUtility(object):
     A ManagementUtility has a number of commands, which can be manipulated
     by editing the self.commands dictionary.
     """
-    def __init__(self, sites, argv=None):
+    def __init__(self, sites, argv = None):
         if argv is None:
             argv = sys.argv[:]
         self.prog_name = os.path.basename(argv[0])
         self.argv = argv[1:]
         if hasattr(sites,'__call__'):
-            self.callable = sites
-            self.sites = sites()
+            self.site_factory = sites
+            sites = sites()
         else:
-            self.sites = sites
-            self.sites.load()
-            self.callable = lambda : self.sites
+            self.site_factory = lambda : sites
+        self.sites = sites
+        self.sites.load()
 
     def get_parser(self):
         return argparse.ArgumentParser(usage = self.get_usage())
@@ -149,13 +149,13 @@ and runs it."""
             utility = ManagementUtility(argv)
             utility.execute()
         else:
-            self.fetch_command(command).run_from_argv(self.callable,
+            self.fetch_command(command).run_from_argv(self.site_factory,
                                                       command,
                                                       argv[1:])
 
 
 def execute(sites, argv=None, **params):
     '''Execute a command against a sites instance'''
-    utility = ManagementUtility(sites,argv,**params)
+    utility = ManagementUtility(sites, argv, **params)
     utility.execute()
     return utility.sites

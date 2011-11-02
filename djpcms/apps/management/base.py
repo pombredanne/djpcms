@@ -97,7 +97,7 @@ built-in djpcms commands. User-supplied commands should override this method.
         options = parser.parse_args(argv)
         self.execute(sites, options)
 
-    def execute(self, sites, options):
+    def execute(self, site_factory, options):
         """Try to execute this command. If the command raises a
         ``CommandError``, intercept it and print it sensibly to
         stderr.
@@ -105,14 +105,14 @@ built-in djpcms commands. User-supplied commands should override this method.
         try:
             self.stdout = sys.stdout
             self.stderr = sys.stderr
-            output = self.handle(sites, options)
+            output = self.handle(site_factory, options)
             if output:
                 self.stdout.write(output)
         except CommandError as e:
             self.stderr.write(smart_str(self.style.ERROR('Error: %s\n' % e)))
             sys.exit(1)
 
-    def handle(self, options):
+    def handle(self, site_factory, options):
         """The actual logic of the command. Subclasses must implement
         this method.
         """

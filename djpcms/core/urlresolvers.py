@@ -57,7 +57,6 @@ The main function here is the ``resolve`` method'''
                 if qs and environ['method'] == 'GET':
                     url = '{0}?{1}'.format(url,qs)
                 return http.ResponseRedirect(url)
-        return url
     
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)

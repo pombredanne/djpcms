@@ -105,7 +105,8 @@ class StaticRootView(StaticView):
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
-            return http.Response(html,content_type = 'text/html')
+            html = html.encode('latin-1','replace')
+            return http.Response(html, content_type = 'text/html')
         else:
             raise http.Http404
 
@@ -150,6 +151,7 @@ class StaticFileView(StaticView):
                               'files':files,
                               'directory':request.path,
                               'notroot':True})
+        html = html.encode('latin-1','replace')
         return http.Response(html, content_type = 'text/html')
         
     def serve_file(self, request, fullpath):

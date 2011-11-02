@@ -53,12 +53,10 @@ delegate the handling to them.'''
         
     @response_error
     def _handle(self, environ, start_response):
-        site = self.site
-        self.site.load()
-        cleaned_path = site.clean_path(environ)
-        if isinstance(cleaned_path,Response):
+        cleaned_path = self.site.clean_path(environ)
+        if cleaned_path:
             return cleaned_path
-        appsite,view,kwargs = site.resolve(environ['PATH_INFO'][1:])
+        appsite,view,kwargs = self.site.resolve(environ['PATH_INFO'][1:])
         environ[DJPCMS] = djpcmsinfo(view,kwargs)
         return appsite.handle(environ, start_response)
             

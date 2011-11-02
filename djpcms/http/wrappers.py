@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from py2py3 import itervalues, ispy3k, to_bytestring
+from py2py3 import itervalues, ispy3k, to_bytestring, is_string
 
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
@@ -239,6 +239,8 @@ class Response(object):
             content = ()
         elif isinstance(content,bytes):
             content = (content,)
+        elif is_string(content):
+            raise ValueError('Response cannot accept unicode.')
         self.content = content
         self.status = status or self.status
         self._headers = {}

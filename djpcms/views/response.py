@@ -291,7 +291,7 @@ the parent of the embedded view.'''
             
             # chance to bail out early
             re = view.preprocess(self)
-            if isinstance(re,http.Response):
+            if re:
                 return re
                 
             if not is_ajax:
@@ -349,6 +349,7 @@ the parent of the embedded view.'''
         
         context = loader.context(context, self.request)
         html = loader.render(self.template_file, context)
+        html = html.encode('latin-1','replace')
         return http.Response(html,
                              content_type = 'text/html',
                              encoding = self.settings.DEFAULT_CHARSET)

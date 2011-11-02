@@ -103,6 +103,12 @@ def form_inputs(instance, own_view = False):
     return sb
 
 
+def save_as_new(instance, commit = False):
+    #TODO
+    # make thid function available for all ORMs
+    return instance.save_as_new(commit = commit)
+
+
 def get_form(djp,
              form_factory,
              initial = None,
@@ -172,23 +178,20 @@ has been submitted.'''
     view = djp.view
     appmodel = view.appmodel
     request = djp.request
-    instance = djp.instance
     is_ajax = request.is_xhr
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referer = data.get(REFERER_KEY,None)
-    fhtml = view.get_form(djp)
-    model = appmodel.model
-    editing = isinstance(instance,model) if model else False
-    
+    fhtml = view.get_form(djp)    
     layout = fhtml.layout
     f = fhtml.form
+    instance = f.instance
     
     if CANCEL_KEY in data:
         redirect_url = referer
         if not redirect_url:
-            if djp.instance:
-                redirect_url = appmodel.viewurl(request,djp.instance)
+            if instance and instance.id:
+                redirect_url = appmodel.viewurl(request,instance)
             if not redirect_url:
                 redirect_url = appmodel.searchurl(request) or '/'
 
@@ -197,13 +200,13 @@ has been submitted.'''
         else:
             return http.ResponseRedirect(redirect_url)
     
+    if SAVE_AS_NEW_KEY in data and instance:
+        save_as_new(instance, commit = False)
+        
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
-        editing  = editing if not SAVE_AS_NEW_KEY in data else False
-        if editing or not f.model:
-            instance = view.save(djp,f)
-        else:
-            instance = view.save_as_new(djp,f)
+        editing = bool(instance and instance.id)
+        instance = view.save(djp,f)
         if ajax.isajax(instance):
             return instance
         elif instance == f:

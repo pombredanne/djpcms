@@ -6,16 +6,17 @@ from inspect import isclass
 from datetime import datetime
 
 import djpcms
-from djpcms.utils.importer import module_attribute
 
 from .models import ObjectPermission, User, Session, AnonymousUser,\
                      get_session_cookie_name
 
 
 class PermissionBackend(djpcms.PermissionBackend):
+    '''Permission backend'''
     
-    def __init__(self, requires_login = False):
+    def __init__(self, requires_login = False, secret_key = None):
         self.requires_login = requires_login
+        self.secret_key = secret_key
     
     def _has(self, request, permission_code, obj):
         if self.authenticated(request,obj,self.requires_login):
@@ -104,9 +105,7 @@ class PermissionBackend(djpcms.PermissionBackend):
         return None
     
     def process_response(self, request, response):
-        """
-        If request.session was modified, or if the configuration is to save the
-        session every time, save the changes and set a session cookie.
+        """If request.session was modified set a session cookie.
         """
         session = request.session
         modified = getattr(session,'modified',True)
@@ -115,5 +114,5 @@ class PermissionBackend(djpcms.PermissionBackend):
                                 session.id,
                                 expires = session.expiry)
         return response
-            
+
 

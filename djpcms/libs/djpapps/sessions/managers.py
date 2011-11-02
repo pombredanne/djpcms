@@ -45,10 +45,8 @@ def session_expiry():
 
 
 def check_password(raw_password, enc_password):
-    """
-    Returns a boolean of whether the raw_password was correct. Handles
-    encryption formats behind the scenes.
-    """
+    """Returns a boolean of whether the raw_password was correct. Handles
+encryption formats behind the scenes."""
     return raw_password.encode() == decrypt(enc_password.encode(),secret_key())
 
 

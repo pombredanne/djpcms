@@ -3,7 +3,7 @@ import traceback
 import logging
 import platform
 
-from .models import Log, User
+from .models import Log
 
 HOST = platform.node()
 
@@ -30,11 +30,7 @@ class DatabaseHandler(logging.Handler):
         
     def get_user(self, record):
         try:
-            user = record.user
-            if not isinstance(user,User):
-                user = User.objects.get(username = record.user)
-            if isinstance(user,User):
-                return user
+            return record.user
         except:
             return None
     

@@ -1,3 +1,4 @@
+'''Admin, requires djpcms'''
 from djpcms.apps.included.admin import AdminApplication, \
                                         AdminApplicationSimple, TabViewMixin
 from djpcms.apps.included.user import UserApplicationWithFilter, RegisterForm 

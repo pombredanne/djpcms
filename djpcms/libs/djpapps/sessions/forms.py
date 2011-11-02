@@ -1,3 +1,5 @@
+'''Forms, requires djpcms
+'''
 from djpcms import forms, html, PERMISSION_LIST
 from djpcms.core.orms import registered_models_tuple
 from djpcms.apps.included import search

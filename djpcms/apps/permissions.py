@@ -10,7 +10,7 @@ __all__ = ['PERMISSION_CODES',
            'DELETE',
            'DELETEALL',
            'addcode',
-           'PermissionBackend']
+           'PermissionHandler']
 
 
 
@@ -48,9 +48,15 @@ class AuthenticationError(Exception):
     pass
      
      
-class PermissionBackend(object):
-    '''Base class for permissions backends'''
+class PermissionHandler(object):
+    '''Base class for permissions handler.
+    
+.. attribute:: backend
+
+    an instance of a Permission backend
+'''
     AuthenticationError = AuthenticationError
+    backend = None
     
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))

@@ -2,48 +2,49 @@
 Kitchen sink application for Users, Groups, Sessions and Permissions.
 Based on python-stdnet for fast in-memory performance.
 '''
-from inspect import isclass
+import sys
 from datetime import datetime
 
-import djpcms
+from .models import ObjectPermission, User, Session, AnonymousUser
 
-from .models import ObjectPermission, User, Session, AnonymousUser,\
-                     get_session_cookie_name
+ispy3k = int(sys.version[0]) >= 3
+
+if ispy3k:
+    from http.cookies import SimpleCookie, CookieError, BaseCookie
+else:
+    from Cookie import SimpleCookie, CookieError, BaseCookie
 
 
-class PermissionBackend(djpcms.PermissionBackend):
-    '''Permission backend'''
+SESSION_COOKIE_NAME = 'stdnet-sessionid'
+
+
+class PermissionBackend(object):
+    '''Permission backend
     
-    def __init__(self, requires_login = False, secret_key = None):
-        self.requires_login = requires_login
+.. attribute:: secret_key
+
+    Secret key for encryption SALT
+    
+.. attribute:: session_cookie_name
+
+    Session cokie name
+    
+.. attribute:: session_expiry
+
+    Session expiry in seconds
+    
+    Default: 2 weeks
+    
+'''
+    
+    def __init__(self,
+                 secret_key = None,
+                 session_cookie_name = None,
+                 session_expiry = None):
         self.secret_key = secret_key
+        self.session_cookie_name = session_cookie_name or SESSION_COOKIE_NAME
+        self.session_expiry = session_expiry or 14*24*3600
     
-    def _has(self, request, permission_code, obj):
-        if self.authenticated(request,obj,self.requires_login):
-            if permission_code <= djpcms.VIEW:
-                return True
-            else:
-                return request.user.is_superuser
-        else:
-            return False
-        
-    def has(self, request, permission_code, obj = None, model = None,
-            view = None, user = None):
-        if self._has(request,permission_code,obj):
-            if not obj:
-                return True
-            if isclass(obj):
-                model = obj
-                obj = None
-            else:
-                model = obj.__class__
-                return True
-            #p = ObjectPermission.objects.filter(permission_model = model)
-            #if not p.count():
-            #    return None
-        else:
-            return False
-        
     def authenticate(self, username=None, password=None, **kwargs):
         try:
             user = User.objects.get(username=username)
@@ -57,11 +58,11 @@ class PermissionBackend(djpcms.PermissionBackend):
         s = request.session
         s.expiry = datetime.now()
         s.save()
-        request.session = Session.objects.create()
+        request.session = Session.objects.create(self.session_expiry)
         
-    def get_user(self, request):
+    def get_user(self, environ):
         try:
-            user_id = request.session.user_id
+            user_id = environ['session'].user_id
         except KeyError:
             return AnonymousUser()
         try:
@@ -70,16 +71,16 @@ class PermissionBackend(djpcms.PermissionBackend):
             self.flush_session(request)
             return AnonymousUser()
         
-    def login(self, request, user):
+    def login(self, environ, user):
         """Store the user id on the session
         """
-        user = user or request.user
+        user = user or environ.get('user')
         try:
-            if request.session.user_id != user.id:
+            if environ['session'].user_id != user.id:
                 self.flush_session(request)
         except KeyError:
             pass
-        request.session.user_id = user.id
+        environ['session'].user_id = user.id
     
     def logout(self, request):
         self.flush_session(request)
@@ -91,18 +92,30 @@ class PermissionBackend(djpcms.PermissionBackend):
     def create_superuser(self, *args, **kwargs):
         return User.objects.create_superuser(*args, **kwargs)
         
-    def process_request(self, request):
-        cookie_name = get_session_cookie_name()
-        session_key = request.COOKIES.get(cookie_name, None)
+    def get_cookie(self, environ, start_response):
+        c = environ.get('HTTP_COOKIE', '')
+        if not isinstance(c,dict):
+            if not isinstance(c,str):
+                c = c.encode('utf-8')
+            c = parse_cookie(c)
+            environ['HTTP_COOKIE'] = c
+            
+    def request_middleware(self):
+        return [self.get_cookie,
+                self.process_request]
+    
+    def process_request(self, environ, start_response):
+        cookie_name = self.session_cookie_name
+        cookie = self.get_cookie(environ)
+        session_key = cookie.get(cookie_name, None)
         if not (session_key and Session.objects.exists(session_key)):
-            session = Session.objects.create()
+            session = Session.objects.create(self.session_expiry)
             session.modified = True
         else:
             session = Session.objects.get(id = session_key)
             session.modified = False
-        request.session = session
-        request.user = self.get_user(request)
-        return None
+        environ['session'] = session
+        environ['user'] = self.get_user(environ)
     
     def process_response(self, request, response):
         """If request.session was modified set a session cookie.
@@ -110,9 +123,26 @@ class PermissionBackend(djpcms.PermissionBackend):
         session = request.session
         modified = getattr(session,'modified',True)
         if modified:
-            response.set_cookie(get_session_cookie_name(),
+            response.set_cookie(self.session_cookie_name,
                                 session.id,
                                 expires = session.expiry)
         return response
 
 
+
+def parse_cookie(cookie):
+    if cookie == '':
+        return {}
+    if not isinstance(cookie, BaseCookie):
+        try:
+            c = SimpleCookie()
+            c.load(cookie)
+        except CookieError:
+            # Invalid cookie
+            return {}
+    else:
+        c = cookie
+    cookiedict = {}
+    for key in c.keys():
+        cookiedict[key] = c.get(key).value
+    return cookiedict

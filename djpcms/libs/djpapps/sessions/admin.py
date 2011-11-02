@@ -15,6 +15,10 @@ class UserAdmin(TabViewMixin,UserApplicationWithFilter):
     def registration_done(self):
         pass
 
+#    @property
+#    def action(self):
+#        return PERMISSION_CODES.get(self.numeric_code,'UNKNOWN')
+
 
 admin_urls = (
     UserAdmin('/users/',

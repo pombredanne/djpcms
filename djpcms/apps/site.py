@@ -17,7 +17,7 @@ from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
 
 from .management import find_commands
-from .permissions import PermissionBackend
+from .permissions import PermissionHandler
 
 __all__ = ['MakeSite',
            'SiteApp',
@@ -146,7 +146,7 @@ The sites singletone has several important attributes:
     
     def __init__(self):
         self._init()
-        self._permissions = PermissionBackend()
+        self._permissions = PermissionHandler()
         self.handle_exception = standard_exception_handle
         self.on_site_loaded = Signal()
         self.request_started = Signal()
@@ -253,8 +253,7 @@ It also initialise admin for models.'''
         return urls
     
     def make(self, name, settings = None, route = None,
-             handler = None, permissions = None,
-             **params):
+             permissions = None, **params):
         '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`
 from a directory or a file *name*. Extra configuration parameters,
 can be passed as key-value pairs:
@@ -271,8 +270,6 @@ can be passed as key-value pairs:
 
     Default ``None``
     
-:parameter handler: an optional string defining the wsgi handler
-                    class for the application.
 :parameter permission: An optional :ref:`site permission handler <permissions>`.
 :parameter params: key-value pairs which override the values
                    in the settings file.
@@ -331,7 +328,7 @@ The function returns an instance of
         if path not in settings.TEMPLATE_DIRS:
             settings.TEMPLATE_DIRS += path,
         
-        return self._create_site(route,settings,handler,permissions)
+        return self._create_site(route,settings,permissions)
     
     def loadsettings(self, setting_module):
         '''Load settings to override existing settings'''
@@ -353,12 +350,12 @@ site is already registered at ``route``.'''
         else:
             return site
     
-    def _create_site(self,route,settings,handler,permissions):
+    def _create_site(self,route,settings,permissions):
         route = closedurl(route or '')
         if route in self._sites:
             raise AlreadyRegistered('Site with route {0}\
  already avalable.'.format(route))
-        site = self.ApplicationSite(self, route, settings, handler, permissions)
+        site = self.ApplicationSite(self, route, settings, permissions)
         self._sites[site.path] = site
         self._osites = None
         self._urls = None

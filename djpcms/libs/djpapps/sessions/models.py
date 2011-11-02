@@ -1,8 +1,6 @@
 from stdnet import orm
 from stdnet.utils import encoders
 
-from djpcms import PERMISSION_CODES
-
 from .managers import *
 
 
@@ -22,11 +20,7 @@ or an instance of a model.'''
                 obj = self.model_type.objects.get(id = self.object_id)
             self._object = obj
         return self._object
-        
-    @property
-    def action(self):
-        return PERMISSION_CODES.get(self.numeric_code,'UNKNOWN')
-    
+            
     def __unicode__(self):
         obj = self.object or self.model_type
         return '{0} - {1}'.format(self.action,obj)

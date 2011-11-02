@@ -8,8 +8,7 @@ from hashlib import sha1
 from stdnet import orm
 from stdnet.utils import pickle, to_bytestring, to_string
 
-from djpcms import sites, secret_key
-from djpcms.utils import encrypt, decrypt
+from .arc4 import decrypt
 
 # Use the system (hardware-based) random number generator if it exists.
 if hasattr(random, 'SystemRandom'):
@@ -20,28 +19,12 @@ MAX_SESSION_KEY = 18446744073709551616     # 2 << 63
 
 # Default Seetings Values. Configurable in your settings file
 SALT_SIZE = 8
-SESSION_COOKIE_NAME = 'stdnet-sessionid'
 SESSION_USER_KEY = '_auth_user_id'
 SESSION_EXPIRY = 24*3600   # 1 day
 
 
 UNUSABLE_PASSWORD = '!' # This will never be a valid hash
 REDIRECT_FIELD_NAME = 'next'
-
-
-def get_session_cookie_name():
-    if sites.settings:
-        return sites.settings.get('SESSION_COOKIE_NAME',SESSION_COOKIE_NAME)
-    else:
-        return SESSION_COOKIE_NAME
-
-
-def session_expiry():
-    '''Session expiry in seconds.'''
-    if sites.settings:
-        return sites.settings.get('SESSION_EXPIRY',SESSION_EXPIRY)
-    else:
-        return SESSION_EXPIRY
 
 
 def check_password(raw_password, enc_password):
@@ -65,9 +48,8 @@ class AnonymousUser(object):
 
 class SessionManager(orm.Manager):
     
-    def create(self, expiry = None):
-        se = expiry or session_expiry()
-        expiry = datetime.now() + timedelta(seconds = se)
+    def create(self, expiry):
+        expiry = datetime.now() + timedelta(seconds = expiry)
         return self.model(id = self.new_session_id(),
                           expiry = expiry).save()
     

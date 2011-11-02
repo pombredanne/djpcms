@@ -21,9 +21,14 @@ __all__ = ['ApplicationSite']
 
 class ApplicationSite(SiteApp, RouteMixin):
     '''Application site manager. An instance of this class 
-handles urls of :class:`Application`  registered with it.
+handles urls of :class:`Application` instances registered with it.
+
+.. attribute:: root
+
+    instance of :class:`djpcms.ApplicationSites` holding this instance.
+
     '''
-    def __init__(self, root, route, config, handler, permissions):
+    def __init__(self, root, route, config, permissions):
         self._init()
         self.root = root
         self._route = RegExUrl(route)
@@ -37,8 +42,7 @@ handles urls of :class:`Application`  registered with it.
         self._request_middleware = None
         self._response_middleware = None
         self._template_context_processors = None
-        handler = handler or http.WSGIsite
-        self.handle = handler(self)
+        self.handle = http.WSGIsite(self)
         
     def __repr__(self):
         return '{0} - {1}'.format(self.path,'loaded' if self.isloaded\
@@ -309,7 +313,7 @@ This method is safe and return None if no url is found.
             self._exception_middleware = []
             self.lock.acquire()
             try:
-                self._load_middleware_object(self.permissions)
+                self._load_middleware_object(self.permissions.backend)
                 for middleware_path in self.settings.MIDDLEWARE_CLASSES:
                     mwcls = module_attribute(middleware_path,safe=True)
                     if mwcls:

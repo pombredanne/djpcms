@@ -298,7 +298,8 @@ the parent of the embedded view.'''
                 
             if not is_ajax:
                 # If user not authenticated set a test cookie
-                if hasattr(request,'user'):
+                #TODO, move this 3 lines somewhere else
+                if hasattr(request,'user') and request.user:
                     if not request.user.is_authenticated() and method == 'get':
                         request.session.set_test_cookie()
     

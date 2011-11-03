@@ -39,7 +39,7 @@ def get_messages(request):
     Returns the message storage on the request if it exists, otherwise returns
     user.message_set.all() as the old auth context processor did.
     """
-    if hasattr(request,'session'):
+    if hasattr(request,'session') and request.session:
         if MESSAGE_KEY in request.session:
             try:
                 msg = request.session[MESSAGE_KEY]

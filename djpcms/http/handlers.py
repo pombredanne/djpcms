@@ -42,7 +42,7 @@ delegate the handling to them.'''
             environ[DJPCMS] = info = djpcmsinfo(view,kwargs)
             request = self.get_request(environ,site)
             response = info.djp(request)
-            if not isinstance(response,Response):
+            if not hasattr(response,'status_code'):
                 djp = response
                 info.page = djp.page
                 response = djp.response()

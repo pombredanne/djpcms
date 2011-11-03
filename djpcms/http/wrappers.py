@@ -3,6 +3,7 @@ import re
 import logging
 import time
 from datetime import datetime, timedelta
+from wsgiref.headers import Headers
 
 from py2py3 import itervalues, ispy3k, to_bytestring, is_string
 
@@ -237,8 +238,7 @@ class Response(object):
     Integer indicating the response status code
     '''
     DEFAULT_CONTENT_TYPE = 'text/plain'
-    #DEFAULT_ENCODING = 'utf-8'
-    status = 200
+    status_code = 200
     
     def __init__(self, content = '', status = None, content_type = None,
                  encoding = None):
@@ -250,33 +250,14 @@ class Response(object):
         elif is_string(content):
             raise ValueError('Response cannot accept unicode.')
         self.content = content
-        self.status = status or self.status
-        self.headers = {}
+        self.status_code = int(status or self.status_code)
         self.cookies = SimpleCookie()
-        self.content_type = content_type or self.DEFAULT_CONTENT_TYPE
-        self.set_header('Content-Type',self.content_type)
-    
-    def __setitem__(self, header, value):
-        self.set_header(header, value)
-        
-    def __getitem__(self, header):
-        return self.headers[header.lower()]
-        
-    def set_header(self, header, value):
-        header, value = to_header_strings(header.lower(), value)
-        self.headers[header] = (header, value)
-
-    def __contains__(self, header):
-        """Case-insensitive check for a header."""
-        return header.lower() in self.headers
+        content_type = content_type or self.DEFAULT_CONTENT_TYPE
+        self.headers = Headers([('Content-Type',content_type)])
     
     def __iter__(self):
-        return iter(self.content)        
+        return iter(self.content)
         
-    @property
-    def status_code(self):
-        return int(self.status)
-    
     def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
                    domain=None, secure=False, httponly=False):
         """
@@ -336,30 +317,31 @@ class Response(object):
     
     def __call__(self, environ, start_response):
         '''Close the response'''
-        status_text = STATUS_CODE_TEXT.get(self.status,UNKNOWN_STATUS_CODE)[0]
-        status = '%s %s' % (self.status, status_text)
-        
+        headers = self.headers
+        status_text = STATUS_CODE_TEXT.get(self.status_code,
+                                           UNKNOWN_STATUS_CODE)[0]
+        status = '%s %s' % (self.status_code, status_text)
 
         for c in self.cookies.values():
-            self.set_header('Set-Cookie', c.output(header=''))
+            headers['Set-Cookie'] = c.output(header='')
         
-        if "Content-Encoding" not in self and self.encoding:
-            self.set_header("Content-Encoding", self.encoding)
+        if "Content-Encoding" not in headers and self.encoding:
+            headers["Content-Encoding"] = self.encoding
              
         if not self.is_streamed:
             cl = 0
             for x in self:
                 cl += len(x)
-            self.set_header("Content-Length", cl)
+            headers["Content-Length"] = str(cl)
             
         if start_response is not None:
-            start_response(status, list(itervalues(self.headers)))
+            start_response(status, headers.items())
             
         return self
 
     
 class ResponseRedirect(Response):
-    status = 302
+    status_code = 302
 
     def __init__(self, redirect_to):
         super(ResponseRedirect, self).__init__()

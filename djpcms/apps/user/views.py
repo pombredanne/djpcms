@@ -20,8 +20,12 @@ class LogoutView(views.ModelView):
         request = djp.request
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
-        djp.site.permissions.logout(request)
-        return http.ResponseRedirect(url)
+        backend = djp.site.permissions.backend
+        if backend:
+            backend.logout(request.environ)
+            return http.ResponseRedirect(url)
+        else:
+            raise ValueError('No athentication backend available')
 
 
 

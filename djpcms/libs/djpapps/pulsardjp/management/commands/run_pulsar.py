@@ -1,17 +1,6 @@
 import djpcms
-from djpcms import http
 
-from pulsar.apps import wsgi
-
-
-class LoadWsgi(object):
-    wsgifactory = True
-    
-    def __init__(self, site_factory):
-        self.site_factory = site_factory
-        
-    def __call__(self):
-        return self.site_factory.wsgi_middleware()
+from pulsardjp import WSGIApplication
 
 
 class Command(djpcms.Command):
@@ -22,5 +11,5 @@ class Command(djpcms.Command):
         self.execute(site_factory, argv)
         
     def handle(self, site_factory, argv):
-        wsgi.WSGIApplication(callable = LoadWsgi(site_factory),
-                             argv = argv).start()
+        WSGIApplication(callable = site_factory,
+                        argv = argv).start()

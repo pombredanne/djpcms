@@ -53,12 +53,12 @@ class PermissionBackend(object):
         except User.DoesNotExist:
             return None
 
-    def flush_session(self, request):
+    def flush_session(self, environ):
         '''Flush a session by expiring it. Return a new session.'''
-        s = request.session
+        s = environ['session']
         s.expiry = datetime.now()
         s.save()
-        request.session = Session.objects.create(self.session_expiry)
+        environ['session'] = Session.objects.create(self.session_expiry)
         
     def get_user(self, environ):
         try:
@@ -68,7 +68,7 @@ class PermissionBackend(object):
         try:
             return User.objects.get(id = user_id)
         except:
-            self.flush_session(request)
+            self.flush_session(environ)
             return AnonymousUser()
         
     def login(self, environ, user):
@@ -77,21 +77,39 @@ class PermissionBackend(object):
         user = user or environ.get('user')
         try:
             if environ['session'].user_id != user.id:
-                self.flush_session(request)
+                self.flush_session(environ)
         except KeyError:
             pass
         environ['session'].user_id = user.id
     
-    def logout(self, request):
-        self.flush_session(request)
-        request.user = AnonymousUser()
+    def logout(self, environ):
+        self.flush_session(environ)
+        environ['user'] = AnonymousUser()
+        
+    def authenticate_and_login(self, environ, **params):
+        '''authenticate and login user. If it fails raises
+a AuthenticationError exception.'''
+        user = self.authenticate(**params)
+        if user is not None and user.is_authenticated():
+            if user.is_active:
+                self.login(environ, user)
+                try:
+                    environ['session'].delete_test_cookie()
+                except:
+                    pass
+                return user
+            else:
+                msg = '%s is not active' % username
+        else:
+            msg = 'username or password not recognized'
+        raise ValueError(msg)
         
     def create_user(self, *args, **kwargs):
         return User.objects.create_user(*args, **kwargs)
     
     def create_superuser(self, *args, **kwargs):
         return User.objects.create_superuser(*args, **kwargs)
-        
+    
     def get_cookie(self, environ, start_response):
         c = environ.get('HTTP_COOKIE', '')
         if not isinstance(c,dict):
@@ -118,16 +136,15 @@ class PermissionBackend(object):
         environ['session'] = session
         environ['user'] = self.get_user(environ)
     
-    def process_response(self, request, response):
+    def process_response(self, environ, response, start_response = None):
         """If request.session was modified set a session cookie.
         """
-        session = request.session
+        session = environ['session']
         modified = getattr(session,'modified',True)
         if modified:
             response.set_cookie(self.session_cookie_name,
                                 session.id,
                                 expires = session.expiry)
-        return response
 
 
 

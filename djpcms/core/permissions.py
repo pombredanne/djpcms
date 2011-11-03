@@ -70,31 +70,4 @@ class PermissionHandler(object):
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
         return True
-    
-    def authenticate(self, **params):
-        raise self.AuthenticationError('Cannot authenticate user')
-    
-    def login(mapper, request, user):
-        pass
-    
-    def logout(self, request):
-        pass
-    
-    def authenticate_and_login(self, request, **params):
-        '''authenticate and login user. If it fails raises
-a AuthenticationError exception.'''
-        user = self.authenticate(**params)
-        if user is not None and user.is_authenticated():
-            if user.is_active:
-                self.login(request, user)
-                try:
-                    request.session.delete_test_cookie()
-                except:
-                    pass
-                return user
-            else:
-                msg = '%s is not active' % username
-        else:
-            msg = 'username or password not recognized'
-        raise self.AuthenticationError(msg)
 

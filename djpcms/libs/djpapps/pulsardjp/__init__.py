@@ -18,6 +18,8 @@ import os
 
 import djpcms
 
+from pulsar.apps import wsgi
+
 from .models import *
 from .forms import *
 
@@ -32,5 +34,13 @@ def set_proxy_function(sites, proxy):
 class SiteLoader(djpcms.SiteLoader):
     settings = None
     ENVIRON_NAME = 'PULSAR_SERVER_TYPE'
-    wsgifactory = True
     
+    
+class WSGIApplication(wsgi.WSGIApplication):
+    
+    def handler(self):
+        loader = self.callable
+        middleware = loader.wsgi_middleware()
+        resp = loader.response_middleware()
+        return self.wsgi_handler(middleware,resp)
+        

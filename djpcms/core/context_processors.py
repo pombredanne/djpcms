@@ -9,6 +9,9 @@ from .exceptions import ApplicationNotAvailable
 from .messages import get_messages
 
 
+logger = logging.getLogger('djpcms.core.context_processor')
+
+
 class PageLink(html.List):
     '''Utility for displaying links
 for page editing or creation or exit editing.'''
@@ -17,6 +20,7 @@ for page editing or creation or exit editing.'''
         self.request = request
         request = self.request
         info = request.DJPCMS
+        sites = info.root
         Page = info.site.Page
         self.page = info.page
         # Get the site application for Page
@@ -112,7 +116,9 @@ def djpcms(request):
     grid = get_grid960(page,settings)
     try:
         plink = PageLink(request).addClass('horizontal user-nav')
-    except Exception as e:
+    except:
+        logger.error('Unhadled exception while getting page links',
+                     exc_info = True)
         plink = html.Widget(data_stream = (grid.empty,))
     user = getattr(request,'user',None)
     debug = settings.DEBUG

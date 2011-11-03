@@ -44,12 +44,14 @@ class SiteLoader(object):
     def __init__(self, name = None):
         self.sites = None
         self._wsgi_middleware = None
+        self._response_middleware = None
         self.name = name or 'DJPCMS'
         
     def __getstate__(self):
         d = self.__dict__.copy()
         d['sites'] = None
         d['_wsgi_middleware'] = None
+        d['_response_middleware'] = None
         return d
         
     def __call__(self):
@@ -74,7 +76,17 @@ class SiteLoader(object):
         m = copy(m)
         m.append(WSGI(sites))
         return m
+    
+    def response_middleware(self):
+        sites = self.build_sites()
+        m = self._response_middleware or []
+        m = copy(m)
+        m.append(self.send_response)
+        return m
             
+    def send_response(self, environ, response, start_response):
+        response(environ, start_response)
+    
     def default_load(self):
         '''Default loading'''
         self.sites.make(os.getcwd(),

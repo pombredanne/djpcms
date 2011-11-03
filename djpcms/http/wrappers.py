@@ -84,6 +84,10 @@ class Request(object):
         return self.environ.get('user')
     
     @property
+    def session(self):
+        return self.environ.get('session')
+    
+    @property
     def encoding(self):
         if not self._encoding:
             try:
@@ -247,7 +251,7 @@ class Response(object):
             raise ValueError('Response cannot accept unicode.')
         self.content = content
         self.status = status or self.status
-        self._headers = {}
+        self.headers = {}
         self.cookies = SimpleCookie()
         self.content_type = content_type or self.DEFAULT_CONTENT_TYPE
         self.set_header('Content-Type',self.content_type)
@@ -256,15 +260,15 @@ class Response(object):
         self.set_header(header, value)
         
     def __getitem__(self, header):
-        return self._headers[header.lower()]
+        return self.headers[header.lower()]
         
     def set_header(self, header, value):
         header, value = to_header_strings(header.lower(), value)
-        self._headers[header] = (header, value)
+        self.headers[header] = (header, value)
 
     def __contains__(self, header):
         """Case-insensitive check for a header."""
-        return header.lower() in self._headers
+        return header.lower() in self.headers
     
     def __iter__(self):
         return iter(self.content)        
@@ -349,7 +353,7 @@ class Response(object):
             self.set_header("Content-Length", cl)
             
         if start_response is not None:
-            start_response(status, list(itervalues(self._headers)))
+            start_response(status, list(itervalues(self.headers)))
             
         return self
 

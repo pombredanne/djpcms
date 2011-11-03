@@ -61,7 +61,8 @@ class SessionManager(orm.Manager):
             pid = 1
         while 1:
             sk = os.environ.get('SESSION_SECRET_KEY') or ''
-            val = to_bytestring("%s%s%s%s" % (randrange(0, MAX_SESSION_KEY), pid, time.time(),sk))
+            val = to_bytestring("%s%s%s%s" % (randrange(0, MAX_SESSION_KEY),
+                                              pid, time.time(),sk))
             id = sha1(val).hexdigest()
             if not self.exists(id):
                 return id

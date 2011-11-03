@@ -25,7 +25,7 @@ delegate the handling to them.'''
                                         settings)
         else:
             response = self._handle(environ, start_response)
-        return response(environ, start_response)
+        return response
     
     def get_request(self, environ, site):
         if DJPCMS not in environ:

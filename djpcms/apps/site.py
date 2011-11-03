@@ -19,7 +19,8 @@ from djpcms.dispatch import Signal
 from .management import find_commands
 from .permissions import PermissionHandler
 
-__all__ = ['MakeSite',
+__all__ = ['SiteLoader',
+           'MakeSite',
            'SiteApp',
            'GetOrCreate',
            'RegisterORM',
@@ -32,7 +33,51 @@ __all__ = ['MakeSite',
            'sites']
 
 
-logger = logging.getLogger('sites')
+logger = logging.getLogger('djpcms')
+
+
+class SiteLoader(object):
+    '''An utility class for loading and configuring djpcms_ sites.
+ 
+ .. attribute:: name
+ 
+     The configuration name, useful when different types of configuration are
+     needed (WEB, RPC, ...)
+'''
+    ENVIRON_NAME = None
+    settings = None
+    
+    def __init__(self, name = None):
+        self.sites = None
+        self.name = name or 'DJPCMS'
+        
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        d['sites'] = None
+        return d
+        
+    def __call__(self):
+        return self.build_sites()
+    
+    def build_sites(self):
+        if self.sites is None:
+            self.sites = ApplicationSites()
+            if self.ENVIRON_NAME:
+                os.environ[self.ENVIRON_NAME] = self.name
+            name = '_load_{0}'.format(self.name.lower())
+            getattr(self,name,self.default_load)()
+            self.sites.load()
+            self.finish()
+        return self.sites
+            
+    def default_load(self):
+        '''Default loading'''
+        self.sites.make(os.getcwd(),
+                        settings = self.settings)
+
+    def finish(self):
+        '''Callback once the sites are loaded.'''
+        pass
 
     
 def standard_exception_handle(request, e, status = None):
@@ -490,8 +535,7 @@ module specifying the admin application will be included.
                     yield model
     
     
-           
-        
+      
 sites = ApplicationSites()
 
 model_wrappers = sites.modelwrappers

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from py2py3 import to_string
 
-from djpcms import sites, forms, http, html
+from djpcms import forms, http, html
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils.translation import gettext as _

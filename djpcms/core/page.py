@@ -188,7 +188,8 @@ Get contentblocks for a given page and block
 
 Return an iterable over ordered items (by position) in block  
 '''
-        blockcontents = sorted(self.filter(page = page, block = block),key = lambda x : x.position)
+        blockcontents = sorted(self.filter(page = page, block = block),
+                               key = lambda x : x.position)
         create = False
         pos = None
 

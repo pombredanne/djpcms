@@ -2,7 +2,7 @@ from inspect import isclass
 from datetime import datetime, date
 from copy import copy, deepcopy
 
-from djpcms import html, sites, nodata, to_string
+from djpcms import html, nodata, to_string
 from djpcms.utils import escape, slugify
 from djpcms.utils.const import NOTHING
 from djpcms.utils.dates import parse as dateparser

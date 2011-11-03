@@ -8,16 +8,13 @@ import djpcms
 from djpcms.views import Application,View
 
 
-class Loader(object):
-    loaded = False
-    def __call__(self):
-        if not self.loaded:
-            self.loaded = True
-            djpcms.MakeSite(__file__,
-                            APPLICATION_URLS = self.urls,
-                            DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',)
-                            )
-        return djpcms.sites
+class Loader(djpcms.SiteLoader):
+    
+    def default_load(self):
+        self.sites.make(__file__,
+                        APPLICATION_URLS = self.urls,
+                        DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',)
+                        )
     
     def urls(self):
         '''Create a tuple with one application containg one view'''

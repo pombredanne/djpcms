@@ -8,7 +8,7 @@ from hashlib import sha1
 from stdnet import orm
 from stdnet.utils import pickle, to_bytestring, to_string
 
-from .arc4 import decrypt
+from .arc4 import decrypt, encrypt
 
 # Use the system (hardware-based) random number generator if it exists.
 if hasattr(random, 'SystemRandom'):
@@ -27,10 +27,11 @@ UNUSABLE_PASSWORD = '!' # This will never be a valid hash
 REDIRECT_FIELD_NAME = 'next'
 
 
-def check_password(raw_password, enc_password):
+def check_password(raw_password, enc_password, secret_key):
     """Returns a boolean of whether the raw_password was correct. Handles
 encryption formats behind the scenes."""
-    return raw_password.encode() == decrypt(enc_password.encode(),secret_key())
+    return raw_password.encode() == decrypt(enc_password.encode(),
+                                            secret_key)
 
 
 class SuspiciousOperation(Exception):
@@ -78,7 +79,7 @@ class SessionManager(orm.Manager):
 class UserManager(orm.Manager):
     
     def create_user(self, username, password=None, email=None,
-                    is_superuser = False):
+                    is_superuser = False, secret_key = None):
         if email:
             try:
                 email_name, domain_part = email.strip().split('@', 1)
@@ -93,9 +94,11 @@ class UserManager(orm.Manager):
                           email=email,
                           is_superuser=is_superuser)
 
-        user.set_password(password)
+        user.set_password(password,secret_key)
         return user.save()
 
-    def create_superuser(self, username, password = None, email = None):
-        return self.create_user(username, password, email, is_superuser = True)
+    def create_superuser(self, username, password = None, email = None,
+                         secret_key = None):
+        return self.create_user(username, password, email, is_superuser = True,
+                                secret_key = secret_key)
     

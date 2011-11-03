@@ -48,7 +48,7 @@ class PermissionBackend(object):
     def authenticate(self, username=None, password=None, **kwargs):
         try:
             user = User.objects.get(username=username)
-            if user.check_password(password):
+            if user.check_password(password,self.secret_key):
                 return user
         except User.DoesNotExist:
             return None

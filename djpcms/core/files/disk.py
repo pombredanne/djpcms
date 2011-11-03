@@ -88,10 +88,10 @@ class Disksite(object):
     def __init__(self, location=None):
         self.location = location
         
-    def __call__(self):
-        base = sites.settings.SITE_DIRECTORY
-        name = sites.settings.SITE_MODULE
-        media = sites.settings.MEDIA_URL
+    def __call__(self, settings):
+        base = settings.SITE_DIRECTORY
+        name = settings.SITE_MODULE
+        media = settings.MEDIA_URL
         location = self.location or 'filefolder'
         bits = urlbits(location)
         location = os.path.join(base,'media',name,*bits)

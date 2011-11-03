@@ -1,4 +1,4 @@
-from py2py3 import ispy3k, urlparse, map, to_string
+from py2py3 import ispy3k, urlparse, map, to_string, native_str
 
 from .const import SLASH
 
@@ -159,4 +159,4 @@ def iri_to_uri(iri, kwargs = None):
         return iri
     if kwargs:
         iri = '{0}?{1}'.format(iri,'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
-    return urlquote(to_string(iri), safe="/#%[]=:;$&()+,!?*@'~")
+    return urlquote(native_str(iri), safe="/#%[]=:;$&()+,!?*@'~")

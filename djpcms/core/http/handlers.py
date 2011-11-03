@@ -48,6 +48,7 @@ delegate the handling to them.'''
                 response = djp.response()
             return response
         except Exception as e:
+            site = getattr(e,'site',site)
             return site.handle_exception(self.get_request(environ,site), e)
         
             

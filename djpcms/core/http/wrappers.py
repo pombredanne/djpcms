@@ -345,6 +345,6 @@ class ResponseRedirect(Response):
 
     def __init__(self, redirect_to):
         super(ResponseRedirect, self).__init__()
-        self['Location'] = iri_to_uri(redirect_to)
+        self.headers['Location'] = iri_to_uri(redirect_to)
 
 

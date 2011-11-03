@@ -154,7 +154,7 @@ def standard_exception_handle(request, e, status = None):
     site = info.site
     settings = site.settings
     exc_info = sys.exc_info()
-    if site is None or not hasattr(site,'exception_middleware'):
+    if site is None:
         raise
     template = '{0}.html'.format(status)
     template2 = 'errors/{0}'.format(template)

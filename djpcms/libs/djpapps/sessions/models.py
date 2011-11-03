@@ -44,9 +44,9 @@ class User(orm.StdModel):
     def is_authenticated(self):
         return True
     
-    def set_password(self, raw_password):
+    def set_password(self, raw_password, secret_key):
         if raw_password:
-            p = encrypt(raw_password.encode(), secret_key())
+            p = encrypt(raw_password.encode(), secret_key)
             self.password = p.decode()
         else:
             self.set_unusable_password()
@@ -55,9 +55,9 @@ class User(orm.StdModel):
         # Sets a value that will never be a valid hash
         self.password = UNUSABLE_PASSWORD
             
-    def check_password(self, raw_password):
+    def check_password(self, raw_password, secret_key):
         """Returns a boolean of whether the raw_password was correct."""
-        return check_password(raw_password, self.password)
+        return check_password(raw_password, self.password, secret_key)
     
     @classmethod
     def login(cls, request, user):

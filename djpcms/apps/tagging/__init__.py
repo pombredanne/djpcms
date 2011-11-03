@@ -1,5 +1,5 @@
+from djpcms import forms, views, UnicodeMixin, SLUG_REGEX
 from djpcms.apps.archive import *
-from djpcms import forms, views, UnicodeMixin
 
 __all__ = ['cleaned_tags',
            'TagView',
@@ -135,7 +135,8 @@ class TagMixedIn(object):
 class TagApplication(views.ModelApplication,TagMixedIn):
     search   = views.SearchView(in_navigation = True)
     tag0     = views.SearchView(regex = 'tags', parent = 'search', isplugin = False)
-    tag1     = TagView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX, parent = 'tag0', isplugin = False)
+    tag1     = TagView(regex = '(?P<tag1>%s)' % SLUG_REGEX,
+                       parent = 'tag0', isplugin = False)
     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
@@ -157,7 +158,7 @@ class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
                                    isplugin = False)
     
     tag0 = views.ModelView(regex = 'tags', isplugin = False)
-    tag1 = TagArchiveView(regex = '(?P<tag1>%s)' % views.SLUG_REGEX,
+    tag1 = TagArchiveView(regex = '(?P<tag1>%s)' % SLUG_REGEX,
                                     parent = 'tag0', isplugin = False)
     year_archive1 = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
     month_archive1 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive1')

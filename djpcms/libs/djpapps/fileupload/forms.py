@@ -1,4 +1,4 @@
-from djpcms import forms, html, sites, ajax
+from djpcms import forms, html, ajax
 from djpcms.utils import js, media
 from djpcms.forms import layout
 

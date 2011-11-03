@@ -12,11 +12,15 @@ class LoginForm(forms.Form):
         '''process login
         '''
         data = self.cleaned_data
-        backend = self.request.DJPCMS.site.permissions
-        try:
-            data['user'] = backend.authenticate_and_login(self.request,**data)
-        except backend.AuthenticationError as e:
-            raise forms.ValidationError(str(e))
+        backend = self.request.DJPCMS.site.permissions.backend
+        if backend:
+            try:
+                data['user'] = backend.authenticate_and_login(
+                                self.request.environ, **data)
+            except ValueError as e:
+                raise forms.ValidationError(str(e))
+        else:
+            raise ValueError('No authentication backend available.')
     
     def save(self,commit=True):
         return self.cleaned_data['user']

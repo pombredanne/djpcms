@@ -4,7 +4,7 @@ except ImportError:
     Image = None
     
 from djpcms import views, ispy3k
-from djpcms.apps.included.vanilla import Application
+from djpcms.apps.vanilla import Application
 from djpcms.utils import mark_safe
 from djpcms.core import files
 
@@ -32,7 +32,7 @@ class FileApplication(Application):
     def registration_done(self):
         storage = self.storage
         if hasattr(storage,'__call__'):
-            storage = storage()
+            storage = storage(self.site.settings)
         if storage:
             self.site.storage = storage
         self.model.register_signals()

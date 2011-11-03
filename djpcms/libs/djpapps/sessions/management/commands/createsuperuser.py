@@ -45,8 +45,9 @@ def get_default_username():
 class Command(djpcms.Command):
     help = 'Used to create a superuser.'
 
-    def handle(self, *args, **options):
-        verbosity = int(options.get('verbosity', 1))
+    def handle(self, site_factory, options):
+        sites = site_factory()
+        sk = sites.settings.SECRET_KEY
         username = None
         password = None
         default_username = get_default_username()
@@ -92,7 +93,8 @@ class Command(djpcms.Command):
             sys.stderr.write("\nOperation cancelled.\n")
             sys.exit(1)
 
-        User.objects.create_superuser(username, password=password)
-        if verbosity >= 1:
-          self.stdout.write("Superuser created successfully.\n")
+        User.objects.create_superuser(username,
+                                      password=password,
+                                      secret_key = sk)
+        self.stdout.write("Superuser created successfully.\n")
 

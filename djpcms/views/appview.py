@@ -6,12 +6,11 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, html, ajax
+from djpcms import http, html, ajax, RegExUrl, IDREGEX
 from djpcms.utils.translation import gettext as _
 from djpcms.template import loader
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
-from djpcms.views.regex import RegExUrl
 from djpcms.views.baseview import djpcmsview
 from djpcms.utils.urls import iri_to_uri
 from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty 
@@ -27,20 +26,8 @@ __all__ = ['View',
            'ViewView',
            'DeleteView',
            'ObjectActionView',
-           'ChangeView',
-           'ALL_URLS',
-           'ALL_REGEX',
-           'IDREGEX',
-           'UUID_REGEX',
-           'SLUG_REGEX']
+           'ChangeView']
 
-
-ALL_REGEX = '.*'
-IDREGEX = '(?P<id>\d+)'
-SLUG_REGEX = '[-\.\+\#\'\:\w]+'
-UUID_REGEX = '(?P<id>[-\w]+)'
-
-ALL_URLS = RegExUrl('(?P<path>{0})'.format(ALL_REGEX), append_slash = False)
 
 
 def model_defaultredirect(self, request, next = None, instance = None, **kwargs):

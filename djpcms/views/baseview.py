@@ -3,13 +3,12 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import UnicodeMixin, forms, http, html, ajax
+from djpcms import UnicodeMixin, forms, http, html, ajax, RegExUrl, RouteMixin
 from djpcms.template import loader
 from djpcms.utils import parentpath
 
 from .response import DjpResponse
 from .contentgenerator import BlockContentGen
-from .regex import RegExUrl, RouteMixin
 
     
 __all__ = ['RendererMixin',

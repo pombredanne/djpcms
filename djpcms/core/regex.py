@@ -7,7 +7,12 @@ from djpcms.utils.strings import force_str
 
 
 __all__ = ['RegExUrl',
-           'RouteMixin']
+           'RouteMixin',
+           'ALL_URLS',
+           'ALL_REGEX',
+           'IDREGEX',
+           'UUID_REGEX',
+           'SLUG_REGEX']
 
 
 class RouteMixin(object):
@@ -109,7 +114,8 @@ class RegExUrl(UnicodeMixin):
                 if st and en:
                     name = bit[st:en]
                 else:
-                    raise ApplicationUrlException('Regular expression for urls requires a keyworld. %s does not have one.' % bit) 
+                    raise ApplicationUrlException('Regular expression for urls\
+ requires a keyworld. %s does not have one.' % bit) 
                 bit  = '%(' + name + ')s'
                 self.names.append(name)
             self.breadcrumbs.append(bit)
@@ -132,3 +138,8 @@ class RegExUrl(UnicodeMixin):
                               append_slash = append_slash)
         
         
+ALL_REGEX = '.*'
+IDREGEX = '(?P<id>\d+)'
+SLUG_REGEX = '[-\.\+\#\'\:\w]+'
+UUID_REGEX = '(?P<id>[-\w]+)'
+ALL_URLS = RegExUrl('(?P<path>{0})'.format(ALL_REGEX), append_slash = False)

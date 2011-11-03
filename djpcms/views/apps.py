@@ -21,7 +21,6 @@ from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
 from .appview import View, ViewView
-from .regex import RegExUrl
 
 
 __all__ = ['Application',
@@ -305,7 +304,7 @@ or in the constructor.
         self.in_navigation = in_navigation if in_navigation is not None else\
                              self.in_navigation
         self.editavailable = editavailable
-        self.baseurl = RegExUrl(baseurl)
+        self.baseurl = djpcms.RegExUrl(baseurl)
         self.ordering = ordering or self.ordering
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display

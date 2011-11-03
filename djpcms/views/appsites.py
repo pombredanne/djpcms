@@ -4,15 +4,14 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, SiteApp
+from djpcms import http, SiteApp, RegExUrl, RouteMixin, ALL_URLS
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper
-from djpcms.views import Application, ModelApplication, DummyDjp, RegExUrl,\
-                         RouteMixin, ALL_URLS
+from djpcms.views import Application, ModelApplication, DummyDjp
 from djpcms.template import loader
 
 

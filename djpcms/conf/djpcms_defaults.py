@@ -23,9 +23,8 @@ SITEMAP_TIMEOUT = 60
 ADMIN_GROUPING = None
 
 #MIDDLEWARE AND TEMPLATE PROCESSORS
-MIDDLEWARE_CLASSES = ('djpcms.middleware.gzip.GZipMiddleware',)
 AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
-TEMPLATE_DIRS = ()  # Additional template dlocation directories
+TEMPLATE_DIRS = ()  # Additional template location directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 

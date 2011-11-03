@@ -6,18 +6,19 @@ from threading import Lock
 
 import djpcms
 from djpcms.conf import get_settings
-from djpcms.core.exceptions import AlreadyRegistered, PermissionDenied,\
-                                   ImproperlyConfigured, DjpcmsException,\
-                                   Http404
 from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
 from djpcms.utils.structures import OrderedDict
-from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.dispatch import Signal
 
+from .exceptions import AlreadyRegistered, PermissionDenied,\
+                        ImproperlyConfigured, DjpcmsException,\
+                        Http404
+from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
+from .regex import RegExUrl, ALL_URLS
 
 __all__ = ['SiteLoader',
            'MakeSite',
@@ -273,7 +274,7 @@ It also initialise admin for models.'''
         
     def _load(self):
         '''Load sites and flat pages'''
-        from djpcms.views import SiteMap, ALL_URLS
+        from .sitemap import SiteMap
         if not self._sites:
             raise ImproperlyConfigured('No sites registered.')
         # setup the environment
@@ -513,7 +514,7 @@ module specifying the admin application will be included.
                     continue
                 command_module = app_name
                 if app_name == 'djpcms':
-                    command_module = 'djpcms.apps'
+                    command_module = 'djpcms.core'
                 try:
                     mod = import_module(command_module+'.management')
                     if hasattr(mod,'__path__'):

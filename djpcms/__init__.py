@@ -139,9 +139,7 @@ LOGGING_SAMPLE = {
     }
 }
 
-from .core.exceptions import *
-from .apps import *
-from .apps.management import *
+from .core import *
 from .conf import nodata
 from .utils import ajax
 from .utils.decorators import *

@@ -13,26 +13,25 @@ TemplateNotFound = jinja2.TemplateNotFound
 Template = jinja2.Template
 
 
-def application_directories(package_path):
+def application_directories(settings, package_path):
     app_template_dirs = []
-    if sites.settings:
-        for app in sites.settings.INSTALLED_APPS:
-            try:
-                mod = import_module(app)
-            except ImportError as e:
-                raise ImproperlyConfigured('ImportError %s: %s' % (app, e.args[0]))
-            template_dir = os.path.join(os.path.dirname(mod.__file__), package_path)
-            if os.path.isdir(template_dir):
-                app_template_dirs.append(template_dir)
+    for app in settings.INSTALLED_APPS:
+        try:
+            mod = import_module(app)
+        except ImportError as e:
+            raise ImproperlyConfigured('ImportError %s: %s' % (app, e.args[0]))
+        template_dir = os.path.join(os.path.dirname(mod.__file__), package_path)
+        if os.path.isdir(template_dir):
+            app_template_dirs.append(template_dir)
     return app_template_dirs
 
 
 
 class ApplicationLoader(jinja2.loaders.FileSystemLoader):
     
-    def __init__(self, package_path='templates', encoding='utf-8'):
-        searchpath = application_directories(package_path)
-        for path in sites.settings.TEMPLATE_DIRS:
+    def __init__(self, settings, package_path='templates', encoding='utf-8'):
+        searchpath = application_directories(settings,package_path)
+        for path in settings.TEMPLATE_DIRS:
             if path not in searchpath:
                 searchpath.append(path)
         super(ApplicationLoader,self).__init__(searchpath,encoding)
@@ -123,7 +122,7 @@ class TemplateHandler(LibraryTemplateHandler):
             raise ImproperlyConfigured('No template loader attribute {0} in {1}: "{2}"'.format(attr, module, e))
 
         fargs = [arg if not hasattr(arg,'__call__') else arg() for arg in args]
-        return TemplateLoader(*fargs)
+        return TemplateLoader(self.config,*fargs)
 
     def load_template_source(self, template_name, dirs=None):
         for env in self.envs:

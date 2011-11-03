@@ -9,7 +9,7 @@ This is the plain vanilla of all applications. It has the standard five views
 * change (:class:`djpcms.views.ChangeView`)
 * delete (:class:`djpcms.views.DeleteView`)
 '''
-from djpcms import views
+from djpcms import views, SLUG_REGEX
 
 
 class SimpleTabular(views.ModelApplication):
@@ -33,7 +33,7 @@ class Application(views.ModelApplication):
 class GroupApplication(views.Application):
     '''An application group. NOT YET READ NOR TESTED'''
     home = views.View()
-    search = views.SearchView(regex = views.SLUG_REGEX, parent = 'home')
+    search = views.SearchView(regex = SLUG_REGEX, parent = 'home')
     add = views.AddView()
     view = views.ViewView()
     change = views.ChangeView()

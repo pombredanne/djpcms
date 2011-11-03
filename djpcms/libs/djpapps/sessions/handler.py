@@ -7,19 +7,16 @@ from sessions import PermissionBackend
 
 class PermissionHandler(djpcms.PermissionHandler):
     '''Permission handler'''
-    def __init__(self, backend = None, requires_login = False):
-        self._backend = backend
+    def __init__(self, settings, backend = None, requires_login = False):
+        self.backend = backend or self._get_backend(settings)
         self.requires_login = requires_login
         
-    @property
-    def backend(self):
-        if not self._backend:
-            setts = djpcms.sites.settings or {}
-            cname = setts.get('SESSION_COOKIE_NAME')
-            sk = setts.get('SECRET_KEY')
-            sexp = setts.get('SESSION_EXPIRY')
-            self._backend = PermissionBackend(sk,cname,sexp)
-        return self._backend
+    def _get_backend(self, settings):
+        setts = settings or {}
+        cname = setts.get('SESSION_COOKIE_NAME')
+        sk = setts.get('SECRET_KEY')
+        sexp = setts.get('SESSION_EXPIRY')
+        return PermissionBackend(sk,cname,sexp)
     
     def _has(self, request, permission_code, obj):
         if self.authenticated(request, obj, self.requires_login):

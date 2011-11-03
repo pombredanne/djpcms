@@ -5,7 +5,6 @@ from copy import copy
 import djpcms
 from djpcms import forms, http, html
 from djpcms.utils.ajax import jredirect, jservererror
-from djpcms.template import loader
 from djpcms.utils import lazyattr, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied,\
                                      PathException
@@ -347,6 +346,7 @@ the parent of the embedded view.'''
                                 min_length = self.settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
+        loader = self.site.template
         context = loader.context(context, self.request)
         html = loader.render(self.template_file, context)
         html = html.encode('latin-1','replace')

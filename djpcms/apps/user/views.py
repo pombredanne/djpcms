@@ -1,4 +1,4 @@
-from djpcms import sites, views, http
+from djpcms import views, http
 from djpcms.forms.utils import saveform
 
 __all__ = ['LogoutView','LoginView','UserView','UserDataView']

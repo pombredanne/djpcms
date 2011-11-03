@@ -76,6 +76,56 @@ class SiteLoader(object):
         self.sites.make(os.getcwd(),
                         settings = self.settings)
 
+    def get_settings(self, name, settings = None, **params):
+        '''
+        Extra configuration parameters,
+can be passed as key-value pairs:
+
+:parameter name: file or directory name which specifies the
+                 application root-directory.
+                 
+:parameter settings: optional settings file name specified as a dotted path
+    relative ro the application directory.
+    
+    Default ``None``
+
+:parameter params: key-value pairs which override the values
+                   in the settings file.
+'''
+        if os.path.isdir(name):
+            appdir = name
+        elif os.path.isfile(name):
+            appdir = os.path.split(os.path.realpath(name))[0]
+        else:
+            try:
+                mod = import_module(name)
+                appdir = mod.__path__[0]
+            except ImportError:
+                raise ValueError(
+                        'Could not find directory or file {0}'.format(name))
+        site_path = os.path.realpath(appdir)
+        base,name = os.path.split(site_path)
+        if base not in sys.path:
+            sys.path.insert(0, base)
+        
+        # Import settings
+        if settings:
+            if '.' in settings:
+                settings_module_name = settings
+            else:
+                sett = '{0}.py'.format(os.path.join(site_path,settings))
+                if os.path.isfile(sett):
+                    settings_module_name = '{0}.{1}'.format(name,settings)
+                else:
+                    settings_module_name = settings
+        else:
+            settings_module_name = None
+        
+        return get_settings(settings_module_name,
+                            SITE_DIRECTORY = site_path,
+                            SITE_MODULE = name,
+                            **params)
+        
     def finish(self):
         '''Callback once the sites are loaded.'''
         pass
@@ -91,20 +141,6 @@ def standard_exception_handle(request, e, status = None):
     exc_info = sys.exc_info()
     if site is None or not hasattr(site,'exception_middleware'):
         raise
-    for middleware_method in site.exception_middleware():
-        try:
-            response = middleware_method(request, e, status)
-            if response:
-                return response
-        except:
-            exc_info = sys.exc_info()
-    for middleware_method in site.request_middleware():
-        try:
-            response = middleware_method(request)
-            if response:
-                return response
-        except:
-            exc_info = sys.exc_info()
     template = '{0}.html'.format(status)
     template2 = 'errors/{0}'.format(template)
     template3 = 'djpcms/{0}'.format(template2)
@@ -298,66 +334,16 @@ It also initialise admin for models.'''
         self.on_site_loaded.send(self)
         return urls
     
-    def make(self, name, settings = None, route = None,
-             permissions = None, **params):
-        '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`
-from a directory or a file *name*. Extra configuration parameters,
-can be passed as key-value pairs:
-
-:parameter name: file or directory name which specifies the
-                 application root-directory.
-                 
-:parameter settings: optional settings file name specified as a dotted path
-    relative ro the application directory.
-    
-    Default ``None``
+    def make(self, settings, route = None, permissions = None):
+        '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`.
     
 :parameter route: the base ``url`` for the site applications.
 
     Default ``None``
     
 :parameter permission: An optional :ref:`site permission handler <permissions>`.
-:parameter params: key-value pairs which override the values
-                   in the settings file.
-
-The function returns an instance of
-:class:`djpcms.views.ApplicationSite`.
+:rtype: an instance of :class:`djpcms.views.ApplicationSite`.
 '''
-        # Finde directory from name. If not a directory it may be a file
-        if os.path.isdir(name):
-            appdir = name
-        elif os.path.isfile(name):
-            appdir = os.path.split(os.path.realpath(name))[0]
-        else:
-            try:
-                mod = import_module(name)
-                appdir = mod.__path__[0]
-            except ImportError:
-                raise ValueError(
-                        'Could not find directory or file {0}'.format(name))
-        site_path = os.path.realpath(appdir)
-        base,name = os.path.split(site_path)
-        if base not in sys.path:
-            sys.path.insert(0, base)
-        
-        # Import settings
-        if settings:
-            if '.' in settings:
-                settings_module_name = settings
-            else:
-                sett = '{0}.py'.format(os.path.join(site_path,settings))
-                if os.path.isfile(sett):
-                    settings_module_name = '{0}.{1}'.format(name,settings)
-                else:
-                    settings_module_name = settings
-        else:
-            settings_module_name = None
-        
-        settings = get_settings(settings_module_name,
-                                SITE_DIRECTORY = site_path,
-                                SITE_MODULE = name,
-                                **params)
-        
         # If no settings available get the current one
         if self.settings is None:
             self.settings = settings
@@ -367,7 +353,7 @@ The function returns an instance of
             os.environ['SECRET_KEY'] = settings.SECRET_KEY 
         
         # Add template media directory to template directories
-        path = os.path.join(site_path,'templates')
+        path = os.path.join(settings.SITE_DIRECTORY,'templates')
         if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
             settings.TEMPLATE_DIRS += path,
         path = os.path.join(djpcms.__path__[0],'media','djpcms')
@@ -457,7 +443,7 @@ module specifying the admin application will be included.
 
 :parameter params: key-value pairs of extra parameters for input in the
                    :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
-        from djpcms.apps.included.admin import AdminSite, ApplicationGroup
+        from djpcms.apps.admin import AdminSite, ApplicationGroup
         adming = {}
         agroups = {}
         if self.settings.ADMIN_GROUPING:

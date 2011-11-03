@@ -5,7 +5,7 @@ For example, lets say you want to use ``django.contrib.auth``
 as your user model, than you can define the application::
 
     from django.contrib.auth.models import User
-    from djpcms.apps.included.user import UserApplication
+    from djpcms.apps.user import UserApplication
     
     UserApplication('/accounts/',User)
      
@@ -16,7 +16,7 @@ from djpcms.forms import HtmlForm
 from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm
 from .views import *
 
-from djpcms import views
+from djpcms import views, SLUG_REGEX
 
 permission = lambda self, request, obj: False if not request \
                 else request.user.is_authenticated()
@@ -97,7 +97,7 @@ class UserApplicationWithFilter(UserApplication):
 The userhome view'''
     inherit = True
     userpage = True
-    userhome = UserView(regex = '(?P<username>%s)'%views.SLUG_REGEX,
+    userhome = UserView(regex = '(?P<username>%s)'%SLUG_REGEX,
                         description = 'view')
     change  = views.ChangeView(parent = 'userhome',
                                form = HtmlForm(UserChangeForm))

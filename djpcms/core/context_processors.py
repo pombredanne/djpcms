@@ -1,12 +1,12 @@
 from datetime import datetime
 import logging
 
-from djpcms import views, sites, html, UnicodeMixin, CHANGE, ADD
-from djpcms.models import Page
-from djpcms.core.exceptions import ApplicationNotAvailable
-from djpcms.core.messages import get_messages
+from djpcms import views, html, UnicodeMixin, CHANGE, ADD
 from djpcms.utils import iri_to_uri, escape
 from djpcms.html import grid960, htmldoc, List
+
+from .exceptions import ApplicationNotAvailable
+from .messages import get_messages
 
 
 class PageLink(html.List):
@@ -17,6 +17,7 @@ for page editing or creation or exit editing.'''
         self.request = request
         request = self.request
         info = request.DJPCMS
+        Page = info.site.Page
         self.page = info.page
         # Get the site application for Page
         apps = list(request.DJPCMS.root.for_model(Page))

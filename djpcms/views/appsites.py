@@ -4,7 +4,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, SiteApp, RegExUrl, RouteMixin, ALL_URLS
+from djpcms import http, template, SiteApp, RegExUrl, RouteMixin, ALL_URLS
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -12,7 +12,6 @@ from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper
 from djpcms.views import Application, ModelApplication, DummyDjp
-from djpcms.template import loader
 
 
 __all__ = ['ApplicationSite']
@@ -38,10 +37,7 @@ handles urls of :class:`Application` instances registered with it.
         self._registry = {}
         self._nameregistry = OrderedDict()
         self.choices = [('','-----------------')]
-        self._request_middleware = None
-        self._response_middleware = None
         self._template_context_processors = None
-        self.handle = http.WSGIsite(self)
         
     def __repr__(self):
         return '{0} - {1}'.format(self.path,'loaded' if self.isloaded\
@@ -109,6 +105,8 @@ handles urls of :class:`Application` instances registered with it.
             regex = app.baseurl + ALL_URLS
             urls += (url(str(regex), app, name = app.name),)
         self.tree.addsite(self)
+        self.template = template.handle(self.settings.TEMPLATE_ENGINE,
+                                        self.settings) 
         return urls
     
     @property
@@ -359,7 +357,7 @@ This method is safe and return None if no url is found.
         try:
             te = mp.get(name = name)
         except mp.DoesNotExist:
-            source, loc = loader.load_template_source(template_name)
+            source, loc = self.template.load_template_source(template_name)
             te = InnerTemplate(name = name, template = source)
             te.save()
         page.inner_template = te

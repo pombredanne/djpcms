@@ -2,27 +2,25 @@ from djpcms.dispatch import Signal
 from djpcms import sites
 
 
-def handle(engine = None):
-    engine = engine or sites.settings.TEMPLATE_ENGINE if\
-                      sites.settings else 'jinja2'
+def handle(engine = None, settings = None):
+    engine = engine or 'jinja2'
     if engine not in _handlers:
         handle = get_engine(engine)
         _handlers[engine] = handle
     else:
         handle = _handlers[engine]
-    return handle
+    return handle(settings)
+    
         
-        
-def get_engine(engine, config = None):
-    from djpcms import sites
-    config = config or sites.settings
+def get_engine(engine):
     if engine == 'django':
         from ._django import TemplateHandler
     elif engine == 'jinja2':
         from ._jinja2 import TemplateHandler
     else:
-        raise NotImplementedError('Template handler {0} not available'.format(engine))
-    return TemplateHandler(config)
+        raise NotImplementedError('Template handler {0} not available'\
+                                  .format(engine))
+    return TemplateHandler
 
 
 class BaseTemplateHandler(object):

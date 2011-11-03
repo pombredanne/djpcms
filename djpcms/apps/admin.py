@@ -4,8 +4,8 @@ Dependencies: **None**
 An application which displays a table with all applications
 registered in the same ApplicationSite::
 
-    from djpcms.apps.included.admin import AdminSite
-    from djpcms.apps.included.sitemap import SiteMapView
+    from djpcms.apps.admin import AdminSite
+    from djpcms.apps.sitemap import SiteMapView
     
     admin_urls = (
                   SiteAdmin('/', name = 'admin'),

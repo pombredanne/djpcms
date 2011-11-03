@@ -11,13 +11,14 @@ from djpcms.views import Application,View
 class Loader(djpcms.SiteLoader):
     
     def default_load(self):
-        self.sites.make(__file__,
+        settings = self.get_settings(
+                        __file__,
                         APPLICATION_URLS = self.urls,
-                        DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',)
-                        )
+                        DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',))
+        self.sites.make(settings)
     
     def urls(self):
-        '''Create a tuple with one application containg one view'''
+        '''Create a tuple with one application containing one view'''
         return (
             Application('/',
                 name = 'Hello world!',

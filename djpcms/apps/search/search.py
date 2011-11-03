@@ -1,6 +1,6 @@
 '''Search Applications which works with the SearchBox plugin.
 '''
-from djpcms import views, forms, html, ajax, ImproperlyConfigured
+from djpcms import views, forms, html, ajax, ImproperlyConfigured, SLUG_REGEX
 
 from .forms import HtmlSearchForm
 
@@ -82,7 +82,7 @@ class Application(views.Application):
     search = SearchView(form = HtmlSearchForm,
                         form_method = 'GET',
                         description = 'Search Results')
-    search_model = SearchView(regex = '(?P<model>{0})'.format(views.SLUG_REGEX),
+    search_model = SearchView(regex = '(?P<model>{0})'.format(SLUG_REGEX),
                               form = HtmlSearchForm,
                               form_method = 'GET',
                               form_ajax = False,

@@ -175,7 +175,6 @@ class TreeUpdate(object):
     
     def __init__(self):
         self.sites = []
-        self.sites.append(sites)
         
     def register_site(self, site):
         '''Provided for testing purposes'''

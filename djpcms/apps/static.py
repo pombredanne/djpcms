@@ -169,9 +169,8 @@ class StaticFileView(StaticView):
         response = http.Response(contents,
                                  content_type=mimetype,
                                  encoding = encoding)
-        response.set_header("Last-Modified",
-                            http.http_date(statobj[stat.ST_MTIME]))
-        response.set_header("Content-Length", len(contents))
+        response.headers["Last-Modified"] =\
+                         http.http_date(statobj[stat.ST_MTIME])
         return response
     
     def was_modified_since(self, header=None, mtime=0, size=0):

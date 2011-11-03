@@ -20,6 +20,7 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
 from .regex import RegExUrl, ALL_URLS
+from .http import WSGI
 from . import orms
 
 __all__ = ['SiteLoader',
@@ -70,7 +71,6 @@ class SiteLoader(object):
     
     def wsgi_middleware(self):
         '''Return a list of WSGI middleware for serving wsgi requests.'''
-        from djpcms.http import WSGI
         sites = self.build_sites()
         m = self._wsgi_middleware or []
         m = copy(m)

@@ -25,8 +25,7 @@ for page editing or creation or exit editing.'''
         self.page = info.page
         # Get the site application for Page
         apps = list(request.DJPCMS.root.for_model(Page))
-        if apps:
-            self.app = apps[0]
+        self.app = apps[0] if apps else None
         self.isediting = False
         self.cdjp = None
         if self.app:
@@ -50,7 +49,9 @@ for page editing or creation or exit editing.'''
                 elif site.permissions.has(self.request, CHANGE, self.page):
                     self.append(self.changelink())
                 self.userlinks()
-        if request.user.is_superuser and sites.settings.PROFILING_KEY:
+                
+        if request.user and request.user.is_superuser and \
+                            sites.settings.PROFILING_KEY:
             if sites.settings.PROFILING_KEY not in request.REQUEST:
                 self.append('<a href={0}?{1}>profile</a>'.format(request.path,\
                                                 sites.settings.PROFILING_KEY))

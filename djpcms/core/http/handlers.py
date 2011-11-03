@@ -1,5 +1,5 @@
 from .profiler import profile_response
-from .wrappers import Request, Response
+from .wrappers import Request
 from .cache import djpcmsinfo
 
 

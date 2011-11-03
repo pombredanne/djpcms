@@ -10,15 +10,14 @@ To create the style sheet::
 
 '''
 import djpcms
+from djpcms.apps import static
 
 
-class Loader(object):
+class Loader(djpcms.SiteLoader):
     loaded = False
     
-    def __call__(self):
-        if not self.loaded:
-            self.loaded = True
-            djpcms.MakeSite(__file__,
+    def default_load(self):
+        settings = self.get_settings(__file__,
                 APPLICATION_URLS = self.urls,
                 INSTALLED_APPS = ('djpcms',
                                   'medplate',
@@ -30,16 +29,14 @@ class Loader(object):
                 PROFILING_KEY = 'prof',
                 DEBUG = True
                 )
-        return djpcms.sites
+        self.sites.make(settings)
     
     def urls(self):
-        from djpcms.apps.included import static
         from playground.application import PlayGround, Geonames
-        
         # we serve static files too in this case
         return (
                 static.FavIcon(),
-                static.Static(djpcms.sites.settings.MEDIA_URL,
+                static.Static(self.sites.settings.MEDIA_URL,
                               show_indexes=True),
                 Geonames('/geo/'),
                 PlayGround('/')

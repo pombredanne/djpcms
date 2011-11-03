@@ -1,7 +1,7 @@
 from djpcms import forms, html
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
-from djpcms.http import query_from_string
+from djpcms.core.http import query_from_string
 from djpcms.utils.text import nicename
 
 

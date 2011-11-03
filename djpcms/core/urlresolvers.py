@@ -5,7 +5,8 @@ from py2py3 import is_bytes_or_string, iteritems
 
 import djpcms
 from djpcms import http
-from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist, PathException
+from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist,\
+                                     PathException
 from djpcms.utils import force_str, SLASH
 
 

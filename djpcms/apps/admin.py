@@ -16,7 +16,6 @@ registered in the same ApplicationSite::
 from py2py3 import iteritems
 
 from djpcms import views, html
-from djpcms.template import loader
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.html import application_links, application_views
@@ -71,7 +70,7 @@ class TabView(html.ObjectItem):
                         'value':html,
                         'order': o})
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
-        return loader.render(self.view_template,ctx)
+        return djp.render_template(self.view_template,ctx)
     
     def  render_object_view(self, djp, appmodel, instance):
         if 'object' in appmodel.object_widgets:
@@ -125,7 +124,7 @@ administer models in groups.'''
         return sorted(self.groups(djp), key = lambda x : x['title'])
     
     def render_query(self, djp, qs):
-        return loader.render(self.query_template, {'items':qs})
+        return djp.render_template(self.query_template, {'items':qs})
       
 
 class AdminApplicationSimple(TabViewMixin,views.ModelApplication):

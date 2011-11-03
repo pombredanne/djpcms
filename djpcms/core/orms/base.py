@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from inspect import isclass
 
-from djpcms import sites, nodata, UnicodeMixin
+from djpcms import UnicodeMixin
 from djpcms.html import icons, nicerepr
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
@@ -9,7 +9,11 @@ from djpcms.template import loader
 
 __all__ = ['BaseOrmWrapper',
            'DummyMapper',
-           'nicerepr']
+           'nicerepr',
+           'model_from_hash']
+
+
+model_from_hash = {}
 
 
 class BaseOrmWrapper(UnicodeMixin):
@@ -39,7 +43,7 @@ wrap existing object relational mappers.
         self.test()
         self.setup()
         if self.hash:
-            sites.model_from_hash[self.hash] = model
+            model_from_hash[self.hash] = model
         
     def setup(self):
         pass

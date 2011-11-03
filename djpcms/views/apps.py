@@ -8,7 +8,6 @@ import djpcms
 from djpcms import forms, html, ajax
 from djpcms.html import Paginator, Table, SubmitInput, application_action,\
                         table_header
-from djpcms.template import loader
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException,\
@@ -557,7 +556,7 @@ By default it return a generator of children pages.'''
             render = self.render_object
             qs = query[p.start:p.end]
             c['items'] = (render(djp,item,'pagination') for item in qs)
-            return loader.render(self.pagination_template_name, c)
+            return djp.render(self.pagination_template_name, c)
 
     def for_user(self, djp):
         if self.parent:

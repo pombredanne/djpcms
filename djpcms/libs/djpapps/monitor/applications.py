@@ -2,11 +2,10 @@ from datetime import datetime
 from copy import deepcopy
 
 import djpcms
-from djpcms import views, html, forms, sites, ajax
+from djpcms import views, html, forms, ajax, ALL_REGEX, SLUG_REGEX
 from djpcms.forms.layout import uniforms as uni
 from djpcms.html import icons
-from djpcms.template import loader
-from djpcms.apps.included.admin import AdminApplication, TabView
+from djpcms.apps.admin import AdminApplication, TabView
 from djpcms.utils import mark_safe
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import nicetimedelta, smart_time
@@ -115,9 +114,9 @@ class RedisTabView(TabView):
             dbs = view.render()
             right_panels = ({'name':'Databases',
                              'value':dbs},)
-        return loader.render(appmodel.template_view,
-                            {'left_panels':left_panels,
-                             'right_panels':right_panels})
+        return djp.render_template(appmodel.template_view,
+                                   {'left_panels':left_panels,
+                                    'right_panels':right_panels})
         
 
 class RedisKeyApplication(RedisMixin, views.ModelApplication):
@@ -129,7 +128,7 @@ class RedisKeyApplication(RedisMixin, views.ModelApplication):
             {'sDom':'<"H"<"row-selector"><"clear">ilp<"clear">f>t'}}}
     
     search = views.SearchView(astable = True)
-    view = views.ViewView(regex = '(?P<key>{0})'.format(views.ALL_REGEX))
+    view = views.ViewView(regex = '(?P<key>{0})'.format(ALL_REGEX))
     delete = views.DeleteView()
     expire = views.ChangeView(regex = 'expire')
     
@@ -231,10 +230,10 @@ class StdModelApplication(views.ModelApplication):
     table_parameters = {'ajax':False}
     search = views.View(astable = True)
     app = views.View(astable = True,
-                     regex = '(?P<app>{0})'.format(views.SLUG_REGEX),
+                     regex = '(?P<app>{0})'.format(SLUG_REGEX),
                      title = lambda djp : djp.kwargs['app'])
     view = views.View(
-                  regex = '(?P<model>{0})'.format(views.SLUG_REGEX),
+                  regex = '(?P<model>{0})'.format(SLUG_REGEX),
                   parent = 'app',
                   renderer = lambda djp: djp.view.appmodel.render_model(djp),
                   title = lambda djp: djp.view.appmodel.model_title(djp))
@@ -295,7 +294,7 @@ class StdModelApplication(views.ModelApplication):
             raise djp.http.Http404('Model {0[app]}.{0[name]} not available'\
                                    .format(djp.kwargs))
         info = html.ObjectDefinition(self, djp)
-        return loader.render('monitor/stdmodel.html',
-                             {'meta':model,
-                              'info':info})
+        return djp.render_template('monitor/stdmodel.html',
+                                   {'meta':model,
+                                    'info':info})
     

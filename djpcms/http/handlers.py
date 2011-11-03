@@ -19,6 +19,7 @@ delegate the handling to them.'''
         settings = self.sites.settings
         if settings.PROFILING_KEY:
             response = profile_response(environ, start_response,
+                                        self.sites,
                                         settings.PROFILING_KEY,
                                         self._handle,
                                         settings)

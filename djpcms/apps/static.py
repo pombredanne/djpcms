@@ -13,7 +13,6 @@ from email.utils import parsedate_tz, mktime_tz
 
 from djpcms import views, http
 from djpcms.utils.importer import import_module
-from djpcms.template import loader
 
 # Third party application list.
 third_party_applications = []
@@ -100,7 +99,7 @@ class StaticRootView(StaticView):
         directory = request.path
         notroot = directory != '/'
         if appmodel.show_indexes:
-            html = loader.render(appmodel.template,
+            html = site.template.render(appmodel.template,
                                 {'names':sorted(mapping),
                                  'files':[],
                                  'directory':directory,
@@ -146,7 +145,7 @@ class StaticFileView(StaticView):
                     names.append(f)
                 else:
                     files.append(f)
-        html = loader.render(self.appmodel.template,
+        html = self.site.template.render(self.appmodel.template,
                              {'names':names,
                               'files':files,
                               'directory':request.path,

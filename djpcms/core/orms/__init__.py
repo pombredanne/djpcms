@@ -2,11 +2,34 @@ from py2py3 import itervalues
 
 import djpcms
 from djpcms.core.exceptions import ModelException
-from djpcms.core.orms.base import *
+from djpcms.utils.structures import OrderedDict
+from djpcms.utils.importer import import_module
+
+from .base import *
+
+model_wrappers = OrderedDict()
+
+ORMS = lambda : model_wrappers.values()
+
+def RegisterORM(name):
+    '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
+dotted path to a python module containing a class named ``OrmWrapper``
+derived from :class:`BaseOrmWrapper`.'''
+    global model_wrappers
+    names = name.split('.')
+    if len(names) == 1:
+        mod_name = 'djpcms.core.orms._' + name
+    else:
+        mod_name = name
+    try:
+        mod = import_module(mod_name)
+    except ImportError as e:
+        return
+    model_wrappers[name] = mod.OrmWrapper
 
 
-djpcms.RegisterORM('django')
-djpcms.RegisterORM('stdnet')
+RegisterORM('django')
+RegisterORM('stdnet')
 
 
 def getmodel(appmodel):
@@ -25,7 +48,7 @@ def getmodel(appmodel):
         model = instance.__class__
     wrapper = getattr(model,'_djpcms_orm_wrapper',None)
     if not wrapper:
-        for wrapper_cls in djpcms.ORMS():
+        for wrapper_cls in ORMS():
             try:
                 wrapper = wrapper_cls(model)
                 break

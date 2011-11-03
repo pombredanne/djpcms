@@ -4,7 +4,6 @@ from py2py3 import range
 
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, RegExUrl, RouteMixin
-from djpcms.template import loader
 from djpcms.utils import parentpath
 
 from .response import DjpResponse
@@ -160,7 +159,10 @@ http requests.
             cb = {'djp':  djp}
             for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(djp, b, editing)
-            inner = page.inner_template.render(loader.context(cb, request=request))
+            loader = site.template
+            inner = page.inner_template.render(
+                                    loader,
+                                    loader.context(cb, request=request))
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)

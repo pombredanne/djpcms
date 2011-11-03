@@ -14,12 +14,12 @@ class Command(djpcms.Command):
                                         description='Optional port number'),
                    )
     
-    def handle(self, callable, options):
-        sites = callable()
+    def handle(self, sites_factory, options):
+        sites = sites_factory()
         if not sites:
             print('No sites installed, cannot serve the application')
             return
         
         port = options.port
         djpcms.init_logging(sites.settings)
-        serve(port = port, sites = sites)
+        serve(sites_factory, port = port)

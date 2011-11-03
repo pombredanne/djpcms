@@ -1,4 +1,4 @@
-from djpcms import sites, forms, html
+from djpcms import forms, html
 
 
 class LoginForm(forms.Form):

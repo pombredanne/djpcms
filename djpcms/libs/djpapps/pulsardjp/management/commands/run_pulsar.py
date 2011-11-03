@@ -11,8 +11,7 @@ class LoadWsgi(object):
         self.site_factory = site_factory
         
     def __call__(self):
-        sites = self.site_factory()
-        return http.WSGI(sites)
+        return self.site_factory.wsgi_middleware()
 
 
 class Command(djpcms.Command):

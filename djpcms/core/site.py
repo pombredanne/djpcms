@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 import logging
+from copy import copy
 from threading import Lock
 
 import djpcms
@@ -19,19 +20,11 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
 from .regex import RegExUrl, ALL_URLS
+from . import orms
 
 __all__ = ['SiteLoader',
-           'MakeSite',
            'SiteApp',
-           'GetOrCreate',
-           'RegisterORM',
-           'ORMS',
-           'adminurls',
-           'get_site',
-           'get_url',
-           'get_urls',
-           'loadapps',
-           'sites']
+           'ApplicationSites']
 
 
 logger = logging.getLogger('djpcms')
@@ -50,11 +43,13 @@ class SiteLoader(object):
     
     def __init__(self, name = None):
         self.sites = None
+        self._wsgi_middleware = None
         self.name = name or 'DJPCMS'
         
     def __getstate__(self):
         d = self.__dict__.copy()
         d['sites'] = None
+        d['_wsgi_middleware'] = None
         return d
         
     def __call__(self):
@@ -70,6 +65,15 @@ class SiteLoader(object):
             self.sites.load()
             self.finish()
         return self.sites
+    
+    def wsgi_middleware(self):
+        '''Return a list of WSGI middleware for serving wsgi requests.'''
+        from djpcms.http import WSGI
+        sites = self.build_sites()
+        m = self._wsgi_middleware or []
+        m = copy(m)
+        m.append(WSGI(sites))
+        return m
             
     def default_load(self):
         '''Default loading'''
@@ -133,7 +137,6 @@ can be passed as key-value pairs:
     
 def standard_exception_handle(request, e, status = None):
     from djpcms import http
-    from djpcms.template import loader
     status = status or getattr(e,'status',None) or 500
     info = request.DJPCMS
     site = info.site
@@ -154,6 +157,7 @@ def standard_exception_handle(request, e, status = None):
                                 http.UNKNOWN_STATUS_CODE)[0],
            'stack_trace':stack_trace,
            'settings':site.settings}
+    loader = site.template
     ctx  = loader.context(ctx, request)
     html = loader.render((template,template2,template3,
                           'djpcms/errors/error.html'),
@@ -222,8 +226,6 @@ The sites singletone has several important attributes:
     The user model used by the site
     
 '''
-    modelwrappers = OrderedDict()
-    model_from_hash = {}
     profilig_key = None
     
     def __init__(self):
@@ -246,6 +248,7 @@ The sites singletone has several important attributes:
         self._commands = None
         self.User = None
         self.Page = None
+        self.BlockContent = None
         self.storage = None
         
     def clear(self):
@@ -290,7 +293,7 @@ It also initialise admin for models.'''
         if not self:
             raise ImproperlyConfigured('Site container has no sites registered.\
  Cannot setup.')
-        for wrapper in self.modelwrappers.values():
+        for wrapper in orms.model_wrappers.values():
             wrapper.setup_environment(self)
         self.admins = admins = []
         for apps in self.settings.INSTALLED_APPS:
@@ -521,34 +524,4 @@ module specifying the admin application will be included.
                     p.add(model)
                     yield model
     
-    
-      
-sites = ApplicationSites()
-
-model_wrappers = sites.modelwrappers
-MakeSite = sites.make
-adminurls = sites.make_admin_urls
-GetOrCreate = sites.get_or_create
-get_site = sites.get_site
-get_url  = sites.get_url
-get_urls = sites.get_urls
-loadapps = sites.load
-
-ORMS = lambda : model_wrappers.values()
-
-def RegisterORM(name):
-    '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
-dotted path to a python module containing a class named ``OrmWrapper``
-derived from :class:`BaseOrmWrapper`.'''
-    global model_wrappers
-    names = name.split('.')
-    if len(names) == 1:
-        mod_name = 'djpcms.core.orms._' + name
-    else:
-        mod_name = name
-    try:
-        mod = import_module(mod_name)
-    except ImportError as e:
-        return
-    model_wrappers[name] = mod.OrmWrapper
 

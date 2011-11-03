@@ -1,4 +1,4 @@
-from djpcms.apps.included.admin import AdminApplicationSimple
+from djpcms.apps.admin import AdminApplicationSimple
                                         
 from .applications import *
 from .models import RedisServer, Log

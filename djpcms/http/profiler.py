@@ -172,13 +172,13 @@ def make_header(headers):
             yield '<p>{0}</p>'.format(h)
 
 
-def profile_response(environ, start_response, PK, callback, settings):
+def profile_response(environ, start_response, sites, PK, callback, settings):
     """Displays profiling for any view.
 http://yoursite.com/yourview/?prof
 
 Add the "prof" key to query string by appending ?prof (or &prof=)
 and you'll see the profiling results in your browser."""
-    from djpcms import html, sites
+    from djpcms import html
     from djpcms.template import loader
     query = environ.get('QUERY_STRING','')
     if PK not in query:

@@ -1,4 +1,3 @@
-from djpcms import sites
 from djpcms.utils import escape, js, media, gen_unique_id
 from djpcms.utils.const import *
 

@@ -1,4 +1,5 @@
 import stdnet
+from stdnet.orm import register_applications, StdNetType, model_to_dict
 
 from py2py3 import iteritems
 
@@ -14,7 +15,6 @@ class OrmWrapper(BaseOrmWrapper):
     orm = 'stdnet'
     
     def setup(self):
-        from stdnet.orm import model_to_dict
         self.meta = meta = self.model._meta
         self.objects     = self.model.objects
         self.module_name = meta.name
@@ -29,7 +29,6 @@ class OrmWrapper(BaseOrmWrapper):
         return getattr(self.objects,name)
         
     def test(self):
-        from stdnet.orm import StdNetType
         if not isinstance(self.model,StdNetType):
             raise ValueError
     
@@ -48,9 +47,8 @@ class OrmWrapper(BaseOrmWrapper):
             return instance
     
     @classmethod
-    def setup_environment(cls, sites_):
-        from stdnet.orm import register_applications
-        settings = sites_.settings
+    def setup_environment(cls, sites):
+        settings = sites.settings
         default = settings.DATASTORE.get('default',None)
         register_applications(settings.INSTALLED_APPS,
                               app_defaults = settings.DATASTORE,

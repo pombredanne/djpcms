@@ -420,10 +420,11 @@ an empty string.'''
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
+            lt = djp.site.template if djp else loader
             if self.template:
-                return loader.template_class(self.template).render(context)
+                return lt.template_class(self.template).render(context)
             else:
-                return loader.render(self.template_name,context)
+                return lt.render(self.template_name,context)
         else:
             return '\n'.join(self.stream(djp,widget,context))
     

@@ -4,9 +4,7 @@ following to your application urls tuple::
     SiteMapApplication('/sitemap/',
                         name = 'sitemap')
 '''
-from djpcms import views, sites
-from djpcms.template import loader
-from djpcms.models import Page
+from djpcms import views
 from djpcms.core import messages
 from djpcms.html import box, table
 
@@ -69,22 +67,13 @@ class SiteMapApplication(TabViewMixin,views.ModelApplication):
     
     search = SiteMapView()
     
-    if Page:
-        add = views.AddView(force_redirect = True)
-        view = views.ViewView()
-        change = PageChangeView(force_redirect = True,
-                                template_name = 'djpcms/admin/editpage.html',
-                                title = lambda djp: 'editing')
-        delete = views.DeleteView()
+    add = views.AddView(force_redirect = True)
+    view = views.ViewView()
+    change = PageChangeView(force_redirect = True,
+                            template_name = 'djpcms/admin/editpage.html',
+                            title = lambda djp: 'editing')
+    delete = views.DeleteView()
         
-        def __init__(self, baseurl, **kwargs):
-            super(SiteMapApplication,self).__init__(baseurl,Page,**kwargs)
-            
-        def registration_done(self):
-            self.site.root.Page = Page
-    
-    else:
-        def __init__(self, baseurl, **kwargs):
-            views.Application.__init__(self,baseurl,**kwargs)
-            
+    def registration_done(self):
+        self.site.root.Page = self.model
     

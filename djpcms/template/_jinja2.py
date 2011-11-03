@@ -2,7 +2,6 @@ import os
 
 import jinja2
 
-from djpcms import sites
 from djpcms.utils.importer import import_module
 from djpcms.core.exceptions import ImproperlyConfigured
 

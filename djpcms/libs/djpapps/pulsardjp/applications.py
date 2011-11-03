@@ -1,9 +1,8 @@
 from datetime import datetime
 
 import djpcms
-from djpcms import forms, views, html, ajax
-from djpcms.template import loader
-from djpcms.apps.included import admin
+from djpcms import forms, views, html, ajax, SLUG_REGEX, UUID_REGEX
+from djpcms.apps import admin
 from djpcms.utils.dates import nicetimedelta, smart_time
 from djpcms.utils.text import nicename
 from djpcms.utils import mark_safe
@@ -199,7 +198,7 @@ class JobApplication(views.ModelApplication):
     object_display = ('id','type','next_run','run_every','runs_count')
     table_actions = [views.application_action('bulk_run','run', djpcms.ADD)]
     search = JobsView()
-    view = JobRun(regex = '(?P<id>{0})'.format(views.SLUG_REGEX))
+    view = JobRun(regex = '(?P<id>{0})'.format(SLUG_REGEX))
     task_header = ('name','status','user','time_executed','id')
     object_widgets = {'home':JobDisplay()}
     
@@ -278,7 +277,7 @@ class TasksAdmin(admin.AdminApplicationSimple):
     inherit = True
     proxy = None
     
-    view = views.ViewView(regex = views.UUID_REGEX)
+    view = views.ViewView(regex = UUID_REGEX)
 
 #
 # Scripts

@@ -5,7 +5,6 @@ from py2py3 import zip, to_string, itervalues
 from djpcms import UnicodeMixin
 from djpcms.utils import smart_escape
 from djpcms.utils.text import nicename
-from djpcms.template import loader
 
 from .base import WidgetMaker, Widget
 from .widgets import DefinitionList

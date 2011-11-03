@@ -11,6 +11,8 @@ from djpcms import html
 ModelBase = orm.StdModel
 field = orm
 
+app_label = 'djpcms'
+
 
 def create_new_content(user = None, **kwargs):
     user_last = None

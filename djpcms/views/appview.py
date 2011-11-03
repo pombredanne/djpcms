@@ -8,7 +8,6 @@ from py2py3 import zip
 import djpcms
 from djpcms import http, html, ajax, RegExUrl, IDREGEX
 from djpcms.utils.translation import gettext as _
-from djpcms.template import loader
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.baseview import djpcmsview

@@ -51,7 +51,7 @@ def get_template(self):
         return t
     else:
         if page:
-            return page.get_template()
+            return page.get_template(self)
         else:
             return de
 
@@ -264,6 +264,9 @@ the parent of the embedded view.'''
     def html(self):
         '''Render itself'''
         return html.LazyRender(self)
+    
+    def render_template(self, *args, **kwargs):
+        return self.site.template.render(*args, **kwargs)
             
     def robots(self):
         '''Robots

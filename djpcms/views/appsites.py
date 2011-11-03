@@ -10,7 +10,7 @@ from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ApplicationNotAvailable
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
-from djpcms.core.orms import mapper
+from djpcms.core.orms import mapper, model_from_hash
 from djpcms.views import Application, ModelApplication, DummyDjp
 
 
@@ -216,8 +216,8 @@ If the application is not available, it returns ``None``. Never fails.'''
  model hash id. If the application is not available, it returns ``None``
  unless ``safe`` is set to ``False`` in which case it throw a
  :class:`djpcms.core.exceptions.ApplicationNotAvailable`.'''
-        if model_hash in self.root.model_from_hash:
-            model = self.root.model_from_hash[model_hash]
+        if model_hash in model_from_hash:
+            model = model_from_hash[model_hash]
         else:
             if safe:
                 return None

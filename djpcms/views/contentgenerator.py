@@ -46,7 +46,7 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         This function produce HTML only if self.view is based on a database Page
         object. Otherwise it does nothing.
         '''
-        from djpcms.models import BlockContent
+        BlockContent = self.djp.root.BlockContent
         if self.editing:
             appmodel = self.djp.site.for_model(BlockContent,all=True)
             return appmodel.blocks(self.djp, self.page, self.b)

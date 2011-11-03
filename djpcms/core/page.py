@@ -3,8 +3,6 @@ import re
 import logging
 
 import djpcms
-from djpcms import sites
-from djpcms.template import loader
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
@@ -36,11 +34,10 @@ class PageInterface(object):
         self.inner_template = template
         self.save()
         
-    def get_template(self, djp = None):
+    def get_template(self, djp):
         '''Returns the name of the ``HTML`` template file for the page.'''
         if not self.template:
-            sett = sites.settings if not djp else djp.settings
-            return sett.DEFAULT_TEMPLATE_NAME
+            return djp.site.settings.DEFAULT_TEMPLATE_NAME
         else:
             return self.template
     
@@ -89,7 +86,7 @@ class PageInterface(object):
     
 class TemplateInterface(object):
     
-    def render(self, c):
+    def render(self, loader, c):
         '''Render the inner template given the context ``c``.
         '''
         return loader.render_from_string(self.template,c)
@@ -124,9 +121,8 @@ with the wrapper callable.'''
         except Exception as e:
             if getattr(djp.settings,'TESTING',False):
                 raise
-            exc_info = sys.exc_info()
             self.logger.error('%s - block %s -- %s' % (plugin,self,e),
-                exc_info=exc_info,
+                exc_info=True,
                 extra={'request':djp.request}
             )
             if djp.request.user.is_superuser:

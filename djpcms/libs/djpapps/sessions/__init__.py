@@ -106,7 +106,8 @@ class PermissionBackend(object):
     
     def process_request(self, environ, start_response):
         cookie_name = self.session_cookie_name
-        cookie = self.get_cookie(environ)
+        self.get_cookie(environ, start_response)
+        cookie = environ.get('HTTP_COOKIE', '')
         session_key = cookie.get(cookie_name, None)
         if not (session_key and Session.objects.exists(session_key)):
             session = Session.objects.create(self.session_expiry)

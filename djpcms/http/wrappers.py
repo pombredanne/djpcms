@@ -80,6 +80,10 @@ class Request(object):
             and self.environ['wsgi.url_scheme'] == 'https'
     
     @property
+    def user(self):
+        return self.environ.get('user')
+    
+    @property
     def encoding(self):
         if not self._encoding:
             try:

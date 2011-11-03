@@ -1,5 +1,4 @@
 from djpcms import UnicodeMixin
-from djpcms.template import loader
 from djpcms.html import icons 
 
 
@@ -34,7 +33,7 @@ class AppList(UnicodeMixin):
                    'id':mapper.get_object_id(obj),
                    'data':data,
                    'item':obj}
-        return loader.render(('%s/%s_definition.html' % (mapper.app_label,mapper.module_name),
-                              OBJECT_DEF_TEMPLATE),
-                              content)
+        return self.djp.render(('%s/%s_definition.html' % (mapper.app_label,mapper.module_name),
+                                OBJECT_DEF_TEMPLATE),
+                                content)
         

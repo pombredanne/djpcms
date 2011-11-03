@@ -5,7 +5,6 @@ from djpcms.plugins.apps import RenderObject
 from djpcms.forms.utils import form_kwargs
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.utils import mark_safe
-from djpcms.models import SiteContent
 
 
 def get_site_content(form):

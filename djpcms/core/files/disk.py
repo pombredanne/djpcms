@@ -1,6 +1,5 @@
 import os
 
-from djpcms import sites
 from djpcms.utils import locks
 from djpcms.utils.urls import urlbits, urlfrombits
 

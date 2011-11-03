@@ -247,6 +247,9 @@ content in a content block.'''
     layout = ChangeLayoutView(regex = 'layout', form = BlockLayoutFormHtml)
     delete = DeleteContentView()
     
+    def registration_done(self):
+        self.site.root.BlockContent = self.model
+    
     def submit(self, *args, **kwargs):
         return [html.Widget('input:submit', value = "save", name = '_save')]
     

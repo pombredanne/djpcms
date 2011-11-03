@@ -1,5 +1,4 @@
 from djpcms.dispatch import Signal
-from djpcms import sites
 
 
 def handle(engine = None, settings = None):

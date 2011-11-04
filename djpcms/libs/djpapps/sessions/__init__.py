@@ -136,15 +136,16 @@ a AuthenticationError exception.'''
         environ['session'] = session
         environ['user'] = self.get_user(environ)
     
-    def process_response(self, environ, response, start_response = None):
+    def process_response(self, environ, start_response, response):
         """If request.session was modified set a session cookie.
         """
-        session = environ['session']
-        modified = getattr(session,'modified',True)
-        if modified:
-            response.set_cookie(self.session_cookie_name,
-                                session.id,
-                                expires = session.expiry)
+        if response.status_code < 400:
+            session = environ['session']
+            modified = getattr(session,'modified',True)
+            if modified:
+                response.set_cookie(self.session_cookie_name,
+                                    value = session.id,
+                                    expires = session.expiry)
 
 
 

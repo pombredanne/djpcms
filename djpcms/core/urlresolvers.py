@@ -111,7 +111,7 @@ The main function here is the ``resolve`` method'''
             view = node.get_view()
             return view.site,view,{}
         except PathException as e:
-            raise http.Http404(str(e),site = site)
+            raise http.Http404(str(e), site = site)
     
 
 class RegexURLPattern(object):

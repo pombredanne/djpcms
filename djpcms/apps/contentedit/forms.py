@@ -10,9 +10,12 @@ __all__ = ['TemplateForm',
            'BlockLayoutForm']
 
 
-def get_templates(*args):
-    from djpcms.models import InnerTemplate
-    return InnerTemplate.objects.all()
+def get_templates(bfield):
+    site = bfield.form.site
+    if site and site.Page:
+        return site.Page.template_model.objects.all()
+    else:
+        return ()
 
 
 class TemplateForm(forms.Form):

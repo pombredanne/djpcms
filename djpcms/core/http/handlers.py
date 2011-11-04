@@ -18,13 +18,13 @@ delegate the handling to them.'''
     def __call__(self, environ, start_response):
         settings = self.sites.settings
         if settings.PROFILING_KEY:
-            response = profile_response(environ, start_response,
+            return profile_response(environ, start_response,
                                         self.sites,
                                         settings.PROFILING_KEY,
                                         self._handle,
                                         settings)
         else:
-            response = self._handle(environ, start_response)
+            return self._handle(environ, start_response)
         return response
     
     def get_request(self, environ, site):

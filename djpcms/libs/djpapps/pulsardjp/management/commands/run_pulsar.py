@@ -11,5 +11,7 @@ class Command(djpcms.Command):
         self.execute(site_factory, argv)
         
     def handle(self, site_factory, argv):
-        WSGIApplication(callable = site_factory,
-                        argv = argv).start()
+        app = WSGIApplication(callable = site_factory,
+                              argv = argv)
+        site_factory.on_server_ready(app)
+        app.start()

@@ -67,6 +67,8 @@ class InnerTemplate(TimeStamp,TemplateInterface):
     
 class Page(TimeStamp, PageInterface):
     '''The page model holds several information regarding pages in the sitemap.'''
+    template_model = InnerTemplate
+    
     title = field.CharField()
     link = field.CharField()
     url = field.SymbolField()

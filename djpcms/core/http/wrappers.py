@@ -20,6 +20,7 @@ from .multipart import parse_form_data
 __all__ = ['STATUS_CODE_TEXT',
            'UNKNOWN_STATUS_CODE',
            'QueryDict',
+           'setResponseClass',
            'Request',
            'Response',
            'ResponseRedirect',
@@ -226,7 +227,7 @@ class Request(object):
             return view(self,**kwargs)
             
 
-class Response(object):
+class Response_(object):
     '''A wrapper for response contents.
     
 .. attribute:: content
@@ -241,7 +242,7 @@ class Response(object):
     status_code = 200
     
     def __init__(self, content = '', status = None, content_type = None,
-                 encoding = None):
+                 response_headers = None, encoding = None):
         self.encoding = encoding
         if not content:
             content = ()
@@ -253,7 +254,8 @@ class Response(object):
         self.status_code = int(status or self.status_code)
         self.cookies = SimpleCookie()
         content_type = content_type or self.DEFAULT_CONTENT_TYPE
-        self.headers = Headers([('Content-Type',content_type)])
+        self.headers = Headers(response_headers or [])
+        self.headers['Content-type'] = content_type
     
     def __iter__(self):
         return iter(self.content)
@@ -323,7 +325,7 @@ class Response(object):
         status = '%s %s' % (self.status_code, status_text)
 
         for c in self.cookies.values():
-            headers['Set-Cookie'] = c.output(header='')
+            headers['Set-Cookie'] = c.OutputString()
         
         if "Content-Encoding" not in headers and self.encoding:
             headers["Content-Encoding"] = self.encoding
@@ -334,17 +336,27 @@ class Response(object):
                 cl += len(x)
             headers["Content-Length"] = str(cl)
             
-        if start_response is not None:
-            start_response(status, headers.items())
-            
+        start_response(status, headers.items())    
         return self
 
-    
-class ResponseRedirect(Response):
-    status_code = 302
 
-    def __init__(self, redirect_to):
-        super(ResponseRedirect, self).__init__()
-        self.headers['Location'] = iri_to_uri(redirect_to)
+ResponseClass = None
+
+
+def setResponseClass(respcls):
+    global ResponseClass
+    ResponseClass = respcls
+
+
+def Response(*args, **kwargs):
+    if ResponseClass == None:
+        return Response_(*args, **kwargs)
+    else:
+        return ResponseClass(*args, **kwargs)
+        
+
+def ResponseRedirect(redirect_to):
+    return Response(status = 302,
+            response_headers = [('Location', iri_to_uri(redirect_to))])
 
 

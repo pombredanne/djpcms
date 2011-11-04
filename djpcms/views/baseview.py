@@ -166,7 +166,7 @@ http requests.
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)
-            if isinstance(inner,http.Response):
+            if hasattr(inner,'status_code'):
                 return inner
         
         context['inner'] = inner

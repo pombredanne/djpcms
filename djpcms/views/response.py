@@ -325,12 +325,14 @@ the parent of the embedded view.'''
                                                      ajax_view,
                                                      ajax_view_function)
                 res = ajax_view_function(self)
-                return http.Response(res.dumps().encode('latin-1','replace'),
+                content = res.dumps().encode('latin-1','replace')
+                return http.Response(content = content,
                                      content_type = res.mimetype())
         except Exception as e:
             if is_ajax:
                 res = handle_ajax_error(self,e)
-                return http.Response(res.dumps().encode('latin-1','replace'),
+                content = res.dumps().encode('latin-1','replace')
+                return http.Response(content = content,
                                      content_type = res.mimetype())
             else:
                 raise
@@ -353,8 +355,7 @@ the parent of the embedded view.'''
         loader = self.site.template
         context = loader.context(context, self.request)
         html = loader.render(self.template_file, context)
-        html = html.encode('latin-1','replace')
-        return http.Response(html,
+        return http.Response(content = html.encode('latin-1','replace'),
                              content_type = 'text/html',
                              encoding = self.settings.DEFAULT_CHARSET)
         

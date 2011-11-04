@@ -65,8 +65,9 @@ class SiteLoader(object):
                 os.environ[self.ENVIRON_NAME] = self.name
             name = '_load_{0}'.format(self.name.lower())
             getattr(self,name,self.default_load)()
-            self.sites.load()
-            self.finish()
+            if self.sites:
+                self.sites.load()
+                self.finish()
         return self.sites
     
     def wsgi_middleware(self):
@@ -79,13 +80,7 @@ class SiteLoader(object):
     
     def response_middleware(self):
         sites = self.build_sites()
-        m = self._response_middleware or []
-        m = copy(m)
-        m.append(self.send_response)
-        return m
-            
-    def send_response(self, environ, response, start_response):
-        response(environ, start_response)
+        return self._response_middleware or []
     
     def default_load(self):
         '''Default loading'''
@@ -145,6 +140,10 @@ can be passed as key-value pairs:
     def finish(self):
         '''Callback once the sites are loaded.'''
         pass
+    
+    def on_server_ready(self, server):
+        '''Optional callback by a server just before start serving.'''
+        pass
 
     
 def standard_exception_handle(request, e, status = None):
@@ -174,8 +173,8 @@ def standard_exception_handle(request, e, status = None):
     html = loader.render((template,template2,template3,
                           'djpcms/errors/error.html'),
                          ctx)
-    return http.Response(html.encode('latin-1','replace'),
-                         status = status,
+    return http.Response(status = status,
+                         content = html.encode('latin-1','replace'),
                          content_type = 'text/html',
                          encoding = settings.DEFAULT_CHARSET)
         

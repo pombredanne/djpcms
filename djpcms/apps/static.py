@@ -104,8 +104,8 @@ class StaticRootView(StaticView):
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
-            html = html.encode('latin-1','replace')
-            return http.Response(html, content_type = 'text/html')
+            return http.Response(content = html.encode('latin-1','replace'),
+                                 content_type = 'text/html')
         else:
             raise http.Http404
 
@@ -150,8 +150,8 @@ class StaticFileView(StaticView):
                               'files':files,
                               'directory':request.path,
                               'notroot':True})
-        html = html.encode('latin-1','replace')
-        return http.Response(html, content_type = 'text/html')
+        return http.Response(content = html.encode('latin-1','replace'),
+                             content_type = 'text/html')
         
     def serve_file(self, request, fullpath):
         # Respect the If-Modified-Since header.
@@ -163,10 +163,10 @@ class StaticFileView(StaticView):
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
             return http.Response(status = 304,
-                                 content_type=mimetype,
+                                 content_type = mimetype,
                                  encoding = encoding)
         contents = open(fullpath, 'rb').read()
-        response = http.Response(contents,
+        response = http.Response(content = contents,
                                  content_type=mimetype,
                                  encoding = encoding)
         response.headers["Last-Modified"] =\

@@ -49,12 +49,12 @@ class JobModel(orm.FakeModel):
 class Task(orm.StdModel, tasks.Task):
     '''A Task Stored in Redis'''
     filtering = ('id','name','status','user')
+    
     id = orm.SymbolField(primary_key = True)
     name = orm.SymbolField()
     status = orm.SymbolField()
     user = orm.SymbolField(required = False)
     api = orm.SymbolField(required = False)
-    
     time_executed = orm.DateTimeField(index = False)
     time_start = orm.DateTimeField(required = False, index = False)
     time_end = orm.DateTimeField(required = False, index = False)

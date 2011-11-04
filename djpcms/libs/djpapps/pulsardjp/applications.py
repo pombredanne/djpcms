@@ -112,12 +112,11 @@ class PulsarServerApplication(admin.AdminApplication):
 
 ################################    TASKQUEUE DJPCMS APPLICATION
 
-task_display = ('job','status','timeout','time_executed',
-    'time_start','time_end',
+task_display = (
+    html.table_header('job', attrname = 'name'),
+    'status','timeout','time_executed','time_start','time_end',
     html.table_header('task_duration','duration',function='duration'),
-    'expiry',
-    'api',
-    'user')
+    'expiry','api','user')
 
 
 class JobsView(views.SearchView):

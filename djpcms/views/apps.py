@@ -327,7 +327,7 @@ view {0}. Already available." % name)
                 name = app.name
                 if name in self.apps:
                     raise ApplicationUrlException("Could not define add \
-application {0}. Already available." % name)
+application {0}. Already available.".format(name))
                 self.apps[name] = app
         
         # Fill headers dictionary
@@ -556,7 +556,7 @@ By default it return a generator of children pages.'''
             render = self.render_object
             qs = query[p.start:p.end]
             c['items'] = (render(djp,item,'pagination') for item in qs)
-            return djp.render(self.pagination_template_name, c)
+            return djp.render_template(self.pagination_template_name, c)
 
     def for_user(self, djp):
         if self.parent:

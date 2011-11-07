@@ -99,7 +99,7 @@ and converts spaces to hyphens *rtx* character'''
     return re.sub('[-\s]+', rtx, value)
 
 
-def logtrace(logger, request, exc_info, status = 500):
+def logtrace(logger, request, exc_info = True, status = 500):
     '''Log a stack trace'''
     if status == 404:
         msg = 'URL not found: %s' % request.path

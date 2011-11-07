@@ -31,6 +31,19 @@ __all__ = ['SiteLoader',
 logger = logging.getLogger('djpcms')
 
 
+class TreeUpdate(object):
+    
+    def __init__(self, sites):
+        self.sites = sites
+        if self.sites.Page:
+            self.sites.Page.register_tree_update(self)
+        
+    def __call__(self, sender, instance = None, **kwargs):
+        '''Register the page post save with tree'''
+        if isinstance(instance, self.sites.Page):
+            self.sites.tree.update_flat_pages()
+
+
 class SiteLoader(object):
     '''An utility class for loading and configuring djpcms_ sites.
  
@@ -346,6 +359,7 @@ It also initialise admin for models.'''
         # Load flat pages to site map
         self.tree.load()
         self.on_site_loaded.send(self)
+        self._tree_updated = TreeUpdate(self)
         return urls
     
     def make(self, settings, route = None, permissions = None):

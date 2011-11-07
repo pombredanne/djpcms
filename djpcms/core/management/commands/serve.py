@@ -22,7 +22,8 @@ class WSGI(object):
             response = middleware(environ, start_response)
             if response is not None:
                 for rm in self.response_middleware:
-                    rm(environ, response, start_response)
+                    rm(environ, start_response, response)
+                response(environ, start_response)
                 return response
         return ()
 

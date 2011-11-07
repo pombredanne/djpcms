@@ -9,10 +9,10 @@ logger = logging.getLogger('djpcms.execute.inner_templates')
 class Command(djpcms.Command):
     help = "Add default inner templates to the database."
     
-    def handle(self, callable, options):
+    def handle(self, site_factory, options):
         logger.info('Adding default inner templates to database.')
-        sites = callable()
-        inners = make_default_inners()
+        sites = site_factory()
+        inners = make_default_inners(sites)
         for a in inners:
             logger.info('Added {0}'.format(a))
         

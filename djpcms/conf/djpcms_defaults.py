@@ -28,16 +28,9 @@ TEMPLATE_DIRS = ()  # Additional template location directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                                "djpcms.core.context_processors.messages")
 
-CMS_ORM = None                  # django, stdnet
-
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
-
-# django settings
-DJANGO = False
-ROOT_URLCONF = 'djpcms.apps.djangosite.defaults.urls'
-ADMIN_URL_PREFIX = '/admin/'
 
 # Root page for user account urls
 USER_ACCOUNT_HOME_URL = '/accounts/'

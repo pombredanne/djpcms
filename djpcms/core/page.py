@@ -83,6 +83,10 @@ class PageInterface(object):
         d = self.doctype
         return htmldoc(d)
     
+    @classmethod
+    def register_tree_update(cls, tree_update):
+        pass
+    
     
 class TemplateInterface(object):
     

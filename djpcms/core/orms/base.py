@@ -7,7 +7,7 @@ from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 from djpcms.template import loader
 
-__all__ = ['BaseOrmWrapper',
+__all__ = ['OrmWrapper',
            'DummyMapper',
            'nicerepr',
            'model_from_hash']
@@ -16,7 +16,7 @@ __all__ = ['BaseOrmWrapper',
 model_from_hash = {}
 
 
-class BaseOrmWrapper(UnicodeMixin):
+class OrmWrapper(UnicodeMixin):
     '''Base class for classes used to
 wrap existing object relational mappers.
 
@@ -145,7 +145,7 @@ Return an iterable over items'''
         pass
 
 
-class DummyMapper(BaseOrmWrapper):
+class DummyMapper(OrmWrapper):
     
     def test(self):
         pass

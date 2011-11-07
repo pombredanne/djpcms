@@ -1,4 +1,0 @@
-#
-#   SUNNY THEME
-#
-data = ()

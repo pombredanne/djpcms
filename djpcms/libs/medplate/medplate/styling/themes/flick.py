@@ -1,4 +1,0 @@
-#
-#   FLICKR THEME
-#
-data = ()

@@ -1,3 +1,5 @@
+from inspect import isclass
+
 from py2py3 import itervalues
 
 import djpcms
@@ -16,20 +18,19 @@ def RegisterORM(name):
 dotted path to a python module containing a class named ``OrmWrapper``
 derived from :class:`BaseOrmWrapper`.'''
     global model_wrappers
-    names = name.split('.')
-    if len(names) == 1:
-        mod_name = 'djpcms.core.orms._' + name
+    if isclass(name):
+        model_wrappers[name.orm] = name
     else:
-        mod_name = name
-    try:
-        mod = import_module(mod_name)
-    except ImportError as e:
-        return
-    model_wrappers[name] = mod.OrmWrapper
-
-
-RegisterORM('django')
-RegisterORM('stdnet')
+        names = name.split('.')
+        if len(names) == 1:
+            mod_name = 'djpcms.core.orms._' + name
+        else:
+            mod_name = name
+        try:
+            mod = import_module(mod_name)
+        except ImportError as e:
+            return
+        model_wrappers[name] = mod.OrmWrapper
 
 
 def getmodel(appmodel):

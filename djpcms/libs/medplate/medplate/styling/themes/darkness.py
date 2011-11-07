@@ -1,4 +1,0 @@
-#
-#   DARKNESS THEME
-#
-data = ()

@@ -1,4 +1,0 @@
-#
-#   SMOOTH THEME
-#
-data = ()

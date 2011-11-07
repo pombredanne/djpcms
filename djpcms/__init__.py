@@ -48,7 +48,6 @@ def install_libs():
         sys.path.insert(0,path_dir)
     dlibs = os.path.join(DJPCMS_DIR,'libs')
     py2py3 = install_lib(dlibs, 'py2py3', 'py2py3')
-    install_lib(dlibs, 'medplate', 'medplate')
     if py2py3.ispy3k:
         install_lib(dlibs, 'jinja2_3', 'jinja2')
     else:

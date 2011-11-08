@@ -64,7 +64,6 @@ DJPpluginBase = DJPpluginMetaBase('DJPpluginBase',(object,),{'virtual':True})
 DJPwrapperBase = DJPpluginMetaBase('DJPwrapperBase',(object,),{'virtual':True})
 
 
-
 class DJPwrapper(DJPwrapperBase):
     '''Class responsible for wrapping :ref:`djpcms plugins <plugins-index>`.
     '''
@@ -161,13 +160,15 @@ By default do nothing.
         return None
     
     def render(self, djp, block, prefix, **kwargs):
-        '''Render the plugin. It returns a safe string to be included in the HTML page.
-This is the function plugins need to implement.
+        '''Render the plugin. It returns a safe string to be included in the
+ HTML page. This is the function subclasses need to implement.
 
-* *djp* instance of :class:`djpcms.views.response.DjpResponse`.
-* *wrapper* :class:`DJPwrapper` instance which wraps the plugin.
-* *prefix* a prefix string or ``None`` to use for forms within the plugin.
-* *kwargs* plugin specific key-valued arguments.'''
+:parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
+:parameter block: instance of a :class:`djpcms.Block` where the plugin is
+    rendered.
+:parameter prefix: A prefix string for the block.
+:parameter kwargs: plugin specific key-valued arguments.
+'''
         return ''
     
     def save(self, pform):
@@ -252,20 +253,17 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         _plugin_dictionary[self.name] = self
         
     def render(self, djp, block, prefix, **kwargs):
-        #kwargs may be an input from a possible plugin form
         app  = self.app
         request = djp.request
-        html = ''
         if app.has_permission(request):
             if djp.view != app or kwargs:
                 args = djp.kwargs.copy()
                 args.update(kwargs)
-                t_djp = self.app(djp.request, **args)
-            else:
-                t_djp = djp
-            t_djp.block = block
-            html = t_djp.render()
-        return html
+                djp = app(djp.request, **args)
+            djp.block = block
+            return djp.render()
+        else:
+            return ''
     
     def media(self):
         return self.app.media()

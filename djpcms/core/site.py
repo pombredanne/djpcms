@@ -5,6 +5,8 @@ import logging
 from copy import copy
 from threading import Lock
 
+from py2py3 import iteritems
+
 import djpcms
 from djpcms.conf import get_settings
 from djpcms.utils.importer import import_module, import_modules
@@ -25,7 +27,8 @@ from . import orms
 
 __all__ = ['SiteLoader',
            'SiteApp',
-           'ApplicationSites']
+           'ApplicationSites',
+           'ContextRenderer']
 
 
 logger = logging.getLogger('djpcms')
@@ -42,6 +45,30 @@ class TreeUpdate(object):
         '''Register the page post save with tree'''
         if isinstance(instance, self.sites.Page):
             self.sites.tree.update_flat_pages()
+            
+            
+
+class ContextRenderer(object):
+    
+    def __init__(self, djp, context = None, template = None):
+        self.djp = djp
+        self.template = template
+        self.context = context or {}
+        
+    def render(self):
+        if self.template:
+            return self.djp.render_template(self.template,self.context)
+        else:
+            raise NotImplementedError
+
+
+def default_response_handler(djp, response, callback = None):
+    if isinstance(response,dict):
+        rr = default_response_handler
+        response = dict(((k,rr(djp,v)) for k,v in iteritems(response)))
+    elif isinstance(response,ContextRenderer):
+        response = response.render()
+    return callback(response) if callback else response
 
 
 class SiteLoader(object):
@@ -224,18 +251,24 @@ If the application is not available, it returns ``None``. It never fails.'''
     
 
 class ApplicationSites(SiteApp, djpcms.UnicodeMixin):
-    '''This class is used as a singletone and holds information
-of djpcms application routes as well as general configuration parameters.
-When running a web site powered by djpcms, to access the sites signletone::
+    '''Holder of application sites::
 
-    from djpcms import sites
+    import djpcms
+    sites = djpcms.ApplicationSites()
+    
+
+:parameter route: optional base route for this site holder.
+    Default: ``"/"``
+    
+:parameter response_handler: optional function for handling responses.
 
 
-The sites singletone has several important attributes:
+Attributes available:
 
 .. attribute:: root
 
-    The site root. For the sites singletone this is ``None``
+    The site root. The value is ``None`` and it is provided for compatibility
+    reason
     
 .. attribute:: settings
 
@@ -252,7 +285,9 @@ The sites singletone has several important attributes:
 '''
     profilig_key = None
     
-    def __init__(self):
+    def __init__(self, route = '/', response_handler = None):
+        self.route = route
+        self.response_handler = response_handler
         self._init()
         self._permissions = PermissionHandler()
         self.handle_exception = standard_exception_handle
@@ -267,7 +302,6 @@ The sites singletone has several important attributes:
         self.admins = []
         self._osites = None
         self.settings = None
-        self.route = None
         self.tree = None
         self._commands = None
         self.User = None
@@ -308,6 +342,12 @@ The sites singletone has several important attributes:
         return self.all()[index]
     def __setitem(self, index, val):
         raise TypeError('Site object does not support item assignment')
+    
+    def render_response(self, response, callback = None):
+        if self.response_handler:
+            return self.response_handler(self, response, callback = callback)
+        else:
+            return default_response_handler(self, response, callback)
     
     def setup_environment(self):
         '''Called just before loading

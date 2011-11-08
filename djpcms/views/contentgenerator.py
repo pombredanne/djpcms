@@ -1,14 +1,14 @@
-from djpcms import UnicodeMixin
+from djpcms import ContextRenderer
 from djpcms.utils import force_str
 from djpcms.core.page import block_htmlid
 from djpcms.html import EMPTY_VALUE, Widget, blockelement
 
 
-__all__ = ['BlockContentGen']
+__all__ = ['BlockContentGen','InnerContent']
 
 
 
-class BlockContentGen(UnicodeMixin):
+class BlockContentGen(ContextRenderer):
     '''Block Content Generator is responsible for generating contents within a ``block``.
 A page is associated with a given url and a page has a certain number
 of ``blocks`` depending on the template chosen for the pages: anything between 1 and 10 is highly possible.
@@ -19,11 +19,11 @@ The edit mode block elements are rendered using the EDIT_BLOCK_TEMPLATES templat
     def __init__(self, djp, b, editing = False):
         '''Initialize generator: *djp* is an instance of :class:`djpcms.views.response.DjpResponse`
 and *b* is an integer indicating the ``block`` number in the page.'''
-        self.djp     = djp
-        self.page    = djp.page
-        self.view    = djp.view
+        super(BlockContentGen,self).__init__(djp)
+        self.page = djp.page
         self.editing = editing
-        self.b       = b
+        self.b = b
+        self.context.update(((n,ht) for n,ht in enumerate(self.blocks()) if ht))
         
     def stream(self):
         edit = '' if not self.editing else 'sortable-block '
@@ -32,12 +32,12 @@ and *b* is an integer indicating the ``block`` number in the page.'''
             yield '<div id="{1}" class="{0}djpcms-block">'.format(edit,id)
         else:
             yield '<div class="{0}djpcms-block">'.format(edit)
-        for ht in self.blocks():
-            if ht:
-                yield ht
+        ctx = self.context
+        for k in sorted(self.context):
+            yield ctx[k]
         yield '{0}</div>'.format(EMPTY_VALUE)
             
-    def __unicode__(self):
+    def render(self):
         return '\n'.join(self.stream())
     
     def blocks(self):
@@ -62,4 +62,21 @@ and *b* is an integer indicating the ``block`` number in the page.'''
         '''
         for b in blockcontents:
             yield b.render(self.djp)
+
+    
+class InnerContent(ContextRenderer):
+
+    def __init__(self, djp, inner_template, editing):
+        super(InnerContent,self).__init__(djp)
+        self.inner_template = inner_template
+        self.numblocks = inner_template.numblocks()
+        self.editing = editing
+        self.context.update((('content%s' % b,BlockContentGen(djp, b, editing))\
+                                for b in range(self.numblocks)))
+    
+    def render(self):
+        loader = self.djp.site.template
+        return self.inner_template.render(
+                    loader,
+                    loader.context(self.context, request=self.djp.request))
 

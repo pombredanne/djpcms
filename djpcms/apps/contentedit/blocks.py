@@ -50,7 +50,7 @@ editing content.'''
         return cl,djp.view.appmodel.deleteurl(djp.request, djp.instance)
     
     def footer(self, djp, cblock, html):
-        return djp.view.get_preview(djp.request, djp.instance, self.url)
+        return djp.view.get_preview(djp, djp.instance, self.url)
 
 
 class BlockChangeView(views.ChangeView):
@@ -104,16 +104,18 @@ class ChangeLayoutView(BlockChangeView):
 class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
     '''    
-    def get_preview(self, request, instance, url, plugin = None):
+    def get_preview(self, djp, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
         try:
-            djpview = request.DJPCMS.root.djp(request, url[1:])
+            djpview = request.DJPCMS.root.djp(djp.request, url[1:])
             preview_html = instance.render(djpview,
                                            plugin = plugin)
         except Exception as e:
             preview_html = '%s' % e
-        return mark_safe('<div id="%s" class="preview">%s</div>' %\
-                          (instance.pluginid('preview'),preview_html))
+        
+        cb = lambda phtml : mark_safe('<div id="%s" class="preview">%s</div>' %\
+                                      (instance.pluginid('preview'),phtml))
+        return djp.root.render_response(preview_html, callback = cb)
         
     def get_plugin_form(self, djp, plugin, prefix):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''
@@ -193,7 +195,7 @@ The instance.plugin object is maintained but its fields may change.'''
         jquery = ajax.jhtmls(identifier = '.' + PLUGIN_DATA_FORM_CLASS,
                              html = plugin_options,
                              alldocument = False)
-        preview = self.get_preview(request, instance, url)
+        preview = self.get_preview(djp, instance, url)
         jquery.add('#%s' % instance.pluginid('preview'), preview)
         
         if commit:

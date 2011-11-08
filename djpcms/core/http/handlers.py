@@ -15,6 +15,16 @@ delegate the handling to them.'''
     def __init__(self, sites):
         self.sites = sites
         
+    @property
+    def route(self):
+        return self.sites.route
+    
+    def __str__(self):
+        return self.route
+    
+    def __repr__(self):
+        return '{0}({1})'.format(self.__class__.__name__,self)
+        
     def __call__(self, environ, start_response):
         settings = self.sites.settings
         if settings.PROFILING_KEY:

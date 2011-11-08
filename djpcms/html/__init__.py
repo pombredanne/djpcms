@@ -45,3 +45,4 @@ class blockelement(Widget):
     def render(self, djp = None, inner = None):
         inner = self._b.render(djp)
         return super(blockelement,self).render(djp,inner)
+

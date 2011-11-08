@@ -7,7 +7,7 @@ from djpcms import UnicodeMixin, forms, http, html, ajax, RegExUrl, RouteMixin
 from djpcms.utils import parentpath
 
 from .response import DjpResponse
-from .contentgenerator import BlockContentGen
+from .contentgenerator import InnerContent
 
     
 __all__ = ['RendererMixin',
@@ -142,35 +142,31 @@ http requests.
     def extra_content(self, djp, c):
         pass
     
+    def inner_contents(self, inner_template):
+        site = self.site
+        InnerContent(djp, editing)
+        for b in range(inner_template.numblocks()):
+                cb['content%s' % b] = BlockContentGen(djp, b, editing)
+        
     def get_context(self, djp, editing = False):
         '''View context as a dictionary.'''
         request = djp.request
-        site    = self.site
         page    = djp.page
-        inner_template  = None
-        context = {'title':djp.title}
-                    
-        if page:
-            inner_template = page.inner_template
-            if not inner_template:
-                inner_template = site.add_default_inner_template(page)
-            
+        inner_template = page.inner_template if page else None
+
         if inner_template:
-            cb = {'djp':  djp}
-            for b in range(inner_template.numblocks()):
-                cb['content%s' % b] = BlockContentGen(djp, b, editing)
-            loader = site.template
-            inner = page.inner_template.render(
-                                    loader,
-                                    loader.context(cb, request=request))
+            inner = InnerContent(djp, inner_template, editing)
         else:
             # No page or no inner_template. Get the inner content directly
             inner = self.render(djp)
-            if hasattr(inner,'status_code'):
-                return inner
+
+        # if status_code is an attribute we consider this as the response
+        # object and we return it.
+        if hasattr(inner,'status_code'):
+            return inner
         
-        context['inner'] = inner
-        return context
+        return {'title': djp.title,
+                'inner': inner}
 
     def get_response(self, djp):
         '''Get response handler.'''
@@ -250,7 +246,7 @@ By default it is ``djp.url``'''
 
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
-    static data, it means there is not a specific application associate with it.'''
+ static data, it means there is not a specific application associate with it.'''
     name = 'flat'
     def __init__(self, page, site):
         self.site = site

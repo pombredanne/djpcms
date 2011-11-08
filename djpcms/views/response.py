@@ -98,12 +98,13 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
 '''
     block = None
     def __init__(self, request, view, **kwargs):
-        self.request    = request
-        self.view       = view
-        self.kwargs     = kwargs
-        site            = view.site
-        self.site       = site
-        self.settings   = site.settings
+        self.request = request
+        self.environ = request.environ
+        self.view = view
+        self.kwargs = kwargs
+        site = view.site
+        self.site = site
+        self.settings = site.settings
     
     def __unicode__(self):
         try:
@@ -297,16 +298,9 @@ the parent of the embedded view.'''
                 return re
                 
             if not is_ajax:
-                # If user not authenticated set a test cookie
-                #TODO, move this 3 lines somewhere else
-                if hasattr(request,'user') and request.user:
-                    if not request.user.is_authenticated() and method == 'get':
-                        request.session.set_test_cookie()
-    
                 if method not in (m.lower() for m in view.methods(request)):
                     raise http.HttpException(status = 405,
                             msg = 'method {0} is not allowed'.format(method))
-            
                 return getattr(view,'%s_response' % method)(self)
             else:
                 # AJAX RESPONSE
@@ -338,13 +332,18 @@ the parent of the embedded view.'''
                 raise
     
     def render_to_response(self, context):
+        # if status_code is an attribute we consider this as the response
+        # object and we return it. 
+        if hasattr(context,'status_code'):
+            return context
+        
         settings = self.settings
         sitenav = Navigator(self,
                             classes = settings.HTML.main_nav,
                             levels = settings.SITE_NAVIGATION_LEVELS)
-        context.update({'robots':     self.robots(),
-                        'media':      self.media,
-                        'sitenav':    sitenav})
+        context.update({'robots': self.robots(),
+                        'media': self.media,
+                        'sitenav': sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
@@ -352,12 +351,16 @@ the parent of the embedded view.'''
                                 min_length = self.settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
-        loader = self.site.template
-        context = loader.context(context, self.request)
-        html = loader.render(self.template_file, context)
-        return http.Response(content = html.encode('latin-1','replace'),
+        context = self.site.template.context(context, self.request)
+        content = self.root.render_response(context, self.render_context)
+        return http.Response(content = content,
                              content_type = 'text/html',
                              encoding = self.settings.DEFAULT_CHARSET)
+        
+    def render_context(self, context):
+        if isinstance(context, dict):
+            context = self.site.template.render(self.template_file, context)
+        return context.encode('latin-1','replace')
         
     @djpcms.storegenarator
     def children(self):

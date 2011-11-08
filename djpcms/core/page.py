@@ -17,7 +17,7 @@ def block_htmlid(pageid, block):
     return 'djpcms-block-{0}-{1}'.format(pageid,block)
 
 
-class PageInterface(object):
+class Page(object):
     '''Page object interface'''
     
     def numblocks(self):
@@ -88,7 +88,7 @@ class PageInterface(object):
         pass
     
     
-class TemplateInterface(object):
+class Template(object):
     
     def render(self, loader, c):
         '''Render the inner template given the context ``c``.
@@ -105,7 +105,7 @@ class TemplateInterface(object):
         self.blocks = ','.join((c[3:-3] for c in cs))
     
 
-class BlockInterface(object):
+class Block(object):
     '''Content Block Interface'''
     logger  = logging.getLogger('BlockContent')
     
@@ -121,7 +121,7 @@ with the wrapper callable.'''
             if plugin:
                 if site.permissions.has(djp.request,djpcms.VIEW, self):
                     djp.media.add(plugin.media())
-                    html = plugin(djp, self.arguments, block = self)
+                    plugin_response = plugin(djp, self.arguments, block = self)
         except Exception as e:
             if getattr(djp.settings,'TESTING',False):
                 raise
@@ -130,12 +130,12 @@ with the wrapper callable.'''
                 extra={'request':djp.request}
             )
             if djp.request.user.is_superuser:
-                html = escape('%s' % e)
+                plugin_response = escape('%s' % e)
         
-        if html:
-            return wrapper(djp, self, html)
-        else:
-            return html
+        # html can be a string or whaever the plugin returns.
+        if plugin_response:
+            callback = lambda r : wrapper(djp, self, r)
+            return djp.root.render_response(plugin_response, callback)
     
     def pluginid(self, extra = ''):
         p = 'plugin-{0}'.format(self)

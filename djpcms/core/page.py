@@ -113,24 +113,23 @@ class Block(object):
         '''Render the plugin in the content block
 This function call the plugin render function and wrap the resulting HTML
 with the wrapper callable.'''
-        html = ''
-        try:
-            site = djp.site
-            plugin  = plugin or self.plugin
-            wrapper = wrapper or self.wrapper
-            if plugin:
-                if site.permissions.has(djp.request,djpcms.VIEW, self):
-                    djp.media.add(plugin.media())
-                    plugin_response = plugin(djp, self.arguments, block = self)
-        except Exception as e:
-            if getattr(djp.settings,'TESTING',False):
-                raise
-            self.logger.error('%s - block %s -- %s' % (plugin,self,e),
-                exc_info=True,
-                extra={'request':djp.request}
-            )
-            if djp.request.user.is_superuser:
-                plugin_response = escape('%s' % e)
+        plugin_response = None
+        site = djp.site
+        plugin = plugin or self.plugin
+        wrapper = wrapper or self.wrapper
+        if plugin and site.permissions.has(djp.request,djpcms.VIEW, self):
+            try:
+                djp.media.add(plugin.media())
+                plugin_response = plugin(djp, self.arguments, block = self)
+            except Exception as e:
+                if getattr(djp.settings,'TESTING',False):
+                    raise
+                self.logger.error('%s - block %s -- %s' % (plugin,self,e),
+                    exc_info=True,
+                    extra={'request':djp.request}
+                )
+                if djp.request.user.is_superuser:
+                    plugin_response = escape('%s' % e)
         
         # html can be a string or whaever the plugin returns.
         if plugin_response:

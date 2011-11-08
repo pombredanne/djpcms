@@ -530,6 +530,9 @@ By default it return a generator of children pages.'''
 
 :param query: an iterable over items.
 '''
+        if isinstance(query,dict):
+            query = query['qs']
+            
         if isgenerator(query):
             query = list(query)
             

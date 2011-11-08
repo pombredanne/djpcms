@@ -6,7 +6,7 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, html, ajax, RegExUrl, IDREGEX
+from djpcms import http, html, ajax, RegExUrl, IDREGEX, ContextRenderer
 from djpcms.utils.translation import gettext as _
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
@@ -493,7 +493,9 @@ It returns a queryset.
 paginated result. By default it delegates the
 renderint to the :method:`djpcms.views.Application.render_query` method.
         '''
-        return self.appmodel.render_query(djp, self.appquery(djp))
+        return ContextRenderer(djp,
+                               context = {'qs':self.appquery(djp)},
+                               renderer = self.appmodel.render_query)
             
     def ajax__autocomplete(self, djp):
         qs = self.appquery(djp)

@@ -50,14 +50,17 @@ class TreeUpdate(object):
 
 class ContextRenderer(object):
     
-    def __init__(self, djp, context = None, template = None):
+    def __init__(self, djp, context = None, template = None, renderer = None):
         self.djp = djp
         self.template = template
         self.context = context or {}
+        self.renderer = renderer 
         
     def render(self):
         if self.template:
             return self.djp.render_template(self.template,self.context)
+        elif self.renderer:
+            return self.renderer(self.djp,self.context)
         else:
             raise NotImplementedError
 

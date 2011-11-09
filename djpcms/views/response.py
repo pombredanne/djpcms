@@ -117,6 +117,14 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
         return mapper(model)
     
     @property
+    def model(self):
+        return self.view.model
+    
+    @property
+    def current(self):
+        return self.environ.get('DJPCMS')
+    
+    @property
     def urldata(self):
         self.url
         return self.kwargs
@@ -318,6 +326,8 @@ the parent of the embedded view.'''
                         ajax_view_function = getattr(view.appmodel,
                                                      ajax_view,
                                                      ajax_view_function)
+                #TODO
+                #make this asynchronous
                 res = ajax_view_function(self)
                 content = res.dumps().encode('latin-1','replace')
                 return http.Response(content = content,
@@ -351,16 +361,14 @@ the parent of the embedded view.'''
                                 min_length = self.settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
-        context = self.site.template.context(context, self.request)
-        content = self.root.render_response(context, self.render_context)
+        content = self.site.template.render(self.template_file,
+                                            context,
+                                            request = self.request,
+                                            encode = 'latin-1',
+                                            encode_errors = 'replace')
         return http.Response(content = content,
                              content_type = 'text/html',
                              encoding = self.settings.DEFAULT_CHARSET)
-        
-    def render_context(self, context):
-        if isinstance(context, dict):
-            context = self.site.template.render(self.template_file, context)
-        return context.encode('latin-1','replace')
         
     @djpcms.storegenarator
     def children(self):

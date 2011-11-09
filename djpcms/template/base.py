@@ -1,4 +1,7 @@
-from djpcms.dispatch import Signal
+from functools import partial
+import warnings
+
+__all__ = ['handle','ContextTemplate','BaseTemplateHandler','TemplateHandler']
 
 
 def handle(engine = None, settings = None):
@@ -22,28 +25,74 @@ def get_engine(engine):
     return TemplateHandler
 
 
+class ContextTemplate(object):
+    
+    def __init__(self, site):
+        self.site = site
+        self._engine = handle(site.settings.TEMPLATE_ENGINE,
+                              site.settings)
+    
+    @property
+    def engine(self):
+        '''Instance of a template engine'''
+        return self._engine
+    
+    @property
+    def template_class(self):
+        '''Template class used by the template :attr:`engine`'''
+        return self._engine.template_class
+    
+    def render(self, template_name, data = None, **kwargs):
+        '''render a template file'''
+        return self._render(self._engine.render, template_name, data, **kwargs)
+        
+    def render_from_string(self, template_string, data = None, **kwargs):
+        '''render a template string'''
+        return self._render(self._engine.render_from_string, template_string,
+                            data, **kwargs)
+    
+    def _render(self, func, template, data, request = None, processors = None,
+                **kwargs):
+        data = self.context(data, request, processors)
+        if data:
+            rc = partial(self._render_context, func, template, **kwargs)
+            return self.site.root.render_response(data, rc)
+        else:
+            return _render_context(func, template, data, **kwargs)
+        
+    def context(self, data, request = None, processors=None):
+        '''Evaluate the context for the template. It returns a dictionary
+which updates the input ``dictionary`` with library dependent information.
+        '''
+        data = data or {}
+        if request:
+            environ = request.environ
+            if 'djpcms_context' not in environ:
+                context_cache = {}
+                processors = self.site.template_context()
+                if processors is not None:
+                    for processor in processors:
+                        context_cache.update(processor(request))
+                environ['djpcms_context'] = context_cache
+            data.update(environ['djpcms_context'])
+        return data
+        
+    def _render_context(self, func, template, context, autoescape = None,
+                        encode = None, encode_errors = None, **kwargs):
+        text = func(template, context, autoescape = autoescape)
+        if encode:
+            text = text.encode(encode,encode_errors)
+        return text
+        
+
 class BaseTemplateHandler(object):
     '''Base class which wraps third-parties template libraries.'''
     TemplateDoesNotExist = None
-    
-    def __init__(self):
-        self.context_ready = Signal()
     
     def setup(self):
         '''Called when the handler is initialized and therefore it is not
 relevant for end-user but for developers wanting to add additional libraries.'''
         raise NotImplementedError
-    
-    def context(self, dictionary=None, request = None, processors=None):
-        '''Evaluate the context for the template. It returns a dictionary
-which updates the input ``dictionary`` with library dependent information.
-        '''
-        c = dictionary
-        if request:
-            ccache = request.DJPCMS.context(request)
-            c.update(ccache)
-        self.context_ready.send(self, context = c)
-        return c
     
     def loaders(self):
         '''List of template loaders for thie library'''
@@ -57,8 +106,9 @@ which updates the input ``dictionary`` with library dependent information.
 :parameter autoescape: if ``True`` the resulting string will be escaped.'''
         raise NotImplementedError
     
-    def render_from_string(self, template_string, dictionary, autoescape = False):
-        '''Render a template form a file:
+    def render_from_string(self, template_string, dictionary,
+                           autoescape = False):
+        '''Render a template form a string:
 
 :parameter template_string: a string defining the template to render.
 :parameter dictionary: a dictionary of context variables.
@@ -108,6 +158,7 @@ class TemplateHandler(BaseTemplateHandler):
         return handle().find_template(template_name, **dirs)
     
     def render(self, template_name, dictionary, autoescape=False):
+        warnings.warn("TemplateHandler is deprecated", DeprecationWarning)
         return handle().render(template_name,
                                dictionary,
                                autoescape=autoescape)

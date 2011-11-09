@@ -674,7 +674,6 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
                 related = getattr(obj,self.related_field)
                 bits.update(self.parent.appmodel.objectbits(related))
             bits.update(self._objectbits(obj))
-        
         return bits
     
     def _objectbits(self, obj):

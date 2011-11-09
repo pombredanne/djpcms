@@ -105,8 +105,7 @@ handles urls of :class:`Application` instances registered with it.
             regex = app.baseurl + ALL_URLS
             urls += (url(str(regex), app, name = app.name),)
         self.tree.addsite(self)
-        self.template = template.handle(self.settings.TEMPLATE_ENGINE,
-                                        self.settings) 
+        self.template = template.ContextTemplate(self) 
         return urls
     
     @property

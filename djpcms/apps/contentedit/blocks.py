@@ -107,7 +107,7 @@ class ChangeContentView(BlockChangeView):
     def get_preview(self, djp, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
         try:
-            djpview = request.DJPCMS.root.djp(djp.request, url[1:])
+            djpview = djp.root.djp(djp.request, url[1:])
             preview_html = instance.render(djpview,
                                            plugin = plugin)
         except Exception as e:
@@ -240,6 +240,7 @@ class DeleteContentView(views.DeleteView):
 class ContentSite(views.ModelApplication):
     '''AJAX enabled :class:`djpcms.views.ModelApplication` for changing
 content in a content block.'''
+    form = ContentBlockHtmlForm
     has_plugins = False
     model_id_name = 'id'
     

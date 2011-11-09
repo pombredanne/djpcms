@@ -2,19 +2,25 @@ from datetime import date, datetime
 from inspect import isclass
 
 from djpcms import UnicodeMixin
-from djpcms.html import icons, nicerepr
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
-from djpcms.template import loader
+
 
 __all__ = ['OrmWrapper',
+           'OrmQuery',
            'DummyMapper',
-           'nicerepr',
            'model_from_hash']
 
 
 model_from_hash = {}
 
+
+class OrmQuery(object):
+    '''Wrapper for an Model query'''
+    def __init__(self, query, mapper):
+        self.query = query
+        self.mapper = mapper
+    
 
 class OrmWrapper(UnicodeMixin):
     '''Base class for classes used to
@@ -51,6 +57,12 @@ wrap existing object relational mappers.
     def test(self):
         raise NotImplementedError
     
+    def __call__(self, query):
+        if isinstance(query,self.model):
+            return query
+        elif query is not None:
+            return OrmQuery(query,self)
+                
     @classmethod
     def clear(cls):
         pass
@@ -86,6 +98,9 @@ wrap existing object relational mappers.
     
     def getrepr(self, name, instance, nd = 3):
         '''representation of field *name* for *instance*.'''
+        #TODO
+        #REMOVE FROM HERE
+        from djpcms.html import nicerepr
         return nicerepr(self._getrepr(name,instance),nd)
     
     def _getrepr(self, name, instance):

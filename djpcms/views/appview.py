@@ -6,7 +6,8 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, html, ajax, RegExUrl, IDREGEX, ContextRenderer
+from djpcms import http, html, ajax, RegExUrl, IDREGEX, ContextRenderer,\
+                    async_instance
 from djpcms.utils.translation import gettext as _
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
@@ -570,7 +571,8 @@ generate the full url.'''
             instance = kwargs['instance']
         if not isinstance(instance,self.model):
             request = getattr(djp,'request',None)
-            instance = self.appmodel.get_object(request, **kwargs)
+            instance = self.appmodel.mapper(
+                            self.appmodel.get_object(request, **kwargs))
             if instance:
                 djp.kwargs['instance'] = instance
         if instance:
@@ -595,6 +597,7 @@ an object.'''
     def __init__(self, regex = IDREGEX, **kwargs):
         super(ViewView,self).__init__(regex = regex, **kwargs)
         
+    @async_instance
     def render(self, djp):
         '''Override the :meth:`djpcms.views.djpcmsview.render` method
 to display a html string for an instance of the application model.
@@ -629,9 +632,11 @@ class DeleteView(ObjectView):
     def remove_object(self, instance):
         return self.appmodel.remove_object(instance)
     
+    @async_instance
     def default_post(self, djp):
         return deleteinstance(djp, force_redirect = self.force_redirect)
     
+    @async_instance
     def warning_message(self, djp):
         return {'title':'Deleting',
                 'body':'<p>Once you have deleted <b>{0}</b>,\
@@ -652,9 +657,11 @@ on an instance of a model.'''
     def __init__(self, parent = 'view', **kwargs):
         super(ObjectActionView,self).__init__(parent = parent, **kwargs)
         
+    @async_instance
     def render(self, djp):
         return self.get_form(djp).render(djp)
     
+    @async_instance
     def default_post(self, djp):
         return saveform(djp, force_redirect = self.force_redirect)  
       

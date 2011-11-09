@@ -15,7 +15,7 @@ registered in the same ApplicationSite::
 '''
 from py2py3 import iteritems
 
-from djpcms import views, html
+from djpcms import views, html, ContextRenderer
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.html import application_links, application_views
@@ -70,7 +70,7 @@ class TabView(html.ObjectItem):
                         'value':html,
                         'order': o})
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
-        return djp.render_template(self.view_template,ctx)
+        return ContextRenderer(djp,ctx,template=self.view_template)
     
     def  render_object_view(self, djp, appmodel, instance):
         if 'object' in appmodel.object_widgets:

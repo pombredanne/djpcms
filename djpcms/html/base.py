@@ -4,7 +4,7 @@ from copy import copy
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import UnicodeMixin, is_string, to_string
+from djpcms import UnicodeMixin, is_string, to_string, ContextRenderer
 from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
@@ -186,8 +186,9 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def render(self, djp = None, inner = None, keys = None, **kwargs):
-        return mark_safe(self.maker.render_from_widget(djp, self, inner,
-                                                       keys or kwargs))
+        ctx = self.maker.render_from_widget(djp, self, inner, keys or kwargs)
+        ctx.add_renderer(mark_safe)
+        return ctx.done()
     
     @property
     def html(self):
@@ -398,15 +399,17 @@ It returns self for concatenating data.'''
                 text = '<{0}{1}/>'.format(self.tag,fattr)
             else:
                 text = ''
+            text = ContextRenderer.make(text)
         else:
             text = inner or self._inner
             if text is None:
                 text = self.inner(djp, widget, keys)
+            text = ContextRenderer.make(text)
             if widget.tag:
                 fattr = widget.flatatt()
-                text = self._template.format(widget.tag,fattr,text)
-        if self.renderer:
-            text = self.renderer(text)
+                text.add_renderer(
+                    lambda c : self._template.format(widget.tag,fattr,c))
+        text.add_renderer(self.renderer)
         if djp:
             djp.media.add(self.media(djp))
         return text

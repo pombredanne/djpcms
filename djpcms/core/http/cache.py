@@ -12,18 +12,6 @@ managing settings.'''
         self.instance = instance
         self.context_cache = None
         self.site = site = view.site if view else site
-        
-    def context(self, request = None):
-        if not hasattr(self,'_context_cache'):
-            if request:
-                self._context_cache = context_cache = {}
-                processors = self.site.template_context()
-                if processors is not None:
-                    for processor in processors:
-                        context_cache.update(processor(request))
-            else:
-                return {}
-        return self._context_cache
             
     @property
     def media(self):

@@ -445,7 +445,7 @@ It also initialise admin for models.'''
             regex = site.route() + ALL_URLS
             urls += url(str(regex), site),
         # Load flat pages to site map
-        self.tree.load()
+        #self.tree.load()
         self.on_site_loaded.send(self)
         self._tree_updated = TreeUpdate(self)
         return urls

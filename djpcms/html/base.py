@@ -438,11 +438,14 @@ inner part of the widget.'''
         if widget.data_stream:
             data2html = self.data2html
             for chunk in widget.data_stream:
-                yield data2html(chunk)
+                yield data2html(djp, chunk)
         for child in context['children']:
             yield child
         
-    def data2html(self, data):
+    def data2html(self, djp, data):
+        '''Process data'''
+        if isinstance(data,Widget):
+            data = data.render(djp)
         return data
 
     def child_widget(self, child, widget, **kwargs):

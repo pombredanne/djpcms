@@ -184,7 +184,7 @@ ListWidget(default = 'ul', widget = List)
 class DefinitionListMaker(WidgetMaker):
     tag = 'div'
     
-    def data2html(self, data):
+    def data2html(self, djp, data):
         return '<dl><dt>{0}</dt><dd>{1}</dd></dl>'.format(*data)
     
 

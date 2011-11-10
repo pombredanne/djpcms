@@ -26,6 +26,7 @@ from .objectdef import *
 from .apptools import *
 from .table import *
 from .tabs import *
+from .yui import *
 
 
 def block(stream, id = None, cn = None, djp = None):

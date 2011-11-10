@@ -1,6 +1,17 @@
 
-__all__ = ['async_instance']
+__all__ = ['Promise','async_instance']
 
+
+class Promise(object):
+    __slots__ = ('djp','callback')
+    
+    def __init__(self, djp, callback):
+        self.djp = djp
+        self.callback = callback
+        
+    def __call__(self, result):
+        return self.callback(self.djp,result)
+    
 
 '''wait for an asynchronous instance'''
 class async_instance_callback(object):

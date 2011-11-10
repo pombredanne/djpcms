@@ -23,16 +23,17 @@ def formatline(line):
     
 def handle_ajax_error(self,e):
     #Internal function for handling AJAX server errors
+    exc_info = sys.exc_info()
+    logtrace(self.view.logger, self.request, exc_info)
     if self.root.settings.DEBUG:
-        exc_info = sys.exc_info()
-        logtrace(self.view.logger, self.request, exc_info)
         lines = traceback.format_exception(*exc_info)
-        stack_trace = '\n'.join((formatline(line) for line in lines))
-        #stack_trace = '<p>{0}</p>'.format(
-        #            '</p>\n<p>'.join(lines))
-        return jservererror(self.request, stack_trace)
+        message = '\n'.join((formatline(line) for line in lines))
     else:
-        raise e
+        #TODO
+        #A configurable error message for unhandled error in AJAX responses
+        message = 'Server Error'
+    
+    return jservererror(self.request, message)
 
 
 def get_template(self):

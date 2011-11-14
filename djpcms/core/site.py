@@ -123,11 +123,15 @@ class SiteLoader(object):
     ENVIRON_NAME = None
     settings = None
     
-    def __init__(self, name = None):
+    def __init__(self, name = None, **params):
         self.sites = None
         self._wsgi_middleware = None
         self._response_middleware = None
         self.name = name or 'DJPCMS'
+        self.setup(**params)
+        
+    def setup(self, **params):
+        self.params = params
         
     def __getstate__(self):
         d = self.__dict__.copy()

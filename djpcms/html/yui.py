@@ -19,4 +19,22 @@ _YuiGrid3 = YuiGrid3()
     
     
 def yuigrid3(*chunks, **kwargs):
+    '''Render a yui3_ grid with a given number of *chunks*.
+    
+:parameter chunks: positional arguments made of 2-elements tuples of
+    the form::
+    
+        (txt1,size1),(txt2,size2),...
+
+    where ``txt`` is either a string or an instance of a :class:`Widget` and
+    ``size`` is the 2-elements tuple defining the size of the block.
+    For example::
+    
+        ("Fills 1/3 of available width",(1,3)),
+        ("Fills 2/3 of available width",(2,3))
+        
+    are valid inputs.
+    
+.. _yui3: http://yuilibrary.com/yui/docs/cssgrids/
+'''
     return Widget(_YuiGrid3, data_stream = chunks, **kwargs)

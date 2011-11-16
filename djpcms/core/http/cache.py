@@ -12,6 +12,7 @@ managing settings.'''
         self.instance = instance
         self.context_cache = None
         self.site = site = view.site if view else site
+        self._djp_instance_cache = {}
             
     @property
     def media(self):
@@ -28,6 +29,13 @@ managing settings.'''
     def djp(self, request = None):
         if self.view:
             return self.view(request, **self.kwargs)
+    
+    def djp_from_instance(self, view, instance):
+        return self._djp_instance_cache.get((view,instance))
+    
+    def add_djp_instance_cache(self, djp, instance):
+        if instance:
+            self._djp_instance_cache[(djp.view,instance)] = djp
     
     @property
     def root(self):

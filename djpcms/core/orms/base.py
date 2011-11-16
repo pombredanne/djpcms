@@ -57,8 +57,11 @@ wrap existing object relational mappers.
     def test(self):
         raise NotImplementedError
     
+    def is_query(self, query):
+        return True
+    
     def __call__(self, query):
-        if isinstance(query,self.model):
+        if self.is_query(query):
             return query
         elif query is not None:
             return OrmQuery(query,self)
@@ -76,6 +79,12 @@ wrap existing object relational mappers.
     def pretty_repr(self, instance):
         '''Return a string with a pretty representation of instance'''
         return force_str(instance)
+    
+    def model_attribute(self, name):
+        pass
+    
+    def query_instance(self, qs, instance = None):
+        return qs     
     
     def set_application(self, appmodel):
         self.appmodel = appmodel

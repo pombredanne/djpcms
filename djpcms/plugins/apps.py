@@ -1,4 +1,4 @@
-from djpcms import forms, html
+from djpcms import forms, html, views
 from djpcms.core.orms import mapper
 from djpcms.plugins import DJPplugin
 from djpcms.core.http import query_from_string
@@ -133,8 +133,8 @@ class ModelLinks(DJPplugin):
         include = None if not include else include.split(',')
         instance = None if not for_instance else djp.instance
         asbuttons = self.asbuttons_class if asbuttons else None
-        links = html.application_links(
-                            html.application_views(appmodel,
+        links = views.application_links(
+                            views.application_views(appmodel,
                                                    djp,
                                                    exclude = exclude,
                                                    include = include,
@@ -173,7 +173,9 @@ class ModelItemsList(DJPplugin):
                **kwargs):
         if not for_model:
             return ''
+        instance = djp.instance
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
+        djp = appmodel.root_view(djp.request,**djp.kwargs)
         heads = appmodel.headers
         if order_by:
             decr = False
@@ -183,7 +185,7 @@ class ModelItemsList(DJPplugin):
             order_by = html.attrname_from_header(heads,order_by)
             if decr:
                 order_by = '-{0}'.format(order_by)
-        qs = appmodel.basequery(djp)
+        qs = djp.basequery(instance = instance)
         if text_search:
             qs = qs.search(text_search)
         qs = qs.filter(**dict(attrquery(heads,query_from_string(filter))))\

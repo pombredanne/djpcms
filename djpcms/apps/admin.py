@@ -15,10 +15,9 @@ registered in the same ApplicationSite::
 '''
 from py2py3 import iteritems
 
-from djpcms import views, html, ContextRenderer
+from djpcms import views, ContextRenderer
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
-from djpcms.html import application_links, application_views
 from djpcms.core.exceptions import ImproperlyConfigured
 
 __all__ = ['AdminSite',
@@ -36,7 +35,7 @@ ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
                               'djpcms/admin/groups.html')
 
 
-class TabView(html.ObjectItem):
+class TabView(views.ObjectItem):
     '''A function for rendering a model instance
     like in the admin interface. Using jQuery UI tabs.
     This is usually called in the view page of the object.
@@ -82,7 +81,7 @@ class TabView(html.ObjectItem):
 class TabViewMixin(object):
     views_ordering = {'view':0,'change':1}
     object_widgets = views.extend_widgets({'home':TabView(),
-                                           'object':html.ObjectDef()})
+                                           'object':views.ObjectDef()})
 
 
 class ApplicationGroup(views.Application):
@@ -101,8 +100,8 @@ administer a group of :class:`djpcms.views.Applications`.'''
             title = r.title
             appmodel = r.view.appmodel
             home = appmodel.root_view(request,**djp.kwargs)
-            links = ''.join((l[1] for l in application_links(\
-                                application_views(appmodel,djp))))
+            links = ''.join((l[1] for l in views.application_links(\
+                                views.application_views(appmodel,djp))))
             yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 

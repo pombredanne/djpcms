@@ -5,16 +5,47 @@ It uses the Datatable jQuery plugin on the client side.
 
 http://www.datatables.net/
 '''
+from collections import namedtuple
+
 from djpcms.utils import media
 from djpcms.utils import ajax
+from djpcms.utils.text import nicename
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker
-from .apptools import table_header, table_toolbox
 from .pagination import Paginator 
 
-__all__ = ['Table','dataTableResponse']
 
+__all__ = ['Table','table_header','attrname_from_header']
+
+
+table_header_ = namedtuple('table_header_',
+'code name description function sortable width extraclass attrname')
+
+
+def attrname_from_header(header, code):
+    if code and code in header:
+        return header[code].attrname
+    return code
+
+
+def table_header(code, name = None, description = None, function = None,
+                 attrname = None, sortable = True, width = None,
+                 extraclass = None):
+    '''Utility for creating an instance of a :class:`table_header_` namedtuple.
+    
+:param code: unique code for the header
+:param attrname: optional attribute name, if not supplied the *code* will be
+    used. The attrname is the actual attribute name in the object, and
+    therefore the actual field in the database. 
+'''
+    if isinstance(code,table_header_):
+        return code
+    name = name or nicename(code)
+    function = function or code
+    attrname = attrname or code
+    return table_header_(code,name,description,function,sortable,width,
+                         extraclass,attrname)
 
 class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
@@ -169,101 +200,3 @@ and rendered using the dataTable_ jQuery plugin.
             return ()
         
 
-def dataTableResponse(djp, qs = None, toolbox = None, params = None):
-    '''dataTable ajax response'''
-    view = djp.view
-    request = djp.request
-    inputs = request.REQUEST
-    appmodel = view.appmodel
-    params = params or {}
-    render = not request.is_xhr
-    # The table toolbox
-    toolbox = toolbox or table_toolbox(djp,appmodel)
-    headers = toolbox['headers']
-    # Attributes to load from query
-    load_only = tuple((h.attrname for h in headers))
-    nh = len(headers)
-    body = None
-    paginate = None
-    start = 0
-    per_page = appmodel.list_per_page
-    page_menu = None
-    if qs is None:
-        qs = view.appquery(djp)
-    
-    # We are rendering
-    if not render:
-        sort_by = {}
-        search = inputs.get('sSearch')
-        if search:
-            qs = qs.search(search)
-        sortcols = inputs.get('iSortingCols')
-        if sortcols:
-            head = None
-            for col in range(int(sortcols)):
-                c = int(inputs['iSortCol_{0}'.format(col)])
-                if c < nh:
-                    d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
-                             else ''
-                    head = headers[c]
-                    qs = qs.sort_by('{0}{1}'.format(d,head.attrname))
-                
-        start = inputs.get('iDisplayStart')
-        per_page = inputs.get('iDisplayLength') or per_page
-        paginate = True
-        
-    try:
-        total = qs.count()
-        query = True
-    except:
-        query = False
-        total = len(qs)
-    
-    if query:
-        qs = qs.load_only(*load_only)
-        
-    if render:
-        # if the ajax flag is not defined in parameters
-        if 'ajax' not in params:
-            params['ajax'] = djp.url if toolbox.pop('as') == 'ajax' else None
-        body = None
-        if params.get('ajax'):
-            if total > 1.3*per_page:
-                page_menu = appmodel.list_per_page_choices
-                paginate = True
-            
-    if paginate:
-        paginate = Paginator(total = total,
-                             per_page = per_page,
-                             start = start,
-                             page_menu = page_menu)
-        if not render:
-            body = paginate.slice_data(qs)
-    else:
-        body = qs
-        
-    if body:
-        body = appmodel.table_generator(djp,headers,body)
-        
-    tbl = Table(headers, body,
-                appmodel = appmodel,
-                paginator = paginate,
-                toolbox = toolbox,
-                **params)
-
-    
-    if render:
-        return tbl.render(djp)
-    else:
-        aaData = []
-        for item in tbl.items(djp):
-            id = item['id']
-            aData = {} if not id else {'DT_RowId':id}
-            aData.update(((i,v) for i,v in enumerate(item['display'])))
-            aaData.append(aData)
-        data = {'iTotalRecords':total,
-                'iTotalDisplayRecords':total,
-                'sEcho':inputs.get('sEcho'),
-                'aaData':aaData}
-        return ajax.simplelem(data)
-    

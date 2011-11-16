@@ -103,8 +103,15 @@ http requests.
     def get_url(self, djp, **urlargs):
         return djp.request.path
     
-    def __call__(self, request, **kwargs):
-        return DjpResponse(request, self, **kwargs)
+    def __call__(self, request, instance = None, **kwargs):
+        djp = None
+        if instance:
+            djp = request.DJPCMS.djp_from_instance(self, instance)
+            if not djp:
+                kwargs['instance'] = instance
+        if not djp:
+            djp = DjpResponse(request, self, kwargs)
+        return djp
     
     def methods(self, request):
         '''Allowed request methods for this view.

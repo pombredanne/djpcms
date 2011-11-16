@@ -198,6 +198,7 @@ If the application is not available, it returns ``None``. Never fails.'''
         app = self.for_hash(model, safe = True)
         if app:
             return app
+        model = mapper(model).model
         try:
             app = self._registry.get(model,None)
         except:
@@ -292,30 +293,6 @@ This method is safe and return None if no url is found.
                 except:
                     return None
         return None
-    
-    
-    def _load_middleware_object(self,mwobj):
-        if hasattr(mwobj,'process_request'):
-            self._request_middleware.append(mwobj.process_request)
-        if hasattr(mwobj,'process_response'):
-            self._response_middleware.append(mwobj.process_response)
-        if hasattr(mwobj,'process_exception'):
-            self._exception_middleware.append(mwobj.process_exception)
-            
-    def _load_middleware(self):
-        if self._request_middleware is None:
-            self._request_middleware = []
-            self._response_middleware = []
-            self._exception_middleware = []
-            self.lock.acquire()
-            try:
-                self._load_middleware_object(self.permissions.backend)
-                for middleware_path in self.settings.MIDDLEWARE_CLASSES:
-                    mwcls = module_attribute(middleware_path,safe=True)
-                    if mwcls:
-                        self._load_middleware_object(mwcls())
-            finally:
-                self.lock.release()
                 
     def _load_template_processors(self):
         if self._template_context_processors is None:
@@ -329,18 +306,6 @@ This method is safe and return None if no url is found.
                 self._template_context_processors = tuple(mw)
             finally:
                 self.lock.release()
-    
-    def request_middleware(self):
-        self._load_middleware()
-        return self._request_middleware
-    
-    def response_middleware(self):
-        self._load_middleware()
-        return self._response_middleware
-    
-    def exception_middleware(self):
-        self._load_middleware()
-        return self._exception_middleware
     
     def template_context(self):
         self._load_template_processors()

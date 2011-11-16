@@ -6,14 +6,16 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, html, ajax, RegExUrl, IDREGEX, ContextRenderer,\
+from djpcms import http, ajax, RegExUrl, IDREGEX, ContextRenderer,\
                     async_instance
 from djpcms.utils.translation import gettext as _
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.views.baseview import djpcmsview
 from djpcms.utils.urls import iri_to_uri
-from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty 
+from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty
+
+from .table import dataTableResponse 
 
 
 __all__ = ['View',
@@ -507,7 +509,7 @@ renderint to the :method:`djpcms.views.Application.render_query` method.
                                 list(self.appmodel.gen_autocomplete(qs)))
     
     def ajax_get_response(self, djp):
-        return html.dataTableResponse(djp)
+        return dataTableResponse(djp)
     ajax_post_response = ajax_get_response
     
 
@@ -566,20 +568,21 @@ generate the full url.'''
     
     def get_url(self, djp):
         kwargs = djp.kwargs
-        instance=  None
-        if 'instance' in kwargs:
-            instance = kwargs['instance']
+        has_instance = 'instance' in kwargs
+        instance = None
+        if has_instance:
+            instance = kwargs.pop('instance')
+            
         if not isinstance(instance,self.model):
-            request = getattr(djp,'request',None)
             instance = self.appmodel.mapper(
-                            self.appmodel.get_object(request, **kwargs))
-            if instance:
-                djp.kwargs['instance'] = instance
+                            self.appmodel.get_object(djp.request, **kwargs))
+                
         if instance:
+            kwargs['instance'] = instance
             kwargs.update(self.appmodel.objectbits(instance))  
         else:
-            raise http.Http404('Could not retrieve model instance\
- from url arguments: {0}'.format(djp.kwargs))
+            raise http.Http404('Could not retrieve "{0}" instance\
+ from url arguments: {1}'.format(self.model,djp.kwargs))
         
         return super(ObjectView,self).get_url(djp)
 

@@ -1,7 +1,7 @@
 import functools
 
 
-__all__ = ['memoized','storegenarator']
+__all__ = ['memoized','storegenarator','lazyattr','lazymethod']
 
 
 class memoized(object):
@@ -54,3 +54,40 @@ returning a generator. It stores the generated results for future use.
     _.__doc__ = f.__doc__
     
     return _
+
+
+class lazymethod(object):
+    
+    def __init__(self, safe = False, as_property = False):
+        self.safe = safe
+        self.as_property = as_property
+        
+    def __call__(self, f):
+        '''Decorator which can be used on a member function.
+    It stores the result for futures uses.
+        '''
+        name = '_lazy_%s' % f.__name__
+        
+        def _(obj, *args, **kwargs):
+            if not hasattr(obj,name):
+                try:
+                    v = f(obj, *args, **kwargs)
+                except:
+                    if self.safe:
+                        return None
+                    else:
+                        raise
+                setattr(obj,name,v)
+            return getattr(obj,name)
+            
+        _.__doc__ = f.__doc__
+        _.__name__ = f.__name__
+        
+        if self.as_property:
+            _ = property(_)
+            
+        return _
+    
+    
+def lazyattr(f):
+    return lazymethod()(f)

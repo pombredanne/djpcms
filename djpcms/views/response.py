@@ -1,11 +1,12 @@
 import sys
 import traceback
 from copy import copy
+import logging
 
 import djpcms
 from djpcms import forms, http, html
 from djpcms.utils.ajax import jredirect, jservererror
-from djpcms.utils import lazyattr, logtrace
+from djpcms.utils import lazyattr, lazymethod, logtrace
 from djpcms.core.exceptions import ViewDoesNotExist, PermissionDenied,\
                                      PathException
 
@@ -14,6 +15,10 @@ from .navigation import Navigator, Breadcrumbs
 
 __all__ = ['DjpResponse',
            'DummyDjp']
+
+
+logger = logging.getLogger('djpcms.views')
+
 
 def formatline(line):
     if line.split()[0] == 'File':
@@ -98,28 +103,37 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
     Web site holder.
 '''
     block = None
-    def __init__(self, request, view, **kwargs):
+    def __init__(self, request, view, kwargs):
         self.request = request
         self.environ = request.environ
         self.view = view
         self.kwargs = kwargs
-        site = view.site
-        self.site = site
-        self.settings = site.settings
     
     def __unicode__(self):
-        try:
-            return self.url
-        except:
-            return self.view.__unicode__()
+        return self.url or self.view.__unicode__()
     
-    def mapper(self, model):
-        from djpcms.core.orms import mapper
-        return mapper(model)
+    #def mapper(self, model):
+    #    from djpcms.core.orms import mapper
+    #    return mapper(model)
+    @property
+    def mapper(self):
+        return self.view.appmodel.mapper
     
     @property
     def model(self):
         return self.view.model
+    
+    @property
+    def site(self):
+        return self.view.site
+    
+    @property
+    def settings(self):
+        return self.view.site.settings
+    
+    @property
+    def appmodel(self):
+        return self.view.appmodel
     
     @property
     def current(self):
@@ -142,19 +156,16 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
     def node(self):
         '''Get the :class:`djpcms.views.sitemap.Node` in the global sitemap
 which corresponds to ``self``'''
-        try:
-            url = self.url
+        url = self.url
+        if url and url in self.tree:
             return self.tree[url]
-        except:
-            if self.view:
-                return self.tree[self.view.path]
-            else:
-                raise
+        else:
+            return self.tree[self.view.path]
 
     @property
     def name(self):
         return self.view.name
-        
+    
     @property
     def linkname(self):
         if not hasattr(self,'_linkname'):
@@ -218,11 +229,10 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         return self.node().page
     page = property(_get_page)
     
-    @lazyattr
-    def get_url(self):
+    @lazymethod(True,True)
+    def url(self):
         '''Build the url for this application view.'''
         return self.view.get_url(self)
-    url = property(get_url)
     
     @lazyattr
     def _get_template(self):
@@ -247,7 +257,9 @@ the parent of the embedded view.'''
             kwargs = self.kwargs
             if 'instance' not in kwargs:
                 self.url
-            return kwargs['instance']
+            instance = kwargs.get('instance')
+            self.environ['DJPCMS'].add_djp_instance_cache(self,instance)
+            return instance
         else:
             return self.kwargs.get('instance',None)
         
@@ -257,7 +269,7 @@ the parent of the embedded view.'''
             return page.id
         
     def application(self):
-        appmodel = self.view.appmodel
+        appmodel = self.appmodel
         if appmodel:
             return appmodel.name
         
@@ -324,7 +336,7 @@ the parent of the embedded view.'''
                     if hasattr(view,ajax_view):
                         ajax_view_function = getattr(view,ajax_view)
                     else:
-                        ajax_view_function = getattr(view.appmodel,
+                        ajax_view_function = getattr(self.appmodel,
                                                      ajax_view,
                                                      ajax_view_function)
                 #TODO
@@ -381,9 +393,11 @@ consequently its children.'''
         kwargs = self.kwargs
         for node in node.children():
             try:
-                cdjp = node.get_view()(request,**kwargs)
-                cdjp.url
-                yield cdjp
+                view = node.get_view()
+                if view and not view.object_view:
+                    cdjp = view(request,**kwargs)
+                    cdjp.url
+                    yield cdjp
             except:
                 continue
     
@@ -418,6 +432,10 @@ Otherwise return None.'''
             return appmodel.instancecode(self.request, instance)
         else:
             return '%s:%s' % (instance._meta,instance.id)
+
+    def basequery(self, instance = None):
+        qs = self.view.appquery(self)
+        return self.mapper.query_instance(qs, instance = instance)
 
 
 class DummyDjp(object):

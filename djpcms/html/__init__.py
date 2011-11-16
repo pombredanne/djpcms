@@ -22,8 +22,6 @@ from .grid960 import *
 from .htmltype import *
 from .box import *
 from .nicerepr import *
-from .objectdef import *
-from .apptools import *
 from .table import *
 from .tabs import *
 from .yui import *

@@ -11,6 +11,7 @@ from .jsontools import *
 from .numbers import *
 from .urls import *
 from .arc4 import *
+from .decorators import *
 
 if ispy3k:
     import pickle
@@ -48,22 +49,6 @@ def threadsafe(f):
     
     return _
     
-def lazyattr(f):
-    '''Decorator which can be used on a member function.
-It stores the result for futures uses.
-    '''
-    name = '_lazy_%s' % f.__name__
-    
-    def _(self, *args, **kwargs):
-        if not hasattr(self,name):
-            v = f(self, *args, **kwargs)
-            setattr(self,name,v)
-        return getattr(self,name)
-        
-    _.__doc__ = f.__doc__
-    
-    return _
-        
 
 class lazyjoin(object):
     

@@ -13,7 +13,7 @@ from djpcms import views, SLUG_REGEX
 
 
 class SimpleTabular(views.ModelApplication):
-    '''A very simple application for sdisplaying a table'''
+    '''A very simple application for displaying a table'''
     table_parameters = {'footer':False,
                         'data':{'options':{'sDom':'t'}}}
     table_actions = ()

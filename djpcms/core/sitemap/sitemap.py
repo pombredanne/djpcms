@@ -3,17 +3,15 @@ from threading import Lock
 
 from py2py3 import itervalues
 
-from djpcms import UnicodeMixin
+from djpcms import UnicodeMixin, views
 from djpcms.utils import parentpath, SLASH
-from djpcms.views import DjpResponse, pageview
 from djpcms.html import field_repr
 from djpcms.core.orms import mapper
 from djpcms.core.exceptions import ImproperlyConfigured, PathException
 
 from .serialize import *
 
-__all__ = ['Node',
-           'SiteMap']
+__all__ = ['Node', 'SiteMap']
     
     
 class DummyRequest(object):
@@ -105,9 +103,10 @@ where the key is given by the children path.
         '''Create a :class:`djpcms.views.DjpResponse` object with a dummy
  request if not available'''
         if not request:
+            raise ValueError('No request')
             request = DummyRequest(self.site)   
         view = self.get_view()
-        return DjpResponse(request, view, **kwargs)
+        return view(request, **kwargs)
     
     def get_view(self):
         '''Return an instance of `:class:`djpcms.views.djpcmsview` at node.'''
@@ -118,7 +117,7 @@ where the key is given by the children path.
             if page:
                 site = self.site
                 if site is not None:
-                    return pageview(page,site)
+                    return views.pageview(page,site)
         raise PathException('Cannot get view for node {0}'.format(self))
         
     def tojson(self, fields):

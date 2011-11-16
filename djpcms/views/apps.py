@@ -5,9 +5,8 @@ from py2py3 import iteritems, is_string,\
                     is_bytes_or_string, to_string
 
 import djpcms
-from djpcms import forms, html, ajax
-from djpcms.html import Paginator, Table, SubmitInput, application_action,\
-                        table_header
+from djpcms import forms, ajax
+from djpcms.html import Paginator, Table, SubmitInput, table_header
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException,\
@@ -20,6 +19,8 @@ from djpcms.utils.structures import OrderedDict
 
 from .baseview import RendererMixin
 from .appview import View, ViewView
+from .objectdef import *
+from .table import *
 
 
 __all__ = ['Application',
@@ -114,6 +115,20 @@ def extend_widgets(d, target = None):
     target = target.copy()
     target.update(d)
     return target
+
+
+def clean_url_bits(mapper, urlbits, mapping):
+    if not mapping:
+        mapping = {}
+    check = set()
+    for bit in urlbits:
+        b = mapping.get(bit,None)
+        if b is None:
+            b = mapper.model_attribute(bit) or 'id'
+        if b in check or not b:
+            raise ValueError('bad url mapping')
+        check.add(b)
+        yield bit,b
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
@@ -274,14 +289,15 @@ or in the constructor.
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
     object_widgets = {
-          'home':html.ObjectDef(),
-          'list':html.ObjectItem(),
-          'pagination':html.ObjectPagination()
+          'home': ObjectDef(),
+          'list': ObjectItem(),
+          'pagination': ObjectPagination()
           }
     in_navigation = None
     table_actions = []
     table_links = None
     table_parameters = {}
+    url_bits_mapping = None
     
 
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
@@ -292,12 +308,13 @@ or in the constructor.
                  list_display_links = None, in_navigation = None,
                  description = None, template_name = None, parent = None,
                  related_field = None, apps = None, ordering = None,
-                 **views):
+                 url_bits_mapping = None, **views):
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
         self.site = None
         self.root_view = None
+        self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation if in_navigation is not None else\
@@ -339,6 +356,7 @@ application {0}. Already available.".format(name))
             ld.append(head)
         self.list_display = tuple(ld)
         self.headers = heads
+        self.mapper = None if not self.model else mapper(self.model)
     
     def __deepcopy__(self,memo):
         obj = copy(self)
@@ -405,7 +423,6 @@ Return ``None`` if the view is not available.'''
             raise AlreadyRegistered(
                     'Application %s already registered as application' % self)
         parent = self.parent
-        self.mapper = None if not self.model else mapper(self.model)
         roots = []
         self.site = application_site
         
@@ -467,6 +484,10 @@ Return ``None`` if the view is not available.'''
                     format(view,self,k,ks,parent,parent.appmodel))            
             if self.has_plugins and view.isplugin:
                 register_application(view)
+                
+        self.url_bits_mapping = dict(clean_url_bits(self.mapper,
+                                                    self.model_url_bits,
+                                                    self.url_bits_mapping))
     
     def get_form(self, djp, form_class, addinputs = True, instance  = None,
                  **kwargs):
@@ -536,11 +557,11 @@ By default it return a generator of children pages.'''
         if isgenerator(query):
             query = list(query)
             
-        toolbox = html.table_toolbox(djp)
+        toolbox = table_toolbox(djp)
         
         if toolbox:
             params = deepcopy(self.table_parameters)
-            return html.dataTableResponse(djp, query, toolbox, params)
+            return dataTableResponse(djp, query, toolbox, params)
         else:
             try:
                 total = query.count()
@@ -615,16 +636,6 @@ User should subclass this for full control on the model application.
     If not available, :attr:`list_display` is used.
     
     Default ``None``.
-    
-.. attribute:: model_id_name
-
-    the attribute name of the underlying
-    :attr:`djpcms.views.ModelApplication.model` which is used for building the
-    url of an :ref:`instance view <instance-views>`.
-    If not provided, the name will be given by the regex of the instnace
-    views.
-    
-    Default ``None``.
 '''
     object_display   = None
     filter_fields    = []
@@ -637,8 +648,6 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    model_id_name = None
-    model_url_bits = None
     
     def __init__(self, baseurl, model, object_display = None, **kwargs):
         if not model:
@@ -651,7 +660,7 @@ functionality when searching for model instances.'''
         self.object_display = d = []
         for head in object_display:
             head = table_header(head)
-            d.append(self.headers.get(head.code,head)) 
+            d.append(self.headers.get(head.code,head))       
         
     def get_root_code(self):
         return self.root_view.code
@@ -673,44 +682,38 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
             if self.parent and self.related_field:
                 related = getattr(obj,self.related_field)
                 bits.update(self.parent.appmodel.objectbits(related))
-            bits.update(self._objectbits(obj))
+            bits.update(self.urlbits(obj = obj))
         return bits
     
-    def _objectbits(self, obj):
-        urls = self.model_url_bits
-        if len(urls) == 1:
-            name = urls[0]
-            return {name: getattr(obj,self.model_id_name or name)}
-        else:
-            raise ApplicationUrlException(
-                            'Cannot obtain model instance url components')
-    
+    def urlbits(self, obj = None, data = None):
+        '''generator of key,value pair for urls construction'''
+        for name in self.model_url_bits:
+            attrname = self.url_bits_mapping[name]
+            if obj:
+                yield name,getattr(obj,attrname)
+            else:
+                yield attrname,data[name]
+                
     def get_object(self, request, **kwargs):
         '''Retrive an instance of self.model from key-values
-*kwargs* forming the url. By default it get the :attr:`model_id_name`
-and get the object. Re-implement for custom arguments.'''
-        if len(self.model_url_bits) != 1:
-            return None
-        model_id_url = self.model_url_bits[0]
-        if not model_id_url in kwargs:
-            return None
-        id = kwargs[model_id_url]
-        if isinstance(id,self.model):
-            return id
-        else:
-            bit = self.model_id_name or model_id_url
-            query = {bit:id}
+*kwargs* forming the url.'''
+        query = {}
+        for name,val in self.urlbits(data = kwargs):
+            if isinstance(val,self.model):
+                return val
+            query[name] = val
+            
+        try:
+            return self.mapper.get(**query)
+        except:
             try:
-                return self.mapper.get(**query)
+                if self.parent:
+                    parent_object = self.parent.appmodel.get_object(\
+                                                request, **kwargs)
+                    if parent_object:
+                        return self.get_from_parent_object(parent_object,id)
             except:
-                try:
-                    if self.parent:
-                        parent_object = self.parent.appmodel.get_object(\
-                                                    request, **kwargs)
-                        if parent_object:
-                            return self.get_from_parent_object(parent_object,id)
-                except:
-                    pass
+                pass
         
     def get_from_parent_object(self, parent, id):
         return parent
@@ -724,16 +727,13 @@ and get the object. Re-implement for custom arguments.'''
     def appviewurl(self, request, name, obj = None, objrequired=False):
         if objrequired and not isinstance(obj,self.model):
             return None
-        try:
-            view = name
-            if not isinstance(view,View):
-                view = self.getview(name)
-            if view:
-                djp = view(request, instance = obj)
-                if djp.has_permission():
-                    return djp.url
-        except:
-            return None
+        view = name
+        if not isinstance(view,View):
+            view = self.getview(name)
+        if view:
+            djp = view(request, instance = obj)
+            if djp.has_permission():
+                return djp.url
         
     def addurl(self, request, name = 'add'):
         return self.appviewurl(request,name,None)

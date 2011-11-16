@@ -61,45 +61,8 @@ class BlockChangeView(views.ChangeView):
 
 
 class ChangeLayoutView(BlockChangeView):
-    
-    def ajax__rearrange(self, djp):
-        '''Move the content block to a new position.'''
-        request = djp.request
-        contentblock = djp.instance
-        data   = request.REQUEST
-        try:            
-            previous = data.get('previous',None)
-            if previous:
-                block = self.block_from_edit_id(previous)
-                pos = block.position
-                newposition = pos + 1
-            else:
-                nextv = data.get('next',None)
-                if nextv:
-                    block = self.block_from_edit_id(nextv)
-                    pos = block.position
-                else:
-                    return jempty()
-                newposition = pos if not pos else pos-1
-            
-            block = block.block
-            if block != contentblock.block or\
-               contentblock.position != newposition:
-                # modify positions in the drop box
-                for bc in self.model.objects.filter(page = contentblock.page,
-                                                    block = block):
-                    if bc.position < newposition:
-                        continue
-                    bc.position += 1
-                    bc.save()
-                contentblock.position = newposition
-                contentblock.block = block
-                contentblock.save()
-                #update_page(self.model,page)
-            return ajax.jempty()
-        except Exception as e:
-            return ajax.jerror('Could not find target block. {0}'.format(e))
-        
+    pass
+
 
 class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
@@ -205,6 +168,44 @@ The instance.plugin object is maintained but its fields may change.'''
         jquery.update(layout.json_messages(form))
         return jquery
 
+    def ajax__rearrange(self, djp):
+        '''Move the content block to a new position.'''
+        request = djp.request
+        contentblock = djp.instance
+        data   = request.REQUEST
+        try:            
+            previous = data.get('previous',None)
+            if previous:
+                block = self.block_from_edit_id(previous)
+                pos = block.position
+                newposition = pos + 1
+            else:
+                nextv = data.get('next',None)
+                if nextv:
+                    block = self.block_from_edit_id(nextv)
+                    pos = block.position
+                else:
+                    return jempty()
+                newposition = pos if not pos else pos-1
+            
+            block = block.block
+            if block != contentblock.block or\
+               contentblock.position != newposition:
+                # modify positions in the drop box
+                for bc in self.model.objects.filter(page = contentblock.page,
+                                                    block = block):
+                    if bc.position < newposition:
+                        continue
+                    bc.position += 1
+                    bc.save()
+                contentblock.position = newposition
+                contentblock.block = block
+                contentblock.save()
+                #update_page(self.model,page)
+            return ajax.jempty()
+        except Exception as e:
+            return ajax.jerror('Could not find target block. {0}'.format(e))
+        
         
 class DeleteContentView(views.DeleteView):
     
@@ -234,7 +235,6 @@ class DeleteContentView(views.DeleteView):
         else:
             refer = sjp.request.environ.get('HTTP_REFERER')
             return self.redirect(refer)
-        
 
 
 class ContentSite(views.ModelApplication):

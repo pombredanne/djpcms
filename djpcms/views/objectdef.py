@@ -2,22 +2,18 @@ from collections import namedtuple
 
 from py2py3 import zip, to_string, itervalues
 
-from djpcms import UnicodeMixin
+from djpcms import UnicodeMixin, html
 from djpcms.utils import smart_escape
-from djpcms.utils.text import nicename
 
-from .base import WidgetMaker, Widget
-from .widgets import DefinitionList
-from .apptools import application_views, application_links
-from .nicerepr import results_for_item
+from .table import application_views, application_links
 
 
 __all__ = ['ObjectItem',
            'ObjectDef',
            'ObjectPagination']
-            
+    
 
-class ObjectItem(WidgetMaker):
+class ObjectItem(html.WidgetMaker):
     tag = 'div'
     default_class='item-view'
          
@@ -25,14 +21,14 @@ class ObjectItem(WidgetMaker):
         appmodel = context['appmodel']
         headers = appmodel.object_display
         mapper = appmodel.mapper
-        ctx = results_for_item(djp,
-                               headers,
-                               context['instance'],
-                               appmodel,
-                               escape = smart_escape)
+        ctx = html.results_for_item(djp,
+                                    headers,
+                                    context['instance'],
+                                    appmodel,
+                                    escape = smart_escape)
         display = ctx.pop('display')
         items = ((head.name,value) for head,value in zip(headers,display))
-        return DefinitionList(data_stream = items, cn = 'object-definition')\
+        return html.DefinitionList(data_stream = items, cn = 'object-definition')\
                     .addClass(mapper.module_name)
          
     def get_context(self, djp, widget, keys):

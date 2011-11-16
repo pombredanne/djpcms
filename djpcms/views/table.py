@@ -1,55 +1,32 @@
 from collections import namedtuple
 from inspect import isgenerator
 
-from py2py3 import itervalues
-
-from djpcms.html import icons
-from djpcms.utils.text import nicename
-
-from .base import Widget
-from .widgets import Select
+from djpcms import ajax
+from djpcms.html import Table, Paginator, Widget
 
 
-__all__ = ['application_action',
-           'table_menu_link',
-           'application_views',
-           'application_links',
-           'application_link',
-           'table_toolbox',
-           'table_header',
-           'attrname_from_header']
+__all__ = ['application_action','application_views',
+           'application_links','table_toolbox',
+           'dataTableResponse','instance_link']
 
 
-table_header_ = namedtuple('table_header_',
-'code name description function sortable width extraclass attrname')
 application_action = namedtuple('application_action',
                                 'view display permission')
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
 
-def table_header(code, name = None, description = None, function = None,
-                 attrname = None, sortable = True, width = None,
-                 extraclass = None):
-    '''Utility for creating an instance of a :class:`table_header_` namedtuple.
-    
-:param code: unique code for the header
-:param attrname: optional attribute name, if not supplied the *code* will be
-    used. The attrname is the actual attribute name in the object, and
-    therefore the actual field in the database. 
-'''
-    if isinstance(code,table_header_):
-        return code
-    name = name or nicename(code)
-    function = function or code
-    attrname = attrname or code
-    return table_header_(code,name,description,function,sortable,width,
-                         extraclass,attrname)
-    
 
-def attrname_from_header(header,code):
-    if code and code in header:
-        code = header[code].attrname
-    return code
+
+def instance_link(djp, instance, name = 'view', asbuttons = False):
+    appmodel = djp.site.for_model(instance, all = True)
+    if appmodel:
+        views = list(application_views(appmodel,djp,
+                                       include = (name,),
+                                       instance=instance))
+        for _,url in application_links(views, asbuttons = asbuttons):
+            return url
+        
+    return str(instance)
 
 
 def application_views(appmodel,
@@ -95,11 +72,8 @@ an :class:`djpcms.views.Application` instance.
                 continue
             descr = view.description or view.name
             dview = view(request, **kwargs)
-            try:
-                url = dview.url
-            except:
-                continue
-            if not dview.has_permission():
+            url = dview.url
+            if not url or not dview.has_permission():
                 continue
             # The special view class
             #display = nicename(view.name)
@@ -179,17 +153,16 @@ def headers_from_groups(appmodel, groups):
 def table_toolbox(djp, all = True):
     '''\
 Create a toolbox for a table if possible. A toolbox is created when
-an application based on database model is available.
+an application based on model is available.
 
 :parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
-:parameter appmodel: an instance of a :class:`djpcms.views.Application`.
 :rtype: A dictionary containing information for building the toolbox.
     If the toolbox is not available it returns ``None``.
 '''
-    view = djp.view
-    appmodel = view.appmodel
+    appmodel = djp.appmodel
     if not appmodel:
         return
+    view = djp.view
     astable = djp.view.astable
     if not astable or not appmodel.list_display:
         return
@@ -229,3 +202,106 @@ an application based on database model is available.
 
     return toolbox
 
+
+def dataTableResponse(djp, qs = None, toolbox = None, params = None):
+    '''dataTable ajax response'''
+    view = djp.view
+    request = djp.request
+    inputs = request.REQUEST
+    appmodel = view.appmodel
+    params = params or {}
+    render = not request.is_xhr
+    # The table toolbox
+    toolbox = toolbox or table_toolbox(djp,appmodel)
+    headers = toolbox['headers']
+    # Attributes to load from query
+    load_only = tuple((h.attrname for h in headers))
+    # If the application has a related_field make sure it is in the load_only
+    # tuple.
+    if appmodel.related_field and appmodel.related_field not in load_only:
+        load_only += (appmodel.related_field,)
+    num_headers = len(headers)
+    body = None
+    paginate = None
+    start = 0
+    per_page = appmodel.list_per_page
+    page_menu = None
+    if qs is None:
+        qs = view.appquery(djp)
+    
+    # We are rendering
+    if not render:
+        sort_by = {}
+        search = inputs.get('sSearch')
+        if search:
+            qs = qs.search(search)
+        sortcols = inputs.get('iSortingCols')
+        if sortcols:
+            head = None
+            for col in range(int(sortcols)):
+                c = int(inputs['iSortCol_{0}'.format(col)])
+                if c < num_headers:
+                    d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
+                             else ''
+                    head = headers[c]
+                    qs = qs.sort_by('{0}{1}'.format(d,head.attrname))
+                
+        start = inputs.get('iDisplayStart')
+        per_page = inputs.get('iDisplayLength') or per_page
+        paginate = True
+        
+    try:
+        total = qs.count()
+        query = True
+    except:
+        query = False
+        total = len(qs)
+    
+    if query:
+        qs = qs.load_only(*load_only)
+        
+    if render:
+        # if the ajax flag is not defined in parameters
+        if 'ajax' not in params:
+            params['ajax'] = djp.url if toolbox.pop('as') == 'ajax' else None
+        body = None
+        if params.get('ajax'):
+            if total > 1.3*per_page:
+                page_menu = appmodel.list_per_page_choices
+                paginate = True
+            
+    if paginate:
+        paginate = Paginator(total = total,
+                             per_page = per_page,
+                             start = start,
+                             page_menu = page_menu)
+        if not render:
+            body = paginate.slice_data(qs)
+    else:
+        body = qs
+        
+    if body:
+        body = appmodel.table_generator(djp,headers,body)
+        
+    tbl = Table(headers, body,
+                appmodel = appmodel,
+                paginator = paginate,
+                toolbox = toolbox,
+                **params)
+
+    
+    if render:
+        return tbl.render(djp)
+    else:
+        aaData = []
+        for item in tbl.items(djp):
+            id = item['id']
+            aData = {} if not id else {'DT_RowId':id}
+            aData.update(((i,v) for i,v in enumerate(item['display'])))
+            aaData.append(aData)
+        data = {'iTotalRecords':total,
+                'iTotalDisplayRecords':total,
+                'sEcho':inputs.get('sEcho'),
+                'aaData':aaData}
+        return ajax.simplelem(data)
+    

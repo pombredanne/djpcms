@@ -9,7 +9,6 @@ from djpcms.utils import escape as default_escape
 
 from .icons import yes,no
 from .base import Widget
-from .apptools import table_header
 
 
 __all__ = ['nicerepr',

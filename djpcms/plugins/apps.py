@@ -160,8 +160,8 @@ def attrquery(heads,query):
 class ModelItemsList(DJPplugin):
     '''Display filtered items for a Model.'''
     name = 'model-items'
-    description    = 'Filtered items for a model'
-    form           = ModelItemListForm
+    description = 'Filtered items for a model'
+    form = ModelItemListForm
     
     def render(self, djp, block, prefix,
                for_model = None, max_display = 5,
@@ -176,34 +176,39 @@ class ModelItemsList(DJPplugin):
         instance = djp.instance
         appmodel = djp.site.for_hash(for_model,safe=False,all=True)
         djp = appmodel.root_view(djp.request,**djp.kwargs)
-        heads = appmodel.headers
+        load_only = ()
+        thead = None
+        appheads = appmodel.headers
+        
+        if headers:
+            thead = []
+            for head in headers.split():
+                if head in appheads:
+                    thead.append(appheads[head])
+        
+        # Ordering
         if order_by:
             decr = False
             if order_by.startswith('-'):
                 order_by = order_by[1:]
                 decr = True
-            order_by = html.attrname_from_header(heads,order_by)
+            order_by = html.attrname_from_header(appheads,order_by)
             if decr:
                 order_by = '-{0}'.format(order_by)
+                
         qs = djp.basequery(instance = instance)
         if text_search:
             qs = qs.search(text_search)
-        qs = qs.filter(**dict(attrquery(heads,query_from_string(filter))))\
-               .exclude(**dict(attrquery(heads,query_from_string(exclude))))\
-               .sort_by(order_by)
+        qs = qs.filter(**dict(attrquery(appheads,query_from_string(filter))))\
+               .exclude(**dict(attrquery(appheads,query_from_string(exclude))))\
+               .sort_by(order_by)\
+               .load_only(*appmodel.load_fields(thead))
                
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:
             return display_if_empty
-        if headers:
-            thead = []
-            for head in headers.split():
-                if head in heads:
-                    thead.append(heads[head])
-        else:
-            thead = None
-                    
+        
         if thead:
             data = {'options': {'sDom':'t'}}
             w = html.Table(thead,
@@ -211,7 +216,8 @@ class ModelItemsList(DJPplugin):
                            appmodel = appmodel,
                            footer = table_footer,
                            data = data,
-                           toolbox = False)
+                           toolbox = False,
+                           title = block.title)
             return w.render(djp)
         else:
             w = html.Widget('div', cn = 'filtered-list')\

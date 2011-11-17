@@ -150,6 +150,17 @@ since they seems to confuse jQuery selectors.'''
     def save(self, data, instance = None, commit = True):
         raise NotImplementedError
     
+    def save_as_new(self, instance, data = None, commit = True):
+        '''Save the existing *instance* as a new instance in the backend
+ database.
+ 
+ :parameter instance: an instance of :attr:`model`
+ :parameter data: optional dictionary of fields to override
+ :parameter commit: if to commit to backend
+ :rtype: a new instance of :attr:`model`. 
+ '''
+        raise NotImplementedError
+    
     def search_text(self, qs, search_string, slist):
         '''\
 Perform a full text search on the model.

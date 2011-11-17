@@ -612,6 +612,17 @@ data to the client.
 
     By default it returns ``None``.'''
         pass
+    
+    def load_fields(self, headers = None):
+        if headers:
+            load_only = tuple((h.attrname for h in headers))
+            # If the application has a related_field make sure it is in the
+            # load_only tuple.
+            if self.related_field and self.related_field not in load_only:
+                load_only += (self.related_field,)
+            return load_only
+        else:
+            return ()
                 
         
 class ModelApplication(Application):

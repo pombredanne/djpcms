@@ -156,8 +156,8 @@ class get_app_result(object):
         mapper = self.mapper
         first = self.first
         url = None
-        result_repr = field_repr(head.attrname, result,
-                                 appmodel = appmodel, nd = nd)
+        attrname = head.code if hasattr(result,head.code) else head.attrname
+        result_repr = field_repr(attrname, result, appmodel = appmodel, nd = nd)
         if(self.first and not appmodel.list_display_links) or \
                 head.code in appmodel.list_display_links:
             first = False
@@ -171,7 +171,7 @@ class get_app_result(object):
                     title = field_repr(head.function, result,
                                        appmodel = appmodel, nd = nd)
                 else:
-                    title = head.name
+                    title = '{0} - {1}'.format(head.name,result_repr)
                 var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
                                 .format(url, var, title))
             else:

@@ -31,10 +31,11 @@ managing settings.'''
             return self.view(request, **self.kwargs)
     
     def djp_from_instance(self, view, instance):
-        return self._djp_instance_cache.get((view,instance))
+        if instance and instance.id: 
+            return self._djp_instance_cache.get((view,instance))
     
     def add_djp_instance_cache(self, djp, instance):
-        if instance:
+        if instance and instance.id:
             self._djp_instance_cache[(djp.view,instance)] = djp
     
     @property

@@ -203,23 +203,29 @@ an application based on model is available.
     return toolbox
 
 
-def dataTableResponse(djp, qs = None, toolbox = None, params = None):
+def dataTableResponse(djp, qs = None, toolbox = None, params = None,
+                      headers = None, title = None):
     '''dataTable ajax response'''
     view = djp.view
     request = djp.request
     inputs = request.REQUEST
     appmodel = view.appmodel
     params = params or {}
+    if not title:
+        block = getattr(djp,'block',None)
+        if block and block.title and 'title' not in params:
+            title = block.title
+    if title:
+        params['title'] = title 
     render = not request.is_xhr
     # The table toolbox
-    toolbox = toolbox or table_toolbox(djp,appmodel)
-    headers = toolbox['headers']
+    if toolbox is not False:
+        toolbox = toolbox or table_toolbox(djp,appmodel)
+        headers = headers or toolbox['headers']
+    if not headers:
+        raise ValueError('No table headers specified. Cannot render a table')
     # Attributes to load from query
-    load_only = tuple((h.attrname for h in headers))
-    # If the application has a related_field make sure it is in the load_only
-    # tuple.
-    if appmodel.related_field and appmodel.related_field not in load_only:
-        load_only += (appmodel.related_field,)
+    load_only = appmodel.load_fields(headers)
     num_headers = len(headers)
     body = None
     paginate = None

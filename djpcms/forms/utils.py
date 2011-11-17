@@ -73,7 +73,8 @@ def add_extra_fields(form, name, field):
 
 
 def add_hidden_field(form, name, required = False):
-    return add_extra_fields(form,name,forms.CharField(widget=forms.HiddenInput, required = required))
+    return add_extra_fields(form,name,forms.CharField(\
+                        widget=forms.HiddenInput, required = required))
 
 
 def success_message(instance, mch):
@@ -103,12 +104,6 @@ def form_inputs(instance, own_view = False):
     return sb
 
 
-def save_as_new(instance, commit = False):
-    #TODO
-    # make thid function available for all ORMs
-    return instance.save_as_new(commit = commit)
-
-
 def get_form(djp,
              form_factory,
              initial = None,
@@ -134,8 +129,6 @@ def get_form(djp,
     referer = request.environ.get('HTTP_REFERER')
     data = request.REQUEST
     prefix = data.get(PREFIX_KEY,None)
-    
-    save_as_new = SAVE_AS_NEW_KEY in data
     inputs = form_factory.inputs
     if inputs is not None:
         inputs = [inp.widget() for inp in inputs]
@@ -176,7 +169,7 @@ def saveform(djp, force_redirect = False):
 This method try to deal with all possible events occurring after a form
 has been submitted.'''
     view = djp.view
-    appmodel = view.appmodel
+    appmodel = djp.appmodel
     request = djp.request
     is_ajax = request.is_xhr
     data = request.REQUEST
@@ -201,7 +194,8 @@ has been submitted.'''
             return http.ResponseRedirect(redirect_url)
     
     if SAVE_AS_NEW_KEY in data and instance:
-        save_as_new(instance, commit = False)
+        f.instance = instance = appmodel.mapper.save_as_new(instance,
+                                                            commit = False)
         
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
@@ -262,7 +256,7 @@ def deleteinstance(djp, force_redirect = True):
         return ajax.jremove('#%s' % bid)
     
     messages.info(request,msg)
-    root_url = view.appmodel.root_view(djp, **djp.kwargs).url
+    root_url = view.appmodel.root_view(djp.request, **djp.kwargs).url
     if request.is_xhr:
         return ajax.jredirect(root_url)
     else:

@@ -84,9 +84,7 @@ class TableMaker(WidgetMaker):
 '''
     
     def get_context(self, djp, widget, key):
-        title = None
-        if djp:
-            title = djp.block.title if djp.block else None
+        title = widget.attrs.get('title')
         ctx = {'headers':widget.data['options']['aoColumns'],
                'footer':widget.footer,
                'title':title}

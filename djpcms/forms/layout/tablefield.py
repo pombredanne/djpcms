@@ -7,11 +7,11 @@ from .base import FormLayoutElement, check_fields
 
 
 __all__ = ['TableRelatedFieldset']
-        
 
+    
 class TableRelatedFieldset(FormLayoutElement):
     '''A :class:`djpcms.forms.layout.FormLayoutElement`
-class for handling formsets as tables.'''
+class for handling table form layouts.'''
     tag = 'div'
     default_style = 'tablerelated'
     template_name = ('djpcms/form-layouts/tableformset.html',)

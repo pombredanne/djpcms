@@ -1,6 +1,6 @@
 '''\
 A collection of classes and Mixins for rendering HTML widgets.
-Used throughout the library including the :mod:`djpcms.forms`
+Used throughout the library including the :mod:`djpcms.forms.layout`
 module.
 
 A simple usage::

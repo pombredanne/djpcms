@@ -1,0 +1,20 @@
+.. _orms:
+
+.. module:: djpcms.core.orms
+
+============================
+Object Relational Mapping
+============================
+
+
+
+
+API
+============
+
+OrmWrapper
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: OrmWrapper
+   :members:
+   :member-order: bysource

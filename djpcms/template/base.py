@@ -58,7 +58,7 @@ class ContextTemplate(object):
             rc = partial(self._render_context, func, template, **kwargs)
             return self.site.root.render_response(data, rc)
         else:
-            return _render_context(func, template, data, **kwargs)
+            return self._render_context(func, template, data, **kwargs)
         
     def context(self, data, request = None, processors=None):
         '''Evaluate the context for the template. It returns a dictionary

@@ -1,7 +1,7 @@
 
 from .base import WidgetMaker, Widget
 
-__all__ = ['yuigrid3']
+__all__ = ['yuigrid3','yuigrid3stream']
 
 
 class YuiGrid3(WidgetMaker):
@@ -38,3 +38,20 @@ def yuigrid3(*chunks, **kwargs):
 .. _yui3: http://yuilibrary.com/yui/docs/cssgrids/
 '''
     return Widget(_YuiGrid3, data_stream = chunks, **kwargs)
+
+
+class yuigrid3stream(object):
+    
+    def __init__(self, *sizes):
+        self.sizes = sizes
+        self.pos = 0
+        
+    def __call__(self, djp, data):
+        if isinstance(data,Widget):
+            data = data.render(djp)
+        if self.pos >= len(self.sizes):
+            self.pos = 0
+        r = _YuiGrid3.data2html(djp,(data,self.sizes[self.pos]))
+        self.pos += 1
+        return r
+    

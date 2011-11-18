@@ -37,7 +37,7 @@ First steps
 :ref:`Plugins <plugins-index>` |
 :ref:`Inline editing <inline-editing>` |
 :ref:`Autocomplete <autocomplete>` |
-:ref:`Object Relational Mapping <orms-index>`
+:ref:`Object Relational Mapping <orms>`
 
 Contents
 =====================
@@ -47,7 +47,6 @@ Contents
    api
    application/index
    forms/index
-   html/doc
    tutorials/index
    battery
    settings
@@ -61,7 +60,7 @@ API
    
    application/api
    forms/api
-   html/api
+   html
    internals/index
 
 

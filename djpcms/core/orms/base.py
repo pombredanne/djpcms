@@ -23,8 +23,7 @@ class OrmQuery(object):
     
 
 class OrmWrapper(UnicodeMixin):
-    '''Base class for classes used to
-wrap existing object relational mappers.
+    '''Wrapper for object relational mapper libraries.
 
 :parameter model: The ORM model class (for example a django model class).
 
@@ -176,7 +175,9 @@ Return an iterable over items'''
         self.all().delete()
         
     @classmethod
-    def setup_environment(cls,sites_):
+    def setup_environment(cls,sites):
+        '''Setup the environment for thei ORM  library. Called during
+ site initialization.'''
         pass
 
 

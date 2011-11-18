@@ -132,14 +132,23 @@ def clean_url_bits(mapper, urlbits, mapping):
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
-    '''Base class for djpcms
-applications. It defines a set of :class:`View` which are somehow related
+    '''An application defines a set of :class:`View` which are somehow related
 to each other and shares a common application object :attr:`View.appmodel`
-which is an instance of this class.
+attribute which is an instance of this class. Application views
+(instances or :class:`View`) can be specified as class attributes as well as
+input parameters in the :class:`Application` constructor. For example::
 
-Application views are instances of :class:`djpcms.views.View` class and
-are specified as class attributes of a :class:`Application` class
-or in the constructor.
+    from djpcms import views
+    
+    app = views.Application(baseurl = '/',
+                    home = views.View(
+                        renderer = lambda djp : 'Hello world!'),
+                    whatever = views.View("/what/",
+                        renderer = lambda djp : 'I'm on whatever view!')
+                    )
+                    
+defines an application serving on '/' with two views, the `home` serving at
+"/" and the `whatever` view serving at "/what/".
     
 :parameter baseurl: the root part of the application views urls.
                     Check :attr:`baseurl` for more information.
@@ -152,8 +161,13 @@ or in the constructor.
                           :attr:`root_view` ``in_nav`` attribute.
                           
                           Default ``None``.
-:parameter views: Dictionary of :class:`djpcms.views.View` instances.
-                    Default: ``None``
+:parameter views: key valued of :class:`View` instances.
+
+
+--
+
+
+**Application attributes**
 
 
 .. attribute:: baseurl
@@ -168,19 +182,24 @@ or in the constructor.
     
 .. attribute:: model
 
-    Model associated with this application
+    Model associated with this application.
+    Check :ref:`Object relational mapper <orms>` for more information.
     
     Default: ``None``.
     
+.. attribute:: mapper
+
+    Instance of :class:`djpcms.core.orms.OrmWrapper` or ``None``.
+    Created from :attr:`model` if available, during construction.
+        
 .. attribute:: name
 
     Application name. Calculated from class name if not provided.
     
-    Default ``None``
     
 .. attribute:: site
 
-    instance of :class:`djpcms.views.ApplicationSite`,
+    instance of :class:`ApplicationSite`,
     the application site manager to which the application is registered with.
     
 .. attribute:: list_display
@@ -224,7 +243,7 @@ or in the constructor.
     
 .. attribute:: root_view
 
-    An instance of :class:`djpcms.views.View` which represents the root view
+    An instance of :class:`View` which represents the root view
     of the application.
     This attribute is calculated by djpcms and specified by the user.
     
@@ -249,17 +268,19 @@ or in the constructor.
 .. attribute:: object_widgets
     
     Dictioanry of object renderers.
+    
+.. attribute:: inherit
+
+    Flag indicating if application views are inherited from base class.
+    
+    Default ``False``.
+    
+**Application methods**
+
 '''
     creation_counter = 0
     inherit          = False
-    '''Flag indicating if application views are inherited from base class.
-    
-    Default ``False``.'''
-    '''Application description. Default ``None``, calculated from name.'''
     authenticated    = False
-    '''True if authentication is required. Default ``False``.'''
-    has_api          = False
-    '''Flag indicating if API is available. Default ``False``.'''
     has_plugins      = True
     hidden           = False
     related_field    = None
@@ -493,7 +514,7 @@ Return ``None`` if the view is not available.'''
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
-:parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
+:parameter djp: instance of :class:`DjpResponse`.
 :parameter form_class: form class to use.
 :parameter addinputs: boolean flag indicating if submit inputs should be added.
                     
@@ -603,7 +624,7 @@ By default it return a generator of children pages.'''
         '''A hook for returning group of table headers before sending
 data to the client.
 
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`.
+:parameter djp: instance of :class:`DjpResponse`.
 
 :rtype: an iterable over two dimensional tuples::
 
@@ -653,7 +674,7 @@ User should subclass this for full control on the model application.
     '''List of model fields which can be used to filter'''
     search_fields    = []
     '''List of model field's names which are searchable. Default ``None``.
-This attribute is used by :class:`djpcms.views.appview.SearchView` views
+This attribute is used by :class:`SearchView` views
 and by the :ref:`auto-complete <autocomplete>`
 functionality when searching for model instances.'''
     exclude_object_links = []

@@ -1,24 +1,48 @@
 .. _forms-api:
 
 =============
-Forms API
+Forms
 =============
 
-Form and Fields
+.. automodule:: djpcms.forms
+
+::
+
+    from djpcms import forms
+    
+    class IssueForm(forms.Form):
+        name = forms.CharField()
+        description = forms.CharField(widget = forms.TextArea(),
+                                      required= False)
+        labels = forms.CharField(required=False)
+
+
+Form API
 =====================
 
 Form
 ~~~~~~~~
 
-.. autoclass:: djpcms.forms.Form
+.. autoclass:: Form
    :members:
    :member-order: bysource
 
 
+HtmlForm
+~~~~~~~~~~~~~~
+
+.. autoclass:: HtmlForm
+   :members:
+   :member-order: bysource
+
+
+Fields API
+=====================
+
 Field
 ~~~~~~~~
 
-.. autoclass:: djpcms.forms.Field
+.. autoclass:: Field
    :members:
    :member-order: bysource
    
@@ -26,7 +50,7 @@ Field
 CharField
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.CharField
+.. autoclass:: CharField
    :members:
    :member-order: bysource   
    
@@ -34,26 +58,25 @@ CharField
 ChoiceField
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.ChoiceField
+.. autoclass:: ChoiceField
    :members:
    :member-order: bysource
 
 
-HTML and Utilities
-========================
-
-HtmlForm
-~~~~~~~~~~~~~~
-
-.. autoclass:: djpcms.forms.HtmlForm
+FieldList
+~~~~~~~~~~~~~~~~
+.. autoclass:: FieldList
    :members:
    :member-order: bysource
 
+   
+Form Utilities API
+=====================
 
 BoundField
 ~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.BoundField
+.. autoclass:: BoundField
    :members:
    :member-order: bysource
 
@@ -61,35 +84,30 @@ BoundField
 FormWidget
 ~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.FormWidget
+.. autoclass:: FormWidget
    :members:
    :member-order: bysource
       
 
-Layouts
+.. _forms-layout:
+
+Form Layout API
 =====================
 
-API
-===========
+.. automodule:: djpcms.forms.layout
 
-BaseFormLayout
+
+FormLayoutElement
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.layout.BaseFormLayout
+.. autoclass:: FormLayoutElement
    :members:
    :member-order: bysource
 
 FormLayout
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.forms.layout.FormLayout
+.. autoclass:: FormLayout
    :members:
    :member-order: bysource
    
-   
-FormLayoutElement
-~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: djpcms.forms.layout.FormLayoutElement
-   :members:
-   :member-order: bysource

@@ -55,7 +55,7 @@ class Renderer(object):
         raise NotImplementedError
     
     def media(self, djp = None):
-        '''It returns an instance of :class:`djpcms.html.Media`.
+        '''It returns an instance of :class:`Media`.
 It should be overritten by derived classes.'''
         return None
 
@@ -185,7 +185,12 @@ with key ``name`` and value ``value`` and return ``self``.'''
                     ks.remove(cn)
         return self
     
+    def get_context(self, djp, keys = None, **kwargs):
+        '''Return the context dictionary for this widget.'''
+        return self.maker.get_context(djp, self, keys or kwargs)
+    
     def render(self, djp = None, inner = None, keys = None, **kwargs):
+        '''Render the widget'''
         ctx = self.maker.render_from_widget(djp, self, inner, keys or kwargs)
         ctx.add_renderer(mark_safe)
         return ctx.done()
@@ -198,13 +203,19 @@ with key ``name`` and value ``value`` and return ``self``.'''
 
 
 class WidgetMaker(Renderer):
-    '''Derived from :class:`djpcms.html.Renderer`,
-it is a class used as factory for HTML components.
+    '''A :class:`Renderer` used as factory for :class:`Widget` instances.
+It is general enough that it can be use for a vast array of HTML widgets. For
+corner cases, users can subclass it to customize behavior. 
 
-:parameter inline: If ``True`` the widget is rendered as an inline element::
-    Its value is stored in the :attr:`inline`.
+:parameter inline: Its value is stored in the :attr:`inline` attribute.
+:parameter renderer: Its value is stored in the :attr:`renderer` attribute.
+:parameter widget: Optional :class:`Widget` class which overrides the default.
     
-    Default ``False``.
+--
+
+
+**WidgetMaker Attributes**
+
 
 .. attribute:: tag
 
@@ -246,6 +257,13 @@ it is a class used as factory for HTML components.
          ....
         </tag>
     
+
+.. attribute:: renderer
+
+    Optional callable for rendering the inner part of the widget.
+    
+    Default ``None``
+    
 .. attribute:: template
 
     optional template string for rendering the inner part of the widget.
@@ -273,11 +291,18 @@ it is a class used as factory for HTML components.
     
 .. attribute:: allchildren
 
-    A list containing al children.
+    A list containing all :class:`WidgetMaker` instances which are children
+    of the instance.
     
 .. attribute:: children
 
-    A dictionary containing children with keys
+    A dictionary containing children with keys.
+    
+.. attribute:: widget_class
+
+    The widget class used by the :meth:`widget` method when creating widgets.
+    
+    Default: :class:`Widget`
     
 .. attribute:: default
 
@@ -291,6 +316,11 @@ it is a class used as factory for HTML components.
         <a class='ciao ajax'>bla bla</a>
         
     Default ``None``
+
+--
+
+
+**WidgetMaker Methods**
 
 '''
     tag = None
@@ -309,7 +339,8 @@ it is a class used as factory for HTML components.
     def __init__(self, inline = None, default = False,
                  description = '', widget = None,
                  attributes = None, inner = None,
-                 renderer = None, **params):
+                 renderer = None, data2html = None,
+                 **params):
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
@@ -328,6 +359,8 @@ it is a class used as factory for HTML components.
         self.default_class = params.pop('default_class',self.default_class)
         self._widget = widget or self._widget or Widget
         self._inner = inner
+        if data2html:
+            self.data2html = lambda djp, data : data2html(self, djp, data)
         if self.default_attrs:
             p = self.default_attrs.copy()
             p.update(params)
@@ -353,6 +386,10 @@ it is a class used as factory for HTML components.
         if key:
             default_widgets_makers[key] = self
     
+    @property
+    def widget_class(self):
+        return self._widget
+    
     @classmethod
     def makeattr(cls, *attrs):
         attr = set(attrs)
@@ -363,16 +400,10 @@ it is a class used as factory for HTML components.
         return '{0}{1}'.format(self.__class__.__name__,'-'+\
                                self.tag if self.tag else '')
     
-    def ischeckbox(self):
-        '''Returns ``True`` if this is a checkbox widget.
-Here because checkboxes have slighltly different way of rendering.
-        '''
-        return False
-    
     def add(self,*widgets):
         '''Add children *widgets* to ``self``,
-*widgets* must be instances of :class:`djpcms.html.WidgetMaker`.
-If a child has an :attr:`djpcms.html.WidgetMaker.key` attribute specified,
+*widgets* must be instances of :class:`WidgetMaker`.
+If a child has an :attr:`WidgetMaker.key` attribute specified,
 it will be added to the ``children`` dictionary
 for easy retrieval.
 It returns self for concatenating data.'''
@@ -386,10 +417,41 @@ It returns self for concatenating data.'''
         return self
   
     def widget(self, **kwargs):
-        '''Create an instance of a :class:`djpcms.html.Widget` for rendering.'''
+        '''Create an instance of a :class:`Widget` for rendering.
+ It invokes the constructor of the :attr:`widget_class` attribute.'''
+        kwargs.pop('maker',None)
         return self._widget(self, **kwargs)
     
+    def children_widgets(self, widget):
+        for child in self.allchildren:
+            yield self.child_widget(child, widget)
+            
+    def get_context(self, djp, widget, keys):
+        '''Called by the :meth:`inner` method it
+returns a dictionary of variables used for rendering. By default it
+loops over the :attr:`allchildren` list and put therendered chuild in a new list.
+This child rendered list is available at `children` key in the returned
+dictionary.'''
+        ctx = widget.internal
+        # Loop over fields and delivers the goods
+        children = []
+        for w in self.children_widgets(widget):
+            key = w.maker.key
+            if key and key in keys:
+                text = w.render(djp, keys[key])
+            else:
+                text = w.render(djp, keys = keys)
+                #if key:
+                #    ctx[key] = text
+                #    continue
+            children.append(text)
+        ctx['children'] = children
+        return ctx
+    
     def render(self, djp = None, inner = None, **kwargs):
+        '''Render into html. This is a shortcut function which build a
+ :class:`Widget` using  the :meth:`widget` method and invokes the
+ :meth:`Widget.render` method on it.'''
         return self.widget(**kwargs).render(djp,inner)
     
     def render_from_widget(self, djp, widget, inner, keys):
@@ -418,7 +480,13 @@ It returns self for concatenating data.'''
         '''Render the inner part of the widget. This can be overwritten by
 derived classes and should return the inner part of html.
 By default it renders the template if it is available, otherwise
-an empty string.'''
+an empty string.
+
+:parameter djp: instance of :class:`djpcms.views.DjpResponse`
+:parameter widget: instance of :class:`Widget` to be rendered
+:parameter keys: ???
+:return: A string representing the inner part of the widget.
+'''
         context = self.get_context(djp,widget,keys)
         if self.template or self.template_name:
             context.update({'maker':self,
@@ -435,44 +503,40 @@ an empty string.'''
         '''This method is called when rendering without templates.
 It returns an iterable over chunks of html to be displayed in the
 inner part of the widget.'''
+        data2html = self.data2html
         if widget.data_stream:
-            data2html = self.data2html
             for chunk in widget.data_stream:
                 yield data2html(djp, chunk)
         for child in context['children']:
-            yield child
+            yield data2html(djp, child)
         
     def data2html(self, djp, data):
-        '''Process data'''
+        '''Process data from :meth:`stream`. By default it renders data if
+ data is an instance of :class:`Widget` and returns it.'''
         if isinstance(data,Widget):
             data = data.render(djp)
         return data
 
     def child_widget(self, child, widget, **kwargs):
+        '''Function invoked when there are children available. See the
+:attr:`allchildren`` attribute for more information on children.
+
+:parameter child: a :class:`WidgetMaker` child of self.
+:parameter widget: The :class:`Widget` instance used for rendering.
+:parameter kwargs: extra key-valued parameters to passed to the child
+    widget constructor.
+:rtype: An instance of :class:`Widget` for the child element.
+'''
         w = child.widget(**widget.internal)
         w.internal.update(kwargs)
         w.internal['parent'] = widget
-        return w
+        return w    
     
-    def get_context(self, djp, widget, keys):
-        '''Function called by :meth:`inner` method when the widget needs to be rendered via a template.
-It returns a dictionary of variables to be passed to the template engine.'''
-        ctx = widget.internal
-        # Loop over fields and delivers the goods
-        children = []
-        for child in self.allchildren:
-            w = self.child_widget(child, widget)
-            key = w.maker.key
-            if key and key in keys:
-                text = w.render(djp, keys[key])
-            else:
-                text = w.render(djp, keys = keys)
-                #if key:
-                #    ctx[key] = text
-                #    continue
-            children.append(text)
-        ctx['children'] = children
-        return ctx
+    def ischeckbox(self):
+        '''Returns ``True`` if this is a checkbox widget.
+Here because checkboxes have slighltly different way of rendering.
+        '''
+        return False
         
         
 DefaultMaker = WidgetMaker()

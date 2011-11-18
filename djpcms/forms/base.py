@@ -23,8 +23,32 @@ from .fields import Field
 
 __all__ = ['FormType',
            'Form',
-           'BoundField']
+           'BoundField',
+           'FieldList']
 
+
+class FieldList(list):
+    '''A list of :class:`Field` and :class:`FieldList`.
+ It can be used to specify fields
+ using a declarative list in a :class:`Form` class.
+ For example::
+ 
+     from djpcms import forms
+     
+     class MyForm(forms.Form):
+         some_fields = forms.FieldList(('name',forms.CharField()),
+                                       ('description',forms.CharField()))
+'''
+    def fields(self, prefix = None):
+        for name,field in self:
+            if isinstance(field,self.__class__):
+                for name2,field2 in field.fields(name):
+                    yield name2,field2
+            else:
+                if prefix:
+                    name = '{0}{1}'.format(prefix,name)
+                yield name,field
+                
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
     """Adapted form django
@@ -34,6 +58,9 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
     for name,obj in list(attrs.items()):
         if isinstance(obj, Field):
             fields.append((name, attrs.pop(name)))
+        elif isinstance(obj, FieldList):
+            obj = attrs.pop(name)
+            fields.extend(obj.fields())
         elif isinstance(obj, FormSet):
             obj.name = name
             inlines.append((name, attrs.pop(name)))

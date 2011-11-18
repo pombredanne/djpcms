@@ -19,7 +19,6 @@ __all__ = ['FormWidget',
            'nolabel',
            'SUBMITS']
 
-
 nolabel = 'nolabel'
 SUBMITS = 'submits' # string indicating submits in forms
 
@@ -34,13 +33,12 @@ def check_fields(fields, missings, layout):
                 field.check_fields(missings,layout)
             else:
                 missings.remove(field)
-            new_fields.append(field)
-        elif is_bytes_or_string(field):
-            raise ValueError('Field {0} is not part of form'\
-                             .format(field))
+        elif isinstance(field,html.WidgetMaker):
+            if isinstance(field,FormLayoutElement):
+                field.check_fields(missings, layout)
         else:
-            field.check_fields(missings, layout)
-            new_fields.append(field)
+            field = html.Html(field)
+        new_fields.append(field)
     return new_fields
 
 
@@ -86,7 +84,7 @@ class FieldWidget(FormWidgetMaker):
                 'ischeckbox':w.maker.ischeckbox(),
                 'hidden':w.attr('type')=='hidden'}
         
-    def _stream(self,elem, context):
+    def _stream(self, elem, context):
         bfield =  context['field']
         parent = context['parent']
         whtml = context['inner']
@@ -164,12 +162,14 @@ form layout design.
 
 
 class FormLayoutElement(BaseFormLayout):
-    '''base class af form layout components. A instance of this class
-render one or several form fields and it is part of
-an instance of a :class:`djpcms.forms.layout.FormLayout`.
+    '''Base :class:`djpcms.html.WidgetMaker` class for :class:`FormLayout`
+components. A instance of this class render one or several form
+:class:`djpcms.forms.Field`.
 
-It defines how form fields are rendered and it can
-be used to add extra html elements to the form.
+.. attribute:: field_widget_maker
+
+    A template name or tuple for rendering a bound field. If not provided
+    the field will render the widget only.
 '''
     def __init__(self, *children, **kwargs):
         super(FormLayoutElement,self).__init__(**kwargs)
@@ -181,9 +181,12 @@ remove available fields from the missing set.'''
         self.allchildren = check_fields(self.allchildren,missings,layout)
     
     def child_widget(self, child, widget):
-        form = widget.form
+        '''Override the :meth:`djpcms.html.WidgetMaker.child_widget` method
+ in order to account for *child* which are form :class:`djpcms.forms.Fields`
+ names.'''
+        form = widget.internal.get('form')
         make = super(FormLayoutElement,self).child_widget
-        if child in form.dfields:
+        if form and child in form.dfields:
             return make(self.field_widget_maker,
                         widget, field = form.dfields[child])
         else:
@@ -210,7 +213,8 @@ class SubmitElement(FormLayoutElement):
         
 
 class FormLayout(BaseFormLayout):
-    '''Base form class for form layout design'''
+    '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
+ layout design.'''
     submit_element = None
     '''Form template'''
     '''Template file for rendering form fields'''

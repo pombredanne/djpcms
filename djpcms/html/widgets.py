@@ -13,7 +13,6 @@ __all__ = ['TextInput',
            'Select',
            'FileInput',
            'ListWidget',
-           'List',
            'SelectWithAction',
            'TextSelect',
            'DefinitionList']
@@ -153,31 +152,13 @@ Select()
 
 class ListWidget(WidgetMaker):
     tag='ul'
-    def inner(self, djp, widget, keys):
-        return '\n'.join(widget._list)
+    def add_to_widget(self, widget, elem, cn = None):
+        if not isinstance(elem,Widget) or elem.tag != 'li':
+            elem = Widget('li', elem, cn = cn)
+        widget.data_stream.append(elem)
+    
 
-
-class List(Widget):
-    maker = ListWidget()
-    def __init__(self, data = None, li_class = None, **kwargs):
-        self._list = []
-        self.li_class = li_class
-        super(List,self).__init__(tag='ul',**kwargs)
-        if data:
-            for d in data:
-                self.append(d)
-    
-    def addanchor(self, href, text):
-        if href:
-            a = "<a href='{0}'>{1}</a>".format(href,text)
-            self.append(a)
-            
-    def append(self, elem, cn = None):
-        elem = Widget('li', cn = self.li_class).render(inner = elem)
-        self._list.append(elem)
-    
-    
-ListWidget(default = 'ul', widget = List)
+ListWidget(default = 'ul')
 
 
 #___________________________________________________ LIST DEFINITION

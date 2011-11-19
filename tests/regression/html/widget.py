@@ -1,9 +1,11 @@
-from djpcms import test, forms, html, to_string
+import unittest as test
+
+from djpcms import forms, html, to_string
 
 
-class testHtmlTools(test.TestCase):
+class testAttributes(test.TestCase):
     
-    def testAttrMixin(self):
+    def testClass(self):
         c = html.Widget()
         c.addClass('ciao').addClass('pippo')
         self.assertTrue('ciao' in c.classes)
@@ -53,8 +55,28 @@ class TestWidgets(test.TestCase):
         a = html.Widget('a', xxxx = 'ciao')
         self.assertFalse('xxxx' in a.attrs)
         self.assertEqual(a.internal['xxxx'],'ciao')
+    
+    def testList(self):
+        li = html.Widget('ul')
+        self.assertEqual(li.tag,'ul')
+        self.assertEqual(len(li),0)
+        li = html.Widget('ul', ['a list item','another one'])
+        self.assertEqual(len(li),2)
+        ht = li.render()
+        self.assertTrue('<ul>' in ht)
+        self.assertTrue('</ul>' in ht)
+        self.assertTrue('<li>a list item</li>' in ht)
+        self.assertTrue('<li>another one</li>' in ht)
         
-        
+    def testTabs(self):
+        tab = html.tabs()
+        self.assertEqual(tab.tag,'div')
+        tab.add('tab1','this is tab 1')
+        self.assertEqual(len(tab),1)
+        tab.add('tab2','this is tab 2')
+        self.assertEqual(len(tab),2)
+        ht = tab.render()
+        self.assertTrue('ui-tabs' in ht)
 class TestInputs(test.TestCase):
     
     def create(self, name, ty, **kwargs):
@@ -97,13 +119,3 @@ class TestInputs(test.TestCase):
     def testFailTextInput(self):
         self.assertRaises(TypeError,html.TextInput, fake='test')
         
-    def testList(self):
-        li = html.List()
-        self.assertEqual(len(li),0)
-        li = html.List(['a list item','another one'])
-        self.assertEqual(len(li),2)
-        ht = li.render()
-        self.assertTrue('<ul>' in ht)
-        self.assertTrue('</ul>' in ht)
-        self.assertTrue('<li>a list item</li>' in ht)
-        self.assertTrue('<li>another one</li>' in ht)

@@ -3,7 +3,6 @@ import logging
 
 from djpcms import views, html, UnicodeMixin, CHANGE, ADD
 from djpcms.utils import iri_to_uri, escape
-from djpcms.html import grid960, htmldoc, List
 
 from .exceptions import ApplicationNotAvailable
 from .messages import get_messages
@@ -12,11 +11,11 @@ from .messages import get_messages
 logger = logging.getLogger('djpcms.core.context_processor')
 
 
-class PageLink(html.List):
+class PageLink(html.Widget):
     '''Utility for displaying links
 for page editing or creation or exit editing.'''
     def __init__(self, request):
-        super(PageLink,self).__init__()
+        super(PageLink,self).__init__('ul')
         self.request = request
         request = self.request
         info = request.DJPCMS
@@ -104,7 +103,7 @@ for page editing or creation or exit editing.'''
                 
 def get_grid960(page, settings):
     float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
-    return grid960(fixed = not float_layout)
+    return html.grid960(fixed = not float_layout)
 
 
 def djpcms(request):
@@ -125,7 +124,7 @@ def djpcms(request):
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
            'base_template': base_template,
-           'htmldoc': htmldoc(None if not page else page.doctype),
+           'htmldoc': html.htmldoc(None if not page else page.doctype),
            'request': request,
            'user': user,
            'is_authenticated': False if not user else user.is_authenticated(),

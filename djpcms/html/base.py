@@ -1,5 +1,6 @@
 import json
 from copy import copy
+from inspect import isgenerator
 
 from py2py3 import iteritems
 
@@ -8,7 +9,6 @@ from djpcms import UnicodeMixin, is_string, to_string, ContextRenderer
 from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
-from djpcms.template import loader
 
 
 __all__ = ['flatatt',
@@ -36,6 +36,10 @@ def dump_data_value(v):
         else:
             v = json.dumps(v)
     return mark_safe(v)
+
+
+def iterable(data):
+    return isinstance(data,(list,tuple)) or isgenerator(data)
 
 
 class Renderer(object):
@@ -73,10 +77,20 @@ handling HTML classes, attributes and data on a html object::
     ' name="pippo" class="foo bla"'
     
 Any Operation on this class is similar to jQuery.
+
+.. attribute:: data_stream
+
+    A list of inner data for the widget.
+    
+.. attribute:: parent
+
+    The parent :class:`Widget` holding ``self``.
+    
+    Default ``None``
 '''    
     maker = None
-    def __init__(self, maker = None, cn = None, data = None,
-                 options = None, data_stream = None,
+    def __init__(self, maker = None, data_stream = None,
+                 cn = None, data = None, options = None, 
                  css = None, **params):
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
@@ -84,7 +98,6 @@ Any Operation on this class is similar to jQuery.
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
         self.maker = maker
-        self.data_stream = data_stream
         self.classes = set()
         self._css = css or {}
         self.data = data or {}
@@ -98,13 +111,28 @@ Any Operation on this class is similar to jQuery.
                 attrs[att] = params.pop(att)
         self.internal = params
         self.tag = self.maker.tag
+        if data_stream is not None:
+            if iterable(data_stream):
+                for d in data_stream:
+                    self.add(d)
+            else:
+                self.add(data_stream)
         
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,self.maker)
     
+    def __len__(self):
+        return len(self.data_stream)
+    
     @property
     def parent(self):
-        return self.internal.get('parent',None)
+        return self.internal.get('parent')
+    
+    @property
+    def data_stream(self):
+        if 'data_stream' not in self.internal:
+            self.internal['data_stream'] = []
+        return self.internal['data_stream']
     
     def copy(self, **kwargs):
         c = copy(self)
@@ -146,6 +174,7 @@ Any Operation on this class is similar to jQuery.
         return self
     
     def css(self, mapping):
+        '''Upsate the css dictionary'''
         self._css.update(mapping)
         return self
         
@@ -185,6 +214,11 @@ with key ``name`` and value ``value`` and return ``self``.'''
                     ks.remove(cn)
         return self
     
+    def add(self, *args, **kwargs):
+        '''Add to the stream. This functions delegates the adding to the
+ :meth:`WidgetMaker.add_to_widget` method.'''
+        self.maker.add_to_widget(self,*args,**kwargs)
+        
     def get_context(self, djp, keys = None, **kwargs):
         '''Return the context dictionary for this widget.'''
         return self.maker.get_context(djp, self, keys or kwargs)
@@ -400,7 +434,7 @@ corner cases, users can subclass it to customize behavior.
         return '{0}{1}'.format(self.__class__.__name__,'-'+\
                                self.tag if self.tag else '')
     
-    def add(self,*widgets):
+    def add(self, *widgets):
         '''Add children *widgets* to ``self``,
 *widgets* must be instances of :class:`WidgetMaker`.
 If a child has an :attr:`WidgetMaker.key` attribute specified,
@@ -416,6 +450,12 @@ It returns self for concatenating data.'''
                     self.children[widget.key] = widget
         return self
   
+    def add_to_widget(self, widget, element):
+        '''Called by *widget* to add a new *element* to its data stream.
+ By default it simply append *element* to the :attr:`Widget.data_stream`
+ attribute. It can be overwritten.'''
+        widget.data_stream.append(element)
+        
     def widget(self, **kwargs):
         '''Create an instance of a :class:`Widget` for rendering.
  It invokes the constructor of the :attr:`widget_class` attribute.'''
@@ -433,7 +473,6 @@ loops over the :attr:`allchildren` list and put therendered chuild in a new list
 This child rendered list is available at `children` key in the returned
 dictionary.'''
         ctx = widget.internal
-        # Loop over fields and delivers the goods
         children = []
         for w in self.children_widgets(widget):
             key = w.maker.key
@@ -491,7 +530,7 @@ an empty string.
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
-            lt = djp.site.template if djp else loader
+            lt = djp.site.template
             if self.template:
                 return lt.template_class(self.template).render(context)
             else:

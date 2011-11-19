@@ -1,4 +1,7 @@
+__test__ = False
+
 from random import randint
+
 from djpcms import forms
 
 

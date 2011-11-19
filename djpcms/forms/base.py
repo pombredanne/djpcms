@@ -14,7 +14,7 @@ from djpcms.core.orms import mapper
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 from djpcms.utils.const import NOTHING
-from djpcms.html import List, SubmitInput
+from djpcms.html import SubmitInput
 
 from .globals import *
 from .formsets import FormSet

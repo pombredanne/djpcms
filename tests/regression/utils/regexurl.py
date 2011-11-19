@@ -1,5 +1,6 @@
 import unittest as test
-from djpcms.views import RegExUrl, IDREGEX
+
+from djpcms import RegExUrl, IDREGEX
 
 
 class TestRegExUrl(test.TestCase):

@@ -1,13 +1,12 @@
 '''\
 Test Blocks in pages
 '''
-from djpcms import test, sites
-from djpcms.apps.included import vanilla
-from djpcms.core.exceptions import PathException, Http404
+import unittest as test
+
+from djpcms.apps import vanilla
+from djpcms import PathException, Http404
 
 
-
-@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
 class TestPage(test.TestCase,test.PageMixin):
     
     def setUp(self):

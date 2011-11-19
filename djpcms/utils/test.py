@@ -3,86 +3,28 @@ import os
 import sys
 import unittest
 from copy import copy
+from pulsar.utils.test import test
 
-import djpcms
-from djpcms.apps.site import ApplicationSites
-from djpcms import forms, UnicodeMixin, http
-from djpcms.views import djpcmsview
-from djpcms.forms.utils import fill_form_data
-from djpcms.utils.importer import import_module
-from djpcms.core.exceptions import *
-
-from .client import Client
-from .mixin import UserMixin
+try:
+    import djpapps
+except:
+    djpapps = None
 
 try:
     from BeautifulSoup import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
-
-try:
-    skip = unittest.skip
-    skipIf = unittest.skipIf
-    skipUnless = unittest.skipUnless
-    SkipTest = unittest.SkipTest
-    TestCaseBase = unittest.TestCase
-    TextTestRunner = unittest.TextTestRunner
-    TestSuiteBase = unittest.TestSuite
-except AttributeError:
-    from .skiptests import *
-
-
-__all__ = ['TestCase','ApplicationTest',
-           'PluginTest','skip', 'skipIf',
-           'skipUnless', 'SkipTest',
-           'TestDirectory', 'ContribTestDirectory',
-           'SiteTestDirectory']
-
-
-class TestDirectory(UnicodeMixin):
     
-    def __init__(self,path):
-        self.path = path
-        
-    def __unicode__(self):
-        return self.path
-    
-    def app_label(self,test_type,app):
-        return '{0}.{1}'.format(test_type,app)
-    
-    def dirpath(self, test_name):
-        return os.path.join(self.path,test_name)
-        
-    def test_module(self, test_name, mod):
-        return '{0}.tests'.format(mod)
+import djpcms
+from djpcms import views, forms, UnicodeMixin, http
+from djpcms.forms.utils import fill_form_data
+from djpcms.core.exceptions import *
 
 
-class ContribTestDirectory(TestDirectory):
-
-    def __init__(self, lib, contrib = None):
-        self.lib = lib
-        self.contrib = contrib
-        if self.contrib:
-            module = import_module('{0}.{1}'.format(lib,contrib))
-        else:
-            module = import_module(lib)
-        self.path = os.path.dirname(module.__file__)
-        
-    def dirpath(self, test_name):
-        return self.path
-
-    def app_label(self, test_type, app):
-        return '{0}.{1}.{2}'.format(self.lib,self.contrib,app)
-        
-    def test_module(self, test_name, mod):
-        return '{0}.tests.{1}'.format(mod,test_name)
+skipUnless = test.skipUnless
 
 
-def SiteTestDirectory(TestDirectory):
-    pass
-
-
-class ApplicationTest(TestCaseBase):
+class ApplicationTest(test.TestCase):
     '''Test Class for djpcms applications'''
     _env = None
     
@@ -135,25 +77,7 @@ class ApplicationTest(TestCaseBase):
         return resp
 
 
-class TestCase(ApplicationTest):
-    '''Test class for testing djpcms itself.
-Implements shortcut functions for testing djpcms.
-Must be used as a base class for TestCase classes'''
-    def _pre_setup(self):
-        from djpcms.models import tree_update
-        self.sites = ApplicationSites() # The test sites handler. Used for everything
-        if tree_update:
-            tree_update.register_site(self.sites)
-        self.handler = http.DjpCmsHandler(self.sites)
-        self.tests = djpcms.sites.settings
-        self.tests.TESTING = True
-        if self._env:
-            self._env.pre_setup()
-            
-    def _post_teardown(self):
-        from djpcms.models import tree_update
-        if tree_update:
-            tree_update.unregister_site(self.sites)
+class TestCase(test.TestCase):
             
     def makesite(self, route = None, appurls = None, **kwargs):
         '''Utility function for setting up an application site. The site is not loaded.'''
@@ -180,14 +104,14 @@ Must be used as a base class for TestCase classes'''
         self.sites.load()
         res  = self.sites.resolve(path)  
         self.assertTrue(len(res),3)
-        self.assertTrue(isinstance(res[1],djpcmsview))
+        self.assertTrue(isinstance(res[1],views.djpcmsview))
         return res
 
     def bs(self, doc):
         return BeautifulSoup(doc)
         
         
-class PluginTest(TestCase,UserMixin):
+class PluginTest(TestCase):
     plugin = None
     
     def _pre_setup(self):

@@ -1,11 +1,10 @@
-import unittest
-from itertools import izip
+import unittest as test
 
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.populate import populate
 
 
-class TestOrderedDict(unittest.TestCase):
+class TestOrderedDict(test.TestCase):
 
     def testInstance(self):
         d = OrderedDict()
@@ -20,6 +19,7 @@ class TestOrderedDict(unittest.TestCase):
             self.assertEqual(n,kv[1]) 
     
     def testOrderList(self):
+        from itertools import izip
         x = populate('string',300, min = 5, max = 15)
         y = populate('string',300, min = 5, max = 15)
         data = zip(x,y)

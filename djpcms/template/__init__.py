@@ -4,9 +4,6 @@ import json
 from djpcms import DJPCMS_DIR
 from .base import *
 
-# Default Implementation
-# TODO: Remove
-loader = TemplateHandler()
 
 json_dump_safe = lambda data: loader.mark_safe(json.dumps(data))
 

@@ -1,6 +1,5 @@
 from djpcms import html
 from djpcms.html import icons
-from djpcms.template import loader
 from djpcms.utils.text import nicename
 
 from .base import FormLayoutElement, check_fields
@@ -61,6 +60,7 @@ class for handling table form layouts.'''
         for head in self.headers:
             w = self.child_widget(head['name'],widget)
             ctx = w.maker.get_context(djp,w,{})
+            loader = djp.site.template
             ctx['inner'] = loader.template_class(self.field_template)\
                                     .render(ctx)
             yield ctx

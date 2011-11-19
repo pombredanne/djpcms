@@ -1,7 +1,7 @@
 import time
 from datetime import date, datetime
 
-from djpcms.utils.dates smart_time
+from djpcms.utils.dates import smart_time
 
 
 class TestRegExUrl(test.TestCase):

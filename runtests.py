@@ -3,7 +3,9 @@
 
     pip install pulsar
 '''
+import os
 import pulsar
+
 from pulsar.apps.test import TestSuite, TestOptionPlugin
 from pulsar.apps.test.plugins import bench, httpclient
 
@@ -18,7 +20,7 @@ class ORM(TestOptionPlugin):
         
     
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     suite = TestSuite(description = 'Djpcms Asynchronous test suite',
                       modules = ('tests',),
                       plugins = (bench.BenchMark(),

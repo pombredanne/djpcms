@@ -17,24 +17,13 @@ Application Site
 
 .. _applications:
   
-Applications
-======================
-
 Application
-~~~~~~~~~~~~~~~~
+========================
 
 .. autoclass:: Application
    :members:
    :member-order: bysource
-   
-
-ModelApplication Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: ModelApplication
-   :members:
-   :member-order: bysource
-   
+    
    
 Base Views
 =============

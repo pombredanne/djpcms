@@ -5,7 +5,6 @@ Define some application urls templates as example
 '''
 import copy
 
-from djpcms.template import loader
 from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
 from djpcms.utils import force_str
 

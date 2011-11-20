@@ -19,7 +19,7 @@ class Media(object):
     '''Originally from django, it is used for manipulating media
 files such as style sheet and javascript.
 '''
-    __slots__ = ('_css','_js','settings')
+    __slots__ = ('_css','_js','_settings')
     
     def __init__(self, media=None, settings = None, **kwargs):
         if media:
@@ -27,17 +27,20 @@ files such as style sheet and javascript.
         else:
             media_attrs = kwargs
 
-        self.settings = settings
+        self._settings = settings or {}
         self._css = {}
         self._js = []
 
         for name in MEDIA_TYPES:
             getattr(self, 'add_' + name)(media_attrs.get(name, None))
 
+    @property
+    def settings(self):
+        return self._settings
+    
     def render_js(self):
         '''Generator over javascript scripts to be included in the page.'''
-        settings = self.settings or {}
-        prefix = settings.get('MEDIA_URL','')
+        prefix = self.settings.get('MEDIA_URL','')
         absolute = self.absolute_path
         for path in self._js:
             path = absolute(path,prefix)
@@ -50,8 +53,7 @@ files such as style sheet and javascript.
     
     @property
     def render_css(self):
-        settings = self.settings or {}
-        prefix = settings.get('MEDIA_URL','')
+        prefix = self.settings.get('MEDIA_URL','')
         absolute = self.absolute_path
         for medium in sorted(self._css):
             paths = self._css[medium]

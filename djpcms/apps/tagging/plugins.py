@@ -1,6 +1,4 @@
-from djpcms import forms
-from djpcms.template import loader
-from djpcms.plugins import DJPplugin
+from djpcms import forms, plugins
 from djpcms.plugins.apps import ForModelForm
 
 LINEAR = 1
@@ -15,7 +13,7 @@ class CloudForm(ForModelForm):
                                   initial = LOGARITHMIC)
 
 
-class tagcloud(DJPplugin):
+class tagcloud(plugins.DJPplugin):
     name        = "tag-cloud"
     description = "Tag Cloud for a Model"
     form        = CloudForm
@@ -66,7 +64,7 @@ class tagcloud(DJPplugin):
                               'djpcms/bits/tag_cloud.html'],c)
 
 
-class TagForObject(DJPplugin):
+class TagForObject(plugins.DJPplugin):
     name        = "object-tags"
     description = "Tags for an object"
     

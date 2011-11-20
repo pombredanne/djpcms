@@ -11,11 +11,11 @@ from .messages import get_messages
 logger = logging.getLogger('djpcms.core.context_processor')
 
 
-class PageLink(html.Widget):
+class PageLinks(object):
     '''Utility for displaying links
 for page editing or creation or exit editing.'''
     def __init__(self, request):
-        super(PageLink,self).__init__('ul')
+        self.ul = html.Widget('ul')
         self.request = request
         request = self.request
         info = request.DJPCMS
@@ -39,21 +39,22 @@ for page editing or creation or exit editing.'''
                 if self.isediting:
                     self.page = epage
             if self.isediting:
-                self.append(self.exitlink(self.cdjp.instance.url))
+                self.ul.add(self.exitlink(self.cdjp.instance.url))
             else:
                 site = self.app.site
                 if not self.page:
                     if Page and site.permissions.has(self.request, ADD, Page):
-                        self.append(self.addlink())
+                        self.ul.add(self.addlink())
                 elif site.permissions.has(self.request, CHANGE, self.page):
-                    self.append(self.changelink())
+                    self.ul.add(self.changelink())
                 self.userlinks()
                 
         if request.user and request.user.is_superuser and \
                             sites.settings.PROFILING_KEY:
             if sites.settings.PROFILING_KEY not in request.REQUEST:
-                self.append('<a href={0}?{1}>profile</a>'.format(request.path,\
-                                                sites.settings.PROFILING_KEY))
+                a = html.Widget('a','profile',href='{0}?{1}'\
+                        .format(request.path,sites.settings.PROFILING_KEY))
+                self.ul.add(a)
     
     def addlink(self):
         path = self.app.addurl(self.request)
@@ -93,12 +94,15 @@ for page editing or creation or exit editing.'''
             request = self.request
             if request.user.is_authenticated():
                 logout_url =  userapp.appviewurl(request,'logout')
-                self.addanchor(logout_url,'logout')
+                self.ul.add(html.Widget('a', 'logout', href = logout_url))
                 if hasattr(userapp,'userhomeurl'):
                     user_url = userapp.userhomeurl(request)
-                    self.addanchor(user_url,request.user.username)
+                    a = html.Widget('a', request.user.username, href = user_url)
+                    self.ul.add(a)
             else:
-                self.addanchor(userapp.appviewurl(request,'login'),'login')
+                login_url = userapp.appviewurl(request,'login')
+                if login_url:
+                    self.ul.add(html.Widget('a', 'login', href = login_url))
                 
                 
 def get_grid960(page, settings):
@@ -115,7 +119,7 @@ def djpcms(request):
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     grid = get_grid960(page,settings)
     try:
-        plink = PageLink(request).addClass('horizontal user-nav')
+        plink = PageLinks(request).ul.addClass('horizontal user-nav')
     except:
         logger.error('Unhadled exception while getting page links',
                      exc_info = True)
@@ -133,6 +137,7 @@ def djpcms(request):
            'now': datetime.now(),
            'settings': settings,
            'MEDIA_URL': settings.MEDIA_URL,
+           'media': info.media,
            'grid': grid}
     return ctx
 
@@ -144,10 +149,11 @@ def messages(request):
     lmsg = []
     if messages:
         for level in sorted(messages):
-            msg = List(messages[level], li_class = 'messagelist')
+            msg = html.Widget('ul')
             lic = 'messagelist ui-state-highlight' if level < logging.ERROR\
-                    else 'messagelist ui-state-error'
-            msg = List(messages[level], li_class = lic)
+                            else 'messagelist ui-state-error'
+            for m in messages[level]:
+                msg.add(html.Widget('li', m, cn= lic))
             lmsg.append(msg.render())
     return {'messages': lmsg}
 

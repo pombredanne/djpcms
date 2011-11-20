@@ -1,5 +1,6 @@
 from djpcms.utils import js, media
 
+from .wrappers import Request
 
 class djpcmsinfo(object):
     '''Holds information and data to be reused during a single request.
@@ -26,8 +27,10 @@ managing settings.'''
             self._media = m
         return self._media
     
-    def djp(self, request = None):
+    def djp(self, request):
         if self.view:
+            if isinstance(request,dict):
+                request = Request(request)
             return self.view(request, **self.kwargs)
     
     def djp_from_instance(self, view, instance):

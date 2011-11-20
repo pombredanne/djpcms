@@ -97,8 +97,7 @@ The core library requires Python_ 2.6 or above, nothing else
 Optional (recommended) requirements are
 
 * stdnet_ for Redis object relational mapping.
-  It is required by ``djpcms.contrib.monitor`` and ``djpcms.contrib.sessions`` modules.
-* fabric_ and pip_ for the ``djpcms.contrib.jdep`` module.
+* sqlalchemy_ for relational databases.
 
 
 Kudos
@@ -110,7 +109,7 @@ Python
 ---------
 * jinja2_ for templating. Shipped with the library in the ``libs``
   module but a library in its own.
-* django_ for ideas and actual chunks of code.
+* django_ for ideas.
 
 .. _jquery-plugins:
 

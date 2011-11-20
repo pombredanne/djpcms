@@ -123,7 +123,7 @@ def summary_for_files(stats_str, mygroups, sum, sumc, settings):
                 lineno,func
 
 
-def make_stat_table(stats_str,settings):
+def make_stat_table(djp, stats_str, settings):
     from djpcms import html
     groups = {}
     sum = 0
@@ -146,9 +146,9 @@ def make_stat_table(stats_str,settings):
                         data3,
                         footer = False)
     return {'media':table.maker.media(),
-            'table':table.render(),
-            'modules':table2.render(),
-            'files':table3.render()}
+            'table':table.render(djp),
+            'modules':table2.render(djp),
+            'files':table3.render(djp)}
     
 
 def data_stream(lines, num = None):
@@ -179,7 +179,6 @@ http://yoursite.com/yourview/?prof
 Add the "prof" key to query string by appending ?prof (or &prof=)
 and you'll see the profiling results in your browser."""
     from djpcms import html
-    from djpcms.template import loader
     query = environ.get('QUERY_STRING','')
     if PK not in query:
         return callback(environ, start_response)
@@ -199,15 +198,15 @@ and you'll see the profiling results in your browser."""
     headers = '\n'.join(make_header(stats_str[:4]))
     stats_str = stats_str[6:]
     data = data_stream(stats_str,100)
-    ctx = make_stat_table(data,settings)
     info = environ['DJPCMS']
-    media = info.media
-    media.add(ctx.pop('media',None))
-    ctx.update(info.context())
-    ctx.update({'media':media,
-                'headers':headers,
-                'stats':stats_str,
-                'grid':html.grid960(fixed=False)})
-    content = loader.render('djpcms/profile.html', ctx)
+    djp = info.djp(environ)
+    ctx = make_stat_table(djp,data,settings)
+    ctx.update({'headers':headers,
+                'stats':stats_str})
+    content = djp.render_template('djpcms/profile.html',
+                                  ctx,
+                                  request = djp.request,
+                                  encode = 'latin-1',
+                                  encode_errors = 'replace')
     return Response(content, content_type = 'text/html')
 

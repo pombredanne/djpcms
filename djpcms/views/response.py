@@ -365,7 +365,6 @@ the parent of the embedded view.'''
                             classes = settings.HTML.main_nav,
                             levels = settings.SITE_NAVIGATION_LEVELS)
         context.update({'robots': self.robots(),
-                        'media': self.media,
                         'sitenav': sitenav})
         if self.settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)

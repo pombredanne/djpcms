@@ -296,10 +296,10 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 name = '.{0}'.format(cl)
             else:
                 continue
-            ListDict.add(name,
-                         html.List(data = msg, li_class = msg_class).render(),
-                         alldocument = False,
-                         removable=True)
+            ul = html.Widget('ul',
+                             (html.Widget('li',d,cn=msg_class) for d in msg))   
+            ListDict.add(name, ul.render(),
+                         alldocument = False, removable=True)
 
 
         

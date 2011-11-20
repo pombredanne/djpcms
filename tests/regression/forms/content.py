@@ -23,6 +23,8 @@ class TestSimpleForm(test.TestCase):
     @test.skipUnless(test.djpapps,"Requires djpapps installed")
     def testPageFormBound(self):
         from stdcms.models import Page
+        from stdnet import orm
+        orm.register(Page)
         d = dict(HtmlPageForm.form_class.initials())
         p = HtmlPageForm(data = d)
         self.assertFalse(p.is_valid())

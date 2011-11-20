@@ -70,11 +70,10 @@ class Request(object):
     def __init__(self, environ):
         self.environ = environ
         self.path = environ.get('PATH_INFO', '/')
-        self.method = environ['REQUEST_METHOD'].upper()
-        self.is_xhr = environ.get('HTTP_X_REQUESTED_WITH',None) ==\
-                                     'XMLHttpRequest'
+        self.method = environ.get('REQUEST_METHOD','get').upper()
+        self.is_xhr = environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
         self._post_parse_error = False
-        self._stream = self.environ['wsgi.input']
+        self._stream = self.environ.get('wsgi.input')
         self._read_started = False
 
     def is_secure(self):
@@ -100,7 +99,7 @@ class Request(object):
     
     @property
     def DJPCMS(self):
-        return self.environ.get('DJPCMS',None)
+        return self.environ.get('DJPCMS')
     
     def _get_request(self):
         if not hasattr(self, '_request'):

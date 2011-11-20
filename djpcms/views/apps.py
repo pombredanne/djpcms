@@ -149,6 +149,9 @@ input parameters in the :class:`Application` constructor. For example::
                     
 defines an application serving on '/' with two views, the `home` serving at
 "/" and the `whatever` view serving at "/what/".
+The application class has several :ref:`attributes <application-attributes>`
+and :ref:`methods <application-methods>`, some of which can be
+overwritten to customize its behavior.
     
 :parameter baseurl: the root part of the application views urls.
                     Check :attr:`baseurl` for more information.
@@ -166,6 +169,7 @@ defines an application serving on '/' with two views, the `home` serving at
 
 --
 
+.. _application-attributes:
 
 **Application attributes**
 
@@ -275,6 +279,12 @@ defines an application serving on '/' with two views, the `home` serving at
     
     Default ``False``.
     
+.. attribute:: settings
+
+    the :attr:`ApplicationSite.settings`    
+    
+.. _application-methods:
+
 **Application methods**
 
 '''
@@ -282,8 +292,10 @@ defines an application serving on '/' with two views, the `home` serving at
     inherit          = False
     authenticated    = False
     has_plugins      = True
-    hidden           = False
-    related_field    = None
+    hidden = False
+    related_field = None
+    list_display = None
+    object_display = None
     ordering = None
     '''If ``True`` the application is only used internally and it won't
     appear in any navigation.
@@ -294,18 +306,11 @@ defines an application serving on '/' with two views, the `home` serving at
     '''Default form submit method for views, ``get`` or ``post``.
     
     Default ``post``.'''
-    form_ajax        = True
-    '''The default interaction in forms. If True the default form submmission
- is performed using ajax. Default ``True``.'''
-    form_template    = None
-    '''Optional template for form. Can be a callable with parameter ``djp``.
-    Default ``None``.'''
     list_per_page = 25
     list_per_page_choices = (10,25,50,100)
     '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
     list_display_links = ()
-    model = None
     nice_headers_handler = None
     pagination_template_name = ('pagination.html',
                                 'djpcms/pagination.html')
@@ -324,12 +329,14 @@ defines an application serving on '/' with two views, the `home` serving at
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
     
-    def __init__(self, baseurl, editavailable = None, name = None,
+    def __init__(self, baseurl, model = None, editavailable = None, name = None,
                  list_per_page = None, form = None, list_display = None,
-                 list_display_links = None, in_navigation = None,
+                 list_display_links = None, object_display = None,
+                 in_navigation = None,
                  description = None, template_name = None, parent = None,
                  related_field = None, apps = None, ordering = None,
                  url_bits_mapping = None, **views):
+        self.model = model
         self.parent = parent
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
@@ -378,6 +385,12 @@ application {0}. Already available.".format(name))
         self.list_display = tuple(ld)
         self.headers = heads
         self.mapper = None if not self.model else mapper(self.model)
+        object_display = object_display or self.object_display or\
+                         self.list_display or ()
+        self.object_display = d = []
+        for head in object_display:
+            head = table_header(head)
+            d.append(self.headers.get(head.code,head))   
     
     def __deepcopy__(self,memo):
         obj = copy(self)
@@ -387,7 +400,6 @@ application {0}. Already available.".format(name))
         
     @property
     def settings(self):
-        '''application site settings'''
         if self.site:
             return self.site.settings
         
@@ -408,9 +420,10 @@ application {0}. Already available.".format(name))
         return self.site.route() + self.baseurl
         
     def registration_done(self):
-        '''Invoked by the application site to which the application is
-registered once registraton is done. It can be used to setup global variables
-so that tricky imports can be avoided'''
+        '''Invoked by the :class:`ApplicationSite` site to which the
+application is registered once registraton is done. It can be used to perform
+any task once all applications have been imported.
+By default it does nothing.'''
         pass
     
     def getview(self, code):
@@ -425,6 +438,27 @@ Return ``None`` if the view is not available.'''
                 app = self.apps[code]
                 if len(codes) > 1:
                     return app.getview(SPLITTER.join(codes[1:]))
+                
+    def get_object(self, request, **kwargs):
+        '''Retrive an instance of self.model from key-values
+*kwargs* forming the url.'''
+        query = {}
+        for name,val in self.urlbits(data = kwargs):
+            if isinstance(val,self.model):
+                return val
+            query[name] = val
+            
+        try:
+            return self.mapper.get(**query)
+        except:
+            try:
+                if self.parent:
+                    parent_object = self.parent.appmodel.get_object(\
+                                                request, **kwargs)
+                    if parent_object:
+                        return self.get_from_parent_object(parent_object,id)
+            except:
+                pass
     
     def get_root_code(self):
         raise NotImplementedError
@@ -519,7 +553,6 @@ Return ``None`` if the view is not available.'''
 :parameter addinputs: boolean flag indicating if submit inputs should be added.
                     
                       Default ``True``.
-:parameter form_ajax: if form uses AJAX. Default ``False``.
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False``
                      no instance will be passed to the form constructor.
                      If ``None`` the instance will be obtained from '`djp``.
@@ -563,9 +596,25 @@ to render a table.'''
         return None
     
     def basequery(self, djp, **kwargs):
-        '''The base query for the application.
-By default it return a generator of children pages.'''
-        return djp.auth_children()  
+        '''The base query for the application.'''
+        if self.mapper:
+            user = self.for_user(djp)
+            if user:
+                qs = self.mapper.filter(user = user)
+            else:
+                qs = self.mapper.all()
+            related_field = self.related_field
+            if related_field:
+                parent = djp.parent
+                if parent:
+                    instance = parent.instance
+                    if instance and not isinstance(instance,self.model):
+                        qs = qs.filter(**{related_field:instance})
+            if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
+                qs = qs.sort_by(self.ordering)
+            return qs
+        else:
+            return djp.auth_children()  
     
     def render_query(self, djp, query):
         '''Render a *query* as a table or a list of items.
@@ -680,19 +729,6 @@ functionality when searching for model instances.'''
     exclude_object_links = []
     '''Object view names to exclude from object links. Default ``[]``.'''
     table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-    
-    def __init__(self, baseurl, model, object_display = None, **kwargs):
-        if not model:
-            raise ValueError(
-                'Model is null not defined in application {0}'.format(self))
-        self.model  = model
-        super(ModelApplication,self).__init__(baseurl, **kwargs)
-        object_display = object_display or self.object_display or\
-                         self.list_display or ()
-        self.object_display = d = []
-        for head in object_display:
-            head = table_header(head)
-            d.append(self.headers.get(head.code,head))       
         
     def get_root_code(self):
         return self.root_view.code
@@ -725,27 +761,6 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
                 yield name,getattr(obj,attrname)
             else:
                 yield attrname,data[name]
-                
-    def get_object(self, request, **kwargs):
-        '''Retrive an instance of self.model from key-values
-*kwargs* forming the url.'''
-        query = {}
-        for name,val in self.urlbits(data = kwargs):
-            if isinstance(val,self.model):
-                return val
-            query[name] = val
-            
-        try:
-            return self.mapper.get(**query)
-        except:
-            try:
-                if self.parent:
-                    parent_object = self.parent.appmodel.get_object(\
-                                                request, **kwargs)
-                    if parent_object:
-                        return self.get_from_parent_object(parent_object,id)
-            except:
-                pass
         
     def get_from_parent_object(self, parent, id):
         return parent
@@ -757,7 +772,7 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
     # APPLICATION URLS
     #----------------------------------------------------------------
     def appviewurl(self, request, name, obj = None, objrequired=False):
-        if objrequired and not isinstance(obj,self.model):
+        if not name or (objrequired and not isinstance(obj,self.model)):
             return None
         view = name
         if not isinstance(view,View):
@@ -816,25 +831,6 @@ Evaluate the view urls for an *instance*.
                 return None
         except:
             return None
-
-    def basequery(self, djp):
-        '''Starting queryset for searching objects in model.
-This can be re-implemented by subclasses.'''
-        user = self.for_user(djp)
-        if user:
-            qs = self.mapper.filter(user = user)
-        else:
-            qs = self.mapper.all()
-        related_field = self.related_field
-        if related_field:
-            parent = djp.parent
-            if parent:
-                instance = parent.instance
-                if instance and not isinstance(instance,self.model):
-                    qs = qs.filter(**{related_field:instance})
-        if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
-            qs = qs.sort_by(self.ordering)
-        return qs
     
     def app_for_object(self, obj):
         try:

@@ -128,7 +128,9 @@ class ModelLinks(DJPplugin):
     def render(self, djp, wrapper, prefix, layout = 'horizontal',
                asbuttons = True, exclude = '', include = '',
                for_instance = False, **kwargs):
-        appmodel = djp.view.appmodel
+        appmodel = djp.appmodel
+        if not appmodel:
+            return
         exclude = None if not exclude else exclude.split(',')
         include = None if not include else include.split(',')
         instance = None if not for_instance else djp.instance

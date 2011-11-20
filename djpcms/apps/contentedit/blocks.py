@@ -2,7 +2,6 @@ from djpcms import forms, html, views, ajax
 from djpcms.core.page import block_htmlid
 from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
-from djpcms.template import loader
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
 
@@ -78,7 +77,10 @@ class ChangeContentView(BlockChangeView):
         
         cb = lambda phtml : mark_safe('<div id="%s" class="preview">%s</div>' %\
                                       (instance.pluginid('preview'),phtml))
-        return djp.root.render_response(preview_html, callback = cb)
+        if preview_html:
+            return djp.root.render_response(preview_html, callback = cb)
+        else:
+            return ''
         
     def get_plugin_form(self, djp, plugin, prefix):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''

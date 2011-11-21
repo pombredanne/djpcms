@@ -144,11 +144,11 @@ class ModelLinks(DJPplugin):
                             asbuttons = asbuttons)
         name = appmodel.mapper.class_name(appmodel.model)
         if links:
-            return html.List((l[1] for l in links), cn = name)\
-                        .addClass('model-links')\
-                        .addClass(layout)\
-                        .addClass(asbuttons)\
-                        .render(djp)
+            return html.Widget('ul', (l[1] for l in links), cn = name)\
+                       .addClass('model-links')\
+                       .addClass(layout)\
+                       .addClass(asbuttons)\
+                       .render(djp)
     
     
 def attrquery(heads,query):

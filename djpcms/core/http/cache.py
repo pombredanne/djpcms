@@ -38,7 +38,7 @@ managing settings.'''
             return self._djp_instance_cache.get((view,instance))
     
     def add_djp_instance_cache(self, djp, instance):
-        if instance and instance.id:
+        if instance and getattr(instance,'id',None):
             self._djp_instance_cache[(djp.view,instance)] = djp
     
     @property

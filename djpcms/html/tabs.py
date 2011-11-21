@@ -1,6 +1,6 @@
 from djpcms.utils import gen_unique_id
 
-from .base import Widget, WidgetMaker
+from .base import Widget, WidgetMaker, iterable
 
 __all__ = ['TabsMaker','tabs']
 
@@ -9,8 +9,12 @@ class TabsMaker(WidgetMaker):
     tag = 'div'
     default_class = 'ui-tabs'
     
-    def add_to_widget(self, widget, key, value):
-        widget.data_stream.append((key,value))
+    def add_to_widget(self, widget, keyvalue, value = None):
+        if value is None and iterable(keyvalue):
+            key, value = tuple(keyvalue)
+        else:
+            key, value = keyvalue, value
+        widget.data_stream.append((key, value))
         
     def stream(self, djp, widget, context):
         if widget.data_stream:

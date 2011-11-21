@@ -131,8 +131,8 @@ with the wrapper callable.'''
                 if djp.request.user.is_superuser:
                     plugin_response = escape('%s' % e)
         
-        # html can be a string or whaever the plugin returns.
-        if plugin_response:
+        # html can be a string or whatever the plugin returns.
+        if plugin_response is not None:
             callback = lambda r : wrapper(djp, self, r)
             return djp.root.render_response(plugin_response, callback)
     

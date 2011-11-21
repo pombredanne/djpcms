@@ -137,6 +137,8 @@ and rendered using the dataTable_ jQuery plugin.
 :parameter toolbox: optional dictionary with table toolbox data. Created using
     the :func:`djpcms.html.table_toolbox` function.
 :parameter footer: flag indicating if a table footer is required.
+:parameter sortable: flag indicationg if columns are sortable by default.
+    Default: ``True``.
 
     Default ``False``.
 
@@ -149,7 +151,7 @@ and rendered using the dataTable_ jQuery plugin.
                  model = None, paginator = None, toolbox = None,
                  ajax = None, size = 25, size_choices = None,
                  paginate = True, footer = False, title = None,
-                 **params):
+                 sortable = True, **params):
         self.toolbox = toolbox
         self.ajax = ajax
         self.footer = footer
@@ -163,7 +165,7 @@ and rendered using the dataTable_ jQuery plugin.
                 model = body.model
             except AttributeError:
                 pass
-        headers = [table_header(head) for head in headers]
+        headers = [table_header(head,sortable=sortable) for head in headers]
         super(Table,self).__init__(model = model,
                                    appmodel = appmodel,
                                    headers = headers,

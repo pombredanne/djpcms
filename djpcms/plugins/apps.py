@@ -214,7 +214,7 @@ class ModelItemsList(DJPplugin):
         if thead:
             data = {'options': {'sDom':'t'}}
             w = html.Table(thead,
-                           body = appmodel.table_generator(djp, thead, qs),
+                           body = appmodel.table_generator(djp, thead, items),
                            appmodel = appmodel,
                            footer = table_footer,
                            data = data,

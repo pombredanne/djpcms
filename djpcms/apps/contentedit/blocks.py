@@ -150,7 +150,7 @@ The instance.plugin object is maintained but its fields may change.'''
         if commit and pform and not pform.is_valid():
             return layout.json_messages(pform.form)
         
-        if pform:
+        if pform is not None:
             instance.arguments = instance.plugin.save(pform.form)
             pform.tag = None
             plugin_options = pform.render(djp)

@@ -234,6 +234,12 @@ overwritten to customize its behavior.
     
     Default ``[]``
     
+.. attribute:: table_links
+
+    A list (or a tuple) of :class:`View` names to display as links in
+    :class:`djpcms.html.Table`. It is used by the :func:`table_toolbox`
+    when building the table header.
+    
 .. attribute:: table_menus
 
     A list view.

@@ -66,6 +66,7 @@ class TableFormElement(FormLayoutElement):
         table = html.Table(self.headers,
                            self.row_generator(djp, widget),
                            data = {'options':{'sDom':'t'}},
-                           footer = False).addClass(self.elem_css)
+                           footer = False, sortable = False)\
+                                .addClass(self.elem_css)
         return table.render(djp)
     

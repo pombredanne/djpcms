@@ -1,5 +1,4 @@
-import unittest as test
-
+from djpcms.utils import test
 from djpcms import RegExUrl, IDREGEX
 
 

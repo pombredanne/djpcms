@@ -1,9 +1,8 @@
-import unittest
-
+from djpcms.utils import test
 import djpcms as package
 
 
-class TestInitFile(unittest.TestCase):
+class TestInitFile(test.TestCase):
 
     def test_version(self):
         self.assertTrue(package.VERSION)

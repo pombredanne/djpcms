@@ -104,12 +104,14 @@ This function should be implemented by derived classes.
 
 
 class DJPplugin(DJPpluginBase):
-    '''Base class for Plugins. These classes are used to display contents on a ``djpcms`` powered site.
-The basics:
+    '''Base class for Plugins. These classes are used to display contents
+on a ``djpcms`` powered site. The basics:
     
 * A Plugin is dynamic application.
-* It is rendered within a :class:`DJPwrapper` and each :class:`DJPwrapper` displays a plugin.
-* It can define style and javascript to include in the page, in a static way (as a ``meta`` property of the class) or in a dynamic way by member functions.
+* It is rendered within a :class:`DJPwrapper` and each :class:`DJPwrapper`
+  displays a plugin.
+* It can define style and javascript to include in the page, in a static way
+  (as a ``meta`` property of the class) or in a dynamic way by member functions.
 * It can have parameters to control its behaviour.'''
     
     virtual       = True

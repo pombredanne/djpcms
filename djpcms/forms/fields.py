@@ -256,7 +256,7 @@ optional parameter (attribute):
 class IntegerField(Field):
     default = 0
     widget = html.TextInput(default_class = 'numeric')
-    convert_error = 'Could not convert {0} to a valid number'
+    convert_error = '"{0}" is not a valid integer.'
     
     def handle_params(self, validator = None, **kwargs):
         self.validator = validator
@@ -281,6 +281,7 @@ class IntegerField(Field):
 
 class FloatField(IntegerField):
     '''A field which normalises to a Python float value'''
+    convert_error = 'Could not convert {0} to a valid number'
     def _clean(self, value, bfield):
         try:
             value = float(value)

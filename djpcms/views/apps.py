@@ -160,6 +160,7 @@ overwritten to customize its behavior.
 :parameter name: Application name. Check :attr:`name` for more information.
                     
                  Default ``None``.
+:parameter has_plugins: set the :attr:`has_plugins` attribute.
 :parameter in_navigation: If provided it overrides the
                           :attr:`root_view` ``in_nav`` attribute.
                           
@@ -200,11 +201,19 @@ overwritten to customize its behavior.
 
     Application name. Calculated from class name if not provided.
     
-    
 .. attribute:: site
 
     instance of :class:`ApplicationSite`,
     the application site manager to which the application is registered with.
+    
+.. attribute:: has_plugins
+
+    Boolean indicating if the current application should register plugins
+    from views which have the :attr:`View.isplugin` attribute set to ``True``.
+    If this flag is ``False`` no view plugin from this application will
+    be available.
+    
+    Default: ``True``
     
 .. attribute:: list_display
 
@@ -218,6 +227,12 @@ overwritten to customize its behavior.
     will display a sortable table of objects.
      
      Default is ``None``.
+     
+.. attribute:: list_per_page_choices
+    
+    Number of objects per page.
+    
+    Default is ``(10,25,50,100)``
     
 .. attribute:: ordering
 
@@ -226,6 +241,12 @@ overwritten to customize its behavior.
     
         Default ``None``
         
+.. attribute:: exclude_links
+
+    List or tuple of view names to exclude form visible views.
+    
+    Default: ``()``
+    
 .. attribute:: table_actions
 
     A list of :class:`application_action` used by table pagination for bulk
@@ -279,6 +300,15 @@ overwritten to customize its behavior.
     
     Dictioanry of object renderers.
     
+    
+.. attribute:: object_display
+
+    Same as :attr:`list_display` attribute at object level.
+    The field list is used to display the object definition.
+    If not available, :attr:`list_display` is used.
+    
+    Default ``None``.
+    
 .. attribute:: inherit
 
     Flag indicating if application views are inherited from base class.
@@ -287,34 +317,34 @@ overwritten to customize its behavior.
     
 .. attribute:: settings
 
-    the :attr:`ApplicationSite.settings`    
+    the :attr:`ApplicationSite.settings`
     
+    
+.. attribute:: url_bits_mapping
+    
+    A dictionary for mapping url keys into model fields.
+    
+    Default: ``None``.
+
+--
+
 .. _application-methods:
 
 **Application methods**
 
 '''
     creation_counter = 0
-    inherit          = False
-    authenticated    = False
-    has_plugins      = True
+    inherit = False
+    authenticated = False
+    has_plugins = True
     hidden = False
     related_field = None
     list_display = None
     object_display = None
     ordering = None
-    '''If ``True`` the application is only used internally and it won't
-    appear in any navigation.
-    
-    Default ``False``.'''
-    form             = None
-    form_method      ='post'
-    '''Default form submit method for views, ``get`` or ``post``.
-    
-    Default ``post``.'''
+    form = None
     list_per_page = 25
     list_per_page_choices = (10,25,50,100)
-    '''Number of objects per page. Default is ``30``.'''
     exclude_links    = ()
     list_display_links = ()
     nice_headers_handler = None
@@ -341,7 +371,7 @@ overwritten to customize its behavior.
                  in_navigation = None,
                  description = None, template_name = None, parent = None,
                  related_field = None, apps = None, ordering = None,
-                 url_bits_mapping = None, **views):
+                 url_bits_mapping = None, has_plugins = None, **views):
         self.model = model
         self.parent = parent
         self.views = deepcopy(self.base_views)
@@ -353,6 +383,8 @@ overwritten to customize its behavior.
         self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation if in_navigation is not None else\
                              self.in_navigation
+        self.has_plugins = has_plugins if has_plugins is not None else\
+                             self.has_plugins
         self.editavailable = editavailable
         self.baseurl = djpcms.RegExUrl(baseurl)
         self.ordering = ordering or self.ordering
@@ -444,27 +476,9 @@ Return ``None`` if the view is not available.'''
                 app = self.apps[code]
                 if len(codes) > 1:
                     return app.getview(SPLITTER.join(codes[1:]))
-                
-    def get_object(self, request, **kwargs):
-        '''Retrive an instance of self.model from key-values
-*kwargs* forming the url.'''
-        query = {}
-        for name,val in self.urlbits(data = kwargs):
-            if isinstance(val,self.model):
-                return val
-            query[name] = val
-            
-        try:
-            return self.mapper.get(**query)
-        except:
-            try:
-                if self.parent:
-                    parent_object = self.parent.appmodel.get_object(\
-                                                request, **kwargs)
-                    if parent_object:
-                        return self.get_from_parent_object(parent_object,id)
-            except:
-                pass
+    
+    def get_from_parent_object(self, parent, id):
+        return parent
     
     def get_root_code(self):
         raise NotImplementedError
@@ -662,9 +676,6 @@ to render a table.'''
         if self.parent:
             djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
             return djp.for_user()
-            
-    def get_intance_value(self, obj, field_name, val = None):
-        return val
         
     def gen_autocomplete(self, qs):
         for q in qs:
@@ -699,49 +710,65 @@ data to the client.
             return load_only
         else:
             return ()
-                
         
-class ModelApplication(Application):
-    '''An :class:`Application` class for applications
-based on a back-end database model.
-This class implements the basic functionality for a general model
-User should subclass this for full control on the model application.
-
-.. attribute:: model
-
-    The model class which own the application
-        
-.. attribute:: mapper
-
-    Instance of :class:`djpcms.core.orms.BaseOrmWrapper`.
-    Created from :attr:`model`
+    ############################################################################
+    ##    MODEL INSTANCE RELATED FUNCTIONS
+    ############################################################################
     
-.. attribute:: object_display
+    def get_object(self, request, **kwargs):
+        '''Retrive an instance of self.model from key-values
+*kwargs* forming the url.'''
+        query = {}
+        for name,val in self.urlbits(data = kwargs):
+            if isinstance(val,self.model):
+                return val
+            query[name] = val
+            
+        try:
+            return self.mapper.get(**query)
+        except:
+            try:
+                if self.parent:
+                    parent_object = self.parent.appmodel.get_object(\
+                                                request, **kwargs)
+                    if parent_object:
+                        return self.get_from_parent_object(parent_object,id)
+            except:
+                pass
+            
+    def render_object(self, djp, instance = None, context = None, cn = None):
+        '''Render an object in its object page.
+        This is usually called in the view page of the object.
+        '''
+        instance = instance or djp.instance
+        maker = self.object_widgets.get(context,None)
+        if not maker:
+            maker = self.object_widgets.get('home',None)
+        if maker:
+            return maker.widget(instance = instance,
+                                appmodel = self,
+                                cn = cn)\
+                                .addClass(self.mapper.class_name(instance))\
+                                .addClass(self.mapper.unique_id(instance))\
+                                .render(djp)
+        else:
+            return ''
+    
+    def object_field_value(self, request, obj, field_name, val = None):
+        '''Return the value associated with *field_name* for the
+ object *obj*, an instance of :attr:`model`. This function is only used
+ when the application as a model associated with it.
 
-    Same as :attr:`list_display` attribute at object level.
-    The field list is used to display the object definition.
-    If not available, :attr:`list_display` is used.
+:parameter request: a WSGI request. 
+:parameter obj: an instance of :attr:`model`.
+:parameter field_name: name of the field to obtain value from.
+:parameter val: A value of the field already obtained.
+:return: the value of *field_name*.
+ 
+ By default it returns *val*.
+ '''
+        return val
     
-    Default ``None``.
-'''
-    object_display   = None
-    filter_fields    = []
-    '''List of model fields which can be used to filter'''
-    search_fields    = []
-    '''List of model field's names which are searchable. Default ``None``.
-This attribute is used by :class:`SearchView` views
-and by the :ref:`auto-complete <autocomplete>`
-functionality when searching for model instances.'''
-    exclude_object_links = []
-    '''Object view names to exclude from object links. Default ``[]``.'''
-    table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-        
-    def get_root_code(self):
-        return self.root_view.code
-    
-    def modelsearch(self):
-        return self.model
-        
     def objectbits(self, obj):
         '''Get arguments from model instance used to construct url.
 By default it is the object id.
@@ -767,9 +794,28 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
                 yield name,getattr(obj,attrname)
             else:
                 yield attrname,data[name]
+    
+    
+    
+    
         
-    def get_from_parent_object(self, parent, id):
-        return parent
+class ModelApplication(Application):
+    filter_fields    = []
+    '''List of model fields which can be used to filter'''
+    search_fields    = []
+    '''List of model field's names which are searchable. Default ``None``.
+This attribute is used by :class:`SearchView` views
+and by the :ref:`auto-complete <autocomplete>`
+functionality when searching for model instances.'''
+    exclude_object_links = []
+    '''Object view names to exclude from object links. Default ``[]``.'''
+    table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
+        
+    def get_root_code(self):
+        return self.root_view.code
+    
+    def modelsearch(self):
+        return self.model
     
     def object_from_form(self, form, commit = True):
         '''Save form and return an instance pof self.model'''
@@ -845,24 +891,6 @@ Evaluate the view urls for an *instance*.
         except:
             pass
         return self.site.for_model(obj.__class__)
-    
-    def render_object(self, djp, instance = None, context = None, cn = None):
-        '''Render an object in its object page.
-        This is usually called in the view page of the object.
-        '''
-        instance = instance or djp.instance
-        maker = self.object_widgets.get(context,None)
-        if not maker:
-            maker = self.object_widgets.get('home',None)
-        if maker:
-            return maker.widget(instance = instance,
-                                appmodel = self,
-                                cn = cn)\
-                                .addClass(self.mapper.class_name(instance))\
-                                .addClass(self.mapper.unique_id(instance))\
-                                .render(djp)
-        else:
-            return ''
         
     def remove_object(self, obj):
         id = self.mapper.unique_id(obj)

@@ -13,6 +13,7 @@ model_wrappers = OrderedDict()
 
 ORMS = lambda : model_wrappers.values()
 
+
 def RegisterORM(name):
     '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
 dotted path to a python module containing a class named ``OrmWrapper``
@@ -75,7 +76,7 @@ def getid(obj):
         
 
 def registered_models_tuple():
-    for model in djpcms.sites.registered_models():
+    for model in model_from_hash.items():
         mp = mapper(model)
         id = mp.hash
         if id:

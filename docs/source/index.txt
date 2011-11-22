@@ -44,25 +44,18 @@ Contents
 .. toctree::
    :maxdepth: 1
    
-   api
-   application/index
-   forms/index
    tutorials/index
-   battery
+   views
+   forms
+   plugins
+   html
+   orms
+   apps
+   internals
    settings
    changelog
    license
    
-API
-=======
-.. toctree::
-   :maxdepth: 1
-   
-   application/api
-   forms/api
-   html
-   internals/index
-
 
 Indices, glossary and tables
 ============================

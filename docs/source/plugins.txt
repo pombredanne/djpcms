@@ -1,0 +1,69 @@
+.. _plugins-index:
+
+.. module:: djpcms.plugins
+
+============================
+Plugins
+============================
+
+Plugins are the design principle of ``djpcms``, without them there would be no
+system, just a collection of python scripts!
+Plugins are components that add capabilities to ``djpcms``
+which, in turns, acts as a manager and placeholder for them.
+Adding your own is extremely simple as well as moving them around
+in a page.
+
+Plugins are classes which derive from :class:`DJPplugin`,
+a straightforward python class. Plugins are not
+database models, they simply describe how content is displayed
+in a page and how users can interact with them. Thats it!
+
+
+.. admonition:: How do we tell djpcms to include our plugins?
+
+    Including plugins in your application is easy, simply add their dotted
+    path to the :setting:`DJPCMS_PLUGINS` setting.
+    
+    
+Plugin Class
+===========================
+
+.. autoclass:: djpcms.plugins.DJPplugin
+   :members:
+   :inherited-members:
+   :member-order: bysource
+
+
+Main Built-in
+========================
+
+Djpcms ships with some built-in plugins two of which are special since
+their behaviour depends on instances of :class:`djpcms.views.appview.AppViewBase`, the base
+class for application views.
+
+ThisPlugin
+--------------
+
+.. autoclass:: djpcms.plugins.ThisPlugin
+   :members:
+   
+ApplicationPlugin
+--------------------
+
+.. autoclass:: djpcms.plugins.ApplicationPlugin
+   :members:
+   
+
+.. _plugins-text:
+
+.. module:: djpcms.plugins
+
+
+Soft Navigation
+----------------------
+
+.. autoclass:: djpcms.plugins.defaults.SoftNavigation
+   :members:
+
+
+

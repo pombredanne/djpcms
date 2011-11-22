@@ -13,3 +13,5 @@ Contents
    
    tutorial01
    tutorial02
+   views
+   forms

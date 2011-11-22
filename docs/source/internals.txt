@@ -1,9 +1,38 @@
+.. _utils-index:
+
+==============
+Internals
+==============
+
+.. module:: djpcms
+
+ApplicationSites
+====================
+
+.. autoclass:: ApplicationSites
+   :members:
+   :member-order: bysource
+
+
+.. module:: djpcms.views
+
+Djp Response
+================
+
+Throughout the library there is constant reference to the :class:`djpcms.views.DjpResponse`
+class as first arguments of several functions.
+Indeed instances of this class carry around information about views, request and responses.
+
+.. autoclass:: DjpResponse
+   :members:
+   :member-order: bysource
+   
 
 .. _topics-included-navigation:
 
 .. module:: djpcms.utils.navigation
 
-============================
+
 Navigation Utilities
 ============================
 
@@ -12,7 +41,7 @@ There are two lazy generators useful for creating internal links, menus and brea
 .. _topics-included-navigator:
 
 Navigator
-============================
+~~~~~~~~~~~~~~~
 The Navigator can be used to generate navigation menus.
 
 .. autoclass:: djpcms.utils.navigation.Navigator
@@ -23,7 +52,8 @@ The Navigator can be used to generate navigation menus.
 .. _topics-included-breadcrumbs:
 
 Breadcrumbs
-============================
+~~~~~~~~~~~~~~~~
+
 This is my favorite navigation utility. Given a url it build a list of previous url elements.
 Each element is a dictionary contaning ``name`` and ``url``. The last element in the list, the
 the current url, won't contain the ``url`` value in the dictionary so that an internal link to
@@ -34,3 +64,15 @@ The ``name`` value is calculated in the view method :ref:`topics-views-title`.
 Breadcrumbs are available in the context dictionary with key ``breadcrumbs``.
 
 See :ref:`topics-views-context-dictionary`
+
+
+Exceptions
+=================
+
+.. autoclass:: djpcms.DjpcmsException
+
+.. autoclass:: djpcms.ViewDoesNotExist
+
+.. autoclass:: djpcms.FormException
+
+.. autoclass:: djpcms.ValidationError

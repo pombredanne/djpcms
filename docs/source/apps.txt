@@ -1,6 +1,6 @@
 .. _applications-included:
 
-.. module:: djpcms.views.apps
+.. module:: djpcms.apps
 
 ==========================
 Included Applications
@@ -11,7 +11,7 @@ uses one can think of.
 To illustrate how it can be used and to provide common building blocks, djpcms
 ships with few ``battery-included`` implementations which can be used out of the box.
 
-These implementations are located in the :mod:`djpcms.apps.included` module.
+These implementations are located in the :mod:`djpcms.apps` module.
 Some of these implementations may depend on external libraries,
 therefore, if you want to use them, all you need to do is to make sure
 the dependencies are met. No settings involved.
@@ -20,16 +20,16 @@ the dependencies are met. No settings involved.
 Vanilla
 ======================
 
-.. automodule:: djpcms.apps.included.vanilla
+.. automodule:: djpcms.apps.vanilla
 
 To use it::
 
-    from djpcms.apps.included.vanilla import Application
+    from djpcms.apps.vanilla import Application
     
     urls = (Application('/bla/',MyModel),...)
 
 
-.. module:: djpcms.views.apps.included.archive
+.. module:: djpcms.views.apps.archive
 
 
 .. _included-admin:
@@ -37,11 +37,11 @@ To use it::
 Admin
 ===================
 
-.. automodule:: djpcms.apps.included.admin
+.. automodule:: djpcms.apps.admin
    :members:
    
 
-.. autoclass:: djpcms.apps.included.admin.AdminSite
+.. autoclass:: djpcms.apps.admin.AdminSite
    :members:
    
 
@@ -50,7 +50,7 @@ Admin
 Archive
 ======================
 
-.. automodule:: djpcms.apps.included.archive
+.. automodule:: djpcms.apps.archive
    :members:
 
 
@@ -59,15 +59,23 @@ Archive
 User
 ============
 
-.. automodule:: djpcms.apps.included.user
+.. automodule:: djpcms.apps.user
    :members:
 
 .. _included-taggingapplication:   
 
+.. _search:
+
+Search Application
+==========================
+
+.. automodule:: djpcms.apps.search
+
+
 Tagging
 ======================
 
-.. automodule:: djpcms.apps.included.tagging
+.. automodule:: djpcms.apps.tagging
    :members:
    
 The tagging application module contains three different applications which can be used
@@ -106,7 +114,7 @@ and tag autocomplete is done.
 
 .. _included-docapplication:
 
-.. module:: djpcms.apps.included.docs
+.. module:: djpcms.apps.docs
 
 Sphinx Documentation
 ========================================
@@ -131,7 +139,7 @@ where ``pagename`` is the sphinx page name (*index*, *contents*, and so forth).
 To get started quickly,
 cut and past the entire ``docs`` directory in :file:`djpcms/templates/djpcms`.
 
-.. autoclass:: djpcms.apps.included.docs.DocApplication
+.. autoclass:: djpcms.apps.docs.DocApplication
    :members:
    :member-order: bysource
    
@@ -141,7 +149,7 @@ cut and past the entire ``docs`` directory in :file:`djpcms/templates/djpcms`.
 Inline Content Editing
 ==============================
 
-.. automodule:: djpcms.apps.included.contentedit
+.. automodule:: djpcms.apps.contentedit
 
 
 

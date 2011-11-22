@@ -24,8 +24,12 @@ handles urls of :class:`Application` instances registered with it.
 .. attribute:: root
 
     instance of :class:`djpcms.ApplicationSites` holding this instance.
+    
+.. attribute:: settings
 
-    '''
+    The settings dictionary for this application site.
+
+'''
     def __init__(self, root, route, config, permissions):
         self._init()
         self.root = root
@@ -172,7 +176,7 @@ handles urls of :class:`Application` instances registered with it.
         return registered_application
     
     def unregister(self, model):
-        '''Unregister the :class:`djpcms.views.ModelApplication` registered
+        '''Unregister the :class:`Application` registered
 for ``model``. Return the application class which has been unregistered.
 If the ``model`` does not have an application it return ``None``.'''
         appmodel = self._registry.pop(model,None)
@@ -188,7 +192,7 @@ If the ``model`` does not have an application it return ``None``.'''
         self._registry.clear()
             
     def for_model(self, model, all = False):
-        '''Obtain a :class:`djpcms.views.ModelApplication` for model *model*.
+        '''Obtain a :class:`Application` for model *model*.
 If the application is not available, it returns ``None``. Never fails.'''
         #Allow for OrmWrapper
         if not model:
@@ -212,7 +216,7 @@ If the application is not available, it returns ``None``. Never fails.'''
             return app
             
     def for_hash(self, model_hash, safe = True, all = False):
-        '''Obtain a :class:`djpcms.views.ModelApplication` for model
+        '''Obtain a :class:`Application` for model
  model hash id. If the application is not available, it returns ``None``
  unless ``safe`` is set to ``False`` in which case it throw a
  :class:`djpcms.core.exceptions.ApplicationNotAvailable`.'''

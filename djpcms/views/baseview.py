@@ -66,17 +66,21 @@ class djpcmsview(RendererMixin):
     '''A :class:`djpcms.views.RendererMixin` class for handling
 http requests.
     
-    .. attribute:: _methods
+.. attribute:: _methods
 
-        Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
-        
-            _methods = ('get','post')
+    Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
     
-    .. attribute:: object_view
+        _methods = ('get','post')
+
+.. attribute:: object_view
+
+    Flag indicating if the view is used to render or manipulate model instances.
     
-        Flag indicating if the view is used to render or manipulate model instances.
-        
-        Default ``False``.
+    Default ``False``.
+    
+.. attribute:: ICON
+
+    An icon for this view
              
     '''
     PERM = djpcms.VIEW

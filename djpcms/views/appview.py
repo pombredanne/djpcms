@@ -32,7 +32,8 @@ __all__ = ['View',
 
 
 
-def model_defaultredirect(self, request, next = None, instance = None, **kwargs):
+def model_defaultredirect(self, request, next = None,
+                          instance = None, **kwargs):
     '''Default redirect for a model view is the View url for that model
 if an instance is available'''
     if self.redirect_to_view:
@@ -47,38 +48,45 @@ if an instance is available'''
     
 
 class View(djpcmsview):
-    '''A specialized view class for handling views
-which belongs to :ref:`djpcms applications <topics-applications-index>`.
-
-Application views are specified as class attributes of
-:class:`djpcms.views.appsite.Application` and therefore initialized
+    '''A specialized :class:`djpcmsview` class for handling views
+which belongs to :class:`Application`. These views are specified as class
+attributes of :class:`Application` or as key-value parameters in the
+constructor (of :class:`Application`) and therefore initialized
 at start up.
 
 Views which derives from this class are special in the sense that they can also
 appear as content of :class:`djpcms.plugins.DJPplugin` if
 the :attr:`isplugin` attribute is set to ``True``.
-
-In other words, application views can automagically be turned into plugins
+In other words, application views can be turned into plugins
 so that they can be rendered in any page of your site.
-
 All parameters are optionals and usually a small subset of them needs
 to be used.
 
+This is a trivial example of an application exposing two very simple
+views::
+
+    from djpcms import views
+    
+    class MyApplication(views.Application):
+        home = views.View(renderer = lambda djp : 'Hello world')
+        test = views.View(regex = 'testview',
+                          renderer = lambda djp : 'Another view')
+
+:keyword regex:
+
+    Regular expression string indicating the view relative url.
+    This is the part of the url which the view add to its parent
+    view path. For more information check the :meth:`View.route`
+    method and :attr:`View.path` attribute.
+    
+    Default ``None``.
+    
 :keyword parent:
 
     A string indicating the closest parent application view.
     If not supplied, ``djpcms`` will calculate it
     during validation of the applications during startup. It is used to
     assign a value to the :attr:`parent` attribute.
-    
-    Default ``None``.
-    
-:keyword regex:
-
-    Regular expression string indicating the view relative url.
-    This is the part of the url which the view add to its parent
-    view path. For more information check the :func:`djpcms.views.View.route`
-    function and :attr:`djpcms.views.View.path` attribute.
     
     Default ``None``.
     
@@ -96,15 +104,19 @@ to be used.
     
     Default ``False``.
     
+:keyword icon:
+
+    Specify the :attr:`djpcmsview.ICON` for this view.
+    
 :keyword description:
 
     Useful description of the view in few words
     (no more than 20~30 characters). Used only when the
-    :attr:`djpcms.views.View.isplugin` flag is set to ``True``.
+    :attr:`View.isplugin` flag is set to ``True``.
     In this case its value is used when
     displaying menus of available plugins. If not defined it is
     calculated from the attribute name of the view
-    in the :class:`djpcms.views.Application` where it is declared.
+    in the :class:`Application` where it is declared.
 
     Default ``None``.
 
@@ -115,6 +127,18 @@ to be used.
     It is a form which can be used for interaction.
     
     Default ``None``.
+    
+:keyword linkname:
+
+    Callable function for overriding :meth:`djpcmsview.linkname`
+    
+    default ``None``
+    
+:keyword title:
+
+    Callable function for overriding :meth:`djpcmsview.title`
+    
+    default ``None``
     
 :keyword methods:
 
@@ -162,20 +186,9 @@ to be used.
     
     Default: ``None``.
     
-    
-This is a trivial example of an application exposing two very simple
-views::
-
-    from djpcms import views
-    
-    class MyApplication(views.Application):
-        home = views.View(renderer = lambda djp : 'Hello world')
-        test = views.View(regex = 'testview',
-                          renderer = lambda djp : 'Another view')
-    
 .. attribute:: appmodel
 
-    Instance of :class:`djpcms.views.Application` which defines the view.
+    Instance of :class:`Application` which defines the view.
     This attribute is evaluate at runtime and it is not psecified by the user.
     
 .. attribute:: parent
@@ -223,7 +236,7 @@ views::
     String indicating a redirection to another view within the same application.
     Used in view with forms to define the behavior after a form has been
     subbmitted.
-    It is used in :meth:`djpcms.views.basevew.djpcmsview.defaultredirect`
+    It is used in :meth:`djpcmsview.defaultredirect`
     to calculate the redirect url.
     
     See also :attr:`force_redirect`.
@@ -401,7 +414,7 @@ views::
     
     def appquery(self, djp):
         '''This function implements the query, based on url entries.
-By default it calls the :func:`djpcms.views.appsite.Application.basequery`
+By default it calls the :func:`Application.basequery`
 function.'''
         return self.appmodel.basequery(djp)
     
@@ -442,8 +455,7 @@ set to ``True``.'''
 class GroupView(View):
     '''An application to display list of children applications.
 It is the equivalent of :class:`SearchView`
-for :class:`djpcms.views.Application`
-without a model.'''
+for :class:`Application` without a model.'''
     astable = True # Table view by default
     def render(self, djp):
         qs = self.appquery(djp)
@@ -452,7 +464,7 @@ without a model.'''
     
 class ModelView(View):
     '''A :class:`View` class for views in
-:class:`djpcms.views.appsite.ModelApplication`.
+:class:`Application`.
     '''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
@@ -481,7 +493,7 @@ There are three additional parameters that can be set:
     def appquery(self, djp):
         '''This function implements the search query.
 The query is build using the search fields specifies in
-:attr:`djpcms.views.appsite.ModelApplication.search_fields`.
+:attr:`ModelApplication.search_fields`.
 It returns a queryset.
         '''
         qs = super(SearchView,self).appquery(djp)
@@ -494,7 +506,7 @@ It returns a queryset.
     def render(self, djp):
         '''Perform the custom query over the model objects and return a
 paginated result. By default it delegates the
-renderint to the :method:`djpcms.views.Application.render_query` method.
+renderint to the :meth:`Application.render_query` method.
         '''
         return ContextRenderer(djp,
                                context = {'qs':self.appquery(djp)},
@@ -592,7 +604,7 @@ generate the full url.'''
     
 
 class ViewView(ObjectView):
-    '''An :class:`djpcms.views.ObjectView` class specialised for displaying
+    '''An :class:`ObjectView` class specialised for displaying
 an object.'''
     default_title = '{0[instance]}'
     default_link = '{0[instance]}'
@@ -602,10 +614,10 @@ an object.'''
         
     @async_instance
     def render(self, djp):
-        '''Override the :meth:`djpcms.views.djpcmsview.render` method
+        '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
-By default it calls the :meth:`djpcms.views.ModelApplication.render_object`
-method of the :attr:`djpcms.views.View.appmodel` attribute.
+By default it calls the :meth:`ModelApplication.render_object`
+method of the :attr:`View.appmodel` attribute.
         '''
         return self.appmodel.render_object(djp)
     

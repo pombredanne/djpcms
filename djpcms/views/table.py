@@ -29,28 +29,28 @@ def instance_link(djp, instance, name = 'view', asbuttons = False):
     return str(instance)
 
 
-def application_views(appmodel,
-                      djp,
+def application_views(djp,
                       exclude = None,
                       include = None,
                       instance = None):
     '''Create a list of application views available to the user.
-This function is used in conjunction with an instance or a model of
-an :class:`djpcms.views.Application` instance.
+This function is used in conjunction with
+an :class:`Application` instance.
 
-:parameter appmodel: instance of a :class:`djpcms.views.Application` class.
-:parameter djp: instance of a :class:`djpcms.views.DjpResponse` class.
-:parameter asbuttons: optional flag for displaying links as button tags.
-                        
-                        Default ``True``.
+:parameter djp: instance of a :class:`DjpResponse`.
+:parameter exclude: optional iterable of view names to exclude.
+:parameter include: optional iterable of view names to include.
+    If provided it override :attr:`Application.exclude_links`.
+    Default ``None``
+:parameter instance: optional instance of **appmodel.model**.
+    If provided only instnce views will be collected.
+:rtype: a generator of dictionaries containing :class:`View` information.
 '''
     permissions = djp.site.permissions
+    appmodel = djp.appmodel
     request = djp.request
     links = []
-    exclude = exclude or []
-    for ex in appmodel.exclude_links:
-        if ex not in exclude:
-            exclude.append(ex)
+    exclude = exclude if exclude is not None else appmodel.exclude_links
     kwargs  = djp.kwargs.copy()
     kwargs['instance'] = instance
     
@@ -185,9 +185,7 @@ an application based on model is available.
         return toolbox
     
     menu = list(views_serializable(\
-                    application_views(appmodel,
-                                      djp,
-                                      include = appmodel.table_links)))
+                    application_views(djp, include = appmodel.table_links)))
     if menu:
         toolbox['tools'] = menu
     groups = appmodel.table_column_groups(djp)

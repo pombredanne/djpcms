@@ -1,7 +1,7 @@
 .. _djpcms-html-api:
 
 =================
-HTML API
+HTML
 =================
 
 .. automodule:: djpcms.html

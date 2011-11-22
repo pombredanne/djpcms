@@ -1,7 +1,7 @@
 .. module:: djpcms.views
 
 =============
-Views API
+Views
 =============
 
 .. _application-site:
@@ -31,7 +31,7 @@ Base Views
 Renderer Mixin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.RendererMixin
+.. autoclass:: RendererMixin
    :members:
    :member-order: bysource
 
@@ -39,7 +39,7 @@ Renderer Mixin
 View Base Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.djpcmsview
+.. autoclass:: djpcmsview
    :members:
    :member-order: bysource
    
@@ -47,7 +47,7 @@ View Base Class
 Flat Page View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.pageview
+.. autoclass:: pageview
    :members:
    :member-order: bysource
 
@@ -58,14 +58,14 @@ Application Views
 Application View
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.View
+.. autoclass:: View
    :members:
    :member-order: bysource
 
 Application Group View
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.GroupView
+.. autoclass:: GroupView
    :members:
    :member-order: bysource
    
@@ -74,16 +74,16 @@ Model Application Views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Views associated with database models are handled by subclasses of
-:class:`djpcms.views.View`.
+:class:`View`.
 
-.. autoclass:: djpcms.views.ModelView
+.. autoclass:: ModelView
    :members:
    :member-order: bysource
    
 Search View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.SearchView
+.. autoclass:: SearchView
    :members:
    :member-order: bysource
 
@@ -91,7 +91,7 @@ Search View
 Add View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.AddView
+.. autoclass:: AddView
    :members:
    :member-order: bysource
 
@@ -104,7 +104,7 @@ Instance Views
 Object View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.ObjectView
+.. autoclass:: ObjectView
    :members:
    :member-order: bysource
 
@@ -112,7 +112,7 @@ Object View
 View View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.ViewView
+.. autoclass:: ViewView
    :members:
    :member-order: bysource
 
@@ -120,7 +120,7 @@ View View
 Change View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.ChangeView
+.. autoclass:: ChangeView
    :members:
    :member-order: bysource
 
@@ -128,10 +128,21 @@ Change View
 Delete View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.views.DeleteView
+.. autoclass:: DeleteView
    :members:
    :member-order: bysource
 
 
+Utilities
+===================
 
+application_views
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction :: application_views
    
+
+application_links
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction :: application_links

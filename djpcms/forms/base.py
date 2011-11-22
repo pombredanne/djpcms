@@ -155,6 +155,9 @@ procedure calls validation.
     
     Default: ``[]``.
     
+.. attribute:: site
+
+    The :class:`djpcms.views.ApplicationSite` serving the form.
 '''
     prefix_input = '_prefixed'
     

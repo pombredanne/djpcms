@@ -6,6 +6,7 @@ __all__ = ['PERMISSION_CODES',
            'PERMISSION_LIST',
            'VIEW',
            'ADD',
+           'COPY',
            'CHANGE',
            'DELETE',
            'DELETEALL',
@@ -18,6 +19,7 @@ __all__ = ['PERMISSION_CODES',
 # Main permission flags
 VIEW = 10
 ADD = 20
+COPY = 25
 CHANGE = 30
 DELETE = 40
 DELETEALL = 50
@@ -25,6 +27,7 @@ DELETEALL = 50
 PERMISSION_LIST = (
                    (VIEW,'VIEW'),
                    (ADD,'ADD'),
+                   (COPY,'COPY'),
                    (CHANGE,'CHANGE'),
                    (DELETE,'DELETE'),
                    (DELETEALL,'DELETE ALL')

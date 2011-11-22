@@ -62,7 +62,7 @@ Prettify a value to be displayed in html.
             return val
     
     
-def field_repr(field_name, obj, appmodel = None, **kwargs):
+def field_repr(request, field_name, obj, appmodel = None, **kwargs):
     '''Retrive the value of attribute *field_name*
 from an object *obj* by trying out
 several possibilities in the following order.
@@ -72,7 +72,7 @@ several possibilities in the following order.
 * If *obj* is a dictionary type object and *field_value* is in *obj*
      it returns the vaue.
 * If *appmodel* is defined it invokes the
-  :meth:`djpcms.views.Application.get_intance_value`
+  :meth:`djpcms.views.Application.object_field_value`
 * Return ``None``
 '''
     val = None
@@ -87,7 +87,7 @@ several possibilities in the following order.
         val = obj[field_name]
     
     if appmodel:
-        val = appmodel.get_intance_value(obj, field_name, val)
+        val = appmodel.object_field_value(request, obj, field_name, val)
 
     return nicerepr(val,**kwargs)
             
@@ -121,7 +121,8 @@ class get_result(object):
         self.first = True
 
     def __call__(self, request, head, result, appmodel, **kwargs):
-        return field_repr(head.attrname, result, appmodel = appmodel, **kwargs)
+        return field_repr(request, head.attrname, result, appmodel = appmodel,
+                          **kwargs)
     
     
 class get_iterable_result(object):
@@ -157,7 +158,8 @@ class get_app_result(object):
         first = self.first
         url = None
         attrname = head.code if hasattr(result,head.code) else head.attrname
-        result_repr = field_repr(attrname, result, appmodel = appmodel, nd = nd)
+        result_repr = field_repr(request, attrname, result,
+                                 appmodel = appmodel, nd = nd)
         if(self.first and not appmodel.list_display_links) or \
                 head.code in appmodel.list_display_links:
             first = False
@@ -168,7 +170,7 @@ class get_app_result(object):
         if url:
             if url != path:
                 if head.function != head.code:
-                    title = field_repr(head.function, result,
+                    title = field_repr(request, head.function, result,
                                        appmodel = appmodel, nd = nd)
                 else:
                     title = '{0} - {1}'.format(head.name,result_repr)

@@ -1,0 +1,12 @@
+.. _autocomplete:
+
+=========================
+Autocomplete
+=========================
+
+To activate autocomplete for a :class:`djpcms.views.Application` there are few steps
+to follow:
+
+* Setup a serch engine for your application.
+* Set :attr:`djpcms.views.Application.autocomplete_fields` list for limiting the number of
+  fields to retrieve from the database (speed up).

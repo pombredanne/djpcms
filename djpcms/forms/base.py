@@ -108,7 +108,7 @@ procedure calls validation.
 :parameter data: dictionary type object containing data to validate.
 :parameter files: dictionary type object containing files to upload.
 :parameter initial: dictionary type object containing initial values for
-    form fields (see  :class:`djpcms.forms.Field`).
+    form fields (see  :class:`Field`).
 :parameter prefix: Optional string to use as prefix for field keys.
 :parameter model: An optional model class. The model must be registered with
     the library (see :func:`djpcms.RegisterORM`).
@@ -149,7 +149,7 @@ procedure calls validation.
     
 .. attribute:: form_sets
 
-    A list of :class:`djpcms.forms.FormSet` instances. If available,
+    A list of :class:`FormSet` instances. If available,
     formsets are used to create a given number of sub-forms which are
     included in the current form.
     
@@ -224,14 +224,14 @@ if they occur.'''
     
     @property
     def fields(self):
-        '''List of :class:`djpcms.forms.BoundField` instances after
+        '''List of :class:`BoundField` instances after
 validation.'''
         self._unwind()
         return self._fields
     
     @property
     def dfields(self):
-        '''Dictionary of :class:`djpcms.forms.BoundField` instances after
+        '''Dictionary of :class:`BoundField` instances after
 validation.'''
         self._unwind()
         return self._fields_dict
@@ -422,11 +422,10 @@ This method works if an instance or a model is available.
         else:
             return ''
         
-        
     @classmethod
     def initials(cls):
         '''Iterator over initial field values.
-Check the :attr:`djpcms.forms.Field.initial` attribute for more information.
+Check the :attr:`Field.initial` attribute for more information.
 This class method can be useful when using forms outside web applications.'''
         for name,field in iteritems(cls.base_fields):
             initial = field.get_initial(cls)
@@ -435,19 +434,19 @@ This class method can be useful when using forms outside web applications.'''
         
         
 class BoundField(object):
-    '''A Wrapper containing a :class:`djpcms.forms.Form` instance,
-a :class:`djpcms.forms.Field` instance which belongs to the form,
+    '''A Wrapper containing a :class:`Form` instance,
+a :class:`Field` instance which belongs to the form,
 and field bound data.
 Instances of BoundField are created during form validation
 and shouldn't be used otherwise. It is an utility class.
 
 .. attribute:: form
 
-    An instance of :class:`djpcms.forms.Form`
+    An instance of :class:`Form`
     
 .. attribute::    field
 
-    An instance of :class:`djpcms.forms.Field`
+    An instance of :class:`Field`
     
 .. attribute::    name
 

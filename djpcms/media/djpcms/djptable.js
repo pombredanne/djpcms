@@ -298,8 +298,8 @@
                                 }
                             });
                         }
-                        //buttons.push("csv");
-                        buttons.push("pdf");
+                        buttons.push("csv");
+                        //buttons.push("pdf");
                         opts.oTableTools.aButtons = buttons;
                         
                         // Create the datatable

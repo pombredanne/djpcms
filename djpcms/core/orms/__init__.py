@@ -76,7 +76,7 @@ def getid(obj):
         
 
 def registered_models_tuple():
-    for model in model_from_hash.items():
+    for model in model_from_hash.values():
         mp = mapper(model)
         id = mp.hash
         if id:

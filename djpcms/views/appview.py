@@ -513,12 +513,14 @@ renderint to the :meth:`Application.render_query` method.
                                renderer = self.appmodel.render_query)
             
     def ajax__autocomplete(self, djp):
+        fields = self.appmodel.autocomplete_fields
         qs = self.appquery(djp)
+        if fields:
+            qs = qs.load_only(*fields)
         params = djp.request.REQUEST
-        if 'maxRows' in params:
-            qs = qs[:int(params['maxRows'])]
-        return CustomHeaderBody('autocomplete',
-                                list(self.appmodel.gen_autocomplete(qs)))
+        maxRows = params.get('maxRows')
+        auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
+        return CustomHeaderBody('autocomplete',auto_list)
     
     def ajax_get_response(self, djp):
         return dataTableResponse(djp)

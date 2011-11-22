@@ -110,7 +110,7 @@ def application_links(views, asbuttons = True):
 the view name and a rendered html tag (either an anchor or a button).
 
 :parameter views: iterator over views obtained from
-                    :func:`djpcms.html.application_views`
+                    :func:`application_views`
 :parameter asbuttons: optional flag for displaying links as button tags.
 '''
     tag = 'button' if asbuttons else 'a'

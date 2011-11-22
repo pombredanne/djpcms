@@ -221,6 +221,13 @@ overwritten to customize its behavior.
     
         Default ``()``
         
+.. attribute:: autocomplete_fields
+
+    List of fields to load when querying for autocomplete. Usually you may
+    want to limit this to a small set to speed up retrieval.
+    
+    Default ``None``.
+        
 .. attribute:: list_display_links
 
     List of object's field to display. If available, the search view
@@ -340,6 +347,7 @@ overwritten to customize its behavior.
     hidden = False
     related_field = None
     list_display = None
+    autocomplete_fields = None
     object_display = None
     ordering = None
     form = None
@@ -677,7 +685,14 @@ to render a table.'''
             djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
             return djp.for_user()
         
-    def gen_autocomplete(self, qs):
+    def gen_autocomplete(self, qs, maxRows = None):
+        '''generator of 3-elements tuples for autocomplete responses.
+
+:parameter qs: the autocomplete query
+:paramater maxRows: optional number of rows.
+''' 
+        if maxRows:
+            qs = qs[:int(maxRows)]
         for q in qs:
             l = str(q)
             yield l,l,q.id

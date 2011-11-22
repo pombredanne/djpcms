@@ -29,7 +29,7 @@ standard_validation_error = '{0} is required'
     
 
 class Field(object):
-    '''Base class for all :class:`djpcms.forms.Form` fields.
+    '''Base class for all :class:`Form` fields.
 Field are specified as attribute of a form, for example::
 
     from djpcms import forms
@@ -52,16 +52,16 @@ very similar to django forms API.
 
     Initial value for field. If Provided, the field will display
     the value when rendering the form without bound data.
-    It can be a callable which receive a :class:`djpcms.forms.Form`
+    It can be a callable which receive a :class:`Form`
     instance as argument.
     
     Default: ``None``.
     
     .. seealso::
         
-        Inital is used by :class:`djpcms.forms.Form` and
-        by :class:`djpcms.forms.HtmlForm` instances to render
-        an unbounded form. The :func:`djpcms.forms.Form.initials`
+        Inital is used by :class:`Form` and
+        by :class:`HtmlForm` instances to render
+        an unbounded form. The :func:`Form.initials`
         method return a dictionary of initial values for fields
         providing one. 
     
@@ -154,7 +154,7 @@ of this field. Returns None if it's not provided."""
         '''\
 Get the initial value of field if available.
 
-:parameter form: an instance of the :class:`djpcms.forms.Form` class
+:parameter form: an instance of the :class:`Form` class
                  where the ``self`` is declared.
         '''
         initial = self.initial
@@ -186,7 +186,7 @@ attribute. By default return ``None``. Override for custom behaviour.'''
 
 class CharField(Field):
     '''\
-A text :class:`djpcms.forms.Field` which introduces three
+A text :class:`Field` which introduces three
 optional parameter (attribute):
 
 .. attribute:: max_length

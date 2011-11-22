@@ -53,7 +53,54 @@ CharField
 .. autoclass:: CharField
    :members:
    :member-order: bysource   
+
+
+IntegerField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: IntegerField
+   :members:
+   :member-order: bysource
+
+
+FloatField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FloatField
+   :members:
+   :member-order: bysource  
    
+   
+DateField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DateField
+   :members:
+   :member-order: bysource  
+   
+   
+DateTimeField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DateTimeField
+   :members:
+   :member-order: bysource  
+   
+   
+BooleanField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: BooleanField
+   :members:
+   :member-order: bysource  
+   
+   
+FileField
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FileField
+   :members:
+   :member-order: bysource   
    
 ChoiceField
 ~~~~~~~~~~~~~~~~~~

@@ -34,8 +34,7 @@ class ObjectItem(html.WidgetMaker):
     def get_context(self, djp, widget, keys):
         ctx = super(ObjectItem,self).get_context(djp, widget, keys)
         links = dict(((elem['view'].name,elem) for\
-                       elem in application_views(ctx['appmodel'],
-                                                 djp,
+                       elem in application_views(djp,
                                                  instance = ctx['instance'])))
         view = links.pop('view',None)
         if not view:

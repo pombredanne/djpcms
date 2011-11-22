@@ -101,7 +101,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
             appmodel = r.view.appmodel
             home = appmodel.root_view(request,**djp.kwargs)
             links = ''.join((l[1] for l in views.application_links(\
-                                views.application_views(appmodel,djp))))
+                                views.application_views(djp))))
             yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 

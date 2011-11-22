@@ -12,21 +12,25 @@ class TableRow(FormLayoutElement):
     def stream_errors(self, djp, children):
         for w in children:
             if isinstance(w,dict):
-                yield ''
+                yield '<td id="{0[error_id]}">{0[error]}</td>'.format(w)
             else:
-                yield ''
+                yield '<td></td>'
     
     def stream_fields(self, djp, children):
         for w in children:
             if isinstance(w,dict):
-                yield w['inner']
+                if w['ischeckbox']:
+                    yield '<td>{0[inner]}</td>'.format(w)
+                else:
+                    yield '<td><div class="{0[wrapper_class]}">\
+{0[inner]}</div></td>'.format(w)
             else:
-                yield w
+                yield '<td>{0}</td>'.format(w)
     
     def stream(self, djp, ctx):
         children = ctx['children']
-        yield self.stream_errors(djp, children)
-        yield self.stream_fields(djp, children)
+        yield '<tr>'+''.join(self.stream_errors(djp, children))+'</tr>'
+        yield '<tr>'+''.join(self.stream_fields(djp, children))+'</tr>'
         
     def get_context(self, djp, widget, keys):
         children = []
@@ -63,10 +67,12 @@ class TableFormElement(FormLayoutElement):
     def inner(self, djp, widget, keys):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
-        table = html.Table(self.headers,
-                           self.row_generator(djp, widget),
-                           data = {'options':{'sDom':'t'}},
-                           footer = False, sortable = False)\
-                                .addClass(self.elem_css)
+        t1 = '<th>'
+        t2 = '</th>'
+        head = ''.join((t1+h+t2 for h in self.headers))
+        rows = '\n'.join(self.row_generator(djp, widget))
+        table = html.Widget('table',('<thead>',head,'</thead>',\
+                                     '<tbody>',rows,'</tbody>'))\
+                                    .addClass(self.elem_css)
         return table.render(djp)
     

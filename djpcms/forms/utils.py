@@ -205,8 +205,8 @@ has been submitted.'''
             return instance
         elif instance == f:
             return layout.json_messages(f)
-        smsg     = getattr(view,'success_message',success_message)
-        msg      = smsg(instance, 'changed' if editing else 'added')
+        smsg = getattr(view,'success_message',success_message)
+        msg = smsg(instance, 'changed' if editing else 'added')
         f.add_message(msg)
         
         # Save and continue. Redirect to referer if not AJAX or send messages 

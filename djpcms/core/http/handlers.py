@@ -6,7 +6,26 @@ from .cache import djpcmsinfo
 DJPCMS = 'DJPCMS'
 
 
-__all__ = ['WSGI']
+__all__ = ['WSGI','WSGIhandler']
+
+
+class WSGIhandler(object):
+    
+    def __init__(self, middleware, response_middleware = None):
+        self.middleware = middleware
+        self.response_middleware = response_middleware or []
+        
+    def __call__(self, environ, start_response):
+        '''The WSGI callable'''
+        #request = self.REQUEST(environ)
+        for middleware in self.middleware:
+            response = middleware(environ, start_response)
+            if response is not None:
+                for rm in self.response_middleware:
+                    rm(environ, start_response, response)
+                response(environ, start_response)
+                return response
+        return ()
 
     
 class WSGI(object):

@@ -22,7 +22,7 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
 from .regex import RegExUrl, ALL_URLS
-from .http import WSGI
+from .http import WSGI, WSGIhandler
 from . import orms
 
 __all__ = ['SiteLoader',
@@ -113,7 +113,7 @@ def default_response_handler(djp, response, callback = None):
 
 
 class SiteLoader(object):
-    '''An utility class for loading and configuring djpcms_ sites.
+    '''An utility class for loading and configuring djpcms sites.
  
  .. attribute:: name
  
@@ -230,6 +230,10 @@ can be passed as key-value pairs:
         '''Optional callback by a server just before start serving.'''
         pass
 
+    def wsgi(self):
+        return WSGIhandler(self.wsgi_middleware(),
+                           self.response_middleware())
+        
     
 def standard_exception_handle(request, e, status = None):
     from djpcms import http

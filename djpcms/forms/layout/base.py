@@ -75,12 +75,17 @@ class FieldWidget(FormWidgetMaker):
         parent = widget.parent.maker
         w = bfield.widget(djp)
         parent.add_widget_classes(bfield,w)
+        wrapper_class = getattr(w.maker,'wrapper_class',None)
+        wrapper_class = wrapper_class + ' ' + bfield.name if wrapper_class else\
+                        bfield.name
         return {'field':bfield,
                 'name':bfield.name,
                 'inner':w.render(djp),
                 'widget':w,
                 'parent':parent,
                 'error': bfield.form.errors.get(bfield.name,''),
+                'error_id': bfield.errors_id,
+                'wrapper_class': wrapper_class,
                 'ischeckbox':w.maker.ischeckbox(),
                 'hidden':w.attr('type')=='hidden'}
         

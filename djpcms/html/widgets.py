@@ -19,6 +19,7 @@ __all__ = ['TextInput',
 
 
 class FieldWidget(WidgetMaker):
+    wrapper_class = None
     attributes = WidgetMaker.makeattr('value','name','disabled')
     
     def set_value(self, value, widget):
@@ -28,6 +29,7 @@ class FieldWidget(WidgetMaker):
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
+    wrapper_class = 'field-widget input ui-widget-content'
     attributes = FieldWidget.makeattr('type')
     
         
@@ -141,6 +143,7 @@ for tag in ('div','p','h1','h2','h3','h4','h5','th','li','tr','span','button'):
     
     
 WidgetMaker(tag = 'a', default = 'a', attributes = ('href','title'))
+WidgetMaker(tag = 'table', default = 'table')
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')

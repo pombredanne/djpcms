@@ -1,3 +1,5 @@
+'''Mixins for running tests with djpcms
+'''
 import json
 import os
 import sys
@@ -24,6 +26,16 @@ from djpcms.core.exceptions import *
 skipUnless = test.skipUnless
 
 
+class wsgi(object):
+    
+    def sites(self):
+        if not hasattr(self,'_sites'):
+            self._sites = djpcms.ApplicationSites()
+        return self._sites
+    
+    def wsgi_handler(self):
+        return self.site_factory()
+        
 class ApplicationTest(test.TestCase):
     '''Test Class for djpcms applications'''
     _env = None

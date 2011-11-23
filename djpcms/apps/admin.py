@@ -15,7 +15,7 @@ registered in the same ApplicationSite::
 '''
 from py2py3 import iteritems
 
-from djpcms import views, ContextRenderer
+from djpcms import views, html, ContextRenderer
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.core.exceptions import ImproperlyConfigured
@@ -88,9 +88,10 @@ class ApplicationGroup(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer a group of :class:`djpcms.views.Applications`.'''
     has_plugins = False
-    list_display = ('name','actions')
-    table_parameters = {'footer':False,
-                        'data':{'options':{'sDom':'t'}}}
+    pagination = html.Pagination(('name','actions'),
+                                 ajax = False,
+                                 footer = False,
+                                 html_data = {'options':{'sDom':'t'}})
     home = views.GroupView(in_navigation = 1,
                            view_template = ADMIN_APPLICATION_TEMPLATE)
     

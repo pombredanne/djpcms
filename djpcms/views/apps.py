@@ -1,12 +1,11 @@
 from copy import copy, deepcopy
-from inspect import isgenerator
 
 from py2py3 import iteritems, is_string,\
                     is_bytes_or_string, to_string
 
 import djpcms
-from djpcms import forms, ajax
-from djpcms.html import Paginator, Table, SubmitInput, table_header
+from djpcms import html, forms, ajax
+from djpcms.html import SubmitInput, table_header
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
 from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException,\
@@ -20,7 +19,7 @@ from djpcms.utils.structures import OrderedDict
 from .baseview import RendererMixin
 from .appview import View, ViewView
 from .objectdef import *
-from .table import *
+from .pagination import *
 
 
 __all__ = ['Application',
@@ -132,23 +131,37 @@ def clean_url_bits(mapper, urlbits, mapping):
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
-    '''An application defines a set of :class:`View` which are somehow related
-to each other and shares a common application object :attr:`View.appmodel`
-attribute which is an instance of this class. Application views
+    '''A :class:`RendererMixin` which defines a set of :class:`View` instances
+which are somehow related
+to each other and share a common application object in the
+:attr:`RendererMixin.appmodel` attribute which is an instance of this class.
+Application views
 (instances or :class:`View`) can be specified as class attributes as well as
-input parameters in the :class:`Application` constructor. For example::
+input parameters in the :class:`Application` constructor. For example, the
+snippets::
 
     from djpcms import views
     
-    app = views.Application(baseurl = '/',
+    app = views.Application('/',
                     home = views.View(
                         renderer = lambda djp : 'Hello world!'),
                     whatever = views.View("/what/",
                         renderer = lambda djp : 'I'm on whatever view!')
                     )
                     
-defines an application serving on '/' with two views, the `home` serving at
-"/" and the `whatever` view serving at "/what/".
+and::
+
+    from djpcms import views
+    
+    class MyApplication(views.Application):
+        home = views.View(renderer = lambda djp : 'Hello world!')
+        whatever = views.View("/what/",
+                              renderer = lambda djp : 'I'm on whatever view!')
+                              
+    app = MyApplication('/')
+    
+are equivalent and define an application serving on '/' with two views,
+the `home` serving at "/" and the `whatever` view serving at "/what/".
 The application class has several :ref:`attributes <application-attributes>`
 and :ref:`methods <application-methods>`, some of which can be
 overwritten to customize its behavior.
@@ -196,15 +209,6 @@ overwritten to customize its behavior.
 
     Instance of :class:`djpcms.core.orms.OrmWrapper` or ``None``.
     Created from :attr:`model` if available, during construction.
-        
-.. attribute:: name
-
-    Application name. Calculated from class name if not provided.
-    
-.. attribute:: site
-
-    instance of :class:`ApplicationSite`,
-    the application site manager to which the application is registered with.
     
 .. attribute:: has_plugins
 
@@ -240,39 +244,12 @@ overwritten to customize its behavior.
     Number of objects per page.
     
     Default is ``(10,25,50,100)``
-    
-.. attribute:: ordering
-
-    On optional string indicating the default field for ordering. Starting with
-    a minus means in descending order.
-    
-        Default ``None``
         
 .. attribute:: exclude_links
 
     List or tuple of view names to exclude form visible views.
     
     Default: ``()``
-    
-.. attribute:: table_actions
-
-    A list of :class:`application_action` used by table pagination for bulk
-    actions on model instances. Fore example, delete or updated several
-    instances with one command.
-    
-    Default ``[]``
-    
-.. attribute:: table_links
-
-    A list (or a tuple) of :class:`View` names to display as links in
-    :class:`djpcms.html.Table`. It is used by the :func:`table_toolbox`
-    when building the table header.
-    
-.. attribute:: table_menus
-
-    A list view.
-    
-    Default ``[]``
     
 .. attribute:: editavailable
 
@@ -284,18 +261,6 @@ overwritten to customize its behavior.
     An instance of :class:`View` which represents the root view
     of the application.
     This attribute is calculated by djpcms and specified by the user.
-    
-.. attribute:: form
-
-    The default form class used in the application.
-    
-    Default ``None``.
-    
-.. attribute:: template_name
-
-    default inner template template
-    
-    Default ``None``
     
 .. attribute:: related_field
     
@@ -320,12 +285,7 @@ overwritten to customize its behavior.
 
     Flag indicating if application views are inherited from base class.
     
-    Default ``False``.
-    
-.. attribute:: settings
-
-    the :attr:`ApplicationSite.settings`
-    
+    Default ``False``.    
     
 .. attribute:: url_bits_mapping
     
@@ -349,15 +309,12 @@ overwritten to customize its behavior.
     list_display = None
     autocomplete_fields = None
     object_display = None
-    ordering = None
     form = None
     list_per_page = 25
     list_per_page_choices = (10,25,50,100)
     exclude_links    = ()
     list_display_links = ()
     nice_headers_handler = None
-    pagination_template_name = ('pagination.html',
-                                'djpcms/pagination.html')
     object_widgets = {
           'home': ObjectDef(),
           'list': ObjectItem(),
@@ -373,37 +330,47 @@ overwritten to customize its behavior.
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
     
-    def __init__(self, baseurl, model = None, editavailable = None, name = None,
-                 list_per_page = None, form = None, list_display = None,
+    def __init__(self, baseurl, model = None, editavailable = None,
+                 list_per_page = None, list_display = None,
                  list_display_links = None, object_display = None,
                  in_navigation = None,
-                 description = None, template_name = None, parent = None,
-                 related_field = None, apps = None, ordering = None,
-                 url_bits_mapping = None, has_plugins = None, **views):
+                 related_field = None, apps = None,
+                 url_bits_mapping = None, has_plugins = None,
+                 # RendererMixin
+                 name = None, parent = None, pagination = None,
+                 description = None, template_name = None, form = None,
+                 #
+                  **views):
+        # Set the model first
         self.model = model
-        self.parent = parent
+        self.mapper = None if not self.model else mapper(self.model)
+        RendererMixin.__init__(self, parent = parent, name = name,
+                               pagination = pagination,
+                               template_name = template_name,
+                               description = description,
+                               form = form)
+        if not self.pagination:
+            self.pagination = html.Pagination()
         self.views = deepcopy(self.base_views)
         self.apps = deepcopy(self.base_apps)
-        self.site = None
         self.root_view = None
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
-        self.template_name = template_name or self.template_name
         self.in_navigation = in_navigation if in_navigation is not None else\
                              self.in_navigation
         self.has_plugins = has_plugins if has_plugins is not None else\
                              self.has_plugins
         self.editavailable = editavailable
         self.baseurl = djpcms.RegExUrl(baseurl)
-        self.ordering = ordering or self.ordering
+        # Obsolete
         self.list_per_page = list_per_page or self.list_per_page
         self.list_display = list_display or self.list_display
         self.list_display_links = list_display_links or self.list_display_links
+        #
         self.related_field = related_field or self.related_field
-        self.form = form or self.form
         self.creation_counter = Application.creation_counter
         Application.creation_counter += 1
-        makename(self,name,description)
+        makename(self,self.name,self.description)
         if self.parent and not self.related_field:
             raise ApplicationUrlException('Parent view {0} specified in\
  application {1} without a "related_field".'.format(self.parent,self))
@@ -421,33 +388,21 @@ view {0}. Already available." % name)
 application {0}. Already available.".format(name))
                 self.apps[name] = app
         
-        # Fill headers dictionary
-        heads = {}
-        ld = []
-        for head in self.list_display or ():
-            head = table_header(head)
-            heads[head.code] = head
-            ld.append(head)
-        self.list_display = tuple(ld)
-        self.headers = heads
-        self.mapper = None if not self.model else mapper(self.model)
-        object_display = object_display or self.object_display or\
-                         self.list_display or ()
-        self.object_display = d = []
-        for head in object_display:
-            head = table_header(head)
-            d.append(self.headers.get(head.code,head))   
+        object_display = object_display or self.object_display
+        if not object_display:
+            self.object_display = self.pagination.list_display
+        else:
+            d = []
+            for head in object_display or ():
+                head = table_header(head)
+                d.append(self.pagination.headers.get(head.code,head))
+            self.object_display = tuple(d)   
     
     def __deepcopy__(self,memo):
         obj = copy(self)
         obj.views = deepcopy(self.views)
         obj.apps = deepcopy(self.apps)
-        return obj        
-        
-    @property
-    def settings(self):
-        if self.site:
-            return self.site.settings
+        return obj
         
     @property
     def tree(self):
@@ -507,7 +462,7 @@ Return ``None`` if the view is not available.'''
                     'Application %s already registered as application' % self)
         parent = self.parent
         roots = []
-        self.site = application_site
+        self._site = application_site
         
         if not self.views:
             raise ApplicationUrlException("There are no views in {0}\
@@ -638,8 +593,9 @@ to render a table.'''
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
                         qs = qs.filter(**{related_field:instance})
-            if hasattr(qs,'ordering') and not qs.ordering and self.ordering:
-                qs = qs.sort_by(self.ordering)
+            if hasattr(qs,'ordering') and not qs.ordering and\
+                                                 self.pagination.ordering:
+                qs = qs.sort_by(self.pagination.ordering)
             return qs
         else:
             return djp.auth_children()  
@@ -649,37 +605,8 @@ to render a table.'''
 
 :param query: an iterable over items.
 '''
-        if isinstance(query,dict):
-            query = query['qs']
+        return paginationResponse(djp, query)
             
-        if isgenerator(query):
-            query = list(query)
-            
-        toolbox = table_toolbox(djp)
-        
-        if toolbox:
-            params = deepcopy(self.table_parameters)
-            return dataTableResponse(djp, query, toolbox, params)
-        else:
-            try:
-                total = query.count()
-            except:
-                total = len(query)
-            p = Paginator(total = total,
-                          per_page = self.list_per_page,
-                          page_menu = self.list_per_page_choices)
-            c  = djp.kwargs.copy()
-            c.update({'paginator': p,
-                      'djp': djp,
-                      'url': djp.url,
-                      'appmodel': self,
-                      'headers': self.headers})
-            maker = self.object_widgets['pagination']
-            render = self.render_object
-            qs = query[p.start:p.end]
-            c['items'] = (render(djp,item,'pagination') for item in qs)
-            return djp.render_template(self.pagination_template_name, c)
-
     def for_user(self, djp):
         if self.parent:
             djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)

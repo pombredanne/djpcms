@@ -211,6 +211,13 @@ is not in the dictionary.'''
     def in_navigation(self):
         return self.view.in_navigation(self.request, self.page)
     
+    @property
+    def pagination(self):
+        if self.view.pagination:
+            return self.view.pagination
+        if self.appmodel:
+            return self.appmodel.pagination
+    
     def render(self):
         '''\
 Render the underlying view.

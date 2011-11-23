@@ -80,12 +80,9 @@ class Application(views.Application):
     engine = None
     
     search = SearchView(form = HtmlSearchForm,
-                        form_method = 'GET',
                         description = 'Search Results')
     search_model = SearchView(regex = '(?P<model>{0})'.format(SLUG_REGEX),
                               form = HtmlSearchForm,
-                              form_method = 'GET',
-                              form_ajax = False,
                               description = 'Seach Model')
     
     def __init__(self,*args,**kwargs):

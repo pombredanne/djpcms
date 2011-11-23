@@ -5,7 +5,7 @@ from py2py3 import zip, to_string, itervalues
 from djpcms import UnicodeMixin, html
 from djpcms.utils import smart_escape
 
-from .table import application_views, application_links
+from .pagination import application_views, application_links
 
 
 __all__ = ['ObjectItem',

@@ -15,7 +15,7 @@ from djpcms.views.baseview import djpcmsview
 from djpcms.utils.urls import iri_to_uri
 from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty
 
-from .table import dataTableResponse 
+from .pagination import paginationResponse 
 
 
 __all__ = ['View',
@@ -79,7 +79,7 @@ views::
     view path. For more information check the :meth:`View.route`
     method and :attr:`View.path` attribute.
     
-    Default ``None``.
+    Default: ``None``.
     
 :keyword parent:
 
@@ -88,13 +88,13 @@ views::
     during validation of the applications during startup. It is used to
     assign a value to the :attr:`parent` attribute.
     
-    Default ``None``.
+    Default: ``None``.
     
 :keyword insitemap:
 
     If True the view is included in site-map.
     
-    Default ``True``.
+    Default: ``True``.
     
 :keyword isplugin:
 
@@ -102,11 +102,11 @@ views::
     (Check :class:`djpcms.plugins.ApplicationPlugin` for more info).
     Its value is assigned to the :attr:`isplugin` attribute.
     
-    Default ``False``.
+    Default: ``False``.
     
 :keyword icon:
 
-    Specify the :attr:`djpcmsview.ICON` for this view.
+    To specify the :attr:`djpcmsview.ICON` for this view.
     
 :keyword description:
 
@@ -118,27 +118,26 @@ views::
     calculated from the attribute name of the view
     in the :class:`Application` where it is declared.
 
-    Default ``None``.
-
+    Default: ``None``.
+    
 :keyword form:
 
-    Form class or ``None``. If supplied it will be assigned to
-    the :attr:`_form` attribute.
+    Set the :attr:`RendererMixin.form` attribute.
     It is a form which can be used for interaction.
     
-    Default ``None``.
+    Default: ``None``.
     
 :keyword linkname:
 
     Callable function for overriding :meth:`djpcmsview.linkname`
     
-    default ``None``
+    Default: ``None``.
     
 :keyword title:
 
     Callable function for overriding :meth:`djpcmsview.title`
     
-    default ``None``
+    Default: ``None``.
     
 :keyword methods:
 
@@ -146,7 +145,7 @@ views::
     ('get', 'post', put').
     If specified it replaces the :attr:`_methods` attribute.
     
-    Default ``None``.
+    Default: ``None``.
     
 :keyword view_template:
 
@@ -165,18 +164,11 @@ views::
 
     Check :attr:`force_redirect` attribute for details.
     
-    Default ``None``.
+    Default: ``None``.
     
 :keyword permission: A permission flag.
 
-    Default ``None``.
-
-:keyword headers:
-
-    List of string to display as table header when the
-    view display a table.
-    
-    Default ``None``.
+    Default: ``None``.
 
 :keyword redirect_to_view:
 
@@ -186,10 +178,6 @@ views::
     
     Default: ``None``.
     
-.. attribute:: appmodel
-
-    Instance of :class:`Application` which defines the view.
-    This attribute is evaluate at runtime and it is not psecified by the user.
     
 .. attribute:: parent
 
@@ -273,7 +261,6 @@ views::
     isplugin = False
     regex = None
     in_nav = 0
-    _form = None
     
     def __init__(self,
                  regex = None,
@@ -281,8 +268,8 @@ views::
                  insitemap = True,
                  isplugin = None,
                  description = None,
-                 methods       = None,
-                 plugin_form   = None,
+                 methods = None,
+                 plugin_form = None,
                  renderer = None,
                  title = None,
                  linkname = None,
@@ -292,33 +279,27 @@ views::
                  view_template = None,
                  force_redirect = None,
                  icon = None,
-                 form = None,
-                 list_display = None,
-                 astable = None,
                  table_generator = None,
                  success_message = None,
                  redirect_to_view = None,
                  inherit_page = True,
                  append_slash = True,
                  **kwargs):
-        self.name        = None
+        super(View,self).__init__(**kwargs)
         self.description = description if description is not None\
                              else self.description
-        self.parent    = parent
+        self.parent = parent
         self.isplugin  = isplugin if isplugin is not None else self.isplugin
-        self.in_nav    = in_navigation if isinstance(in_navigation,int)\
+        self.in_nav = in_navigation if isinstance(in_navigation,int)\
                                  else self.in_nav
-        self.appmodel  = None
         self.insitemap = insitemap
-        self.urlbit    = RegExUrl(regex if regex is not None else self.regex,
-                                  append_slash)
-        self.regex     = None
-        self.func      = None
-        self.code      = None
+        self.urlbit = RegExUrl(regex if regex is not None else self.regex,
+                               append_slash)
+        self.regex = None
+        self.func = None
+        self.code = None
         self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view
-        self.list_display = list_display or self.list_display
-        self.astable   = astable if astable is not None else self.astable
         self.template_name = template_name or self.template_name
         if self.template_name:
             t = self.template_name
@@ -339,12 +320,10 @@ views::
             self.view_template = view_template
         if force_redirect is not None:
             self.force_redirect = force_redirect
-        self._form = form if form else self._form
         # Overrides
         self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
-        self.ajax_enabled = kwargs.pop('ajax_enabled',self.ajax_enabled)
         self.plugin_form = plugin_form or self.plugin_form
         self.creation_counter = View.creation_counter
         View.creation_counter += 1
@@ -355,16 +334,6 @@ views::
             return self.appmodel.baseurl
         else:
             return ''
-    
-    @property
-    def model(self):
-        if self.appmodel:
-            return self.appmodel.model
-    
-    @property
-    def site(self):
-        if self.appmodel:
-            return self.appmodel.site
     
     def route(self):
         if self.appmodel:
@@ -399,7 +368,7 @@ views::
         return self.appmodel.root_view is self
     
     def get_form(self, djp, form = None, **kwargs):
-        return self.appmodel.get_form(djp, form or self._form, **kwargs)
+        return self.appmodel.get_form(djp, form or self.form, **kwargs)
         
     def is_soft(self, djp):
         page = djp.page
@@ -463,9 +432,8 @@ for :class:`Application` without a model.'''
     
     
 class ModelView(View):
-    '''A :class:`View` class for views in
-:class:`Application`.
-    '''
+    '''A :class:`View` class for applications with
+:attr:`Application.model` attribute defined.'''
     def defaultredirect(self, request, **kwargs):
         return model_defaultredirect(self, request, **kwargs)
 
@@ -523,7 +491,8 @@ renderint to the :meth:`Application.render_query` method.
         return CustomHeaderBody('autocomplete',auto_list)
     
     def ajax_get_response(self, djp):
-        return dataTableResponse(djp)
+        query = self.appquery(djp)
+        return paginationResponse(djp,query)
     ajax_post_response = ajax_get_response
     
 

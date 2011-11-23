@@ -20,6 +20,8 @@ wrapper class for web rendering on web pages.
 :parameter form_class: A form class setting the :attr:`form_class` attribute.
 :parameter layout: An optional layout instance which sets the :attr:`layout` attribute.
                    Default ``None``.
+:parameter ajax: Set the :attr:`ajax` attribute.
+ 
                    
 Simple usage::
 
@@ -34,6 +36,12 @@ Simple usage::
 .. attribute:: layout
 
     An instance of :class:`djpcms.forms.layout.FormLayout` used to render the :attr:`form_class`.
+
+.. attribute:: ajax
+
+    If ``True`` the interaction will be using ajax.
+    
+    Default: ``True``.
     
 .. attribute:: inputs
 

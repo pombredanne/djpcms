@@ -11,7 +11,7 @@ HTML
 Widget Maker
 ===================
 
-.. autoclass:: djpcms.html.WidgetMaker
+.. autoclass:: WidgetMaker
    :members:
    :member-order: bysource
    
@@ -19,7 +19,7 @@ Widget Maker
 Widget
 =============
 
-.. autoclass:: djpcms.html.Widget
+.. autoclass:: Widget
    :members:
    :member-order: bysource
    
@@ -31,10 +31,13 @@ Builtin Widgets
 Table
 =============
 
+The :class:`Table` is a rich :class:`Widget` with several customization options.
+
+
 Table widget
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.html.Table
+.. autoclass:: Table
    :members:
    :member-order: bysource
    
@@ -42,11 +45,23 @@ Table widget
 Table toolbox
 ~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: djpcms.html.table_toolbox   
+.. autofunction:: table_toolbox   
  
    
+Tools
+===================
+   
+   
+Pagination Options
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PaginationOptions
+   :members:
+   :member-order: bysource
+   
+   
 Media
-=============
+~~~~~~~~~~~~~~
 
 .. autoclass:: djpcms.utils.media.Media
    :members:
@@ -54,8 +69,8 @@ Media
 
 
 Renderer Mixin
-=================
+~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: djpcms.html.Renderer
+.. autoclass:: Renderer
    :members:
    :member-order: bysource

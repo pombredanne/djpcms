@@ -180,7 +180,7 @@ class ModelItemsList(DJPplugin):
         djp = appmodel.root_view(djp.request,**djp.kwargs)
         load_only = ()
         thead = None
-        appheads = appmodel.headers
+        appheads = appmodel.pagination.headers
         
         if headers:
             thead = []
@@ -212,15 +212,13 @@ class ModelItemsList(DJPplugin):
             return display_if_empty
         
         if thead:
-            data = {'options': {'sDom':'t'}}
-            w = html.Table(thead,
-                           body = appmodel.table_generator(djp, thead, items),
-                           appmodel = appmodel,
-                           footer = table_footer,
-                           data = data,
-                           toolbox = False,
-                           title = block.title)
-            return w.render(djp)
+            pagination = html.Pagination(
+                            thead, 
+                            footer = table_footer,
+                            html_data =  {'options': {'sDom':'t'}})
+            return pagination.widget(
+                        appmodel.table_generator(djp, thead, items),
+                        title = block.title, appmodel = appmodel).render(djp)
         else:
             w = html.Widget('div', cn = 'filtered-list')\
                     .addClass(appmodel.mapper.class_name())

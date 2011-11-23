@@ -1,4 +1,4 @@
-from .table import *
+from .pagination import *
 from .response import *
 from .baseview import *
 from .appview import *

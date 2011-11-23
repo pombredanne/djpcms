@@ -15,10 +15,9 @@ from djpcms import views, SLUG_REGEX
 class SimpleTabular(views.ModelApplication):
     '''A very simple application for displaying a table'''
     table_parameters = {'footer':False,
-                        'data':{'options':{'sDom':'t'}}}
-    table_actions = ()
+                        'data': {'options':{'sDom':'t'}}}
     in_navigation = 0
-    search = views.SearchView(astable = True)
+    search = views.SearchView()
     
 
 class Application(views.ModelApplication):

@@ -8,7 +8,7 @@
 (function ($) {
 	"use strict";
     /**
-     * DJPCMS Decorator for Econometric ploting
+     * DJPCMS Decorator for jQuery dataTable plugin
      */
     if ($.djpcms && $.fn.dataTable) {
         

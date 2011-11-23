@@ -1,13 +1,14 @@
 from collections import namedtuple
 from inspect import isgenerator
 
-from djpcms import ajax
-from djpcms.html import Table, Paginator, Widget
+from djpcms import ajax, DELETE
+from djpcms.html import Widget
 
 
 __all__ = ['application_action','application_views',
            'application_links','table_toolbox',
-           'dataTableResponse','instance_link']
+           'instance_link',
+           'paginationResponse','bulk_delete']
 
 
 application_action = namedtuple('application_action',
@@ -15,6 +16,8 @@ application_action = namedtuple('application_action',
 table_menu_link = namedtuple('table_menu_link',
                              'view display title permission icon method ajax')
 
+
+bulk_delete = application_action('bulk_delete','delete',DELETE)
 
 
 def instance_link(djp, instance, name = 'view', asbuttons = False):
@@ -140,8 +143,8 @@ def application_link(view, asbutton = True):
     return list(application_links((view,),asbutton))[0][1]
     
 
-def headers_from_groups(appmodel, groups):
-    ld = appmodel.list_display
+def headers_from_groups(pagination, groups):
+    ld = pagination.list_display
     ldsubset = set()
     for group in groups:
         ldsubset.update(group['cols'])
@@ -160,86 +163,75 @@ an application based on model is available.
     If the toolbox is not available it returns ``None``.
 '''
     appmodel = djp.appmodel
-    if not appmodel:
-        return
-    view = djp.view
-    astable = djp.view.astable
-    if not astable or not appmodel.list_display:
-        return
-    
+    pagination = djp.pagination    
     request = djp.request
     site = djp.site
     has = site.permissions.has
-    choices = []
-    for name,description,pcode in appmodel.table_actions:
+    bulk_actions = []
+    toolbox = {}
+    
+    for name,description,pcode in pagination.bulk_actions:
         if has(request, pcode, None):
-            choices.append((name,description))
+            bulk_actions.append((name,description))
     
-    toolbox = {'as':astable}
-    
-    if choices:
-        toolbox['actions'] = {'choices':choices,
+    if bulk_actions:
+        toolbox['actions'] = {'choices':bulk_actions,
                               'url':djp.url}
         
     if not all:
         return toolbox
     
     menu = list(views_serializable(\
-                    application_views(djp, include = appmodel.table_links)))
+                    application_views(djp, include = pagination.actions)))
     if menu:
         toolbox['tools'] = menu
+        
     groups = appmodel.table_column_groups(djp)
     if isgenerator(groups):
         groups = tuple(groups)
     if groups:
         if len(groups) > 1:
             toolbox['groups'] = groups
-        toolbox['headers'] = tuple(headers_from_groups(appmodel,groups))
+        toolbox['headers'] = tuple(headers_from_groups(pagination,groups))
     else:
-        toolbox['headers'] = appmodel.list_display
+        toolbox['headers'] = pagination.list_display
 
     return toolbox
 
 
-def dataTableResponse(djp, qs = None, toolbox = None, params = None,
-                      headers = None, title = None):
-    '''dataTable ajax response'''
-    view = djp.view
-    request = djp.request
-    inputs = request.REQUEST
-    appmodel = view.appmodel
-    params = params or {}
-    if not title:
-        block = getattr(djp,'block',None)
-        if block and block.title and 'title' not in params:
-            title = block.title
-    if title:
-        params['title'] = title 
-    render = not request.is_xhr
-    # The table toolbox
-    if toolbox is not False:
-        toolbox = toolbox or table_toolbox(djp,appmodel)
-        headers = headers or toolbox['headers']
-    if not headers:
-        raise ValueError('No table headers specified. Cannot render a table')
-    # Attributes to load from query
-    load_only = appmodel.load_fields(headers)
-    num_headers = len(headers)
-    body = None
-    paginate = None
-    start = 0
-    per_page = appmodel.list_per_page
-    page_menu = None
-    if qs is None:
-        qs = view.appquery(djp)
+def paginationResponse(djp, query):
+    if isinstance(query,dict):
+        query = query.get('qs')
+    if isgenerator(query):
+        query = list(query)
     
-    # We are rendering
-    if not render:
-        sort_by = {}
-        search = inputs.get('sSearch')
-        if search:
-            qs = qs.search(search)
+    toolbox = table_toolbox(djp)
+    render = True
+    needbody = True
+    pagination = djp.pagination
+    inputs = djp.request.REQUEST
+    headers = toolbox['headers']
+    ajax = None
+    load_only = None
+    page_menu = None
+    body = None
+    
+    if pagination.ajax:
+        ajax = djp.url
+        if djp.request.is_xhr:
+            render = False
+            needbody = True
+        else:
+            needbody = False
+    
+    sort_by = {}
+    search = inputs.get('sSearch')
+    if search:
+        query = query.search(search)
+        
+    if pagination.astable:
         sortcols = inputs.get('iSortingCols')
+        load_only = djp.appmodel.load_fields(headers)
         if sortcols:
             head = None
             for col in range(int(sortcols)):
@@ -249,63 +241,24 @@ def dataTableResponse(djp, qs = None, toolbox = None, params = None,
                              else ''
                     head = headers[c]
                     qs = qs.sort_by('{0}{1}'.format(d,head.attrname))
-                
-        start = inputs.get('iDisplayStart')
-        per_page = inputs.get('iDisplayLength') or per_page
-        paginate = True
-        
-    try:
-        total = qs.count()
-        query = True
-    except:
-        query = False
-        total = len(qs)
-    
-    if query:
-        qs = qs.load_only(*load_only)
-        
-    if render:
-        # if the ajax flag is not defined in parameters
-        if 'ajax' not in params:
-            params['ajax'] = djp.url if toolbox.pop('as') == 'ajax' else None
-        body = None
-        if params.get('ajax'):
-            if total > 1.3*per_page:
-                page_menu = appmodel.list_per_page_choices
-                paginate = True
             
-    if paginate:
-        paginate = Paginator(total = total,
-                             per_page = per_page,
-                             start = start,
-                             page_menu = page_menu)
-        if not render:
-            body = paginate.slice_data(qs)
-    else:
-        body = qs
+    # Reduce the ammount of data
+    if load_only and hasattr(query,'load_only'):
+        query = query.load_only(*load_only)
         
-    if body:
-        body = appmodel.table_generator(djp,headers,body)
-        
-    tbl = Table(headers, body,
-                appmodel = appmodel,
-                paginator = paginate,
-                toolbox = toolbox,
-                **params)
-
+    start = inputs.get('iDisplayStart',0)
+    per_page = inputs.get('iDisplayLength',pagination.size)
+    pag,body = pagination.paginate(query, start, per_page, withbody = needbody)
     
+    if body is not None and pagination.astable:
+        body = djp.appmodel.table_generator(djp, toolbox['headers'], body)
+        
     if render:
-        return tbl.render(djp)
+        return pagination.widget(body, pagination = pag,
+                                 ajax = ajax, toolbox = toolbox,
+                                 appmodel = djp.appmodel).render(djp)
     else:
-        aaData = []
-        for item in tbl.items(djp):
-            id = item['id']
-            aData = {} if not id else {'DT_RowId':id}
-            aData.update(((i,v) for i,v in enumerate(item['display'])))
-            aaData.append(aData)
-        data = {'iTotalRecords':total,
-                'iTotalDisplayRecords':total,
-                'sEcho':inputs.get('sEcho'),
-                'aaData':aaData}
-        return ajax.simplelem(data)
+        return pagination.ajaxresponse(djp, body, pagination = pag,
+                                       ajax = ajax, toolbox = toolbox,
+                                       appmodel = djp.appmodel)
     

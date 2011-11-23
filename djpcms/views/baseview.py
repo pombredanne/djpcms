@@ -17,33 +17,103 @@ __all__ = ['RendererMixin',
     
 class RendererMixin(UnicodeMixin,RouteMixin,html.Renderer):
     '''\
-A mixin class for rendering objects as HTML
+A :class:`djpcms.html.Renderer` used as mixin class for :class:`Application`
+and :class:`djpcmsview`.
 
-    .. attribute:: appmodel
+.. attribute:: appmodel
+
+    An instance of :class:`Application` where this renderer belongs
+    to or ``None``.
     
-        The application model wher the renedrer is defined.
-        
-    .. attribute:: template_name
-     
-        Used to specify a template file or a tuple of template files.
+.. attribute:: parent
+
+    An instance of a :class:`RendererMixin` which holds this renderer
+    or ``None``.
+    
+.. attribute:: name
+
+    A name. Calculated from class name if not provided.
+    
+.. attribute:: site
+
+    instance of :class:`ApplicationSite` to which this renderer belongs to.
+    
+.. attribute:: pagination
+
+    An instance of a :class:`djpcms.html.PaginationOptions` for specifying how
+    several items will be paginated in the renderer. This atribute is used by
+    :class:`Application` and :class:`View`.
+    
+    Default: ``None``.
+    
+.. attribute:: form
+
+    The default :class:`djpcms.forms.Form` or :class:`djpcms.forms.HtmlForm`
+    class used by the renderer.
+    
+    Default ``None``.
+    
+.. attribute:: ajax_enabled
+
+    If this renderer has ajax enabled rendering views.
+    
+    Default: ``None``
+    
+.. attribute:: template_name
+ 
+    Used to specify a template file or a tuple of template files.
+    
+    Default: ``None``.
+    
+.. attribute:: settings
+
+    proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
 '''
     parent = None
     appmodel = None
     template_name = None
     name = None
+    form = None
     dialog_width = 'auto'
     dialog_height = 'auto'
     ajax_enabled = None
-    list_display = ()
+    pagination = None
     
+    def __init__(self, parent = None, name = None, pagination = None,
+                 ajax_enabled = None, form = None, template_name = None,
+                 description = None):
+        self.parent = parent
+        self.name = name if name is not None else self.name
+        self.description = description or self.description
+        self.pagination = pagination if pagination is not None\
+                                     else self.pagination
+        self.form = form if form is not None else self.form
+        self.template_name = template_name or self.template_name
+        self.ajax_enabled = ajax_enabled if ajax_enabled is not None\
+                                     else self.ajax_enabled
+        if isinstance(form,forms.FormType):
+            self.form = forms.HtmlForm(self.form)
+    
+    @property
+    def site(self):
+        if self.appmodel:
+            return self.appmodel.site
+        else:
+            return getattr(self,'_site',None)
+        
+    @property
+    def settings(self):
+        if self.site:
+            return self.site.settings
+            
     def render(self, djp):
         '''\
 Render the Current View and return a safe string.
-This function is implemented by subclasses of :class:`djpcms.views.View`.
-By default it returns an empty string if the view is a :class:`djpcms.views.pageview`
+This function is implemented by subclasses of :class:`View`.
+By default it returns an empty string if the view is a :class:`pageview`
 other wise the ``render`` method of the :attr:`appmodel`.
 
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`.'''
+:parameter djp: instance of :class:`DjpResponse`.'''
         if self.appmodel:
             return self.appmodel.render(djp)
         else:
@@ -63,8 +133,9 @@ belongs to a user, otherwise returns ``None``.'''
 
 
 class djpcmsview(RendererMixin):
-    '''A :class:`djpcms.views.RendererMixin` class for handling
-http requests.
+    '''A virtual :class:`RendererMixin` class for handling http requests
+on a given url. This class should not be used directly, it is the base class
+of :class:`pageview` and :class:`View`.
     
 .. attribute:: _methods
 
@@ -100,6 +171,11 @@ http requests.
             return '%s: %s' % (self.name,self.path())
         except:
             return self.name
+        
+    @property
+    def model(self):
+        if self.appmodel:
+            return self.appmodel.model
     
     def names(self):
         return None
@@ -260,8 +336,9 @@ class pageview(djpcmsview):
  static data, it means there is not a specific application associate with it.'''
     name = 'flat'
     def __init__(self, page, site):
-        self.site = site
-        self.page = page  
+        self._site = site
+        self.page = page
+        super(pageview,self).__init__()  
         
     def route(self):
         return RegExUrl(self.page.url)

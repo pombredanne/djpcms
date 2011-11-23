@@ -17,7 +17,6 @@ A simple usage::
 from .utils import *
 from .base import *
 from .widgets import *
-from .pagination import *
 from .grid960 import *
 from .htmltype import *
 from .box import *

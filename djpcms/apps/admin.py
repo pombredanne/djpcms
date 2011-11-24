@@ -16,6 +16,7 @@ registered in the same ApplicationSite::
 from py2py3 import iteritems
 
 from djpcms import views, html, ContextRenderer
+from djpcms.html import Widget
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.text import nicename
 from djpcms.core.exceptions import ImproperlyConfigured
@@ -37,11 +38,10 @@ ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
 
 class TabView(views.ObjectItem):
     '''A function for rendering a model instance
-    like in the admin interface. Using jQuery UI tabs.
-    This is usually called in the view page of the object.
+like in the admin interface. Using jQuery UI tabs.
+This is usually called in the view page of the object.
     
-    :parameter self: instance of a :class:`djpcms.views.ModelApplication`
-    :parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
+:parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
     
     view_template = 'djpcms/admin/viewtemplate.html'
         
@@ -94,8 +94,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
                                  footer = False,
                                  html_data = {'options':{'sDom':'t'}})
     
-    home = views.GroupView(in_nav = 1,
-                           template_name = ADMIN_APPLICATION_TEMPLATE)
+    home = views.GroupView(in_nav = 1)
     
     def table_generator(self, djp, headers, qs):
         request = djp.request
@@ -112,25 +111,31 @@ class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''
     has_plugins = False
-    in_navigation = 100
+    in_nav = 100
     query_template = ADMIN_GROUP_TEMPLATE
+    pagination = html.Pagination(widget_factory = html.accordion,
+                                 ajax = False,
+                                 size = None)
     
     home = views.GroupView(in_nav = 1)
     
     def groups(self, djp):
         for child in djp.auth_children():
-            yield {'body':child.html(),
+            yield {'body':child.render(),
                    'title':child.title,
                    'url': child.url}
             
     def basequery(self, djp):
-        return sorted(self.groups(djp), key = lambda x : x['title'])
-    
-    def render_query(self, djp, qs):
-        return djp.render_template(self.query_template, {'items':qs})
+        for g in sorted(self.groups(djp), key = lambda x : x['title']):
+            url = g['url']
+            if url:
+                a = Widget('a', g['title'], href = url)
+            else:
+                a = g['title']
+            yield a,g['body']
       
 
-class AdminApplicationSimple(TabViewMixin,views.ModelApplication):
+class AdminApplicationSimple(TabViewMixin,views.Application):
     has_plugins = False
     search = views.SearchView()
     delete_all = views.DeleteAllView()

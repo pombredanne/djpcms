@@ -22,7 +22,7 @@ permission = lambda self, request, obj: False if not request \
                 else request.user.is_authenticated()
 
 
-class UserAppBase(views.ModelApplication):
+class UserAppBase(views.Application):
     '''Base class for user application. Defines several
 utility methods for dealing with users and user data.'''
     name = 'accounts'
@@ -119,6 +119,6 @@ The userhome view'''
         path = path.split('/')
         
 
-class UserDataApplication(views.ModelApplication):
+class UserDataApplication(views.Application):
     pass
 

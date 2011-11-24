@@ -11,7 +11,7 @@ from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.core.orms import mapper, model_from_hash
-from djpcms.views import Application, ModelApplication, DummyDjp
+from djpcms.views import Application, DummyDjp
 
 
 __all__ = ['ApplicationSite']

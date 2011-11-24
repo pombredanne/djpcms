@@ -288,10 +288,6 @@ the parent of the embedded view.'''
         page = self.page
         return html.htmldoc(None if not page else page.doctype).name
     
-    def html(self):
-        '''Render itself'''
-        return html.LazyRender(self)
-    
     def render_template(self, *args, **kwargs):
         return self.site.template.render(*args, **kwargs)
             

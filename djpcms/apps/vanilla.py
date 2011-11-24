@@ -10,17 +10,9 @@ This is the plain vanilla of all applications. It has the standard five views
 * delete (:class:`djpcms.views.DeleteView`)
 '''
 from djpcms import views, SLUG_REGEX
-
-
-class SimpleTabular(views.ModelApplication):
-    '''A very simple application for displaying a table'''
-    table_parameters = {'footer':False,
-                        'data': {'options':{'sDom':'t'}}}
-    in_navigation = 0
-    search = views.SearchView()
     
 
-class Application(views.ModelApplication):
+class Application(views.Application):
     search = views.SearchView()
     add = views.AddView()
     view = views.ViewView()

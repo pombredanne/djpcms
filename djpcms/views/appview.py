@@ -465,6 +465,9 @@ renderint to the :meth:`Application.render_query` method.
     
 
 class AddView(ModelView):
+    '''A :class:`ModelView` class which renders a form for adding instances
+and handles the saving as default ``POST`` response.'''
+    regex = 'add'
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
     has_plugin = True
@@ -472,10 +475,6 @@ class AddView(ModelView):
     ajax_enabled = False
     default_title = 'add'
     default_link = 'add'
-    '''A :class:`ModelView` class which renders a form for adding instances
-and handles the saving as default ``POST`` response.'''
-    def __init__(self, regex = 'add', **kwargs):
-        super(AddView,self).__init__(regex  = regex, **kwargs)
     
     def render(self, djp):
         return self.get_form(djp).render(djp)
@@ -491,13 +490,13 @@ and handles the saving as default ``POST`` response.'''
 class DeleteAllView(ModelView):
     '''An POST only :class:`ModelView` which deletes all objects
 in a model. Quite drastic.'''
+    regex = 'deleteall'
     PERM = djpcms.DELETEALL
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
     default_title = 'delete all objects'
     default_link = 'delete all objects'
     ajax_enabled = True
-    regex = 'deleteall'
     _methods = ('post',)
     
     def default_post(self, djp):
@@ -543,12 +542,10 @@ generate the full url.'''
 class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
 an object.'''
+    regex = IDREGEX
     default_title = '{0[instance]}'
     default_link = '{0[instance]}'
     
-    def __init__(self, regex = IDREGEX, **kwargs):
-        super(ViewView,self).__init__(regex = regex, **kwargs)
-        
     @async_instance
     def render(self, djp):
         '''Override the :meth:`djpcmsview.render` method
@@ -566,6 +563,8 @@ method of the :attr:`View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
+    regex = 'delete'
+    parent = 'view'
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon ui-icon-trash'
@@ -576,11 +575,6 @@ class DeleteView(ObjectView):
     default_link = 'delete'
     _methods      = ('post',)
     
-    def __init__(self, regex = 'delete', parent = 'view', **kwargs):
-        super(DeleteView,self).__init__(regex = regex,
-                                        parent = parent,
-                                        **kwargs)
-        
     def remove_object(self, instance):
         return self.appmodel.remove_object(instance)
     
@@ -606,8 +600,7 @@ class DeleteView(ObjectView):
 class ObjectActionView(ObjectView):
     '''An :class:`ObjectView` class specialised for performing actions
 on an instance of a model.'''
-    def __init__(self, parent = 'view', **kwargs):
-        super(ObjectActionView,self).__init__(parent = parent, **kwargs)
+    parent = 'view'
         
     @async_instance
     def render(self, djp):
@@ -622,11 +615,9 @@ on an instance of a model.'''
 class ChangeView(ObjectActionView):
     '''An :class:`ObjectActionView` class specialised for changing
 an instance of a model.'''
+    regex = 'change'
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'
     default_link = 'edit'
-    
-    def __init__(self, regex = 'change', **kwargs):
-        super(ChangeView,self).__init__(regex = regex, **kwargs)
     

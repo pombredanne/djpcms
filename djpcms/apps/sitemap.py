@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views
 from djpcms.core import messages
-from djpcms.html import box, table
+from djpcms.html import box, Pagination
 
 from .admin import TabViewMixin
     
@@ -47,23 +47,23 @@ class PageChangeView(views.ChangeView):
                                                           **kwargs)
         
     
-class SiteMapApplication(TabViewMixin,views.ModelApplication):
+class SiteMapApplication(TabViewMixin,views.Application):
     has_plugins = False
     '''Application to use for admin sitemaps'''
-    list_display = ('id', 'url','application','application_view',
-                    'template','inner_template','in_navigation','doc_type',
-                    'soft_root','route')
-    
-    fields = ('path', 'id', 'application','application_view',
-              'template','inner_template','in_navigation','doc_type',
-              'title','linkname','is_soft','route','template_file')
-    table_views = [
-             {'name':'default',
-              'fields': ('id','application','in_navigation','is_soft',)},
-             {'name':'html',
-              'fields': ('id','route','title','linkname',
-                         'doc_type','template_file')}
-             ]
+    pagination = Pagination(('id', 'url','application','application_view',
+                             'template','inner_template','in_navigation',
+                             'doc_type','soft_root','route'))
+    #
+    #fields = ('path', 'id', 'application','application_view',
+    #          'template','inner_template','in_navigation','doc_type',
+    #          'title','linkname','is_soft','route','template_file')
+    #table_views = [
+    #         {'name':'default',
+    #          'fields': ('id','application','in_navigation','is_soft',)},
+    #         {'name':'html',
+    #          'fields': ('id','route','title','linkname',
+    #                     'doc_type','template_file')}
+    #         ]
     
     search = SiteMapView()
     

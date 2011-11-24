@@ -19,12 +19,17 @@ from .base import Widget, WidgetMaker
 from .pagination import Paginator 
 
 
-__all__ = ['TableMaker','Pagination',
-           'table_header','attrname_from_header']
+__all__ = ['TableMaker',
+           'Pagination',
+           'table_header',
+           'attrname_from_header',
+           'simple_table_dom']
 
 
 table_header_ = namedtuple('table_header_',
 'code name description function sortable width extraclass attrname')
+
+simple_table_dom = {'sDom':'t'}
 
 
 def attrname_from_header(header, code):
@@ -214,7 +219,7 @@ class Pagination(object):
                  sortable = False, footer = False, ajax = True,
                  size = 25, size_choices = (10,25,50,100), ordering = None,
                  html_data = None, sizetolerance = 1,
-                 pagination_template_name = None):
+                 pagination_template_name = None, widget_factory = None):
         self.actions = tuple(actions or ())
         self.bulk_actions = tuple(bulk_actions or ())
         self.footer = footer
@@ -223,6 +228,7 @@ class Pagination(object):
         self.ordering = ordering
         self.sizetolerance = sizetolerance
         self.ajax = ajax
+        self.widget_factory = widget_factory
         template_name = pagination_template_name or \
                         self.default_pagination_template_name
         self.widget_maker = WidgetMaker(template_name = template_name)
@@ -327,8 +333,10 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 if ajax:
                     options['sAjaxSource'] = ajax
             maker = partial(table, self.list_display)
+        elif self.widget_factory:
+            maker = self.widget_factory
         else:
-            maker = self.widget_maker
+            raise NotImplementedError
         return maker(body, pagination = pagination, data = data,
                      footer = self.footer, **kwargs)
         

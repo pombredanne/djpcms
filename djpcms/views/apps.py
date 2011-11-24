@@ -23,7 +23,6 @@ from .pagination import *
 
 
 __all__ = ['Application',
-           'ModelApplication',
            'application_action',
            'extend_widgets']
 
@@ -142,12 +141,12 @@ snippets::
 
     from djpcms import views
     
-    app = views.Application('/',
-                    home = views.View(
-                        renderer = lambda djp : 'Hello world!'),
-                    whatever = views.View("/what/",
-                        renderer = lambda djp : 'I'm on whatever view!')
-                    )
+    VIEWS = (
+        ('home', views.View(renderer = lambda djp : 'Hello world!')),
+        ('whatever', views.View(renderer = lambda djp : 'Whatever view!'))
+        )
+    
+    app = views.Application('/', views = VIEWS)
                     
 and::
 
@@ -155,8 +154,7 @@ and::
     
     class MyApplication(views.Application):
         home = views.View(renderer = lambda djp : 'Hello world!')
-        whatever = views.View("/what/",
-                              renderer = lambda djp : 'I'm on whatever view!')
+        whatever = views.View("/what/", renderer=Lambda djp : 'whatever view!')
                               
     app = MyApplication('/')
     
@@ -170,16 +168,14 @@ overwritten to customize its behavior.
                     Check :attr:`baseurl` for more information.
 :parameter editavailable: ``True`` if :ref:`inline editing <inline-editing>`
                           is available for the application.
-:parameter name: Application name. Check :attr:`name` for more information.
-                    
-                 Default ``None``.
-:parameter has_plugins: set the :attr:`has_plugins` attribute.
-:parameter in_navigation: If provided it overrides the
-                          :attr:`root_view` ``in_nav`` attribute.
-                          
-                          Default ``None``.
-:parameter views: key valued of :class:`View` instances.
-
+:parameter list_display_links: set the :attr:`list_display_links`.
+:parameter object_display: set the :attr:`object_display`.
+:parameter url_bits_mapping: set the :attr:`url_bits_mapping`.
+:parameter apps: an optional iterable over :class:`Application` instances.
+:parameter views: an optional iterable over two elements tuples
+    ``(name,view instance)``.
+:parameter kwargs: key-valued parameters to be passed to the
+    :class:`RendererMixin` constructor.
 
 --
 
@@ -225,8 +221,7 @@ overwritten to customize its behavior.
         
 .. attribute:: list_display_links
 
-    List of object's field to display. If available, the search view
-    will display a sortable table of objects.
+    List of model fields to render as a link.
      
      Default is ``None``.
         
@@ -277,6 +272,22 @@ overwritten to customize its behavior.
     A dictionary for mapping url keys into model fields.
     
     Default: ``None``.
+
+.. attribute:: views
+
+    Ordered dictionary of :class:`View` instances created during registration
+    from view class attributes and the *views* input iterable.
+    
+.. attribute:: root_view
+
+    The root view, set during registration.
+    
+.. attribute:: apps
+
+    Ordered dictionary of :class:`Application` instances for which this instance
+    is the :attr:`parent`. Created during initialization from the *apps* input
+    parameter.
+
 
 --
 
@@ -368,7 +379,6 @@ view {0}. Already available." % name)
         
     @property
     def tree(self):
-        '''application site tree'''
         if self.site:
             return self.site.tree
         
@@ -406,7 +416,7 @@ Return ``None`` if the view is not available.'''
         return parent
     
     def get_root_code(self):
-        raise NotImplementedError
+        return self.root_view.code
     
     def isroot(self):
         return True
@@ -482,7 +492,7 @@ Return ``None`` if the view is not available.'''
                     raise ApplicationUrlException('View "{0}" in application\
  {1} has {2} "{3}" matching parent view "{4}" of application "{5}"'.\
                     format(view,self,k,ks,parent,parent.appmodel))            
-            if self.has_plugins and view.has_plugin:
+            if self.has_plugins and view.has_plugins:
                 register_application(view)
                 
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,
@@ -698,25 +708,9 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
                 yield name,getattr(obj,attrname)
             else:
                 yield attrname,data[name]
-    
-    
-    
-    
-        
-class ModelApplication(Application):
-    filter_fields    = []
-    '''List of model fields which can be used to filter'''
-    search_fields    = []
-    '''List of model field's names which are searchable. Default ``None``.
-This attribute is used by :class:`SearchView` views
-and by the :ref:`auto-complete <autocomplete>`
-functionality when searching for model instances.'''
-    exclude_object_links = []
-    '''Object view names to exclude from object links. Default ``[]``.'''
-    table_actions = [application_action('bulk_delete','delete',djpcms.DELETE)]
-        
-    def get_root_code(self):
-        return self.root_view.code
+
+    #TODO
+    # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
     
     def modelsearch(self):
         return self.model
@@ -824,9 +818,6 @@ The search looks in::
         return ['%s/%s' % (opts.app_label,template_name),
                 'djpcms/object_list_item.html']
     
-    def permissionDenied(self, djp):
-        raise PermissionDenied
-        
     def sitemapchildren(self, view):
         return []
     

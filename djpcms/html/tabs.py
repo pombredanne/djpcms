@@ -2,7 +2,7 @@ from djpcms.utils import gen_unique_id
 
 from .base import Widget, WidgetMaker, iterable
 
-__all__ = ['TabsMaker','tabs']
+__all__ = ['TabsMaker','tabs','accordion']
 
 
 class TabsMaker(WidgetMaker):
@@ -10,6 +10,7 @@ class TabsMaker(WidgetMaker):
     default_class = 'ui-tabs'
     
     def add_to_widget(self, widget, keyvalue, value = None):
+        '''Override to allow for tuples and single values.'''
         if value is None and iterable(keyvalue):
             key, value = tuple(keyvalue)
         else:
@@ -27,9 +28,28 @@ class TabsMaker(WidgetMaker):
             yield ul.render(djp)
             yield '\n'.join(di)
         
+
+class Accordion(TabsMaker):
+    tag = 'div'
+    default_class = 'ui-accordion-container djph'
     
-_maker = TabsMaker()
+    def stream(self, djp, widget, context):
+        if widget.data_stream:
+            ul = Widget('ul')
+            di = []
+            for key,val in widget.data_stream:
+                yield Widget('h3',key).render(djp)
+                yield Widget('div',val).render(djp)
+        
+_tabs_maker = TabsMaker()
+_acc_maker = Accordion()
+
+
 
 def tabs(data_stream = None, **kwargs):
-    kwargs['maker'] = _maker
+    kwargs['maker'] = _tabs_maker
+    return Widget(data_stream = data_stream, **kwargs)
+
+def accordion(data_stream = None, **kwargs):
+    kwargs['maker'] = _acc_maker
     return Widget(data_stream = data_stream, **kwargs)

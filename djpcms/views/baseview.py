@@ -80,6 +80,7 @@ and :class:`djpcmsview`.
     appmodel = None
     template_name = None
     name = None
+    description = None
     form = None
     dialog_width = 'auto'
     dialog_height = 'auto'
@@ -93,9 +94,10 @@ and :class:`djpcmsview`.
                  ajax_enabled = None, form = None, template_name = None,
                  description = None, in_nav = None, has_plugins = None,
                  insitemap = None):
-        self.parent = parent
+        self.parent = parent if parent is not None else self.parent
         self.name = name if name is not None else self.name
-        self.description = description or self.description
+        self.description = description if description is not None else\
+                            self.description
         self.pagination = pagination if pagination is not None\
                                      else self.pagination
         self.form = form if form is not None else self.form

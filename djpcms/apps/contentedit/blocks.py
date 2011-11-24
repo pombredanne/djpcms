@@ -239,8 +239,8 @@ class DeleteContentView(views.DeleteView):
             return self.redirect(refer)
 
 
-class ContentSite(views.ModelApplication):
-    '''AJAX enabled :class:`djpcms.views.ModelApplication` for changing
+class ContentSite(views.Application):
+    '''AJAX enabled :class:`djpcms.views.Application` for changing
 content in a content block.'''
     form = ContentBlockHtmlForm
     has_plugins = False

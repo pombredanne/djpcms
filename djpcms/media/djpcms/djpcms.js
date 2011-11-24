@@ -751,15 +751,17 @@
         config:{
             effect:'drop',
             fadetime: 500,
-            accordion : {
-                autoHeight:false,
-                fillSpace:false
-                }
+            autoHeight:false,
+            fillSpace:false
             },
         decorate: function($this,config) {
-            var c = config.accordion;
-            $('.ui-accordion',$this).accordion(c.accordion)
-                                    .show(c.effect,{},c.fadetime);
+            var c = $.extend({},config.accordion);
+            $('.ui-accordion-container',$this).each(function() {
+            	var el = $(this),
+            		options = el.data('options'),
+            		opts = $.extend(c,options);
+            	el.accordion(opts).show(opts.effect,{},opts.fadetime);
+            });
         }
     });
     

@@ -44,12 +44,14 @@ Contents
 .. toctree::
    :maxdepth: 1
    
+   overview
    tutorials/index
    views
    forms
    plugins
    html
    orms
+   editing
    apps
    internals
    settings

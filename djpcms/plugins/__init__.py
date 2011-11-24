@@ -235,7 +235,7 @@ the plugin will display the search view for that application.
     
 class ApplicationPlugin(DJPplugin):
     '''Plugin formed by :class:`djpcms.views.appview.AppViewBase` classes
-which have the :attr:`djpcms.views.appview.AppViewBase.isplugin` attribute
+which have the :attr:`djpcms.views.RendererMixin.has_plugin` attribute
 set to ``True``.
 
 For example, lets say an application as a :class:`djpcms.views.appview.AddView` view

@@ -33,15 +33,13 @@ class LoginView(views.ModelView):
     '''A Battery included Login view. You need to
     create a login.html file in your site template directory.
     '''
+    has_plugin = True
     default_title = 'Sign in'
     template_name = 'login.html'
-    def __init__(self,
-                 regex = 'login',
-                 isplugin = True,
-                 **kwargs):
+    
+    def __init__(self, regex = 'login', force_redirect = True, **kwargs):
         super(LoginView,self).__init__(regex = regex,
-                                       isplugin = isplugin,
-                                       force_redirect = True,
+                                       force_redirect = force_redirect,
                                        **kwargs)
         
     def preprocess(self, djp):

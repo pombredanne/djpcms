@@ -126,14 +126,6 @@ BoundField
 .. autoclass:: BoundField
    :members:
    :member-order: bysource
-
-
-FormWidget
-~~~~~~~~~~~~~~
-
-.. autoclass:: FormWidget
-   :members:
-   :member-order: bysource
       
 
 .. _forms-layout:

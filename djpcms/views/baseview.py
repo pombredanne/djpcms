@@ -53,6 +53,13 @@ and :class:`djpcmsview`.
     
     Default ``None``.
     
+.. attribute:: has_plugin:
+
+    If ``True`` the view can be placed in any page via the plugin API.
+    (Check :class:`djpcms.plugins.ApplicationPlugin` for more info).
+    
+    Default: ``True``.
+    
 .. attribute:: ajax_enabled
 
     If this renderer has ajax enabled rendering views.
@@ -78,10 +85,14 @@ and :class:`djpcmsview`.
     dialog_height = 'auto'
     ajax_enabled = None
     pagination = None
+    in_nav = None
+    has_plugins = True
+    insitemap = True
     
     def __init__(self, parent = None, name = None, pagination = None,
                  ajax_enabled = None, form = None, template_name = None,
-                 description = None):
+                 description = None, in_nav = None, has_plugins = None,
+                 insitemap = None):
         self.parent = parent
         self.name = name if name is not None else self.name
         self.description = description or self.description
@@ -89,8 +100,17 @@ and :class:`djpcmsview`.
                                      else self.pagination
         self.form = form if form is not None else self.form
         self.template_name = template_name or self.template_name
+        if self.template_name:
+            t = self.template_name
+            if not (isinstance(t,list) or isinstance(t,tuple)):
+                t = (t,)
+            self.template_name = tuple(t)
         self.ajax_enabled = ajax_enabled if ajax_enabled is not None\
                                      else self.ajax_enabled
+        self.in_nav = in_nav if in_nav is not None else self.in_nav
+        self.has_plugins = has_plugins if has_plugins is not None else\
+                             self.has_plugins
+        self.insitemap = insitemap if insitemap is not None else self.insitemap
         if isinstance(form,forms.FormType):
             self.form = forms.HtmlForm(self.form)
     

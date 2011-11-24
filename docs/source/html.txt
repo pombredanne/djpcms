@@ -22,40 +22,15 @@ Widget
 .. autoclass:: Widget
    :members:
    :member-order: bysource
-   
-
-Builtin Widgets
-==================
-
-
-Table
-=============
-
-The :class:`Table` is a rich :class:`Widget` with several customization options.
-
-
-Table widget
-~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Table
-   :members:
-   :member-order: bysource
-   
-   
-Table toolbox
-~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: table_toolbox   
- 
+       
    
 Tools
 ===================
    
-   
-Pagination Options
+Pagination
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: PaginationOptions
+.. autoclass:: Pagination
    :members:
    :member-order: bysource
    

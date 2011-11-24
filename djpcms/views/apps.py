@@ -210,15 +210,6 @@ overwritten to customize its behavior.
     Instance of :class:`djpcms.core.orms.OrmWrapper` or ``None``.
     Created from :attr:`model` if available, during construction.
     
-.. attribute:: has_plugins
-
-    Boolean indicating if the current application should register plugins
-    from views which have the :attr:`View.isplugin` attribute set to ``True``.
-    If this flag is ``False`` no view plugin from this application will
-    be available.
-    
-    Default: ``True``
-    
 .. attribute:: list_display
 
     An list or a tuple over attribute's names to display in pagination views.
@@ -238,12 +229,6 @@ overwritten to customize its behavior.
     will display a sortable table of objects.
      
      Default is ``None``.
-     
-.. attribute:: list_per_page_choices
-    
-    Number of objects per page.
-    
-    Default is ``(10,25,50,100)``
         
 .. attribute:: exclude_links
 
@@ -303,52 +288,32 @@ overwritten to customize its behavior.
     creation_counter = 0
     inherit = False
     authenticated = False
-    has_plugins = True
-    hidden = False
     related_field = None
-    list_display = None
     autocomplete_fields = None
     object_display = None
     form = None
-    list_per_page = 25
-    list_per_page_choices = (10,25,50,100)
-    exclude_links    = ()
+    exclude_links = ()
     list_display_links = ()
     nice_headers_handler = None
+    url_bits_mapping = None
+    in_nav = 1
     object_widgets = {
           'home': ObjectDef(),
           'list': ObjectItem(),
           'pagination': ObjectPagination()
-          }
-    in_navigation = None
-    table_actions = []
-    table_links = None
-    table_parameters = {}
-    url_bits_mapping = None
-    
+          }    
 
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
     
     def __init__(self, baseurl, model = None, editavailable = None,
-                 list_per_page = None, list_display = None,
                  list_display_links = None, object_display = None,
-                 in_navigation = None,
-                 related_field = None, apps = None,
-                 url_bits_mapping = None, has_plugins = None,
-                 # RendererMixin
-                 name = None, parent = None, pagination = None,
-                 description = None, template_name = None, form = None,
-                 #
-                  **views):
+                 related_field = None, url_bits_mapping = None,
+                 apps = None, views = None, **kwargs):
         # Set the model first
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
-        RendererMixin.__init__(self, parent = parent, name = name,
-                               pagination = pagination,
-                               template_name = template_name,
-                               description = description,
-                               form = form)
+        RendererMixin.__init__(self, **kwargs)
         if not self.pagination:
             self.pagination = html.Pagination()
         self.views = deepcopy(self.base_views)
@@ -356,15 +321,8 @@ overwritten to customize its behavior.
         self.root_view = None
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
-        self.in_navigation = in_navigation if in_navigation is not None else\
-                             self.in_navigation
-        self.has_plugins = has_plugins if has_plugins is not None else\
-                             self.has_plugins
         self.editavailable = editavailable
         self.baseurl = djpcms.RegExUrl(baseurl)
-        # Obsolete
-        self.list_per_page = list_per_page or self.list_per_page
-        self.list_display = list_display or self.list_display
         self.list_display_links = list_display_links or self.list_display_links
         #
         self.related_field = related_field or self.related_field
@@ -372,10 +330,14 @@ overwritten to customize its behavior.
         Application.creation_counter += 1
         makename(self,self.name,self.description)
         if self.parent and not self.related_field:
-            raise ApplicationUrlException('Parent view {0} specified in\
+            raise ApplicationUrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent,self))
         if views:
-            for name,view in views.items():
+            for name,view in views:
+                if not isinstance(view,View):
+                    raise ApplicationUrlException('Value "{0}" at keyword "{1}"\
+ is not a view instance. Error in constructing application "{2}".'\
+ .format(view,name,self))
                 if name in self.views:
                     raise ApplicationUrlException("Could not define add \
 view {0}. Already available." % name)
@@ -384,8 +346,8 @@ view {0}. Already available." % name)
             for app in apps:
                 name = app.name
                 if name in self.apps:
-                    raise ApplicationUrlException("Could not define add \
-application {0}. Already available.".format(name))
+                    raise ApplicationUrlException('Could not add application\
+ "{0}". Name "{1}" Already available. Set a different name'.format(app,name))
                 self.apps[name] = app
         
         object_display = object_display or self.object_display
@@ -494,9 +456,9 @@ Return ``None`` if the view is not available.'''
                 raise ApplicationUrlException(\
                         "Could not define root application for %s." % self)
         
-        # Set the in_na if required
-        if self.in_navigation is not None:
-            self.root_view.in_nav = self.in_navigation
+        # Set the in_nav if required
+        if self.in_nav:
+            self.root_view.in_nav = self.in_nav
             
         # Pre-process urls
         views = list(self.views.values())
@@ -520,7 +482,7 @@ Return ``None`` if the view is not available.'''
                     raise ApplicationUrlException('View "{0}" in application\
  {1} has {2} "{3}" matching parent view "{4}" of application "{5}"'.\
                     format(view,self,k,ks,parent,parent.appmodel))            
-            if self.has_plugins and view.isplugin:
+            if self.has_plugins and view.has_plugin:
                 register_application(view)
                 
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,

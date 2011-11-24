@@ -63,9 +63,7 @@ def get_template(self):
 
 
 class DjpResponse(djpcms.UnicodeMixin):
-    '''Djpcms response class.
-It contains information associated with a given path
-which can, and often is, different from the current request path.
+    '''Djpcms response class. 
 Usually, it is initialized by::
 
     djp = view(request, **kwargs)
@@ -75,7 +73,7 @@ where ``kwargs`` is a dictionary of parameters used to build the ``url``
 
 .. attribute:: request
 
-    A HttpRequest instance containing the request environment information.
+    A Request instance containing the request environment information.
     
 .. attribute:: view
 

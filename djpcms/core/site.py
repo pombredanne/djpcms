@@ -587,9 +587,12 @@ module specifying the admin application will be included.
                     url = adming[rname]
                     agroups[url]['urls'] += urls
                 else:
-                    groups.append(ApplicationGroup(route,
-                                                   name = name_,
-                                                   apps = urls))
+                    adming[rname] = route
+                    agroups[route] = {'name':name_,
+                                      'urls':urls}
+#                    groups.append(ApplicationGroup(route,
+#                                                   name = name_,
+#                                                   apps = urls))
         for route,data in agroups.items():
             groups.append(ApplicationGroup(route,
                                            name = data['name'],

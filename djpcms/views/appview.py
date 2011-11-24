@@ -56,7 +56,7 @@ at start up.
 
 Views which derives from this class are special in the sense that they can also
 appear as content of :class:`djpcms.plugins.DJPplugin` if
-the :attr:`isplugin` attribute is set to ``True``.
+the :attr:`RendererMixin.has_plugin` attribute is set to ``True``.
 In other words, application views can be turned into plugins
 so that they can be rendered in any page of your site.
 All parameters are optionals and usually a small subset of them needs
@@ -95,14 +95,6 @@ views::
     If True the view is included in site-map.
     
     Default: ``True``.
-    
-:keyword isplugin:
-
-    If ``True`` the view can be placed in any page via the plugin API.
-    (Check :class:`djpcms.plugins.ApplicationPlugin` for more info).
-    Its value is assigned to the :attr:`isplugin` attribute.
-    
-    Default: ``False``.
     
 :keyword icon:
 
@@ -253,30 +245,20 @@ views::
     Default ``True``.
 '''
     creation_counter = 0
-    description = None
-    plugin_form    = None
-    view_template  = 'djpcms/components/pagination.html'
+    plugin_form = None
     force_redirect = False
-    astable = False
-    isplugin = False
     regex = None
     in_nav = 0
     
     def __init__(self,
                  regex = None,
                  parent = None,
-                 insitemap = True,
-                 isplugin = None,
-                 description = None,
                  methods = None,
                  plugin_form = None,
                  renderer = None,
                  title = None,
                  linkname = None,
                  permission = None,
-                 in_navigation = None,
-                 template_name = None,
-                 view_template = None,
                  force_redirect = None,
                  icon = None,
                  table_generator = None,
@@ -286,13 +268,7 @@ views::
                  append_slash = True,
                  **kwargs):
         super(View,self).__init__(**kwargs)
-        self.description = description if description is not None\
-                             else self.description
         self.parent = parent
-        self.isplugin  = isplugin if isplugin is not None else self.isplugin
-        self.in_nav = in_navigation if isinstance(in_navigation,int)\
-                                 else self.in_nav
-        self.insitemap = insitemap
         self.urlbit = RegExUrl(regex if regex is not None else self.regex,
                                append_slash)
         self.regex = None
@@ -300,12 +276,6 @@ views::
         self.code = None
         self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view
-        self.template_name = template_name or self.template_name
-        if self.template_name:
-            t = self.template_name
-            if not (isinstance(t,list) or isinstance(t,tuple)):
-                t = (t,)
-            self.template_name = tuple(t)
         if title:
             self.title = title
         if linkname:
@@ -316,8 +286,6 @@ views::
             self.render = renderer
         if success_message:
             self.success_message = success_message
-        if view_template:
-            self.view_template = view_template
         if force_redirect is not None:
             self.force_redirect = force_redirect
         # Overrides
@@ -351,7 +319,7 @@ views::
         return self.appmodel.media(djp)
     
     def in_navigation(self, request, page):
-        if not self.appmodel.hidden:
+        if self.appmodel.in_nav:
             if page:
                 if self.regex.names and page.url != self.path:
                     return 0
@@ -453,7 +421,7 @@ There are three additional parameters that can be set:
      
 :keyword search_text: string identifier for text queries.
     '''
-    isplugin = True
+    has_plugin = True
     astable = 'ajax'
     in_nav = 1
     search_text = 'q'
@@ -499,17 +467,15 @@ renderint to the :meth:`Application.render_query` method.
 class AddView(ModelView):
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
+    has_plugin = True
+    in_nav = 1
     ajax_enabled = False
     default_title = 'add'
     default_link = 'add'
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
-    def __init__(self, regex = 'add', isplugin = True,
-                 in_navigation = 1, **kwargs):
-        super(AddView,self).__init__(regex  = regex,
-                                     isplugin = isplugin,
-                                     in_navigation = in_navigation,
-                                     **kwargs)
+    def __init__(self, regex = 'add', **kwargs):
+        super(AddView,self).__init__(regex  = regex, **kwargs)
     
     def render(self, djp):
         return self.get_form(djp).render(djp)

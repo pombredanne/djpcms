@@ -153,3 +153,9 @@ application_links
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction :: application_links
+
+
+Table toolbox
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: table_toolbox

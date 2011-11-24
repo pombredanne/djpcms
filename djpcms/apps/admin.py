@@ -82,6 +82,7 @@ class TabViewMixin(object):
     views_ordering = {'view':0,'change':1}
     object_widgets = views.extend_widgets({'home':TabView(),
                                            'object':views.ObjectDef()})
+    pagination = html.Pagination(('__str__',))
 
 
 class ApplicationGroup(views.Application):
@@ -92,8 +93,9 @@ administer a group of :class:`djpcms.views.Applications`.'''
                                  ajax = False,
                                  footer = False,
                                  html_data = {'options':{'sDom':'t'}})
-    home = views.GroupView(in_navigation = 1,
-                           view_template = ADMIN_APPLICATION_TEMPLATE)
+    
+    home = views.GroupView(in_nav = 1,
+                           template_name = ADMIN_APPLICATION_TEMPLATE)
     
     def table_generator(self, djp, headers, qs):
         request = djp.request
@@ -112,7 +114,8 @@ administer models in groups.'''
     has_plugins = False
     in_navigation = 100
     query_template = ADMIN_GROUP_TEMPLATE
-    home = views.GroupView(in_navigation = 1)
+    
+    home = views.GroupView(in_nav = 1)
     
     def groups(self, djp):
         for child in djp.auth_children():

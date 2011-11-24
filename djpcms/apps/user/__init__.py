@@ -25,6 +25,7 @@ permission = lambda self, request, obj: False if not request \
 class UserAppBase(views.ModelApplication):
     '''Base class for user application. Defines several
 utility methods for dealing with users and user data.'''
+    name = 'accounts'
     userpage = False
     home = views.SearchView()
     login = LoginView(template_name = 'login.html',
@@ -32,7 +33,7 @@ utility methods for dealing with users and user data.'''
                       form = HtmlForm(LoginForm,
                                       inputs = (('Sign in','login_user'),)))
     logout = LogoutView()
-    add = views.AddView(in_navigation = 0,
+    add = views.AddView(in_nav = 0,
                         form = HtmlForm(RegisterForm,
                                         inputs = (('Create','create_user'),)),
                         force_redirect = True)
@@ -73,11 +74,10 @@ utility methods for dealing with users and user data.'''
 class UserApplication(UserAppBase):
     '''This is a special Application since it deals with users and therefore is everywhere.
 No assumption has been taken over which model is used for storing user data.'''
-    name    = 'account'
-    inherit = True    
+    inherit = True
+    in_nav = 0  
     change_password = views.ChangeView(regex = 'change-password',
-                                       in_navigation = 0,
-                                       isplugin = True,
+                                       has_plugins = True,
                                        parent = 'home',
                                        form = HtmlForm(PasswordChangeForm))
         
@@ -103,7 +103,7 @@ The userhome view'''
                                form = HtmlForm(UserChangeForm))
     change_password = views.ChangeView(regex = 'change-password',
                                        parent = 'userhome',
-                                       isplugin = True,
+                                       has_plugins = True,
                                        form = HtmlForm(PasswordChangeForm))
     #userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
     #                        parent = 'userhome')

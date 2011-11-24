@@ -24,14 +24,15 @@ CHANGE = 30
 DELETE = 40
 DELETEALL = 50
 
-PERMISSION_LIST = (
+
+PERMISSION_LIST = [
                    (VIEW,'VIEW'),
                    (ADD,'ADD'),
                    (COPY,'COPY'),
                    (CHANGE,'CHANGE'),
                    (DELETE,'DELETE'),
                    (DELETEALL,'DELETE ALL')
-                  )
+                  ]
                     
 PERMISSION_CODES = dict(PERMISSION_LIST)
 

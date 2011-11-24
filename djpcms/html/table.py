@@ -12,6 +12,7 @@ from collections import namedtuple
 from djpcms.utils import media
 from djpcms.utils.ajax import simplelem
 from djpcms.utils.text import nicename
+from djpcms.utils.const import EMPTY_VALUE
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker
@@ -44,7 +45,11 @@ def table_header(code, name = None, description = None, function = None,
 '''
     if isinstance(code,table_header_):
         return code
-    name = name or nicename(code)
+    if not name:
+        if code == '__str__':
+            name = EMPTY_VALUE
+        else:
+            name = nicename(code)
     function = function or code
     attrname = attrname or code
     return table_header_(code,name,description,function,sortable,width,

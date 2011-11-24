@@ -94,7 +94,12 @@ class HttpException(Exception):
         super(HttpException,self).__init__(msg)
 
 
+class Resolver404(Exception):
+    pass
+
+
 class Http404(HttpException):
+    trypath = None
     status = 404
     
     

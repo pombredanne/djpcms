@@ -3,16 +3,34 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string, iteritems
 
-import djpcms
-from djpcms.core.exceptions import ImproperlyConfigured, ViewDoesNotExist,\
-                                     PathException
 from djpcms.utils import force_str, SLASH
+
+from .exceptions import *
 from . import http
 
 
-class Resolver404(Exception):
-    pass
-
+class resolver_manager(object):
+    '''A Context manager for injecting the trypath attribute to the Http404
+ exception. If the the resolver raised a Http4040 exception and the path does
+ not end with a trailing slash, we check if the path with the trailing slash is
+ correct. If so, with put ist value into the *trypath* attribute of the
+ exception.'''
+    def __init__(self, resolver, path):
+        self.resolver = resolver
+        self.path = path
+        
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        if isinstance(value,Http404) and not self.path.endswith(SLASH):
+            try:
+                v,u,k = self.resolver.resolve(self.path+SLASH)
+            except:
+                pass
+            else:
+                value.trypath = self.path+SLASH
+        
 
 class ResolverMixin(object):
     '''A lazy class for resolving urls.
@@ -40,24 +58,14 @@ The main function here is the ``resolve`` method'''
         '''Clean url and redirect if needed
         '''
         path = environ['PATH_INFO']
-        url = path
-        if url:
-            modified = False
-            if '//' in path:
-                url = re.sub("/+" , SLASH, url)
-                modified = True
-        
-            #if not url.endswith('/'):
-            #    modified = True
-            #    url = '%s/' % url
-                
-            if modified:
-                if not url.startswith(SLASH):
-                    url = '/%s' % url
-                qs = environ['QUERY_STRING']
-                if qs and environ['method'] == 'GET':
-                    url = '{0}?{1}'.format(url,qs)
-                return http.ResponseRedirect(url)
+        if '//' in path:
+            url = re.sub("/+" , SLASH, path)
+            if not url.startswith(SLASH):
+                url = '/%s' % url
+            qs = environ['QUERY_STRING']
+            if qs and environ['method'] == 'GET':
+                url = '{0}?{1}'.format(url,qs)
+            return http.ResponseRedirect(url)
     
     def make_url(self, regex, view, kwargs=None, name=None):
         return RegexURLPattern(regex, view, kwargs, name)
@@ -82,26 +90,29 @@ The main function here is the ``resolve`` method'''
         view = self
         rurl = (path,)
         urlargs = {}
-        while isinstance(view,ResolverMixin):
-            if len(rurl) != 1:
-                if 'path' not in urlargs:
-                    raise http.Http404(site = site)
-                rurl = (urlargs.pop('path'),)
-            try:
-                view, rurl, kwargs = view.resolver.resolve(rurl[0])
-            except Resolver404 as e:
-                if not urlargs:
-                    try:
-                        node = self.tree.node(spath, site = site)
-                        return self.resolve_from_node(node)
-                    except PathException:
-                        raise http.Http404(str(e),site = site)
+        with resolver_manager(self,path) as rm:
+            while isinstance(view,ResolverMixin):
+                if len(rurl) != 1:
+                    if 'path' not in urlargs:
+                        raise Http404(site = site)
+                    bit = urlargs.pop('path')
                 else:
-                    raise http.Http404(str(e),site = site)
-            
-            if site is None:
-                site = view
-            urlargs.update(kwargs)
+                    bit = rurl[0]
+                try:
+                    view, rurl, kwargs = view.resolver.resolve(bit)
+                except Resolver404 as e:
+                    if not urlargs:
+                        try:
+                            node = self.tree.node(spath, site = site)
+                            return self.resolve_from_node(node)
+                        except PathException:
+                            raise Http404(str(e),site = site)
+                    else:
+                        raise Http404(str(e),site = site)
+                
+                if site is None:
+                    site = view
+                urlargs.update(kwargs)
         
         return site, view, urlargs
             
@@ -111,7 +122,7 @@ The main function here is the ``resolve`` method'''
             view = node.get_view()
             return view.site,view,{}
         except PathException as e:
-            raise http.Http404(str(e), site = site)
+            raise Http404(str(e), site = site)
     
 
 class RegexURLPattern(object):
@@ -132,7 +143,8 @@ Adapted for djpcms
         self.name = name
 
     def __repr__(self):
-        return '<%s %s %s>' % (self.__class__.__name__, self.name, self.regex.pattern)
+        return '<%s %s %s>' % (self.__class__.__name__, self.name,
+                               self.regex.pattern)
 
     def resolve(self, path):
         match = self.regex.search(path)
@@ -153,7 +165,8 @@ Adapted for djpcms
 
 class RegexURLResolver(object):
     """\
-This class ``resolve`` method takes a URL (as a string) and returns a tuple in this format:
+This class ``resolve`` method takes a URL (as a string) and returns a
+tuple in this format:
 
     (view_function, function_args, function_kwargs)
     
@@ -178,12 +191,14 @@ Adapted from django for djpcms
                 except Resolver404 as e:
                     sub_tried = e.args[0].get('tried')
                     if sub_tried is not None:
-                        tried.extend([(pattern.regex.pattern + '   ' + t) for t in sub_tried])
+                        tried.extend([(pattern.regex.pattern + '   ' + t)\
+                                       for t in sub_tried])
                     else:
                         tried.append(pattern.regex.pattern)
                 else:
                     if sub_match:
-                        sub_match_dict = dict([(force_str(k), v) for k, v in match.groupdict().items()])
+                        sub_match_dict = dict([(force_str(k), v)\
+                                     for k, v in match.groupdict().items()])
                         sub_match_dict.update(self.default_kwargs)
                         for k, v in iteritems(sub_match[2]):
                             sub_match_dict[force_str(k)] = v

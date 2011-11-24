@@ -6,7 +6,7 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, ajax, RegExUrl, IDREGEX, ContextRenderer,\
+from djpcms import http, ajax, Route, IDREGEX, ContextRenderer,\
                     async_instance
 from djpcms.utils.translation import gettext as _
 from djpcms.forms.utils import saveform, deleteinstance
@@ -269,8 +269,10 @@ views::
                  **kwargs):
         super(View,self).__init__(**kwargs)
         self.parent = parent
-        self.urlbit = RegExUrl(regex if regex is not None else self.regex,
-                               append_slash)
+        if not isinstance(regex,Route):
+            regex = Route(regex if regex is not None else self.regex,\
+                          append_slash)
+        self.urlbit = regex
         self.regex = None
         self.func = None
         self.code = None

@@ -21,8 +21,8 @@ from .exceptions import AlreadyRegistered, PermissionDenied,\
 from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
-from .regex import RegExUrl, ALL_URLS
-from .http import WSGI, WSGIhandler
+from .regex import Route, ALL_URLS
+from . import http
 from . import orms
 
 __all__ = ['SiteLoader',
@@ -160,7 +160,7 @@ class SiteLoader(object):
         sites = self.build_sites()
         m = self._wsgi_middleware or []
         m = copy(m)
-        m.append(WSGI(sites))
+        m.append(http.WSGI(sites))
         return m
     
     def response_middleware(self):
@@ -231,12 +231,11 @@ can be passed as key-value pairs:
         pass
 
     def wsgi(self):
-        return WSGIhandler(self.wsgi_middleware(),
-                           self.response_middleware())
+        return http.WSGIhandler(self.wsgi_middleware(),
+                                self.response_middleware())
         
     
 def standard_exception_handle(request, e, status = None):
-    from djpcms import http
     status = status or getattr(e,'status',None) or 500
     info = request.DJPCMS
     site = info.site
@@ -257,13 +256,14 @@ def standard_exception_handle(request, e, status = None):
                                 http.UNKNOWN_STATUS_CODE)[0],
            'stack_trace':stack_trace,
            'settings':site.settings}
-    loader = site.template
-    ctx  = loader.context(ctx, request)
-    html = loader.render((template,template2,template3,
-                          'djpcms/errors/error.html'),
-                         ctx)
+    html = site.template.render(
+                (template,template2,template3,'djpcms/errors/error.html'),
+                 ctx,
+                 request = request,
+                 encode = 'latin-1',
+                 encode_errors = 'replace')
     return http.Response(status = status,
-                         content = html.encode('latin-1','replace'),
+                         content = html,
                          content_type = 'text/html',
                          encoding = settings.DEFAULT_CHARSET)
         

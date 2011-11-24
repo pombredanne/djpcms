@@ -749,8 +749,8 @@
     $.djpcms.decorator({
         id:"accordion",
         config:{
-            effect:'drop',
-            fadetime: 500,
+            effect:null,//'drop',
+            fadetime: 200,
             autoHeight:false,
             fillSpace:false
             },

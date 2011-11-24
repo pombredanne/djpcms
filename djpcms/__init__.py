@@ -21,7 +21,8 @@ LIBRARY_NAME = 'djpcms'
 import os
 import sys
 
-parentdir = lambda dir,up=1: dir if not up else parentdir(os.path.split(dir)[0],up-1)
+parentdir = lambda dir,up=1: dir if not up else\
+                     parentdir(os.path.split(dir)[0],up-1)
 DJPCMS_DIR = parentdir(os.path.abspath(__file__))
 path_dir = parentdir(DJPCMS_DIR)
 

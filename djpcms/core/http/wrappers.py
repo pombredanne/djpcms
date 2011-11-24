@@ -23,10 +23,7 @@ __all__ = ['STATUS_CODE_TEXT',
            'setResponseClass',
            'Request',
            'Response',
-           'ResponseRedirect',
-           'HttpException',
-           'Http404',
-           'path_with_query']
+           'ResponseRedirect']
 
 
 STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
@@ -34,33 +31,6 @@ UNKNOWN_STATUS_CODE = ('UNKNOWN STATUS CODE','')
 
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
-
-if ispy3k:
-    def to_header_strings(*values):
-        for value in values:
-            if isinstance(value,bytes):
-                value = value.decode()
-            else:
-                value = str(value)
-            yield value
-else:
-    def to_header_strings(*values):
-        for value in values:
-            yield str(value)
-    
-    
-def set_header(self, key, value):
-    self.set_header(key, value)
-    
-
-def path_with_query(request):
-    path = request.path
-    if request.method == 'GET':
-        qs =  request.environ['QUERY_STRING']
-        if qs:
-            return path + '?' + qs
-    return path
-    
 
 class Request(object):
     '''Simple WSGI Request class'''

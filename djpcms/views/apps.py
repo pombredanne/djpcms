@@ -333,7 +333,7 @@ overwritten to customize its behavior.
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
         self.editavailable = editavailable
-        self.baseurl = djpcms.RegExUrl(baseurl)
+        self.baseurl = djpcms.Route(baseurl, append_slash = True)
         self.list_display_links = list_display_links or self.list_display_links
         #
         self.related_field = related_field or self.related_field

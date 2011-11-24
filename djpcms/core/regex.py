@@ -6,9 +6,11 @@ from djpcms.utils import iri_to_uri, openedurl, SLASH
 from djpcms.utils.strings import force_str
 
 
-__all__ = ['RegExUrl',
+__all__ = ['Route',
+           'RegExUrl',
            'RouteMixin',
            'ALL_URLS',
+           'PATH_RE',
            'ALL_REGEX',
            'IDREGEX',
            'UUID_REGEX',
@@ -16,7 +18,7 @@ __all__ = ['RegExUrl',
 
 
 class RouteMixin(object):
-    
+
     def route(self):
         raise NotImplementedError
     
@@ -25,21 +27,21 @@ class RouteMixin(object):
         return self.route().path
 
 
-class RegExUrl(UnicodeMixin):
-    '''Helper class for url regular url expression manipulation
+class Route(UnicodeMixin):
+    '''Helper class for url regular expressions manipulation
     
-    .. attribute: url
+.. attribute: url
+
+    a url regular expression string
     
-        a url regular expression string
-        
-    .. attribute: append_slash
+.. attribute: append_slash
+
+    if ``True`` the url will have a slash appended at the end.
+    If set to ``False`` the url cannot be prepended to other urls
     
-        if ``True`` the url will have a slash appended at the end.
-        If set to ``False`` the url cannot be prepended to other urls
-        
-        Default ``True``.
-    '''
-    def __init__(self, url = None, append_slash = True):
+    Default ``False``.
+'''
+    def __init__(self, url = None, append_slash = False):
         self.__url = openedurl(str(url or ''))
         self.path = ''
         self.targs = 0
@@ -126,7 +128,8 @@ class RegExUrl(UnicodeMixin):
     
     def __add__(self, other):
         if not self.append_slash:
-            raise ValueError('Cannot prepend to another url. Append slash is set to false')
+            raise ValueError('Cannot prepend to another url.\
+ Append slash is set to false')
         cls = self.__class__
         append_slash = True
         if isinstance(other,cls):
@@ -139,7 +142,10 @@ class RegExUrl(UnicodeMixin):
         
         
 ALL_REGEX = '.*'
+PATH_RE = '(?P<path>{0})'.format(ALL_REGEX)
 IDREGEX = '(?P<id>\d+)'
 SLUG_REGEX = '[-\.\+\#\'\:\w]+'
 UUID_REGEX = '(?P<id>[-\w]+)'
-ALL_URLS = RegExUrl('(?P<path>{0})'.format(ALL_REGEX), append_slash = False)
+ALL_URLS = Route(PATH_RE)
+
+RegExUrl = Route 

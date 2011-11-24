@@ -4,7 +4,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, template, SiteApp, RegExUrl, RouteMixin, ALL_URLS
+from djpcms import http, template, SiteApp, Route, RouteMixin, ALL_URLS
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -33,7 +33,7 @@ handles urls of :class:`Application` instances registered with it.
     def __init__(self, root, route, config, permissions):
         self._init()
         self.root = root
-        self._route = RegExUrl(route)
+        self._route = Route(route, append_slash = True)
         self.config = config
         self.settings = config
         self._permissions = permissions

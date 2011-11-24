@@ -1,5 +1,7 @@
+from djpcms.core.exceptions import Http404
+
 from .profiler import profile_response
-from .wrappers import Request
+from .wrappers import Request, ResponseRedirect
 from .cache import djpcmsinfo
 
 
@@ -65,7 +67,7 @@ delegate the handling to them.'''
         site = self.sites
         try: 
             cleaned_path = site.clean_path(environ)
-            if cleaned_path:
+            if cleaned_path is not None:
                 return cleaned_path
             site,view,kwargs = site.resolve(environ['PATH_INFO'][1:])
             environ[DJPCMS] = info = djpcmsinfo(view,kwargs)
@@ -76,7 +78,15 @@ delegate the handling to them.'''
                 info.page = djp.page
                 response = djp.response()
             return response
+        except Http404 as e:
+            if e.trypath:
+                return ResponseRedirect(e.trypath)
+            else:
+                return self._handle_error(environ, site, e)
         except Exception as e:
+            return self._handle_error(environ, site, e)
+        
+    def _handle_error(self, environ, site, e):
             site = getattr(e,'site',site) or site
             return site.handle_exception(self.get_request(environ,site), e)
         

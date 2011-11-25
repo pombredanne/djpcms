@@ -1,8 +1,7 @@
+import re
+
 from py2py3 import ispy3k, urlparse, map, to_string, native_str
 
-from .const import SLASH
-
-import re
 
 __all__ = ['urlparse',
            'urlencode',
@@ -15,7 +14,6 @@ __all__ = ['urlparse',
            'routejoin',
            'iri_to_uri',
            'remove_double_slash',
-           'SLASH',
            'URI_RESERVED']
 
 
@@ -27,7 +25,6 @@ else:
     from urllib import urlencode
 
 URI_RESERVED = set((';','/','?',':','@','&','=','+','$',','))
-SLASH2 = SLASH+SLASH
 #: list of characters that are always safe in URLs.
 _always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                 'abcdefghijklmnopqrstuvwxyz'
@@ -62,8 +59,8 @@ def urlfrombits(bits):
 
 
 def remove_double_slash(route):
-    if SLASH2 in route:
-        route = re.sub(SLASH+"+" , SLASH, route)
+    if '//' in route:
+        route = re.sub('/+', '/', route)
     return route
 
 
@@ -76,23 +73,23 @@ def closedurl(url):
     >>> '/bla/'
     '''
     url = remove_double_slash(url)
-    if not url.endswith(SLASH):
-        url += SLASH
-    if not url.startswith(SLASH):
-        url = SLASH + url
+    if not url.endswith('/'):
+        url += '/'
+    if not url.startswith('/'):
+        url = '/' + url
     return url
 
 
 def openedurl(url):
     url = remove_double_slash(url)
-    if url.endswith(SLASH):
+    if url.endswith('/'):
         url = url[:-1]
-    if url.startswith(SLASH):
+    if url.startswith('/'):
         url = url[1:]
     return url
 
 def routejoin(*routes):
-    route = SLASH.join(routes)
+    route = '/'.join(routes)
     return remove_double_slash(route)
 
 
@@ -120,7 +117,7 @@ def parentpath(url):
         return None
     
     
-def _urlquote(s, safe=SLASH):
+def _urlquote(s, safe='/'):
     s = to_string(s)
     if not s or not s.rstrip(_always_safe + safe):
         return s

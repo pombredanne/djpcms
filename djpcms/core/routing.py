@@ -1,12 +1,22 @@
 '''Routing classes for managing urls.
+Several classes were originally taken in november 2011
+from the routing module in werkzeug_.
+They have been consequently adapted for djpcms.
+
+Original License
+
+:copyright: (c) 2011 by the Werkzeug Team, see AUTHORS for more details.
+:license: BSD
+
+.. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
 import re
 import copy
 
-from djpcms import UnicodeMixin, to_string
-from djpcms.core.exceptions import ApplicationUrlException
-from djpcms.utils import iri_to_uri, openedurl, SLASH
-from djpcms.utils.strings import force_str
+from djpcms import UnicodeMixin, to_string, py2py3
+from djpcms.utils import iri_to_uri, remove_double_slash, urlquote
+
+from .exceptions import UrlException
 
 
 __all__ = ['Route','RouteMixin']
@@ -59,25 +69,6 @@ def _pythonize(value):
     return unicode(value)
 
 
-def parse_converter_args(argstr):
-    argstr += ','
-    args = []
-    kwargs = {}
-
-    for item in _converter_args_re.finditer(argstr):
-        value = item.group('stringval')
-        if value is None:
-            value = item.group('value')
-        value = _pythonize(value)
-        if not item.group('name'):
-            args.append(value)
-        else:
-            name = item.group('name')
-            kwargs[name] = value
-
-    return tuple(args), kwargs
-
-
 def parse_rule(rule):
     """Parse a rule and return it as generator. Each iteration yields tuples
     in the form ``(converter, arguments, variable)``. If the converter is
@@ -99,7 +90,8 @@ def parse_rule(rule):
         variable = data['variable']
         converter = data['converter'] or 'default'
         if variable in used_names:
-            raise ValueError('variable name %r used twice.' % variable)
+            raise ValueError('variable name {0} used twice in rule {1}.'\
+                             .format(variable,rule))
         used_names.add(variable)
         yield converter, data['args'] or None, variable
         pos = m.end()
@@ -121,30 +113,57 @@ class RouteMixin(object):
 
 
 class Route(UnicodeMixin):
-    '''Routing in djpcms with ides from werkzeug.
+    '''Routing in djpcms with ideas from werkzeug.
     
-.. attribute: url
-
-    a route template string
-    
+:parameter rule: Rule strings basically are just normal URL paths
+    with placeholders in the format ``<converter(arguments):name>``
+    where the converter and the arguments are optional.
+    If no converter is defined the `default` converter is used which
+    means `string`.
 '''
-    def __init__(self, url = '', append_slash = False):
-        self.__url = openedurl(str(url or ''))
+    def __init__(self, rule, defaults = None, append_slash = False):
+        rule = remove_double_slash(str(rule))
+        # all rules must start with a slash
+        if rule.startswith('/'):
+            rule = rule[1:]
+        if rule and append_slash and not rule.endswith('/'):
+            rule += '/'
+        rule = '/' + rule
+        self.defaults = defaults or {}
+        self.is_leaf = not rule.endswith('/')
+        self.rule = rule[1:]
         self.path = ''
-        self.targs = 0
-        self.nargs = 0
+        self.arguments = set(map(str, self.defaults))
         self.breadcrumbs = []
-        self.names = []
-        if self.__url:
-            self.__process()
-            self.path = SLASH + self.path
+        self._converters = {}
+        regex_parts = []
+        for converter, arguments, variable in parse_rule(self.rule):
+            if converter is None:
+                regex_parts.append(re.escape(variable))
+                if variable != '/':
+                    self.breadcrumbs.append((False,variable))
+            else:
+                convobj = get_converter(converter, arguments)
+                regex_parts.append('(?P<%s>%s)' % (variable, convobj.regex))
+                self.breadcrumbs.append((True,variable))
+                self._converters[variable] = convobj
+                self.arguments.add(str(variable))
+        self._regex_string = ''.join(regex_parts)
+        self._regex = re.compile(self.regex, re.UNICODE)
     
-    def __len__(self):
-        return len(self.__url)
+    @property
+    def regex(self):
+        if self.is_leaf:
+            return '^' + self._regex_string + '$'
+        else:
+            return '^' + self._regex_string
+    
+    def __unicode__(self):
+        return self.rule
     
     def __eq__(self, other):
         if isinstance(other,self.__class__):
-            return to_string(self) == to_string(other)
+            return str(self) == str(other)
         else:
             return False
         
@@ -153,81 +172,215 @@ class Route(UnicodeMixin):
             return to_string(self) < to_string(other)
         else:
             raise TypeError('Cannot compare {0} with {1}'.format(self,other))
-        
-    def __unicode__(self):
-        if self.append_slash:
-            return to_string('^{0}$'.format(self.__url))
-        else:
-            return to_string('^{0}'.format(self.__url))
 
-    def get_url(self, **kwargs):
-        if kwargs:
-            return iri_to_uri(self.path % kwargs)
-        else:
-            if self.names:
-                raise ApplicationUrlException('Missing key-value\
- arguments for {0} regex'.format(self.path))
-            return self.path
+    def _url_generator(self, values):
+        for is_dynamic, val in self.breadcrumbs:
+            if is_dynamic:
+                val = self._converters[val].to_url(values[val])
+            yield val
+            
+    def url(self, **values):
+        if self.defaults:
+            d = self.defaults.copy()
+            values = d.update(values)
+        url = '/' + '/'.join(self._url_generator(values))
+        return url if self.is_leaf else url + '/'
     
-    def __process(self):
-        names = []
-        front = self.__url
-        back = ''
-        star = '*'
-        while front:
-            st = front.find('(') + 1
-            en = front.find(')')
-            if st and en:
-                st -= 1
-                en += 1
-                names.append(front[st:en])
-                back += front[:st] + star
-                front = front[en:]
-            else:
-                back += front
-                front = None
-        
-        bits = back.split(SLASH)
-        for bit in bits:
-            if not bit:
-                continue
-            if bit == star:
-                bit = names.pop(0)
-                st = bit.find('<') + 1
-                en = bit.find('>')
-                if st and en:
-                    name = bit[st:en]
-                else:
-                    raise ApplicationUrlException('Regular expression for urls\
- requires a keyworld. %s does not have one.' % bit) 
-                bit  = '%(' + name + ')s'
-                self.names.append(name)
-            self.breadcrumbs.append(bit)
-        self.path = SLASH.join(self.breadcrumbs)
+    def match(self, path):
+        match = self._regex.search(path)
+        if match is not None:
+            remaining = path[match.end():]
+            groups = match.groupdict()
+            result = {}
+            for name, value in py2py3.iteritems(groups):
+                try:
+                    value = self._converters[name].to_python(value)
+                except UrlException:
+                    return
+                result[str(name)] = value
+            if remaining:
+                result['__remaining__'] = remaining
+            return result
 
-    def _get_url(self):
-        return self.__url
-    
     def __add__(self, other):
-        if not self.append_slash:
-            raise ValueError('Cannot prepend to another url.\
- Append slash is set to false')
+        if self.is_leaf:
+            raise ValueError('Cannot prepend {0} to another route.\
+ It is a leaf.'.format(self))
         cls = self.__class__
-        append_slash = True
-        if isinstance(other,cls):
-            append_slash = other.append_slash
-            other = other._get_url()
-        else:
-            other = str(other)
-        return self.__class__(self.__url + other,
-                              append_slash = append_slash)
+        rule = other.rule if isinstance(other,cls) else str(other)
+        return cls(self.rule + rule)
         
-        
-ALL_REGEX = '.*'
-PATH_RE = '(?P<path>{0})'.format(ALL_REGEX)
-IDREGEX = '(?P<id>\d+)'
-SLUG_REGEX = '[-\.\+\#\'\:\w]+'
-UUID_REGEX = '(?P<id>[-\w]+)'
-ALL_URLS = Route(PATH_RE)
 
-RegExUrl = Route 
+class BaseConverter(object):
+    """Base class for all converters."""
+    regex = '[^/]+'
+    weight = 100
+
+    def to_python(self, value):
+        return value
+
+    def to_url(self, value):
+        return urlquote(value)
+
+
+class UnicodeConverter(BaseConverter):
+    """This converter is the default converter and accepts any string but
+    only one path segment.  Thus the string can not include a slash.
+
+    This is the default validator.
+
+    Example::
+
+        Rule('/pages/<page>'),
+        Rule('/<string(length=2):lang_code>')
+
+    :param minlength: the minimum length of the string.  Must be greater
+                      or equal 1.
+    :param maxlength: the maximum length of the string.
+    :param length: the exact length of the string.
+    """
+
+    def __init__(self, minlength=1, maxlength=None, length=None):
+        if length is not None:
+            length = '{%d}' % int(length)
+        else:
+            if maxlength is None:
+                maxlength = ''
+            else:
+                maxlength = int(maxlength)
+            length = '{%s,%s}' % (
+                int(minlength),
+                maxlength
+            )
+        self.regex = '[^/]' + length
+
+
+class AnyConverter(BaseConverter):
+    """Matches one of the items provided.  Items can either be Python
+    identifiers or strings::
+
+        Rule('/<any(about, help, imprint, class, "foo,bar"):page_name>')
+
+    :param items: this function accepts the possible items as positional
+                  arguments.
+    """
+
+    def __init__(self, *items):
+        self.regex = '(?:%s)' % '|'.join([re.escape(x) for x in items])
+
+
+class PathConverter(BaseConverter):
+    """Like the default :class:`UnicodeConverter`, but it also matches
+    slashes.  This is useful for wikis and similar applications::
+
+        Rule('/<path:wikipage>')
+        Rule('/<path:wikipage>/edit')
+    """
+    regex = '[^/].*?'
+    weight = 200
+
+
+class NumberConverter(BaseConverter):
+    """Baseclass for `IntegerConverter` and `FloatConverter`.
+
+    :internal:
+    """
+    weight = 50
+
+    def __init__(self, fixed_digits=0, min=None, max=None):
+        self.fixed_digits = fixed_digits
+        self.min = min
+        self.max = max
+
+    def to_python(self, value):
+        if (self.fixed_digits and len(value) != self.fixed_digits):
+            raise UrlException()
+        value = self.num_convert(value)
+        if (self.min is not None and value < self.min) or \
+           (self.max is not None and value > self.max):
+            raise UrlException()
+        return value
+
+    def to_url(self, value):
+        if self.fixed_digits and len(str(value)) > self.fixed_digits:
+            raise ValueError() 
+        value = self.num_convert(value)
+        if self.fixed_digits: 
+            value = ('%%0%sd' % self.fixed_digits) % value
+        return str(value)
+
+
+class IntegerConverter(NumberConverter):
+    """This converter only accepts integer values::
+
+        Rule('/page/<int:page>')
+
+    This converter does not support negative values.
+
+    :param fixed_digits: the number of fixed digits in the URL.  If you set
+                         this to ``4`` for example, the application will
+                         only match if the url looks like ``/0001/``.  The
+                         default is variable length.
+    :param min: the minimal value.
+    :param max: the maximal value.
+    """
+    regex = r'\d+'
+    num_convert = int
+
+
+class FloatConverter(NumberConverter):
+    """This converter only accepts floating point values::
+
+        Rule('/probability/<float:probability>')
+
+    This converter does not support negative values.
+
+    :param min: the minimal value.
+    :param max: the maximal value.
+    """
+    regex = r'\d+\.\d+'
+    num_convert = float
+
+    def __init__(self, min=None, max=None):
+        super(FloatConverter,self).__init__(0, min, max)
+
+
+def parse_converter_args(argstr):
+    argstr += ','
+    args = []
+    kwargs = {}
+
+    for item in _converter_args_re.finditer(argstr):
+        value = item.group('stringval')
+        if value is None:
+            value = item.group('value')
+        value = _pythonize(value)
+        if not item.group('name'):
+            args.append(value)
+        else:
+            name = item.group('name')
+            kwargs[name] = value
+
+    return tuple(args), kwargs
+
+
+def get_converter(name, arguments):
+    c = _CONVERTERS.get(name)
+    if not c:
+        raise LookupError('Route converter {0} not available'.format(name))
+    if arguments:
+        args, kwargs = parse_converter_args(arguments)
+        return c(*args,**kwargs)
+    else:
+        return c()
+
+    
+#: the default converter mapping for the map.
+_CONVERTERS = {
+    'default':          UnicodeConverter,
+    'string':           UnicodeConverter,
+    'any':              AnyConverter,
+    'path':             PathConverter,
+    'int':              IntegerConverter,
+    'float':            FloatConverter
+}

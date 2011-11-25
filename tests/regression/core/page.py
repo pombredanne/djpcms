@@ -1,9 +1,7 @@
-'''\
-Test Pages
-'''
-from djpcms import test, sites
-from djpcms.apps.included import vanilla
-from djpcms.core.exceptions import PathException, Http404
+'''Test Pages'''
+from djpcms.utils import test
+from djpcms.apps import vanilla
+from djpcms import PathException, Http404
 
 
 def appurls():
@@ -11,8 +9,8 @@ def appurls():
     return (vanilla.Application('/strategies/',Strategy),)
 
 
-@test.skipUnless(sites.tests.CMS_ORM,"Testing without ORM")
-class TestPage(test.TestCase,test.PageMixin):
+@test.skipUnless(test.djpapps,"Requires djpapps installed")
+class TestPage(test.TestCase):
     appurls = 'regression.page.tests.appurls'
     
     def setUp(self):

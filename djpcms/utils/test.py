@@ -7,6 +7,7 @@ import unittest
 from copy import copy
 from pulsar.utils.test import test
 
+# Try to import djpapps. If not available several tests won't run.
 try:
     import djpapps
 except:
@@ -35,6 +36,7 @@ class wsgi(object):
     
     def wsgi_handler(self):
         return self.site_factory()
+        
         
 class ApplicationTest(test.TestCase):
     '''Test Class for djpcms applications'''

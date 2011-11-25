@@ -6,16 +6,13 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, ajax, Route, IDREGEX, ContextRenderer,\
-                    async_instance
-from djpcms.utils.translation import gettext as _
+from djpcms import http, ajax, Route, ContextRenderer, async_instance
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
-from djpcms.views.baseview import djpcmsview
 from djpcms.utils.urls import iri_to_uri
-from djpcms.utils.ajax import jremove, CustomHeaderBody, jredirect, jempty
 
-from .pagination import paginationResponse 
+from .pagination import paginationResponse
+from .baseview import djpcmsview 
 
 
 __all__ = ['View',
@@ -69,17 +66,18 @@ views::
     
     class MyApplication(views.Application):
         home = views.View(renderer = lambda djp : 'Hello world')
-        test = views.View(regex = 'testview',
+        test = views.View('/testview/',
                           renderer = lambda djp : 'Another view')
 
-:keyword regex:
+:keyword route:
 
-    Regular expression string indicating the view relative url.
+    A :class:`djpcms.Route` instance or a route string indicating the view
+    relative url.
     This is the part of the url which the view add to its parent
     view path. For more information check the :meth:`View.route`
     method and :attr:`View.path` attribute.
     
-    Default: ``None``.
+    Default: ``"/"``.
     
 :keyword parent:
 
@@ -247,11 +245,11 @@ views::
     creation_counter = 0
     plugin_form = None
     force_redirect = False
-    regex = None
+    route = '/'
     in_nav = 0
     
     def __init__(self,
-                 regex = None,
+                 route = None,
                  parent = None,
                  methods = None,
                  plugin_form = None,
@@ -265,14 +263,13 @@ views::
                  success_message = None,
                  redirect_to_view = None,
                  inherit_page = True,
-                 append_slash = True,
                  **kwargs):
         super(View,self).__init__(**kwargs)
         self.parent = parent
-        if not isinstance(regex,Route):
-            regex = Route(regex if regex is not None else self.regex,\
-                          append_slash)
-        self.urlbit = regex
+        if not isinstance(route,Route):
+            route = Route(route if route is not None else self.route)
+        self.route = route
+        self.urlbit = route
         self.regex = None
         self.func = None
         self.code = None
@@ -298,14 +295,7 @@ views::
         self.creation_counter = View.creation_counter
         View.creation_counter += 1
         
-    @property
-    def baseurl(self):
-        if self.appmodel:
-            return self.appmodel.baseurl
-        else:
-            return ''
-    
-    def route(self):
+    def approute(self):
         if self.appmodel:
             return self.appmodel.route() + self.regex
         else:
@@ -458,7 +448,7 @@ renderint to the :meth:`Application.render_query` method.
         params = djp.request.REQUEST
         maxRows = params.get('maxRows')
         auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
-        return CustomHeaderBody('autocomplete',auto_list)
+        return ajax.CustomHeaderBody('autocomplete',auto_list)
     
     def ajax_get_response(self, djp):
         query = self.appquery(djp)
@@ -469,7 +459,7 @@ renderint to the :meth:`Application.render_query` method.
 class AddView(ModelView):
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
-    regex = 'add'
+    route = '/add/'
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
     has_plugin = True
@@ -492,7 +482,7 @@ and handles the saving as default ``POST`` response.'''
 class DeleteAllView(ModelView):
     '''An POST only :class:`ModelView` which deletes all objects
 in a model. Quite drastic.'''
-    regex = 'deleteall'
+    route = '/deleteall/'
     PERM = djpcms.DELETEALL
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
@@ -505,7 +495,7 @@ in a model. Quite drastic.'''
         self.appmodel.delete_all(djp)
         url = self.appmodel.root_view(djp).url
         if djp.request.is_xhr:
-            return jredirect(url)
+            return ajax.jredirect(url)
         else:
             return http.ResponseRedirect(url)
         
@@ -544,7 +534,7 @@ generate the full url.'''
 class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
 an object.'''
-    regex = IDREGEX
+    route = '/<id>/'
     default_title = '{0[instance]}'
     default_link = '{0[instance]}'
     
@@ -565,7 +555,7 @@ method of the :attr:`View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
-    regex = 'delete'
+    route = '/delete/'
     parent = 'view'
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
@@ -617,7 +607,7 @@ on an instance of a model.'''
 class ChangeView(ObjectActionView):
     '''An :class:`ObjectActionView` class specialised for changing
 an instance of a model.'''
-    regex = 'change'
+    route = '/change/'
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'

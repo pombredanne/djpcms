@@ -1,5 +1,5 @@
-from djpcms import forms, views, UnicodeMixin, SLUG_REGEX
-from djpcms.apps.archive import *
+from djpcms import forms, views, UnicodeMixin
+from djpcms.apps import archive
 
 __all__ = ['cleaned_tags',
            'TagView',
@@ -105,7 +105,7 @@ class TagView(views.SearchView):
             return query
 
 
-class TagArchiveView(ArchiveView):
+class TagArchiveView(archive.ArchiveView):
     
     def __init__(self, *args, **kwargs):
         super(TagArchiveView,self).__init__(*args, **kwargs)
@@ -132,11 +132,10 @@ class TagMixedIn(object):
         return djp.getdata('tag{0}'.format(n))
 
 
-class TagApplication(views.ModelApplication,TagMixedIn):
-    search   = views.SearchView(in_navigation = True)
-    tag0     = views.SearchView(regex = 'tags', parent = 'search', isplugin = False)
-    tag1     = TagView(regex = '(?P<tag1>%s)' % SLUG_REGEX,
-                       parent = 'tag0', isplugin = False)
+class TagApplication(views.Application,TagMixedIn):
+    search   = views.SearchView()
+    tag0     = views.SearchView('tags/', has_plugins = False)
+    tag1     = TagView('<tag1>/', parent = 'tag0', has_plugins = False)
     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
@@ -146,23 +145,24 @@ class TagApplication(views.ModelApplication,TagMixedIn):
         return add_tags(self, c, djp, obj)
 
 
-class ArchiveTaggedApplication(ArchiveApplication,TagMixedIn):
+class ArchiveTaggedApplication(archive.ArchiveApplication,TagMixedIn):
     '''
     Comprehensive Tagged Archive Application urls.
     '''
-    search = ArchiveView()
-    year_archive = YearArchiveView(regex = '(?P<year>\d{4})', isplugin = False)
-    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive',
-                                     isplugin = False)
-    day_archive = DayArchiveView(regex = '(?P<day>\d{2})', parent = 'month_archive',
-                                   isplugin = False)
+    search = archive.ArchiveView()
+    year_archive = archive.YearArchiveView('<year>/', has_plugins = False)
+    month_archive = archive.MonthArchiveView('<month>/',
+                                             parent = 'year_archive',
+                                             has_plugins = False)
+    day_archive = archive.DayArchiveView('<day>/',
+                                         parent = 'month_archive',
+                                         has_plugins = False)
     
-    tag0 = views.ModelView(regex = 'tags', isplugin = False)
-    tag1 = TagArchiveView(regex = '(?P<tag1>%s)' % SLUG_REGEX,
-                                    parent = 'tag0', isplugin = False)
-    year_archive1 = TagArchiveView(regex = '(?P<year>\d{4})',  parent = 'tag1')
-    month_archive1 = TagArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive1')
-    day_archive1 = TagArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive1')
+    tag0 = views.ModelView('tags/', has_plugins = False)
+    tag1 = TagArchiveView('<tag1>/', parent = 'tag0', has_plugins = False)
+    year_archive1 = TagArchiveView('<year>/',  parent = 'tag1')
+    month_archive1 = TagArchiveView('<month>/', parent = 'year_archive1')
+    day_archive1 = TagArchiveView('<day>/',   parent = 'month_archive1')
      
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)

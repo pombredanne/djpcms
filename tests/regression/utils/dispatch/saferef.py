@@ -1,7 +1,5 @@
-from py2py3 import range
-
-from djpcms.dispatch.saferef import *
-from djpcms import test
+from djpcms.utils.dispatch.saferef import *
+from djpcms.utils import test, range
 
 
 class Test1(object):

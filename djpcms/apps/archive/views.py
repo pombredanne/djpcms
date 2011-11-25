@@ -3,7 +3,6 @@ from djpcms.utils import force_str
 from djpcms.views import *
 
 
-
 class ArchiveView(SearchView):
     '''
     Search view with archive subviews

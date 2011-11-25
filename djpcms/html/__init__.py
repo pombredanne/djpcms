@@ -24,6 +24,7 @@ from .nicerepr import *
 from .table import *
 from .tabs import *
 from .yui import *
+from .template import *
 
 
 def block(stream, id = None, cn = None, djp = None):

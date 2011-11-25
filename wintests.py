@@ -1,17 +1,15 @@
-'''I use this script to run tests on a windows development environment where
-several libraries are under development.
-No need to use this in Linux
+'''I use this script to run tests on a windows development environment.
 '''
 import os
-from djpcms.utils.pathtool import AddToPath, uplevel
-from runtests import run
+from djpcms.utils.pathtool import AddToPath
 
-pt = AddToPath(uplevel(os.path.abspath(__file__)))
-
-pt.add(module='stdnet', uplev = 1, down = ('python-stdnet',))
+pt = AddToPath(__file__)
+pt.add(module='pulsar', up = 1, down = ('pulsar',))
+pt.add(module='stdnet', up = 1, down = ('python-stdnet',))
+from runtests import suite
 
 if __name__ == '__main__':
-    run()
+    suite().start()
     
 
 

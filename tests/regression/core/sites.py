@@ -1,24 +1,26 @@
-from py2py3 import zip
-
-from djpcms import test, views, http
-from djpcms.utils import SLASH
-from djpcms.core.exceptions import ImproperlyConfigured, \
-                                   AlreadyRegistered
+from djpcms import views, http, ImproperlyConfigured, AlreadyRegistered
+from djpcms.utils import test, zip
 
 
 def get_simpleapps():
     return (
-            views.Application('/',
-                              name = 'app1',
-                              home = views.View(renderer = lambda djp : 'ciao')),
-            views.Application('/bla/',
-                              name = 'app2',
-                              home = views.View(renderer = lambda djp : 'ciao bla'),
-                              view2 = views.View(regex = 'pluto',
-                                                 parent = 'home',
-                                                 renderer = lambda djp : 'ciao bla view2')),
-            )
-
+        views.Application(
+            '/',
+            name = 'app1',
+            views = (
+                     ('home',views.View(renderer = lambda djp : 'ciao')),
+                     )
+        ),
+        views.Application(
+            '/bla/',
+            name = 'app2',
+            views = (
+                ('home',views.View(renderer = lambda djp : 'ciao bla')),
+                ('view2',views.View('pluto/',\
+                                     renderer = lambda djp : 'ciao bla view2'))
+                )
+        )
+    )
 
     
 class TestSites(test.TestCase):
@@ -64,7 +66,7 @@ class TestTree(test.TestCase):
         tree = self.sites.tree
         root = tree.root
         self.assertEqual(len(tree),3)
-        self.assertEqual(root.path,SLASH)
+        self.assertEqual(root.path,'/')
         children = root.children_map()
         self.assertEqual(len(children),1)
         self.assertTrue('/admin/' in children)

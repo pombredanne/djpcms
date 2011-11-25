@@ -8,12 +8,12 @@ from threading import Lock
 from py2py3 import iteritems
 
 import djpcms
-from djpcms.conf import get_settings
+from djpcms.utils.conf import get_settings
 from djpcms.utils.importer import import_module, import_modules
 from djpcms.utils import logtrace, closedurl, force_str
 from djpcms.utils.const import SLASH
 from djpcms.utils.structures import OrderedDict
-from djpcms.dispatch import Signal
+from djpcms.utils.dispatch import Signal
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
                         ImproperlyConfigured, DjpcmsException,\
@@ -21,7 +21,7 @@ from .exceptions import AlreadyRegistered, PermissionDenied,\
 from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
-from .regex import Route, ALL_URLS
+from .routing import Route
 from . import http
 from . import orms
 

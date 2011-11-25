@@ -3,7 +3,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string, iteritems
 
-from djpcms.utils import force_str, SLASH
+from djpcms.utils import force_str
 
 from .exceptions import *
 from . import http
@@ -23,13 +23,13 @@ class resolver_manager(object):
         return self
     
     def __exit__(self, type, value, traceback):
-        if isinstance(value,Http404) and not self.path.endswith(SLASH):
+        if isinstance(value,Http404) and not self.path.endswith('/'):
             try:
-                v,u,k = self.resolver.resolve(self.path+SLASH)
+                v,u,k = self.resolver.resolve(self.path+'/')
             except:
                 pass
             else:
-                value.trypath = self.path+SLASH
+                value.trypath = self.path+'/'
         
 
 class ResolverMixin(object):
@@ -59,8 +59,8 @@ The main function here is the ``resolve`` method'''
         '''
         path = environ['PATH_INFO']
         if '//' in path:
-            url = re.sub("/+" , SLASH, path)
-            if not url.startswith(SLASH):
+            url = re.sub("/+" , '/', path)
+            if not url.startswith('/'):
                 url = '/%s' % url
             qs = environ['QUERY_STRING']
             if qs and environ['method'] == 'GET':
@@ -78,7 +78,7 @@ The main function here is the ``resolve`` method'''
     
     def resolve(self, path):
         # try sitemap first
-        spath = SLASH+path
+        spath = '/'+path
         site = None
         node = None
         try:

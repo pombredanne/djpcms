@@ -1,13 +1,10 @@
-'''\
-Test Blocks in pages
-'''
-import unittest as test
-
+'''Blocks in pages'''
 from djpcms.apps import vanilla
+from djpcms.utils import test
 from djpcms import PathException, Http404
 
 
-class TestPage(test.TestCase,test.PageMixin):
+class TestPage(test.TestCase):
     
     def setUp(self):
         self.makesite()

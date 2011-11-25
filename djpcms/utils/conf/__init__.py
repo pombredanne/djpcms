@@ -2,28 +2,19 @@ import os
 
 from py2py3 import is_bytes_or_string
 
-from djpcms.conf import djpcms_defaults
 from djpcms.utils.importer import import_module
 
-from .html import Html
+from . import defaults
 
 
-class NoData(object):
-    def __repr__(self):
-        return '<NoData>'
-    __str__ = __repr__
-    
-nodata = NoData()
-
-
-class DjpcmsConfig(object):
+class get_settings(object):
     django_settings = None
     
     def __init__(self, settings_module_name, **kwargs):
         self.__dict__['_values'] = {}
         self.__dict__['_settings'] = []
         self.__dict__['settings_module_name'] = settings_module_name
-        self.fill(djpcms_defaults)
+        self.fill(defaults)
         path = ''
         if self.settings_module_name:
             settings_module = import_module(settings_module_name)
@@ -33,7 +24,6 @@ class DjpcmsConfig(object):
             self.fill(settings_module)
         self.__dict__['path'] = path
         self.update(kwargs)
-        self.HTML = Html()
         de = self.DEFAULT_TEMPLATE_NAME
         if de:
             if is_bytes_or_string(de):
@@ -131,5 +121,3 @@ class DjpcmsConfig(object):
             self.__class__.django_settings = framework_settings
         return self.__class__.django_settings
         
-    
-get_settings = DjpcmsConfig

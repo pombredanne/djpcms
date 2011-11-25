@@ -3,9 +3,7 @@ import os
 import jinja2
 
 from djpcms.utils.importer import import_module
-from djpcms.core.exceptions import ImproperlyConfigured
-
-from .base import LibraryTemplateHandler
+from djpcms import html, ImproperlyConfigured
 
 
 TemplateNotFound = jinja2.TemplateNotFound
@@ -46,7 +44,8 @@ def guess_autoescape(template_name):
     return ext in AUTOESCAPE_EXTENSION
 
 
-class TemplateHandler(LibraryTemplateHandler):
+class TemplateHandler(html.TemplateHandler):
+    name = 'jinja2'
     
     def setup(self):
         self.template_class = Template

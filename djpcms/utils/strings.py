@@ -7,14 +7,19 @@ from decimal import Decimal
 from py2py3 import string_type
 
 
-__all__ = ['encode_str',
+__all__ = ['nodata',
+           'encode_str',
            'force_str',
            'escape',
            'smart_escape',
            'mark_safe']
 
+
+class nodata(object):
+    pass
+    
 EMPTY = ''
-NOTHING = (None,EMPTY)
+NOTHING = (None,EMPTY,nodata)
 
 protected_types = (int, bool, datetime, date, time, float, Decimal)
 

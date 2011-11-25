@@ -16,7 +16,7 @@ from djpcms.forms import HtmlForm
 from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm
 from .views import *
 
-from djpcms import views, SLUG_REGEX
+from djpcms import views
 
 permission = lambda self, request, obj: False if not request \
                 else request.user.is_authenticated()
@@ -76,7 +76,7 @@ class UserApplication(UserAppBase):
 No assumption has been taken over which model is used for storing user data.'''
     inherit = True
     in_nav = 0  
-    change_password = views.ChangeView(regex = 'change-password',
+    change_password = views.ChangeView('change-password',
                                        has_plugins = True,
                                        parent = 'home',
                                        form = HtmlForm(PasswordChangeForm))
@@ -97,15 +97,14 @@ class UserApplicationWithFilter(UserApplication):
 The userhome view'''
     inherit = True
     userpage = True
-    userhome = UserView(regex = '(?P<username>%s)'%SLUG_REGEX,
-                        description = 'view')
+    userhome = UserView('<username>/')
     change  = views.ChangeView(parent = 'userhome',
                                form = HtmlForm(UserChangeForm))
-    change_password = views.ChangeView(regex = 'change-password',
+    change_password = views.ChangeView('change-password',
                                        parent = 'userhome',
                                        has_plugins = True,
                                        form = HtmlForm(PasswordChangeForm))
-    #userdata = UserDataView(regex = '(?P<path>[\w./-]*)',
+    #userdata = UserDataView('(?P<path>[\w./-]*)',
     #                        parent = 'userhome')
     
     def for_user(self, djp):

@@ -20,5 +20,5 @@ class ContactView(views.View):
 
 class ContactUs(views.Application):
     name = 'Contact Us'
-    contact = ContactView(isplugin = True,
+    contact = ContactView(has_plugins = True,
                           form = ContactForm)

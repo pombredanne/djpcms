@@ -1,12 +1,11 @@
-from py2py3 import zip
-
-from djpcms import test, forms, html, to_string
+from djpcms.utils import test, zip
+from djpcms import forms, html, to_string
 
 
 class TableTests(test.TestCase):
     
     def testSimple(self):
-        tbl = html.Table(['first','second'])
+        tbl = html.Pagination(['first','second'])
         self.assertTrue(tbl.internal['headers'])
         ht = tbl.render()
         self.assertTrue('<table>' in ht)

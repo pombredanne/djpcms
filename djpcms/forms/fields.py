@@ -2,7 +2,7 @@ from inspect import isclass
 from datetime import datetime, date
 from copy import copy, deepcopy
 
-from djpcms import html, nodata, to_string
+from djpcms import html, to_string
 from djpcms.utils import escape, slugify
 from djpcms.utils.const import NOTHING
 from djpcms.utils.dates import parse as dateparser
@@ -138,7 +138,7 @@ of this field. Returns None if it's not provided."""
     
     def clean(self, value, bfield):
         '''Clean the field value'''
-        if value == nodata or value in NOTHING:
+        if value in NOTHING:
             value = self.get_default(bfield)
             if self.required and value in NOTHING:
                 raise ValidationError(
@@ -326,7 +326,7 @@ class BooleanField(Field):
     
     def clean(self, value, bfield):
         '''Clean the field value'''
-        if value == nodata:
+        if value in NOTHING:
             return self.default
         else:
             if value in ('False', '0'):

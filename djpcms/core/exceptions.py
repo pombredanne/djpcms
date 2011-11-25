@@ -51,7 +51,7 @@ class UsernameAlreadyAvailable(Exception):
     pass
 
 
-class ApplicationUrlException(DjpcmsException):
+class UrlException(DjpcmsException):
     '''A :class:`DjpcmsException` raised when there are problems
 related to urls configuration'''
     pass

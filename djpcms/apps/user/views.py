@@ -6,15 +6,9 @@ __all__ = ['LogoutView','LoginView','UserView','UserDataView']
 
 
 class LogoutView(views.ModelView):
+    '''Logs out a user, if there is an authenticated user :)
     '''
-    Logs out a user, if there is an authenticated user :)
-    '''
-    _methods = ('get',)
-    
-    def __init__(self, regex = 'logout', parent = None):
-        super(LogoutView,self).__init__(regex = regex,
-                                        parent = parent,
-                                        insitemap = False)
+    route = 'logout'
         
     def preprocess(self, djp):
         request = djp.request
@@ -34,14 +28,10 @@ class LoginView(views.ModelView):
     create a login.html file in your site template directory.
     '''
     has_plugin = True
+    route = 'login'
     default_title = 'Sign in'
     template_name = 'login.html'
     
-    def __init__(self, regex = 'login', force_redirect = True, **kwargs):
-        super(LoginView,self).__init__(regex = regex,
-                                       force_redirect = force_redirect,
-                                       **kwargs)
-        
     def preprocess(self, djp):
         if djp.request.user.is_authenticated():
             return http.ResponseRedirect('/')

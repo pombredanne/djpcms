@@ -15,7 +15,6 @@ import re
 import time
 import calendar
 
-from djpcms.utils.translation import gettext as _
 from djpcms.utils.strings import force_str
 
 from .dates import MONTHS, MONTHS_3, MONTHS_AP, WEEKDAYS, WEEKDAYS_ABBR
@@ -47,14 +46,14 @@ class TimeFormat(Formatter):
     def a(self):
         "'a.m.' or 'p.m.'"
         if self.data.hour > 11:
-            return _('p.m.')
-        return _('a.m.')
+            return 'p.m.'
+        return 'a.m.'
 
     def A(self):
         "'AM' or 'PM'"
         if self.data.hour > 11:
-            return _('PM')
-        return _('AM')
+            return 'PM'
+        return 'AM'
 
     def B(self):
         "Swatch Internet time"
@@ -103,9 +102,9 @@ class TimeFormat(Formatter):
         Proprietary extension.
         """
         if self.data.minute == 0 and self.data.hour == 0:
-            return _('midnight')
+            return 'midnight'
         if self.data.minute == 0 and self.data.hour == 12:
-            return _('noon')
+            return 'noon'
         return '%s %s' % (self.f(), self.a())
 
     def s(self):

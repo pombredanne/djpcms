@@ -8,9 +8,9 @@ from djpcms import html, forms, ajax
 from djpcms.html import SubmitInput, table_header
 from djpcms.core.orms import mapper, DummyMapper
 from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.exceptions import PermissionDenied, ApplicationUrlException,\
+from djpcms.core.exceptions import PermissionDenied, UrlException,\
                                      AlreadyRegistered
-from djpcms.utils import slugify, closedurl, openedurl, mark_safe, SLASH
+from djpcms.utils import slugify, closedurl, openedurl, mark_safe
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
@@ -35,7 +35,7 @@ def makename(self, name, description):
         name = openedurl(self.baseurl.path)
         if not name:
             name = self.__class__.__name__
-    name = name.replace(SPLITTER,'_').replace(SLASH,'_')
+    name = name.replace(SPLITTER,'_').replace('/','_')
     self.description = description or self.description or nicename(name)
     self.name = str(slugify(name.lower(),rtx='_'))
 
@@ -89,7 +89,7 @@ def process_views(view,views,app):
         if is_bytes_or_string(pkey):
             parent  = app.views.get(pkey,None)
             if not parent:
-                raise ApplicationUrlException('Parent view "%s" for view "%s"\
+                raise UrlException('Parent view "%s" for view "%s"\
  not in children tree. Check application "%s".' %\
                  (pkey,view,app.__class__.__name__))
             view.parent = parent
@@ -341,23 +341,23 @@ overwritten to customize its behavior.
         Application.creation_counter += 1
         makename(self,self.name,self.description)
         if self.parent and not self.related_field:
-            raise ApplicationUrlException('Parent view "{0}" specified in\
+            raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent,self))
         if views:
             for name,view in views:
                 if not isinstance(view,View):
-                    raise ApplicationUrlException('Value "{0}" at keyword "{1}"\
+                    raise UrlException('Value "{0}" at keyword "{1}"\
  is not a view instance. Error in constructing application "{2}".'\
  .format(view,name,self))
                 if name in self.views:
-                    raise ApplicationUrlException("Could not define add \
+                    raise UrlException("Could not define add \
 view {0}. Already available." % name)
                 self.views[name] = view
         if apps:
             for app in apps:
                 name = app.name
                 if name in self.apps:
-                    raise ApplicationUrlException('Could not add application\
+                    raise UrlException('Could not add application\
  "{0}". Name "{1}" Already available. Set a different name'.format(app,name))
                 self.apps[name] = app
         
@@ -437,7 +437,7 @@ Return ``None`` if the view is not available.'''
         self._site = application_site
         
         if not self.views:
-            raise ApplicationUrlException("There are no views in {0}\
+            raise UrlException("There are no views in {0}\
  application. Try setting inherit equal to True.".format(self))
         
         self.object_views = []
@@ -451,7 +451,7 @@ Return ``None`` if the view is not available.'''
             if not view.parent:
                 if not view.urlbit:
                     if self.root_view:
-                        raise ApplicationUrlException(\
+                        raise UrlException(\
                             'Could not resolve root application for %s' % self)
                     self.root_view = view
                 else:
@@ -463,7 +463,7 @@ Return ``None`` if the view is not available.'''
                 #just pick one. We should not be here really! need more testing.
                 self.root_view = roots[0]
             else:
-                raise ApplicationUrlException(\
+                raise UrlException(\
                         "Could not define root application for %s." % self)
         
         # Set the in_nav if required
@@ -478,18 +478,18 @@ Return ``None`` if the view is not available.'''
             view.processurlbits(self)
             if isinstance(view,ViewView):
                 if self.model_url_bits:
-                    raise ApplicationUrlException('Application {0} has more\
+                    raise UrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
                 self.model_url_bits = view.names()
                 if not self.model_url_bits:
-                    raise ApplicationUrlException('Application {0} has no\
+                    raise UrlException('Application {0} has no\
  parameters to initialize objects.'.format(self))
             if names:
                 na2 = names.intersection(view.names())
                 if na2:
                     k = 'key' if len(na2) == 1 else 'keys'
                     ks = ','.join(na2)
-                    raise ApplicationUrlException('View "{0}" in application\
+                    raise UrlException('View "{0}" in application\
  {1} has {2} "{3}" matching parent view "{4}" of application "{5}"'.\
                     format(view,self,k,ks,parent,parent.appmodel))            
             if self.has_plugins and view.has_plugins:

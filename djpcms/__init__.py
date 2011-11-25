@@ -108,7 +108,8 @@ LOGGING_SAMPLE = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s | (p=%(process)s,t=%(thread)s) | %(levelname)s | %(name)s | %(message)s'
+            'format': '%(asctime)s | (p=%(process)s,t=%(thread)s)\
+ | %(levelname)s | %(name)s | %(message)s'
         },
         'simple': {
             'format': '%(asctime)s %(levelname)s %(message)s',
@@ -116,22 +117,14 @@ LOGGING_SAMPLE = {
         },
     },
     'handlers': {
-        'silent': {
-            'class': 'djpcms.utils.log.NullHandler',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'djpcms.utils.log.AdminEmailHandler'
         }
     },
     'loggers': {
         'djpcms.request':{
-            #'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         }
@@ -139,7 +132,6 @@ LOGGING_SAMPLE = {
 }
 
 from .core import *
-from .conf import nodata
 from .utils import ajax
 from .utils.decorators import *
 

@@ -1,7 +1,7 @@
-import unittest as test
+import sys
 
+from djpcms.utils import zip, test
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.populate import populate
 
 if sys.version_info < (2,7):
 
@@ -19,8 +19,9 @@ if sys.version_info < (2,7):
             for n,kv in enumerate(d.iteritems(), start = 1):
                 self.assertEqual(n,kv[1]) 
         
+        @test.skipUnless(test.djpapps,"Requires djpapps installed")
         def testOrderList(self):
-            from itertools import izip
+            from stdnet.utils.populate import populate
             x = populate('string',300, min = 5, max = 15)
             y = populate('string',300, min = 5, max = 15)
             data = zip(x,y)

@@ -1,7 +1,8 @@
 import time
 from datetime import datetime, timedelta
 
-from djpcms import http, test
+from djpcms.utils import test
+from djpcms import http
 
 
 class Http(test.TestCase):

@@ -1,7 +1,4 @@
-'''\
-Dependencies: **None**
-
-Define some application urls templates as example
+'''Define some application urls templates as example
 '''
 import copy
 
@@ -17,7 +14,7 @@ __all__ = ['ArchiveApplication',
            'DayArchiveView']
 
 
-class ArchiveApplication(ModelApplication):
+class ArchiveApplication(Application):
     '''\
 A :class:`djpcms.views.ModelApplication` wich defines archive views
 based on a date field.
@@ -29,12 +26,17 @@ class attribute:
     Name of field used to create archives
 '''
     date_code     = None
-    '''The model field name which is used to create time archives. Must be a date or datetime field.'''
     split_days    = False
-    search        = ArchiveView()
-    year_archive  = YearArchiveView(regex = '(?P<year>\d{4})', isplugin = False)
-    month_archive = MonthArchiveView(regex = '(?P<month>\w{3})', parent = 'year_archive', isplugin = False)
-    day_archive   = DayArchiveView(regex = '(?P<day>\d{2})',   parent = 'month_archive', isplugin = False)
+    
+    search        = views.ArchiveView()
+    year_archive  = views.YearArchiveView('<year>/',
+                                          has_plugins = False)
+    month_archive = views.MonthArchiveView('<month>/',
+                                           parent = 'year_archive',
+                                           has_plugins = False)
+    day_archive   = views.DayArchiveView('<day>/',
+                                         parent = 'month_archive',
+                                         has_plugins = False)
     
     def __init__(self, *args, **kwargs):
         self.date_code = kwargs.pop('date_code',self.date_code)
@@ -67,12 +69,12 @@ class attribute:
         view = self.getview('day_archive')
         if view:
             month = self.get_month_value(month)
-            return view(request, year = year, month = month, day = day, **kwargs).url
+            return view(request, year = year, month = month, day = day,
+                        **kwargs).url
         
     def data_generator(self, djp, data):
-        '''
-        Modify the standard data generation method so that links to date archive are generated
-        '''
+        '''Modify the standard data generation method so that links
+to date archive are generated'''
         request  = djp.request
         prefix   = djp.prefix
         wrapper  = djp.wrapper

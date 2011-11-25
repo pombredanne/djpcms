@@ -1,5 +1,4 @@
 from djpcms import forms, html
-from djpcms.template import loader
 
 
 class ContactForm(forms.Form):

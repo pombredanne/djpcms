@@ -8,7 +8,7 @@ import json
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import nodata, UnicodeMixin
+from djpcms import UnicodeMixin
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str

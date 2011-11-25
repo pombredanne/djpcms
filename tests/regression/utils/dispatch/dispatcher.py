@@ -1,8 +1,8 @@
 import gc
 import sys
 
-from djpcms.dispatch import Signal
-from djpcms import test
+from djpcms.utils.dispatch import Signal
+from djpcms.utils import test
 
 
 if sys.platform.startswith('java'):

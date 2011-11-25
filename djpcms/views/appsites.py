@@ -4,7 +4,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, template, SiteApp, Route, RouteMixin, ALL_URLS
+from djpcms import http, SiteApp, Route, RouteMixin
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -106,10 +106,10 @@ handles urls of :class:`Application` instances registered with it.
         urls = ()
         # Add application's views.
         for app in self.applications:
-            regex = app.baseurl + ALL_URLS
+            regex = app.baseurl + '<path>'
             urls += (url(str(regex), app, name = app.name),)
         self.tree.addsite(self)
-        self.template = template.ContextTemplate(self) 
+        self.template = html.ContextTemplate(self) 
         return urls
     
     @property

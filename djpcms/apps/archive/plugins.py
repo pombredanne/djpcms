@@ -1,13 +1,7 @@
 from datetime import date
 
-from django import forms
-from django.contrib.contenttypes.models import ContentType
-from django.utils.dates import MONTHS
-
 from djpcms.utils import force_unicode
-from djpcms.template import loader
 from djpcms.plugins import DJPplugin
-from djpcms.views import appsite
 
 
 def all_archive_model():
@@ -35,12 +29,13 @@ def filter_date(app, y, m):
 class ArchiveList(DJPplugin):
     form = ArchiveForm
     
-    def render(self, djp, wrapper, prefix, for_model = None, start = None, **kwargs):
+    def render(self, djp, wrapper, prefix, for_model = None,
+               start = None, **kwargs):
         try:
             formodel = ContentType.objects.get(id = int(for_model)).model_class()
             app = appsite.site.for_model(formodel)
         except:
-            return u''
+            return u
         request = djp.request
         start = None or date.today()
         year  = start.year

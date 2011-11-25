@@ -8,7 +8,7 @@ import logging
 import weakref, traceback
 
 
-logger = logging.getLogger('stdnet.dispatch')
+logger = logging.getLogger('djpcms.dispatch')
 
 
 def safeRef(target, onDelete = None):

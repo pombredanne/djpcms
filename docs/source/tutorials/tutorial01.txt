@@ -12,18 +12,17 @@ It's a content management system for *dynamic*
 web applications which uses python_
 on the server side and javascript on browser-side.
 The Javascript is largely built on top of jQuery_ and
-several open-source jQuery plugins (:ref:`check the list here <jquery-plugins>`)
+several open-source jQuery plugins (:ref:`check the list here <jquery-plugins>`).
+On the Python side no dependency are strictly required. 
 
 
 What Djpcms is NOT?
 =====================
 It is not a web-framework in the sense that it does not provide all the
 nuts and bolts required by a web-application.
-You can use it as a python library if you like,
-but it is not designed to be flexible enough to accomodate for a large
-variety of usages.
 It does what it is supposed to do, providing support
-for managing contents on the web in a fast and efficient manner.
+for managing contents and interaction on the web in a fast and efficient manner.
+You can also use it as a python library.
 
 
 Using Djpcms

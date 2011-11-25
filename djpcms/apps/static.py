@@ -1,7 +1,5 @@
 '''\
-Dependcies: ``None``
-
-Useful application for serving static files during development.
+Useful :class:`Application` for serving static files during development.
 
 It also provides several utilities for fetching external media.
 '''

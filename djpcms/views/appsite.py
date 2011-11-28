@@ -4,7 +4,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, ResolverMixin
+from djpcms import http, ResolverMixin, html
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -18,17 +18,9 @@ __all__ = ['ApplicationSite']
 
 
 class ApplicationSite(ResolverMixin):
-    '''Application site manager. An instance of this class 
-handles urls of :class:`Application` instances registered with it.
-
-.. attribute:: root
-
-    instance of :class:`djpcms.ApplicationSites` holding this instance.
-    
-.. attribute:: settings
-
-    The settings dictionary for this application site.
-
+    '''A :class:`djpcms.ResolverMixin` for managing
+:class:`Application` instances and other :class:`ApplicationSite`
+registered with it.
 '''
     def __init__(self, route, parent, config, permissions):
         super(ApplicationSite,self).__init__(route, parent)
@@ -49,7 +41,7 @@ handles urls of :class:`Application` instances registered with it.
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
             self.routes.update(((a.rel_route,self._register(a)) for a in appurls))
-        self.tree.addsite(self)
+        #self.tree.addsite(self)
         self.template = html.ContextTemplate(self)
         return super(ApplicationSite,self)._load()
     

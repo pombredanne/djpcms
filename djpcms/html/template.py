@@ -57,8 +57,8 @@ class ContextTemplate(object):
     
     def __init__(self, site):
         self.site = site
-        self._engine = handle(site.settings.TEMPLATE_ENGINE,
-                              site.settings)
+        self._engine = template_handle(site.settings.TEMPLATE_ENGINE,
+                                       site.settings)
     
     @property
     def engine(self):

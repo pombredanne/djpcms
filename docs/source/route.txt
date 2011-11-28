@@ -1,0 +1,47 @@
+.. module:: djpcms
+
+=========================
+Web site and Routes
+=========================
+
+To build a djpcms managed web site you need an instance of :class:`Site`::
+
+    import djpcms
+    
+    sites = djpcms.Site()
+
+
+Site
+===========================
+
+.. autoclass:: Site
+   :members:
+   :member-order: bysource
+   
+   
+
+Route
+===========================
+
+.. autoclass:: Route
+   :members:
+   :member-order: bysource
+
+
+
+RouteMixin
+===========================
+
+.. autoclass:: RouteMixin
+   :members:
+   :member-order: bysource
+      
+      
+
+ResolverMixin
+===========================
+
+.. autoclass:: ResolverMixin
+   :members:
+   :member-order: bysource
+      

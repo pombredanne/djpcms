@@ -147,7 +147,7 @@ class SiteMap(dict):
         '''Add an :class:`djpcms.apps.appsites.ApplicationSite`
 to the sitemap.'''
         node = self.node(site.path, site = site, force = True)
-        self.addapplications(site.applications)
+        self.addapplications(site.all())
         return node
         
     def node(self, path, site = None, force = False):

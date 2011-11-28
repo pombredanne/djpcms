@@ -2,15 +2,15 @@ import os
 import sys
 import traceback
 import logging
-from copy import copy
+from copy import copy, deepcopy
 from threading import Lock
 
 from py2py3 import iteritems, itervalues
 
 import djpcms
-from djpcms.utils.conf import get_settings
-from djpcms.utils.importer import import_module
-from djpcms.utils import logtrace, closedurl, force_str
+from djpcms import html
+from djpcms.utils.importer import import_module, module_attribute
+from djpcms.utils import conf, logtrace, closedurl, force_str
 from djpcms.utils.dispatch import Signal
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
@@ -22,12 +22,70 @@ from .permissions import PermissionHandler
 from . import http
 from . import orms
 
-__all__ = ['SiteLoader',
-           'ApplicationSites',
-           'ContextRenderer']
+__all__ = ['SiteLoader', 'Site', 'get_settings']
 
 
 logger = logging.getLogger('djpcms')
+
+
+
+def default_response_handler(djp, response, callback = None):
+    if isinstance(response,dict):
+        rr = default_response_handler
+        response = dict(((k,rr(djp,v)) for k,v in iteritems(response)))
+    elif isinstance(response,html.ContextRenderer):
+        response = response.render()
+    return callback(response) if callback else response
+
+
+def get_settings(name = None, settings = None, **params):
+    '''Extra configuration parameters,can be passed as key-value pairs:
+
+:parameter name: file or directory name which specifies the
+             application root-directory.
+             
+:parameter settings: optional settings file name specified as a dotted path
+relative ro the application directory.
+
+Default ``None``
+
+:parameter params: key-value pairs which override the values
+               in the settings file.
+'''
+    name = name if name is not None else os.getcwd()
+    if os.path.isdir(name):
+        appdir = name
+    elif os.path.isfile(name):
+        appdir = os.path.split(os.path.realpath(name))[0]
+    else:
+        try:
+            mod = import_module(name)
+            appdir = mod.__path__[0]
+        except ImportError:
+            raise ValueError(
+                    'Could not find directory or file {0}'.format(name))
+    site_path = os.path.realpath(appdir)
+    base,name = os.path.split(site_path)
+    if base not in sys.path:
+        sys.path.insert(0, base)
+    
+    # Import settings
+    if settings:
+        if '.' in settings:
+            settings_module_name = settings
+        else:
+            sett = '{0}.py'.format(os.path.join(site_path,settings))
+            if os.path.isfile(sett):
+                settings_module_name = '{0}.{1}'.format(name,settings)
+            else:
+                settings_module_name = settings
+    else:
+        settings_module_name = None
+    
+    return conf.get_settings(settings_module_name,
+                             SITE_DIRECTORY = site_path,
+                             SITE_MODULE = name,
+                             **params)
 
 
 class TreeUpdate(object):
@@ -41,71 +99,6 @@ class TreeUpdate(object):
         '''Register the page post save with tree'''
         if isinstance(instance, self.sites.Page):
             self.sites.tree.update_flat_pages()
-            
-            
-
-class ContextRenderer(object):
-    
-    def __init__(self, djp, context = None, template = None, renderer = None,
-                 text = None):
-        self.djp = djp
-        self.template = template
-        self.context = context or {}
-        self.renderer = renderer
-        self._renderers = []
-        if text is not None:
-            self.text = text
-        
-    @classmethod
-    def make(cls, txt):
-        if isinstance(txt,cls):
-            return txt
-        else:
-            return ContextRenderer(None,text = txt)
-        
-    @property
-    def called(self):
-        return hasattr(self,'text')
-    
-    def done(self):
-        '''Return the text if already rendered otherwise return self'''
-        if self.called:
-            return self.text
-        return self
-    
-    def render(self):
-        if not self.called:
-            self.text = text = self._render()
-            renderers = self._renderers
-            self._renderers = []
-            for r in renderers:
-                text = r(text)
-            self.text = text
-        return self.text
-        
-    def _render(self):
-        if self.template:
-            return self.djp.render_template(self.template,self.context)
-        elif self.renderer:
-            return self.renderer(self.djp,self.context)
-        else:
-            raise NotImplementedError
-        
-    def add_renderer(self, r):
-        if hasattr(r,'__call__'):
-            if self.called:
-                self.text = r(self.text)
-            else:
-                self._renderers.append(r)
-
-
-def default_response_handler(djp, response, callback = None):
-    if isinstance(response,dict):
-        rr = default_response_handler
-        response = dict(((k,rr(djp,v)) for k,v in iteritems(response)))
-    elif isinstance(response,ContextRenderer):
-        response = response.render()
-    return callback(response) if callback else response
 
 
 class SiteLoader(object):
@@ -142,7 +135,7 @@ class SiteLoader(object):
     
     def build_sites(self):
         if self.sites is None:
-            self.sites = ApplicationSites(self.route)
+            self.sites = Site(self.route)
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
             name = '_load_{0}'.format(self.name.lower())
@@ -168,56 +161,6 @@ class SiteLoader(object):
         '''Default loading'''
         self.sites.make(os.getcwd(),
                         settings = self.settings)
-
-    def get_settings(self, name, settings = None, **params):
-        '''
-        Extra configuration parameters,
-can be passed as key-value pairs:
-
-:parameter name: file or directory name which specifies the
-                 application root-directory.
-                 
-:parameter settings: optional settings file name specified as a dotted path
-    relative ro the application directory.
-    
-    Default ``None``
-
-:parameter params: key-value pairs which override the values
-                   in the settings file.
-'''
-        if os.path.isdir(name):
-            appdir = name
-        elif os.path.isfile(name):
-            appdir = os.path.split(os.path.realpath(name))[0]
-        else:
-            try:
-                mod = import_module(name)
-                appdir = mod.__path__[0]
-            except ImportError:
-                raise ValueError(
-                        'Could not find directory or file {0}'.format(name))
-        site_path = os.path.realpath(appdir)
-        base,name = os.path.split(site_path)
-        if base not in sys.path:
-            sys.path.insert(0, base)
-        
-        # Import settings
-        if settings:
-            if '.' in settings:
-                settings_module_name = settings
-            else:
-                sett = '{0}.py'.format(os.path.join(site_path,settings))
-                if os.path.isfile(sett):
-                    settings_module_name = '{0}.{1}'.format(name,settings)
-                else:
-                    settings_module_name = settings
-        else:
-            settings_module_name = None
-        
-        return get_settings(settings_module_name,
-                            SITE_DIRECTORY = site_path,
-                            SITE_MODULE = name,
-                            **params)
         
     def finish(self):
         '''Callback once the sites are loaded.'''
@@ -265,24 +208,23 @@ def standard_exception_handle(request, e, status = None):
                          encoding = settings.DEFAULT_CHARSET)
     
     
-class ApplicationSites(ResolverMixin):
-    '''Holder of application sites::
+class Site(ResolverMixin):
+    '''A :class:`ResolverMixin` holding other :class:`Site` instances
+and :class:`djpcms.views.Application` instances::
 
     import djpcms
-    sites = djpcms.ApplicationSites()
-    
+    site = djpcms.Site()
 
-:parameter route: optional base route for this site holder.
-    Default: ``"/"``
+:parameter settings: optional settings instance for
+    :attr:`RouteMixin.settings` attribute.
+        
+:parameter route: optional base route for
+    :attr:`RouteMixin.route` attribute.
     
 :parameter response_handler: optional function for handling responses.
 
 
 Attributes available:
-    
-.. attribute:: settings
-
-    web site settings dictionary
     
 .. attribute:: search_engine
 
@@ -295,41 +237,41 @@ Attributes available:
 '''
     profilig_key = None
     
-    def __init__(self, route = '/', response_handler = None):
-        super(ApplicationSites,self).__init__(route)
-        self.internals['admins'] = []
+    def __init__(self,
+                 settings = None,
+                 route = '/',
+                 permissions = None,
+                 response_handler = None,
+                 parent = None):
+        super(Site,self).__init__(route,parent)
+        if parent:
+            settings = settings or parent.settings
+            permissions = permissions or parent.permissions
+            response_handler = response_handler or\
+                                 parent.internals['response_handler']
+        else:
+            settings = settings or get_settings()
+            permissions = permissions or PermissionHandler()
+        path = os.path.join(settings.SITE_DIRECTORY,'templates')
+        if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
+            settings.TEMPLATE_DIRS += path,
+        path = os.path.join(djpcms.__path__[0],'media','djpcms')
+        if path not in settings.TEMPLATE_DIRS:
+            settings.TEMPLATE_DIRS += path,
+        self._model_registry = {}
+        self.plugin_choices = [('','-----------------')]
+        self.internals['settings'] = settings
         self.internals['response_handler'] = response_handler
-        self.internals['permissions'] = PermissionHandler()
+        self.internals['permissions'] = permissions
         self.internals['handle_exception'] = standard_exception_handle
-        self.internals['on_site_loaded'] = Signal()
-        self.internals['request_started'] = Signal()
-        self.internals['start_response'] = Signal()
-        self.internals['request_finished'] = Signal()
-        
-    def make_parent(self, parent):
-        if parent is not None:
-            raise ValueError('Cannot set parent')
+        self.internals['events'] = {'on_site_loaded': Signal(),
+                                    'request_started': Signal(),
+                                    'start_response': Signal(),
+                                    'request_finished': Signal()}
     
     @property
-    def ApplicationSite(self):
-        from djpcms.views import ApplicationSite
-        return ApplicationSite
-    
-    def all(self):
-        return list(itervalues(self.routes))
-        if s is None:
-            self._osites = s = list(
-                        OrderedDict(reversed(sorted(self._sites.items(),
-                                           key=lambda x : x[0]))).values())
-        return s                           
-                                           
-    def __iter__(self):
-        return self.all().__iter__()
-    
-    def __getitem__(self, index):
-        return self.all()[index]
-    def __setitem(self, index, val):
-        raise TypeError('Site object does not support item assignment')
+    def events(self):
+        return self.internals['events']
     
     def render_response(self, response, callback = None):
         r = self.internals['response_handler']
@@ -346,43 +288,33 @@ Attributes available:
         else:
             return callback(query.query) if callback else query.query
         
-    def setup_environment(self):
-        '''Called just before loading
- :class:`djpcms.views.ApplicationSite` instances are registered.
-It loops over the objecr relational mappers registered and setup models.
-It also initialise admin for models.'''
-        if not self:
-            raise ImproperlyConfigured('Site container has no sites registered.\
- Cannot setup.')
-        for wrapper in orms.model_wrappers.values():
-            wrapper.setup_environment(self)
-        self.admins = admins = []
-        for apps in self.settings.INSTALLED_APPS:
-            if apps.startswith('django.'):
-                continue
-            try:
-                mname = apps.split('.')[-1]
-                admin = import_module('{0}.admin'.format(apps))
-                urls  = getattr(admin,'admin_urls',None)
-                if not urls:
-                    continue
-                name = getattr(admin,'NAME',mname)
-                route  = closedurl(getattr(admin,'ROUTE',mname))
-                admins.append((name,route,urls))
-            except ImportError:
-                continue            
-        
     def _load(self):
-        '''Load sites and flat pages'''
-        from .sitemap import SiteMap
-        self.internals['tree'] = tree = SiteMap(self)
-        self.setup_environment()
-        urls = super(ApplicationSites,self)._load()
-        self.on_site_loaded.send(self)
-        self._tree_updated = TreeUpdate(self)
+        if self.root == self:
+            if not self and not self.settings:
+                raise ImproperlyConfigured('Site has no routes registered and\
+ no settings.')
+            from .sitemap import SiteMap
+            self.internals['tree'] = tree = SiteMap(self)
+            for wrapper in orms.model_wrappers.values():
+                wrapper.setup_environment(self)
+                
+        appurls = self.settings.APPLICATION_URLS
+        if appurls:
+            if not hasattr(appurls,'__call__'):
+                if is_bytes_or_string(appurls):
+                    appurls = module_attribute(appurls,safe=False)
+            if hasattr(appurls,'__call__'):
+                appurls = appurls()
+            self.routes.update(((a.rel_route,self._register_app(a))
+                                 for a in appurls))
+            
+        self.template = html.ContextTemplate(self)    
+        urls = super(Site,self)._load()
+        self.events['on_site_loaded'].send(self)
+        #self._tree_updated = TreeUpdate(self)
         return urls
     
-    def make(self, settings, route = None, permissions = None):
+    def addsite(self, settings = None, route = None, permissions = None):
         '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`.
     
 :parameter route: the base ``url`` for the site applications.
@@ -392,50 +324,16 @@ It also initialise admin for models.'''
 :parameter permission: An optional :ref:`site permission handler <permissions>`.
 :rtype: an instance of :class:`djpcms.views.ApplicationSite`.
 '''
-        # If no settings available get the current one
-        if self.settings is None:
-            self.internals['settings'] = settings
-            sk = getattr(settings,'SECRET_KEY',None)
-            if not sk:
-                settings.SECRET_KEY = 'djpcms'
-            os.environ['SECRET_KEY'] = settings.SECRET_KEY 
-        
-        # Add template media directory to template directories
-        path = os.path.join(settings.SITE_DIRECTORY,'templates')
-        if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
-            settings.TEMPLATE_DIRS += path,
-        path = os.path.join(djpcms.__path__[0],'media','djpcms')
-        if path not in settings.TEMPLATE_DIRS:
-            settings.TEMPLATE_DIRS += path,
-        
-        route = route or ''
-        site = self.ApplicationSite(route, self, settings, permissions)
-        if site.route.rule in self.routes:
-            raise AlreadyRegistered('Site with route {0}\
- already avalable.'.format(route))
-        self.routes[site.route.rule] = site
+        site = Site(settings = settings or self.settings, 
+                    route = route or '',
+                    permissions = permissions,
+                    parent = self)
+        if site.path in self.routes:
+            raise AlreadyRegistered('Site with path {0}\
+ already avalable.'.format(site.path))
+        self.routes[site.path] = site
         self.__dict__.pop('_urls',None)
         return site
-    
-    def loadsettings(self, setting_module):
-        '''Load settings to override existing settings'''
-        if not self:
-            raise ValueError('Cannot load settings. No site installed')
-        setting_module = '{0}.{1}'.format(self.settings.SITE_MODULE,
-                                          setting_module)
-        setting_module = import_module(setting_module)
-        self.settings.fill(setting_module)
-        
-    def get_or_create(self, name, settings = None,
-                      route = None, **params):
-        '''Same as :meth:`make` but does nothing if an application
-site is already registered at ``route``.'''
-        route = closedurl(route or '')
-        site = self.get(route,None)
-        if site is None:
-            return self.make(name,settings,route,**params)
-        else:
-            return site
     
     def get(self, name, default = None):
         return self._sites.get(name,default)
@@ -478,49 +376,6 @@ site is already registered at ``route``.'''
     
     def view_from_page(self, page):
         site = self.get_site(page.url)
-        
-    def make_admin_urls(self, name = 'admin', **params):
-        '''Return a one element tuple containing an
-:class:`djpcms.apps.included.admin.AdminSite`
-application for displaying the admin site. All application with an ``admin``
-module specifying the admin application will be included.
-
-:parameter params: key-value pairs of extra parameters for input in the
-                   :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
-        from djpcms.apps.admin import AdminSite, ApplicationGroup
-        adming = {}
-        agroups = {}
-        if self.settings.ADMIN_GROUPING:
-            for url,v in self.settings.ADMIN_GROUPING.items():
-                for app in v['apps']:
-                    if app not in adming:
-                        adming[app] = url
-                        if url not in agroups:
-                            v = v.copy()
-                            v['urls'] = ()
-                            agroups[url] = v
-        groups = []
-        for name_,route,urls in self.admins:
-            if urls:
-                rname = route[1:-1]
-                if rname in adming:
-                    url = adming[rname]
-                    agroups[url]['urls'] += urls
-                else:
-                    adming[rname] = route
-                    agroups[route] = {'name':name_,
-                                      'urls':urls}
-#                    groups.append(ApplicationGroup(route,
-#                                                   name = name_,
-#                                                   apps = urls))
-        for route,data in agroups.items():
-            groups.append(ApplicationGroup(route,
-                                           name = data['name'],
-                                           apps = data['urls']))
-            
-        # Create the admin application
-        admin = AdminSite('/', apps = groups, name = name, **params)
-        return (admin,)
     
     def for_model(self, model, exclude = None):
         if not model:
@@ -568,4 +423,40 @@ module specifying the admin application will be included.
                     p.add(model)
                     yield model
     
-
+    def _register_app(self, application, parent = None):
+        if not isinstance(application,ResolverMixin):
+            raise ImproperlyConfigured('Cannot register application.\
+ Is is not a valid one.')
+        
+        application.parent = self
+        
+        if isinstance(application,Site):
+            return application
+        
+        model = application.model
+        if model:
+            if model in self._model_registry:
+                raise AlreadyRegistered('Model %s already registered\
+ as application' % model)
+            self._model_registry[model] = application
+            
+        # Handle parent application if available
+        if parent:
+            parent_view = application.parent
+            if not parent_view:
+                parent_view = parent.root_view
+            elif parent_view not in parent.views:
+                raise ApplicationUrlException("Parent {0} not available\
+ in views.".format(parent))
+            else:
+                parent_view = parent.views[parent_view]
+            application.parent = parent_view
+            application.baseurl = parent_view.baseurl +\
+                                             parent_view.regex + \
+                                             application.baseurl
+        else:
+            application.parent = self
+            
+        # Create application views
+        application.load()
+        return application

@@ -103,13 +103,29 @@ def parse_rule(rule):
 
 
 class Route(UnicodeMixin):
-    '''Routing in djpcms with ideas from werkzeug.
+    '''Routing in djpcms with ideas from werkzeug_.
     
 :parameter rule: Rule strings basically are just normal URL paths
     with placeholders in the format ``<converter(arguments):name>``
     where the converter and the arguments are optional.
     If no converter is defined the `default` converter is used which
     means `string`.
+    
+:parameter defaults: optional default values for variables.
+:parameter append_slash: Force a slash to be the last character of the rule.
+    In doing so the :attr:`is_leaf` is guaranteed to be ``False``.
+    
+    
+.. attribute:: is_leaf
+
+    If ``True``, the route is equivalen to a file and no sub-routes can be
+    added.
+    
+.. attribute:: path
+
+    The full path for this route including initial ``'/'``.
+    
+.. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
     def __init__(self, rule, defaults = None, append_slash = False):
         rule = remove_double_slash(str(rule))
@@ -127,9 +143,11 @@ class Route(UnicodeMixin):
         self._converters = {}
         regex_parts = []
         for converter, arguments, variable in parse_rule(self.rule):
-            if converter is None:
+            if converter is None: 
                 regex_parts.append(re.escape(variable))
-                if variable != '/':
+                if variable.endswith('/'):
+                    variable = variable[:-1]
+                if variable:
                     self.breadcrumbs.append((False,variable))
             else:
                 convobj = get_converter(converter, arguments)
@@ -147,11 +165,14 @@ class Route(UnicodeMixin):
         else:
             return '^' + self._regex_string
     
+    def ordered_variables(self):
+        return tuple((b for dyn,b in self.breadcrumbs if dyn))
+    
     def __hash__(self):
         return hash(self.rule)
     
     def __unicode__(self):
-        return self.rule
+        return self.path
     
     @property
     def path(self):
@@ -178,7 +199,8 @@ class Route(UnicodeMixin):
     def url(self, **values):
         if self.defaults:
             d = self.defaults.copy()
-            values = d.update(values)
+            d.update(values)
+            values = d
         url = '/' + '/'.join(self._url_generator(values))
         return url if self.is_leaf else url + '/'
     
@@ -273,6 +295,7 @@ class PathConverter(BaseConverter):
         Rule('/<path:wikipage>/edit')
     """
     regex = '[^/].*?'
+    regex = '.*'
     weight = 200
 
 
@@ -281,7 +304,7 @@ class NumberConverter(BaseConverter):
 
     :internal:
     """
-    weight = 50
+    weight = 1
 
     def __init__(self, fixed_digits=0, min=None, max=None):
         self.fixed_digits = fixed_digits

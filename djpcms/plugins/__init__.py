@@ -246,10 +246,8 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         global _plugin_dictionary
         self.app  = app
         self.form = app.plugin_form
-        if not name:
-            name = '%s-%s' % (app.appmodel.name,app.name)
-        if not description:
-            description = app.description or name
+        name = name or app.code
+        description = description or app.description or name
         self.name = name
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self

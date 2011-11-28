@@ -16,3 +16,4 @@ Contents
    views
    forms
    autocomplete
+   editing

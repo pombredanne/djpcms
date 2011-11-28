@@ -4,22 +4,15 @@
 Views
 =============
 
-An :class:`ApplicationSite` is made up by several :class:`Application` instances
-which, in turns, are made up of several :class:`View` instances. in other words,
-the application site is a collection of applications exposing one or more views.
+An :class:`djpcms.Site` is made up by several :class:`djpcms.Site` instances
+and :class:`Application` instances, which, in turns, are made up of
+several :class:`View` instances. in other words,
+an instance of :class:`djpcms.Site` is a collection of sub sites and
+applications exposing one or more views.
+
 The :class:`pageview` is a special view class since it does not belong to any
 :class:`Application`. Such views are available only when a the page based
 content management system is in place. 
-
-.. _application-site:
-
-
-Application Site
-===========================
-
-.. autoclass:: ApplicationSite
-   :members:
-   :member-order: bysource
    
 
 .. _applications:

@@ -6,7 +6,9 @@ class TableTests(test.TestCase):
     
     def testSimple(self):
         tbl = html.Pagination(['first','second'])
-        self.assertTrue(tbl.internal['headers'])
+        self.assertTrue(tbl.headers)
+        self.assertTrue(tbl.list_display)
+        self.assertTrue(tbl.astable)
         ht = tbl.render()
         self.assertTrue('<table>' in ht)
         self.assertTrue('</table>' in ht)

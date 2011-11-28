@@ -15,9 +15,11 @@ registered in the same ApplicationSite::
 '''
 from py2py3 import iteritems
 
-from djpcms import views, html, ContextRenderer
-from djpcms.html import Widget
+from djpcms import views, html
+from djpcms.html import Widget, ContextRenderer
 from djpcms.utils import force_str, routejoin
+from djpcms.utils.urls import closedurl
+from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename
 from djpcms.core.exceptions import ImproperlyConfigured
 
@@ -26,7 +28,8 @@ __all__ = ['AdminSite',
            'AdminApplicationSimple',
            'AdminApplication',
            'TabView',
-           'TabViewMixin']
+           'TabViewMixin',
+           'make_admin_urls']
 
 
 ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
@@ -34,7 +37,7 @@ ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
 
 ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
                               'djpcms/admin/groups.html')
-
+            
 
 class TabView(views.ObjectItem):
     '''A function for rendering a model instance
@@ -147,3 +150,63 @@ class AdminApplication(AdminApplicationSimple):
     inherit = True
     add    = views.AddView()
     change = views.ChangeView()
+
+
+def get_admins(INSTALLED_APPS):
+    for apps in INSTALLED_APPS:
+        if apps.startswith('django.'):
+            continue
+        try:
+            mname = apps.split('.')[-1]
+            admin = import_module('{0}.admin'.format(apps))
+            urls  = getattr(admin,'admin_urls',None)
+            if not urls:
+                continue
+            name = getattr(admin,'NAME',mname)
+            route  = closedurl(getattr(admin,'ROUTE',mname))
+            yield (name,route,urls)
+        except ImportError:
+            continue
+        
+        
+def make_admin_urls(settings, name = 'admin', **params):
+    '''Return a one element tuple containing an
+:class:`djpcms.apps.included.admin.AdminSite`
+application for displaying the admin site. All application with an ``admin``
+module specifying the admin application will be included.
+
+:parameter params: key-value pairs of extra parameters for input in the
+               :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
+    adming = {}
+    agroups = {}
+    if settings.ADMIN_GROUPING:
+        for url,v in settings.ADMIN_GROUPING.items():
+            for app in v['apps']:
+                if app not in adming:
+                    adming[app] = url
+                    if url not in agroups:
+                        v = v.copy()
+                        v['urls'] = ()
+                        agroups[url] = v
+    groups = []
+    for name_,route,urls in get_admins(settings.INSTALLED_APPS):
+        if urls:
+            rname = route[1:-1]
+            if rname in adming:
+                url = adming[rname]
+                agroups[url]['urls'] += urls
+            else:
+                adming[rname] = route
+                agroups[route] = {'name':name_,
+                                  'urls':urls}
+#                    groups.append(ApplicationGroup(route,
+#                                                   name = name_,
+#                                                   apps = urls))
+    for route,data in agroups.items():
+        groups.append(ApplicationGroup(route,
+                                       name = data['name'],
+                                       apps = data['urls']))
+        
+    # Create the admin application
+    admin = AdminSite('/', apps = groups, name = name, **params)
+    return (admin,)

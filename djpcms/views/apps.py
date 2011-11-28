@@ -1,6 +1,6 @@
 from copy import copy, deepcopy
 
-from py2py3 import iteritems, is_string,\
+from py2py3 import iteritems, is_string, itervalues,\
                     is_bytes_or_string, to_string
 
 import djpcms
@@ -8,13 +8,11 @@ from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
                      UrlException, AlreadyRegistered
 from djpcms.html import SubmitInput, table_header
 from djpcms.core.orms import mapper, DummyMapper
-from djpcms.utils import slugify, mark_safe
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
-from djpcms.utils.text import nicename
 from djpcms.utils.structures import OrderedDict
 
-from .baseview import RendererMixin
+from .baseview import RendererMixin, SPLITTER
 from .appview import View, ViewView
 from .objectdef import *
 from .pagination import *
@@ -24,35 +22,21 @@ __all__ = ['Application',
            'application_action',
            'extend_widgets']
 
-SPLITTER = '-'
 
-
-def makename(self, name, description):
-    name = name or self.name
-    if not name:
-        name = str(self.route)[:-1]
-        if not name:
-            name = self.__class__.__name__
-    name = name.replace(SPLITTER,'_').replace('/','_')
-    self.description = description or self.description or nicename(name)
-    self.name = str(slugify(name.lower(),rtx='_'))
-
-
-def get_declared_application_views(bases, attrs):
+def get_declared_application_routes(bases, attrs):
     """Create a list of Application views instances from the passed
 in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit',False)
-    views = []
-    apps = []
+    routes = []
     for app_name,obj in list(attrs.items()):
         if hasattr(obj,'__class__'):
-            if isinstance(obj, View):
-                views.append((app_name, attrs.pop(app_name)))
-            elif isinstance(obj.__class__,ApplicationMetaClass):
-                apps.append((app_name, attrs.pop(app_name)))
+            if isinstance(obj, View) or\
+                 isinstance(obj.__class__,ApplicationMetaClass):
+                r = attrs.pop(app_name)
+                r.name = app_name
+                routes.append(r)
     
-    views = sorted(views, key=lambda x: x[1].creation_counter)                     
-    apps = sorted(apps, key=lambda x: x[1].creation_counter)
+    routes = sorted(routes, key=lambda x: x.creation_counter)
 
     # If this class is subclassing another Application,
     # and inherit is True add that Application's views.
@@ -61,17 +45,15 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     if inherit:
         for base in bases[::-1]:
             if hasattr(base, 'base_views'):
-                views = list(base.base_views.items()) + views
+                routes = base.base_views + routes
                 
-    return OrderedDict(views),OrderedDict(apps)
+    return routes
 
 
 class ApplicationMetaClass(type):
     
     def __new__(cls, name, bases, attrs):
-        views,apps = get_declared_application_views(bases, attrs)
-        attrs['base_views'] = views
-        attrs['base_apps'] = apps
+        attrs['base_routes'] = get_declared_application_routes(bases, attrs)
         new_class = super(ApplicationMetaClass, cls).__new__(cls, name,
                                                              bases, attrs)
         return new_class
@@ -100,8 +82,10 @@ def process_views(view,views,app):
             views.remove(view)
             return view
     else:
-        if view is not app.root_view:
+        if app.root_view and view is not app.root_view:
             view.parent = app.root_view
+        else:
+            view.parent = app
         views.remove(view)
         return view
 
@@ -281,7 +265,6 @@ overwritten to customize its behavior.
 **Application methods**
 
 '''
-    creation_counter = 0
     inherit = False
     authenticated = False
     related_field = None
@@ -305,47 +288,27 @@ overwritten to customize its behavior.
     def __init__(self, route, model = None, editavailable = None,
                  list_display_links = None, object_display = None,
                  related_field = None, url_bits_mapping = None,
-                 apps = None, views = None, **kwargs):
+                 routes = None, **kwargs):
         # Set the model first
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
+        self.root_view = None
+        views = deepcopy(self.base_routes)
+        if routes:
+            views.extend(routes)
         ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
         if not self.pagination:
             self.pagination = html.Pagination()
-        self.views = deepcopy(self.base_views)
-        self.apps = deepcopy(self.base_apps)
-        self.root_view = None
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
         self.editavailable = editavailable
         self.list_display_links = list_display_links or self.list_display_links
-        #
         self.related_field = related_field or self.related_field
-        self.creation_counter = Application.creation_counter
-        Application.creation_counter += 1
-        makename(self,self.name,self.description)
         if self.parent and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent,self))
-        if views:
-            for name,view in views:
-                if not isinstance(view,View):
-                    raise UrlException('Value "{0}" at keyword "{1}"\
- is not a view instance. Error in constructing application "{2}".'\
- .format(view,name,self))
-                if name in self.views:
-                    raise UrlException("Could not define add \
-view {0}. Already available." % name)
-                self.views[name] = view
-        if apps:
-            for app in apps:
-                name = app.name
-                if name in self.apps:
-                    raise UrlException('Could not add application\
- "{0}". Name "{1}" Already available. Set a different name'.format(app,name))
-                self.apps[name] = app
-        
+        self.addroutes(routes)
         object_display = object_display or self.object_display
         if not object_display:
             self.object_display = self.pagination.list_display
@@ -355,12 +318,32 @@ view {0}. Already available." % name)
                 head = table_header(head)
                 d.append(self.pagination.headers.get(head.code,head))
             self.object_display = tuple(d)   
+        
+    def addroutes(self, routes):
+        if routes:
+            self.__dict__.pop('_urls',None)
+            for route in routes:
+                if not isinstance(route,RendererMixin):
+                    raise UrlException('Route "{0}" is not a view instance.\
+ Error in constructing application "{2}".'.format(view,self))
+                if route.path in self.routes:
+                    raise UrlException('Could not add route "{0}".\
+ Already available.' % name)
+                self.routes[route.path] = route
     
-    def __deepcopy__(self,memo):
-        obj = copy(self)
-        obj.views = deepcopy(self.views)
-        obj.apps = deepcopy(self.apps)
-        return obj
+    def for_model(self, model, all = False):
+        return self.parent.for_model(model, all = all)
+    
+    def __load(self):
+        urls = self._create_views()        
+        napps = OrderedDict()
+        #for app in apps.values():
+        #    app = self._register(app, parent = registered_application)
+        #    napps[app.name] = app
+        
+        self.apps = napps
+        self.registration_done()
+        return tuple(urls)
         
     def registration_done(self):
         '''Invoked by the :class:`ApplicationSite` site to which the
@@ -385,9 +368,6 @@ Return ``None`` if the view is not available.'''
     def get_from_parent_object(self, parent, id):
         return parent
     
-    def get_root_code(self):
-        return self.root_view.code
-    
     def isroot(self):
         return True
     
@@ -397,76 +377,49 @@ Return ``None`` if the view is not available.'''
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
-    def _create_views(self, application_site):
-        #Build views for this application. Called by the application site
-        if self.site:
-            raise AlreadyRegistered(
-                    'Application %s already registered as application' % self)
+    def _load(self):
         parent = self.parent
-        roots = []
-        self._site = application_site
         
-        if not self.views:
+        if not self.routes:
             raise UrlException("There are no views in {0}\
  application. Try setting inherit equal to True.".format(self))
         
         self.object_views = []
+        routes = list(itervalues(self.routes))
                     
-        # Find the root view
-        for name,view in iteritems(self.views):
-            if view.object_view:
+        # Find the root view it available
+        for view in routes:
+            if getattr(view,'object_view',False):
                 self.object_views.append(view)
-            view.name = name
             view.code = self.name + SPLITTER + view.name
             if not view.parent:
-                if not view.urlbit:
+                if not view.path == '/':
                     if self.root_view:
                         raise UrlException(\
                             'Could not resolve root application for %s' % self)
                     self.root_view = view
-                else:
-                    roots.append(view)
-        
-        # No root application. See if there is one candidate
-        if not self.root_view:
-            if roots:
-                #just pick one. We should not be here really! need more testing.
-                self.root_view = roots[0]
-            else:
-                raise UrlException(\
-                        "Could not define root application for %s." % self)
         
         # Set the in_nav if required
-        if self.in_nav:
+        if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
             
         # Pre-process urls
-        views = list(self.views.values())
-        names = set(parent.names()) if parent else None
+        views = list(self)
         while views:
+            if view.object_view:
+                self.object_views.append(view)
             view = process_views(views[0],views,self)
-            view.processurlbits(self)
             if isinstance(view,ViewView):
                 if self.model_url_bits:
                     raise UrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
-                self.model_url_bits = view.names()
+                self.model_url_bits = view.route.ordered_variables()
                 if not self.model_url_bits:
                     raise UrlException('Application {0} has no\
- parameters to initialize objects.'.format(self))
-            if names:
-                na2 = names.intersection(view.names())
-                if na2:
-                    k = 'key' if len(na2) == 1 else 'keys'
-                    ks = ','.join(na2)
-                    raise UrlException('View "{0}" in application\
- {1} has {2} "{3}" matching parent view "{4}" of application "{5}"'.\
-                    format(view,self,k,ks,parent,parent.appmodel))            
+ parameters to initialize objects.'.format(self))           
             if self.has_plugins and view.has_plugins:
                 register_application(view)
                 
-        if not parent:
-            self.parent = application_site
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,
                                                     self.model_url_bits,
                                                     self.url_bits_mapping))

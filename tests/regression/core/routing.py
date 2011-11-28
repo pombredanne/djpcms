@@ -64,7 +64,7 @@ class Routes(test.TestCase):
         
     def testIntVariable(self):
         r = Route('<int:id>/')
-        self.assertEqual(str(r),'<int:id>/')
+        self.assertEqual(str(r),'/<int:id>/')
         self.assertEqual(r.arguments,set(['id']))
         self.assertEqual(r.breadcrumbs,[(True,'id')])
         self.assertEqual(r.match('35/'),{'id':35})
@@ -73,7 +73,7 @@ class Routes(test.TestCase):
         
     def testIntVariableFixDigits(self):
         r = Route('<int(2):id>/')
-        self.assertEqual(str(r),'<int(2):id>/')
+        self.assertEqual(str(r),'/<int(2):id>/')
         self.assertEqual(r.arguments,set(['id']))
         self.assertEqual(r.breadcrumbs,[(True,'id')])
         self.assertEqual(r.match('35/'),{'id':35})
@@ -88,7 +88,7 @@ class Routes(test.TestCase):
         
     def testIntVariableMinMax(self):
         r = Route('<int(min=1):cid>/')
-        self.assertEqual(str(r),'<int(min=1):cid>/')
+        self.assertEqual(str(r),'/<int(min=1):cid>/')
         self.assertEqual(r.arguments,set(['cid']))
         self.assertEqual(r.breadcrumbs,[(True,'cid')])
         self.assertEqual(r.match('1/'),{'cid':1})
@@ -100,4 +100,14 @@ class Routes(test.TestCase):
         self.assertRaises(ValueError,lambda : r.url(cid = 0))
         self.assertRaises(ValueError,lambda : r.url(cid = -10))
         self.assertRaises(ValueError,lambda : r.url(cid = 'bla'))
+        
+    def testPathVaiable(self):
+        r = Route('bla/<path:rest>', defaults = {'rest':''})
+        self.assertEqual(r.arguments,set(['rest']))
+        self.assertEqual(len(r.breadcrumbs),2)
+        self.assertTrue(r.is_leaf)
+        self.assertEqual(r.match('bla/a/b/c.html'),{'rest':'a/b/c.html'})
+        self.assertEqual(r.match('bla/'),{'rest':''})
+        self.assertEqual(r.url(rest = 'a/'), '/bla/a/')
+        self.assertEqual(r.url(), '/bla/')
         

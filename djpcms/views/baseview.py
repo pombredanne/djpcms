@@ -4,7 +4,8 @@ from py2py3 import range
 
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin
-from djpcms.utils import parentpath
+from djpcms.utils import parentpath, slugify
+from djpcms.utils.text import nicename
 
 from .response import DjpResponse
 from .contentgenerator import InnerContent
@@ -13,6 +14,19 @@ from .contentgenerator import InnerContent
 __all__ = ['RendererMixin',
            'djpcmsview',
            'pageview']
+    
+    
+SPLITTER = '-'
+
+def makename(self, name, description):
+    name = name or self.name
+    if not name:
+        name = str(self.route)[:-1]
+        if not name:
+            name = self.__class__.__name__.lower()
+    name = name.replace(SPLITTER,'_').replace('/','_')
+    self.description = description or self.description or nicename(name)
+    self.name = str(slugify(name.lower(),rtx='_'))
     
     
 class RendererMixin(html.Renderer):
@@ -71,6 +85,7 @@ and :class:`djpcmsview`.
 
     proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
 '''
+    creation_counter = 0
     appmodel = None
     template_name = None
     name = None
@@ -88,6 +103,8 @@ and :class:`djpcmsview`.
                  ajax_enabled = None, form = None, template_name = None,
                  description = None, in_nav = None, has_plugins = None,
                  insitemap = None):
+        self.creation_counter = RendererMixin.creation_counter
+        RendererMixin.creation_counter += 1
         self.name = name if name is not None else self.name
         self.description = description if description is not None else\
                             self.description
@@ -108,6 +125,7 @@ and :class:`djpcmsview`.
         self.insitemap = insitemap if insitemap is not None else self.insitemap
         if isinstance(form,forms.FormType):
             self.form = forms.HtmlForm(self.form)
+        makename(self, self.name, self.description)
     
     @property
     def site(self):
@@ -186,10 +204,7 @@ of :class:`pageview` and :class:`View`.
         RendererMixin.__init__(self, **kwargs)
         
     def __unicode__(self):
-        try:
-            return '%s: %s' % (self.name,self.path())
-        except:
-            return self.name
+        return '%s: %s' % (self.name,self.path)
         
     @property
     def model(self):

@@ -1,6 +1,5 @@
 from djpcms import forms, html, views, ajax
 from djpcms.core.page import block_htmlid
-from djpcms.utils.translation import gettext as _
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
@@ -247,9 +246,10 @@ content in a content block.'''
     model_id_name = 'id'
     
     search = views.SearchView()
-    view = views.ViewView(regex = '(?P<contentblock>\d+)')
+    view = views.ViewView('<int:contentblock>/')
     change = ChangeContentView()
-    layout = ChangeLayoutView(regex = 'layout', form = BlockLayoutFormHtml)
+    layout = ChangeLayoutView('layout/',
+                              form = BlockLayoutFormHtml)
     delete = DeleteContentView()
     
     def registration_done(self):

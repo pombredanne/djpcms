@@ -1,7 +1,8 @@
 import re
 from inspect import isclass
+from copy import copy, deepcopy
 
-from py2py3 import is_bytes_or_string, iteritems
+from py2py3 import is_bytes_or_string, iteritems, itervalues
 
 from djpcms import UnicodeMixin
 from djpcms.utils import force_str
@@ -56,11 +57,17 @@ class RouteMixin(UnicodeMixin):
     
 .. attribute:: path
 
-    proxy to :attr:`Route.path` attribute of :attr:`route`
+    proxy to the :attr:`Route.path` attribute of :attr:`route`.
+    It is the absolute path for this instance.
     
 .. attribute:: root
 
-    The root :class:`RouteMixin` instance for of this route.    
+    The root :class:`RouteMixin` instance for of this route. If this instance
+    has :attr:`parent` set to ``None``, the :attr:`root
+    
+.. attribute:: settings
+
+    web site settings dictionary
 '''
     def __init__(self, route, parent = None):
         if not isinstance(route,Route):
@@ -97,6 +104,10 @@ class RouteMixin(UnicodeMixin):
             return self.parent.root
         else:
             return self
+    
+    @property
+    def isbound(self):
+        return self._isbound()
     
     def internal_data(self, name):
         v = self.internals.get(name)
@@ -140,25 +151,48 @@ class RouteMixin(UnicodeMixin):
     def make_parent(self, parent):
         if parent is not None:
             if not isinstance(parent, RouteMixin):
-                raise ValueError('parent must be an instance of RouteMixin.')
+                if self.isbound:
+                    raise ValueError('parent must be an instance of RouteMixin.\
+ Got "{0}"'.format(parent))
+                else:
+                    return parent
             self.__route = parent.route + self.__rel_route
         else:
             self.__route = self.__rel_route
         return parent
     
+    def _isbound(self):
+        raise NotImplementedError
     
     
 class ResolverMixin(RouteMixin):
-    '''Mixin for classes with several routes.'''
+    '''A :class:`RouteMixin` for classes with several sub-routes. An instance
+ of this class has always :attr:`is_leaf` equal to ``False``, it is guaranteed
+ to be a route directory.
+    
+.. attribute:: routes
+
+    dictionary of :class:`RouteMixin` instances representing the sub-routes
+    for this instance.
+    
+'''
     def __init__(self, route, parent = None):
+        self.routes = OrderedDict()
         if not isinstance(route,Route):
             route = Route(route, append_slash = True)
         if route.is_leaf:
             raise ValueError('A resolver cannot have a leaf route {0}'\
                              .format(route))
         super(ResolverMixin,self).__init__(route,parent)
-        self.routes = OrderedDict()
         
+    def __deepcopy__(self,memo):
+        obj = copy(self)
+        obj.routes = deepcopy(self.routes)
+        return obj
+    
+    def __unicode__(self):
+        return '{0} - {1}'.format(self.path,list(self))
+    
     def __len__(self):
         return len(self.routes)
     
@@ -166,15 +200,19 @@ class ResolverMixin(RouteMixin):
         return len(self.routes)
     
     def __iter__(self):
-        return self.routes.__iter__()
+        return iter(itervalues(self.routes))
+    
+    def __getitem__(self, index):
+        return list(self)[index]
+    def __setitem(self, index, val):
+        raise TypeError('Site object does not support item assignment')
     
     def load(self):
         '''Load urls and set-up sites'''
         if not hasattr(self,'_urls'):
             self._urls = self._load()
         
-    @property
-    def isloaded(self):
+    def _isbound(self):
         return hasattr(self,'_urls')
     
     def urls(self):
@@ -184,20 +222,11 @@ class ResolverMixin(RouteMixin):
     def _load(self):
         if not self.routes:
             raise ImproperlyConfigured('No sites registered.')
-        settings = self.settings
-        sites = self.all()
-        if sites[-1].route.rule is not '':
-            raise ImproperlyConfigured('There must be a root site available.')
-        for site in sites:
+        for site in self:
             site.load()
-        import_modules(settings.DJPCMS_PLUGINS)
-        import_modules(settings.DJPCMS_WRAPPERS)
-        urls = []
-        for site in sites:
-            route = site.rel_route + '<path>/'
-            name = getattr(site,'name',None)
-            urls.append(self.make_url(route, site, name = name))
-        return tuple(urls)
+        import_modules(self.settings.DJPCMS_PLUGINS)
+        import_modules(self.settings.DJPCMS_WRAPPERS)
+        return tuple(self)
     
     def clean_path(self, environ):
         '''Clean url and redirect if needed
@@ -212,54 +241,30 @@ class ResolverMixin(RouteMixin):
                 url = '{0}?{1}'.format(url,qs)
             return http.ResponseRedirect(url)
     
-    def make_url(self, route, view, kwargs=None, name=None):
-        return (regex, view, kwargs, name)
-    
-    @property
-    def resolver(self):
-        if not hasattr(self,'_resolver'):
-            self._resolver = RouteResolver(r'^', self.urls())
-        return self._resolver
+    def make_url(self, route, handler, name=None):
+        return (route, handler, name)
     
     def resolve(self, path):
-        # try sitemap first
-        spath = '/'+path
-        site = None
-        node = None
-        try:
-            node = self.tree[spath]
-            return self.resolve_from_node(node)
-        except KeyError:
-            pass
-        
-        view = self
-        rurl = (path,)
-        urlargs = {}
+        for handler in self.urls():
+            match = handler.route.match(path)
+            if match:
+                return match
+    
+    def resolve(self, path):
         with resolver_manager(self,path) as rm:
-            while isinstance(view,ResolverMixin):
-                if len(rurl) != 1:
-                    if 'path' not in urlargs:
-                        raise Http404(site = site)
-                    bit = urlargs.pop('path')
-                else:
-                    bit = rurl[0]
-                try:
-                    view, rurl, kwargs = view.resolver.resolve(bit)
-                except Resolver404 as e:
-                    if not urlargs:
-                        try:
-                            node = self.tree.node(spath, site = site)
-                            return self.resolve_from_node(node)
-                        except PathException:
-                            raise Http404(str(e),site = site)
-                    else:
-                        raise Http404(str(e),site = site)
-                
-                if site is None:
-                    site = view
-                urlargs.update(kwargs)
-        
-        return site, view, urlargs
+            for handler in self.urls():
+                match = handler.route.match(bit)
+                if match is not None:
+                    break
+            if match is None:
+                raise Http404(handler = self)
+            path = match.pop('__remaining__',None)
+            if isinstance(handler,ResolverMixin):
+                return handler.resolve(path or '')
+            elif path:
+                raise Http404(handler = self)
+            else:
+                return handler, match
             
     def resolve_from_node(self, node):
         site = node.site
@@ -277,84 +282,11 @@ If the application is not available, it returns ``None``. It never fails.'''
     def djp(self, request, path):
         '''Entry points for requests'''
         site, view, kwargs = self.resolve(path)
-        return view(request, **kwargs)  
-
-
-class RegexURLPattern(object):
-    """ORIGINAL CLASS FROM DJANGO    www.djangoproject.com
-
-Adapted for djpcms
-"""
-    def __init__(self, regex, callback,
-                 default_args=None,
-                 name=None):
-        # regex is a string representing a regular expression.
-        # callback is either a string like 'foo.views.news.stories.story_detail'
-        # which represents the path to a module and a view function name, or a
-        # callable object (view).
-        self.regex = re.compile(regex, re.UNICODE)
-        self.callback = callback
-        self.default_args = default_args or {}
-        self.name = name
-
-    def __repr__(self):
-        return '<%s %s %s>' % (self.__class__.__name__, self.name,
-                               self.regex.pattern)
-
-    def resolve(self, path):
-        match = self.regex.search(path)
-        if match:
-            # If there are any named groups, use those as kwargs, ignoring
-            # non-named groups. Otherwise, pass all non-named arguments as
-            # positional arguments.
-            kwargs = match.groupdict()
-            if kwargs:
-                args = ()
-            else:
-                args = match.groups()
-            # In both cases, pass any extra_kwargs as **kwargs.
-            kwargs.update(self.default_args)
-
-            return self.callback, args, kwargs
-
-
-class RouteResolver(object):
-    """Resulve routes"""
-    def __init__(self, regex, url_patterns, default_kwargs=None):
-        # regex is a string representing a regular expression.
-        # urlconf_name is a string representing the module containing URLconfs.
-        self.regex = re.compile(regex, re.UNICODE)
-        self.url_patterns = url_patterns
-        self.callback = None
-        self.default_kwargs = default_kwargs or {}
-
-    def resolve(self, path):
-        tried = []
-        match = self.regex.search(path)
-        if match:
-            new_path = path[match.end():]
-            for pattern in self.url_patterns:
-                try:
-                    sub_match = pattern.resolve(new_path)
-                except Resolver404 as e:
-                    sub_tried = e.args[0].get('tried')
-                    if sub_tried is not None:
-                        tried.extend([(pattern.regex.pattern + '   ' + t)\
-                                       for t in sub_tried])
-                    else:
-                        tried.append(pattern.regex.pattern)
-                else:
-                    if sub_match:
-                        sub_match_dict = dict([(force_str(k), v)\
-                                     for k, v in match.groupdict().items()])
-                        sub_match_dict.update(self.default_kwargs)
-                        for k, v in iteritems(sub_match[2]):
-                            sub_match_dict[force_str(k)] = v
-                        return sub_match[0], sub_match[1], sub_match_dict
-                    tried.append(pattern.regex.pattern)
-            raise Resolver404({'tried': tried, 'path': new_path})
-        raise Resolver404({'path' : path})
-
-
-
+        return view(request, **kwargs)
+    
+    def make_parent(self, parent):
+        parent = super(ResolverMixin,self).make_parent(parent)
+        for route in self:
+            route.parent = self
+        return parent
 

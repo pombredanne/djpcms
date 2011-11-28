@@ -1,7 +1,7 @@
 import djpcms
 
 DEBUG = False
-SECRET_KEY = None
+SECRET_KEY = 'djpcms'   # Secret key, please change this to a unique value
 PROFILING_KEY = None
 DESCRIPTION = 'djpcms framework'
 EPILOG = 'Have fun!'
@@ -52,7 +52,7 @@ DJPCMS_USER_CAN_EDIT_PAGES = False
 # JINJA2 Settings
 TEMPLATE_ENGINE = 'jinja2'
 JINJA2_EXTENSIONS = []
-JINJA2_TEMPLATE_LOADERS = (('djpcms.template._jinja2.ApplicationLoader',),)
+JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)
 
 # Date Format
 DATE_FORMAT = 'd M y'

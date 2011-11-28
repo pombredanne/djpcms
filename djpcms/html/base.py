@@ -5,10 +5,12 @@ from inspect import isgenerator
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import UnicodeMixin, is_string, to_string, ContextRenderer
+from djpcms import UnicodeMixin, is_string, to_string
 from djpcms.utils import force_str, slugify, escape, mark_safe
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
+
+from .context import ContextRenderer
 
 
 __all__ = ['flatatt',

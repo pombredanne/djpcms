@@ -4,6 +4,7 @@ from djpcms.utils import test
 from djpcms import PathException, Http404
 
 
+@test.skipUnless(test.djpapps,"Requires djpapps installed")
 class TestPage(test.TestCase):
     
     def setUp(self):

@@ -89,46 +89,9 @@ class ApplicationTest(test.TestCase):
             resp = self.client.get(url)
         self.assertEqual(resp.status_code,status)
         return resp
-
-
-class TestSiteLoader(djpcms.SiteLoader):
     
-    def setup(self, test = None, **params):
-        self.test = test
-        self.params = params
-        
-    def default_load(self):
-        '''Default loading'''
-        self.test.makesite()
-        
         
 class TestCase(test.TestCase):
-    sites_route = ''
-    
-    @property
-    def loader(self):
-        if not hasattr(self,'_loader'):
-            self._loader = TestSiteLoader(test = self,
-                                          route = self.sites_route)
-        return self._loader
-    
-    @property
-    def sites(self):
-        return self.loader()
-    
-    def makesite(self):
-        '''Utility function for setting up an application site.
- The site is not loaded.'''
-        appurls = getattr(self,'appurls',None)
-        if appurls:
-            loader = self.loader
-            settings = self.loader.get_settings(os.getcwd(),
-                                                APPLICATION_URLS = appurls,
-                                                **kwargs)
-            return loader.sites.make(settings)
-        
-    def installed_apps(self):
-        return []
         
     def resolve_test(self, path):
         '''Utility function for testing url resolver'''

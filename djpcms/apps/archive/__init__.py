@@ -2,10 +2,10 @@
 '''
 import copy
 
+from djpcms import views
 from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
 from djpcms.utils import force_str
 
-from .views import * 
 
 __all__ = ['ArchiveApplication',
            'ArchiveView',
@@ -14,7 +14,74 @@ __all__ = ['ArchiveApplication',
            'DayArchiveView']
 
 
-class ArchiveApplication(Application):
+class ArchiveView(views.SearchView):
+    '''
+    Search view with archive subviews
+    '''    
+    def _date_code(self):
+        return self.appmodel.date_code
+    
+    def content_dict(self, djp):
+        c = super(ArchiveView,self).content_dict(djp)
+        month = c.get('month',None)
+        if month:
+            c['month'] = self.appmodel.get_month_number(month)
+        year = c.get('year',None)
+        day  = c.get('day',None)
+        if year:
+            c['year'] = int(year)
+        if day:
+            c['day'] = int(day)
+        return c
+    
+    def appquery(self, djp, **kwargs):
+        qs       = super(ArchiveView,self).appquery(djp, **kwargs)
+        kwargs   = djp.kwargs
+        month    = kwargs.get('month',None)
+        day      = kwargs.get('day',None)
+        dt       = self._date_code()
+        dateargs = {}
+        if 'year' in kwargs:
+            dateargs['%s__year' % dt] = int(kwargs['year'])
+        
+        if month:
+            month = self.appmodel.get_month_number(month)
+            if month:
+                dateargs['%s__month' % dt] = month
+    
+        if day:
+            dateargs['%s__day' % dt] = int(day)
+            
+        #qs = self.basequery(request, **kwargs)
+        if dateargs:
+            return qs.filter(**dateargs)
+        else:
+            return qs
+
+
+class DayArchiveView(ArchiveView):
+    def __init__(self, *args, **kwargs):
+        super(DayArchiveView,self).__init__(*args,**kwargs)
+    def title(self, djp):
+        return djp.getdata('day')
+    
+    
+class MonthArchiveView(ArchiveView):
+    def __init__(self, *args, **kwargs):
+        super(MonthArchiveView,self).__init__(*args,**kwargs)
+    def title(self, djp):
+        m = self.appmodel.get_month_number(djp.getdata('month'))
+        return force_str(MONTHS[m])
+                                          
+    
+class YearArchiveView(ArchiveView):
+    def __init__(self, *args, **kwargs):
+        super(YearArchiveView,self).__init__(*args,**kwargs)
+    def title(self, djp):
+        return djp.getdata('year')
+    
+
+class ArchiveApplication(views.Application):
     '''\
 A :class:`djpcms.views.ModelApplication` wich defines archive views
 based on a date field.
@@ -28,15 +95,15 @@ class attribute:
     date_code     = None
     split_days    = False
     
-    search        = views.ArchiveView()
-    year_archive  = views.YearArchiveView('<year>/',
-                                          has_plugins = False)
-    month_archive = views.MonthArchiveView('<month>/',
-                                           parent = 'year_archive',
-                                           has_plugins = False)
-    day_archive   = views.DayArchiveView('<day>/',
-                                         parent = 'month_archive',
-                                         has_plugins = False)
+    search = ArchiveView()
+    year_archive  = YearArchiveView('<year>/',
+                                    has_plugins = False)
+    month_archive = MonthArchiveView('<month>/',
+                                     parent = 'year_archive',
+                                     has_plugins = False)
+    day_archive   = DayArchiveView('<day>/',
+                                   parent = 'month_archive',
+                                  has_plugins = False)
     
     def __init__(self, *args, **kwargs):
         self.date_code = kwargs.pop('date_code',self.date_code)

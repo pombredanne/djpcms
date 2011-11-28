@@ -46,12 +46,12 @@ Contents
    
    overview
    tutorials/index
+   route
    views
    forms
    plugins
    html
    orms
-   editing
    apps
    internals
    settings

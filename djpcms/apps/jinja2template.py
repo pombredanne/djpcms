@@ -113,11 +113,13 @@ class TemplateHandler(html.TemplateHandler):
         try:
             mod = import_module(module)
         except ImportError as e:
-            raise ImproperlyConfigured('Error importing template source loader {0}: "{1}"'.format(module, e))
+            raise ImproperlyConfigured('Error importing template source\
+ loader {0}: "{1}"'.format(module, e))
         try:
             TemplateLoader = getattr(mod, attr)
         except AttributeError as e:
-            raise ImproperlyConfigured('No template loader attribute {0} in {1}: "{2}"'.format(attr, module, e))
+            raise ImproperlyConfigured('No template loader attribute\
+ {0} in {1}: "{2}"'.format(attr, module, e))
 
         fargs = [arg if not hasattr(arg,'__call__') else arg() for arg in args]
         return TemplateLoader(self.config,*fargs)

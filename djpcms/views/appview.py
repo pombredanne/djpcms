@@ -6,7 +6,8 @@ from datetime import datetime
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, ajax, Route, ContextRenderer, async_instance
+from djpcms import http, ajax, Route, async_instance
+from djpcms.html import ContextRenderer
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 from djpcms.utils.urls import iri_to_uri
@@ -242,7 +243,6 @@ views::
     
     Default ``True``.
 '''
-    creation_counter = 0
     plugin_form = None
     force_redirect = False
     default_route = '/'
@@ -265,8 +265,6 @@ views::
                  **kwargs):
         super(View,self).__init__(route = route or self.default_route,
                                   **kwargs)
-        self.urlbit = route
-        self.regex = None
         self.func = None
         self.code = None
         self.inherit_page = inherit_page
@@ -288,20 +286,12 @@ views::
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
         self.plugin_form = plugin_form or self.plugin_form
-        self.creation_counter = View.creation_counter
-        View.creation_counter += 1
         
-    def approute(self):
-        if self.appmodel:
-            return self.appmodel.route() + self.regex
-        else:
-            return self.regex
+    def _isbound(self):
+        return self.appmodel is not None
     
     def get_url(self, djp):
         return self.route().get_url(**djp.kwargs)
-    
-    def names(self):
-        return self.regex.names
     
     def media(self,djp=None):
         return self.appmodel.media(djp)
@@ -345,21 +335,11 @@ function.'''
     
     def table_generator(self, djp, qs):
         '''Generator of a table view. This function is invoked by
-:meth:`View.render_query` when :attr:`View.astable` attribute is
-set to ``True``.'''
+:meth:`View.render_query` for a table layout.'''
         return self.appmodel.table_generator(djp, qs)
     
     def data_generator(self, djp, qs):
         return self.appmodel.data_generator(djp, qs)
-    
-    def processurlbits(self, appmodel):
-        '''Process url bits and store information for navigation and urls
-        '''
-        self.appmodel = appmodel
-        if self.parent:
-            self.regex = self.parent.regex + self.urlbit
-        else:
-            self.regex = self.urlbit
             
     def for_user(self, djp):
         return self.appmodel.for_user(djp)
@@ -381,7 +361,6 @@ class GroupView(View):
     '''An application to display list of children applications.
 It is the equivalent of :class:`SearchView`
 for :class:`Application` without a model.'''
-    astable = True # Table view by default
     def render(self, djp):
         qs = self.appquery(djp)
         return self.appmodel.render_query(djp, qs)
@@ -398,10 +377,6 @@ class SearchView(ModelView):
     '''A :class:`ModelView` class for searching objects in a model.
 By default :attr:`View.in_navigation` is set to ``True``.
 There are three additional parameters that can be set:
-
-:keyword astable: used to force the view not as a table.
-
-    Default ``True``.
     
 :keyword table_generator: Optional function to generate table content.
 
@@ -410,7 +385,6 @@ There are three additional parameters that can be set:
 :keyword search_text: string identifier for text queries.
     '''
     has_plugin = True
-    astable = 'ajax'
     in_nav = 1
     search_text = 'q'
     

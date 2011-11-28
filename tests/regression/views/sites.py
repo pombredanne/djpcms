@@ -5,90 +5,55 @@ from djpcms.utils import test, zip
 
 def get_simpleapps():
     return (
-        views.Application(
-            '/',
-            name = 'app1',
-            views = (
-                     ('home',views.View(renderer = lambda djp : 'ciao')),
-                     )
-        ),
-        views.Application(
-            '/bla/',
+        views.Application('/bla/',
             name = 'app2',
-            views = (
-                ('home',views.View(renderer = lambda djp : 'ciao bla')),
-                ('view2',views.View('pluto/',\
-                                     renderer = lambda djp : 'ciao bla view2'))
-                )
-        )
+            routes = (views.View(renderer = lambda djp : 'ciao bla'),
+                      views.View('pluto/',\
+                                    renderer = lambda djp : 'ciao bla view2'))
+        ),
+        views.Application('/',
+            name = 'app1',
+            routes = (views.View(renderer = lambda djp : 'ciao'),)
+        ),
     )
 
     
-class TestSites(test.TestCase):
-
-    def testMake(self):
-        '''Simply make a site'''
-        sites = self.sites
-        settings = self.loader.get_settings(__file__)
-        site = sites.make(settings)
-        self.assertEqual(site.parent,sites)
-        self.assertEqual(str(site.route),'')
-        self.assertEqual(site.route,site.rel_route)
-        self.assertRaises(AlreadyRegistered,lambda : sites.make(settings))
-        self.assertEqual(len(sites),1)
-        self.assertFalse(sites.isloaded)
-        sites.load()
-        self.assertTrue(sites.isloaded)
-        
-    def testMake2(self):
-        '''make 2 sites'''
-        sites = self.sites
-        settings = self.loader.get_settings(__file__)
-        site1 = sites.make(settings)
-        self.assertEqual(site1.route,site1.rel_route)
-        site2 = sites.make(settings,'/extra/')
-        self.assertEqual(site2.route,site2.rel_route)
-        self.assertEqual(str(site2.route),'extra/')
-        self.assertEqual(len(sites),2)
-        self.assertFalse(sites.isloaded)
-        sites.load()
-        self.assertTrue(sites.isloaded)
-        
-    def testMakeWithRoute(self):
-        sites = djpcms.ApplicationSites(route = 'bla')
-        settings = self.loader.get_settings(__file__)
-        site1 = sites.make(settings)
-        self.assertNotEqual(site1.route,site1.rel_route)
-        self.assertEqual(str(site1.route),'bla/')
-        self.assertEqual(str(site1.rel_route),'')
-        self.assertEqual(len(sites),1)
-        self.assertFalse(sites.isloaded)
-        self.assertRaises(ImproperlyConfigured, sites.load)
-        self.assertTrue(sites.isloaded)
-        
-    def testMakeLeaf(self):
-        sites = self.sites
-        settings = self.loader.get_settings(__file__)
-        site = sites.make(settings,'bla')
-        self.assertFalse(site.route.is_leaf)
-        route = Route('foo')
-        self.assertTrue(route.is_leaf)
-        site = self.assertRaises(ValueError,
-                                 lambda : sites.make(settings,route))
-    
-    
 class TestApplication(test.TestCase):
-    
-    def __testMultipleSitesOrdering(self):
-        sites = self.sites
-        settings = self.loader.get_settings(__file__)
-        tsites = ['']*3
-        tsites[2] = self.makesite()
-        tsites[0] = self.makesite(route = '/admin/secret/')
-        tsites[1] = self.makesite(route = '/admin/')
-        self.assertEqual(len(self.sites),3)
-        for s,t in zip(self.sites,tsites):
-            self.assertEqual(s,t)    
+
+    def setUp(self):
+        settings = djpcms.get_settings(__file__,
+                                       APPLICATION_URLS = get_simpleapps)
+        self.site = site = djpcms.Site(settings = settings)
+        self.assertEqual(site.parent,None)
+        self.assertEqual(site.path,'/')
+        
+    def testContruction(self):
+        site = self.site
+        self.assertEqual(len(site),0)
+        app = views.Application('/',
+                    name = 'luca',
+                    routes = (views.View(renderer = lambda djp : 'ciao'),))
+        self.assertFalse(app.isbound)
+        self.assertEqual(app.parent,None)
+        self.assertEqual(app.count(),1)
+        self.assertEqual(len(app),1)
+        self.assertFalse(site.isbound)
+        
+    def testSimpleBindning(self):
+        # set the application urls manually
+        site = self.site
+        self.assertFalse(site.isbound)
+        urls = site.urls()
+        self.assertEqual(len(urls),2)
+        self.assertTrue(site.isbound)
+        for app in urls:
+            self.assertTrue(app.isbound)
+            self.assertEqual(app.parent,site)
+            self.assertEqual(app.root,site)
+            
+    def testSimpleResolve(self):
+        site = self.site
+        handle, kwargs = site.resolve('')
 
     def __testImproperlyConfigured(self):
         '''No sites created. Load should raise an ImproperlyConfigured
@@ -102,13 +67,23 @@ class TestApplication(test.TestCase):
 
 class TestTree(object):
     '''Tests the sites singletone'''
-
-    def testTreeSimple(self):
+    
+    def setUp(self):
+        self.sites = djpcms.Site()
+        settings = djpcms.get_settings(__file__,
+                                       APPLICATION_URLS = get_simpleapps)
+        self.sites.make(settings)
+        
+    def testSimple(self):
         '''Simple Tree testing'''
-        tsites = ['']*3
-        tsites[2] = self.makesite()
-        tsites[0] = self.makesite(route = '/admin/secret/')
-        tsites[1] = self.makesite(route = '/admin/')
+        sites = self.sites
+        self.assertFalse(sites.is_loaded)
+        self.assertEqual(len(sites),1)
+        tsites[0] = self.make(sites.settings, route = '/admin/secret/')
+        tsites[1] = self.make(sites.settings, route = '/admin/')
+        tsites[2] = self.make(sites.settings)
+        
+    def __testTreeSimple(self):
         self.assertEqual(self.sites.tree,None)
         self.sites.load()
         tree = self.sites.tree

@@ -245,12 +245,6 @@ class ResolverMixin(RouteMixin):
         return (route, handler, name)
     
     def resolve(self, path):
-        for handler in self.urls():
-            match = handler.route.match(path)
-            if match:
-                return match
-    
-    def resolve(self, path):
         with resolver_manager(self,path) as rm:
             for handler in self.urls():
                 match = handler.route.match(bit)
@@ -265,14 +259,6 @@ class ResolverMixin(RouteMixin):
                 raise Http404(handler = self)
             else:
                 return handler, match
-            
-    def resolve_from_node(self, node):
-        site = node.site
-        try:
-            view = node.get_view()
-            return view.site,view,{}
-        except PathException as e:
-            raise Http404(str(e), site = site)
     
     def for_model(self, model):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.

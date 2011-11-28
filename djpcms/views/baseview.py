@@ -15,7 +15,7 @@ __all__ = ['RendererMixin',
            'pageview']
     
     
-class RendererMixin(UnicodeMixin,RouteMixin,html.Renderer):
+class RendererMixin(html.Renderer):
     '''\
 A :class:`djpcms.html.Renderer` used as mixin class for :class:`Application`
 and :class:`djpcmsview`.
@@ -24,11 +24,6 @@ and :class:`djpcmsview`.
 
     An instance of :class:`Application` where this renderer belongs
     to or ``None``.
-    
-.. attribute:: parent
-
-    An instance of a :class:`RendererMixin` which holds this renderer
-    or ``None``.
     
 .. attribute:: name
 
@@ -76,7 +71,6 @@ and :class:`djpcmsview`.
 
     proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
 '''
-    parent = None
     appmodel = None
     template_name = None
     name = None
@@ -90,11 +84,10 @@ and :class:`djpcmsview`.
     has_plugins = True
     insitemap = True
     
-    def __init__(self, parent = None, name = None, pagination = None,
+    def __init__(self, name = None, pagination = None,
                  ajax_enabled = None, form = None, template_name = None,
                  description = None, in_nav = None, has_plugins = None,
                  insitemap = None):
-        self.parent = parent if parent is not None else self.parent
         self.name = name if name is not None else self.name
         self.description = description if description is not None else\
                             self.description
@@ -154,7 +147,7 @@ belongs to a user, otherwise returns ``None``.'''
             return http.ResponseRedirect(url)
 
 
-class djpcmsview(RendererMixin):
+class djpcmsview(RouteMixin,RendererMixin):
     '''A virtual :class:`RendererMixin` class for handling http requests
 on a given url. This class should not be used directly, it is the base class
 of :class:`pageview` and :class:`View`.
@@ -188,6 +181,10 @@ of :class:`pageview` and :class:`View`.
     
     _methods      = ('get','post')
     
+    def __init__(self, route = '', parent = None, **kwargs):
+        RouteMixin.__init__(self, route, parent)
+        RendererMixin.__init__(self, **kwargs)
+        
     def __unicode__(self):
         try:
             return '%s: %s' % (self.name,self.path())
@@ -360,7 +357,7 @@ class pageview(djpcmsview):
     def __init__(self, page, site):
         self._site = site
         self.page = page
-        super(pageview,self).__init__()  
+        super(pageview,self).__init__(self.page.url)  
         
     def route(self):
         return Route(self.page.url)

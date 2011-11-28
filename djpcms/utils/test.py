@@ -91,24 +91,41 @@ class ApplicationTest(test.TestCase):
         return resp
 
 
+class TestSiteLoader(djpcms.SiteLoader):
+    
+    def setup(self, test = None, **params):
+        self.test = test
+        self.params = params
+        
+    def default_load(self):
+        '''Default loading'''
+        self.test.makesite()
+        
+        
 class TestCase(test.TestCase):
-            
-    def makesite(self, route = None, appurls = None, **kwargs):
-        '''Utility function for setting up an application site. The site is not loaded.'''
-        appurls = getattr(self,'appurls',appurls)
-        tests = self.tests
-        apps = tests.INSTALLED_APPS + self.installed_apps()
-        for app in tests.INCLUDE_TEST_APPS:
-            if app not in apps:
-                apps.append(app)
-        return self.sites.make(self.tests.SITE_DIRECTORY,
-                               'conf',
-                               route = route or '/',
-                               CMS_ORM = tests.CMS_ORM,
-                               TEMPLATE_ENGINE = tests.TEMPLATE_ENGINE,
-                               APPLICATION_URLS = appurls,
-                               INSTALLED_APPS = apps,
-                               MIDDLEWARE_CLASSES = tests.MIDDLEWARE_CLASSES)
+    sites_route = ''
+    
+    @property
+    def loader(self):
+        if not hasattr(self,'_loader'):
+            self._loader = TestSiteLoader(test = self,
+                                          route = self.sites_route)
+        return self._loader
+    
+    @property
+    def sites(self):
+        return self.loader()
+    
+    def makesite(self):
+        '''Utility function for setting up an application site.
+ The site is not loaded.'''
+        appurls = getattr(self,'appurls',None)
+        if appurls:
+            loader = self.loader
+            settings = self.loader.get_settings(os.getcwd(),
+                                                APPLICATION_URLS = appurls,
+                                                **kwargs)
+            return loader.sites.make(settings)
         
     def installed_apps(self):
         return []

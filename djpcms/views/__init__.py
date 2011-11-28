@@ -4,6 +4,6 @@ from .baseview import *
 from .appview import *
 from .apps import *
 from .navigation import *
-from .appsites import *
+from .appsite import *
 from .contentgenerator import *
 from .objectdef import *

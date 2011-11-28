@@ -4,13 +4,11 @@ from py2py3 import iteritems, is_string,\
                     is_bytes_or_string, to_string
 
 import djpcms
-from djpcms import html, forms, ajax
+from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
+                     UrlException, AlreadyRegistered
 from djpcms.html import SubmitInput, table_header
 from djpcms.core.orms import mapper, DummyMapper
-from djpcms.core.urlresolvers import ResolverMixin
-from djpcms.core.exceptions import PermissionDenied, UrlException,\
-                                     AlreadyRegistered
-from djpcms.utils import slugify, closedurl, openedurl, mark_safe
+from djpcms.utils import slugify, mark_safe
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.text import nicename
@@ -32,7 +30,7 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = openedurl(self.baseurl.path)
+        name = str(self.route)[:-1]
         if not name:
             name = self.__class__.__name__
     name = name.replace(SPLITTER,'_').replace('/','_')
@@ -164,8 +162,6 @@ The application class has several :ref:`attributes <application-attributes>`
 and :ref:`methods <application-methods>`, some of which can be
 overwritten to customize its behavior.
     
-:parameter baseurl: the root part of the application views urls.
-                    Check :attr:`baseurl` for more information.
 :parameter editavailable: ``True`` if :ref:`inline editing <inline-editing>`
                           is available for the application.
 :parameter list_display_links: set the :attr:`list_display_links`.
@@ -182,17 +178,6 @@ overwritten to customize its behavior.
 .. _application-attributes:
 
 **Application attributes**
-
-
-.. attribute:: baseurl
-
-    the root part of the application views urls::
-    
-        '/docs/'
-        '/myapp/long/path/'
-        '/'
-        
-    and so forth. Trailing slashes will be appended if missing.
     
 .. attribute:: model
 
@@ -317,13 +302,14 @@ overwritten to customize its behavior.
     DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
  all {0[model]} from the database?"
     
-    def __init__(self, baseurl, model = None, editavailable = None,
+    def __init__(self, route, model = None, editavailable = None,
                  list_display_links = None, object_display = None,
                  related_field = None, url_bits_mapping = None,
                  apps = None, views = None, **kwargs):
         # Set the model first
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
+        ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
         if not self.pagination:
             self.pagination = html.Pagination()
@@ -333,7 +319,6 @@ overwritten to customize its behavior.
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.model_url_bits = ()
         self.editavailable = editavailable
-        self.baseurl = djpcms.Route(baseurl, append_slash = True)
         self.list_display_links = list_display_links or self.list_display_links
         #
         self.related_field = related_field or self.related_field
@@ -377,24 +362,9 @@ view {0}. Already available." % name)
         obj.apps = deepcopy(self.apps)
         return obj
         
-    @property
-    def tree(self):
-        if self.site:
-            return self.site.tree
-        
-    def __unicode__(self):
-        if not self.site:
-            v = str(self.baseurl) + ' - Not Registered'
-        else:
-            v = self.path
-        return to_string(v)
-
-    def route(self):
-        return self.site.route() + self.baseurl
-        
     def registration_done(self):
         '''Invoked by the :class:`ApplicationSite` site to which the
-application is registered once registraton is done. It can be used to perform
+application is registered once registration is done. It can be used to perform
 any task once all applications have been imported.
 By default it does nothing.'''
         pass
@@ -495,6 +465,8 @@ Return ``None`` if the view is not available.'''
             if self.has_plugins and view.has_plugins:
                 register_application(view)
                 
+        if not parent:
+            self.parent = application_site
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,
                                                     self.model_url_bits,
                                                     self.url_bits_mapping))

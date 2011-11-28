@@ -25,6 +25,6 @@ def suite():
 
 
 if __name__ == '__main__':    
-    suite.start()
+    suite().start()
 
     

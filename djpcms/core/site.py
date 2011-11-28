@@ -5,14 +5,12 @@ import logging
 from copy import copy
 from threading import Lock
 
-from py2py3 import iteritems
+from py2py3 import iteritems, itervalues
 
 import djpcms
 from djpcms.utils.conf import get_settings
-from djpcms.utils.importer import import_module, import_modules
+from djpcms.utils.importer import import_module
 from djpcms.utils import logtrace, closedurl, force_str
-from djpcms.utils.const import SLASH
-from djpcms.utils.structures import OrderedDict
 from djpcms.utils.dispatch import Signal
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
@@ -21,12 +19,10 @@ from .exceptions import AlreadyRegistered, PermissionDenied,\
 from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler
-from .routing import Route
 from . import http
 from . import orms
 
 __all__ = ['SiteLoader',
-           'SiteApp',
            'ApplicationSites',
            'ContextRenderer']
 
@@ -123,11 +119,12 @@ class SiteLoader(object):
     ENVIRON_NAME = None
     settings = None
     
-    def __init__(self, name = None, **params):
+    def __init__(self, name = None, route = '/', **params):
         self.sites = None
         self._wsgi_middleware = None
         self._response_middleware = None
         self.name = name or 'DJPCMS'
+        self.route = route
         self.setup(**params)
         
     def setup(self, **params):
@@ -145,7 +142,7 @@ class SiteLoader(object):
     
     def build_sites(self):
         if self.sites is None:
-            self.sites = ApplicationSites()
+            self.sites = ApplicationSites(self.route)
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
             name = '_load_{0}'.format(self.name.lower())
@@ -266,40 +263,9 @@ def standard_exception_handle(request, e, status = None):
                          content = html,
                          content_type = 'text/html',
                          encoding = settings.DEFAULT_CHARSET)
-        
-
-class SiteApp(ResolverMixin):
-    
-    def for_model(self, model):
-        '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
-If the application is not available, it returns ``None``. It never fails.'''
-        return None
-    
-    def djp(self, request, path):
-        '''Entry points for requests'''
-        site,view,kwargs = self.resolve(path)
-        return view(request, **kwargs)
-    
-    def _init(self):
-        self.lock = Lock()
-        self._search_engine = None
-        
-    @property
-    def search_engine(self):
-        if not self._search_engine and self.root is not self:
-            return self.root.search_engine
-        return self._search_engine
-    
-    @property
-    def permissions(self):
-        if not self._permissions and self.root is not self:
-            return self.root.permissions
-        else:
-            return self._permissions
     
     
-
-class ApplicationSites(SiteApp, djpcms.UnicodeMixin):
+class ApplicationSites(ResolverMixin):
     '''Holder of application sites::
 
     import djpcms
@@ -313,11 +279,6 @@ class ApplicationSites(SiteApp, djpcms.UnicodeMixin):
 
 
 Attributes available:
-
-.. attribute:: root
-
-    The site root. The value is ``None`` and it is provided for compatibility
-    reason
     
 .. attribute:: settings
 
@@ -335,49 +296,27 @@ Attributes available:
     profilig_key = None
     
     def __init__(self, route = '/', response_handler = None):
-        self.route = route
-        self.response_handler = response_handler
-        self._init()
-        self._permissions = PermissionHandler()
-        self.handle_exception = standard_exception_handle
-        self.on_site_loaded = Signal()
-        self.request_started = Signal()
-        self.start_response = Signal()
-        self.request_finished = Signal()
+        super(ApplicationSites,self).__init__(route)
+        self.internals['admins'] = []
+        self.internals['response_handler'] = response_handler
+        self.internals['permissions'] = PermissionHandler()
+        self.internals['handle_exception'] = standard_exception_handle
+        self.internals['on_site_loaded'] = Signal()
+        self.internals['request_started'] = Signal()
+        self.internals['start_response'] = Signal()
+        self.internals['request_finished'] = Signal()
         
-    def _init(self):
-        super(ApplicationSites,self)._init()
-        self._sites = {}
-        self.admins = []
-        self._osites = None
-        self.settings = None
-        self.tree = None
-        self._commands = None
-        self.User = None
-        self.Page = None
-        self.BlockContent = None
-        self.storage = None
-        
-    def clear(self):
-        self._init()
-        
-    def __unicode__(self):
-        return force_str(self._sites)
-        
-    def __len__(self):
-        return len(self._sites)
+    def make_parent(self, parent):
+        if parent is not None:
+            raise ValueError('Cannot set parent')
     
     @property
     def ApplicationSite(self):
         from djpcms.views import ApplicationSite
         return ApplicationSite
     
-    @property
-    def root(self):
-        return self
-    
     def all(self):
-        s = self._osites
+        return list(itervalues(self.routes))
         if s is None:
             self._osites = s = list(
                         OrderedDict(reversed(sorted(self._sites.items(),
@@ -393,15 +332,17 @@ Attributes available:
         raise TypeError('Site object does not support item assignment')
     
     def render_response(self, response, callback = None):
-        if self.response_handler:
-            return self.response_handler(self, response, callback = callback)
+        r = self.internals['response_handler']
+        if r:
+            return r(self, response, callback = callback)
         else:
             return default_response_handler(self, response, callback)
     
     def unwind_query(self, query, callback = None):
         '''query is an instance of :class:`djpcms.orms.OrmQuery`'''
-        if self.response_handler:
-            return self.response_handler(self, query, callback = callback)
+        r = self.internals['response_handler']
+        if r:
+            return r(self, query, callback = callback)
         else:
             return callback(query.query) if callback else query.query
         
@@ -434,26 +375,9 @@ It also initialise admin for models.'''
     def _load(self):
         '''Load sites and flat pages'''
         from .sitemap import SiteMap
-        if not self._sites:
-            raise ImproperlyConfigured('No sites registered.')
-        # setup the environment
+        self.internals['tree'] = tree = SiteMap(self)
         self.setup_environment()
-        settings = self.settings
-        sites = self.all()
-        if sites[-1].path is not SLASH:
-            raise ImproperlyConfigured('There must be a root site available.')
-        self.tree = tree = SiteMap(self)
-        for site in reversed(sites):
-            site.load()
-        import_modules(settings.DJPCMS_PLUGINS)
-        import_modules(settings.DJPCMS_WRAPPERS)
-        url = self.make_url
-        urls = ()
-        for site in sites:
-            regex = site.route() + ALL_URLS
-            urls += url(str(regex), site),
-        # Load flat pages to site map
-        #self.tree.load()
+        urls = super(ApplicationSites,self)._load()
         self.on_site_loaded.send(self)
         self._tree_updated = TreeUpdate(self)
         return urls
@@ -470,7 +394,7 @@ It also initialise admin for models.'''
 '''
         # If no settings available get the current one
         if self.settings is None:
-            self.settings = settings
+            self.internals['settings'] = settings
             sk = getattr(settings,'SECRET_KEY',None)
             if not sk:
                 settings.SECRET_KEY = 'djpcms'
@@ -484,7 +408,14 @@ It also initialise admin for models.'''
         if path not in settings.TEMPLATE_DIRS:
             settings.TEMPLATE_DIRS += path,
         
-        return self._create_site(route,settings,permissions)
+        route = route or ''
+        site = self.ApplicationSite(route, self, settings, permissions)
+        if site.route.rule in self.routes:
+            raise AlreadyRegistered('Site with route {0}\
+ already avalable.'.format(route))
+        self.routes[site.route.rule] = site
+        self.__dict__.pop('_urls',None)
+        return site
     
     def loadsettings(self, setting_module):
         '''Load settings to override existing settings'''
@@ -506,22 +437,11 @@ site is already registered at ``route``.'''
         else:
             return site
     
-    def _create_site(self,route,settings,permissions):
-        route = closedurl(route or '')
-        if route in self._sites:
-            raise AlreadyRegistered('Site with route {0}\
- already avalable.'.format(route))
-        site = self.ApplicationSite(self, route, settings, permissions)
-        self._sites[site.path] = site
-        self._osites = None
-        self._urls = None
-        return site
-    
     def get(self, name, default = None):
         return self._sites.get(name,default)
             
     def get_site(self, url = None):
-        url = url or SLASH
+        url = url or '/'
         site = self.get(url,None)
         if not site:
             try:

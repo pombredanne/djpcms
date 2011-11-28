@@ -11,6 +11,8 @@ class Routes(test.TestCase):
         r = Route('////')
         self.assertFalse(r.is_leaf)
         self.assertEqual(r.rule,'')
+        self.assertEqual(r.match(''),{})
+        self.assertEqual(r.match('bee/'),{'__remaining__':'bee/'})
         
     def testSimple(self):
         r = Route('bla/')
@@ -83,4 +85,19 @@ class Routes(test.TestCase):
         self.assertRaises(ValueError,lambda : r.url(id = 134))
         self.assertRaises(ValueError,lambda : r.url(id = 'bl'))
         self.assertRaises(ValueError,lambda : r.url(id = 'bla'))
+        
+    def testIntVariableMinMax(self):
+        r = Route('<int(min=1):cid>/')
+        self.assertEqual(str(r),'<int(min=1):cid>/')
+        self.assertEqual(r.arguments,set(['cid']))
+        self.assertEqual(r.breadcrumbs,[(True,'cid')])
+        self.assertEqual(r.match('1/'),{'cid':1})
+        self.assertEqual(r.match('476876/'),{'cid':476876})
+        self.assertEqual(r.match('0/'),None)
+        self.assertEqual(r.match('-5/'),None)
+        self.assertEqual(r.url(cid = 13), '/13/')
+        self.assertEqual(r.url(cid = 1), '/1/')
+        self.assertRaises(ValueError,lambda : r.url(cid = 0))
+        self.assertRaises(ValueError,lambda : r.url(cid = -10))
+        self.assertRaises(ValueError,lambda : r.url(cid = 'bla'))
         

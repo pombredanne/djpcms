@@ -4,7 +4,7 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string
 
-from djpcms import http, SiteApp, Route, RouteMixin
+from djpcms import http, ResolverMixin
 from djpcms.core.exceptions import DjpcmsException, AlreadyRegistered,\
                                    ImproperlyConfigured,\
                                    ApplicationNotAvailable
@@ -17,7 +17,7 @@ from djpcms.views import Application, DummyDjp
 __all__ = ['ApplicationSite']
 
 
-class ApplicationSite(SiteApp, RouteMixin):
+class ApplicationSite(ResolverMixin):
     '''Application site manager. An instance of this class 
 handles urls of :class:`Application` instances registered with it.
 
@@ -30,63 +30,14 @@ handles urls of :class:`Application` instances registered with it.
     The settings dictionary for this application site.
 
 '''
-    def __init__(self, root, route, config, permissions):
-        self._init()
-        self.root = root
-        self._route = Route(route, append_slash = True)
-        self.config = config
-        self.settings = config
-        self._permissions = permissions
-        self._search_engine = None
-        self._registry = {}
-        self._nameregistry = OrderedDict()
+    def __init__(self, route, parent, config, permissions):
+        super(ApplicationSite,self).__init__(route, parent)
+        self.internals['settings'] = config
+        self.internals['permissions'] = permissions
+        self._model_registry = {}
+        self._name_registry = {}
         self.choices = [('','-----------------')]
         self._template_context_processors = None
-        
-    def __repr__(self):
-        return '{0} - {1}'.format(self.path,'loaded' if self.isloaded\
-                                   else 'not loaded')
-    __str__ = __repr__
-    
-    def __get_User(self):
-        return self.root.User
-    def __set_User(self, User):
-        if not self.root.User:
-            self.root.User = User
-        elif User is not self.root.User:
-            raise ImproperlyConfigured(
-                        'A different User class has been already registered')
-    User = property(__get_User,__set_User)
-    
-    def __get_storage(self):
-        return self.root.storage
-    def __set_storage(self, storage):
-        if not self.root.storage:
-            self.root.storage = storage
-        else:
-            raise ImproperlyConfigured(
-                    'A different storage class has been already registered')
-    storage = property(__get_storage,__set_storage)
-    
-    @property
-    def Page(self):
-        return self.root.Page
-    
-    def route(self):
-        return self._route
-    
-    @property
-    def tree(self):
-        return self.root.tree
-    
-    def count(self):
-        return len(self._registry)
-    
-    def __len__(self):
-        return len(self._nameregistry)
-    
-    def __iter__(self):
-        return self._nameregistry.__iter__()
         
     def _load(self):
         """Registers applications to the application site."""
@@ -97,46 +48,29 @@ handles urls of :class:`Application` instances registered with it.
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
-        # loop over reversed sorted applications
-        if appurls:
-            for application in reversed(\
-                            sorted(appurls, key = lambda x : x.baseurl)):
-                self._register(application)
-        url = self.make_url
-        urls = ()
-        # Add application's views.
-        for app in self.applications:
-            regex = app.baseurl + '<path>'
-            urls += (url(str(regex), app, name = app.name),)
+            self.routes.update(((a.rel_route,self._register(a)) for a in appurls))
         self.tree.addsite(self)
-        self.template = html.ContextTemplate(self) 
-        return urls
-    
-    @property
-    def applications(self):
-        '''The list of registered applications'''
-        return list(reversed(sorted(\
-                    self._nameregistry.values(), key = lambda x : x.path)))
+        self.template = html.ContextTemplate(self)
+        return super(ApplicationSite,self)._load()
     
     def _register(self, application, parent = None):
         if not isinstance(application,Application):
             raise DjpcmsException('Cannot register application.\
  Is is not a valid one.')
-        
         apps = application.apps
         application.apps = None
         registered_application = deepcopy(application)
         application.apps = apps
-        if registered_application.name in self._nameregistry:
+        if registered_application.name in self._name_registry:
             raise AlreadyRegistered('Application with name "{0}"\
  already registered with site "{1}". {2}'
-.format(application.name,self.path,self._nameregistry[application.name]))
+.format(application.name,self.path,self._name_registry[application.name]))
         model = registered_application.model
         if model:
-            if model in self._registry:
+            if model in self._model_registry:
                 raise AlreadyRegistered('Model %s already registered\
  as application' % model)
-            self._registry[model] = registered_application
+            self._model_registry[model] = registered_application
             
         # Handle parent application if available
         if parent:
@@ -155,7 +89,8 @@ handles urls of :class:`Application` instances registered with it.
             
         # Create application views
         registered_application._create_views(self)
-        self._nameregistry[registered_application.name] = registered_application
+        self._name_registry[registered_application.name] =\
+                                                     registered_application
         urls = []
         for view in registered_application.views.values():
             view_name  = registered_application._get_view_name(view.name)
@@ -174,22 +109,6 @@ handles urls of :class:`Application` instances registered with it.
         registered_application.registration_done()
         
         return registered_application
-    
-    def unregister(self, model):
-        '''Unregister the :class:`Application` registered
-for ``model``. Return the application class which has been unregistered.
-If the ``model`` does not have an application it return ``None``.'''
-        appmodel = self._registry.pop(model,None)
-        if appmodel:
-            self._nameregistry.pop(appmodel.name,None)
-        return None if not appmodel else appmodel.__class__
-    
-    def clear(self):
-        '''Clear the site from all applications'''
-        ResolverMixin.clear(self)
-        del self.choices[1:]
-        self._nameregistry.clear()
-        self._registry.clear()
             
     def for_model(self, model, all = False):
         '''Obtain a :class:`Application` for model *model*.
@@ -204,7 +123,7 @@ If the application is not available, it returns ``None``. Never fails.'''
             return app
         model = mapper(model).model
         try:
-            app = self._registry.get(model,None)
+            app = self._model_registry.get(model,None)
         except:
             app = None
         if not app and all:
@@ -242,10 +161,10 @@ it raises a KeyError'''
         if len(names) == 2:
             name     = names[0]
             app_code = names[1]
-            appmodel = self._nameregistry.get(name,None)
+            appmodel = self._name_registry.get(name,None)
             if appmodel:
                 return appmodel.getview(app_code)
-        appmodel = self._nameregistry.get(appname,None)
+        appmodel = self._name_registry.get(appname,None)
         if appmodel is None:
             raise ApplicationNotAvailable('Application {0}\
  not available.'.format(appname))

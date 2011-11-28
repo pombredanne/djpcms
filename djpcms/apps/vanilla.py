@@ -24,7 +24,7 @@ class Application(views.Application):
 class GroupApplication(views.Application):
     '''An application group. NOT YET READ NOR TESTED'''
     home = views.View()
-    search = views.SearchView(regex = '<group>')
+    search = views.SearchView('<group>')
     add = views.AddView()
     view = views.ViewView()
     change = views.ChangeView()

@@ -19,7 +19,7 @@ from djpcms.utils import iri_to_uri, remove_double_slash, urlquote
 from .exceptions import UrlException
 
 
-__all__ = ['Route','RouteMixin']
+__all__ = ['Route']
 
 
 PATH_REGEX = '.*'
@@ -102,16 +102,6 @@ def parse_rule(rule):
         yield None, None, remaining
 
 
-class RouteMixin(object):
-
-    def route(self):
-        raise NotImplementedError
-    
-    @property
-    def path(self):
-        return self.route().path
-
-
 class Route(UnicodeMixin):
     '''Routing in djpcms with ideas from werkzeug.
     
@@ -132,7 +122,6 @@ class Route(UnicodeMixin):
         self.defaults = defaults or {}
         self.is_leaf = not rule.endswith('/')
         self.rule = rule[1:]
-        self.path = ''
         self.arguments = set(map(str, self.defaults))
         self.breadcrumbs = []
         self._converters = {}
@@ -158,8 +147,15 @@ class Route(UnicodeMixin):
         else:
             return '^' + self._regex_string
     
+    def __hash__(self):
+        return hash(self.rule)
+    
     def __unicode__(self):
         return self.rule
+    
+    @property
+    def path(self):
+        return '/' + self.rule
     
     def __eq__(self, other):
         if isinstance(other,self.__class__):
@@ -302,9 +298,12 @@ class NumberConverter(BaseConverter):
         return value
 
     def to_url(self, value):
-        if self.fixed_digits and len(str(value)) > self.fixed_digits:
-            raise ValueError() 
+        if (self.fixed_digits and len(str(value)) > self.fixed_digits):
+            raise ValueError()
         value = self.num_convert(value)
+        if (self.min is not None and value < self.min) or \
+           (self.max is not None and value > self.max):
+            raise ValueError()
         if self.fixed_digits: 
             value = ('%%0%sd' % self.fixed_digits) % value
         return str(value)

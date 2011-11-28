@@ -245,12 +245,11 @@ views::
     creation_counter = 0
     plugin_form = None
     force_redirect = False
-    route = '/'
+    default_route = '/'
     in_nav = 0
     
     def __init__(self,
                  route = None,
-                 parent = None,
                  methods = None,
                  plugin_form = None,
                  renderer = None,
@@ -264,11 +263,8 @@ views::
                  redirect_to_view = None,
                  inherit_page = True,
                  **kwargs):
-        super(View,self).__init__(**kwargs)
-        self.parent = parent
-        if not isinstance(route,Route):
-            route = Route(route if route is not None else self.route)
-        self.route = route
+        super(View,self).__init__(route = route or self.default_route,
+                                  **kwargs)
         self.urlbit = route
         self.regex = None
         self.func = None

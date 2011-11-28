@@ -81,7 +81,7 @@ class Application(views.Application):
     
     search = SearchView(form = HtmlSearchForm,
                         description = 'Search Results')
-    search_model = SearchView(regex = '<model>/',
+    search_model = SearchView('<model>/',
                               form = HtmlSearchForm,
                               description = 'Seach Model')
     

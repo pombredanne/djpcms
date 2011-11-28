@@ -4,7 +4,7 @@ from threading import Lock
 from py2py3 import itervalues
 
 from djpcms import UnicodeMixin, views
-from djpcms.utils import parentpath, SLASH
+from djpcms.utils import parentpath
 from djpcms.html import field_repr
 from djpcms.core.orms import mapper
 from djpcms.core.exceptions import ImproperlyConfigured, PathException
@@ -41,7 +41,7 @@ class NodeInfo(object):
 
 class Node(UnicodeMixin):
     '''The :class:`Sitemap` Node class.'''
-    def __init__(self, urlmap, path = SLASH, view = None):
+    def __init__(self, urlmap, path = '/', view = None):
         self.urlmap = urlmap
         self.path = path
         self._site = None
@@ -89,7 +89,7 @@ where the key is given by the children path.
             
     @property
     def ancestor(self):
-        if self.path == SLASH:
+        if self.path == '/':
             return None
         else:
             p = parentpath(self.path)

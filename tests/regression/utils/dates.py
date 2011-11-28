@@ -10,4 +10,4 @@ class Dates(test.TestCase):
     def testSmartTime(self):
         t = time.time()
         dte = datetime.fromtimestamp(t)
-        self.assertEqual(len(smart_time(t),5))
+        self.assertEqual(len(smart_time(t)),5)

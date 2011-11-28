@@ -3,10 +3,17 @@ from inspect import isclass
 
 from py2py3 import is_bytes_or_string, iteritems
 
+from djpcms import UnicodeMixin
 from djpcms.utils import force_str
+from djpcms.utils.structures import OrderedDict
+from djpcms.utils.importer import import_modules
 
 from .exceptions import *
+from .routing import Route
 from . import http
+
+
+__all__ = ['RouteMixin','ResolverMixin']
 
 
 class resolver_manager(object):
@@ -30,29 +37,167 @@ class resolver_manager(object):
                 pass
             else:
                 value.trypath = self.path+'/'
-        
+                
 
-class ResolverMixin(object):
-    '''A lazy class for resolving urls.
-The main function here is the ``resolve`` method'''
+class RouteMixin(UnicodeMixin):
+    '''Class for routing trees
+    
+.. attribute:: parent
+
+    The :class:`RouteMixin` immediately before this route.
+    
+.. attribute:: route
+
+    The :class:`Route` for this instance
+    
+.. attribute:: rel_route
+
+    The relative :class:`Route` with respect :attr:`parent` for this instance.
+    
+.. attribute:: path
+
+    proxy to :attr:`Route.path` attribute of :attr:`route`
+    
+.. attribute:: root
+
+    The root :class:`RouteMixin` instance for of this route.    
+'''
+    def __init__(self, route, parent = None):
+        if not isinstance(route,Route):
+            route = Route(route)
+        self.__rel_route = route
+        self.__route = route
+        self.parent = parent
+        self.internals = {}
+        
+    def __unicode__(self):
+        return self.route.rule
+        
+    def _get_parent(self):
+        return self.__parent
+    def _set_parent(self, parent):
+        self.__parent = self.make_parent(parent)
+    parent = property(_get_parent,_set_parent)
+    
+    @property
+    def route(self):
+        return self.__route
+    
+    @property
+    def path(self):
+        return self.route.path
+    
+    @property
+    def rel_route(self):
+        return self.__rel_route
+    
+    @property
+    def root(self):
+        if self.parent is not None:
+            return self.parent.root
+        else:
+            return self
+    
+    def internal_data(self, name):
+        v = self.internals.get(name)
+        if v is None and self.parent:
+            return self.parent.internal_data(name)
+        else:
+            return v
+    
+    @property
+    def settings(self):
+        return self.internal_data('settings')
+    
+    @property
+    def tree(self):
+        return self.internal_data('tree')
+    
+    @property
+    def search_engine(self):
+        return self.internal_data('search_engine')
+    
+    @property
+    def permissions(self):
+        return self.internal_data('permissions')
+    
+    @property
+    def User(self):
+        return self.internal_data('User')
+    
+    @property
+    def Page(self):
+        return self.internal_data('Page')
+    
+    @property
+    def BlockContent(self):
+        return self.internal_data('BlockContent')
+    
+    @property
+    def storage(self):
+        return self.internal_data('storage')
+            
+    def make_parent(self, parent):
+        if parent is not None:
+            if not isinstance(parent, RouteMixin):
+                raise ValueError('parent must be an instance of RouteMixin.')
+            self.__route = parent.route + self.__rel_route
+        else:
+            self.__route = self.__rel_route
+        return parent
+    
+    
+    
+class ResolverMixin(RouteMixin):
+    '''Mixin for classes with several routes.'''
+    def __init__(self, route, parent = None):
+        if not isinstance(route,Route):
+            route = Route(route, append_slash = True)
+        if route.is_leaf:
+            raise ValueError('A resolver cannot have a leaf route {0}'\
+                             .format(route))
+        super(ResolverMixin,self).__init__(route,parent)
+        self.routes = OrderedDict()
+        
+    def __len__(self):
+        return len(self.routes)
+    
+    def count(self):
+        return len(self.routes)
+    
+    def __iter__(self):
+        return self.routes.__iter__()
+    
     def load(self):
         '''Load urls and set-up sites'''
-        if getattr(self,'_urls',None) is None:
+        if not hasattr(self,'_urls'):
             self._urls = self._load()
         
-    def __get_isloaded(self):
-        return getattr(self,'_urls',None) is not None
-    isloaded = property(__get_isloaded)
+    @property
+    def isloaded(self):
+        return hasattr(self,'_urls')
     
     def urls(self):
         self.load()
         return self._urls
     
     def _load(self):
-        pass
-        
-    def clear(self):
-        pass
+        if not self.routes:
+            raise ImproperlyConfigured('No sites registered.')
+        settings = self.settings
+        sites = self.all()
+        if sites[-1].route.rule is not '':
+            raise ImproperlyConfigured('There must be a root site available.')
+        for site in sites:
+            site.load()
+        import_modules(settings.DJPCMS_PLUGINS)
+        import_modules(settings.DJPCMS_WRAPPERS)
+        urls = []
+        for site in sites:
+            route = site.rel_route + '<path>/'
+            name = getattr(site,'name',None)
+            urls.append(self.make_url(route, site, name = name))
+        return tuple(urls)
     
     def clean_path(self, environ):
         '''Clean url and redirect if needed
@@ -67,13 +212,13 @@ The main function here is the ``resolve`` method'''
                 url = '{0}?{1}'.format(url,qs)
             return http.ResponseRedirect(url)
     
-    def make_url(self, regex, view, kwargs=None, name=None):
-        return RegexURLPattern(regex, view, kwargs, name)
+    def make_url(self, route, view, kwargs=None, name=None):
+        return (regex, view, kwargs, name)
     
     @property
     def resolver(self):
         if not hasattr(self,'_resolver'):
-            self._resolver = RegexURLResolver(r'^', self.urls())
+            self._resolver = RouteResolver(r'^', self.urls())
         return self._resolver
     
     def resolve(self, path):
@@ -124,6 +269,16 @@ The main function here is the ``resolve`` method'''
         except PathException as e:
             raise Http404(str(e), site = site)
     
+    def for_model(self, model):
+        '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
+If the application is not available, it returns ``None``. It never fails.'''
+        return None
+    
+    def djp(self, request, path):
+        '''Entry points for requests'''
+        site, view, kwargs = self.resolve(path)
+        return view(request, **kwargs)  
+
 
 class RegexURLPattern(object):
     """ORIGINAL CLASS FROM DJANGO    www.djangoproject.com
@@ -163,15 +318,8 @@ Adapted for djpcms
             return self.callback, args, kwargs
 
 
-class RegexURLResolver(object):
-    """\
-This class ``resolve`` method takes a URL (as a string) and returns a
-tuple in this format:
-
-    (view_function, function_args, function_kwargs)
-    
-Adapted from django for djpcms
-"""
+class RouteResolver(object):
+    """Resulve routes"""
     def __init__(self, regex, url_patterns, default_kwargs=None):
         # regex is a string representing a regular expression.
         # urlconf_name is a string representing the module containing URLconfs.

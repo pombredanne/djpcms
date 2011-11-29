@@ -22,7 +22,7 @@ class TestPage(test.TestCase):
         self.assertEqual(page.url,url)
         return page
     
-    def testSimple(self):
+    def __testSimple(self):
         p = self.make_page()
         blocks = list(p.blocks())
         self.assertEqual(len(blocks),2)

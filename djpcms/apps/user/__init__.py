@@ -50,9 +50,9 @@ utility methods for dealing with users and user data.'''
                 djp = view(request, instance = user)
                 return djp.url
         
-    def registration_done(self):
+    def on_bound(self):
         '''Set the user model in the application site'''
-        self.site.User = self.mapper
+        self.root.internals['User'] = self.mapper
     
     def objectbits(self, obj):
         if self.userpage and isinstance(obj,self.model):
@@ -78,7 +78,7 @@ No assumption has been taken over which model is used for storing user data.'''
     in_nav = 0  
     change_password = views.ChangeView('change-password',
                                        has_plugins = True,
-                                       parent = 'home',
+                                       parent_view = 'home',
                                        form = HtmlForm(PasswordChangeForm))
         
     def has_add_permission(self, request = None, obj = None):
@@ -98,14 +98,14 @@ The userhome view'''
     inherit = True
     userpage = True
     userhome = UserView('<username>/')
-    change  = views.ChangeView(parent = 'userhome',
+    change  = views.ChangeView(parent_view = 'userhome',
                                form = HtmlForm(UserChangeForm))
     change_password = views.ChangeView('change-password',
-                                       parent = 'userhome',
+                                       parent_view = 'userhome',
                                        has_plugins = True,
                                        form = HtmlForm(PasswordChangeForm))
     #userdata = UserDataView('(?P<path>[\w./-]*)',
-    #                        parent = 'userhome')
+    #                        parent_view = 'userhome')
     
     def for_user(self, djp):
         '''If user instance not available, return None'''

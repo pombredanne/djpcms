@@ -169,7 +169,7 @@ def get_admins(INSTALLED_APPS):
             continue
         
         
-def make_admin_urls(settings, name = 'admin', **params):
+def make_admin_urls(INSTALLED_APPS, grouping = None, name = 'admin', **params):
     '''Return a one element tuple containing an
 :class:`djpcms.apps.included.admin.AdminSite`
 application for displaying the admin site. All application with an ``admin``
@@ -179,8 +179,8 @@ module specifying the admin application will be included.
                :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
     adming = {}
     agroups = {}
-    if settings.ADMIN_GROUPING:
-        for url,v in settings.ADMIN_GROUPING.items():
+    if grouping:
+        for url,v in grouping.items():
             for app in v['apps']:
                 if app not in adming:
                     adming[app] = url
@@ -189,7 +189,7 @@ module specifying the admin application will be included.
                         v['urls'] = ()
                         agroups[url] = v
     groups = []
-    for name_,route,urls in get_admins(settings.INSTALLED_APPS):
+    for name_,route,urls in get_admins(INSTALLED_APPS):
         if urls:
             rname = route[1:-1]
             if rname in adming:
@@ -199,14 +199,12 @@ module specifying the admin application will be included.
                 adming[rname] = route
                 agroups[route] = {'name':name_,
                                   'urls':urls}
-#                    groups.append(ApplicationGroup(route,
-#                                                   name = name_,
-#                                                   apps = urls))
+                
     for route,data in agroups.items():
         groups.append(ApplicationGroup(route,
                                        name = data['name'],
-                                       apps = data['urls']))
+                                       routes = data['urls']))
         
     # Create the admin application
-    admin = AdminSite('/', apps = groups, name = name, **params)
+    admin = AdminSite('/', name = name, routes = groups, **params)
     return (admin,)

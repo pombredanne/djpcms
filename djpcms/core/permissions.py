@@ -11,7 +11,8 @@ __all__ = ['PERMISSION_CODES',
            'DELETE',
            'DELETEALL',
            'addcode',
-           'PermissionHandler']
+           'PermissionHandler',
+           'SimpleRobots']
 
 
 
@@ -50,6 +51,15 @@ def addcode(code,name):
 
 class AuthenticationError(Exception):
     pass
+
+
+class SimpleRobots(object):
+    
+    def __call__(self, request):
+        if request.view.has_permission(request, request.page, user = None):
+            #if not self.page or self.page.insitemap:
+            return 'ALL'
+        return 'NONE,NOARCHIVE'
      
      
 class PermissionHandler(object):

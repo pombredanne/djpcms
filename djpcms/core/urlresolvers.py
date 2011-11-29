@@ -41,11 +41,29 @@ class resolver_manager(object):
                 
 
 class RouteMixin(UnicodeMixin):
-    '''Class for routing trees
+    '''Class for routing trees, This class is the base class for all
+routing and handler classes in djpcms including, but not only, :class:`Site`,
+:class:`djpcms.views.Application` and :class:`djpcms.views.View`.
+    
+:parameter route: A :class:`Route` instance or a route string, it is used
+    to set the :attr:`rel_route` attribute.
+    
+:parameter parent: It sets the :attr:`parent` attribute.
+
+    Default: ``None``.
+    
+
+--
+
+
+**Attributes**
+
     
 .. attribute:: parent
 
-    The :class:`RouteMixin` immediately before this route.
+    The :class:`RouteMixin` immediately before this route. Used to build
+    :attr:`route` from the :attr:`rel_route` attribute. When setting this
+    attribute, the :attr:`route` attribute will get updated.
     
 .. attribute:: route
 
@@ -60,14 +78,18 @@ class RouteMixin(UnicodeMixin):
     proxy to the :attr:`Route.path` attribute of :attr:`route`.
     It is the absolute path for this instance.
     
+.. attribute:: isbound
+
+    ``True`` when the route is bound to a :class:`ResolverMixin` instance.
+    
 .. attribute:: root
 
     The root :class:`RouteMixin` instance for of this route. If this instance
-    has :attr:`parent` set to ``None``, the :attr:`root
+    has :attr:`parent` set to ``None``, the :attr:`root` is equal to ``self``.
     
 .. attribute:: settings
 
-    web site settings dictionary
+    web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
     def __init__(self, route, parent = None):
         if not isinstance(route,Route):
@@ -86,6 +108,18 @@ class RouteMixin(UnicodeMixin):
         self.__parent = self.make_parent(parent)
     parent = property(_get_parent,_set_parent)
     
+    def __get_rel_route(self):
+        return self.__rel_route
+    def __set_rel_route(self, r):
+        if self.__route == self.__rel_route:
+            self.__rel_route = r
+            self.__route = r
+        else:
+            br = self.__route - self.rel_route
+            self.__rel_route = r
+            self.__route = br + r
+    rel_route = property(__get_rel_route,__set_rel_route)
+    
     @property
     def route(self):
         return self.__route
@@ -93,10 +127,6 @@ class RouteMixin(UnicodeMixin):
     @property
     def path(self):
         return self.route.path
-    
-    @property
-    def rel_route(self):
-        return self.__rel_route
     
     @property
     def root(self):
@@ -133,6 +163,18 @@ class RouteMixin(UnicodeMixin):
         return self.internal_data('permissions')
     
     @property
+    def robots(self):
+        return self.internal_data('robots')
+    
+    @property
+    def response_handler(self):
+        return self.internal_data('response_handler')
+    
+    @property
+    def template(self):
+        return self.internal_data('template')
+    
+    @property
     def User(self):
         return self.internal_data('User')
     
@@ -147,15 +189,12 @@ class RouteMixin(UnicodeMixin):
     @property
     def storage(self):
         return self.internal_data('storage')
-            
+    
     def make_parent(self, parent):
         if parent is not None:
             if not isinstance(parent, RouteMixin):
-                if self.isbound:
-                    raise ValueError('parent must be an instance of RouteMixin.\
+                raise ValueError('parent must be an instance of RouteMixin.\
  Got "{0}"'.format(parent))
-                else:
-                    return parent
             self.__route = parent.route + self.__rel_route
         else:
             self.__route = self.__rel_route
@@ -177,7 +216,7 @@ class ResolverMixin(RouteMixin):
     
 '''
     def __init__(self, route, parent = None):
-        self.routes = OrderedDict()
+        self.routes = []
         if not isinstance(route,Route):
             route = Route(route, append_slash = True)
         if route.is_leaf:
@@ -200,10 +239,10 @@ class ResolverMixin(RouteMixin):
         return len(self.routes)
     
     def __iter__(self):
-        return iter(itervalues(self.routes))
+        return iter(self.routes)
     
     def __getitem__(self, index):
-        return list(self)[index]
+        return self.routes[index]
     def __setitem(self, index, val):
         raise TypeError('Site object does not support item assignment')
     
@@ -211,6 +250,7 @@ class ResolverMixin(RouteMixin):
         '''Load urls and set-up sites'''
         if not hasattr(self,'_urls'):
             self._urls = self._load()
+            self.on_bound()
         
     def _isbound(self):
         return hasattr(self,'_urls')
@@ -228,37 +268,26 @@ class ResolverMixin(RouteMixin):
         import_modules(self.settings.DJPCMS_WRAPPERS)
         return tuple(self)
     
-    def clean_path(self, environ):
-        '''Clean url and redirect if needed
-        '''
-        path = environ['PATH_INFO']
-        if '//' in path:
-            url = re.sub("/+" , '/', path)
-            if not url.startswith('/'):
-                url = '/%s' % url
-            qs = environ['QUERY_STRING']
-            if qs and environ['method'] == 'GET':
-                url = '{0}?{1}'.format(url,qs)
-            return http.ResponseRedirect(url)
-    
     def make_url(self, route, handler, name=None):
         return (route, handler, name)
     
-    def resolve(self, path):
+    def resolve(self, path, urlargs = None):
         with resolver_manager(self,path) as rm:
             for handler in self.urls():
                 match = handler.rel_route.match(path)
-                if match is not None:
-                    break
-            if match is None:
-                raise Http404(handler = self)
-            path = match.pop('__remaining__',None)
-            if isinstance(handler,ResolverMixin):
-                return handler.resolve(path or '')
-            elif path:
-                raise Http404(handler = self)
-            else:
-                return handler, match
+                if match is None:
+                    continue
+                remaining_path = match.pop('__remaining__','')
+                if urlargs:
+                    urlargs.update(match)
+                else:
+                    urlargs = match
+                if isinstance(handler,ResolverMixin):
+                    return handler.resolve(remaining_path, urlargs)
+                elif not remaining_path:
+                    return handler, urlargs
+                
+            raise Http404(handler = self)
     
     def for_model(self, model):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
@@ -276,3 +305,6 @@ If the application is not available, it returns ``None``. It never fails.'''
             route.parent = self
         return parent
 
+    def on_bound(self):
+        '''Callback when the resolver is bound'''
+        pass

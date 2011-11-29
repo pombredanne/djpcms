@@ -30,9 +30,38 @@ class TestViews(test.TestCase):
         self.assertEqual(v.in_nav,0)
         self.assertFalse(v.isbound)
         self.assertEqual(v.render(None),'foo home')
+        
+    def testViewView(self):
+        v = views.ViewView()
+        self.assertFalse(v.isbound)
+        self.assertEqual(v.parent_view,None)
+        self.assertEqual(v.parent,None)
+        self.assertEqual(v.route,v.rel_route)
+        self.assertEqual(v.path,'/<id>/')
+        
+    def testChangeView(self):
+        v = views.ChangeView()
+        self.assertFalse(v.isbound)
+        self.assertEqual(v.parent_view,'view')
+        self.assertEqual(v.parent,None)
+        self.assertEqual(v.route,v.rel_route)
+        self.assertEqual(v.path,'/change')
+        
+    def testDeleteView(self):
+        v = views.DeleteView()
+        self.assertFalse(v.isbound)
+        self.assertEqual(v.parent_view,'view')
+        self.assertEqual(v.parent,None)
+        self.assertEqual(v.route,v.rel_route)
+        self.assertEqual(v.path,'/delete')
+        v = views.DeleteView('del')
+        self.assertEqual(v.path,'/del')
+        self.assertEqual(v.parent_view,'view')
+        self.assertEqual(v.parent,None)
+        self.assertTrue(v.route.is_leaf)
 
 
-class TestApplications(test.TestCase):
+class TestSimpleApplication(test.TestCase):
         
     def testContruction1(self):
         '''Construct an Application with 1 view'''
@@ -45,7 +74,7 @@ class TestApplications(test.TestCase):
         self.assertEqual(len(app),1)
         
     def testContruction2(self):
-        '''Construct an Application with 1 view'''
+        '''Construct an Application with 2 views'''
         view1 = views.View(renderer = lambda djp : 'ciao')
         view2 = views.View('foo/', renderer = lambda djp : 'foo')
         self.assertEqual(view1.appmodel,None)
@@ -62,4 +91,5 @@ class TestApplications(test.TestCase):
         self.assertEqual(len(app),2)
         self.assertFalse(app.base_routes) # no base routes from metaclass
         self.assertEqual(app.root_view,view1)
+        
         

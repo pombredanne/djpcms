@@ -8,10 +8,9 @@ __all__ = ['LogoutView','LoginView','UserView','UserDataView']
 class LogoutView(views.ModelView):
     '''Logs out a user, if there is an authenticated user :)
     '''
-    route = 'logout'
-        
-    def preprocess(self, djp):
-        request = djp.request
+    default_route = 'logout'
+    
+    def __call__(self, request):
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
         backend = djp.site.permissions.backend
@@ -28,7 +27,7 @@ class LoginView(views.ModelView):
     create a login.html file in your site template directory.
     '''
     has_plugin = True
-    route = 'login'
+    default_route = 'login'
     default_title = 'Sign in'
     template_name = 'login.html'
     

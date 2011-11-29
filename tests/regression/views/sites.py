@@ -38,9 +38,9 @@ class TestApplication(test.TestCase):
             self.assertTrue(app.isbound)
             self.assertEqual(app.parent,site)
             self.assertEqual(app.root,site)
-        app1 = site.routes['/bla/']
+        app1 = site.routes[0]
         self.assertEqual(len(app1),2)
-        app2 = site.routes['/']
+        app2 = site.routes[1]
         self.assertEqual(len(app2),1)
             
     def testSimpleResolve(self):

@@ -1,9 +1,11 @@
+'''Vanilla Application'''
 import djpcms
+from djpcms import views
 from djpcms.utils import test
 from djpcms.apps.vanilla import Application
 
 
-class TestVanilla(test.TestCase):
+class TestVanillaMeta(test.TestCase):
     
     def testApplication(self):
         app = Application('/')
@@ -17,7 +19,7 @@ class TestVanilla(test.TestCase):
         
     @test.skipUnless(test.djpapps,"Requires djpapps installed")
     def testParentViews(self):
-        from examples.testmodels import Portfolio
+        from examples.models import Portfolio
         app = Application('/',Portfolio)
         self.assertEqual(len(app),5)
         self.assertFalse(app.isbound)
@@ -29,7 +31,78 @@ class TestVanilla(test.TestCase):
         change = app[3]
         delete = app[4]
         self.assertEqual(search.parent,app)
-        self.assertEqual(add.parent,search)
-        self.assertEqual(view.parent,search)
-        self.assertEqual(change.parent,view)
-        self.assertEqual(delete.parent,view)
+        self.assertEqual(add.parent,app)
+        self.assertEqual(view.parent,app)
+        self.assertEqual(change.parent,app)
+        self.assertEqual(delete.parent,app)
+        
+    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    def testRoutes(self):
+        from examples.models import Portfolio
+        app = Application('/portfolio/',Portfolio)
+        self.assertEqual(len(app),5)
+        self.assertFalse(app.isbound)
+        self.assertEqual(len(app.urls()),5)
+        self.assertTrue(app.isbound)
+        search = app.views['search']
+        add = app.views['add']
+        view = app.views['view']
+        change = app.views['change']
+        delete = app.views['delete']
+        self.assertEqual(search.path,'/portfolio/')
+        self.assertEqual(add.path,'/portfolio/add')
+        self.assertEqual(view.path,'/portfolio/<id>/')
+        self.assertEqual(change.path,'/portfolio/<id>/change')
+        self.assertEqual(delete.path,'/portfolio/<id>/delete')
+    
+    @test.skipUnless(test.djpapps,"Requires djpapps installed")    
+    def testGetViews(self):
+        from examples.models import Portfolio
+        app = Application('/',Portfolio)
+        self.assertEqual(app.views.get('search').name,'search')
+        self.assertEqual(app.views.get('view').name,'view')
+        self.assertEqual(app.views.get('add').name,'add')
+        self.assertEqual(app.views.get('change').name,'change')
+        self.assertEqual(app.views.get('delete').name,'delete')
+        self.assertRaises(KeyError,lambda : app.views['bla'])
+    
+    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    def testSubApplicationMeta(self):
+        from examples.models import Portfolio, User
+        self.assertRaises(djpcms.UrlException, lambda : Application('/',\
+                           Portfolio, parent_view = 'view'))
+        port = Application('portfolio/',
+                           Portfolio,
+                           name = 'portfolio',
+                           parent_view = 'view',
+                           related_field = 'user')
+        self.assertEqual(port.parent_view,'view')
+        self.assertEqual(port.related_field,'user')
+        app = Application('bla/', User, routes = (port,))
+        self.assertEqual(app.parent_view, None)
+        self.assertEqual(len(app),6)
+        # The last is the subapplication
+        self.assertEqual(app[5],port)
+        self.assertEqual(app.views['portfolio'],port)
+        self.assertEqual(port.path,'/<id>/portfolio/')
+        
+    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    def testSubApplicationMeta2(self):
+        from examples.models import Portfolio, User
+        port = Application('portfolio/',
+                           Portfolio,
+                           parent_view = 'view',
+                           related_field = 'user',
+                           routes = (views.ViewView('<pid>/', name = 'view'),))
+        app = Application('bla/',
+                          User,
+                          routes = (port,))
+        site = djpcms.Site(djpcms.get_settings(APPLICATION_URLS = (app,)))
+        view, urlargs = site.resolve('bla/56/portfolio/')
+        urls = app.urls()
+        self.assertEqual(len(urls),6)
+        self.assertEqual(urlargs,{'id':'56'})
+        self.assertEqual(view,port.views['search'])
+        view, urlargs = site.resolve('bla/56/portfolio/myportfolio/')
+        self.assertEqual(urlargs,{'id':'56','pid':'myportfolio'})
+

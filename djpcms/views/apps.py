@@ -1,7 +1,6 @@
 from copy import copy, deepcopy
 
-from py2py3 import iteritems, is_string, itervalues,\
-                    is_bytes_or_string, to_string
+from py2py3 import iteritems, is_string, itervalues, to_string
 
 import djpcms
 from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
@@ -35,8 +34,6 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                 r = attrs.pop(app_name)
                 r.name = app_name
                 routes.append(r)
-    
-    routes = sorted(routes, key=lambda x: x.creation_counter)
 
     # If this class is subclassing another Application,
     # and inherit is True add that Application's views.
@@ -44,10 +41,12 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     # order to preserve the correct order of fields.
     if inherit:
         for base in bases[::-1]:
-            if hasattr(base, 'base_views'):
-                routes = base.base_views + routes
+            if hasattr(base, 'base_routes'):
+                routes = base.base_routes + routes
                 
-    return routes
+    # override duplicate views
+    routes = sorted(routes, key=lambda x: x.creation_counter)
+    return list(itervalues(OrderedDict(((r.path,r) for r in routes))))
 
 
 class ApplicationMetaClass(type):
@@ -63,33 +62,6 @@ class ApplicationMetaClass(type):
 ApplicationBase = ApplicationMetaClass('ApplicationBase', (object,), {})
 
 
-def process_views(view,views,app):
-    pkey = view.parent
-    if pkey:
-        if is_bytes_or_string(pkey):
-            parent  = app.views.get(pkey,None)
-            if not parent:
-                raise UrlException('Parent view "%s" for view "%s"\
- not in children tree. Check application "%s".' %\
-                 (pkey,view,app.__class__.__name__))
-            view.parent = parent
-        else:
-            parent = pkey
-        
-        if parent in views:
-            return process_views(parent,views,app)
-        else:
-            views.remove(view)
-            return view
-    else:
-        if app.root_view and view is not app.root_view:
-            view.parent = app.root_view
-        else:
-            view.parent = app
-        views.remove(view)
-        return view
-
-
 def extend_widgets(d, target = None):
     target = target if target is not None else Application.object_widgets
     target = target.copy()
@@ -102,7 +74,7 @@ def clean_url_bits(mapper, urlbits, mapping):
         mapping = {}
     check = set()
     for bit in urlbits:
-        b = mapping.get(bit,None)
+        b = mapping.get(bit,bit)
         if b is None:
             b = mapper.model_attribute(bit) or 'id'
         if b in check or not b:
@@ -124,8 +96,8 @@ snippets::
     from djpcms import views
     
     VIEWS = (
-        ('home', views.View(renderer = lambda djp : 'Hello world!')),
-        ('whatever', views.View(renderer = lambda djp : 'Whatever view!'))
+        views.View(name = 'home', renderer = lambda djp : 'Hello world!'),
+        views.View('/what'/, renderer = lambda djp : 'Whatever view!')
         )
     
     app = views.Application('/', views = VIEWS)
@@ -136,7 +108,7 @@ and::
     
     class MyApplication(views.Application):
         home = views.View(renderer = lambda djp : 'Hello world!')
-        whatever = views.View("/what/", renderer=Lambda djp : 'whatever view!')
+        what = views.View("/what/", renderer=Lambda djp : 'whatever view!')
                               
     app = MyApplication('/')
     
@@ -244,19 +216,12 @@ overwritten to customize its behavior.
 
 .. attribute:: views
 
-    Ordered dictionary of :class:`View` instances created during registration
-    from view class attributes and the *views* input iterable.
+    Dictionary of :class:`View` instances created during registration. The
+    keys of the dictionary are the the view names.
     
 .. attribute:: root_view
 
     The root view, set during registration.
-    
-.. attribute:: apps
-
-    Ordered dictionary of :class:`Application` instances for which this instance
-    is the :attr:`parent`. Created during initialization from the *apps* input
-    parameter.
-
 
 --
 
@@ -293,6 +258,7 @@ overwritten to customize its behavior.
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
         self.root_view = None
+        self.views = OrderedDict()
         views = deepcopy(self.base_routes)
         if routes:
             views.extend(routes)
@@ -306,9 +272,9 @@ overwritten to customize its behavior.
         self.editavailable = editavailable
         self.list_display_links = list_display_links or self.list_display_links
         self.related_field = related_field or self.related_field
-        if self.parent and not self.related_field:
+        if self.parent_view and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
- application {1} without a "related_field".'.format(self.parent,self))
+ application {1} without a "related_field".'.format(self.parent_view,self))
         self.addroutes(views)
         object_display = object_display or self.object_display
         if not object_display:
@@ -323,56 +289,41 @@ overwritten to customize its behavior.
     def addroutes(self, routes):
         if routes:
             self.__dict__.pop('_urls',None)
+            
+            # add routes to the views dictionary and check for duplicates
             for route in routes:
                 if not isinstance(route,RendererMixin):
                     raise UrlException('Route "{0}" is not a view instance.\
  Error in constructing application "{2}".'.format(route,self))
-                if route.path in self.routes:
-                    raise UrlException('Could not add route "{0}".\
- Already available.' % name)
-                if getattr(route,'object_view',False):
-                    self.object_views.append(route)
-                route.code = self.name + SPLITTER + route.name
-                if not route.parent and route.path == '/':
-                    if self.root_view:
-                        raise UrlException(\
-                            'Could not resolve root application for %s' % self)
-                    self.root_view = route
-                self.routes[route.path] = route
+                route.code = self.name + SPLITTER + route.name                    
+                self.views[route.name] = route
+            
+            #and now set the routes
+            processed = {}
+            routes = list(itervalues(self.views))
+            proutes = list(routes)
+            while proutes:
+                for idx,route in enumerate(proutes):
+                    if route.parent_view:
+                        if route.parent_view in processed:
+                            p = processed[route.parent_view]
+                            route.rel_route = p.rel_route + route.rel_route
+                        else:
+                            continue
+                    processed[route.name] = route
+                    proutes.pop(idx)
+                    break
     
+            # Refresh routes dictionary with updated routes paths
+            for route in routes:
+                if route.path == '/':
+                    self.root_view = route
+                if isinstance(route,View) and route.object_view:
+                    self.object_views.append(route)
+                self.routes.append(route)
+                
     def for_model(self, model, all = False):
         return self.parent.for_model(model, all = all)
-    
-    def __load(self):
-        urls = self._create_views()        
-        napps = OrderedDict()
-        #for app in apps.values():
-        #    app = self._register(app, parent = registered_application)
-        #    napps[app.name] = app
-        
-        self.apps = napps
-        self.registration_done()
-        return tuple(urls)
-        
-    def registration_done(self):
-        '''Invoked by the :class:`ApplicationSite` site to which the
-application is registered once registration is done. It can be used to perform
-any task once all applications have been imported.
-By default it does nothing.'''
-        pass
-    
-    def getview(self, code):
-        '''Get an application view from the view code.
-Return ``None`` if the view is not available.'''
-        if code in self.views:
-            return self.views[code]
-        else:
-            codes = code.split(SPLITTER)
-            code = codes[0]
-            if code in self.apps:
-                app = self.apps[code]
-                if len(codes) > 1:
-                    return app.getview(SPLITTER.join(codes[1:]))
     
     def get_from_parent_object(self, parent, id):
         return parent
@@ -386,36 +337,30 @@ Return ``None`` if the view is not available.'''
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
-    def _load(self):
-        parent = self.parent
-        
+    def _load(self):        
         if not self.routes:
             raise UrlException("There are no views in {0}\
  application. Try setting inherit equal to True.".format(self))
-        
-        routes = list(self)
-        
         # Set the in_nav if required
         if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
             
-        # Pre-process urls
-        views = list(self)
-        self.routes.clear()
-        while views:
-            view = process_views(views[0],views,self)
+        for view in self:
+            view.parent = self
             view.appmodel = self
-            if isinstance(view,ViewView):
-                if self.model_url_bits:
-                    raise UrlException('Application {0} has more\
+            if isinstance(view,View):
+                if isinstance(view,ViewView):
+                    if self.model_url_bits:
+                        raise UrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
-                self.model_url_bits = view.route.ordered_variables()
-                if not self.model_url_bits:
-                    raise UrlException('Application {0} has no\
+                    self.model_url_bits = view.route.ordered_variables()
+                    if not self.model_url_bits:
+                        raise UrlException('Application {0} has no\
  parameters to initialize objects.'.format(self))           
-            if self.has_plugins and view.has_plugins:
-                register_application(view)
-            self.routes[view.path] = view
+                if self.has_plugins and view.has_plugins:
+                    register_application(view)
+            else:
+                view.load()
                 
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,
                                                     self.model_url_bits,

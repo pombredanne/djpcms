@@ -74,6 +74,6 @@ class SiteMapApplication(TabViewMixin,views.Application):
                             title = lambda djp: 'editing')
     delete = views.DeleteView()
         
-    def registration_done(self):
-        self.site.root.Page = self.model
+    def on_bound(self):
+        self.root.internals['Page'] = self.model
     

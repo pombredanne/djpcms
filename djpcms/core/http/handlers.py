@@ -1,4 +1,4 @@
-from djpcms.core.exceptions import Http404
+from djpcms.core.exceptions import Http404, HttpException, PermissionDenied 
 
 from .profiler import profile_response
 from .wrappers import Request, ResponseRedirect
@@ -9,6 +9,20 @@ DJPCMS = 'DJPCMS'
 
 
 __all__ = ['WSGI','WSGIhandler']
+
+
+def clean_path(environ):
+    '''Clean url and redirect if needed
+    '''
+    path = environ['PATH_INFO']
+    if '//' in path:
+        url = re.sub("/+" , '/', path)
+        if not url.startswith('/'):
+            url = '/%s' % url
+        qs = environ['QUERY_STRING']
+        if qs and environ['method'] == 'GET':
+            url = '{0}?{1}'.format(url,qs)
+        return ResponseRedirect(url)
 
 
 class WSGIhandler(object):
@@ -31,14 +45,14 @@ class WSGIhandler(object):
 
     
 class WSGI(object):
-    '''WSGI handler. It looks for application sites and
+    '''WSGI handler. It looks for application site and
 delegate the handling to them.'''
-    def __init__(self, sites):
-        self.sites = sites
+    def __init__(self, site):
+        self.site = site
         
     @property
     def route(self):
-        return self.sites.route
+        return self.site.route
     
     def __str__(self):
         return self.route
@@ -47,37 +61,32 @@ delegate the handling to them.'''
         return '{0}({1})'.format(self.__class__.__name__,self)
         
     def __call__(self, environ, start_response):
-        settings = self.sites.settings
+        settings = self.site.settings
         if settings.PROFILING_KEY:
             return profile_response(environ, start_response,
-                                        self.sites,
+                                        self.site,
                                         settings.PROFILING_KEY,
                                         self._handle,
                                         settings)
         else:
             return self._handle(environ, start_response)
         return response
-    
-    def get_request(self, environ, site):
-        if DJPCMS not in environ:
-            environ[DJPCMS] = djpcmsinfo(None,None,site=site)
-        return Request(environ)
         
     def _handle(self, environ, start_response):
-        site = self.sites
-        try: 
-            cleaned_path = site.clean_path(environ)
-            if cleaned_path is not None:
-                return cleaned_path
-            site,view,kwargs = site.resolve(environ['PATH_INFO'][1:])
-            environ[DJPCMS] = info = djpcmsinfo(view,kwargs)
-            request = self.get_request(environ,site)
-            response = info.djp(request)
-            if not hasattr(response,'status_code'):
-                djp = response
-                info.page = djp.page
-                response = djp.response()
-            return response
+        cleaned_path = clean_path(environ)
+        if cleaned_path is not None:
+            return cleaned_path
+        
+        try:
+            view, urlargs = self.site.resolve(environ['PATH_INFO'][1:])
+            environ[DJPCMS] = info = djpcmsinfo(view, urlargs)
+            request = Request(environ, view, urlargs)
+            if request.method not in view.methods(request):
+                raise HttpException(status = 405,
+                    msg = 'method {0} is not allowed'.format(request.method))
+            elif not request.has_permission():
+                raise PermissionDenied()
+            return view(request)
         except Http404 as e:
             if e.trypath:
                 return ResponseRedirect(e.trypath)
@@ -87,7 +96,7 @@ delegate the handling to them.'''
             return self._handle_error(environ, site, e)
         
     def _handle_error(self, environ, site, e):
-            site = getattr(e,'site',site) or site
-            return site.handle_exception(self.get_request(environ,site), e)
+        site = getattr(e,'site',site) or site
+        return site.handle_exception(self.get_request(environ,site), e)
         
             

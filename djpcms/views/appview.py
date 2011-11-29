@@ -47,17 +47,17 @@ if an instance is available'''
 
 class View(djpcmsview):
     '''A specialized :class:`djpcmsview` class for handling views
-which belongs to :class:`Application`. These views are specified as class
-attributes of :class:`Application` or as key-value parameters in the
+which belongs to an :class:`Application`. These views are specified as class
+attributes of :class:`Application` or as a list ``routes`` in the
 constructor (of :class:`Application`) and therefore initialized
 at start up.
 
-Views which derives from this class are special in the sense that they can also
+Views which derive from this class are special in the sense that they can also
 appear as content of :class:`djpcms.plugins.DJPplugin` if
 the :attr:`RendererMixin.has_plugin` attribute is set to ``True``.
 In other words, application views can be turned into plugins
 so that they can be rendered in any page of your site.
-All parameters are optionals and usually a small subset of them needs
+All parameters are optional and usually a small subset of them needs
 to be used.
 
 This is a trivial example of an application exposing two very simple
@@ -75,48 +75,14 @@ views::
     A :class:`djpcms.Route` instance or a route string indicating the view
     relative url.
     This is the part of the url which the view add to its parent
-    view path. For more information check the :meth:`View.route`
-    method and :attr:`View.path` attribute.
+    view path. For more information check the
+    :attr:`djpcms.RouteMixin.rel_route` attribute.
     
     Default: ``"/"``.
-    
-:keyword parent:
-
-    A string indicating the closest parent application view.
-    If not supplied, ``djpcms`` will calculate it
-    during validation of the applications during startup. It is used to
-    assign a value to the :attr:`parent` attribute.
-    
-    Default: ``None``.
-    
-:keyword insitemap:
-
-    If True the view is included in site-map.
-    
-    Default: ``True``.
     
 :keyword icon:
 
     To specify the :attr:`djpcmsview.ICON` for this view.
-    
-:keyword description:
-
-    Useful description of the view in few words
-    (no more than 20~30 characters). Used only when the
-    :attr:`View.isplugin` flag is set to ``True``.
-    In this case its value is used when
-    displaying menus of available plugins. If not defined it is
-    calculated from the attribute name of the view
-    in the :class:`Application` where it is declared.
-
-    Default: ``None``.
-    
-:keyword form:
-
-    Set the :attr:`RendererMixin.form` attribute.
-    It is a form which can be used for interaction.
-    
-    Default: ``None``.
     
 :keyword linkname:
 
@@ -170,40 +136,15 @@ views::
     Default: ``None``.
     
     
-.. attribute:: parent
+.. attribute:: default_route
 
-    instance of :class:`View` or None.
-    
-.. attribute:: _form
-
-    Form class associated with view. Default ``None``.
+    The default route for this view.
     
 .. attribute:: isapp
 
     if ``True`` the view will be added to the application list and can have
     its own page object. Default ``False``.
-    
-.. attribute:: isplugin
-
-    if ``True`` the view can be rendered as
-    :class:`djpcms.plugins.ApplicationPlugin`.
-    
-    Default ``False``.
-
-.. attribute:: in_navigation
-
-    If ``0`` the view won't appear in
-    :ref:`Navigation <topics-included-navigator>`.
-    
-    Default: ``0``
-    
-.. attribute:: view_template
-
-    Template file or list of template files used to render
-    the view (not the whole page).
-    
-    Default ``djpcms/components/pagination.html``.
-    
+        
 .. attribute:: plugin_form
 
     The :attr:`djpcms.plugins.DJPplugin.form` for this view.
@@ -323,7 +264,7 @@ views::
     def has_permission(self, request = None, page = None, obj = None,
                        user = None):
         if super(View,self).has_permission(request, page, obj, user = user):
-            return self.site.permissions.has(request, self.PERM, obj)
+            return self.permissions.has(request, self.PERM, obj)
         else:
             return False
     
@@ -429,14 +370,14 @@ renderint to the :meth:`Application.render_query` method.
 class AddView(ModelView):
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
-    default_route = '/add/'
+    default_route = '/add'
+    default_title = 'add'
+    default_link = 'add'
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
     has_plugin = True
     in_nav = 1
     ajax_enabled = False
-    default_title = 'add'
-    default_link = 'add'
     
     def render(self, djp):
         return self.get_form(djp).render(djp)
@@ -452,7 +393,7 @@ and handles the saving as default ``POST`` response.'''
 class DeleteAllView(ModelView):
     '''An POST only :class:`ModelView` which deletes all objects
 in a model. Quite drastic.'''
-    default_route = '/deleteall/'
+    default_route = '/deleteall'
     PERM = djpcms.DELETEALL
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
@@ -525,8 +466,8 @@ method of the :attr:`View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
-    default_route = '/delete/'
-    parent = 'view'
+    default_route = '/delete'
+    parent_view = 'view'
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon ui-icon-trash'
@@ -562,7 +503,7 @@ class DeleteView(ObjectView):
 class ObjectActionView(ObjectView):
     '''An :class:`ObjectView` class specialised for performing actions
 on an instance of a model.'''
-    parent = 'view'
+    parent_view = 'view'
         
     @async_instance
     def render(self, djp):
@@ -577,7 +518,7 @@ on an instance of a model.'''
 class ChangeView(ObjectActionView):
     '''An :class:`ObjectActionView` class specialised for changing
 an instance of a model.'''
-    default_route = '/change/'
+    default_route = '/change'
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'

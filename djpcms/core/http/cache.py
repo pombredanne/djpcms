@@ -2,17 +2,17 @@ from djpcms.utils import js, media
 
 from .wrappers import Request
 
+
 class djpcmsinfo(object):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
-    def __init__(self,view,kwargs,page=None,site=None,instance=None):
+    def __init__(self, view, kwargs, page=None, site=None, instance=None):
         self.view = view
         self.kwargs = kwargs if kwargs is not None else {}
         self.page = page
         self.instance = instance
         self.context_cache = None
-        self.site = site = view.site if view else site
         self._djp_instance_cache = {}
             
     @property
@@ -28,7 +28,7 @@ managing settings.'''
             self._media = m
         return self._media
     
-    def djp(self, request):
+    def request(self, environ):
         if self.view:
             if isinstance(request,dict):
                 request = Request(request)

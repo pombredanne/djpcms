@@ -18,7 +18,7 @@ from .exceptions import AlreadyRegistered, PermissionDenied,\
                         Http404
 from .urlresolvers import ResolverMixin
 from .management import find_commands
-from .permissions import PermissionHandler
+from .permissions import PermissionHandler, SimpleRobots
 from . import http
 from . import orms
 
@@ -112,12 +112,11 @@ class SiteLoader(object):
     ENVIRON_NAME = None
     settings = None
     
-    def __init__(self, name = None, route = '/', **params):
+    def __init__(self, name = None, **params):
         self.sites = None
         self._wsgi_middleware = None
         self._response_middleware = None
         self.name = name or 'DJPCMS'
-        self.route = route
         self.setup(**params)
         
     def setup(self, **params):
@@ -135,11 +134,10 @@ class SiteLoader(object):
     
     def build_sites(self):
         if self.sites is None:
-            self.sites = Site(self.route)
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
             name = '_load_{0}'.format(self.name.lower())
-            getattr(self,name,self.default_load)()
+            self.sites = getattr(self,name,self.load)()
             if self.sites:
                 self.sites.load()
                 self.finish()
@@ -157,10 +155,10 @@ class SiteLoader(object):
         sites = self.build_sites()
         return self._response_middleware or []
     
-    def default_load(self):
+    def load(self):
         '''Default loading'''
-        self.sites.make(os.getcwd(),
-                        settings = self.settings)
+        settings = get_settings(settings = self.settings)
+        return Site(settings)
         
     def finish(self):
         '''Callback once the sites are loaded.'''
@@ -242,16 +240,13 @@ Attributes available:
                  route = '/',
                  permissions = None,
                  response_handler = None,
+                 robots = None,
                  parent = None):
         super(Site,self).__init__(route,parent)
-        if parent:
-            settings = settings or parent.settings
-            permissions = permissions or parent.permissions
-            response_handler = response_handler or\
-                                 parent.internals['response_handler']
-        else:
+        if not parent:
             settings = settings or get_settings()
             permissions = permissions or PermissionHandler()
+            robots = robots or SimpleRobots()
         path = os.path.join(settings.SITE_DIRECTORY,'templates')
         if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
             settings.TEMPLATE_DIRS += path,
@@ -260,21 +255,18 @@ Attributes available:
             settings.TEMPLATE_DIRS += path,
         self._model_registry = {}
         self.plugin_choices = [('','-----------------')]
-        self.internals['settings'] = settings
-        self.internals['response_handler'] = response_handler
-        self.internals['permissions'] = permissions
-        self.internals['handle_exception'] = standard_exception_handle
-        self.internals['events'] = {'on_site_loaded': Signal(),
-                                    'request_started': Signal(),
-                                    'start_response': Signal(),
-                                    'request_finished': Signal()}
-    
-    @property
-    def events(self):
-        return self.internals['events']
+        if settings:
+            self.internals['settings'] = settings
+        if permissions:
+            self.internals['permissions'] = permissions
+        if robots:
+            self.internals['robots'] = robots
+        if response_handler:
+            self.internals['response_handler'] = response_handler
+        
     
     def render_response(self, response, callback = None):
-        r = self.internals['response_handler']
+        r = self.response_handler
         if r:
             return r(self, response, callback = callback)
         else:
@@ -301,39 +293,73 @@ Attributes available:
         appurls = self.settings.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls,'__call__'):
-                if is_bytes_or_string(appurls):
+                if isinstance(appurls,str):
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
-            self.routes.update(((a.rel_route.path,self._register_app(a))
-                                 for a in appurls))
+            self.routes.extend((self._register_app(a) for a in appurls))
             
-        self.template = html.ContextTemplate(self)    
-        urls = super(Site,self)._load()
-        self.events['on_site_loaded'].send(self)
-        #self._tree_updated = TreeUpdate(self)
-        return urls
+        self.internals['template'] = html.ContextTemplate(self)    
+        return super(Site,self)._load()
     
     def addsite(self, settings = None, route = None, permissions = None):
-        '''Create a new ``djpcms`` :class:`djpcms.views.ApplicationSite`.
-    
-:parameter route: the base ``url`` for the site applications.
+        '''Add a new :class:`Site` to ``self``.
 
-    Default ``None``
-    
+:parameter settings: Optional settings for the site.    
+:parameter route: the base ``url`` for the site.
 :parameter permission: An optional :ref:`site permission handler <permissions>`.
-:rtype: an instance of :class:`djpcms.views.ApplicationSite`.
+:rtype: an instance of :class:`Site`.
 '''
+        if self.isbound:
+            raise ValueError('Cannot add a new site.')
         site = Site(settings = settings or self.settings, 
                     route = route or '',
                     permissions = permissions,
                     parent = self)
-        if site.path in self.routes:
-            raise AlreadyRegistered('Site with path {0}\
- already avalable.'.format(site.path))
-        self.routes[site.path] = site
-        self.__dict__.pop('_urls',None)
+        self.routes.append(site)
         return site
+    
+    def for_model(self, model, all = False):
+        '''Obtain a :class:`Application` for model *model*.
+If the application is not available, it returns ``None``. Never fails.'''
+        if not model:
+            return
+        if hasattr(model,'model'):
+            model = model.model
+        app = self.for_hash(model, safe = True)
+        if app:
+            return app
+        model = mapper(model).model
+        try:
+            app = self._model_registry.get(model,None)
+        except:
+            app = None
+        if not app and all:
+            apps = tuple(self.root.for_model(model, exclude = self))
+            if apps:
+                #TODO. what about if there are more than one?
+                return apps[0]
+        else:
+            return app
+        
+    def for_hash(self, model_hash, safe = True, all = False):
+        '''Obtain a :class:`Application` for model
+ model hash id. If the application is not available, it returns ``None``
+ unless ``safe`` is set to ``False`` in which case it throw a
+ :class:`djpcms.core.exceptions.ApplicationNotAvailable`.'''
+        if model_hash in model_from_hash:
+            model = model_from_hash[model_hash]
+        else:
+            if safe:
+                return None
+            else:
+                raise ValueError('Model type %s not available' % model_hash)
+        appmodel = self.for_model(model, all = all)
+        if not appmodel:
+            if not safe:
+                raise ApplicationNotAvailable('Model {0} has\
+ not application registered'.format(mapper(model)))
+        return appmodel
     
     def get(self, name, default = None):
         return self._sites.get(name,default)
@@ -393,9 +419,8 @@ Attributes available:
                 setattr(site.settings,k,v)
             
     def get_commands(self):
-        gc = self._commands
-        if gc is None:
-            gc = self._commands = {}
+        if not hasattr(self,'_commands'):
+            self._commands = gc = {}
             # Find and load the management module for each installed app.
             for app_name in self.settings.INSTALLED_APPS:
                 if app_name.startswith('django.'):
@@ -412,7 +437,7 @@ Attributes available:
                 except ImportError:
                     pass # No management module
     
-        return gc
+        return self._commands
     
     def registered_models(self):
         '''Generator of model Choices'''

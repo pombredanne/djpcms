@@ -27,5 +27,5 @@ if sys.version_info < (2,7):
             data = zip(x,y)
             od = OrderedDict(data)
             self.assertEqual(len(od),300)
-            for t,v in izip(od.iteritems(),data):
+            for t,v in zip(od.iteritems(),data):
                 self.assertEqual(t,v)

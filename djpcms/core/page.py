@@ -33,13 +33,6 @@ class Page(object):
     def set_template(self, template):
         self.inner_template = template
         self.save()
-        
-    def get_template(self, djp):
-        '''Returns the name of the ``HTML`` template file for the page.'''
-        if not self.template:
-            return djp.site.settings.DEFAULT_TEMPLATE_NAME
-        else:
-            return self.template
     
     def add_plugin(self, p, block = 0):
         '''Add a plugin to a block'''

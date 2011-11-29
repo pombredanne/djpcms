@@ -1,30 +1,49 @@
 '''Test Pages'''
 import djpcms
 from djpcms.utils import test
-from djpcms.apps import vanilla
 
 
 def appurls():
-    from regression.djptest.models import Strategy
     return (vanilla.Application('/strategies/',Strategy),)
 
 
+class TestPageMixin(object):
+    INSTALLED_APPS = ('djpcms','stdcms','examples')
+    
+    def adminurls(self):
+        from djpcms.apps import admin
+        return admin.make_admin_urls(self.INSTALLED_APPS)
+    
+    def appurls(self):
+        from examples.models import Portfolio
+        from djpcms.apps import vanilla
+        return (vanilla.Application('portfolio/',Portfolio),)
+    
+    def loadsite(self):
+        root = djpcms.Site()
+        settings = djpcms.get_settings(
+                INSTALLED_APPS = self.INSTALLED_APPS,
+                APPLICATION_URLS = self.adminurls)
+        root.addsite(settings,'admin/')
+        settings = djpcms.get_settings(
+                INSTALLED_APPS = self.INSTALLED_APPS,
+                APPLICATION_URLS = self.appurls)
+        root.addsite(settings)
+        return root
+
+
 @test.skipUnless(test.djpapps,"Requires djpapps installed")
-class TestPage(test.TestCase):
+class TestPage(test.TestCase, TestPageMixin):
     
     def setUp(self):
-        # Load up a site to make sure the Page and
-        # InnerTemplate models are registered with a backend
-        from regression.djptest.models import Strategy
-        self.model = Strategy
-        settings = djpcms.get_settings(APPLICATION_URLS = appurls)
-        self.site = djpcms.Site(settings)
-        self.sites.load()
-        #self.inners = self.makeInnerTemplates()
-        #self.appmodel = list(self.sites.for_model(Strategy))[0]
+        self.root = self.loadsite()
         
-    def __testRoot(self):
-        self._make_root()
+    def testRootSite(self):
+        root = self.root
+        self.assertTrue(len(root),2)
+        self.assertFalse(root.isbound)
+        urls = root.urls()
+        self.assertTrue(root.isbound)
         
     def __testUpdateRoot(self):
         page = self._make_root()

@@ -10,20 +10,20 @@ from djpcms.views import Application,View
 
 class Loader(djpcms.SiteLoader):
     
-    def default_load(self):
-        settings = self.get_settings(__file__,
+    def load(self):
+        settings = djpcms.get_settings(__file__,
                         APPLICATION_URLS = self.urls,
                         DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',),
                         DEFAULT_STYLE_SHEET = {},
                         DEFAULT_JAVASCRIPT = [])
-        self.sites.make(settings)
+        return djpcms.Site(settings)
     
     def urls(self):
         '''Create a tuple with one application containing one view'''
         return (
             Application('/',
                 name = 'Hello world example',
-                home = View(renderer = lambda djp : 'Hello world!')
+                routes = (View(renderer = lambda request : 'Hello world!'),)
             ),)
 
 

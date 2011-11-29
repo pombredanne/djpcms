@@ -62,6 +62,7 @@ User
 .. automodule:: djpcms.apps.user
    :members:
 
+
 .. _included-taggingapplication:   
 
 .. _search:

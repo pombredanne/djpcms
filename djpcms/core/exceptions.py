@@ -88,14 +88,10 @@ class PermissionDenied(DjpcmsException):
 
 class HttpException(Exception):
     status = 500
-    def __init__(self, msg = '', status = None, site = None):
+    def __init__(self, msg = '', status = None, handler = None):
         self.status = status or self.status
-        self.site = site
+        self.handler = handler
         super(HttpException,self).__init__(msg)
-
-
-class Resolver404(Exception):
-    pass
 
 
 class Http404(HttpException):

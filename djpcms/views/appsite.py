@@ -101,49 +101,7 @@ registered with it.
         registered_application.registration_done()
         
         return registered_application
-            
-    def for_model(self, model, all = False):
-        '''Obtain a :class:`Application` for model *model*.
-If the application is not available, it returns ``None``. Never fails.'''
-        #Allow for OrmWrapper
-        if not model:
-            return
-        if hasattr(model,'model'):
-            model = model.model
-        app = self.for_hash(model, safe = True)
-        if app:
-            return app
-        model = mapper(model).model
-        try:
-            app = self._model_registry.get(model,None)
-        except:
-            app = None
-        if not app and all:
-            apps = tuple(self.root.for_model(model, exclude = self))
-            if apps:
-                #TODO. what about if there are more than one?
-                return apps[0]
-        else:
-            return app
-            
-    def for_hash(self, model_hash, safe = True, all = False):
-        '''Obtain a :class:`Application` for model
- model hash id. If the application is not available, it returns ``None``
- unless ``safe`` is set to ``False`` in which case it throw a
- :class:`djpcms.core.exceptions.ApplicationNotAvailable`.'''
-        if model_hash in model_from_hash:
-            model = model_from_hash[model_hash]
-        else:
-            if safe:
-                return None
-            else:
-                raise ValueError('Model type %s not available' % model_hash)
-        appmodel = self.for_model(model, all = all)
-        if not appmodel:
-            if not safe:
-                raise ApplicationNotAvailable('Model {0} has\
- not application registered'.format(mapper(model)))
-        return appmodel
+
     
     def getapp(self, appname):
         '''Given a *appname* in the form of appname-appview

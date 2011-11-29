@@ -7,6 +7,7 @@ from wsgiref.headers import Headers
 
 from py2py3 import itervalues, ispy3k, to_bytestring, is_string
 
+from djpcms.utils import lazyproperty
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
@@ -33,22 +34,34 @@ absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
 class Request(object):
-    '''Simple WSGI Request class'''
+    '''WSGI Request class'''
     _encoding = None
     upload_handlers = []
     
-    def __init__(self, environ):
+    def __init__(self, environ, view = None, urlargs = None):
         self.environ = environ
-        self.path = environ.get('PATH_INFO', '/')
-        self.method = environ.get('REQUEST_METHOD','get').upper()
-        self.is_xhr = environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
-        self._post_parse_error = False
-        self._stream = self.environ.get('wsgi.input')
-        self._read_started = False
+        self.view = view
+        self.urlargs = urlargs
 
+    def for_view(self, view, **urlargs):
+        return Request(self.environ, view, urlargs)
+     
+    @property
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
             and self.environ['wsgi.url_scheme'] == 'https'
+    
+    @property
+    def path(self):
+        return self.environ.get('PATH_INFO', '/')
+    
+    @property
+    def method(self):
+        return self.environ.get('REQUEST_METHOD','get').lower()
+    
+    @property
+    def is_xhr(self):
+        return self.environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     
     @property
     def user(self):
@@ -71,6 +84,41 @@ class Request(object):
     def DJPCMS(self):
         return self.environ.get('DJPCMS')
     
+    @lazyproperty
+    def page(self):
+        Page = self.view.root.Page
+        if Page:
+            return Page.get(self.view.path)
+        
+    @lazyproperty
+    def instance(self):
+        return None
+    
+    @lazyproperty    
+    def title(self):
+        return self.view.title(self)
+    
+    @lazyproperty
+    def template_file(self):
+        page = self.page
+        # First Check if page has a template
+        if page and page.template:
+            return page.template
+        view = self.view
+        t = view.template_name
+        if not t and view.appmodel:
+            t = view.appmodel.template_name
+        de = view.settings.DEFAULT_TEMPLATE_NAME
+        if t:
+            if de not in t:
+                t += de
+            return t
+        else:
+            return de
+        
+    def has_permission(self):
+        return self.view.has_permission(self, self.page, self.instance)
+        
     def _get_request(self):
         if not hasattr(self, '_request'):
             res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
@@ -187,13 +235,6 @@ class Request(object):
                                          self.get_host(), self.path)
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
-    
-    def djp(self, view = None, **kwargs):
-        info = self.DJPCMS
-        if view is None:
-            return info.djp(self)
-        else:
-            return view(self,**kwargs)
             
 
 class Response_(object):

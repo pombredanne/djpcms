@@ -8,8 +8,8 @@ from djpcms.utils import parentpath, slugify
 from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
 
-from .response import DjpResponse
 from .contentgenerator import InnerContent
+from .navigation import Navigator, Breadcrumbs
 
     
 __all__ = ['RendererMixin',
@@ -44,6 +44,18 @@ and :class:`djpcmsview`.
 
     A name. Calculated from class name if not provided.
     
+.. attribute:: description
+
+    Useful description of the renderer in few words
+    (no more than 20~30 characters). Used only when the
+    :attr:`has_plugin` flag is set to ``True``.
+    In this case its value is used when
+    displaying menus of available plugins. If not defined it is
+    calculated from the attribute name of the view
+    in the :class:`Application` where it is declared.
+
+    Default: ``None``.
+    
 .. attribute:: site
 
     instance of :class:`ApplicationSite` to which this renderer belongs to.
@@ -62,6 +74,13 @@ and :class:`djpcmsview`.
     class used by the renderer.
     
     Default ``None``.
+    
+.. attribute:: in_nav
+
+    Numeric value used to position elements in navigation. If equal to ``0``
+    the element won't appear in any navigation.
+    
+    Default: ``0``
     
 .. attribute:: has_plugin:
 
@@ -82,6 +101,12 @@ and :class:`djpcmsview`.
     
     Default: ``None``.
     
+.. attribute:: insitemap
+
+    If ``True`` the view is included in site-map.
+    
+    Default: ``True``.
+    
 .. attribute:: settings
 
     proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
@@ -96,11 +121,12 @@ and :class:`djpcmsview`.
     dialog_height = 'auto'
     ajax_enabled = None
     pagination = None
-    in_nav = None
+    in_nav = 0
     has_plugins = True
     insitemap = True
+    parent_view = None
     
-    def __init__(self, name = None, pagination = None,
+    def __init__(self, name = None, parent_view = None, pagination = None,
                  ajax_enabled = None, form = None, template_name = None,
                  description = None, in_nav = None, has_plugins = None,
                  insitemap = None):
@@ -109,6 +135,8 @@ and :class:`djpcmsview`.
         self.name = name if name is not None else self.name
         self.description = description if description is not None else\
                             self.description
+        self.parent_view = parent_view if parent_view is not None\
+                                 else self.parent_view
         self.pagination = pagination if pagination is not None\
                                      else self.pagination
         self.form = form if form is not None else self.form
@@ -140,14 +168,12 @@ and :class:`djpcmsview`.
         if self.site:
             return self.site.settings
             
-    def render(self, djp):
+    def render(self, request):
         '''\
 Render the Current View and return a safe string.
 This function is implemented by subclasses of :class:`View`.
 By default it returns an empty string if the view is a :class:`pageview`
-other wise the ``render`` method of the :attr:`appmodel`.
-
-:parameter djp: instance of :class:`DjpResponse`.'''
+other wise the ``render`` method of the :attr:`appmodel`.'''
         if self.appmodel:
             return self.appmodel.render(djp)
         else:
@@ -167,13 +193,15 @@ belongs to a user, otherwise returns ``None``.'''
 
 
 class djpcmsview(RouteMixin,RendererMixin):
-    '''A virtual :class:`RendererMixin` class for handling http requests
-on a given url. This class should not be used directly, it is the base class
-of :class:`pageview` and :class:`View`.
+    '''A virtual class inheriting from :class:`RendererMixin`
+and :class:`djpcms.RouteMixin` for handling http requests on a given
+:class:`djpcms.Route`. This class should not be used directly,
+it is the base class of :class:`pageview` and :class:`View`.
     
 .. attribute:: _methods
 
-    Tuple of request methods handled by ``self``. By default ``GET`` and ``POST`` only::
+    Tuple of request methods handled by ``self``.
+    By default ``GET`` and ``POST`` only::
     
         _methods = ('get','post')
 
@@ -212,21 +240,42 @@ of :class:`pageview` and :class:`View`.
         if self.appmodel:
             return self.appmodel.model
     
-    def names(self):
-        return None
-    
     def get_url(self, djp, **urlargs):
         return djp.request.path
     
-    def __call__(self, request, instance = None, **kwargs):
-        djp = None
-        if instance:
-            djp = request.DJPCMS.djp_from_instance(self, instance)
-            if not djp:
-                kwargs['instance'] = instance
-        if not djp:
-            djp = DjpResponse(request, self, kwargs)
-        return djp
+    def __call__(self, request):
+        is_xhr = request.is_xhr
+        method = request.method
+        if not request.is_xhr:
+            return getattr(self,'%s_response' % method)(request)
+        
+        data = request.REQUEST
+        ajax_action = forms.get_ajax_action(data)
+        view_function = getattr(view,'ajax_%s_response' % method)
+        if ajax_action:
+            ajax_view = 'ajax__' + ajax_action
+            if hasattr(view,ajax_view):
+                response = getattr(view, ajax_view)
+            else:
+                response = getattr(self.appmodel, ajax_view, response)
+        res = response(request)
+        #TODO
+        #make this asynchronous
+        res = ajax_view_function(self)
+        content = res.dumps().encode('latin-1','replace')
+        return http.Response(content = content,
+                             content_type = res.mimetype())
+        #else:
+        #    return res
+        #except Exception as e:
+        #    if is_ajax:
+        #        res = handle_ajax_error(self,e)
+        #        content = res.dumps().encode('latin-1','replace')
+        #        return http.Response(content = content,
+        #                             content_type = res.mimetype())
+         #   else:
+         #       raise
+    
     
     def methods(self, request):
         '''Allowed request methods for this view.
@@ -234,14 +283,14 @@ of :class:`pageview` and :class:`View`.
         '''
         return self._methods
         
-    def title(self, djp):
+    def title(self, request):
         '''View title'''
-        page = djp.page
+        page = request.page
         title = page.title if page else None
         if not title:
             title = self.default_title or \
                     (self.appmodel.description if self.appmodel else 'view')
-        return title.format(djp.kwargs)
+        return title.format(request.urlargs)
     
     def linkname(self, djp):
         '''Name to display in hyperlinks to this view.'''
@@ -258,9 +307,6 @@ of :class:`pageview` and :class:`View`.
     def specialkwargs(self, page, kwargs):
         return kwargs
     
-    def preprocess(self, djp):
-        pass
-    
     def extra_content(self, djp, c):
         pass
     
@@ -270,38 +316,56 @@ of :class:`pageview` and :class:`View`.
         for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(djp, b, editing)
         
-    def get_context(self, djp, editing = False):
+    def get_context(self, request, editing = False):
         '''View context as a dictionary.'''
-        request = djp.request
-        page    = djp.page
+        page = request.page
         inner_template = page.inner_template if page else None
 
         if inner_template:
-            inner = InnerContent(djp, inner_template, editing)
+            inner = InnerContent(request, inner_template, editing)
         else:
             # No page or no inner_template. Get the inner content directly
-            inner = self.render(djp)
+            inner = self.render(request)
 
         # if status_code is an attribute we consider this as the response
         # object and we return it.
         if hasattr(inner,'status_code'):
             return inner
         
-        return {'title': djp.title,
+        return {'title': request.title,
                 'inner': inner}
 
-    def get_response(self, djp):
+    def get_response(self, request):
         '''Get response handler.'''
-        context = self.get_context(djp)
-        return djp.render_to_response(context)
+        context = self.get_context(request)
+        # if status_code is an attribute we consider this as the response
+        # object and we return it. 
+        if hasattr(context,'status_code'):
+            return context
+        
+        settings = self.settings
+        sitenav = Navigator(self, classes = 'main_nav',
+                            levels = settings.SITE_NAVIGATION_LEVELS)
+        context.update({'robots': self.robots(request),
+                        'sitenav': sitenav})
+        if settings.ENABLE_BREADCRUMBS:
+            b = getattr(self,'breadcrumbs',None)
+            if b is None:
+                b = Breadcrumbs(self, min_length = settings.ENABLE_BREADCRUMBS)
+            context['breadcrumbs'] = b
+        
+        content = self.template.render(request.template_file,
+                                       context,
+                                       request = request,
+                                       encode = 'latin-1',
+                                       encode_errors = 'replace')
+        return http.Response(content = content,
+                             content_type = 'text/html',
+                             encoding = settings.DEFAULT_CHARSET)
     
-    def default_post(self, djp):
+    def post_response(self, request):
         '''Get response handler.'''
-        raise NotImplementedError('Post response not implemented')
-    
-    def post_response(self, djp):
-        '''Get response handler.'''
-        return self.default_post(djp)
+        return self.get_response(request)
     
     def ajax_get_response(self, djp):
         html = self.render(djp)
@@ -326,7 +390,7 @@ of :class:`pageview` and :class:`View`.
     def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''
         if page:
-            return self.site.permissions.has(request,djpcms.VIEW,page,user=user)
+            return self.permissions.has(request,djpcms.VIEW,page,user=user)
         else:
             return True
     

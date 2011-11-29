@@ -290,14 +290,6 @@ the parent of the embedded view.'''
     
     def render_template(self, *args, **kwargs):
         return self.site.template.render(*args, **kwargs)
-            
-    def robots(self):
-        '''Robots
-        '''
-        if self.view.has_permission(self.request, self.page, user = None):
-            if not self.page or self.page.insitemap:
-                return 'ALL'
-        return 'NONE,NOARCHIVE'
     
     def response(self):
         '''return the type of response or an instance of HttpResponse

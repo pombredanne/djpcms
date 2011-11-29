@@ -99,10 +99,10 @@ class attribute:
     year_archive  = YearArchiveView('<year>/',
                                     has_plugins = False)
     month_archive = MonthArchiveView('<month>/',
-                                     parent = 'year_archive',
+                                     parent_view = 'year_archive',
                                      has_plugins = False)
     day_archive   = DayArchiveView('<day>/',
-                                   parent = 'month_archive',
+                                   parent_view = 'month_archive',
                                   has_plugins = False)
     
     def __init__(self, *args, **kwargs):

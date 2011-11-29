@@ -135,7 +135,7 @@ class TagMixedIn(object):
 class TagApplication(views.Application,TagMixedIn):
     search   = views.SearchView()
     tag0     = views.SearchView('tags/', has_plugins = False)
-    tag1     = TagView('<tag1>/', parent = 'tag0', has_plugins = False)
+    tag1     = TagView('<tag1>/', parent_view = 'tag0', has_plugins = False)
     
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)
@@ -152,17 +152,17 @@ class ArchiveTaggedApplication(archive.ArchiveApplication,TagMixedIn):
     search = archive.ArchiveView()
     year_archive = archive.YearArchiveView('<year>/', has_plugins = False)
     month_archive = archive.MonthArchiveView('<month>/',
-                                             parent = 'year_archive',
+                                             parent_view = 'year_archive',
                                              has_plugins = False)
     day_archive = archive.DayArchiveView('<day>/',
-                                         parent = 'month_archive',
+                                         parent_view = 'month_archive',
                                          has_plugins = False)
     
     tag0 = views.ModelView('tags/', has_plugins = False)
-    tag1 = TagArchiveView('<tag1>/', parent = 'tag0', has_plugins = False)
-    year_archive1 = TagArchiveView('<year>/',  parent = 'tag1')
-    month_archive1 = TagArchiveView('<month>/', parent = 'year_archive1')
-    day_archive1 = TagArchiveView('<day>/',   parent = 'month_archive1')
+    tag1 = TagArchiveView('<tag1>/', parent_view = 'tag0', has_plugins = False)
+    year_archive1 = TagArchiveView('<year>/',  parent_view = 'tag1')
+    month_archive1 = TagArchiveView('<month>/', parent_view = 'year_archive1')
+    day_archive1 = TagArchiveView('<day>/',   parent_view = 'month_archive1')
      
     def tagurl(self, request, *tags):
         return tagurl(self, request, *tags)

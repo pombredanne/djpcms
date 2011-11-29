@@ -5,9 +5,9 @@ from stdnet import orm
         
 
 class Portfolio(orm.StdModel):
-    user = orm.ForeignKey(models.User)
+    user = orm.ForeignKey(User)
     name = orm.CharField(max_length = 200)
-    description = models.TextField()
+    description = orm.CharField()
     
     def __unicode__(self):
         return self.name

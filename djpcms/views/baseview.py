@@ -5,6 +5,7 @@ from py2py3 import range
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin
 from djpcms.utils import parentpath, slugify
+from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
 
 from .response import DjpResponse
@@ -21,10 +22,10 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = str(self.route)[:-1]
+        name = openedurl(self.path).replace('/','_')
         if not name:
             name = self.__class__.__name__.lower()
-    name = name.replace(SPLITTER,'_').replace('/','_')
+    name = name.replace(SPLITTER,'_')
     self.description = description or self.description or nicename(name)
     self.name = str(slugify(name.lower(),rtx='_'))
     

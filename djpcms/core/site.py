@@ -305,7 +305,7 @@ Attributes available:
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls()
-            self.routes.update(((a.rel_route,self._register_app(a))
+            self.routes.update(((a.rel_route.path,self._register_app(a))
                                  for a in appurls))
             
         self.template = html.ContextTemplate(self)    

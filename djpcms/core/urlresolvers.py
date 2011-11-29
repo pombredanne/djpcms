@@ -247,7 +247,7 @@ class ResolverMixin(RouteMixin):
     def resolve(self, path):
         with resolver_manager(self,path) as rm:
             for handler in self.urls():
-                match = handler.route.match(bit)
+                match = handler.rel_route.match(path)
                 if match is not None:
                     break
             if match is None:

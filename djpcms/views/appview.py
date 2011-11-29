@@ -429,7 +429,7 @@ renderint to the :meth:`Application.render_query` method.
 class AddView(ModelView):
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
-    route = '/add/'
+    default_route = '/add/'
     PERM = djpcms.ADD
     ICON = 'ui-icon-circle-plus'
     has_plugin = True
@@ -452,7 +452,7 @@ and handles the saving as default ``POST`` response.'''
 class DeleteAllView(ModelView):
     '''An POST only :class:`ModelView` which deletes all objects
 in a model. Quite drastic.'''
-    route = '/deleteall/'
+    default_route = '/deleteall/'
     PERM = djpcms.DELETEALL
     DEFAULT_METHOD = 'post'
     ICON = 'ui-icon-alert'
@@ -504,7 +504,7 @@ generate the full url.'''
 class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
 an object.'''
-    route = '/<id>/'
+    default_route = '/<id>/'
     default_title = '{0[instance]}'
     default_link = '{0[instance]}'
     
@@ -525,7 +525,7 @@ method of the :attr:`View.appmodel` attribute.
 class DeleteView(ObjectView):
     '''An :class:`ObjectView` class specialised for deleting an object.
     '''
-    route = '/delete/'
+    default_route = '/delete/'
     parent = 'view'
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
@@ -577,7 +577,7 @@ on an instance of a model.'''
 class ChangeView(ObjectActionView):
     '''An :class:`ObjectActionView` class specialised for changing
 an instance of a model.'''
-    route = '/change/'
+    default_route = '/change/'
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
     default_title = 'edit {0[instance]}'

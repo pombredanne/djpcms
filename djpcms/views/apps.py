@@ -301,6 +301,7 @@ overwritten to customize its behavior.
         if not self.pagination:
             self.pagination = html.Pagination()
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
+        self.object_views = []
         self.model_url_bits = ()
         self.editavailable = editavailable
         self.list_display_links = list_display_links or self.list_display_links
@@ -308,7 +309,7 @@ overwritten to customize its behavior.
         if self.parent and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent,self))
-        self.addroutes(routes)
+        self.addroutes(views)
         object_display = object_display or self.object_display
         if not object_display:
             self.object_display = self.pagination.list_display
@@ -325,10 +326,18 @@ overwritten to customize its behavior.
             for route in routes:
                 if not isinstance(route,RendererMixin):
                     raise UrlException('Route "{0}" is not a view instance.\
- Error in constructing application "{2}".'.format(view,self))
+ Error in constructing application "{2}".'.format(route,self))
                 if route.path in self.routes:
                     raise UrlException('Could not add route "{0}".\
  Already available.' % name)
+                if getattr(route,'object_view',False):
+                    self.object_views.append(route)
+                route.code = self.name + SPLITTER + route.name
+                if not route.parent and route.path == '/':
+                    if self.root_view:
+                        raise UrlException(\
+                            'Could not resolve root application for %s' % self)
+                    self.root_view = route
                 self.routes[route.path] = route
     
     def for_model(self, model, all = False):
@@ -384,20 +393,7 @@ Return ``None`` if the view is not available.'''
             raise UrlException("There are no views in {0}\
  application. Try setting inherit equal to True.".format(self))
         
-        self.object_views = []
-        routes = list(itervalues(self.routes))
-                    
-        # Find the root view it available
-        for view in routes:
-            if getattr(view,'object_view',False):
-                self.object_views.append(view)
-            view.code = self.name + SPLITTER + view.name
-            if not view.parent:
-                if not view.path == '/':
-                    if self.root_view:
-                        raise UrlException(\
-                            'Could not resolve root application for %s' % self)
-                    self.root_view = view
+        routes = list(self)
         
         # Set the in_nav if required
         if self.in_nav and self.root_view:
@@ -405,10 +401,10 @@ Return ``None`` if the view is not available.'''
             
         # Pre-process urls
         views = list(self)
+        self.routes.clear()
         while views:
-            if view.object_view:
-                self.object_views.append(view)
             view = process_views(views[0],views,self)
+            view.appmodel = self
             if isinstance(view,ViewView):
                 if self.model_url_bits:
                     raise UrlException('Application {0} has more\
@@ -419,10 +415,12 @@ Return ``None`` if the view is not available.'''
  parameters to initialize objects.'.format(self))           
             if self.has_plugins and view.has_plugins:
                 register_application(view)
+            self.routes[view.path] = view
                 
         self.url_bits_mapping = dict(clean_url_bits(self.mapper,
                                                     self.model_url_bits,
                                                     self.url_bits_mapping))
+        return tuple(self)
     
     def get_form(self, djp, form_class, addinputs = True, instance  = None,
                  **kwargs):

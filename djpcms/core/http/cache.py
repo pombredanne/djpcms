@@ -18,13 +18,12 @@ managing settings.'''
     @property
     def media(self):
         if not hasattr(self,'_media'):
-            settings = self.site.settings
+            settings = self.view.settings
             m = media.Media(settings = settings)
             m.add_js(js.jquery_paths(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
             m.add_css(settings.DEFAULT_STYLE_SHEET)
-            if self.view:
-                m.add(self.view.media())
+            m.add(self.view.media())
             self._media = m
         return self._media
     

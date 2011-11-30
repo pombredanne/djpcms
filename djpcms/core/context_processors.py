@@ -16,44 +16,41 @@ class PageLinks(object):
 for page editing or creation or exit editing.'''
     def __init__(self, request):
         self.ul = html.Widget('ul')
-        self.request = request
-        request = self.request
-        info = request.DJPCMS
-        sites = info.root
-        Page = info.site.Page
-        self.page = info.page
-        # Get the site application for Page
-        apps = list(request.DJPCMS.root.for_model(Page))
-        self.app = apps[0] if apps else None
-        self.isediting = False
-        self.cdjp = None
-        if self.app:
-            try:
-                cdjp = self.cdjp = info.djp(request)
-            except:
-                cdjp = None
-            if cdjp:
-                epage = cdjp.instance
-                self.isediting = isinstance(epage,Page) and \
-                            isinstance(cdjp.view,views.ChangeView)
+        view = request.view
+        Page = view.Page
+        if Page:
+            self.page = request.page
+            apps = list(request.view.root.for_model(Page))
+            self.app = apps[0] if apps else None
+            self.isediting = False
+            self.cdjp = None
+            if self.app:
+                try:
+                    cdjp = self.cdjp = info.djp(request)
+                except:
+                    cdjp = None
+                if cdjp:
+                    epage = cdjp.instance
+                    self.isediting = isinstance(epage,Page) and \
+                                isinstance(cdjp.view,views.ChangeView)
+                    if self.isediting:
+                        self.page = epage
                 if self.isediting:
-                    self.page = epage
-            if self.isediting:
-                self.ul.add(self.exitlink(self.cdjp.instance.url))
-            else:
-                site = self.app.site
-                if not self.page:
-                    if Page and site.permissions.has(self.request, ADD, Page):
-                        self.ul.add(self.addlink())
-                elif site.permissions.has(self.request, CHANGE, self.page):
-                    self.ul.add(self.changelink())
-                self.userlinks()
+                    self.ul.add(self.exitlink(self.cdjp.instance.url))
+                else:
+                    site = self.app.site
+                    if not self.page:
+                        if Page and site.permissions.has(self.request, ADD, Page):
+                            self.ul.add(self.addlink())
+                    elif site.permissions.has(self.request, CHANGE, self.page):
+                        self.ul.add(self.changelink())
+                    self.userlinks()
                 
-        if request.user and request.user.is_superuser and \
-                            sites.settings.PROFILING_KEY:
-            if sites.settings.PROFILING_KEY not in request.REQUEST:
+        pk = view.settings.PROFILING_KEY
+        if request.user and request.user.is_superuser and pk:
+            if view.settings.PROFILING_KEY not in request.REQUEST:
                 a = html.Widget('a','profile',href='{0}?{1}'\
-                        .format(request.path,sites.settings.PROFILING_KEY))
+                        .format(request.path,pk))
                 self.ul.add(a)
     
     def addlink(self):
@@ -112,10 +109,8 @@ def get_grid960(page, settings):
 
 def djpcms(request):
     '''The main template context processor. It must be always included.'''
-    info = request.DJPCMS
-    site = info.site
-    page = info.page
-    settings = site.settings
+    page = request.page
+    settings = request.view.settings
     base_template = settings.DEFAULT_TEMPLATE_NAME[0]
     grid = get_grid960(page,settings)
     try:
@@ -124,7 +119,7 @@ def djpcms(request):
         logger.error('Unhadled exception while getting page links',
                      exc_info = True)
         plink = html.Widget(data_stream = (grid.empty,))
-    user = getattr(request,'user',None)
+    user = request.user
     debug = settings.DEBUG
     ctx = {'pagelink':plink,
            'base_template': base_template,
@@ -137,7 +132,7 @@ def djpcms(request):
            'now': datetime.now(),
            'settings': settings,
            'MEDIA_URL': settings.MEDIA_URL,
-           'media': info.media,
+           'media': request.media,
            'grid': grid}
     return ctx
 

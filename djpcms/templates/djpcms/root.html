@@ -29,9 +29,8 @@
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
-        var options = {{ settings.HTML.tojson }};
-        options.media_url = "{{ MEDIA_URL }}";
-        options.debug     = {% if debug %}true{% else %}false{% endif %};
+        var options{'media_url': "{{ MEDIA_URL }}",
+                    'debug': {% if debug %}true{% else %}false{% endif %}};
         $.djpcms.set_options(options);
         $(document).djpcms().trigger('djpcms-loaded');
     });

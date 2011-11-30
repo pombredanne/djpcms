@@ -1,4 +1,5 @@
 import os
+from functools import partial
 
 from djpcms import DJPCMS_DIR
 
@@ -97,7 +98,7 @@ which updates the input ``dictionary`` with library dependent information.
             environ = request.environ
             if 'djpcms_context' not in environ:
                 context_cache = {}
-                processors = self.site.template_context()
+                processors = self.site.template_context
                 if processors is not None:
                     for processor in processors:
                         context_cache.update(processor(request))

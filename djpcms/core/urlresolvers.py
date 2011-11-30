@@ -1,6 +1,7 @@
 import re
 from inspect import isclass
 from copy import copy, deepcopy
+from threading import Lock
 
 from py2py3 import is_bytes_or_string, iteritems, itervalues
 
@@ -92,6 +93,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
     def __init__(self, route, parent = None):
+        self.lock = Lock()
         if not isinstance(route,Route):
             route = Route(route)
         self.__rel_route = route

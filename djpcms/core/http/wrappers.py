@@ -84,6 +84,10 @@ class Request(object):
     def DJPCMS(self):
         return self.environ.get('DJPCMS')
     
+    @property
+    def media(self):
+        return self.DJPCMS.media
+    
     @lazyproperty
     def page(self):
         Page = self.view.root.Page
@@ -118,36 +122,39 @@ class Request(object):
         
     def has_permission(self):
         return self.view.has_permission(self, self.page, self.instance)
-        
-    def _get_request(self):
-        if not hasattr(self, '_request'):
+    
+    @property    
+    def REQUEST(self):
+        if 'DJPCMS_REQUEST' not in self.environ:
             res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
             for k,gl in self.GET.lists():
                 if k in res:
                     res.getlist(k).extend(gl)
                 else:
                     res.setlist(k,gl[:])
-            self._request = res
-        return self._request
+            self.environ['DJPCMS_REQUEST'] = res
+        return self.environ['DJPCMS_REQUEST']
 
-    def _get_get(self):
-        if not hasattr(self, '_get'):
-            # The WSGI spec says 'QUERY_STRING' may be absent.
-            self._get = QueryDict(self.environ.get('QUERY_STRING', ''),
+    @property
+    def GET(self):
+        if 'DJPCMS_GET' not in self.environ:
+            self.environ['DJPCMS_GET'] =\
+                 QueryDict(self.environ.get('QUERY_STRING', ''),
                                   encoding=self.encoding)
-        return self._get
+        return self.environ['DJPCMS_GET']
 
-    def _set_get(self, get):
-        self._get = get
-
-    def _get_post(self):
-        if not hasattr(self, '_post'):
+    @property
+    def POST(self):
+        if 'DJPCMS_POST' not in self.environ:
             self._load_post_and_files()
-        return self._post
+        return self.environ['DJPCMS_POST']
 
-    def _set_post(self, post):
-        self._post = post
-
+    @property
+    def FILES(self):
+        if 'DJPCMS_FILES' not in self.environ:
+            self._load_post_and_files()
+        return self.environ['DJPCMS_FILES']
+    
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
             c = self.environ.get('HTTP_COOKIE', '')
@@ -159,16 +166,7 @@ class Request(object):
     def _set_cookies(self, cookies):
         self._cookies = cookies
 
-    def _get_files(self):
-        if not hasattr(self, '_files'):
-            self._load_post_and_files()
-        return self._files
-
-    GET = property(_get_get, _set_get)
-    POST = property(_get_post, _set_post)
     COOKIES = property(_get_cookies, _set_cookies)
-    FILES = property(_get_files)
-    REQUEST = property(_get_request)
     
     def get_host(self):
         """Returns the HTTP host using the environment or request headers."""
@@ -188,16 +186,15 @@ class Request(object):
     
     def _load_post_and_files(self):
         # Populates self._post and self._files
-        if self.method != 'POST':
-            self._post, self._files = QueryDict('', encoding=self.encoding),\
-                                        MultiValueDict()
+        if self.method != 'post':
+            p,f = QueryDict('', encoding=self.encoding),MultiValueDict()
         elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
-            self._raw_post_data = ''
-            self._post, self._files = parse_form_data(self.environ,
-                                                      self.encoding)
+            p,f = parse_form_data(self.environ, self.encoding)
         else:
-            self._post, self._files = QueryDict(self.raw_post_data(),\
-                                    encoding=self.encoding), MultiValueDict()
+            p,f = QueryDict(self.raw_post_data(),encoding=self.encoding),\
+                  MultiValueDict()
+        self.environ['DJPCMS_POST'] = p
+        self.environ['DJPCMS_FILES'] = f
     
     def raw_post_data(self):
         if not hasattr(self, '_raw_post_data'):

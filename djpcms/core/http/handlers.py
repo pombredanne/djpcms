@@ -61,22 +61,22 @@ delegate the handling to them.'''
         return '{0}({1})'.format(self.__class__.__name__,self)
         
     def __call__(self, environ, start_response):
+        cleaned_path = clean_path(environ)
+        if cleaned_path is not None:
+            return cleaned_path
         settings = self.site.settings
         if settings.PROFILING_KEY:
-            return profile_response(environ, start_response,
-                                        self.site,
-                                        settings.PROFILING_KEY,
-                                        self._handle,
-                                        settings)
+            return profile_response(environ,
+                                    start_response,
+                                    self.site,
+                                    settings.PROFILING_KEY,
+                                    self._handle,
+                                    settings)
         else:
             return self._handle(environ, start_response)
         return response
         
-    def _handle(self, environ, start_response):
-        cleaned_path = clean_path(environ)
-        if cleaned_path is not None:
-            return cleaned_path
-        
+    def _handle(self, environ, start_response):        
         try:
             view, urlargs = self.site.resolve(environ['PATH_INFO'][1:])
             environ[DJPCMS] = info = djpcmsinfo(view, urlargs)

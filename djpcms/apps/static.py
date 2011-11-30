@@ -236,7 +236,7 @@ class Static(StaticBase):
     show_indexes = True
     template = ['static_index.html','djpcms/static_index.html']
     main = StaticRootView()
-    app  = StaticFileView('<path:path>', parent = 'main')
+    app  = StaticFileView('<path:path>', parent_view = 'main')
     
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)
@@ -245,7 +245,7 @@ class Static(StaticBase):
 
 class FavIcon(StaticBase):
     '''Simply add FavIcon() to your urls to serve the favicon.'''
-    main = FavIconView(append_slash = False)
+    main = FavIconView()
     
     def __init__(self, *args, **kwargs):
         super(FavIcon,self).__init__('/favicon.ico',*args,**kwargs)

@@ -168,43 +168,50 @@ def get_admins(INSTALLED_APPS):
         except ImportError:
             continue
         
-        
-def make_admin_urls(INSTALLED_APPS, grouping = None, name = 'admin', **params):
+      
+class make_admin_urls(object):
     '''Return a one element tuple containing an
-:class:`djpcms.apps.included.admin.AdminSite`
+:class:`djpcms.apps.admin.AdminSite`
 application for displaying the admin site. All application with an ``admin``
 module specifying the admin application will be included.
-
 :parameter params: key-value pairs of extra parameters for input in the
                :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
-    adming = {}
-    agroups = {}
-    if grouping:
-        for url,v in grouping.items():
-            for app in v['apps']:
-                if app not in adming:
-                    adming[app] = url
-                    if url not in agroups:
-                        v = v.copy()
-                        v['urls'] = ()
-                        agroups[url] = v
-    groups = []
-    for name_,route,urls in get_admins(INSTALLED_APPS):
-        if urls:
-            rname = route[1:-1]
-            if rname in adming:
-                url = adming[rname]
-                agroups[url]['urls'] += urls
-            else:
-                adming[rname] = route
-                agroups[route] = {'name':name_,
-                                  'urls':urls}
-                
-    for route,data in agroups.items():
-        groups.append(ApplicationGroup(route,
-                                       name = data['name'],
-                                       routes = data['urls']))
+    def __init__(self, INSTALLED_APPS, grouping = None, name = 'admin',
+                 **params):
+        self.INSTALLED_APPS = INSTALLED_APPS
+        self.grouping = grouping
+        self.name = name
+        self.params = params
         
-    # Create the admin application
-    admin = AdminSite('/', name = name, routes = groups, **params)
-    return (admin,)
+    def __call__(self):
+        adming = {}
+        agroups = {}
+        if self.grouping:
+            for url,v in self.grouping.items():
+                for app in v['apps']:
+                    if app not in adming:
+                        adming[app] = url
+                        if url not in agroups:
+                            v = v.copy()
+                            v['urls'] = ()
+                            agroups[url] = v
+        groups = []
+        for name_,route,urls in get_admins(self.INSTALLED_APPS):
+            if urls:
+                rname = route[1:-1]
+                if rname in adming:
+                    url = adming[rname]
+                    agroups[url]['urls'] += urls
+                else:
+                    adming[rname] = route
+                    agroups[route] = {'name':name_,
+                                      'urls':urls}
+                    
+        for route,data in agroups.items():
+            groups.append(ApplicationGroup(route,
+                                           name = data['name'],
+                                           routes = data['urls']))
+            
+        # Create the admin application
+        admin = AdminSite('/', name = self.name, routes = groups, **self.params)
+        return (admin,)

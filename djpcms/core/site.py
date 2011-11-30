@@ -3,14 +3,13 @@ import sys
 import traceback
 import logging
 from copy import copy, deepcopy
-from threading import Lock
 
 from py2py3 import iteritems, itervalues
 
 import djpcms
 from djpcms import html
 from djpcms.utils.importer import import_module, module_attribute
-from djpcms.utils import conf, logtrace, closedurl, force_str
+from djpcms.utils import conf, logtrace, closedurl, force_str, lazyproperty
 from djpcms.utils.dispatch import Signal
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
@@ -360,6 +359,19 @@ If the application is not available, it returns ``None``. Never fails.'''
                 raise ApplicationNotAvailable('Model {0} has\
  not application registered'.format(mapper(model)))
         return appmodel
+    
+    @lazyproperty
+    def template_context(self):
+        self.lock.acquire()
+        mw = []
+        try:
+            for p_path in self.settings.TEMPLATE_CONTEXT_PROCESSORS:
+                func = module_attribute(p_path,safe=True)
+                if func:
+                    mw.append(func)
+            return tuple(mw)
+        finally:
+            self.lock.release()
     
     def get(self, name, default = None):
         return self._sites.get(name,default)

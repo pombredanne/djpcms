@@ -79,20 +79,19 @@ class DJPwrapper(DJPwrapperBase):
  class="djpcms-block-element plugin-{1}">\n')
     _wrap_template = to_string('{0}{1}\n</div>')
 
-    def wrap(self, djp, cblock, html):
+    def wrap(self, request, cblock, html):
         '''Wrap content for block and return safe HTML.
 This function should be implemented by derived classes.
         
-* *djp* instance of :class:`djpcms.views.response.DjpResponse`.
-* *cblock* instance of :class:'djpcms.models.BlockContent`.
-* *html* safe unicode string of inner HTML.'''
+:parameter cblock: instance of :class:'djpcms.core.page.Block`.
+:parameter html: safe unicode string of inner HTML.'''
         return html if html else ''
     
-    def __call__(self, djp, cblock, html):
+    def __call__(self, request, cblock, html):
         name  = cblock.plugin_name
         id    = cblock.htmlid()
         head  = self._head_template.format(id,name)
-        inner = self.wrap(djp, cblock, html)
+        inner = self.wrap(request, cblock, html)
         return self._wrap_template.format(head,inner)
     
     def _register(self):
@@ -154,20 +153,19 @@ By default do nothing.
         '''
         return kwargs
     
-    def __call__(self, djp, args = None, block = None, prefix = None):
-        djp.block = block
-        return self.render(djp, block, prefix, **self.arguments(args))
+    def __call__(self, request, args = None, block = None, prefix = None):
+        request.block = block
+        return self.render(request, block, prefix, **self.arguments(args))
         
-    def edit_url(self, djp, args = None):
+    def edit_url(self, request, args = None):
         return None
     
-    def render(self, djp, block, prefix, **kwargs):
+    def render(self, request, block, prefix, **kwargs):
         '''Render the plugin. It returns a safe string to be included in the
  HTML page. This is the function subclasses need to implement.
 
-:parameter djp: instance of :class:`djpcms.views.response.DjpResponse`.
-:parameter block: instance of a :class:`djpcms.Block` where the plugin is
-    rendered.
+:parameter block: instance of a :class:`djpcms.core.page.Block` where
+    the plugin is rendered.
 :parameter prefix: A prefix string for the block.
 :parameter kwargs: plugin specific key-valued arguments.
 '''
@@ -180,8 +178,9 @@ By default do nothing.
         else:
             return json.dumps({})
     
-    def get_form(self, djp, args = None, prefix = None, **kwargs):
-        '''Return an instance of a :attr:`form` or `None`. Used to edit the plugin when
+    def get_form(self, request, args = None, prefix = None, **kwargs):
+        '''Return an instance of a :attr:`form` or `None`.
+Used to edit the plugin when
 in editing mode. Usually, there is no need to override this function.
 If your plugin needs input parameters when editing, simple set the
 :attr:`form` attribute.'''
@@ -191,7 +190,7 @@ If your plugin needs input parameters when editing, simple set the
                 form_class = forms.HtmlForm(form_class)
             form_class.tag = None
             initial = self.arguments(args) or None
-            form =  form_class(**form_kwargs(request = djp.request,
+            form =  form_class(**form_kwargs(request = request,
                                              initial = initial,
                                              prefix = prefix,
                                              model = self.for_model))
@@ -228,9 +227,9 @@ the plugin will display the search view for that application.
     name        = 'this'
     description = 'Current View'
     
-    def render(self, djp, block, prefix, **kwargs):
-        djp.block = block
-        return djp.render()
+    def render(self, request, block, prefix, **kwargs):
+        request.block = block
+        return request.render()
     
     
 class ApplicationPlugin(DJPplugin):
@@ -252,16 +251,15 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self
         
-    def render(self, djp, block, prefix, **kwargs):
+    def render(self, request, block, prefix, **kwargs):
         app  = self.app
-        request = djp.request
         if app.has_permission(request):
-            if djp.view != app or kwargs:
-                args = djp.kwargs.copy()
+            if request.view != app or kwargs:
+                args = request.urlargs.copy()
                 args.update(kwargs)
-                djp = app(djp.request, **args)
-            djp.block = block
-            return djp.render()
+                request = request.for_view_args(app, **args)
+            request.block = block
+            return request.render()
         else:
             return ''
     
@@ -272,7 +270,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
 class JavascriptLogger(DJPplugin):
     description = 'Javascript Logging Panel'
     
-    def render(self, djp, block, prefix, **kwargs):
+    def render(self, request, block, prefix, **kwargs):
         return '<div class="djp-logging-panel"></div>'
     
     

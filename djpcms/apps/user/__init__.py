@@ -28,7 +28,7 @@ utility methods for dealing with users and user data.'''
     name = 'accounts'
     userpage = False
     home = views.SearchView()
-    login = LoginView(template_name = 'login.html',
+    login = LoginView(template_file = ('login.html','djpcms/login.html'),
                       inherit_page = False,
                       form = HtmlForm(LoginForm,
                                       inputs = (('Sign in','login_user'),)))

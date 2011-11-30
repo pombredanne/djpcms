@@ -84,7 +84,8 @@ def clean_url_bits(mapper, urlbits, mapping):
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
-    '''A :class:`RendererMixin` which defines a set of :class:`View` instances
+    '''Application class which implements :class:`djpcms.ResolverMixin` and
+:class:`RendererMixin` and defines a set of :class:`View` instances
 which are somehow related
 to each other and share a common application object in the
 :attr:`RendererMixin.appmodel` attribute which is an instance of this class.
@@ -183,6 +184,12 @@ overwritten to customize its behavior.
     of the application.
     This attribute is calculated by djpcms and specified by the user.
     
+.. attribute:: instance_view
+
+    An instance of :class:`ViewView` which represents view which render
+    the instance of a :attr:`model`.
+    This attribute is calculated by djpcms and specified by the user.
+    
 .. attribute:: related_field
     
     When a :attr:`parent` view is defined, this field represent the
@@ -219,10 +226,6 @@ overwritten to customize its behavior.
     Dictionary of :class:`View` instances created during registration. The
     keys of the dictionary are the the view names.
     
-.. attribute:: root_view
-
-    The root view, set during registration.
-
 --
 
 .. _application-methods:
@@ -258,6 +261,7 @@ overwritten to customize its behavior.
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
         self.root_view = None
+        self.instance_view = None
         self.views = OrderedDict()
         views = deepcopy(self.base_routes)
         if routes:
@@ -286,6 +290,12 @@ overwritten to customize its behavior.
                 d.append(self.pagination.headers.get(head.code,head))
             self.object_display = tuple(d)   
         
+    def _site(self):
+        if self.appmodel:
+            return self.appmodel.site
+        else:
+            return self.parent
+        
     def addroutes(self, routes):
         if routes:
             self.__dict__.pop('_urls',None)
@@ -303,6 +313,7 @@ overwritten to customize its behavior.
             routes = list(itervalues(self.views))
             proutes = list(routes)
             while proutes:
+                N = len(proutes)
                 for idx,route in enumerate(proutes):
                     if route.parent_view:
                         if route.parent_view in processed:
@@ -313,11 +324,20 @@ overwritten to customize its behavior.
                     processed[route.name] = route
                     proutes.pop(idx)
                     break
+                if len(proutes) == N:
+                    raise UrlException('Cannot find parent views in "{0}"'\
+                                        .format(self))
+                    
+            proutes = dict(((p.route.path,p) for p in routes\
+                             if isinstance(p,View)))
     
             # Refresh routes dictionary with updated routes paths
             for route in routes:
                 if route.path == '/':
                     self.root_view = route
+                else:
+                    p,c = route.route.split()
+                    route.parent_view = proutes.get(p.path)
                 if isinstance(route,View) and route.object_view:
                     self.object_views.append(route)
                 self.routes.append(route)
@@ -327,12 +347,6 @@ overwritten to customize its behavior.
     
     def get_from_parent_object(self, parent, id):
         return parent
-    
-    def isroot(self):
-        return True
-    
-    def get_the_view(self):
-        return self.root_view
     
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
@@ -344,15 +358,18 @@ overwritten to customize its behavior.
         # Set the in_nav if required
         if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
+        
+        self.site.register_app(self)
             
         for view in self:
             view.parent = self
             view.appmodel = self
             if isinstance(view,View):
                 if isinstance(view,ViewView):
-                    if self.model_url_bits:
+                    if self.instance_view is not None:
                         raise UrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
+                    self.instance_view = view
                     self.model_url_bits = view.route.ordered_variables()
                     if not self.model_url_bits:
                         raise UrlException('Application {0} has no\
@@ -497,11 +514,12 @@ data to the client.
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
     
-    def get_object(self, request, **kwargs):
-        '''Retrive an instance of self.model from key-values
-*kwargs* forming the url.'''
+    def get_instance(self, request):
+        '''Retrive an instance of self.model from request.'''
+        if '__instance__' in request.urlargs:
+            return request.urlargs['__instance__']
         query = {}
-        for name,val in self.urlbits(data = kwargs):
+        for name,val in self.urlbits(data = request.urlargs):
             if isinstance(val,self.model):
                 return val
             query[name] = val

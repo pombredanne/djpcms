@@ -20,7 +20,7 @@ table_menu_link = namedtuple('table_menu_link',
 bulk_delete = application_action('bulk_delete','delete',DELETE)
 
 
-def instance_link(djp, instance, name = 'view', asbuttons = False):
+def instance_link(request, instance, name = 'view', asbuttons = False):
     appmodel = djp.site.for_model(instance, all = True)
     if appmodel:
         views = list(application_views(appmodel,djp,
@@ -32,29 +32,28 @@ def instance_link(djp, instance, name = 'view', asbuttons = False):
     return str(instance)
 
 
-def application_views(djp,
+def application_views(request,
                       exclude = None,
                       include = None,
-                      instance = None):
+                      instance = None,
+                      ajax_enabled = None):
     '''Create a list of application views available to the user.
 This function is used in conjunction with
 an :class:`Application` instance.
 
-:parameter djp: instance of a :class:`DjpResponse`.
+:parameter request: instance of a :class:`djpcms.Request`.
 :parameter exclude: optional iterable of view names to exclude.
 :parameter include: optional iterable of view names to include.
     If provided it override :attr:`Application.exclude_links`.
     Default ``None``
 :parameter instance: optional instance of **appmodel.model**.
     If provided only instnce views will be collected.
+:parameter ajax_enabled: if ``True`` only ajax enabled views are considered.
 :rtype: a generator of dictionaries containing :class:`View` information.
 '''
-    permissions = djp.site.permissions
-    appmodel = djp.appmodel
-    request = djp.request
-    links = []
+    appmodel = request.view.appmodel
     exclude = exclude if exclude is not None else appmodel.exclude_links
-    kwargs  = djp.kwargs.copy()
+    kwargs  = request.urlargs.copy()
     kwargs['instance'] = instance
     
     if not include:
@@ -64,17 +63,16 @@ an :class:`Application` instance.
         if elem in exclude:
             continue
         if not isinstance(elem,application_action):
-            view = appmodel.views.get(elem,None)
-            if not view:
+            view = appmodel.views.get(elem)
+            if not view or view is request.view:
                 continue
-            ajax_enabled = view.ajax_enabled
             if instance:
                 if not view.object_view:
                     continue
-            elif ajax_enabled is None:
+            elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            dview = view(request, **kwargs)
+            dview = request.for_view_args(view, **kwargs)
             url = dview.url
             if not url or not dview.has_permission():
                 continue
@@ -118,17 +116,17 @@ the view name and a rendered html tag (either an anchor or a button).
 '''
     tag = 'button' if asbuttons else 'a'
     for elem in views:
-        djp = elem['view']
-        view = djp.view
-        css = djp.settings.HTML
-        a = Widget(tag).addAttr('title',elem['title'])\
+        request = elem['view']
+        view = request.view
+        a = Widget(tag, elem['display'])\
+                           .addAttr('title',elem['title'])\
                            .addClass(view.name)\
                            .addData({'view':view.name,
                                      'method':elem['method'],
-                                     'warning':view.warning_message(djp),
+                                     'warning':view.warning_message(request),
                                      'text':view.link_text})
         if elem['ajax']:
-            a.addClass(css.ajax)
+            a.addClass(view.settings.HTML['ajax'])
         
         if a.tag == 'a':
             a.addAttr('href',elem['url'])
@@ -136,7 +134,7 @@ the view name and a rendered html tag (either an anchor or a button).
         else:
             a.addData('icon', elem['icon']).addData('href',elem['url'])\
              .addClass(view.link_class)
-        yield (view.name, a.render(inner = elem['display'])) 
+        yield view.name, a 
     
 
 def application_link(view, asbutton = True):
@@ -153,20 +151,17 @@ def headers_from_groups(pagination, groups):
             yield col
             
             
-def table_toolbox(djp, all = True):
+def table_toolbox(request, all = True):
     '''\
 Create a toolbox for a table if possible. A toolbox is created when
 an application based on model is available.
 
-:parameter djp: an instance of a :class:`djpcms.views.DjpResponse`.
+:parameter request: an instance of a wsgi :class:`djpcms.Request`.
 :rtype: A dictionary containing information for building the toolbox.
     If the toolbox is not available it returns ``None``.
 '''
-    appmodel = djp.appmodel
-    pagination = djp.pagination    
-    request = djp.request
-    site = djp.site
-    has = site.permissions.has
+    pagination = request.pagination
+    appmodel = request.view.appmodel
     bulk_actions = []
     toolbox = {}
     
@@ -176,17 +171,17 @@ an application based on model is available.
     
     if bulk_actions:
         toolbox['actions'] = {'choices':bulk_actions,
-                              'url':djp.url}
+                              'url':request.url}
         
     if not all:
         return toolbox
     
     menu = list(views_serializable(\
-                    application_views(djp, include = pagination.actions)))
+                    application_views(request, include = pagination.actions)))
     if menu:
         toolbox['tools'] = menu
         
-    groups = appmodel.table_column_groups(djp)
+    groups = appmodel.table_column_groups(request)
     if isgenerator(groups):
         groups = tuple(groups)
     if groups:
@@ -199,17 +194,19 @@ an application based on model is available.
     return toolbox
 
 
-def paginationResponse(djp, query):
+def paginationResponse(request, query):
     if isinstance(query,dict):
         query = query.get('qs')
     if isgenerator(query):
         query = list(query)
     
-    toolbox = table_toolbox(djp)
+    toolbox = table_toolbox(request)
     render = True
     needbody = True
-    pagination = djp.pagination
-    inputs = djp.request.REQUEST
+    pagination = request.pagination
+    view = request.view
+    appmodel = view.appmodel
+    inputs = request.REQUEST
     headers = toolbox['headers']
     ajax = None
     load_only = None
@@ -217,8 +214,8 @@ def paginationResponse(djp, query):
     body = None
     
     if pagination.ajax:
-        ajax = djp.url
-        if djp.request.is_xhr:
+        ajax = request.url
+        if request.is_xhr:
             render = False
             needbody = True
         else:
@@ -231,7 +228,7 @@ def paginationResponse(djp, query):
         
     if pagination.astable:
         sortcols = inputs.get('iSortingCols')
-        load_only = djp.appmodel.load_fields(headers)
+        load_only = appmodel.load_fields(headers)
         if sortcols:
             head = None
             for col in range(int(sortcols)):
@@ -251,14 +248,14 @@ def paginationResponse(djp, query):
     pag,body = pagination.paginate(query, start, per_page, withbody = needbody)
     
     if body is not None and pagination.astable:
-        body = djp.appmodel.table_generator(djp, toolbox['headers'], body)
+        body = appmodel.table_generator(djp, toolbox['headers'], body)
         
     if render:
         return pagination.widget(body, pagination = pag,
                                  ajax = ajax, toolbox = toolbox,
-                                 appmodel = djp.appmodel).render(djp)
+                                 appmodel = appmodel).render(djp)
     else:
         return pagination.ajaxresponse(djp, body, pagination = pag,
                                        ajax = ajax, toolbox = toolbox,
-                                       appmodel = djp.appmodel)
+                                       appmodel = appmodel)
     

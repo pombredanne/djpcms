@@ -248,12 +248,11 @@ content in a content block.'''
     search = views.SearchView()
     view = views.ViewView('<int:contentblock>/')
     change = ChangeContentView()
-    layout = ChangeLayoutView('layout/',
-                              form = BlockLayoutFormHtml)
+    layout = ChangeLayoutView('layout/', form = BlockLayoutFormHtml)
     delete = DeleteContentView()
     
-    def registration_done(self):
-        self.site.root.BlockContent = self.model
+    def on_bound(self):
+        self.root.internals['BlockContent'] = self.mapper
     
     def submit(self, *args, **kwargs):
         return [html.Widget('input:submit', value = "save", name = '_save')]

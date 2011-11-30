@@ -5,9 +5,9 @@ import time
 from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
-from py2py3 import itervalues, ispy3k, to_bytestring, is_string
+from py2py3 import itervalues, ispy3k, to_bytestring, is_string, UnicodeMixin
 
-from djpcms.utils import lazyproperty
+from djpcms.utils import lazyproperty, lazymethod
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
@@ -33,7 +33,7 @@ UNKNOWN_STATUS_CODE = ('UNKNOWN STATUS CODE','')
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
-class Request(object):
+class Request(UnicodeMixin):
     '''WSGI Request class'''
     _encoding = None
     upload_handlers = []
@@ -43,9 +43,17 @@ class Request(object):
         self.view = view
         self.urlargs = urlargs
 
-    def for_view(self, view, **urlargs):
-        return Request(self.environ, view, urlargs)
-     
+    def for_view_args(self, view, **urlargs):
+        if view is not None:
+            return Request(self.environ, view, urlargs)
+    
+    def for_view(self, view):
+        if view is not None:
+            return Request(self.environ, view, self.urlargs.copy())
+    
+    def __unicode__(self):
+        return self.path + ' - ' + self.view.route.rule
+    
     @property
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
@@ -92,7 +100,17 @@ class Request(object):
     def page(self):
         Page = self.view.root.Page
         if Page:
-            return Page.get(self.view.path)
+            try:
+                return Page.get(url = self.view.path)
+            except Page.DoesNotExist:
+                return None
+            
+    @lazyproperty
+    def url(self):
+        if self.view is self.DJPCMS.view:
+            return self.path
+        else:
+            return self.view.get_url(self)
         
     @lazyproperty
     def instance(self):
@@ -102,6 +120,10 @@ class Request(object):
     def title(self):
         return self.view.title(self)
     
+    @lazyproperty    
+    def linkname(self):
+        return self.view.linkname(self)
+    
     @lazyproperty
     def template_file(self):
         page = self.page
@@ -109,9 +131,9 @@ class Request(object):
         if page and page.template:
             return page.template
         view = self.view
-        t = view.template_name
+        t = view.template_file
         if not t and view.appmodel:
-            t = view.appmodel.template_name
+            t = view.appmodel.template_file
         de = view.settings.DEFAULT_TEMPLATE_NAME
         if t:
             if de not in t:
@@ -232,8 +254,42 @@ class Request(object):
                                          self.get_host(), self.path)
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
-            
-
+    
+    @lazymethod
+    def children(self):
+        return tuple((self.for_view(v) for v in self.view.children(self)))
+    
+    @lazymethod
+    def auth_children(self):
+        return tuple((c for c in self.children() if c.has_permission()))
+    
+    def render(self):
+        '''\
+Render the underlying view.
+A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
+        self.media.add(self.view.media(self))
+        return self.view.render(self)
+    
+    @property
+    def pagination(self):
+        return self.view.pagination or self.view.appmodel.pagination
+    
+    def for_model(self, model, all = False):
+        if isinstance(model,str):
+            apps = self.view.site.for_hash(model, all = all)
+        elif model is not None:
+            apps = self.view.site.for_model(model,all = all)
+        else:
+            return None
+        if apps:
+            return apps[0] if all else apps
+        
+    def root_view_for_model(self, model, all = False):
+        app = self.for_model(model, all)
+        if app:
+            return self.for_view(app.root_view)
+     
+    
 class Response_(object):
     '''A wrapper for response contents.
     

@@ -1,14 +1,20 @@
+import sys
+import traceback
+import logging
+
 from djpcms.core.exceptions import Http404, HttpException, PermissionDenied 
+from djpcms.utils import logtrace
 
 from .profiler import profile_response
-from .wrappers import Request, ResponseRedirect
+from .wrappers import Request, Response, ResponseRedirect,\
+                         STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
 from .cache import djpcmsinfo
 
 
-DJPCMS = 'DJPCMS'
+logger = logging.getLogger('djpcms')
 
 
-__all__ = ['WSGI','WSGIhandler']
+__all__ = ['WSGI','WSGIhandler','standard_exception_handle']
 
 
 def clean_path(environ):
@@ -49,6 +55,7 @@ class WSGI(object):
 delegate the handling to them.'''
     def __init__(self, site):
         self.site = site
+        self.error = site.internals['errors']
         
     @property
     def route(self):
@@ -76,27 +83,53 @@ delegate the handling to them.'''
             return self._handle(environ, start_response)
         return response
         
-    def _handle(self, environ, start_response):        
+    def _handle(self, environ, start_response):
         try:
             view, urlargs = self.site.resolve(environ['PATH_INFO'][1:])
-            environ[DJPCMS] = info = djpcmsinfo(view, urlargs)
-            request = Request(environ, view, urlargs)
+        except Http404 as e:
+            if e.trypath:
+                return ResponseRedirect(e.trypath)
+            else:
+                return self.error(Request(environ,e.handler or self.site), 404)
+            
+        environ['DJPCMS'] = djpcmsinfo(view, urlargs)
+        request = Request(environ, view, urlargs)
+        try:
             if request.method not in view.methods(request):
                 raise HttpException(status = 405,
                     msg = 'method {0} is not allowed'.format(request.method))
             elif not request.has_permission():
                 raise PermissionDenied()
             return view(request)
-        except Http404 as e:
-            if e.trypath:
-                return ResponseRedirect(e.trypath)
-            else:
-                return self._handle_error(environ, site, e)
         except Exception as e:
-            return self._handle_error(environ, site, e)
+            return self.error(request, getattr(e,'status',500))
         
-    def _handle_error(self, environ, site, e):
-        site = getattr(e,'site',site) or site
-        return site.handle_exception(self.get_request(environ,site), e)
-        
-            
+
+def standard_exception_handle(request, status):
+    '''The default error handler for djpcms'''
+    info = request.DJPCMS
+    handler = request.view
+    settings = handler.settings
+    exc_info = sys.exc_info()
+    template = '{0}.html'.format(status)
+    template2 = 'errors/' + template
+    template3 = 'djpcms/' + template2
+    
+    logtrace(logger, request, exc_info, status)
+    #store stack trace in the DJPCMS environment variable
+    info['stack_trace'] = traceback.format_exception(*exc_info)
+    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info['stack_trace']))
+    ctx = {'status':status,
+           'status_text':STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0],
+           'stack_trace':stack_trace,
+           'settings':settings}
+    html = handler.template.render(
+                (template,template2,template3,'djpcms/errors/error.html'),
+                 ctx,
+                 request = request,
+                 encode = 'latin-1',
+                 encode_errors = 'replace')
+    return Response(status = status,
+                    content = html,
+                    content_type = 'text/html',
+                    encoding = settings.DEFAULT_CHARSET)

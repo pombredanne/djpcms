@@ -111,3 +111,37 @@ class Routes(test.TestCase):
         self.assertEqual(r.url(rest = 'a/'), '/bla/a/')
         self.assertEqual(r.url(), '/bla/')
         
+    def testSplitRoot(self):
+        r = Route('')
+        p,l = r.split()
+        self.assertFalse(p.is_leaf)
+        self.assertEqual(p.path,'/')
+        self.assertEqual(l,None)
+        r = Route('bla')
+        p,l = r.split()
+        self.assertFalse(p.is_leaf)
+        self.assertTrue(l.is_leaf)
+        self.assertEqual(p.path,'/')
+        self.assertEqual(l.path,'/bla')
+        r = Route('bla/')
+        p,l = r.split()
+        self.assertFalse(p.is_leaf)
+        self.assertFalse(l.is_leaf)
+        self.assertEqual(p.path,'/')
+        self.assertEqual(l.path,'/bla/')
+        
+    def testSplitDir(self):
+        r = Route('bla/foo/<id>/pluto/')
+        p,l = r.split()
+        self.assertFalse(p.is_leaf)
+        self.assertFalse(l.is_leaf)
+        self.assertEqual(p.path,'/bla/foo/<id>/')
+        self.assertEqual(l.path,'/pluto/')
+        
+    def testSplitLeaf(self):
+        r = Route('bla/foo/<id>/pluto/leaf')
+        p,l = r.split()
+        self.assertFalse(p.is_leaf)
+        self.assertTrue(l.is_leaf)
+        self.assertEqual(p.path,'/bla/foo/<id>/pluto/')
+        self.assertEqual(l.path,'/leaf')

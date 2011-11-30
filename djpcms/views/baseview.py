@@ -95,7 +95,7 @@ and :class:`djpcmsview`.
     
     Default: ``None``
     
-.. attribute:: template_name
+.. attribute:: template_file
  
     Used to specify a template file or a tuple of template files.
     
@@ -113,7 +113,7 @@ and :class:`djpcmsview`.
 '''
     creation_counter = 0
     appmodel = None
-    template_name = None
+    template_file = None
     name = None
     description = None
     form = None
@@ -127,7 +127,7 @@ and :class:`djpcmsview`.
     parent_view = None
     
     def __init__(self, name = None, parent_view = None, pagination = None,
-                 ajax_enabled = None, form = None, template_name = None,
+                 ajax_enabled = None, form = None, template_file = None,
                  description = None, in_nav = None, has_plugins = None,
                  insitemap = None):
         self.creation_counter = RendererMixin.creation_counter
@@ -140,12 +140,12 @@ and :class:`djpcmsview`.
         self.pagination = pagination if pagination is not None\
                                      else self.pagination
         self.form = form if form is not None else self.form
-        self.template_name = template_name or self.template_name
-        if self.template_name:
-            t = self.template_name
+        self.template_file = template_file or self.template_file
+        if self.template_file:
+            t = self.template_file
             if not (isinstance(t,list) or isinstance(t,tuple)):
                 t = (t,)
-            self.template_name = tuple(t)
+            self.template_file = tuple(t)
         self.ajax_enabled = ajax_enabled if ajax_enabled is not None\
                                      else self.ajax_enabled
         self.in_nav = in_nav if in_nav is not None else self.in_nav
@@ -155,18 +155,6 @@ and :class:`djpcmsview`.
         if isinstance(form,forms.FormType):
             self.form = forms.HtmlForm(self.form)
         makename(self, self.name, self.description)
-    
-    @property
-    def site(self):
-        if self.appmodel:
-            return self.appmodel.site
-        else:
-            return getattr(self,'_site',None)
-        
-    @property
-    def settings(self):
-        if self.site:
-            return self.site.settings
             
     def render(self, request):
         '''\
@@ -175,11 +163,11 @@ This function is implemented by subclasses of :class:`View`.
 By default it returns an empty string if the view is a :class:`pageview`
 other wise the ``render`` method of the :attr:`appmodel`.'''
         if self.appmodel:
-            return self.appmodel.render(djp)
+            return self.appmodel.render(request)
         else:
             return ''
     
-    def for_user(self, djp):
+    def for_user(self, request):
         '''Return an instance of a user model if the current renderer
 belongs to a user, otherwise returns ``None``.'''
         return None
@@ -292,23 +280,17 @@ it is the base class of :class:`pageview` and :class:`View`.
                     (self.appmodel.description if self.appmodel else 'view')
         return title.format(request.urlargs)
     
-    def linkname(self, djp):
+    def linkname(self, request):
         '''Name to display in hyperlinks to this view.'''
-        page = djp.page
+        page = request.page
         link = page.link if page else None
         if not link:
             link = self.default_link or \
                     (self.appmodel.description if self.appmodel else 'view')
-        return link.format(djp.kwargs)
+        return link.format(request.urlargs)
     
-    def breadcrumb(self, djp):
-        return self.linkname(djp)
-    
-    def specialkwargs(self, page, kwargs):
-        return kwargs
-    
-    def extra_content(self, djp, c):
-        pass
+    def breadcrumb(self, request):
+        return self.linkname(request)
     
     def inner_contents(self, inner_template):
         site = self.site
@@ -367,25 +349,23 @@ it is the base class of :class:`pageview` and :class:`View`.
         '''Get response handler.'''
         return self.get_response(request)
     
-    def ajax_get_response(self, djp):
-        html = self.render(djp)
-        return ajax.dialog(hd = djp.title,
+    def ajax_get_response(self, request):
+        html = self.render(request)
+        return ajax.dialog(hd = request.title,
                            bd = html,
                            width = self.dialog_width,
                            height = self.dialog_height,
                            modal = True)
     
-    def ajax_post_response(self, djp):
+    def ajax_post_response(self, request):
         '''Handle AJAX post requests'''
-        request = djp.request
         data = request.REQUEST
         action = forms.get_ajax_action(data)
         if action == forms.CANCEL_KEY:
             next = data.get(forms.REFERER_KEY,None)
-            next = self.defaultredirect(djp.request, next = next,
-                                        **djp.kwargs)
+            next = self.defaultredirect(request, next = next)
             return ajax.jredirect(next)
-        return self.default_post(djp)
+        return self.post_response(request)
     
     def has_permission(self, request, page = None, obj = None, user = None):
         '''Check for page view permissions.'''
@@ -421,29 +401,33 @@ By default it returns ``next`` if available, otherwise ``request.path``.
         else:
             return request.environ.get('HTTP_REFERER')
     
-    def nextviewurl(self, djp):
+    def nextviewurl(self, request):
         '''Calculate the best possible url for a possible next view.
 By default it is ``djp.url``'''
-        return djp.request.path
+        return request.path
     
-    def warning_message(self, djp):
+    def warning_message(self, request):
         return None
+    
+    def children(self, request):
+        '''return a generator over children responses. It uses the
+:func:`djpcms.node` to retrive the node in the sitemap and
+consequently its children.'''
+        raise StopIteration
 
 
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
  static data, it means there is not a specific application associate with it.'''
     name = 'flat'
-    def __init__(self, page, site):
-        self._site = site
+    def __init__(self, page, handler):
+        if isinstance(handler,RendererMixin):
+            self.appmodel = handler
         self.page = page
-        super(pageview,self).__init__(self.page.url)  
-        
-    def route(self):
-        return Route(self.page.url)
+        super(pageview,self).__init__(self.page.url,handler)
     
-    def get_url(self, djp, **urlargs):
+    def get_url(self, request, **urlargs):
         return self.page.url
     
-    def is_soft(self, djp):
+    def is_soft(self, request):
         return self.page.soft_root

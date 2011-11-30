@@ -83,5 +83,14 @@ class PermissionHandler(object):
     
     def has(self, request, permission_code, obj = None, model = None,
             view = None, user = None):
+        '''Check for permissions for a given request.
+        
+:parameter request: a wsgi :class:`djpcms.Request` instance.
+:parameter permission_code: numeric code for permissions, the higher the code
+    the more restrictive is permission.
+:parameter obj: optional instance of an object for which we require permission.
+:parameter model: optional model class for which we require permission.
+:parameter view: optional user for which we require permission.
+'''
         return True
 

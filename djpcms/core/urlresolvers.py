@@ -88,6 +88,10 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     The root :class:`RouteMixin` instance for of this route. If this instance
     has :attr:`parent` set to ``None``, the :attr:`root` is equal to ``self``.
     
+.. attribute:: site
+
+    The closes :class:`Site` instance for of this route.
+    
 .. attribute:: settings
 
     web site settings dictionary, available when :attr:`isbound` is ``True``.
@@ -98,6 +102,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
             route = Route(route)
         self.__rel_route = route
         self.__route = route
+        self.__parent = None
         self.parent = parent
         self.internals = {}
         
@@ -107,7 +112,8 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     def _get_parent(self):
         return self.__parent
     def _set_parent(self, parent):
-        self.__parent = self.make_parent(parent)
+        if parent is not self.__parent:
+            self.__parent = self.make_parent(parent)
     parent = property(_get_parent,_set_parent)
     
     def __get_rel_route(self):
@@ -121,6 +127,10 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
             self.__rel_route = r
             self.__route = br + r
     rel_route = property(__get_rel_route,__set_rel_route)
+    
+    @property
+    def site(self):
+        return self._site()
     
     @property
     def route(self):
@@ -147,6 +157,12 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
             return self.parent.internal_data(name)
         else:
             return v
+    
+    def render_response(self, response, callback = None):
+        return self.response_handler(self, response, callback)
+    
+    def unwind_query(self, query, callback = None):
+        return self.response_handler(self, query, callback)
     
     @property
     def settings(self):
@@ -201,6 +217,9 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         else:
             self.__route = self.__rel_route
         return parent
+    
+    def _site(self):
+        raise NotImplementedError
     
     def _isbound(self):
         raise NotImplementedError
@@ -265,6 +284,7 @@ class ResolverMixin(RouteMixin):
         if not self.routes:
             raise ImproperlyConfigured('No sites registered.')
         for site in self:
+            site.parent = self
             site.load()
         import_modules(self.settings.DJPCMS_PLUGINS)
         import_modules(self.settings.DJPCMS_WRAPPERS)
@@ -289,7 +309,22 @@ class ResolverMixin(RouteMixin):
                 elif not remaining_path:
                     return handler, urlargs
                 
-            raise Http404(handler = self)
+            # Nothing found Check the static pages if they are available
+            view = self.pageview(path)
+            if view:
+                return view, {}
+            else:
+                raise Http404(handler = self)
+            
+    def pageview(self, path):
+        Page = self.root.Page
+        if Page:
+            from djpcms.views import pageview
+            path = self.route + path
+            try:
+                return pageview(Page.objects.get(url = path.path),self)
+            except page.DoesNotExist:
+                pass
     
     def for_model(self, model):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.

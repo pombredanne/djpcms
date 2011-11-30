@@ -60,7 +60,7 @@ class Renderer(object):
         '''render ``self`` as html'''
         raise NotImplementedError
     
-    def media(self, djp = None):
+    def media(self, request):
         '''It returns an instance of :class:`Media`.
 It should be overritten by derived classes.'''
         return None

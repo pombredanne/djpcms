@@ -12,6 +12,10 @@ from djpcms.html import htmldoc
 contentre = re.compile('{{ content\d }}')
 
 
+__all__ = ['Page','Block','Template','BlockContentManager','MarkupMixin']
+
+
+
 def block_htmlid(pageid, block):
     '''HTML id for a block container. Used throughout the library.'''
     return 'djpcms-block-{0}-{1}'.format(pageid,block)
@@ -102,32 +106,32 @@ class Block(object):
     '''Content Block Interface'''
     logger  = logging.getLogger('BlockContent')
     
-    def render(self, djp, plugin = None, wrapper = None):
+    def render(self, request, plugin = None, wrapper = None):
         '''Render the plugin in the content block
 This function call the plugin render function and wrap the resulting HTML
 with the wrapper callable.'''
         plugin_response = None
-        site = djp.site
         plugin = plugin or self.plugin
         wrapper = wrapper or self.wrapper
-        if plugin and site.permissions.has(djp.request,djpcms.VIEW, self):
+        view = request.view
+        if plugin and view.permissions.has(request, djpcms.VIEW, self):
             try:
-                djp.media.add(plugin.media())
-                plugin_response = plugin(djp, self.arguments, block = self)
+                request.media.add(plugin.media())
+                plugin_response = plugin(request, self.arguments, block = self)
             except Exception as e:
-                if getattr(djp.settings,'TESTING',False):
+                if getattr(view.settings,'TESTING',False):
                     raise
                 self.logger.error('%s - block %s -- %s' % (plugin,self,e),
                     exc_info=True,
-                    extra={'request':djp.request}
+                    extra={'request':request}
                 )
-                if djp.request.user.is_superuser:
+                if request.user.is_superuser:
                     plugin_response = escape('%s' % e)
         
         # html can be a string or whatever the plugin returns.
         if plugin_response is not None:
-            callback = lambda r : wrapper(djp, self, r)
-            return djp.root.render_response(plugin_response, callback)
+            callback = lambda r : wrapper(request, self, r)
+            return request.view.render_response(plugin_response, callback)
     
     def pluginid(self, extra = ''):
         p = 'plugin-{0}'.format(self)

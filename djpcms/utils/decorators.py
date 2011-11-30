@@ -1,7 +1,8 @@
 import functools
 
 
-__all__ = ['memoized','storegenarator','lazyattr','lazymethod','lazyproperty']
+__all__ = ['memoized','storegenarator',
+           'LazyMethod','lazymethod','lazyproperty']
 
 
 class memoized(object):
@@ -56,7 +57,7 @@ returning a generator. It stores the generated results for future use.
     return _
 
 
-class lazymethod(object):
+class LazyMethod(object):
     
     def __init__(self, safe = False, as_property = False):
         self.safe = safe
@@ -89,9 +90,8 @@ class lazymethod(object):
         return _
     
     
-def lazyattr(f):
-    return lazymethod()(f)
-
+def lazymethod(f):
+    return LazyMethod(False,False)(f)
 
 def lazyproperty(f):
-    return lazymethod(False,True)(f)
+    return LazyMethod(False,True)(f)

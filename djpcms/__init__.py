@@ -131,6 +131,14 @@ LOGGING_SAMPLE = {
     }
 }
 
+HTML_CLASSES = {
+    'ajax': 'ajax',
+    'main_nav': 'main-nav',
+    'link_active': 'ui-state-active',
+    'link_default': '',
+    'secondary_in_list': 'secondary'
+    }
+
 from .core import *
 from .utils import ajax
 from .utils.decorators import *
@@ -141,4 +149,3 @@ def secret_key():
         return sites.settings.get('SECRET_KEY','sk').encode()
     else:
         return b'sk'
-    

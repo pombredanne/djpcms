@@ -1,11 +1,12 @@
 
 __all__ = ['ContextRenderer']
 
+
 class ContextRenderer(object):
     
-    def __init__(self, djp, context = None, template = None, renderer = None,
-                 text = None):
-        self.djp = djp
+    def __init__(self, request, context = None, template = None,
+                 renderer = None, text = None):
+        self.request = request
         self.template = template
         self.context = context or {}
         self.renderer = renderer
@@ -42,9 +43,10 @@ class ContextRenderer(object):
         
     def _render(self):
         if self.template:
-            return self.djp.render_template(self.template,self.context)
+            template = self.request.view.template
+            return template.render(self.template,self.context)
         elif self.renderer:
-            return self.renderer(self.djp,self.context)
+            return self.renderer(self.request,self.context)
         else:
             raise NotImplementedError
         

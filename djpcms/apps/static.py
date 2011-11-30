@@ -81,50 +81,38 @@ It looks for the ``media`` directory in each installed application.'''
     return map
 
 
-class StaticView(views.View):
-    
-    def __init__(self, show_indexes=False, **kwargs):
-        self.show_indexes = show_indexes
-        super(StaticView,self).__init__(**kwargs)
-
-
-class StaticRootView(StaticView):        
-    
-    def __call__(self, request, **kwargs):
-        appmodel = self.appmodel
-        site = self.site
-        mapping = appmodel.loadapps(site)
+class StaticRootView(views.View):
+    '''The root view for static files'''
+    def __call__(self, request):
         directory = request.path
         notroot = directory != '/'
-        if appmodel.show_indexes:
-            html = site.template.render(appmodel.template,
-                                {'names':sorted(mapping),
+        if self.appmodel.show_indexes:
+            html = self.template.render(request.template_file,
+                                {'names':sorted(self.appmodel.media_mapping),
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
             return http.Response(content = html.encode('latin-1','replace'),
                                  content_type = 'text/html')
         else:
-            raise http.Http404
+            raise http.Http404()
 
 
-class StaticFileView(StaticView):
+class StaticFileView(views.View):
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     
-    def __call__(self, request, **kwargs):
-        appmodel = self.appmodel
-        site = self.site
-        mapping = appmodel.loadapps(site)
-        paths = kwargs['path'].split('/')
+    def __call__(self, request):
+        mapping = self.appmodel.media_mapping
+        paths = request.urlargs['path'].split('/')
         app = paths.pop(0)
         if app in mapping:
             hd = mapping[app]
             fullpath = os.path.join(hd.absolute_path,*paths)
             if os.path.isdir(fullpath):
-                if appmodel.show_indexes:
+                if self.appmodel.show_indexes:
                     return self.directory_index(request, fullpath)
                 else:
-                    raise http.Http404
+                    raise http.Http404()
             elif os.path.exists(fullpath):
                 return self.serve_file(request, fullpath)
             else:
@@ -143,7 +131,7 @@ class StaticFileView(StaticView):
                     names.append(f)
                 else:
                     files.append(f)
-        html = self.site.template.render(self.appmodel.template,
+        html = self.template.render(request.template_file,
                              {'names':names,
                               'files':files,
                               'directory':request.path,
@@ -203,27 +191,26 @@ class StaticFileView(StaticView):
 
 class FavIconView(StaticFileView):
     
-    def __call__(self, request, **kwargs):
-        appmodel = self.appmodel
-        site = self.site
-        if not kwargs:
-            settings = site.settings
-            mapping = appmodel.loadapps(site)
+    def __call__(self, request):
+        if not request.urlargs:
+            settings = self.settings
+            mapping = self.appmodel.media_mapping
             name = settings.FAVICON_MODULE or settings.SITE_MODULE
             if name in mapping:
                 hd = mapping[name]
                 fullpath = os.path.join(hd.absolute_path,'favicon.ico')
                 return self.serve_file(request, fullpath)
-        raise http.Http404
+        raise http.Http404()
 
 
 class StaticBase(views.Application):
 
-    def loadapps(self, site):
+    @property
+    def media_mapping(self):
         '''Load application media.'''
         global _media
         if _media is None:
-            _media = application_map(site.settings.INSTALLED_APPS)
+            _media = application_map(self.settings.INSTALLED_APPS)
         return _media
     
 
@@ -231,12 +218,12 @@ class Static(StaticBase):
     '''A simple application for handling static files.
     This application should be only used during development while
     leaving the task of serving media files to other servers in production.'''
-    hidden = True
+    in_nav = 0
     has_plugins = False
     show_indexes = True
-    template = ['static_index.html','djpcms/static_index.html']
-    main = StaticRootView()
-    app  = StaticFileView('<path:path>', parent_view = 'main')
+    template_file = ('static_index.html','djpcms/static_index.html')
+    root = StaticRootView()
+    path = StaticFileView('<path:path>', parent_view = 'root')
     
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)

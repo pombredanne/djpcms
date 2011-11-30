@@ -85,3 +85,5 @@ SPHINX__extensions = ['sphinx.ext.pngmath',
 
 # Finally Logging
 LOGGING = djpcms.LOGGING_SAMPLE
+
+HTML = djpcms.HTML_CLASSES.copy()

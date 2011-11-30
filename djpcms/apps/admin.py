@@ -48,18 +48,17 @@ This is usually called in the view page of the object.
     
     view_template = 'djpcms/admin/viewtemplate.html'
         
-    def inner(self, djp, widget, keys):
+    def inner(self, request, widget, keys):
         ctx = []
         appmodel = widget.internal['appmodel']
         instance = widget.internal['instance']
-        request = djp.request
         for view in appmodel.object_views:
             if 'get' not in view.methods(request):
                 continue
             if isinstance(view,views.ViewView):
-                html = self.render_object_view(djp, appmodel, instance)
+                html = self.render_object_view(request, appmodel, instance)
             else:
-                dv = view(djp.request, **djp.kwargs)
+                dv = request.for_view(view)
                 try:
                     dv.url
                 except:
@@ -72,11 +71,11 @@ This is usually called in the view page of the object.
                         'value':html,
                         'order': o})
         ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
-        return ContextRenderer(djp,ctx,template=self.view_template)
+        return ContextRenderer(request,ctx,template=self.view_template)
     
-    def  render_object_view(self, djp, appmodel, instance):
+    def  render_object_view(self, request, appmodel, instance):
         if 'object' in appmodel.object_widgets:
-            return appmodel.render_object(djp,instance,context='object')
+            return appmodel.render_object(request,instance,context='object')
         else:
             return ''
 
@@ -99,14 +98,13 @@ administer a group of :class:`djpcms.views.Applications`.'''
     
     home = views.GroupView(in_nav = 1)
     
-    def table_generator(self, djp, headers, qs):
-        request = djp.request
+    def table_generator(self, request, headers, qs):
         for r in qs:
             title = r.title
             appmodel = r.view.appmodel
-            home = appmodel.root_view(request,**djp.kwargs)
+            home = appmodel.root_view(request,**request.kwargs)
             links = ''.join((l[1] for l in views.application_links(\
-                                views.application_views(djp))))
+                                views.application_views(request))))
             yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
     
 
@@ -122,14 +120,14 @@ administer models in groups.'''
     
     home = views.GroupView(in_nav = 1)
     
-    def groups(self, djp):
-        for child in djp.auth_children():
+    def groups(self, request):
+        for child in request.auth_children():
             yield {'body':child.render(),
                    'title':child.title,
                    'url': child.url}
             
-    def basequery(self, djp):
-        for g in sorted(self.groups(djp), key = lambda x : x['title']):
+    def basequery(self, request):
+        for g in sorted(self.groups(request), key = lambda x : x['title']):
             url = g['url']
             if url:
                 a = Widget('a', g['title'], href = url)

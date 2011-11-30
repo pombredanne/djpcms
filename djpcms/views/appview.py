@@ -231,11 +231,14 @@ views::
     def _isbound(self):
         return self.appmodel is not None
     
-    def get_url(self, djp):
-        return self.route().get_url(**djp.kwargs)
+    def _site(self):
+        return self.appmodel.site
     
-    def media(self,djp=None):
-        return self.appmodel.media(djp)
+    def get_url(self, request):
+        return self.route.url(**request.urlargs)
+    
+    def media(self, request):
+        return self.appmodel.media(request)
     
     def in_navigation(self, request, page):
         if self.appmodel.in_nav:
@@ -294,17 +297,29 @@ function.'''
     def save_as_new(self, djp, f, commit = True):
         return f.save_as_new(commit = commit)
     
+    def children(self, request):
+        '''return a generator over children responses. It uses the
+:func:`djpcms.node` to retrive the node in the sitemap and
+consequently its children.'''
+        for view in self.appmodel:
+            if view.parent_view == self:
+                if not isinstance(view,View):
+                    if view.root_view:
+                        yield view.root_view
+                else:
+                    yield view
+    
     def __deepcopy__(self, memo):
-        return copy(self)  
+        return copy(self)
     
     
 class GroupView(View):
     '''An application to display list of children applications.
 It is the equivalent of :class:`SearchView`
 for :class:`Application` without a model.'''
-    def render(self, djp):
-        qs = self.appquery(djp)
-        return self.appmodel.render_query(djp, qs)
+    def render(self, request):
+        qs = self.appquery(request)
+        return self.appmodel.render_query(request, qs)
     
     
 class ModelView(View):
@@ -417,25 +432,23 @@ A view of this type has an embedded object available which is used to
 generate the full url.'''
     object_view = True
     
-    def get_url(self, djp):
-        kwargs = djp.kwargs
-        has_instance = 'instance' in kwargs
-        instance = None
-        if has_instance:
-            instance = kwargs.pop('instance')
+    def get_url(self, request):
+        urlargs = request.urlargs
+        has_instance = 'instance' in urlargs
+        instance = urlargs.pop('instance',None)
             
         if not isinstance(instance,self.model):
             instance = self.appmodel.mapper(
                             self.appmodel.get_object(djp.request, **kwargs))
                 
         if instance:
-            kwargs['instance'] = instance
-            kwargs.update(self.appmodel.objectbits(instance))  
+            urlargs['instance'] = instance
+            urlargs.update(self.appmodel.objectbits(instance))  
         else:
             raise http.Http404('Could not retrieve "{0}" instance\
  from url arguments: {1}'.format(self.model,djp.kwargs))
         
-        return super(ObjectView,self).get_url(djp)
+        return super(ObjectView,self).get_url(request)
 
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         return model_defaultredirect(self, request, next = next,

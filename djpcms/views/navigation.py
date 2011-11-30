@@ -9,9 +9,9 @@ from djpcms.utils import mark_safe
 class LazyHtml(djpcms.UnicodeMixin):
     '''A lazy view counter used to build navigations type iterators
     '''
-    def __new__(cls, djp, **kwargs):
+    def __new__(cls, request, **kwargs):
         obj = super(LazyHtml, cls).__new__(cls)
-        obj.djp = djp
+        obj.request = request
         obj.classes = kwargs.pop('classes',None)
         obj.kwargs = kwargs
         return obj
@@ -36,50 +36,53 @@ class Navigator(LazyHtml):
         self.mylevel = self.kwargs.pop('mylevel',0)
         self.liclass = self.kwargs.pop('liclass',None)
     
-    def make_item(self, djp, classes):
-        return Navigator(djp,
+    def make_item(self, request, classes):
+        return Navigator(request,
                          levels = self.levels,
                          mylevel = self.mylevel+1,
                          liclass = classes,
-                         url  = djp.url,
-                         name = djp.linkname,
+                         url  = request.url,
+                         name = request.linkname,
                          soft = self.soft,
                          **self.kwargs)
     
-    def buildselects(self, djp, urlselects):
-        if self.soft and djp.is_soft():
-            return djp
-        parent = djp.parent
+    def buildselects(self, request, urlselects):
+        if self.soft and request.is_soft():
+            return request
+        parent = request.parent
         if parent:
             try:
-                url = djp.url
+                url = request.url
                 if url:
                     urlselects.append(url)
             except:
                 pass
             return self.buildselects(parent, urlselects)
-        return djp
+        return request
     
     def items(self, urlselects = None, secondary_after = 100, **kwargs):
-        djp = self.djp
-        css = djp.settings.HTML
+        request = self.request
+        css = request.view.settings.HTML
+        
         if urlselects is None:
             urlselects = []
-            djp = self.buildselects(djp,urlselects)
+            request = self.buildselects(request,urlselects)
             self.kwargs['urlselects'] = urlselects
-        scn = css.secondary_in_list
-        for djp,nav in sorted(((c,c.in_navigation()) for c in djp.children()), key = lambda x : x[1]):
-            if not nav or not djp.has_permission():
+        scn = css.get('secondary_in_list')
+        link_active = css.get('link_active')
+        link_default = css.get('link_default')
+        for request,nav in sorted(((c,c.in_navigation()) for c in request.children()), key = lambda x : x[1]):
+            if not nav or not request.has_permission():
                 continue
-            url = djp.url
+            url = request.url
             classes = []
             if nav > secondary_after:
                 classes.append(scn)
-            if url in urlselects and css.link_active:
-                classes.append(css.link_active)
-            elif css.link_default:
-                classes.append(css.link_default)
-            yield self.make_item(djp, ' '.join(classes))
+            if url in urlselects and link_active:
+                classes.append(link_active)
+            elif link_default:
+                classes.append(link_default)
+            yield self.make_item(request, ' '.join(classes))
     
     def stream(self):
         lis = '\n'.join((Widget('li').addClass(item.liclass)\
@@ -116,17 +119,17 @@ class Breadcrumbs(LazyHtml):
         self.min_length = self.kwargs.pop('min_length',1)
         
     def items(self):
-        djp = self.djp
+        request = self.request
         crumbs = []
-        while djp:
-            c = {'name': djp.breadcrumb,
+        while request:
+            c = {'name': request.breadcrumb,
                  'last': False}
             try:
-                c['url'] = djp.url
-                c['title'] = djp.title
+                c['url'] = request.url
+                c['title'] = request.title
             except:
                 pass
-            djp = djp.parent
+            request = request.parent
             crumbs.append(c)
         
         cutoff = self.min_length

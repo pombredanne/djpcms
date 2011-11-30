@@ -7,14 +7,24 @@ class djpcmsinfo(object):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
-    def __init__(self, view, kwargs, page=None, site=None, instance=None):
+    def __init__(self, view, urlargs):
         self.view = view
-        self.kwargs = kwargs if kwargs is not None else {}
-        self.page = page
-        self.instance = instance
+        self.urlargs = urlargs if urlargs is not None else {}
+        self.page = None
+        self.instance = None
         self.context_cache = None
+        self.environ = {}
         self._djp_instance_cache = {}
-            
+    
+    def __getitem__(self, key):
+        return self.environ[key]
+    
+    def __setitem__(self, key, value):
+        self.environ[key] = value
+        
+    def get(self, key, default = None):
+        return self.environ.get(key,default)
+        
     @property
     def media(self):
         if not hasattr(self,'_media'):
@@ -23,7 +33,7 @@ managing settings.'''
             m.add_js(js.jquery_paths(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
             m.add_css(settings.DEFAULT_STYLE_SHEET)
-            m.add(self.view.media())
+            m.add(self.view.media(self))
             self._media = m
         return self._media
     

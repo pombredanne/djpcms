@@ -70,10 +70,10 @@ class SiteMapApplication(TabViewMixin,views.Application):
     add = views.AddView(force_redirect = True)
     view = views.ViewView()
     change = PageChangeView(force_redirect = True,
-                            template_name = 'djpcms/admin/editpage.html',
+                            template_file = 'djpcms/admin/editpage.html',
                             title = lambda djp: 'editing')
     delete = views.DeleteView()
         
     def on_bound(self):
-        self.root.internals['Page'] = self.model
+        self.root.internals['Page'] = self.mapper
     

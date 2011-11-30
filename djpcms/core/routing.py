@@ -111,7 +111,7 @@ class Route(UnicodeMixin):
     If no converter is defined the `default` converter is used which
     means `string`.
     
-:parameter defaults: optional default values for variables.
+:parameter defaults: optional dictionary of default values for variables.
 :parameter append_slash: Force a slash to be the last character of the rule.
     In doing so the :attr:`is_leaf` is guaranteed to be ``False``.
     
@@ -124,6 +124,11 @@ class Route(UnicodeMixin):
 .. attribute:: path
 
     The full path for this route including initial ``'/'``.
+    
+.. attribute:: arguments
+
+    a set of arguments for this route. If the route has no variables, the
+    set is empty.
     
 .. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
@@ -197,6 +202,7 @@ class Route(UnicodeMixin):
             yield val
             
     def url(self, **values):
+        '''Build a *url* from key valued pairs of variable values.'''
         if self.defaults:
             d = self.defaults.copy()
             d.update(values)
@@ -205,6 +211,10 @@ class Route(UnicodeMixin):
         return url if self.is_leaf else url + '/'
     
     def match(self, path):
+        '''Match a path and return ``None`` if no matching, otherwise
+ a dictionary of matched variables with values. If there is more
+ to be match in the path, the remaining string is placed in the
+ ``__remaining__`` key of the dictionary.'''
         match = self._regex.search(path)
         if match is not None:
             remaining = path[match.end():]
@@ -220,6 +230,21 @@ class Route(UnicodeMixin):
                 result['__remaining__'] = remaining
             return result
 
+    def split(self):
+        '''Return a two element tuple containing the parent route and
+ the last url bit as route.'''
+        rule = self.rule
+        if not self.is_leaf:
+            rule = rule[:-1]
+        if not rule:
+            return Route('/'),None 
+        bits = ('/'+rule).split('/')
+        last = Route(bits[-1] if self.is_leaf else bits[-1] + '/')  
+        if len(bits) > 1:
+            return Route('/'.join(bits[:-1]) + '/'),last
+        else:
+            return last,None
+        
     def __add__(self, other):
         if self.is_leaf:
             raise ValueError('Cannot prepend {0} to another route.\

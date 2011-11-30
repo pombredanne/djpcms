@@ -5,10 +5,10 @@ from djpcms.core.http import query_from_string
 from djpcms.utils.text import nicename
 
 
-def registered_models(bfield,required = True):
+def registered_models(bfield, required = True):
     '''Generator of model Choices'''
     form = bfield.form
-    site = form.request.DJPCMS.site
+    view = form.request.view 
     if not required:
         yield ('','----------')
     for model,app in site._registry.items():
@@ -27,8 +27,7 @@ def get_contet_choices(bfield):
     else:
         request = bfield.form.request
         if request:
-            info = request.DJPCMS
-            appmodel = info.site.for_model(model, all = True)
+            appmodel = request.view.site.for_model(model)
             if appmodel:
                 sdjp = appmodel.getview('search')(request)
                 return appmodel.basequery(sdjp) 
@@ -89,7 +88,8 @@ class ContentForm(forms.Form):
 #______________________________________________ PLUGINS
 
 class RenderObject(DJPplugin):
-    '''Render a database object'''
+    '''Render an instance of a model using the
+:attr:`Application.instance_view`.'''
     virtual = True
     description = 'Display your content'
     form = ContentForm
@@ -98,24 +98,18 @@ class RenderObject(DJPplugin):
         if content and self.for_model:
             return mapper(self.for_model).get(id = content)
         
-    def render(self, djp, wrapper, prefix, content = None, **kwargs):
+    def render(self, request, wrapper, prefix, content = None, **kwargs):
         obj = self.get_object(content)
         if obj:
-            appmodel = djp.site.for_model(self.for_model, all = True)
+            appmodel = request.view.site.for_model(self.for_model)
             if appmodel:
-                view = appmodel.getview('view')
-                return view(djp.request, instance = obj).render()
-            else:
-                return str(obj)
+                view = appmodel.instance_view
+                if view:
+                    return request.for_view(view, instance = obj).render()
+            return str(obj)
         else:
             return ''
-        
-    def edit_url(self, djp, args = None):
-        initial = self.arguments(args)
-        obj = self.get_object(initial.get('content',None))
-        return djp.site.get_url(self.for_model, 'change',
-                                instance = obj, all = True)
-      
+    
     
 class ModelLinks(DJPplugin):
     name = 'model-links'
@@ -125,22 +119,21 @@ class ModelLinks(DJPplugin):
     asbuttons_class = 'asbuttons'
     form = ModelLinksForm
     
-    def render(self, djp, wrapper, prefix, layout = 'horizontal',
+    def render(self, request, wrapper, prefix, layout = 'horizontal',
                asbuttons = True, exclude = '', include = '',
                for_instance = False, **kwargs):
-        appmodel = djp.appmodel
+        appmodel = request.view.appmodel
         if not appmodel:
             return
         exclude = None if not exclude else exclude.split(',')
         include = None if not include else include.split(',')
-        instance = None if not for_instance else djp.instance
+        instance = None if not for_instance else request.instance
         asbuttons = self.asbuttons_class if asbuttons else None
         links = views.application_links(
-                            views.application_views(appmodel,
-                                                   djp,
-                                                   exclude = exclude,
-                                                   include = include,
-                                                   instance = instance),
+                            views.application_views(request,
+                                                    exclude = exclude,
+                                                    include = include,
+                                                    instance = instance),
                             asbuttons = asbuttons)
         name = appmodel.mapper.class_name(appmodel.model)
         if links:
@@ -148,7 +141,7 @@ class ModelLinks(DJPplugin):
                        .addClass('model-links')\
                        .addClass(layout)\
                        .addClass(asbuttons)\
-                       .render(djp)
+                       .render(request)
     
     
 def attrquery(heads,query):
@@ -165,7 +158,7 @@ class ModelItemsList(DJPplugin):
     description = 'Filtered items for a model'
     form = ModelItemListForm
     
-    def render(self, djp, block, prefix,
+    def render(self, request, block, prefix,
                for_model = None, max_display = 5,
                pagination = False, filter = None,
                exclude = None, order_by = None,
@@ -173,14 +166,13 @@ class ModelItemsList(DJPplugin):
                display_if_empty = '',
                table_footer = False,
                **kwargs):
-        if not for_model:
-            return ''
-        instance = djp.instance
-        appmodel = djp.site.for_hash(for_model,safe=False,all=True)
-        djp = appmodel.root_view(djp.request,**djp.kwargs)
+        instance = request.instance
+        request = request.root_view_for_model(for_model)
+        if request is None:
+            return ''     
         load_only = ()
         thead = None
-        appheads = appmodel.pagination.headers
+        appheads = request.pagination.headers
         
         if headers:
             thead = []
@@ -217,14 +209,14 @@ class ModelItemsList(DJPplugin):
                             footer = table_footer,
                             html_data =  {'options': {'sDom':'t'}})
             return pagination.widget(
-                        appmodel.table_generator(djp, thead, items),
-                        title = block.title, appmodel = appmodel).render(djp)
+                    appmodel.table_generator(request, thead, items),
+                    title = block.title, appmodel = appmodel).render(request)
         else:
             w = html.Widget('div', cn = 'filtered-list')\
                     .addClass(appmodel.mapper.class_name())
             render_object = appmodel.render_object
-            inner = '\n'.join(render_object(djp, item, 'list')\
+            inner = '\n'.join(render_object(request, item, 'list')\
                               for item in items)
-            return w.render(djp,inner)
+            return w.render(request,inner)
 
     

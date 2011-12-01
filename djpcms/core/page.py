@@ -116,7 +116,7 @@ with the wrapper callable.'''
         view = request.view
         if plugin and view.permissions.has(request, djpcms.VIEW, self):
             try:
-                request.media.add(plugin.media())
+                request.media.add(plugin.media(request))
                 plugin_response = plugin(request, self.arguments, block = self)
             except Exception as e:
                 if getattr(view.settings,'TESTING',False):

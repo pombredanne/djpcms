@@ -43,8 +43,8 @@ Usage::
     Default ``False``.
     
 '''
-    data = getattr(request,request.method)
-    if (withdata or request.method.lower() == method.lower()) and data:
+    data = request.REQUEST
+    if (withdata or request.method == method.lower()) and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
     elif data:
@@ -103,7 +103,7 @@ def form_inputs(instance, own_view = False):
     return sb
 
 
-def get_form(djp,
+def get_form(request,
              form_factory,
              initial = None,
              prefix = None,
@@ -114,9 +114,8 @@ def get_form(djp,
              force_prefix = True):
     '''Comprehensive method for building a
 :class:`djpcms.forms.HtmlForm` instance:
-    
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`.
-:parameter form_factory: A required instance of :class:`djpcms.forms.HtmlForm`.
+
+:parameter form_factory: A required instance of :class:`HtmlForm`.
 :parameter initial: If not none, a dictionary of initial values.
 :parameter prefix: Optional prefix string to use in the form.
 :parameter addinputs: An optional function for creating inputs.
@@ -124,7 +123,6 @@ def get_form(djp,
                       available form class as no inputs associated with it.
                       Default ``None``.
 '''
-    request = djp.request
     referer = request.environ.get('HTTP_REFERER')
     data = request.REQUEST
     prefix = data.get(PREFIX_KEY,None)
@@ -132,7 +130,7 @@ def get_form(djp,
     if inputs is not None:
         inputs = [inp.widget() for inp in inputs]
     elif addinputs:
-        inputs = form_inputs(instance,  djp.own_view())
+        inputs = form_inputs(instance,  request.path == request.url)
     
     if not prefix and force_prefix:
         prefix = generate_prefix()
@@ -142,7 +140,7 @@ def get_form(djp,
                 
     # Create the form instance
     form  = form_factory(inputs = inputs,
-                         action = djp.url,
+                         action = request.url,
                          **form_kwargs(request = request,
                                        initial = initial,
                                        instance = instance,
@@ -156,25 +154,24 @@ def get_form(djp,
     return form
 
 
-def return_form_errors(fhtml,djp):
-    if djp.request.is_xhr:
+def return_form_errors(fhtml,request):
+    if request.is_xhr:
         return fhtml.layout.json_messages(fhtml.form)
     else:
-        return djp.view.handle_response(djp)
+        return request.view.handle_response(request)
     
     
-def saveform(djp, force_redirect = False):
+def saveform(request, force_redirect = False):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted.'''
-    view = djp.view
-    appmodel = djp.appmodel
-    request = djp.request
+    view = request.view
+    appmodel = view.appmodel
     is_ajax = request.is_xhr
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referer = data.get(REFERER_KEY,None)
-    fhtml = view.get_form(djp)    
+    fhtml = view.get_form(request)    
     layout = fhtml.layout
     f = fhtml.form
     instance = f.instance
@@ -199,7 +196,7 @@ has been submitted.'''
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing = bool(instance and instance.id)
-        instance = view.save(djp,f)
+        instance = view.save(request,f)
         if ajax.isajax(instance):
             return instance
         elif instance == f:
@@ -240,14 +237,13 @@ has been submitted.'''
         if is_ajax:
             return layout.json_messages(f)
         else:
-            return view.get_response(djp)
+            return view.get_response(request)
         
 
-def deleteinstance(djp, force_redirect = True):
+def deleteinstance(request, force_redirect = True):
     '''Delete an instance from database'''
-    instance = djp.instance
-    view    = djp.view
-    request = djp.request
+    instance = request.instance
+    view    = request.view
     #next = request.environ.get('HTTP_REFERER')
     bid = view.appmodel.remove_object(instance)
     msg = 'Successfully deleted %s' % instance
@@ -255,7 +251,7 @@ def deleteinstance(djp, force_redirect = True):
         return ajax.jremove('#%s' % bid)
     
     messages.info(request,msg)
-    root_url = view.appmodel.root_view(djp.request, **djp.kwargs).url
+    root_url = request.for_view(view.appmodel.root_view).url
     if request.is_xhr:
         return ajax.jredirect(root_url)
     else:

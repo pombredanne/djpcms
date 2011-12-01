@@ -71,8 +71,9 @@ class Navigator(LazyHtml):
         scn = css.get('secondary_in_list')
         link_active = css.get('link_active')
         link_default = css.get('link_default')
-        for request,nav in sorted(((c,c.in_navigation()) for c in request.children()), key = lambda x : x[1]):
-            if not nav or not request.has_permission():
+        for request,nav in sorted(((c,c.in_navigation)\
+                    for c in request.auth_children()), key = lambda x : x[1]):
+            if not nav:
                 continue
             url = request.url
             classes = []
@@ -122,7 +123,7 @@ class Breadcrumbs(LazyHtml):
         request = self.request
         crumbs = []
         while request:
-            c = {'name': request.breadcrumb,
+            c = {'name': request.view.breadcrumb(request),
                  'last': False}
             try:
                 c['url'] = request.url

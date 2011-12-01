@@ -221,13 +221,14 @@ with key ``name`` and value ``value`` and return ``self``.'''
  :meth:`WidgetMaker.add_to_widget` method.'''
         self.maker.add_to_widget(self,*args,**kwargs)
         
-    def get_context(self, djp, keys = None, **kwargs):
+    def get_context(self, request, keys = None, **kwargs):
         '''Return the context dictionary for this widget.'''
-        return self.maker.get_context(djp, self, keys or kwargs)
+        return self.maker.get_context(request, self, keys or kwargs)
     
-    def render(self, djp = None, inner = None, keys = None, **kwargs):
+    def render(self, request = None, inner = None, keys = None, **kwargs):
         '''Render the widget'''
-        ctx = self.maker.render_from_widget(djp, self, inner, keys or kwargs)
+        ctx = self.maker.render_from_widget(request, self, inner,
+                                            keys or kwargs)
         ctx.add_renderer(mark_safe)
         return ctx.done()
     
@@ -396,7 +397,8 @@ corner cases, users can subclass it to customize behavior.
         self._widget = widget or self._widget or Widget
         self._inner = inner
         if data2html:
-            self.data2html = lambda djp, data : data2html(self, djp, data)
+            self.data2html =\
+                     lambda request, data : data2html(self, request, data)
         if self.default_attrs:
             p = self.default_attrs.copy()
             p.update(params)
@@ -468,7 +470,7 @@ It returns self for concatenating data.'''
         for child in self.allchildren:
             yield self.child_widget(child, widget)
             
-    def get_context(self, djp, widget, keys):
+    def get_context(self, request, widget, keys):
         '''Called by the :meth:`inner` method it
 returns a dictionary of variables used for rendering. By default it
 loops over the :attr:`allchildren` list and put therendered chuild in a new list.
@@ -479,9 +481,9 @@ dictionary.'''
         for w in self.children_widgets(widget):
             key = w.maker.key
             if key and key in keys:
-                text = w.render(djp, keys[key])
+                text = w.render(request, keys[key])
             else:
-                text = w.render(djp, keys = keys)
+                text = w.render(request, keys = keys)
                 #if key:
                 #    ctx[key] = text
                 #    continue
@@ -489,13 +491,13 @@ dictionary.'''
         ctx['children'] = children
         return ctx
     
-    def render(self, djp = None, inner = None, **kwargs):
+    def render(self, request = None, inner = None, **kwargs):
         '''Render into html. This is a shortcut function which build a
  :class:`Widget` using  the :meth:`widget` method and invokes the
  :meth:`Widget.render` method on it.'''
-        return self.widget(**kwargs).render(djp,inner)
+        return self.widget(**kwargs).render(request,inner)
     
-    def render_from_widget(self, djp, widget, inner, keys):
+    def render_from_widget(self, request, widget, inner, keys):
         if self.inline:
             if widget.tag:
                 fattr = widget.flatatt()
@@ -506,56 +508,55 @@ dictionary.'''
         else:
             text = inner or self._inner
             if text is None:
-                text = self.inner(djp, widget, keys)
+                text = self.inner(request, widget, keys)
             text = ContextRenderer.make(text)
             if widget.tag:
                 fattr = widget.flatatt()
                 text.add_renderer(
                     lambda c : self._template.format(widget.tag,fattr,c))
         text.add_renderer(self.renderer)
-        if djp:
-            djp.media.add(self.media(djp))
+        if request:
+            request.media.add(self.media(request))
         return text
     
-    def inner(self, djp, widget, keys):
+    def inner(self, request, widget, keys):
         '''Render the inner part of the widget. This can be overwritten by
 derived classes and should return the inner part of html.
 By default it renders the template if it is available, otherwise
 an empty string.
 
-:parameter djp: instance of :class:`djpcms.views.DjpResponse`
 :parameter widget: instance of :class:`Widget` to be rendered
 :parameter keys: ???
 :return: A string representing the inner part of the widget.
 '''
-        context = self.get_context(djp,widget,keys)
+        context = self.get_context(request,widget,keys)
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
-            lt = djp.site.template
+            lt = request.view.template
             if self.template:
                 return lt.template_class(self.template).render(context)
             else:
                 return lt.render(self.template_name,context)
         else:
-            return '\n'.join(self.stream(djp,widget,context))
+            return '\n'.join(self.stream(request,widget,context))
     
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         '''This method is called when rendering without templates.
 It returns an iterable over chunks of html to be displayed in the
 inner part of the widget.'''
         data2html = self.data2html
         if widget.data_stream:
             for chunk in widget.data_stream:
-                yield data2html(djp, chunk)
+                yield data2html(request, chunk)
         for child in context['children']:
-            yield data2html(djp, child)
+            yield data2html(request, child)
         
-    def data2html(self, djp, data):
+    def data2html(self, request, data):
         '''Process data from :meth:`stream`. By default it renders data if
  data is an instance of :class:`Widget` and returns it.'''
         if isinstance(data,Widget):
-            data = data.render(djp)
+            data = data.render(request)
         return data
 
     def child_widget(self, child, widget, **kwargs):

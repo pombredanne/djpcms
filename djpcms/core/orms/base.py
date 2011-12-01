@@ -28,15 +28,22 @@ class OrmWrapper(UnicodeMixin):
 :parameter model: The ORM model class (for example a django model class).
 
 
+.. attribute:: orm
+
+    object relational mapper name
+    
 .. attribute:: model
 
     The model class.
+    
+.. attribute:: DoesNotExist
+
+    proxy to the exception thorwn when a query for a model instance produce
+    no results.
 
 '''
     orm = None
-    '''Object Relational Mapper name'''
     DoesNotExist = None
-    '''Exception raise when an object is not available'''
     short_description = 'short_description'
     module_name = None
     

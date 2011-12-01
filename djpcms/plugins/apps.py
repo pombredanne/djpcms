@@ -190,7 +190,7 @@ class ModelItemsList(DJPplugin):
             if decr:
                 order_by = '-{0}'.format(order_by)
                 
-        qs = djp.basequery(instance = instance)
+        qs = request.appquery(instance = instance)
         if text_search:
             qs = qs.search(text_search)
         qs = qs.filter(**dict(attrquery(appheads,query_from_string(filter))))\

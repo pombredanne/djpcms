@@ -326,14 +326,15 @@ it is the base class of :class:`pageview` and :class:`View`.
             return context
         
         settings = self.settings
-        sitenav = Navigator(self, classes = 'main_nav',
+        sitenav = Navigator(request, classes = 'main_nav',
                             levels = settings.SITE_NAVIGATION_LEVELS)
         context.update({'robots': self.robots(request),
                         'sitenav': sitenav})
         if settings.ENABLE_BREADCRUMBS:
             b = getattr(self,'breadcrumbs',None)
             if b is None:
-                b = Breadcrumbs(self, min_length = settings.ENABLE_BREADCRUMBS)
+                b = Breadcrumbs(request,
+                                min_length = settings.ENABLE_BREADCRUMBS)
             context['breadcrumbs'] = b
         
         content = self.template.render(request.template_file,
@@ -374,11 +375,12 @@ it is the base class of :class:`pageview` and :class:`View`.
         else:
             return True
     
-    def in_navigation(self, request, page):
+    def in_navigation(self, request):
         '''
         Hook for modifying the in_navigation property.
         This default implementation should suffice
         '''
+        page = request.page
         if page:
             return page.in_navigation
         else:

@@ -107,8 +107,11 @@ delegate the handling to them.'''
 
 def standard_exception_handle(request, status):
     '''The default error handler for djpcms'''
-    info = request.DJPCMS
     handler = request.view
+    info = request.environ.get('DJPCMS')
+    if not info:
+        info = djpcmsinfo(handler)
+        request.environ['DJPCMS'] = info
     settings = handler.settings
     exc_info = sys.exc_info()
     template = '{0}.html'.format(status)

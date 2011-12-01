@@ -323,7 +323,7 @@ class ResolverMixin(RouteMixin):
             path = self.route + path
             try:
                 return pageview(Page.objects.get(url = path.path),self)
-            except page.DoesNotExist:
+            except Page.DoesNotExist:
                 pass
     
     def for_model(self, model):
@@ -343,5 +343,7 @@ If the application is not available, it returns ``None``. It never fails.'''
         return parent
 
     def on_bound(self):
-        '''Callback when the resolver is bound'''
+        '''Callback when the resolver is bound to the :attr:`parent` resolver.
+ By default it does nothing, but it can be used to configure things once the
+ resolver map is ready.'''
         pass

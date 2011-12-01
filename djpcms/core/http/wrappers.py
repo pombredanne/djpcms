@@ -38,10 +38,10 @@ class Request(UnicodeMixin):
     _encoding = None
     upload_handlers = []
     
-    def __init__(self, environ, view = None, urlargs = None):
+    def __init__(self, environ, view, urlargs = None):
         self.environ = environ
         self.view = view
-        self.urlargs = urlargs
+        self.urlargs = urlargs if urlargs is not None else {}
 
     def for_view_args(self, view, **urlargs):
         if view is not None:
@@ -110,7 +110,10 @@ class Request(UnicodeMixin):
         if self.view is self.DJPCMS.view:
             return self.path
         else:
-            return self.view.get_url(self)
+            try:
+                return self.view.get_url(self)
+            except Http404:
+                return None
         
     @lazyproperty
     def instance(self):
@@ -269,6 +272,19 @@ Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         self.media.add(self.view.media(self))
         return self.view.render(self)
+    
+    @lazyproperty
+    def parent(self):
+        pview = getattr(self.view,'parent_view',None)
+        if pview is None:
+            # Try the parent
+            pview = getattr(self.view.parent,'parent_view',None)
+        if pview is not None:
+            return self.for_view(pview)
+    
+    @lazyproperty
+    def in_navigation(self):
+        return self.view.in_navigation(self)
     
     @property
     def pagination(self):

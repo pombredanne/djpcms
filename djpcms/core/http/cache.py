@@ -7,7 +7,7 @@ class djpcmsinfo(object):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
-    def __init__(self, view, urlargs):
+    def __init__(self, view, urlargs = None):
         self.view = view
         self.urlargs = urlargs if urlargs is not None else {}
         self.page = None

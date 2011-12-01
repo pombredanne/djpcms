@@ -5,7 +5,7 @@ from djpcms.html import box
 class simplediv(DJPwrapper):
     name = 'flat-element'
     description = 'flat element'
-    def wrap(self, djp, cblock, html):
+    def wrap(self, request, cblock, html):
         return '' if not html else '<div class="{0}">\n'.format(self.name)\
                         + html + '\n</div>'
 
@@ -18,13 +18,13 @@ class PannelWrapper(simplediv):
 class FlatBox(simplediv):
     name = 'flat-box'
     
-    def wrap(self, djp, cblock, html):
+    def wrap(self, request, cblock, html):
         if html:
             title = cblock.title
             bd = '<div class="bd">\n' + html + '\n</div>'
             if title:
                 bd = '<div class="hd">\n<h2>' + title + '</h2>\n</div>\n' + bd
-            return super(FlatBox,self).wrap(djp,cblock,bd)
+            return super(FlatBox,self).wrap(request,cblock,bd)
         else:
             return ''
         
@@ -32,11 +32,11 @@ class FlatBox(simplediv):
 class ListWithTitle(simplediv):
     name = 'title-list'
     
-    def wrap(self, djp, cblock, html):
+    def wrap(self, request, cblock, html):
         if html and cblock.title:
             html = '<div class="hd ui-widget-header"><h2>{0}</h2></div>{1}'\
                             .format(cblock.title,html)
-        return super(ListWithTitle,self).wrap(djp,cblock,html)
+        return super(ListWithTitle,self).wrap(request,cblock,html)
     
     
 class BoxWrapper(DJPwrapper):
@@ -47,16 +47,16 @@ class BoxWrapper(DJPwrapper):
     body_classes = 'ui-widget-content'
     footer_classes = 'ui-widget-content'
     
-    def wrap(self, djp, cblock, html):
+    def wrap(self, request, cblock, html):
         if html:
-            cn,deleteurl = self._wrap(djp, cblock, html)
+            cn,deleteurl = self._wrap(request, cblock, html)
             return box(id = self.id(cblock),
                        hd = self.title(cblock),
                        bd = html,
                        header_classes = self.header_classes,
                        body_classes = self.body_classes,
                        footer_classes = self.footer_classes,
-                       ft = self.footer(djp,cblock,html),
+                       ft = self.footer(request,cblock,html),
                        collapsable = self.collapsable,
                        collapsed = self.collapsed,
                        delurl = deleteurl,
@@ -70,10 +70,10 @@ class BoxWrapper(DJPwrapper):
     def id(self, cblock):
         return None
     
-    def _wrap(self, djp, cblock, html):
+    def _wrap(self, request, cblock, html):
         return None,None
     
-    def footer(self, djp, cblock, html):
+    def footer(self, request, cblock, html):
         return ''
         
         

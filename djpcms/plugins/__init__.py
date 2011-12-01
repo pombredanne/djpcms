@@ -15,7 +15,8 @@ CLOSE_DIV = '\n</div>'
 
 def ordered_generator(di):
     def _(*args):
-        return ((c.name,c.description) for c in sorted(di.values(), key=lambda x: x.description))
+        return ((c.name,c.description) for c in sorted(di.values(),\
+                                 key=lambda x: x.description))
     return _
 
 
@@ -98,7 +99,7 @@ This function should be implemented by derived classes.
         global _wrapper_dictionary
         _wrapper_dictionary[self.name] = self
         
-    def media(self):
+    def media(self, request):
         return None
 
 
@@ -206,7 +207,7 @@ If your plugin needs input parameters when editing, simple set the
             return self.name == other.name
         return False
     
-    def media(self):
+    def media(self, request):
         return None
     
 
@@ -263,8 +264,8 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         else:
             return ''
     
-    def media(self):
-        return self.app.media()
+    def media(self, request):
+        return self.app.media(request)
     
 
 class JavascriptLogger(DJPplugin):

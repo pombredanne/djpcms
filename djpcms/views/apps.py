@@ -260,6 +260,8 @@ overwritten to customize its behavior.
         # Set the model first
         self.model = model
         self.mapper = None if not self.model else mapper(self.model)
+        self.instance_key = '__{0}__instance__'.format(self.mapper)\
+                                         if self.mapper else ''
         self.root_view = None
         self.instance_view = None
         self.views = OrderedDict()
@@ -384,18 +386,17 @@ overwritten to customize its behavior.
                                                     self.url_bits_mapping))
         return tuple(self)
     
-    def get_form(self, djp, form_class, addinputs = True, instance  = None,
+    def get_form(self, request, form_class, addinputs = True, instance  = None,
                  **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
-:parameter djp: instance of :class:`DjpResponse`.
 :parameter form_class: form class to use.
 :parameter addinputs: boolean flag indicating if submit inputs should be added.
                     
                       Default ``True``.
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False``
                      no instance will be passed to the form constructor.
-                     If ``None`` the instance will be obtained from '`djp``.
+                     If ``None`` the instance will be obtained from '`request``.
                      
                      Default ``None``.
 '''
@@ -405,7 +406,7 @@ overwritten to customize its behavior.
             raise ValueError('Form class not defined for view "{0}" in\
  application "{1}" @ "{2}".\
  Make sure to pass a class form to the view or application constructor.'\
-                    .format(djp.view,self.__class__.__name__,self))
+                    .format(request.view,self.__class__.__name__,self))
         elif isinstance(form_class,forms.FormType):
             form_class = forms.HtmlForm(form_class)
         
@@ -413,21 +414,17 @@ overwritten to customize its behavior.
         if instance == False:
             instance = None
         else:
-            instance = instance or djp.instance
+            instance = instance or request.instance
             
         model = instance.__class__ if instance else self.model
-        return get_form(djp,
+        return get_form(request,
                         form_class,
                         instance = instance,
                         addinputs=addinputs,
                         model=model,
                         **kwargs)
-
-    def get_label_for_field(self, name):
-        '''Fallback function for retriving a label for a given field name.'''
-        raise AttributeError("Attribute %s not available" % name)
     
-    def table_generator(self, djp, headers, qs):
+    def table_generator(self, request, headers, qs):
         '''Return an generator from an iterable to be used
 to render a table.'''
         return qs
@@ -435,17 +432,13 @@ to render a table.'''
     def addurl(self, request, name = 'add'):
         return None
     
-    def basequery(self, djp, **kwargs):
+    def basequery(self, request, **kwargs):
         '''The base query for the application.'''
         if self.mapper:
-            user = self.for_user(djp)
-            if user:
-                qs = self.mapper.filter(user = user)
-            else:
-                qs = self.mapper.all()
+            qs = self.mapper.all()
             related_field = self.related_field
             if related_field:
-                parent = djp.parent
+                parent = request.parent
                 if parent:
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
@@ -455,19 +448,14 @@ to render a table.'''
                 qs = qs.sort_by(self.pagination.ordering)
             return qs
         else:
-            return djp.auth_children()  
+            return request.auth_children()  
     
-    def render_query(self, djp, query):
+    def render_query(self, request, query):
         '''Render a *query* as a table or a list of items.
 
 :param query: an iterable over items.
 '''
-        return paginationResponse(djp, query)
-            
-    def for_user(self, djp):
-        if self.parent:
-            djp = self.tree[self.parent.path].djp(djp.request,**djp.kwargs)
-            return djp.for_user()
+        return paginationResponse(request, query)
         
     def gen_autocomplete(self, qs, maxRows = None):
         '''generator of 3-elements tuples for autocomplete responses.
@@ -481,15 +469,13 @@ to render a table.'''
             l = str(q)
             yield l,l,q.id
             
-    def delete_all(self, djp):
+    def delete_all(self, request):
         '''Remove all model instances from database.'''
         self.mapper.delete_all()
         
-    def table_column_groups(self, djp):
+    def table_column_groups(self, request):
         '''A hook for returning group of table headers before sending
 data to the client.
-
-:parameter djp: instance of :class:`DjpResponse`.
 
 :rtype: an iterable over two dimensional tuples::
 
@@ -516,13 +502,17 @@ data to the client.
     
     def get_instance(self, request):
         '''Retrive an instance of self.model from request.'''
-        if '__instance__' in request.urlargs:
-            return request.urlargs['__instance__']
+        if self.instance_key in request.urlargs:
+            return request.urlargs[self.instance_key]
         query = {}
-        for name,val in self.urlbits(data = request.urlargs):
-            if isinstance(val,self.model):
-                return val
-            query[name] = val
+        # get name and values from urldata
+        try:
+            for name,val in self.urlbits(data = request.urlargs):
+                if isinstance(val,self.model):
+                    return val
+                query[name] = val
+        except KeyError:
+            return
             
         try:
             return self.mapper.get(**query)
@@ -536,11 +526,12 @@ data to the client.
             except:
                 pass
             
-    def render_object(self, djp, instance = None, context = None, cn = None):
+    def render_object(self, request, instance = None,
+                      context = None, cn = None):
         '''Render an object in its object page.
         This is usually called in the view page of the object.
         '''
-        instance = instance or djp.instance
+        instance = instance or request.instance
         maker = self.object_widgets.get(context,None)
         if not maker:
             maker = self.object_widgets.get('home',None)
@@ -550,7 +541,7 @@ data to the client.
                                 cn = cn)\
                                 .addClass(self.mapper.class_name(instance))\
                                 .addClass(self.mapper.unique_id(instance))\
-                                .render(djp)
+                                .render(request)
         else:
             return ''
     
@@ -588,18 +579,17 @@ This function should not be overitten. Overwrite `_objectbits` instead.'''
     
     def urlbits(self, obj = None, data = None):
         '''generator of key,value pair for urls construction'''
+        # loop over the url bits for the instance
         for name in self.model_url_bits:
-            attrname = self.url_bits_mapping[name]
-            if obj:
-                yield name,getattr(obj,attrname)
-            else:
-                yield attrname,data[name]
+            attrname = self.url_bits_mapping.get(name)
+            if attrname:
+                if obj:
+                    yield name,getattr(obj,attrname)
+                else:
+                    yield attrname,data[name]
 
     #TODO
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
-    
-    def modelsearch(self):
-        return self.model
     
     def object_from_form(self, form, commit = True):
         '''Save form and return an instance pof self.model'''

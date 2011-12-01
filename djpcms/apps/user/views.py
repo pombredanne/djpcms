@@ -13,7 +13,7 @@ class LogoutView(views.ModelView):
     def __call__(self, request):
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
-        backend = djp.site.permissions.backend
+        backend = request.view.permissions.backend
         if backend:
             backend.logout(request.environ)
             return http.ResponseRedirect(url)
@@ -31,18 +31,19 @@ class LoginView(views.ModelView):
     default_title = 'Sign in'
     template_name = 'login.html'
     
-    def preprocess(self, djp):
-        if djp.request.user.is_authenticated():
+    def __call__(self, request):
+        if request.user.is_authenticated():
             return http.ResponseRedirect('/')
+        return super(LoginView,self).__call__(request)
         
-    def render(self, djp):
-        if djp.request.user.is_authenticated():
+    def render(self, request):
+        if request.user.is_authenticated():
             return ''
         else:
-            return self.get_form(djp).render(djp)
+            return self.get_form(request).render(request)
     
-    def default_post(self, djp):
-        return saveform(djp, force_redirect = self.force_redirect)
+    def default_post(self, request):
+        return saveform(request, force_redirect = self.force_redirect)
     
     def success_message(self, instance, mch):
         return ''
@@ -53,12 +54,12 @@ class LoginView(views.ModelView):
 
 class UserView(views.ViewView):
     
-    def title(self, djp):
-        return djp.instance.username
+    def title(self, request):
+        return request.instance.username
             
             
 class UserDataView(UserView):
     
-    def render(self, djp):
+    def render(self, request):
         return ''
     

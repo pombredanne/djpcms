@@ -5,16 +5,19 @@ from djpcms import ajax, DELETE
 from djpcms.html import Widget
 
 
-__all__ = ['application_action','application_views',
-           'application_links','table_toolbox',
+__all__ = ['application_action',
+           'application_views',
+           'application_links',
+           'table_toolbox',
            'instance_link',
-           'paginationResponse','bulk_delete']
+           'paginationResponse',
+           'bulk_delete']
 
 
 application_action = namedtuple('application_action',
                                 'view display permission')
-table_menu_link = namedtuple('table_menu_link',
-                             'view display title permission icon method ajax')
+menu_link = namedtuple('menu_link',
+                       'view display title permission icon method ajax')
 
 
 bulk_delete = application_action('bulk_delete','delete',DELETE)
@@ -53,8 +56,9 @@ an :class:`Application` instance.
 '''
     appmodel = request.view.appmodel
     exclude = exclude if exclude is not None else appmodel.exclude_links
-    kwargs  = request.urlargs.copy()
-    kwargs['instance'] = instance
+    urlargs = request.urlargs.copy()
+    if appmodel.model and isinstance(instance,appmodel.model):
+        urlargs[appmodel.instance_key] = instance
     
     if not include:
         include = appmodel.views
@@ -64,6 +68,8 @@ an :class:`Application` instance.
             continue
         if not isinstance(elem,application_action):
             view = appmodel.views.get(elem)
+            if hasattr(view,'root_view'):
+                view = view.root_view
             if not view or view is request.view:
                 continue
             if instance:
@@ -72,28 +78,28 @@ an :class:`Application` instance.
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            dview = request.for_view_args(view, **kwargs)
+            dview = request.for_view_args(view, **urlargs)
             url = dview.url
             if not url or not dview.has_permission():
                 continue
             # The special view class
             #display = nicename(view.name)
-            elem = table_menu_link(dview,
-                                   dview.linkname,
-                                   dview.title,
-                                   view.PERM,
-                                   view.ICON,
-                                   view.DEFAULT_METHOD,
-                                   ajax_enabled)
+            elem = menu_link(dview,
+                             dview.linkname,
+                             dview.title,
+                             view.PERM,
+                             view.ICON,
+                             view.DEFAULT_METHOD,
+                             ajax_enabled)
         else:
             view = appmodel.views.get(elem.view,None)
             if not view:
                 if not hasattr(appmodel,'ajax__{0}'.format(elem.view)):
                     continue
-                dview = djp
+                dview = request
             else:
-                dview = view(request, **kwargs)
-            url = djp.url
+                dview = request.for_view_args(view, **urlargs)
+            url = request.url
         
         elem = elem._asdict()
         elem['url'] = url
@@ -102,7 +108,7 @@ an :class:`Application` instance.
 
 def views_serializable(views):
     for elem in views:
-        elem['view'] = elem['view'].name
+        elem['view'] = elem['view'].view.name
         yield elem
         
         
@@ -248,14 +254,14 @@ def paginationResponse(request, query):
     pag,body = pagination.paginate(query, start, per_page, withbody = needbody)
     
     if body is not None and pagination.astable:
-        body = appmodel.table_generator(djp, toolbox['headers'], body)
+        body = appmodel.table_generator(request, toolbox['headers'], body)
         
     if render:
         return pagination.widget(body, pagination = pag,
                                  ajax = ajax, toolbox = toolbox,
-                                 appmodel = appmodel).render(djp)
+                                 appmodel = appmodel).render(request)
     else:
-        return pagination.ajaxresponse(djp, body, pagination = pag,
+        return pagination.ajaxresponse(request, body, pagination = pag,
                                        ajax = ajax, toolbox = toolbox,
                                        appmodel = appmodel)
     

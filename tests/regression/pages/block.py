@@ -1,7 +1,6 @@
 '''Blocks in pages'''
-from djpcms.apps import vanilla
+import djpcms
 from djpcms.utils import test
-from djpcms import PathException, Http404
 
 
 @test.skipUnless(test.djpapps,"Requires djpapps installed")

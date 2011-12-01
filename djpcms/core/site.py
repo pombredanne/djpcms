@@ -107,7 +107,7 @@ def add_default_handlers(site):
             internals[key] = value
         
         
-class Site(ResolverMixin):
+class Site(ResolverMixin,html.Renderer):
     '''A :class:`ResolverMixin` holding other :class:`Site` instances
 and :class:`djpcms.views.Application` instances::
 

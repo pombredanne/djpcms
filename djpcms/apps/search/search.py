@@ -92,12 +92,13 @@ class Application(views.Application):
             raise ImproperlyConfigured('Search engine not available')
         super(Application,self).__init__(*args,**kwargs)
 
-    def registration_done(self):
+    def on_bound(self):
         '''Set the search engine application in the site.'''
-        self.site._search_engine = self
-        root = self.site.root
-        if not root._search_engine and self.forallsites:
-            root._search_engine = self
+        if self.forallsites:
+            site = self.root
+        else:
+            site = self.site
+        site.internals['search_engine'] = self
 
     def search_url(self, model):
         if model:

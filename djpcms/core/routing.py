@@ -263,7 +263,7 @@ class BaseConverter(object):
         return value
 
     def to_url(self, value):
-        return urlquote(value)
+        return urlquote(str(value))
 
 
 class UnicodeConverter(BaseConverter):

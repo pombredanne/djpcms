@@ -240,28 +240,27 @@ views::
     def media(self, request):
         return self.appmodel.media(request)
     
-    def in_navigation(self, request, page):
-        if self.appmodel.in_nav:
+    def in_navigation(self, request):
+        if self.in_nav:
+            page = request.page
             if page:
+                return page.in_nav
                 if self.regex.names and page.url != self.path:
                     return 0
                 else:
                     return page.in_navigation
-            else:
-                return self.in_nav
-        else:
-            return 0
+        return self.in_nav
     
     def isroot(self):
         '''True if this application view represents the root
  view of the application.'''
         return self.appmodel.root_view is self
     
-    def get_form(self, djp, form = None, **kwargs):
-        return self.appmodel.get_form(djp, form or self.form, **kwargs)
+    def get_form(self, request, form = None, **kwargs):
+        return self.appmodel.get_form(request, form or self.form, **kwargs)
         
-    def is_soft(self, djp):
-        page = djp.page
+    def is_soft(self, request):
+        page = request.page
         return False if not page else page.soft_root       
         
     def has_permission(self, request = None, page = None, obj = None,
@@ -271,36 +270,31 @@ views::
         else:
             return False
     
-    def appquery(self, djp):
+    def appquery(self, request):
         '''This function implements the query, based on url entries.
 By default it calls the :func:`Application.basequery`
 function.'''
-        return self.appmodel.basequery(djp)
+        return self.appmodel.basequery(request)
     
-    def table_generator(self, djp, qs):
+    def table_generator(self, request, qs):
         '''Generator of a table view. This function is invoked by
 :meth:`View.render_query` for a table layout.'''
-        return self.appmodel.table_generator(djp, qs)
-    
-    def data_generator(self, djp, qs):
-        return self.appmodel.data_generator(djp, qs)
+        return self.appmodel.table_generator(request, qs)
             
-    def for_user(self, djp):
-        return self.appmodel.for_user(djp)
+    def for_user(self, request):
+        return self.appmodel.for_user(request)
     
-    def warning_message(self, djp):
+    def warning_message(self, request):
         return None
     
-    def save(self, djp, f, commit = True):
+    def save(self, request, f, commit = True):
         return f.save(commit = commit)
     
-    def save_as_new(self, djp, f, commit = True):
+    def save_as_new(self, request, f, commit = True):
         return f.save_as_new(commit = commit)
     
     def children(self, request):
-        '''return a generator over children responses. It uses the
-:func:`djpcms.node` to retrive the node in the sitemap and
-consequently its children.'''
+        '''return a generator over children responses.'''
         for view in self.appmodel:
             if view.parent_view == self:
                 if not isinstance(view,View):
@@ -344,41 +338,40 @@ There are three additional parameters that can be set:
     in_nav = 1
     search_text = 'q'
     
-    def appquery(self, djp):
+    def appquery(self, request):
         '''This function implements the search query.
 The query is build using the search fields specifies in
 :attr:`ModelApplication.search_fields`.
 It returns a queryset.
         '''
-        qs = super(SearchView,self).appquery(djp)
-        request = djp.request
+        qs = super(SearchView,self).appquery(request)
         search_string = request.REQUEST.get(self.search_text,None)
         if search_string:
             qs = qs.search(search_string)
         return qs
     
-    def render(self, djp):
+    def render(self, request):
         '''Perform the custom query over the model objects and return a
 paginated result. By default it delegates the
 renderint to the :meth:`Application.render_query` method.
         '''
-        return ContextRenderer(djp,
-                               context = {'qs':self.appquery(djp)},
+        return ContextRenderer(request,
+                               context = {'qs':self.appquery(request)},
                                renderer = self.appmodel.render_query)
             
-    def ajax__autocomplete(self, djp):
+    def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
-        qs = self.appquery(djp)
+        qs = self.appquery(request)
         if fields:
             qs = qs.load_only(*fields)
-        params = djp.request.REQUEST
+        params = request.REQUEST
         maxRows = params.get('maxRows')
         auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
         return ajax.CustomHeaderBody('autocomplete',auto_list)
     
-    def ajax_get_response(self, djp):
-        query = self.appquery(djp)
-        return paginationResponse(djp,query)
+    def ajax_get_response(self, request):
+        query = self.appquery(request)
+        return paginationResponse(request,query)
     ajax_post_response = ajax_get_response
     
 
@@ -394,11 +387,11 @@ and handles the saving as default ``POST`` response.'''
     in_nav = 1
     ajax_enabled = False
     
-    def render(self, djp):
-        return self.get_form(djp).render(djp)
+    def render(self, request):
+        return self.get_form(request).render(request)
     
-    def default_post(self, djp):
-        return saveform(djp, force_redirect = self.force_redirect)
+    def default_post(self, request):
+        return saveform(request, force_redirect = self.force_redirect)
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         return model_defaultredirect(self, request, next = next,
@@ -417,10 +410,10 @@ in a model. Quite drastic.'''
     ajax_enabled = True
     _methods = ('post',)
     
-    def default_post(self, djp):
-        self.appmodel.delete_all(djp)
-        url = self.appmodel.root_view(djp).url
-        if djp.request.is_xhr:
+    def default_post(self, request):
+        self.appmodel.delete_all(request)
+        url = request.for_view(self.appmodel.root_view).url
+        if request.is_xhr:
             return ajax.jredirect(url)
         else:
             return http.ResponseRedirect(url)
@@ -434,19 +427,15 @@ generate the full url.'''
     
     def get_url(self, request):
         urlargs = request.urlargs
-        has_instance = 'instance' in urlargs
-        instance = urlargs.pop('instance',None)
-            
-        if not isinstance(instance,self.model):
-            instance = self.appmodel.mapper(
-                            self.appmodel.get_object(djp.request, **kwargs))
-                
+        appmodel = self.appmodel
+        instance = appmodel.get_instance(request)
+        
         if instance:
-            urlargs['instance'] = instance
-            urlargs.update(self.appmodel.objectbits(instance))  
+            urlargs[appmodel.instance_key] = instance
+            urlargs.update(appmodel.objectbits(instance))  
         else:
-            raise http.Http404('Could not retrieve "{0}" instance\
- from url arguments: {1}'.format(self.model,djp.kwargs))
+            raise djpcms.Http404('Could not retrieve "{0}" instance\
+ from url arguments: {1}'.format(self.model,urlargs))
         
         return super(ObjectView,self).get_url(request)
 
@@ -463,13 +452,13 @@ an object.'''
     default_link = '{0[instance]}'
     
     @async_instance
-    def render(self, djp):
+    def render(self, request):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
 By default it calls the :meth:`ModelApplication.render_object`
 method of the :attr:`View.appmodel` attribute.
         '''
-        return self.appmodel.render_object(djp)
+        return self.appmodel.render_object(request)
     
     def sitemapchildren(self):
         return self.appmodel.sitemapchildren(self)
@@ -495,22 +484,22 @@ class DeleteView(ObjectView):
         return self.appmodel.remove_object(instance)
     
     @async_instance
-    def default_post(self, djp):
-        return deleteinstance(djp, force_redirect = self.force_redirect)
+    def default_post(self, request):
+        return deleteinstance(request, force_redirect = self.force_redirect)
     
     @async_instance
-    def warning_message(self, djp):
+    def warning_message(self, request):
         return {'title':'Deleting',
                 'body':'<p>Once you have deleted <b>{0}</b>,\
  there is no going back.</p>\
- <p>Are you really sure? If so press OK.</p>'.format(djp.instance)}
+ <p>Are you really sure? If so press OK.</p>'.format(request.instance)}
     
-    def nextviewurl(self, djp):
-        view = djp.view
+    def nextviewurl(self, request):
+        view = request.view
         if view.object_view and getattr(view,'model',None) == self.model:
-            return self.appmodel.root_view(djp).url
+            return request.for_view(self.appmodel.root_view).url
         else: 
-            return djp.url
+            return request.url
     
     
 class ObjectActionView(ObjectView):
@@ -519,12 +508,12 @@ on an instance of a model.'''
     parent_view = 'view'
         
     @async_instance
-    def render(self, djp):
-        return self.get_form(djp).render(djp)
+    def render(self, request):
+        return self.get_form(request).render(request)
     
     @async_instance
-    def default_post(self, djp):
-        return saveform(djp, force_redirect = self.force_redirect)  
+    def default_post(self, request):
+        return saveform(request, force_redirect = self.force_redirect)  
       
 
 # Edit/Change an object

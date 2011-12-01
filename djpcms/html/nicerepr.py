@@ -92,7 +92,7 @@ several possibilities in the following order.
     return nicerepr(val,**kwargs)
             
             
-def results_for_item(djp, headers, result, appmodel = None, 
+def results_for_item(request, headers, result, appmodel = None, 
                      actions = None, **kwargs):
     '''Return an iterable over values in result given by attributes in headers.
     
@@ -109,7 +109,6 @@ def results_for_item(djp, headers, result, appmodel = None,
             getr = get_iterable_result(result)
         else:
             getr = get_result()
-    request = djp.request if djp else None
     return {'id': id,
             'display': (getr(request,head,result,appmodel,**kwargs)\
                         for head in headers)}

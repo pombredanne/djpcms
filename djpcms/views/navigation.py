@@ -1,53 +1,42 @@
 '''Utility module for creating a navigations and breadcrumbs
 '''
 import djpcms
-from djpcms.html import Widget
-from djpcms.utils.const import *
+from djpcms.html import Widget, ListWidget
 from djpcms.utils import mark_safe
     
 
-class LazyHtml(djpcms.UnicodeMixin):
-    '''A lazy view counter used to build navigations type iterators
-    '''
-    def __new__(cls, request, **kwargs):
-        obj = super(LazyHtml, cls).__new__(cls)
-        obj.request = request
-        obj.classes = kwargs.pop('classes',None)
-        obj.kwargs = kwargs
-        return obj
-    
-    def __unicode__(self):
-        if not hasattr(self,'_html'):
-            self._html = mark_safe(self.render())
-        return self._html
-    
-    def render(self):
-        raise NotImplemented
-    
+__all__ = ['Navigator','Breadcrumbs']
 
-class Navigator(LazyHtml):
-    '''A navigator for the web site
-    '''
-    def __init__(self, *args, **kwargs):
-        self.soft    = self.kwargs.pop('soft',False)
-        self.url     = self.kwargs.pop('url','')
-        self.name    = self.kwargs.pop('name','')
-        self.levels  = self.kwargs.pop('levels',2)
-        self.mylevel = self.kwargs.pop('mylevel',0)
-        self.liclass = self.kwargs.pop('liclass',None)
+
+class Navigator(object):
     
-    def make_item(self, request, classes):
-        return Navigator(request,
-                         levels = self.levels,
-                         mylevel = self.mylevel+1,
-                         liclass = classes,
-                         url  = request.url,
-                         name = request.linkname,
-                         soft = self.soft,
-                         **self.kwargs)
+    def __init__(self, soft = False, levels = 2, secondary_after = 100):
+        self.soft = soft
+        self.levels = max(levels,1)
+        self.secondary_after = secondary_after
+        self.left =  Widget('ul', cn = 'nav')
+        self.right = Widget('ul', cn = 'nav secondary-nav')
+    
+    def render(self, request):
+        w = Widget('div', cn = 'topbar container')
+        urlselects = []
+        request = self.buildselects(request,urlselects)
+        for li,secondary in navstream(request,
+                                      urlselects,
+                                      self.secondary_after,
+                                      self.levels-1):
+            if secondary:
+                self.right.add(li)
+            else:
+                self.left.add(li)
+        if self.left:
+            w.add(self.left)
+        if self.right:
+            w.add(self.right)
+        return w.render(request)
     
     def buildselects(self, request, urlselects):
-        if self.soft and request.is_soft():
+        if self.soft and request.view.is_soft(request):
             return request
         parent = request.parent
         if parent:
@@ -60,55 +49,45 @@ class Navigator(LazyHtml):
             return self.buildselects(parent, urlselects)
         return request
     
-    def items(self, urlselects = None, secondary_after = 100, **kwargs):
-        request = self.request
-        css = request.view.settings.HTML
-        
-        if urlselects is None:
-            urlselects = []
-            request = self.buildselects(request,urlselects)
-            self.kwargs['urlselects'] = urlselects
-        scn = css.get('secondary_in_list')
-        link_active = css.get('link_active')
-        link_default = css.get('link_default')
-        for request,nav in sorted(((c,c.in_navigation)\
-                    for c in request.auth_children()), key = lambda x : x[1]):
-            if not nav:
-                continue
-            url = request.url
-            classes = []
-            if nav > secondary_after:
-                classes.append(scn)
-            if url in urlselects and link_active:
-                classes.append(link_active)
-            elif link_default:
-                classes.append(link_default)
-            yield self.make_item(request, ' '.join(classes))
     
-    def stream(self):
-        lis = '\n'.join((Widget('li').addClass(item.liclass)\
-                                     .render(inner = item) for\
-                                      item in self.items(**self.kwargs)))
-        if self.url:
-            yield '<a href="{0}">{1}</a>'.format(self.url,self.name)
-        if lis:
-            if self.classes:
-                yield '<ul class="{0}">'.format(self.classes)
-            else:
-                yield UL
-            yield lis
-            yield ULEND
-            
-    def render(self):
-        if self.mylevel <= self.levels:
-            return '\n'.join(self.stream())
-        else:
-            return ''
+def navstream(request, urlselects, secondary_after, level):
+    css = request.view.settings.HTML
+    scn = css.get('secondary_in_list')
+    link_active = css.get('link_active')
+    link_default = css.get('link_default')
+    for request,nav in sorted(((c,c.in_navigation)\
+                for c in request.auth_children()), key = lambda x : x[1]):
+        if not nav:
+            continue
+        url = request.url
+        link = Widget('a',request.linkname,href=url)
+        li = Widget('li',link)
+        secondary = secondary_after and nav > secondary_after
+        if url in urlselects and link_active:
+            li.addClass(link_active)
+        elif link_default:
+            li.addClass(link_default)
+        if level:
+            slis = list(navstream(request, urlselects, None, level-1))
+            if slis:
+                ul = Widget('ul')
+                for sli,_ in slis:
+                    ul.add(sli)
+                li.add(ul)
+        yield li,secondary
             
 
-class Breadcrumbs(LazyHtml):
-    '''
-    Breadcrumbs for current page
+class Breadcrumbs(ListWidget):
+    '''Given a url it build a list of previous url elements.
+Each element is a dictionary contaning ``name`` and ``url``. The last element in the list, the
+the current url, won't contain the ``url`` value in the dictionary so that an internal link to
+the same page is not created in the HTML document.
+
+The ``name`` value is calculated in the view method :ref:`topics-views-title`.
+
+Breadcrumbs are available in the context dictionary with key ``breadcrumbs``.
+
+See :ref:`topics-views-context-dictionary`
     '''
     _separator = '<li><span class="breadcrumbs-separator">&rsaquo;</span></li>'
     _inner = "<li class='position{0[position]}'><a href='{0[url]}'\

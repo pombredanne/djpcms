@@ -167,9 +167,11 @@ class ModelItemsList(DJPplugin):
                table_footer = False,
                **kwargs):
         instance = request.instance
-        request = request.root_view_for_model(for_model)
+        request = request.view_for_model(for_model)
         if request is None:
-            return ''     
+            return ''
+        view = request.view
+        appmodel = view.appmodel 
         load_only = ()
         thead = None
         appheads = request.pagination.headers
@@ -190,7 +192,7 @@ class ModelItemsList(DJPplugin):
             if decr:
                 order_by = '-{0}'.format(order_by)
                 
-        qs = request.appquery(instance = instance)
+        qs = view.query(request, instance = instance)
         if text_search:
             qs = qs.search(text_search)
         qs = qs.filter(**dict(attrquery(appheads,query_from_string(filter))))\

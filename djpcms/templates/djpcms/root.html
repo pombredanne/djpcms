@@ -29,9 +29,7 @@
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
-        var options{'media_url': "{{ MEDIA_URL }}",
-                    'debug': {% if debug %}true{% else %}false{% endif %}};
-        $.djpcms.set_options(options);
+        $.djpcms.set_options({{ html_options }});
         $(document).djpcms().trigger('djpcms-loaded');
     });
 }(jQuery));

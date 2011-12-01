@@ -237,6 +237,7 @@ overwritten to customize its behavior.
     authenticated = False
     related_field = None
     autocomplete_fields = None
+    editavailable = True
     object_display = None
     form = None
     exclude_links = ()
@@ -275,7 +276,8 @@ overwritten to customize its behavior.
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.object_views = []
         self.model_url_bits = ()
-        self.editavailable = editavailable
+        self.editavailable = editavailable if editavailable is not None else\
+                                self.editavailable
         self.list_display_links = list_display_links or self.list_display_links
         self.related_field = related_field or self.related_field
         if self.parent_view and not self.related_field:
@@ -432,8 +434,7 @@ to render a table.'''
     def addurl(self, request, name = 'add'):
         return None
     
-    def basequery(self, request, **kwargs):
-        '''The base query for the application.'''
+    def query(self, request, **kwargs):
         if self.mapper:
             qs = self.mapper.all()
             related_field = self.related_field
@@ -500,14 +501,12 @@ data to the client.
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
     
-    def get_instance(self, request):
+    def instance_from_variables(self, urlargs):
         '''Retrive an instance of self.model from request.'''
-        if self.instance_key in request.urlargs:
-            return request.urlargs[self.instance_key]
         query = {}
         # get name and values from urldata
         try:
-            for name,val in self.urlbits(data = request.urlargs):
+            for name,val in self.urlbits(data = urlargs):
                 if isinstance(val,self.model):
                     return val
                 query[name] = val
@@ -526,6 +525,15 @@ data to the client.
             except:
                 pass
             
+    def variables_from_instance(self, instance):
+        bits = {}
+        if isinstance(instance,self.model):
+            if self.appmodel and self.related_field:
+                related = getattr(instance,self.related_field)
+                bits.update(self.appmodel.variables_from_instance(related))
+            bits.update(self.urlbits(instance = instance))
+        return bits
+    
     def render_object(self, request, instance = None,
                       context = None, cn = None):
         '''Render an object in its object page.
@@ -560,112 +568,29 @@ data to the client.
  '''
         return val
     
-    def objectbits(self, obj):
-        '''Get arguments from model instance used to construct url.
-By default it is the object id.
-
-:parameter obj: instance of self.model
-
-It returns dictionary of url bits which are used to uniquely
-identify a model instance.
-This function should not be overitten. Overwrite `_objectbits` instead.'''
-        bits = {}
-        if isinstance(obj,self.model):
-            if self.parent and self.related_field:
-                related = getattr(obj,self.related_field)
-                bits.update(self.parent.appmodel.objectbits(related))
-            bits.update(self.urlbits(obj = obj))
-        return bits
-    
-    def urlbits(self, obj = None, data = None):
+    def urlbits(self, instance = None, data = None):
         '''generator of key,value pair for urls construction'''
         # loop over the url bits for the instance
         for name in self.model_url_bits:
             attrname = self.url_bits_mapping.get(name)
             if attrname:
-                if obj:
-                    yield name,getattr(obj,attrname)
+                if instance:
+                    yield name,getattr(instance,attrname)
                 else:
                     yield attrname,data[name]
 
+    def viewurl(self, request, instance = None, name = None, field_name = None):
+        name = name or 'view'
+        views = list(instance_field_views(request,
+                                         instance,
+                                         field_name = field_name,
+                                         include = (name,)))
+        if views:
+            return views[0]['url']
+        
     #TODO
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
-    
-    def object_from_form(self, form, commit = True):
-        '''Save form and return an instance pof self.model'''
-        return form.save(commit = commit)
-    
-    # APPLICATION URLS
-    #----------------------------------------------------------------
-    def appviewurl(self, request, name, obj = None, objrequired=False):
-        if not name or (objrequired and not isinstance(obj,self.model)):
-            return None
-        view = name
-        if not isinstance(view,View):
-            view = self.getview(name)
-        if view:
-            djp = view(request, instance = obj)
-            if djp.has_permission():
-                return djp.url
-        
-    def addurl(self, request, name = 'add'):
-        return self.appviewurl(request,name,None)
-        
-    def deleteurl(self, request, obj, name = 'delete'):
-        return self.appviewurl(request,name,obj,objrequired=True)
-        
-    def changeurl(self, request, obj, name = 'change'):
-        return self.appviewurl(request,name,obj,objrequired=True)
-    
-    def viewurl(self, request, instance, name = None, field_name = None):
-        '''\
-Evaluate the view urls for an *instance*.
-
-:parameter request: a Http Request class.
-:parameter instance: instance of model (not necessarely self.model)
-:parameter name: Optional name of the view
-:parameter field_name: Optional name of a field.'''
-        if field_name and self.model:
-            value = getattr(instance,field_name,None)
-            if hasattr(value,'_meta') and not isinstance(value,self.model):
-                appmodel = self.site.for_model(value.__class__)
-                if appmodel:
-                    return appmodel.viewurl(request,value)
-        if not name:
-            for view in self.object_views:
-                if isinstance(view,ViewView):
-                    name = view.name
-                    break
-        return self.appviewurl(request,name,instance,objrequired=True)
-    
-    def searchurl(self, request):
-        return self.appviewurl(request,'search')
-        
-    def objurl(self, request, name, obj = None):
-        '''Application view **name** url.'''
-        view = self.getview(name)
-        if not view:
-            return None
-        permission_function = getattr(self,
-                                      'has_%s_permission' % name,
-                                      self.has_permission)
-        try:
-            if permission_function(request,obj):
-                djp = view(request, instance = obj)
-                return djp.url
-            else:
-                return None
-        except:
-            return None
-    
-    def app_for_object(self, obj):
-        try:
-            if self.model == obj.__class__:
-                return self
-        except:
-            pass
-        return self.site.for_model(obj.__class__)
-        
+                
     def remove_object(self, obj):
         id = self.mapper.unique_id(obj)
         obj.delete()

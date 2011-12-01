@@ -57,6 +57,7 @@ def getmodel(appmodel):
             except ValueError:
                 continue
         if not wrapper:
+            return None
             return DummyMapper(model)
             #raise AttributeError('Could not find ORM wrapper for {0}'.format(model))
         else:

@@ -1,7 +1,4 @@
-import operator
-import re
 from copy import copy
-from datetime import datetime
 
 from py2py3 import zip
 
@@ -10,7 +7,6 @@ from djpcms import http, ajax, Route, async_instance
 from djpcms.html import ContextRenderer
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
-from djpcms.utils.urls import iri_to_uri
 
 from .pagination import paginationResponse
 from .baseview import djpcmsview 
@@ -234,9 +230,6 @@ views::
     def _site(self):
         return self.appmodel.site
     
-    def get_url(self, request):
-        return self.route.url(**request.urlargs)
-    
     def media(self, request):
         return self.appmodel.media(request)
     
@@ -244,7 +237,7 @@ views::
         if self.in_nav:
             page = request.page
             if page:
-                return page.in_nav
+                return page.in_navigation
                 if self.regex.names and page.url != self.path:
                     return 0
                 else:
@@ -270,12 +263,6 @@ views::
         else:
             return False
     
-    def appquery(self, request):
-        '''This function implements the query, based on url entries.
-By default it calls the :func:`Application.basequery`
-function.'''
-        return self.appmodel.basequery(request)
-    
     def table_generator(self, request, qs):
         '''Generator of a table view. This function is invoked by
 :meth:`View.render_query` for a table layout.'''
@@ -295,13 +282,25 @@ function.'''
     
     def children(self, request):
         '''return a generator over children responses.'''
-        for view in self.appmodel:
+        appmodel = self.appmodel
+        for view in appmodel:
             if view.parent_view == self:
                 if not isinstance(view,View):
                     if view.root_view:
                         yield view.root_view
                 else:
                     yield view
+        if appmodel.root_view == self and not\
+            appmodel.rel_route.breadcrumbs:
+            parent = appmodel.parent
+            if parent:
+                for handler in parent:
+                    if handler is not appmodel:
+                        try:
+                            view,args = handler.resolve('')
+                            yield view
+                        except:
+                            pass
     
     def __deepcopy__(self, memo):
         return copy(self)
@@ -312,7 +311,7 @@ class GroupView(View):
 It is the equivalent of :class:`SearchView`
 for :class:`Application` without a model.'''
     def render(self, request):
-        qs = self.appquery(request)
+        qs = self.query(request)
         return self.appmodel.render_query(request, qs)
     
     
@@ -336,19 +335,6 @@ There are three additional parameters that can be set:
     '''
     has_plugin = True
     in_nav = 1
-    search_text = 'q'
-    
-    def appquery(self, request):
-        '''This function implements the search query.
-The query is build using the search fields specifies in
-:attr:`ModelApplication.search_fields`.
-It returns a queryset.
-        '''
-        qs = super(SearchView,self).appquery(request)
-        search_string = request.REQUEST.get(self.search_text,None)
-        if search_string:
-            qs = qs.search(search_string)
-        return qs
     
     def render(self, request):
         '''Perform the custom query over the model objects and return a
@@ -356,12 +342,12 @@ paginated result. By default it delegates the
 renderint to the :meth:`Application.render_query` method.
         '''
         return ContextRenderer(request,
-                               context = {'qs':self.appquery(request)},
+                               context = {'qs':self.query(request)},
                                renderer = self.appmodel.render_query)
             
     def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
-        qs = self.appquery(request)
+        qs = self.query(request)
         if fields:
             qs = qs.load_only(*fields)
         params = request.REQUEST
@@ -370,7 +356,7 @@ renderint to the :meth:`Application.render_query` method.
         return ajax.CustomHeaderBody('autocomplete',auto_list)
     
     def ajax_get_response(self, request):
-        query = self.appquery(request)
+        query = self.query(request)
         return paginationResponse(request,query)
     ajax_post_response = ajax_get_response
     
@@ -390,7 +376,7 @@ and handles the saving as default ``POST`` response.'''
     def render(self, request):
         return self.get_form(request).render(request)
     
-    def default_post(self, request):
+    def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -410,7 +396,7 @@ in a model. Quite drastic.'''
     ajax_enabled = True
     _methods = ('post',)
     
-    def default_post(self, request):
+    def post_response(self, request):
         self.appmodel.delete_all(request)
         url = request.for_view(self.appmodel.root_view).url
         if request.is_xhr:
@@ -424,20 +410,6 @@ class ObjectView(ModelView):
 A view of this type has an embedded object available which is used to 
 generate the full url.'''
     object_view = True
-    
-    def get_url(self, request):
-        urlargs = request.urlargs
-        appmodel = self.appmodel
-        instance = appmodel.get_instance(request)
-        
-        if instance:
-            urlargs[appmodel.instance_key] = instance
-            urlargs.update(appmodel.objectbits(instance))  
-        else:
-            raise djpcms.Http404('Could not retrieve "{0}" instance\
- from url arguments: {1}'.format(self.model,urlargs))
-        
-        return super(ObjectView,self).get_url(request)
 
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         return model_defaultredirect(self, request, next = next,
@@ -448,8 +420,8 @@ class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
 an object.'''
     default_route = '/<id>/'
-    default_title = '{0[instance]}'
-    default_link = '{0[instance]}'
+    default_title = '{1}'
+    default_link = '{1}'
     
     @async_instance
     def render(self, request):
@@ -476,7 +448,7 @@ class DeleteView(ObjectView):
     force_redirect = True
     ajax_enabled = True
     link_class = 'minibutton ui-state-error-text'
-    default_title = 'delete {0[instance]}'
+    default_title = 'delete {1}'
     default_link = 'delete'
     _methods      = ('post',)
     
@@ -484,7 +456,7 @@ class DeleteView(ObjectView):
         return self.appmodel.remove_object(instance)
     
     @async_instance
-    def default_post(self, request):
+    def post_response(self, request):
         return deleteinstance(request, force_redirect = self.force_redirect)
     
     @async_instance
@@ -512,7 +484,7 @@ on an instance of a model.'''
         return self.get_form(request).render(request)
     
     @async_instance
-    def default_post(self, request):
+    def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)  
       
 
@@ -523,6 +495,6 @@ an instance of a model.'''
     default_route = '/change'
     PERM = djpcms.CHANGE
     ICON = 'ui-icon-pencil'
-    default_title = 'edit {0[instance]}'
+    default_title = 'edit {1}'
     default_link = 'edit'
     

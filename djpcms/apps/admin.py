@@ -113,7 +113,6 @@ class AdminSite(views.Application):
 administer models in groups.'''
     has_plugins = False
     in_nav = 100
-    query_template = ADMIN_GROUP_TEMPLATE
     pagination = html.Pagination(widget_factory = html.accordion,
                                  ajax = False,
                                  size = None)
@@ -126,7 +125,7 @@ administer models in groups.'''
                    'title':child.title,
                    'url': child.url}
             
-    def basequery(self, request):
+    def query(self, request, **kwargs):
         for g in sorted(self.groups(request), key = lambda x : x['title']):
             url = g['url']
             if url:
@@ -168,12 +167,19 @@ def get_admins(INSTALLED_APPS):
         
       
 class make_admin_urls(object):
-    '''Return a one element tuple containing an
-:class:`djpcms.apps.admin.AdminSite`
-application for displaying the admin site. All application with an ``admin``
-module specifying the admin application will be included.
+    '''Utility class which provide a callable instance for building
+admin urls. A callable instance returns a one element tuple containing an
+:class:`AdminSite` application for displaying the admin site.
+All application with an ``admin`` module specifying the admin
+application will be included.
+
+:parameter INSTALLED_APPS: Iterable over application to install.
+:parameter grouping: Dictionary for grouping together admin for different
+    applications.
+:parameter name: name of application.
 :parameter params: key-value pairs of extra parameters for input in the
-               :class:`djpcms.apps.included.admin.AdminSite` constructor.'''
+    :class:`AdminSite` constructor.
+'''
     def __init__(self, INSTALLED_APPS, grouping = None, name = 'admin',
                  **params):
         self.INSTALLED_APPS = INSTALLED_APPS

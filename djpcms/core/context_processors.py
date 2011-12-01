@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 import logging
 
@@ -41,31 +42,36 @@ def exitlink(request, path):
     return html.Widget('a', href = path, cn = 'exit',
                         title = 'Exit page editing').render(inner = 'exit')
 
-def userlinks(request):
-    userapp = request.for_model(request.view.User)
-    if userapp:
+
+def userlinks(request, asbuttons = False):
+    request = request.view_for_model(request.view.User)
+    if request:
         if request.user.is_authenticated():
-            logout_url =  userapp.appviewurl(request,'logout')
-            self.ul.add(html.Widget('a', 'logout', href = logout_url))
-            if hasattr(userapp,'userhomeurl'):
-                user_url = userapp.userhomeurl(request)
-                a = html.Widget('a', request.user.username, href = user_url)
-                self.ul.add(a)
+            for a in views.application_views_links(request,
+                                        asbuttons = asbuttons,
+                                        include = ('userhome','logout'),
+                                        instance = request.user):
+                yield a
+            pk = request.view.settings.PROFILING_KEY
+            if request.user.is_superuser and pk:
+                if request.view.settings.PROFILING_KEY not in request.REQUEST:
+                    yield html.Widget('a','profile',href='{0}?{1}'\
+                                      .format(request.path,pk))
         else:
-            login_url = userapp.appviewurl(request,'login')
-            if login_url:
-                self.ul.add(html.Widget('a', 'login', href = login_url))
+            for a in views.application_views_links(user_request,
+                                                   asbuttons = asbuttons,
+                                                   include = ('login',)):
+                yield a
                 
                 
 def page_links(request, asbuttons = False):
-    '''Utility for displaying links
-for page editing or creation or exit editing.'''
+    '''Utility for displaying user navigation links.'''
     ul = html.Widget('ul')
     view = request.view
     Page = view.Page
     if Page:
         page = request.page
-        page_request = request.root_view_for_model(Page)
+        page_request = request.view_for_model(Page)
         isediting = False
         if page_request is not None:
             if page_request.view.appmodel == view.appmodel:
@@ -77,15 +83,10 @@ for page editing or creation or exit editing.'''
                                 asbuttons = asbuttons):
                     #path = iri_to_uri(request.path,request.urlargs)
                     ul.add(link)
-                for link in userlinks(request):
-                    ul.add(link)
+                    
+    for link in userlinks(request, asbuttons):
+        ul.add(link)
             
-    pk = view.settings.PROFILING_KEY
-    if request.user and request.user.is_superuser and pk:
-        if view.settings.PROFILING_KEY not in request.REQUEST:
-            a = html.Widget('a','profile',href='{0}?{1}'\
-                    .format(request.path,pk))
-            ul.add(a)
     return ul
                 
                 
@@ -108,6 +109,10 @@ def djpcms(request):
         plink = html.Widget(data_stream = (grid.empty,))
     user = request.user
     debug = settings.DEBUG
+    html_options = settings.HTML.copy()
+    html_options.update({'debug':debug,
+                         'media_url': settings.MEDIA_URL})
+            
     ctx = {'pagelink':plink,
            'base_template': base_template,
            'htmldoc': html.htmldoc(None if not page else page.doctype),
@@ -119,6 +124,7 @@ def djpcms(request):
            'now': datetime.now(),
            'settings': settings,
            'MEDIA_URL': settings.MEDIA_URL,
+           'html_options': json.dumps(html_options),
            'media': request.media,
            'grid': grid}
     return ctx
@@ -139,3 +145,20 @@ def messages(request):
             lmsg.append(msg.render())
     return {'messages': lmsg}
 
+
+def navigator(request):
+    settings = request.view.settings
+    cn = settings.HTML.get('main_nav')
+    sitenav = views.Navigator(request,
+                       right = page_links(request),
+                       levels = settings.SITE_NAVIGATION_LEVELS)
+    return {'sitenav': html.LazyHtml(request,sitenav)}
+    
+    
+def breadcrumbs(request):
+    if settings.ENABLE_BREADCRUMBS:
+        b = Breadcrumbs(request, min_length = settings.ENABLE_BREADCRUMBS)
+        return {'breadcrumbs': html.LazyHtml(request,b)}
+    else:
+        return {}
+    

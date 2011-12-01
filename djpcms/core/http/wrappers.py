@@ -5,7 +5,8 @@ import time
 from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
-from py2py3 import itervalues, ispy3k, to_bytestring, is_string, UnicodeMixin
+from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
+                         is_string, UnicodeMixin
 
 from djpcms.utils import lazyproperty, lazymethod
 from djpcms.utils.structures import MultiValueDict
@@ -33,23 +34,62 @@ UNKNOWN_STATUS_CODE = ('UNKNOWN STATUS CODE','')
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
+class noinstance:
+    pass
+
+
 class Request(UnicodeMixin):
-    '''WSGI Request class'''
+    '''A lightweight class which wraps the WSGI_ request environment, the
+:class:`djpcms.views.djpcmsview` serving the request and the request
+arguments.
+ 
+.. attribute:: environ
+
+    The WSGI environment dictionary
+     
+.. attribute:: view
+
+    The request handler
+    
+.. attribute:: urlargs
+
+    Dictionary of arguments from the variable part of the :attr:`view`
+    route attribute (check :class:`djpcms.Route` for more information).
+    
+.. attribute:: instance
+
+    For some views, the variable part of the urls is used to retrieve an
+    instance of a :class:`djpcms.viewsApplication.model`.
+    in this case this attribute is that instance, otherwise it is ``None``.
+    
+.. _WSGI: http://www.wsgi.org/en/latest/index.html
+'''
     _encoding = None
     upload_handlers = []
     
-    def __init__(self, environ, view, urlargs = None):
+    def __init__(self, environ, view, urlargs = None, instance = None):
         self.environ = environ
         self.view = view
         self.urlargs = urlargs if urlargs is not None else {}
+        self.__instance = instance
 
-    def for_view_args(self, view, **urlargs):
+    def for_view_args(self, view = None, urlargs = None, instance = None):
         if view is not None:
-            return Request(self.environ, view, urlargs)
+            return Request(self.environ,
+                           view if view is not None else self.view,
+                           urlargs,
+                           instance)
     
     def for_view(self, view):
         if view is not None:
-            return Request(self.environ, view, self.urlargs.copy())
+            return Request(self.environ,
+                           view,
+                           self.urlargs.copy(),
+                           self.__instance)
+    
+    def for_path(self):
+        info = self.DJPCMS
+        return Request(info.view,info.urlargs)
     
     def __unicode__(self):
         return self.path + ' - ' + self.view.route.rule
@@ -71,6 +111,37 @@ class Request(UnicodeMixin):
     def is_xhr(self):
         return self.environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     
+    @property    
+    def REQUEST(self):
+        if 'REQUEST' not in self.cache:
+            res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
+            for k,gl in self.GET.lists():
+                if k in res:
+                    res.getlist(k).extend(gl)
+                else:
+                    res.setlist(k,gl[:])
+            self.cache['REQUEST'] = res
+        return self.cache['REQUEST']
+
+    @property
+    def GET(self):
+        if 'GET' not in self.cache:
+            self.cache['GET'] = QueryDict(self.environ.get('QUERY_STRING', ''),
+                                          encoding=self.encoding)
+        return self.cache['GET']
+
+    @property
+    def POST(self):
+        if 'POST' not in self.cache:
+            self._load_post_and_files()
+        return self.cache['POST']
+
+    @property
+    def FILES(self):
+        if 'FILES' not in self.cache:
+            self._load_post_and_files()
+        return self.cache['FILES']
+    
     @property
     def user(self):
         return self.environ.get('user')
@@ -88,13 +159,25 @@ class Request(UnicodeMixin):
                 self._encoding = 'utf-8'
         return self._encoding
     
+    ############################################################################
+    #    DJPCMS cached helpers
+    ############################################################################
+        
     @property
     def DJPCMS(self):
-        return self.environ.get('DJPCMS')
+        return self.environ['DJPCMS']
+    
+    @property
+    def cache(self):
+        return self.DJPCMS.environ
     
     @property
     def media(self):
         return self.DJPCMS.media
+    
+    @property
+    def name(self):
+        return self.view.name
     
     @lazyproperty
     def page(self):
@@ -111,13 +194,27 @@ class Request(UnicodeMixin):
             return self.path
         else:
             try:
-                return self.view.get_url(self)
+                return self.view.get_url(self.urlargs,
+                                         instance = self.instance)
             except Http404:
                 return None
-        
-    @lazyproperty
+            
+    @property
     def instance(self):
-        return None
+        return self.instance_from_variables()
+        
+    def instance_from_variables(self):
+        if self.__instance is None:
+            if self.urlargs:
+                e = self.view.instance_from_variables(self.urlargs)
+                if e is None:
+                    e = noinstance
+            else:
+                e = noinstance
+            self.__instance = e
+        else:
+            e = self.__instance
+        return None if e is noinstance else e
     
     @lazyproperty    
     def title(self):
@@ -147,38 +244,6 @@ class Request(UnicodeMixin):
         
     def has_permission(self):
         return self.view.has_permission(self, self.page, self.instance)
-    
-    @property    
-    def REQUEST(self):
-        if 'DJPCMS_REQUEST' not in self.environ:
-            res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
-            for k,gl in self.GET.lists():
-                if k in res:
-                    res.getlist(k).extend(gl)
-                else:
-                    res.setlist(k,gl[:])
-            self.environ['DJPCMS_REQUEST'] = res
-        return self.environ['DJPCMS_REQUEST']
-
-    @property
-    def GET(self):
-        if 'DJPCMS_GET' not in self.environ:
-            self.environ['DJPCMS_GET'] =\
-                 QueryDict(self.environ.get('QUERY_STRING', ''),
-                                  encoding=self.encoding)
-        return self.environ['DJPCMS_GET']
-
-    @property
-    def POST(self):
-        if 'DJPCMS_POST' not in self.environ:
-            self._load_post_and_files()
-        return self.environ['DJPCMS_POST']
-
-    @property
-    def FILES(self):
-        if 'DJPCMS_FILES' not in self.environ:
-            self._load_post_and_files()
-        return self.environ['DJPCMS_FILES']
     
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
@@ -216,27 +281,23 @@ class Request(UnicodeMixin):
         elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
             p,f = parse_form_data(self.environ, self.encoding)
         else:
-            p,f = QueryDict(self.raw_post_data(),encoding=self.encoding),\
+            p,f = QueryDict(self._post_data(),encoding=self.encoding),\
                   MultiValueDict()
-        self.environ['DJPCMS_POST'] = p
-        self.environ['DJPCMS_FILES'] = f
+        self.cache['POST'] = p
+        self.cache['FILES'] = f
     
-    def raw_post_data(self):
-        if not hasattr(self, '_raw_post_data'):
-            if self._read_started:
-                raise Exception("You cannot access raw_post_data after reading\
- from request's data stream")
+    def _post_data(self):
+        if '_row_post_data' not in self.cache:
             try:
                 content_length = int(self.environ.get('CONTENT_LENGTH', 0))
             except (ValueError, TypeError):
                 content_length = 0
             if content_length:
-                self._raw_post_data = self._stream.read(content_length)
+                data = self.environ['wsgi.input'].read(content_length)
             else:
-                self._raw_post_data = b''
-            #    self._raw_post_data = self._stream.read()
-            self._stream = BytesIO(self._raw_post_data)
-        return self._raw_post_data
+                data = b''
+            self.cache['_row_post_data'] = data
+        return self.cache['_row_post_data']
     
     def get_full_path(self):
         # RFC 3986 requires query string arguments to be in the ASCII range.
@@ -290,7 +351,14 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     def pagination(self):
         return self.view.pagination or self.view.appmodel.pagination
     
+    def viewurl(self, name = None, instance = None):
+        '''retrieve a view url within this application.'''
+        appmodel = self.view.appmodel
+        if appmodel:
+            return appmodel.viewurl(self, name = name, instance = instance)
+    
     def for_model(self, model, all = False):
+        model = native_str(model)
         if isinstance(model,str):
             apps = self.view.site.for_hash(model, all = all)
         elif model is not None:
@@ -300,10 +368,14 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         if apps:
             return apps[0] if all else apps
         
-    def root_view_for_model(self, model, all = False):
+    def view_for_model(self, model, all = False, name = None):
+        '''return an :class:`Request` instance for a model view.'''
         app = self.for_model(model, all)
         if app:
-            return self.for_view(app.root_view)
+            if name:
+                return self.for_view(app.views.get(name))
+            else:
+                return self.for_view(app.root_view)
      
     
 class Response_(object):

@@ -81,14 +81,25 @@ It looks for the ``media`` directory in each installed application.'''
     return map
 
 
-class StaticRootView(views.View):
+class StaticMapMixin(views.View):
+    
+    @property
+    def media_mapping(self):
+        '''Load application media.'''
+        global _media
+        if _media is None:
+            _media = application_map(self.settings.INSTALLED_APPS)
+        return _media
+    
+
+class StaticRootView(StaticMapMixin):
     '''The root view for static files'''
     def __call__(self, request):
         directory = request.path
         notroot = directory != '/'
         if self.appmodel.show_indexes:
             html = self.template.render(request.template_file,
-                                {'names':sorted(self.appmodel.media_mapping),
+                                {'names':sorted(self.media_mapping),
                                  'files':[],
                                  'directory':directory,
                                  'notroot':notroot})
@@ -98,11 +109,11 @@ class StaticRootView(views.View):
             raise http.Http404()
 
 
-class StaticFileView(views.View):
+class StaticFileView(StaticMapMixin):
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     
     def __call__(self, request):
-        mapping = self.appmodel.media_mapping
+        mapping = self.media_mapping
         paths = request.urlargs['path'].split('/')
         app = paths.pop(0)
         if app in mapping:
@@ -190,31 +201,21 @@ class StaticFileView(views.View):
 
 
 class FavIconView(StaticFileView):
+    default_route = '/favicon.ico'
     
     def __call__(self, request):
         if not request.urlargs:
             settings = self.settings
-            mapping = self.appmodel.media_mapping
+            mapping = self.media_mapping
             name = settings.FAVICON_MODULE or settings.SITE_MODULE
             if name in mapping:
                 hd = mapping[name]
                 fullpath = os.path.join(hd.absolute_path,'favicon.ico')
                 return self.serve_file(request, fullpath)
         raise http.Http404()
-
-
-class StaticBase(views.Application):
-
-    @property
-    def media_mapping(self):
-        '''Load application media.'''
-        global _media
-        if _media is None:
-            _media = application_map(self.settings.INSTALLED_APPS)
-        return _media
     
 
-class Static(StaticBase):
+class Static(views.Application):
     '''A simple application for handling static files.
     This application should be only used during development while
     leaving the task of serving media files to other servers in production.'''
@@ -228,12 +229,4 @@ class Static(StaticBase):
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)
         super(Static,self).__init__(*args,**kwargs)
-
-
-class FavIcon(StaticBase):
-    '''Simply add FavIcon() to your urls to serve the favicon.'''
-    main = FavIconView()
-    
-    def __init__(self, *args, **kwargs):
-        super(FavIcon,self).__init__('/favicon.ico',*args,**kwargs)
 

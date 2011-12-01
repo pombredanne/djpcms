@@ -8,7 +8,7 @@ from .layout import ContentBlockHtmlForm, PLUGIN_DATA_FORM_CLASS,\
                     BlockLayoutFormHtml
 
 
-__all__ = ['ContentSite']
+__all__ = ['ContentApplication']
 
 
 edit_class = 'edit-block ui-state-active'
@@ -28,8 +28,8 @@ editing content.'''
     def __init__(self, url):
         self.url = url
         
-    def __call__(self, djp, cblock, html):
-        return self.wrap(djp, cblock, html)
+    def __call__(self, request, cblock, html):
+        return self.wrap(request, cblock, html)
     
     def title(self, cblock):
         if cblock.plugin:
@@ -40,15 +40,15 @@ editing content.'''
     def id(self, cblock):
         return 'edit-{0}'.format(cblock.htmlid())
     
-    def _wrap(self, djp, cblock, html):
+    def _wrap(self, request, cblock, html):
         if cblock.plugin_name:
             cl = edit_movable
         else:
             cl = edit_class
-        return cl,djp.view.appmodel.deleteurl(djp.request, djp.instance)
+        return cl,request.viewurl('delete', instance = request.instance)
     
-    def footer(self, djp, cblock, html):
-        return djp.view.get_preview(djp, djp.instance, self.url)
+    def footer(self, request, cblock, html):
+        return request.view.get_preview(request, request.instance, self.url)
 
 
 class BlockChangeView(views.ChangeView):
@@ -65,10 +65,10 @@ class ChangeLayoutView(BlockChangeView):
 class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
     '''    
-    def get_preview(self, djp, instance, url, plugin = None):
+    def get_preview(self, request, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
         try:
-            djpview = djp.root.djp(djp.request, url[1:])
+            djpview = request.root.djp(request, url[1:])
             preview_html = instance.render(djpview,
                                            plugin = plugin)
         except Exception as e:
@@ -81,31 +81,31 @@ class ChangeContentView(BlockChangeView):
         else:
             return ''
         
-    def get_plugin_form(self, djp, plugin, prefix):
+    def get_plugin_form(self, request, plugin, prefix):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''
         if plugin:
-            instance = djp.instance
+            instance = request.instance
             args     = None
             if instance.plugin == plugin:
                 args = instance.arguments
-            return plugin.get_form(djp, args, prefix = prefix)
+            return plugin.get_form(request, args, prefix = prefix)
             
     def edit_block(self, request):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
                       html = self.instance.plugin_edit_block(request))
     
-    def ajax__container_type(self, djp):
-        return self.handle_content_block_changes(djp, commit = False)
+    def ajax__container_type(self, request):
+        return self.handle_content_block_changes(request, commit = False)
     
-    def ajax__plugin_name(self, djp):
-        return self.handle_content_block_changes(djp, commit = False)
+    def ajax__plugin_name(self, request):
+        return self.handle_content_block_changes(request, commit = False)
     
-    def default_post(self, djp):
+    def port_response(self, request):
         return self.handle_content_block_changes(djp)
         
     def ajax__edit_content(self, djp):
         pluginview = self.appmodel.getview('plugin')
-        return pluginview.default_post(pluginview(djp.request,
+        return pluginview.port_response(pluginview(djp.request,
                                                   instance = djp.instance))
     
     def render(self, djp, url = None):
@@ -210,8 +210,8 @@ The instance.plugin object is maintained but its fields may change.'''
         
 class DeleteContentView(views.DeleteView):
     
-    def default_post(self, djp):
-        instance = djp.instance
+    def port_response(self, request):
+        instance = request.instance
         block  = instance.block
         jquery = ajax.jcollection()
         blockcontents = self.model.objects.for_page_block(instance.page, block)
@@ -231,14 +231,14 @@ class DeleteContentView(views.DeleteView):
             pos += 1
         jquery.append(jatt)
 
-        if djp.request.is_xhr:
+        if request.is_xhr:
             return jquery
         else:
             refer = sjp.request.environ.get('HTTP_REFERER')
             return self.redirect(refer)
 
 
-class ContentSite(views.Application):
+class ContentApplication(views.Application):
     '''AJAX enabled :class:`djpcms.views.Application` for changing
 content in a content block.'''
     form = ContentBlockHtmlForm
@@ -262,21 +262,20 @@ content in a content block.'''
         if self.model.objects.delete_and_sort(obj):
             return bid
 
-    def blockhtml(self, djp, instance, editview, wrapper):
+    def blockhtml(self, request, instance, editview, wrapper):
         '''A content block rendered in editing mode'''
-        editdjp = editview(djp.request, instance = instance)
-        html = editview.render(editdjp, url = djp.url)
+        editdjp = editview(request, instance = instance)
+        html = editview.render(editdjp, url = request.url)
         #layoutview = self.getview('layout')
         #html0 =  layoutview(djp.request, instance = instance).render()
         # html = html0 + html
         return wrapper(editdjp,instance,html)
             
-    def blocks(self, djp, page, blocknum):
+    def blocks(self, request, page, blocknum):
         '''Return a generator of edit blocks.
         '''
         blockcontents = self.model.objects.for_page_block(page, blocknum)
-        request  = djp.request
-        url      = djp.url
+        url      = request.url
         editview = self.getview('change')
         wrapper  = EditWrapperHandler(url)
         Tot = len(blockcontents) - 1
@@ -297,10 +296,10 @@ content in a content block.'''
                 if b.plugin_name:
                     last = None
                 pos += 1
-            yield self.blockhtml(djp, b, editview, wrapper)
+            yield self.blockhtml(request, b, editview, wrapper)
             
         # Create last block
         if last == None:
             last = self.model(page = page, block = blocknum, position = pos)
             last.save()
-            yield self.blockhtml(djp, last, editview, wrapper)
+            yield self.blockhtml(request, last, editview, wrapper)

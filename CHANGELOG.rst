@@ -1,22 +1,12 @@
 Version 0.9.0 - Development
 =======================================
-* This is essentially a new library from the previous versions which brings
+* This is a new library from the previous versions which brings
   radical changes in the API and internals.
 * Working for python 2.6 up to python 3.2.
 * jinja2_ shipped with the distribution and set as default template engine.
 * No external dependencies for the core library.
-* Object Relational mapping can be done with stdnet_, django_ or none at all.
-* External ORMs can be registered to the library. Planned.    
-* Introduced several new AJAX decorators.
-* Added ``save as new`` functionality to :class:`djpcms.views.appview.EditView`.
-* Added ``getdata`` function to ``DjpResponse`` as the preferred way to extract data from the response object.
-  In this way it is guaranteed the response object is initialised properly.
-* ``forms.LazyChoiceField`` replaced by ``forms.ChoiceField``, lazy by default.
-* Added :meth:`djpcms.views.appsite.Application.get_label_for_field`.
-* Renamed ``ApplicationBase`` as :class:`djpcms.views.appsite.Application``.
-* Redesign of the test suite so that several different applications can be tested.
-* Applications can be reloaded at runtime. Useful for testing, but maybe more.
-* Examples added.
+* Configurable Object Relational mapping.    
+* AJAX decorators.
 * **79 unit tests**. Coverage **40%**.
 
 Version 0.8.5 (2010-Nov-16)

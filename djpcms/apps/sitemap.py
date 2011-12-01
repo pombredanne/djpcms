@@ -53,17 +53,6 @@ class SiteMapApplication(TabViewMixin,views.Application):
     pagination = Pagination(('id', 'url','application','application_view',
                              'template','inner_template','in_navigation',
                              'doc_type','soft_root','route'))
-    #
-    #fields = ('path', 'id', 'application','application_view',
-    #          'template','inner_template','in_navigation','doc_type',
-    #          'title','linkname','is_soft','route','template_file')
-    #table_views = [
-    #         {'name':'default',
-    #          'fields': ('id','application','in_navigation','is_soft',)},
-    #         {'name':'html',
-    #          'fields': ('id','route','title','linkname',
-    #                     'doc_type','template_file')}
-    #         ]
     
     search = SiteMapView()
     

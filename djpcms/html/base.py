@@ -6,7 +6,7 @@ from py2py3 import iteritems
 
 import djpcms
 from djpcms import UnicodeMixin, is_string, to_string
-from djpcms.utils import force_str, slugify, escape, mark_safe
+from djpcms.utils import force_str, slugify, escape, mark_safe, lazymethod
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 
@@ -15,6 +15,7 @@ from .context import ContextRenderer
 
 __all__ = ['flatatt',
            'Renderer',
+           'LazyHtml',
            'WidgetMaker',
            'Widget',
            'Html']
@@ -64,7 +65,19 @@ class Renderer(object):
         '''It returns an instance of :class:`Media`.
 It should be overritten by derived classes.'''
         return None
+    
 
+class LazyHtml(djpcms.UnicodeMixin):
+    '''A lazy wrapper for html components
+    '''
+    def __init__(self, request, elem):
+        self.request = request
+        self.elem = elem
+    
+    @lazymethod
+    def __unicode__(self):
+        return mark_safe(self.elem.render(self.request))
+    
 
 class Widget(object):
     '''A class which exposes jQuery-alike API for

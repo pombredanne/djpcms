@@ -17,11 +17,11 @@ class ObjectItem(html.WidgetMaker):
     tag = 'div'
     default_class='item-view'
          
-    def definition_list(self, djp, context):
+    def definition_list(self, request, context):
         appmodel = context['appmodel']
         headers = appmodel.object_display
         mapper = appmodel.mapper
-        ctx = html.results_for_item(djp,
+        ctx = html.results_for_item(request,
                                     headers,
                                     context['instance'],
                                     appmodel,
@@ -31,10 +31,10 @@ class ObjectItem(html.WidgetMaker):
         return html.DefinitionList(data_stream = items, cn = 'object-definition')\
                     .addClass(mapper.module_name)
          
-    def get_context(self, djp, widget, keys):
-        ctx = super(ObjectItem,self).get_context(djp, widget, keys)
+    def get_context(self, request, widget, keys):
+        ctx = super(ObjectItem,self).get_context(request, widget, keys)
         links = dict(((elem['view'].name,elem) for\
-                       elem in application_views(djp,
+                       elem in application_views(request,
                                                  instance = ctx['instance'])))
         view = links.pop('view',None)
         if not view:
@@ -52,7 +52,7 @@ class ObjectItem(html.WidgetMaker):
             item = str(context['instance'])
         return item
     
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         yield self.code_or_url(context)
     
     
@@ -60,9 +60,9 @@ class ObjectDef(ObjectItem):
     '''Simply display a definition list for the object.'''
     tag = None
         
-    def stream(self, djp, widget, context):
-        dl = self.definition_list(djp, context)
-        yield dl.render(djp)
+    def stream(self, request, widget, context):
+        dl = self.definition_list(request, context)
+        yield dl.render(request)
 
     
 class ObjectPagination(ObjectItem):

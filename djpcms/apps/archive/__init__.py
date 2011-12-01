@@ -21,8 +21,8 @@ class ArchiveView(views.SearchView):
     def _date_code(self):
         return self.appmodel.date_code
     
-    def content_dict(self, djp):
-        c = super(ArchiveView,self).content_dict(djp)
+    def content_dict(self, request):
+        c = super(ArchiveView,self).content_dict(request)
         month = c.get('month',None)
         if month:
             c['month'] = self.appmodel.get_month_number(month)
@@ -34,9 +34,9 @@ class ArchiveView(views.SearchView):
             c['day'] = int(day)
         return c
     
-    def appquery(self, djp, **kwargs):
-        qs       = super(ArchiveView,self).appquery(djp, **kwargs)
-        kwargs   = djp.kwargs
+    def query(self, request, **kwargs):
+        qs       = super(ArchiveView,self).query(request, **kwargs)
+        kwargs   = request.urlargs
         month    = kwargs.get('month',None)
         day      = kwargs.get('day',None)
         dt       = self._date_code()
@@ -52,7 +52,7 @@ class ArchiveView(views.SearchView):
         if day:
             dateargs['%s__day' % dt] = int(day)
             
-        #qs = self.basequery(request, **kwargs)
+        #qs = self.query(request, **kwargs)
         if dateargs:
             return qs.filter(**dateargs)
         else:
@@ -60,25 +60,28 @@ class ArchiveView(views.SearchView):
 
 
 class DayArchiveView(ArchiveView):
+    
     def __init__(self, *args, **kwargs):
         super(DayArchiveView,self).__init__(*args,**kwargs)
-    def title(self, djp):
-        return djp.getdata('day')
+        
+    def title(self, request):
+        return request.getdata('day')
     
     
 class MonthArchiveView(ArchiveView):
     def __init__(self, *args, **kwargs):
         super(MonthArchiveView,self).__init__(*args,**kwargs)
-    def title(self, djp):
-        m = self.appmodel.get_month_number(djp.getdata('month'))
+    def title(self, request):
+        m = request.urlargs['month']
+        m = self.appmodel.get_month_number(m)
         return force_str(MONTHS[m])
                                           
     
 class YearArchiveView(ArchiveView):
     def __init__(self, *args, **kwargs):
         super(YearArchiveView,self).__init__(*args,**kwargs)
-    def title(self, djp):
-        return djp.getdata('year')
+    def title(self, request):
+        return request.getdata('year')
     
 
 class ArchiveApplication(views.Application):
@@ -139,7 +142,7 @@ class attribute:
             return view(request, year = year, month = month, day = day,
                         **kwargs).url
         
-    def data_generator(self, djp, data):
+    def data_generator(self, request, data):
         '''Modify the standard data generation method so that links
 to date archive are generated'''
         request  = djp.request

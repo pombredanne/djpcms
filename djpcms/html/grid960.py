@@ -55,12 +55,10 @@ class grid960_16(grid960_base):
 
 
 
-def get_grid960(djp):
-    if djp:
-        info = djp.request.DJPCMS
-        site = info.site
-        page = info.page
-        settings = site.settings
+def get_grid960(request):
+    if request:
+        page = request.page
+        settings = request.view.settings
         float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
         return grid960(fixed = not float_layout)
     else:

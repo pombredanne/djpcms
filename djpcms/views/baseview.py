@@ -9,7 +9,6 @@ from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
 
 from .contentgenerator import InnerContent
-from .navigation import Navigator, Breadcrumbs
 
     
 __all__ = ['RendererMixin',
@@ -166,6 +165,11 @@ other wise the ``render`` method of the :attr:`appmodel`.'''
             return self.appmodel.render(request)
         else:
             return ''
+        
+    def query(self, request, **kwargs):
+        '''This function implements a query.'''
+        if self.appmodel:
+            return self.appmodel.query(request, **kwargs)
     
     def for_user(self, request):
         '''Return an instance of a user model if the current renderer
@@ -227,9 +231,17 @@ it is the base class of :class:`pageview` and :class:`View`.
     def model(self):
         if self.appmodel:
             return self.appmodel.model
-    
-    def get_url(self, djp, **urlargs):
-        return djp.request.path
+        
+    def instance_from_variables(self, urlargs):
+        if self.appmodel:
+            if self.object_view:
+                return self.appmodel.instance_from_variables(urlargs)
+        
+    def variables_from_instance(self, instance):
+        if self.appmodel:
+            if self.object_view:
+                return self.appmodel.variables_from_instance(instance)
+        return ()
     
     def __call__(self, request):
         is_xhr = request.is_xhr
@@ -239,17 +251,16 @@ it is the base class of :class:`pageview` and :class:`View`.
         
         data = request.REQUEST
         ajax_action = forms.get_ajax_action(data)
-        view_function = getattr(view,'ajax_%s_response' % method)
+        callable = getattr(self,'ajax_%s_response' % method)
         if ajax_action:
             ajax_view = 'ajax__' + ajax_action
             if hasattr(view,ajax_view):
-                response = getattr(view, ajax_view)
+                callable = getattr(view, ajax_view)
             else:
-                response = getattr(self.appmodel, ajax_view, response)
-        res = response(request)
+                callable = getattr(self.appmodel, ajax_view, callable)
         #TODO
         #make this asynchronous
-        res = ajax_view_function(self)
+        res = callable(request)
         content = res.dumps().encode('latin-1','replace')
         return http.Response(content = content,
                              content_type = res.mimetype())
@@ -278,7 +289,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         if not title:
             title = self.default_title or \
                     (self.appmodel.description if self.appmodel else 'view')
-        return title.format(request.urlargs)
+        return title.format(request.urlargs,request.instance)
     
     def linkname(self, request):
         '''Name to display in hyperlinks to this view.'''
@@ -287,16 +298,16 @@ it is the base class of :class:`pageview` and :class:`View`.
         if not link:
             link = self.default_link or \
                     (self.appmodel.description if self.appmodel else 'view')
-        return link.format(request.urlargs)
+        return link.format(request.urlargs,request.instance)
     
     def breadcrumb(self, request):
         return self.linkname(request)
     
-    def inner_contents(self, inner_template):
+    def inner_contents(self, request, inner_template):
         site = self.site
-        InnerContent(djp, editing)
+        InnerContent(request, editing)
         for b in range(inner_template.numblocks()):
-                cb['content%s' % b] = BlockContentGen(djp, b, editing)
+                cb['content%s' % b] = BlockContentGen(request, b, editing)
         
     def get_context(self, request, editing = False):
         '''View context as a dictionary.'''
@@ -325,18 +336,8 @@ it is the base class of :class:`pageview` and :class:`View`.
         if hasattr(context,'status_code'):
             return context
         
-        settings = self.settings
-        sitenav = Navigator(request, classes = 'main_nav',
-                            levels = settings.SITE_NAVIGATION_LEVELS)
-        context.update({'robots': self.robots(request),
-                        'sitenav': sitenav})
-        if settings.ENABLE_BREADCRUMBS:
-            b = getattr(self,'breadcrumbs',None)
-            if b is None:
-                b = Breadcrumbs(request,
-                                min_length = settings.ENABLE_BREADCRUMBS)
-            context['breadcrumbs'] = b
-        
+        settings = self.settings  
+        context.update({'robots': self.robots(request)})      
         content = self.template.render(request.template_file,
                                        context,
                                        request = request,
@@ -427,9 +428,6 @@ class pageview(djpcmsview):
             self.appmodel = handler
         self.page = page
         super(pageview,self).__init__(self.page.url,handler)
-    
-    def get_url(self, request, **urlargs):
-        return self.page.url
     
     def is_soft(self, request):
         return self.page.soft_root

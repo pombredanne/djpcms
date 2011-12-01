@@ -148,7 +148,30 @@ application_links
 .. autofunction :: application_links
 
 
+application_views_links
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction :: application_views_links
+
+
 Table toolbox
 ~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: table_toolbox
+
+
+paginationResponse
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: paginationResponse
+
+
+Breadcrumbs
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Breadcrumbs
+
+Navigator
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Navigator

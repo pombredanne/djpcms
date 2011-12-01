@@ -97,7 +97,7 @@ class TableMaker(WidgetMaker):
 </table>
 '''
     
-    def get_context(self, djp, widget, key):
+    def get_context(self, request, widget, key):
         title = widget.attrs.get('title')
         ctx = widget.internal.copy()
         pagination = ctx.pop('pagination',None)
@@ -114,7 +114,7 @@ class TableMaker(WidgetMaker):
         headers = list(self.aoColumns(ctx['headers']))
         widget.data['options']['aoColumns'] = headers
         ctx.update({'headers': headers, 'title':title})
-        ctx['rows'] = self.stream(djp, widget, ctx)
+        ctx['rows'] = self.stream(request, widget, ctx)
         return ctx
     
     def make_headers(self, headers):
@@ -142,15 +142,15 @@ javascript plugin'''
                    'sWidth':head.width,
                    'description':head.description}
             
-    def media(self, djp = None):
+    def media(self, request):
         return self.table_media
     
-    def stream(self, djp, widget, context = None):
+    def stream(self, request, widget, context = None):
         if widget.data_stream:
             headers = widget.internal['headers']
             appmodel = widget.internal.get('appmodel')
             actions = widget.internal.get('actions')                
-            return (results_for_item(djp, headers, res, appmodel,
+            return (results_for_item(request, headers, res, appmodel,
                             actions = actions) for res in widget.data_stream)
         else:
             return ()
@@ -340,12 +340,12 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         return maker(body, pagination = pagination, data = data,
                      footer = self.footer, **kwargs)
         
-    def ajaxresponse(self, djp, body, **kwargs):
+    def ajaxresponse(self, request, body, **kwargs):
         widget = self.widget(body, **kwargs)
         pagination = widget.internal.get('pagination')
         if self.astable:
             aaData = []
-            for item in widget.maker.stream(djp,widget):
+            for item in widget.maker.stream(request,widget):
                 id = item['id']
                 aData = {} if not id else {'DT_RowId':id}
                 aData.update(((i,v) for i,v in enumerate(item['display'])))
@@ -354,7 +354,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 total = pagination['total']
             else:
                 total = len(aaData)
-            inputs = djp.request.REQUEST
+            inputs = request.REQUEST
             data = {'iTotalRecords':total,
                     'iTotalDisplayRecords':total,
                     'sEcho':inputs.get('sEcho'),
@@ -366,6 +366,8 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         
     def default_paginator(self, body, pagination = None, data = None,
                           footer = False):
+        #TODO
+        #FIX THIS
         c  = djp.kwargs.copy()
         c.update({'paginator': p,
                   'djp': djp,

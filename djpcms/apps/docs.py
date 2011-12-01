@@ -6,16 +6,7 @@ from djpcms.utils.unipath import FSPath as Path
 
     
 class DocView(views.View):
-    '''Sphinx documentation view.'''
-    editurl          = None
-    
-    def __init__(self, regex = '(?P<url>[\w./-]*)', lang = False,
-                 version = False, in_navigation = True, **kwargs):
-        super(DocView,self).__init__(regex = regex,
-                                     in_navigation = in_navigation, **kwargs)
-        self.lang    = lang
-        self.version = version
-    
+    '''Sphinx documentation view.'''    
     def old_get_url(self, djp, **urlargs):
         lang = urlargs.get('lang','')
         vers = urlargs.get('version','')
@@ -105,24 +96,20 @@ class DocView(views.View):
 
 
 class DocApplication(views.Application):
-    deflang          = 'en'
+    editavailable = False
+    deflang = 'en'
     '''Default language. Default ``en``.'''
-    defversion       = 'dev'
+    defversion = 'dev'
     '''Default version. Default ``dev``.'''
     DOCS_PICKLE_ROOT = None
     '''Root class for serialized documentation. Default ``None``.'''
-    master_doc       = 'index'
+    master_doc = 'index'
     '''Specify sphinx master doc. Default ``index``.'''
     name_template_mapping = {'py-modindex':'modindex'}
     '''Dictionary which maps names to template names.'''
     
-    index = DocView(regex = '')
-    document = DocView(parent = 'index')
-    
-    def __init__(self, baseurl, editavailable = False, **kwargs):
-        super(DocApplication,self).__init__(baseurl,
-                                            editavailable=editavailable,
-                                            **kwargs)
+    index = DocView()
+    document = DocView('<path:url>')
     
     def get_path_args(self, lang, version):
         return (lang, version, "_build", "json")
@@ -140,7 +127,7 @@ class DocApplication(views.Application):
     def table_of_content_url(self, request, lang, version):
         return '%s%s/' % (self.doc_index(),'contents')
     
-    class Media:
+    def media(self, request):
         js = ['djpcms/sphinx/deco.js']
         css = {
             'all': ('djpcms/sphinx/smooth.css',)

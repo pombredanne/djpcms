@@ -67,6 +67,27 @@ Robots
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 
+WSGI
+=========================
+
+.. automodule:: djpcms.core.http
+
+Request
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Request
+   :members:
+   :member-order: bysource
+   
+   
+Response
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Response
+   :members:
+   :member-order: bysource
+   
+
 .. module:: djpcms.core.page
 
 .. _page-blocks:

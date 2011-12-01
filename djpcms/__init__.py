@@ -133,6 +133,15 @@ LOGGING_SAMPLE = {
 
 HTML_CLASSES = {
     'ajax': 'ajax',
+    'post_view_key': 'xhr',
+    'errorlist': 'errorlist',
+    'formmessages': 'form-messages',
+    'multi_autocomplete_class': 'multi',
+    'calendar_class': 'dateinput',
+    'currency_input': 'currency-input',
+    'edit': 'editable',
+    'delete': 'deletable',
+    'objectdef': 'object-definition',
     'main_nav': 'main-nav',
     'link_active': 'ui-state-active',
     'link_default': '',

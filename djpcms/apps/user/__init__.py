@@ -23,7 +23,7 @@ permission = lambda self, request, obj: False if not request \
 
 
 class UserAppBase(views.Application):
-    '''Base class for user application. Defines several
+    '''Base class for user applications. Defines several
 utility methods for dealing with users and user data.'''
     name = 'accounts'
     userpage = False

@@ -38,12 +38,27 @@ Admin
 ===================
 
 .. automodule:: djpcms.apps.admin
-   :members:
    
 
-.. autoclass:: djpcms.apps.admin.AdminSite
+AdminSite
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdminSite
    :members:
+
+
+AdminApplication
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdminApplication
+   :members:   
    
+
+make_admin_urls
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: make_admin_urls
+   :members:   
 
 .. _included-archiveapplication:
 

@@ -208,6 +208,38 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     def storage(self):
         return self.internal_data('storage')
     
+    def instance_from_variables(self, urlargs):
+        '''Retrieve an instance form the variable part of the
+ :attr:`route` attribute.
+ 
+ :parameter urlargs: dictionary of url arguments
+ 
+ This function needs to be implemented by subclasses. By default it returns
+ ``None``.
+ '''
+        pass
+    
+    def variables_from_instance(self, instance):
+        '''retrieve the url bits from an instance. It returns an iterator
+ over key-value touples or a dictionary. This is the inverse of
+ :meth:`instance_from_variables` function.'''
+        raise StopIteration
+    
+    def get_url(self, urlargs, instance = None):
+        '''Retrieve the :attr:`route` full *url* from a dictionary of
+url attributes and, optionally, an instance of an element constructed
+from the variable part of the url.'''
+        if instance:
+            urlargs.update(self.variables_from_instance(instance))
+        try:
+            return self.route.url(**urlargs)
+        except:
+            return None
+    
+    ############################################################################
+    #    INTERNALS
+    ############################################################################
+    
     def make_parent(self, parent):
         if parent is not None:
             if not isinstance(parent, RouteMixin):
@@ -310,17 +342,17 @@ class ResolverMixin(RouteMixin):
                     return handler, urlargs
                 
             # Nothing found Check the static pages if they are available
+            path = self.route + path
             view = self.pageview(path)
             if view:
                 return view, {}
             else:
-                raise Http404(handler = self)
+                raise Http404(path, handler = self)
             
     def pageview(self, path):
         Page = self.root.Page
         if Page:
             from djpcms.views import pageview
-            path = self.route + path
             try:
                 return pageview(Page.objects.get(url = path.path),self)
             except Page.DoesNotExist:

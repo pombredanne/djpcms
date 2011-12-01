@@ -4,7 +4,7 @@ import logging
 from inspect import isclass
 from copy import copy, deepcopy
 
-from py2py3 import iteritems, itervalues
+from py2py3 import iteritems, itervalues, native_str
 
 import djpcms
 from djpcms import html
@@ -18,6 +18,7 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
+from .async import default_response_handler
 from . import http
 from . import orms
 
@@ -26,17 +27,6 @@ __all__ = ['Site', 'get_settings']
 
 
 logger = logging.getLogger('djpcms')
-
-
-def default_response_handler(djp, response, callback = None):
-    if isinstance(response,dict):
-        rr = default_response_handler
-        response = dict(((k,rr(djp,v)) for k,v in iteritems(response)))
-    elif isinstance(response,html.ContextRenderer):
-        response = response.render()
-    elif hasattr(response,'query'):
-        response = response.query
-    return callback(response) if callback else response
 
 
 def get_settings(name = None, settings = None, **params):
@@ -206,7 +196,10 @@ for that model.'''
             return
         if hasattr(model,'model'):
             model = model.model
-        model = orms.mapper(model).model
+        mapper = orms.mapper(model)
+        if not mapper:
+            return None
+        model = mapper.model
         app = self._model_registry.get(model)
         if not app or all:
             apps = [app] if app is not None else []

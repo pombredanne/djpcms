@@ -162,8 +162,7 @@ class get_app_result(object):
         if(self.first and not appmodel.list_display_links) or \
                 head.code in appmodel.list_display_links:
             first = False
-            url = appmodel.viewurl(request, result,
-                                   field_name = head.code)
+            url = appmodel.viewurl(request, result, field_name = head.code)
         
         var = result_repr
         if url:

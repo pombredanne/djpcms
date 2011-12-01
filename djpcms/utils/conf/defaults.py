@@ -26,7 +26,8 @@ ADMIN_GROUPING = None
 AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
 TEMPLATE_DIRS = ()  # Additional template location directories
 TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
-                               "djpcms.core.context_processors.messages")
+                               "djpcms.core.context_processors.messages",
+                               "djpcms.core.context_processors.navigator")
 
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'

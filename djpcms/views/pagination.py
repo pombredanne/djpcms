@@ -2,14 +2,16 @@ from collections import namedtuple
 from inspect import isgenerator
 
 from djpcms import ajax, DELETE
+from djpcms.core.orms import mapper
 from djpcms.html import Widget
 
 
 __all__ = ['application_action',
            'application_views',
            'application_links',
+           'instance_field_views',
+           'application_views_links',
            'table_toolbox',
-           'instance_link',
            'paginationResponse',
            'bulk_delete']
 
@@ -23,42 +25,27 @@ menu_link = namedtuple('menu_link',
 bulk_delete = application_action('bulk_delete','delete',DELETE)
 
 
-def instance_link(request, instance, name = 'view', asbuttons = False):
-    appmodel = djp.site.for_model(instance, all = True)
-    if appmodel:
-        views = list(application_views(appmodel,djp,
-                                       include = (name,),
-                                       instance=instance))
-        for _,url in application_links(views, asbuttons = asbuttons):
-            return url
-        
-    return str(instance)
-
-
 def application_views(request,
                       exclude = None,
                       include = None,
                       instance = None,
                       ajax_enabled = None):
-    '''Create a list of application views available to the user.
-This function is used in conjunction with
-an :class:`Application` instance.
+    '''A generator of :class:`Application` views available to the user.
 
-:parameter request: instance of a :class:`djpcms.Request`.
-:parameter exclude: optional iterable of view names to exclude.
-:parameter include: optional iterable of view names to include.
-    If provided it override :attr:`Application.exclude_links`.
-    Default ``None``
-:parameter instance: optional instance of **appmodel.model**.
-    If provided only instnce views will be collected.
+:parameter exclude: optional iterable of :class:`View` names to exclude.
+:parameter include: optional iterable of :class:`View` names to include.
+:parameter instance: optional instance of :attr:`Application.model`.
+    If provided only instance views will be collected.
 :parameter ajax_enabled: if ``True`` only ajax enabled views are considered.
 :rtype: a generator of dictionaries containing :class:`View` information.
 '''
     appmodel = request.view.appmodel
     exclude = exclude if exclude is not None else appmodel.exclude_links
-    urlargs = request.urlargs.copy()
-    if appmodel.model and isinstance(instance,appmodel.model):
-        urlargs[appmodel.instance_key] = instance
+    urlargs = request.urlargs
+    if appmodel.model:
+        instance = instance if isinstance(instance,appmodel.model) else None
+    else:
+        instance = None
     
     if not include:
         include = appmodel.views
@@ -70,6 +57,7 @@ an :class:`Application` instance.
             view = appmodel.views.get(elem)
             if hasattr(view,'root_view'):
                 view = view.root_view
+            # if this is the current view skip
             if not view or view is request.view:
                 continue
             if instance:
@@ -78,7 +66,7 @@ an :class:`Application` instance.
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            dview = request.for_view_args(view, **urlargs)
+            dview = request.for_view_args(view, urlargs, instance)
             url = dview.url
             if not url or not dview.has_permission():
                 continue
@@ -104,6 +92,20 @@ an :class:`Application` instance.
         elem = elem._asdict()
         elem['url'] = url
         yield elem
+
+
+def instance_field_views(request, instance, field_name = None, **kwargs):
+    '''Same as :func:`application_views` but for field of 
+ *instance* if that field is an instance of a registered model.'''
+    if field_name:
+        value = getattr(instance,field_name,None)
+        mp = mapper(value)
+        if mp:
+            if not isinstance(instance,mp.model):
+                instance = value
+                request = request.view_for_model(instance)
+    request = request.view_for_model(instance)
+    return application_views(request,instance=instance,**kwargs)
 
 
 def views_serializable(views):
@@ -142,6 +144,15 @@ the view name and a rendered html tag (either an anchor or a button).
              .addClass(view.link_class)
         yield view.name, a 
     
+
+def application_views_links(request, asbuttons = True, **kwargs):
+    '''Shurtcut function which combines :func:`application_views`
+and :func:`application_links` generators. It returns a generator over
+anchor or button :class:`djpcms.html.Widget`.'''
+    views = application_views(request,**kwargs)
+    for _,w in application_links(views,asbuttons=asbuttons):
+        yield w
+
 
 def application_link(view, asbutton = True):
     return list(application_links((view,),asbutton))[0][1]
@@ -201,6 +212,15 @@ an application based on model is available.
 
 
 def paginationResponse(request, query):
+    '''Used by :class:`Application` to perform pagination of a query.
+    
+:parameter query: a query on a model.
+
+it looks for the following inputs in the request data:
+
+* `sSearch` for performing search
+* `iSortingCols` for sorting.
+'''
     if isinstance(query,dict):
         query = query.get('qs')
     if isgenerator(query):

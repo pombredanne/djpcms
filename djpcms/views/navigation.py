@@ -10,12 +10,15 @@ __all__ = ['Navigator','Breadcrumbs']
 
 class Navigator(object):
     
-    def __init__(self, soft = False, levels = 2, secondary_after = 100):
+    def __init__(self, soft = False, levels = 2, secondary_after = 100,
+                 primary = None, secondary = None):
         self.soft = soft
         self.levels = max(levels,1)
         self.secondary_after = secondary_after
-        self.left =  Widget('ul', cn = 'nav')
-        self.right = Widget('ul', cn = 'nav secondary-nav')
+        self.primary = primary if primary is not None else Widget('ul')
+        self.secondary = secondary if secondary is not None else Widget('ul')
+        self.primary.addClass('nav')
+        self.secondary.addClass('nav secondary-nav')
     
     def render(self, request):
         w = Widget('div', cn = 'topbar container')
@@ -26,13 +29,13 @@ class Navigator(object):
                                       self.secondary_after,
                                       self.levels-1):
             if secondary:
-                self.right.add(li)
+                self.secondary.add(li)
             else:
-                self.left.add(li)
-        if self.left:
-            w.add(self.left)
-        if self.right:
-            w.add(self.right)
+                self.primary.add(li)
+        if self.primary:
+            w.add(self.primary)
+        if self.secondary:
+            w.add(self.secondary)
         return w.render(request)
     
     def buildselects(self, request, urlselects):

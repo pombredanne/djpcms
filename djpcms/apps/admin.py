@@ -112,7 +112,7 @@ class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer models in groups.'''
     has_plugins = False
-    in_nav = 100
+    in_nav = 1000
     pagination = html.Pagination(widget_factory = html.accordion,
                                  ajax = False,
                                  size = None)

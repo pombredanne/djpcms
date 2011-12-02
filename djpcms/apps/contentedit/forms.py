@@ -11,9 +11,9 @@ __all__ = ['TemplateForm',
 
 
 def get_templates(bfield):
-    site = bfield.form.site
-    if site and site.Page:
-        return site.Page.template_model.objects.all()
+    view = bfield.form.view
+    if view and view.Page:
+        return view.Page.model.template_model.objects.all()
     else:
         return ()
 

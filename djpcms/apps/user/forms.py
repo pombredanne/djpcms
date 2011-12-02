@@ -12,7 +12,7 @@ class LoginForm(forms.Form):
         '''process login
         '''
         data = self.cleaned_data
-        backend = self.request.DJPCMS.site.permissions.backend
+        backend = self.request.view.permissions.backend
         if backend:
             try:
                 data['user'] = backend.authenticate_and_login(

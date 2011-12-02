@@ -254,8 +254,8 @@ it is the base class of :class:`pageview` and :class:`View`.
         callable = getattr(self,'ajax_%s_response' % method)
         if ajax_action:
             ajax_view = 'ajax__' + ajax_action
-            if hasattr(view,ajax_view):
-                callable = getattr(view, ajax_view)
+            if hasattr(self,ajax_view):
+                callable = getattr(self, ajax_view)
             else:
                 callable = getattr(self.appmodel, ajax_view, callable)
         #TODO

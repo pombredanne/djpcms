@@ -58,7 +58,7 @@ def userlinks(request, asbuttons = False):
                     yield html.Widget('a','profile',href='{0}?{1}'\
                                       .format(request.path,pk))
         else:
-            for a in views.application_views_links(user_request,
+            for a in views.application_views_links(request,
                                                    asbuttons = asbuttons,
                                                    include = ('login',)):
                 yield a
@@ -149,9 +149,8 @@ def messages(request):
 def navigator(request):
     settings = request.view.settings
     cn = settings.HTML.get('main_nav')
-    sitenav = views.Navigator(request,
-                       right = page_links(request),
-                       levels = settings.SITE_NAVIGATION_LEVELS)
+    sitenav = views.Navigator(secondary = page_links(request),
+                              levels = settings.SITE_NAVIGATION_LEVELS)
     return {'sitenav': html.LazyHtml(request,sitenav)}
     
     

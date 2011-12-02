@@ -1,3 +1,7 @@
+from py2py3 import iteritems
+
+from djpcms.html import ContextRenderer
+
 
 __all__ = ['Promise','async_instance','default_response_handler']
 
@@ -47,7 +51,7 @@ def default_response_handler(request, response, callback = None):
     if isinstance(response,dict):
         rr = default_response_handler
         response = dict(((k,rr(request,v)) for k,v in iteritems(response)))
-    elif isinstance(response,html.ContextRenderer):
+    elif isinstance(response,ContextRenderer):
         response = response.render()
     elif hasattr(response,'query'):
         response = response.query

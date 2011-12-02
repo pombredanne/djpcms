@@ -237,18 +237,10 @@ validation.'''
         return self._fields_dict
     
     @property
-    def site(self):
-        if self._site:
-            return self._site
-        elif self.request:
-            return self.request.DJPCMS.site
+    def view(self):
+        if self.request:
+            return self.request.view
         
-    @property
-    def root(self):
-        site = self.site
-        if site:
-            return site.root
-    
     def _fill_initial(self):
         # Fill the initial dictionary with data from fields and from
         # the instance if available

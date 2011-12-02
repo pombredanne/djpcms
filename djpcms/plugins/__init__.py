@@ -258,7 +258,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
             if request.view != app or kwargs:
                 args = request.urlargs.copy()
                 args.update(kwargs)
-                request = request.for_view_args(app, **args)
+                request = request.for_view_args(app, args)
             request.block = block
             return request.render()
         else:

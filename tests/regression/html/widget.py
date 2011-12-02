@@ -77,6 +77,8 @@ class TestWidgets(test.TestCase):
         self.assertEqual(len(tab),2)
         ht = tab.render()
         self.assertTrue('ui-tabs' in ht)
+        
+        
 class TestInputs(test.TestCase):
     
     def create(self, name, ty, **kwargs):

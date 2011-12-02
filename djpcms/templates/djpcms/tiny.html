@@ -1,15 +1,11 @@
-{% extends base_template %}
+{% extends "root.html" %}
 
-{% block page_prebody %}{% endblock %}
-{% block page_body %}
-<div class="{{ grid.column_1_4 }}">
-{{ grid.empty }}
+{% block body_container_bits %} class="tiny"{% endblock %}
+{% block html_container %}
+<div class="page-header">{% block page_header %}
+{{ title }}{% endblock %}
 </div>
-<div id="inner-body" class="{{ grid.column_1_2 }}">
-{% block inner_body %}{% endblock %}
+<div class="page-body">
+{{ inner }}
 </div>
-<div class="{{ grid.column_1_4 }}">
-{{ grid.empty }}
-</div>
-{{ grid.clear }}
 {% endblock %}

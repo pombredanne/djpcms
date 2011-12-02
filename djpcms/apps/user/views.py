@@ -9,6 +9,8 @@ class LogoutView(views.ModelView):
     '''Logs out a user, if there is an authenticated user :)
     '''
     default_route = 'logout'
+    default_title = 'Log out'
+    default_link = 'Log out'
     
     def __call__(self, request):
         params  = dict(request.GET.items())
@@ -29,7 +31,8 @@ class LoginView(views.ModelView):
     has_plugin = True
     default_route = 'login'
     default_title = 'Sign in'
-    template_name = 'login.html'
+    default_link = 'Sign in'
+    template_name = ('login.html','djpcms/tiny.html')
     
     def __call__(self, request):
         if request.user.is_authenticated():

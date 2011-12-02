@@ -181,7 +181,7 @@ belongs to a user, otherwise returns ``None``.'''
         if request.is_xhr:
             return ajax.jredirect(url)
         else:
-            return http.ResponseRedirect(url)
+            return http.ResponseRedirect(url)            
 
 
 class djpcmsview(RouteMixin,RendererMixin):
@@ -417,8 +417,20 @@ By default it is ``djp.url``'''
 :func:`djpcms.node` to retrive the node in the sitemap and
 consequently its children.'''
         raise StopIteration
-
-
+    
+    @property
+    def parentview(self):
+        if self.parent_view:
+            return self.parent_view
+        elif self.path == '/':
+            return None
+        route,_ = self.route.split()
+        try:
+            view,args = self.root.resolve(route.path[1:])
+            return view
+        except:
+            return None
+        
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
  static data, it means there is not a specific application associate with it.'''

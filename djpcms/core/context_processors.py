@@ -12,6 +12,8 @@ from .messages import get_messages
 logger = logging.getLogger('djpcms.core.context_processor')
 
 def addlink(request, app):
+    #TODO
+    #REMOVE
     path = app.addurl(request)
     if path:
         info = request.DJPCMS
@@ -25,6 +27,8 @@ def addlink(request, app):
         return ''
 
 def changelink(request, app):
+    #TODO
+    #REMOVE
     path = self.app.changeurl(request, self.page)
     if path:
         path = iri_to_uri(path,request.DJPCMS.kwargs)
@@ -44,13 +48,18 @@ def exitlink(request, path):
 
 
 def userlinks(request, asbuttons = False):
-    request = request.view_for_model(request.view.User)
-    if request:
+    app = request.view.root.for_model(request.view.User)
+    if app and app.root_view:
+        request = request.for_view(app.root_view)
         if request.user.is_authenticated():
             for a in views.application_views_links(request,
                                         asbuttons = asbuttons,
-                                        include = ('userhome','logout'),
+                                        include = ('userhome',),
                                         instance = request.user):
+                yield a
+            for a in views.application_views_links(request,
+                                        asbuttons = asbuttons,
+                                        include = ('logout',)):
                 yield a
             pk = request.view.settings.PROFILING_KEY
             if request.user.is_superuser and pk:
@@ -78,8 +87,9 @@ def page_links(request, asbuttons = False):
                 ul.add(exitlink(request, page.url))
             else:
                 for name,link in views.application_links(
-                                views.application_views(page_request,
-                                                        instance = page),
+                            views.application_views(page_request,
+                                                    instance = page,
+                                                    include = ('add','change')),
                                 asbuttons = asbuttons):
                     #path = iri_to_uri(request.path,request.urlargs)
                     ul.add(link)
@@ -152,11 +162,29 @@ def navigator(request):
     sitenav = views.Navigator(secondary = page_links(request),
                               levels = settings.SITE_NAVIGATION_LEVELS)
     return {'sitenav': html.LazyHtml(request,sitenav)}
+
+
+def topbar(request):
+    settings = request.view.settings
+    grid = get_grid960(request.page,settings)
+    # If we use a grid create the container
+    if grid:
+        container = html.Widget('div', cn = grid.column1)
+        outer = html.Widget('div', container, cn = grid.container_class)
+        outer.add(grid.clear)
+    else:
+        container = None
+    sitenav = views.Navigator(secondary = page_links(request),
+                              levels = settings.SITE_NAVIGATION_LEVELS,
+                              fixed = True,
+                              container = container)
+    return {'sitenav': html.LazyHtml(request,sitenav)}
     
     
 def breadcrumbs(request):
+    settings = request.view.settings
     if settings.ENABLE_BREADCRUMBS:
-        b = Breadcrumbs(request, min_length = settings.ENABLE_BREADCRUMBS)
+        b = views.Breadcrumbs(min_length = settings.ENABLE_BREADCRUMBS)
         return {'breadcrumbs': html.LazyHtml(request,b)}
     else:
         return {}

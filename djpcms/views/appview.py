@@ -234,15 +234,17 @@ views::
         return self.appmodel.media(request)
     
     def in_navigation(self, request):
-        if self.in_nav:
-            page = request.page
-            if page:
-                return page.in_navigation
-                if self.regex.names and page.url != self.path:
-                    return 0
-                else:
+        if self.appmodel.in_nav:
+            if self.in_nav:
+                page = request.page
+                if page:
                     return page.in_navigation
-        return self.in_nav
+                    if self.regex.names and page.url != self.path:
+                        return 0
+                    else:
+                        return page.in_navigation
+            return self.in_nav
+        return 0
     
     def isroot(self):
         '''True if this application view represents the root

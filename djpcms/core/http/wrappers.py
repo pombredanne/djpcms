@@ -336,12 +336,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     
     @lazyproperty
     def parent(self):
-        pview = getattr(self.view,'parent_view',None)
-        if pview is None:
-            # Try the parent
-            pview = getattr(self.view.parent,'parent_view',None)
-        if pview is not None:
-            return self.for_view(pview)
+        return self.for_view(self.view.parentview)
     
     @lazyproperty
     def in_navigation(self):

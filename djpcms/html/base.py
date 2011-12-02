@@ -95,13 +95,19 @@ Any Operation on this class is similar to jQuery.
 
 .. attribute:: data_stream
 
-    A list of inner data for the widget.
+    A list of children for the widget.
     
 .. attribute:: parent
 
     The parent :class:`Widget` holding ``self``.
     
     Default ``None``
+    
+.. attribute:: root
+
+    The root :class:`Widget` of the tree where ``self`` belongs to. This is
+    obtained by recursively navigating up the :attr:`parent` attribute.
+    If the element has no :attr:`parent`, return ``self``.
 '''    
     maker = None
     def __init__(self, maker = None, data_stream = None,
@@ -134,14 +140,26 @@ Any Operation on this class is similar to jQuery.
                 self.add(data_stream)
         
     def __repr__(self):
-        return '{0}({1})'.format(self.__class__.__name__,self.maker)
+        return '<' + self.tag + self.flatatt() + '>'
+        #return '{0}({1})'.format(self.__class__.__name__,self.maker)
     
     def __len__(self):
         return len(self.data_stream)
     
+    def __iter__(self):
+        return iter(self.data_stream)
+    
     @property
     def parent(self):
         return self.internal.get('parent')
+    
+    @property
+    def root(self):
+        p = self.parent
+        if p is not None:
+            return p.root
+        else:
+            return self
     
     @property
     def data_stream(self):
@@ -470,7 +488,9 @@ It returns self for concatenating data.'''
     def add_to_widget(self, widget, element):
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
- attribute. It can be overwritten.'''
+ attribute. It can be overwritten but call super for consistency.'''
+        if isinstance(element,Widget):
+            element.internal['parent'] = widget
         widget.data_stream.append(element)
         
     def widget(self, **kwargs):

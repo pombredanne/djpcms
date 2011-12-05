@@ -43,6 +43,7 @@ def application_views(request,
     exclude = exclude if exclude is not None else appmodel.exclude_links
     urlargs = request.urlargs
     if appmodel.model:
+        instance = request.instance or instance
         instance = instance if isinstance(instance,appmodel.model) else None
     else:
         instance = None
@@ -104,7 +105,6 @@ def instance_field_views(request, instance, field_name = None, **kwargs):
             if not isinstance(instance,mp.model):
                 instance = value
                 request = request.view_for_model(instance)
-    request = request.view_for_model(instance)
     return application_views(request,instance=instance,**kwargs)
 
 
@@ -179,6 +179,7 @@ an application based on model is available.
 '''
     pagination = request.pagination
     appmodel = request.view.appmodel
+    has = request.view.permissions.has
     bulk_actions = []
     toolbox = {}
     

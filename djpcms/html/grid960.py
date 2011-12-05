@@ -63,3 +63,4 @@ def get_grid960(request):
         return grid960(fixed = not float_layout)
     else:
         return grid960()
+

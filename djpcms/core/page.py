@@ -6,7 +6,8 @@ import djpcms
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
-from djpcms.html import htmldoc
+
+from .layout import htmldoc
 
 
 contentre = re.compile('{{ content\d }}')
@@ -131,7 +132,7 @@ with the wrapper callable.'''
         # html can be a string or whatever the plugin returns.
         if plugin_response is not None:
             callback = lambda r : wrapper(request, self, r)
-            return request.view.render_response(plugin_response, callback)
+            return request.view.response(plugin_response, callback)
     
     def pluginid(self, extra = ''):
         p = 'plugin-{0}'.format(self)

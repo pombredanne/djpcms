@@ -18,7 +18,6 @@ from .context import *
 from .base import *
 from .widgets import *
 from .grid960 import *
-from .htmltype import *
 from .box import *
 from .nicerepr import *
 from .table import *

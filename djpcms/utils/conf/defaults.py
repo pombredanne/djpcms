@@ -9,6 +9,10 @@ EPILOG = 'Have fun!'
 # META ATTRIBUTE
 META_DESCRIPTION = ''
 META_KEYWORDS = ''
+META_AUTHOR = ''
+DEFAULT_CHARSET = 'utf-8'
+TIME_ZONE = 'Europe/London'
+LANGUAGE_CODE = 'en-uk'
 
 # List of installed application.
 # These must be dotted python paths
@@ -28,10 +32,10 @@ ADMIN_GROUPING = None
 
 #MIDDLEWARE AND TEMPLATE PROCESSORS
 AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
-TEMPLATE_DIRS = ()  # Additional template location directories
-TEMPLATE_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
-                               "djpcms.core.context_processors.messages")
+REQUEST_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
+                              "djpcms.core.context_processors.messages")
 
+TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 DEFAULT_LAYOUT = 0 # 0 fixed, 1 float
@@ -62,10 +66,6 @@ JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)
 # Date Format
 DATE_FORMAT = 'd M y'
 TIME_FORMAT = 'H:i:s'
-
-DEFAULT_CHARSET = 'utf-8'
-TIME_ZONE = 'Europe/London'
-LANGUAGE_CODE = 'en-uk'
 
 # STATIC FILES
 MEDIA_URL = '/media/'

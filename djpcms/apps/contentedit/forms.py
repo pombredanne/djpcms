@@ -1,5 +1,6 @@
 import djpcms
 from djpcms import forms, html, plugins
+from djpcms.core import layout
 from djpcms.utils import markups
 
 
@@ -37,8 +38,8 @@ class PageForm(forms.Form):
                                        required = False)   
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
-    doctype = forms.ChoiceField(choices = html.html_choices,
-                                initial = html.htmldefaultdoc)
+    doctype = forms.ChoiceField(choices = layout.html_choices,
+                                initial = layout.htmldefaultdoc)
     layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')),
                                initial = 0)
     

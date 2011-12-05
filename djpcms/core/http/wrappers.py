@@ -38,6 +38,15 @@ class noinstance:
     pass
 
 
+class Tree(object):
+    
+    def __init__(self, pages = None):
+        if pages:
+            self.pages = dict(((p.url,p) for p in pages))
+        else:
+            self.pages = {}
+                
+
 class Request(UnicodeMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
 :class:`djpcms.views.djpcmsview` serving the request and the request
@@ -81,11 +90,7 @@ arguments.
                            instance)
     
     def for_view(self, view):
-        if view is not None:
-            return Request(self.environ,
-                           view,
-                           self.urlargs.copy(),
-                           self.__instance)
+        return self.for_view_args(view, self.urlargs.copy(), self.__instance)
     
     def for_path(self):
         info = self.DJPCMS
@@ -181,12 +186,14 @@ arguments.
     
     @lazyproperty
     def page(self):
-        Page = self.view.root.Page
-        if Page:
-            try:
-                return Page.get(url = self.view.path)
-            except Page.DoesNotExist:
-                return None
+        if 'tree' not in self.cache:
+            Page = self.view.root.Page
+            if Page:
+                self.cache['tree'] = Tree(Page.all())
+            else:
+                self.cache['tree'] = Tree()
+        tree = self.cache['tree']
+        return tree.pages.get(self.view.path)
             
     @lazyproperty
     def url(self):
@@ -205,12 +212,12 @@ arguments.
         
     def instance_from_variables(self):
         if self.__instance is None:
-            if self.urlargs:
+            try:
                 e = self.view.instance_from_variables(self.urlargs)
-                if e is None:
-                    e = noinstance
-            else:
-                e = noinstance
+            except Http404:
+                self.__instance = noinstance
+                raise
+            e = e if e is not None else noinstance
             self.__instance = e
         else:
             e = self.__instance
@@ -336,7 +343,24 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     
     @lazyproperty
     def parent(self):
-        return self.for_view(self.view.parentview)
+        view = self.view
+        url = self.url[1:]
+        if not url:
+            return None
+        if url.endswith('/'):
+            url = url[:-1]
+        if url:
+            bits = url.split('/')
+            resolve = view.root.resolve
+            while bits:
+                bits.pop()
+                url = '/'.join(bits) + '/' if bits else ''
+                try:
+                    view,args = resolve(url)
+                except Http404:
+                    continue
+                else:
+                    return self.for_view_args(view,args)
     
     @lazyproperty
     def in_navigation(self):

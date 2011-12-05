@@ -1,21 +1,18 @@
 import sys
 import re
-import traceback
 import logging
 
-from djpcms.core.exceptions import Http404, HttpException, PermissionDenied 
-from djpcms.utils import logtrace
+from djpcms.core.exceptions import Http404, HttpException, PermissionDenied
 
 from .profiler import profile_response
-from .wrappers import Request, Response, ResponseRedirect,\
-                         STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
+from .wrappers import Request, Response, ResponseRedirect
 from .cache import djpcmsinfo
 
 
 logger = logging.getLogger('djpcms')
 
 
-__all__ = ['WSGI','WSGIhandler','standard_exception_handle']
+__all__ = ['WSGI','WSGIhandler']
 
 
 def clean_path(environ):
@@ -56,14 +53,14 @@ class WSGI(object):
 delegate the handling to them.'''
     def __init__(self, site):
         self.site = site
-        self.error = site.internals['errors']
+        self.error = site.render_page.error_to_response
         
     @property
     def route(self):
         return self.site.route
     
     def __str__(self):
-        return self.route
+        return self.site.path
     
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,self)
@@ -106,34 +103,3 @@ delegate the handling to them.'''
             return self.error(request, getattr(e,'status',500))
         
 
-def standard_exception_handle(request, status):
-    '''The default error handler for djpcms'''
-    handler = request.view
-    info = request.environ.get('DJPCMS')
-    if not info:
-        info = djpcmsinfo(handler)
-        request.environ['DJPCMS'] = info
-    settings = handler.settings
-    exc_info = sys.exc_info()
-    template = '{0}.html'.format(status)
-    template2 = 'errors/' + template
-    template3 = 'djpcms/' + template2
-    
-    logtrace(logger, request, exc_info, status)
-    #store stack trace in the DJPCMS environment variable
-    info['stack_trace'] = traceback.format_exception(*exc_info)
-    stack_trace = '<p>{0}</p>'.format('</p>\n<p>'.join(info['stack_trace']))
-    ctx = {'status':status,
-           'status_text':STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0],
-           'stack_trace':stack_trace,
-           'settings':settings}
-    html = handler.template.render(
-                (template,template2,template3,'djpcms/errors/error.html'),
-                 ctx,
-                 request = request,
-                 encode = 'latin-1',
-                 encode_errors = 'replace')
-    return Response(status = status,
-                    content = html,
-                    content_type = 'text/html',
-                    encoding = settings.DEFAULT_CHARSET)

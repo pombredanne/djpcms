@@ -504,27 +504,19 @@ data to the client.
     
     def instance_from_variables(self, urlargs):
         '''Retrive an instance of self.model from request.'''
-        query = {}
-        # get name and values from urldata
         try:
-            for name,val in self.urlbits(data = urlargs):
-                if isinstance(val,self.model):
-                    return val
-                query[name] = val
+            query = dict(self.urlbits(data = urlargs))
         except KeyError:
-            return
+            raise djpcms.Http404('Cannot retrieve instance from url')
             
         try:
             return self.mapper.get(**query)
-        except:
-            try:
-                if self.parent:
-                    parent_object = self.parent.appmodel.get_object(\
-                                                request, **kwargs)
-                    if parent_object:
-                        return self.get_from_parent_object(parent_object,id)
-            except:
-                pass
+        except self.mapper.DoesNotExist:
+            if self.appmodel:
+                pi = self.appmodel.instance_from_variables(urlargs)
+                if pi:
+                    return self.get_from_parent_object(pi,urlargs)
+            raise djpcms.Http404('Cannot retrieve instance from url')
             
     def variables_from_instance(self, instance):
         bits = {}

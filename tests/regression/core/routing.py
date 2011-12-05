@@ -145,3 +145,13 @@ class Routes(test.TestCase):
         self.assertTrue(l.is_leaf)
         self.assertEqual(p.path,'/bla/foo/<id>/pluto/')
         self.assertEqual(l.path,'/leaf')
+        
+    def testDefaults(self):
+        r = Route('bla/<id>/add/<path:path>',{'path':''})
+        self.assertEqual(r.url(id=10),'/bla/10/add/')
+        self.assertEqual(r.url(id=10,path='ciao/luca'),'/bla/10/add/ciao/luca')
+        
+    def testDefaultsAddition(self):
+        r = Route('add/<path:path>',{'path':''})
+        r2 = Route('bla/<id>/') + r
+        self.assertEqual(r2.defaults,r.defaults)

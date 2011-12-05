@@ -108,35 +108,14 @@ def get_grid960(page, settings):
 def djpcms(request):
     '''The main template context processor. It must be always included.'''
     page = request.page
-    settings = request.view.settings
-    base_template = settings.DEFAULT_TEMPLATE_NAME[0]
-    grid = get_grid960(page,settings)
-    try:
-        plink = page_links(request).addClass('horizontal user-nav')
-    except:
-        logger.error('Unhadled exception while getting page links',
-                     exc_info = True)
-        plink = html.Widget(data_stream = (grid.empty,))
-    user = request.user
-    debug = settings.DEBUG
-    html_options = settings.HTML.copy()
-    html_options.update({'debug':debug,
-                         'media_url': settings.MEDIA_URL})
-            
-    ctx = {'pagelink':plink,
-           'base_template': base_template,
-           'htmldoc': html.htmldoc(None if not page else page.doctype),
-           'request': request,
-           'user': user,
-           'is_authenticated': False if not user else user.is_authenticated(),
-           'debug': debug,
-           'release': not debug,
-           'now': datetime.now(),
-           'settings': settings,
-           'MEDIA_URL': settings.MEDIA_URL,
-           'html_options': json.dumps(html_options),
-           'media': request.media,
-           'grid': grid}
+    settings = request.view.settings            
+    return {'request': request,
+            'page':page,
+            'user': request.user,
+            'now': datetime.now(),
+            'settings': settings,
+            'MEDIA_URL': settings.MEDIA_URL,
+            'grid': get_grid960(page, settings)}
     return ctx
 
 
@@ -181,7 +160,7 @@ def topbar(request, brand = None):
                               brand = settings.SITE_NAVIGATION_BRAND,
                               fixed = True,
                               container = container)
-    return {'sitenav': html.LazyHtml(request,sitenav)}
+    return {'topbar': html.LazyHtml(request,sitenav)}
     
     
 def breadcrumbs(request):

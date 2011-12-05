@@ -32,6 +32,7 @@ class LoginView(views.ModelView):
     default_route = 'login'
     default_title = 'Sign in'
     default_link = 'Sign in'
+    body_class = 'tiny'
     template_name = ('login.html','djpcms/tiny.html')
     
     def __call__(self, request):

@@ -34,7 +34,7 @@ class resolver_manager(object):
     def __exit__(self, type, value, traceback):
         if isinstance(value,Http404) and not self.path.endswith('/'):
             try:
-                v,u,k = self.resolver.resolve(self.path+'/')
+                v,u = self.resolver.resolve(self.path+'/')
             except:
                 pass
             else:
@@ -158,9 +158,6 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         else:
             return v
     
-    def render_response(self, response, callback = None):
-        return self.response_handler(self, response, callback)
-    
     def unwind_query(self, query, callback = None):
         return self.response_handler(self, query, callback)
     
@@ -172,8 +169,8 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         return self.internal_data('settings')
     
     @property
-    def page_layout(self):
-        return self.internal_data('page_layout')
+    def render_page(self):
+        return self.internal_data('render_page')
     
     @property
     def search_engine(self):

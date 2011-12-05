@@ -19,6 +19,7 @@ from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 from .async import default_response_handler
+from .layout import HtmlPage
 from . import http
 from . import orms
 
@@ -79,20 +80,11 @@ Default ``None``
                        **params)
 
 
-def default_layout(request, context):
-    return request.view.template.render(request.template_file,
-                                        context,
-                                        request = request,
-                                        encode = 'latin-1',
-                                        encode_errors = 'replace')
-    
-    
 DEFAULT_SITE_HANDLERS = {
     'response_handler': default_response_handler,
     'permissions': PermissionHandler,
     'meta_robots': SimpleRobots,
-    'errors': http.standard_exception_handle,
-    'page_layout': default_layout,
+    'render_page': HtmlPage(),
     'cache': CacheHandler()
 }
 
@@ -250,11 +242,11 @@ for that model.'''
         return app
     
     @lazyproperty
-    def template_context(self):
+    def request_context(self):
         self.lock.acquire()
         mw = []
         try:
-            for p_path in self.settings.TEMPLATE_CONTEXT_PROCESSORS:
+            for p_path in self.settings.REQUEST_CONTEXT_PROCESSORS:
                 func = module_attribute(p_path,safe=True)
                 if func:
                     mw.append(func)
@@ -305,7 +297,25 @@ consequently its children.'''
  as application' % model)
             self._model_registry[model] = application
     
-        
+    
+    def context(self, data, request = None, processors=None):
+        '''Evaluate the context for the template. It returns a dictionary
+which updates the input ``dictionary`` with library dependent information.
+        '''
+        data = data or {}
+        if request:
+            cache = request.cache
+            environ = request.environ
+            if 'context' not in cache:
+                context_cache = {}
+                processors = self.request_context
+                if processors is not None:
+                    for processor in processors:
+                        context_cache.update(processor(request))
+                cache['context'] = context_cache
+            data.update(cache['context'])
+        return data
+            
     # TO BE CHECKED
     
     

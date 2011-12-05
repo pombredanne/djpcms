@@ -3,7 +3,8 @@ import logging
 from py2py3 import range
 
 import djpcms
-from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin
+from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin,\
+                        Http404
 from djpcms.utils import parentpath, slugify
 from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
@@ -124,11 +125,12 @@ and :class:`djpcmsview`.
     has_plugins = True
     insitemap = True
     parent_view = None
+    body_class = None
     
     def __init__(self, name = None, parent_view = None, pagination = None,
                  ajax_enabled = None, form = None, template_file = None,
                  description = None, in_nav = None, has_plugins = None,
-                 insitemap = None):
+                 insitemap = None, body_class = None):
         self.creation_counter = RendererMixin.creation_counter
         RendererMixin.creation_counter += 1
         self.name = name if name is not None else self.name
@@ -153,6 +155,8 @@ and :class:`djpcmsview`.
         self.insitemap = insitemap if insitemap is not None else self.insitemap
         if isinstance(form,forms.FormType):
             self.form = forms.HtmlForm(self.form)
+        self.body_class = body_class if body_class is not None else\
+                                self.body_class
         makename(self, self.name, self.description)
             
     def render(self, request):
@@ -326,22 +330,15 @@ it is the base class of :class:`pageview` and :class:`View`.
             return inner
         
         return {'title': request.title,
+                'body_class': self.get_body_class(request),
                 'inner': inner}
 
     def get_response(self, request):
         '''Get response handler.'''
         context = self.get_context(request)
-        # if status_code is an attribute we consider this as the response
-        # object and we return it. 
         if hasattr(context,'status_code'):
             return context
-        
-        settings = self.settings
-        context['meta'] = self.html_meta(request)
-        content = self.page_layout(request, context)
-        return http.Response(content = content,
-                             content_type = 'text/html',
-                             encoding = settings.DEFAULT_CHARSET)
+        return self.render_page(request, context)
     
     def post_response(self, request):
         '''Get response handler.'''
@@ -413,19 +410,6 @@ By default it is ``djp.url``'''
 :func:`djpcms.node` to retrive the node in the sitemap and
 consequently its children.'''
         raise StopIteration
-    
-    @property
-    def parentview(self):
-        if self.parent_view:
-            return self.parent_view
-        elif self.path == '/':
-            return None
-        route,_ = self.route.split()
-        try:
-            view,args = self.root.resolve(route.path[1:])
-            return view
-        except:
-            return None
         
     def meta_description(self, request):
         return self.settings.META_DESCRIPTION
@@ -433,11 +417,17 @@ consequently its children.'''
     def meta_keywords(self, request):
         return self.settings.META_KEYWORDS
     
-    def html_meta(self, request):
-        return '\n'.join(html.meta_generator(\
-                ('ROBOTS', self.meta_robots(request)),
-                ('description', self.meta_description(request)),
-                ('keywords', self.meta_keywords(request))))  
+    def meta_author(self, request):
+        return self.settings.META_AUTHOR
+      
+    def get_body_class(self, request):
+        page = request.page
+        if page and page.body_class:
+            return page.body_class
+        elif self.body_class:
+            return self.body_class
+        elif self.appmodel:
+            return self.appmodel.body_class
         
         
 class pageview(djpcmsview):

@@ -152,6 +152,8 @@ class Route(UnicodeMixin):
                 regex_parts.append(re.escape(variable))
                 if variable.endswith('/'):
                     variable = variable[:-1]
+                if variable.startswith('/'):
+                    variable = variable[1:]
                 if variable:
                     self.breadcrumbs.append((False,variable))
             else:
@@ -251,7 +253,9 @@ class Route(UnicodeMixin):
  It is a leaf.'.format(self))
         cls = self.__class__
         rule = other.rule if isinstance(other,cls) else str(other)
-        return cls(self.rule + rule)
+        defaults = self.defaults.copy()
+        defaults.update(other.defaults)
+        return cls(self.rule + rule, defaults)
         
 
 class BaseConverter(object):

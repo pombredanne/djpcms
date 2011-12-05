@@ -1,33 +1,32 @@
-{# BATTERY INCLUDED TEMPLATE FOR QUICK DEVELOPMENT #}
-{% extends "djpcms/root.html" %}{% block html_container %}
-<div id="page-header">{% block site_pre_header %}{% endblock %}
-<div id="site-header"{% block site_header_class %} class="{{ grid.container_class }}"{% endblock %}>
-{% block site_header %}{% endblock %}</div>
+{# BATTERY INCLUDED BODY TEMPLATE FOR QUICK DEVELOPMENT #}{% block top_bar %}{% if topbar %}
+{{ topbar }}{% endif %}{% endblock %}
+<div id="page-header">{% block page_header %}
+ <div class="{{ grid.container_class }}">{% block page_header_grid960 %}
+ {% endblock %}
+ </div>{% endblock %}
 </div>
 
-<div id="page-body">
- <div id="site-body"{% block site_body_class %} class="{{ grid.container_class }}"{% endblock %}>{% block page_prebody %}
-   <div class="{{ grid.column1 }}">{% block breadcrumbs %}{% if breadcrumbs %}
-     {{ breadcrumbs }}{% else %}{% if title %}
-     <div class="breadcrumbs">
-     {{ title }}
-     </div>{% endif %}{% endif %}{% endblock %}
-   </div>{{ grid.clear }}{% endblock %}{% if messages %}{% block page_messages %}
-    <div id="page-messages" class="{{ grid.column1 }}">{% for message in messages %}
-     {{ message }}{% endfor %}
-    </div>{{ grid.clear }}{% endblock %}{% endif %}
-   <div id="content">{% block page_body %}
-   {{ inner }}{% endblock %}
-   </div>
-   {% block page_postbody %}{% endblock %}
- </div>
+<div id="page-body">{% block page_body %}{% block breadcrumbs %}{% if breadcrumbs %}
+ <div class="{{ grid.container_class }}">
+  <div class="{{ grid.column1 }}">
+  {{ breadcrumbs }}
+  </div>{{ grid.clear }}
+ </div>{% endif %}{% endblock %}{% block page_messages %}{% if messages %}
+ <div class="{{ grid.container_class }}"> 
+  <div class="{{ grid.column1 }}">{% for message in messages %}
+   {{ message }}{% endfor %}
+  </div>{{ grid.clear }}
+ </div>{% endif %}{% endblock %}{% block page_body_grid960 %}
+ <div class="{{ grid.container_class }}">
+  {{ inner }}
+ </div>{% endblock %}{% endblock %}
 </div>
  
-<div id="page-footer">
- <div id="site-footer"{% block site_footer_class %} class="{{ grid.container_class }}"{% endblock %}>
- {% block site_footer %}{% endblock %}
- </div>
-</div>{% endblock %}
+<div id="page-footer">{% block page_footer %}
+ <div class="{{ grid.container_class }}">{% block page_footer_grid960 %}
+ {% endblock %}
+ </div>{% endblock %}
+</div>
 
 
 

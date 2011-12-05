@@ -1,11 +1,12 @@
-{% extends "djpcms/root.html" %}
+{% extends "base.html" %}
+{% block top_bar %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block page_messages %}{% endblock %}
 
-{% block body_container_bits %} class="tiny"{% endblock %}
-{% block html_container %}
-<div class="page-header">{% block page_header %}
-{{ title }}{% endblock %}
-</div>
-<div class="page-body">
-{{ inner }}
-</div>
+{% block page_header %}
+{{ title }}
 {% endblock %}
+{% block page_body %}
+{{ inner }}
+{% endblock %}
+{% block page_footer %}{% endblock %}

@@ -30,13 +30,6 @@ __all__ = ['AdminSite',
            'TabView',
            'TabViewMixin',
            'make_admin_urls']
-
-
-ADMIN_GROUP_TEMPLATE = ('admin/groups.html',
-                        'djpcms/admin/groups.html')
-
-ADMIN_APPLICATION_TEMPLATE = ('admin/groups.html',
-                              'djpcms/admin/groups.html')
             
 
 class TabView(views.ObjectItem):

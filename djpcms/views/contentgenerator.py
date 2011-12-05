@@ -76,8 +76,9 @@ class InnerContent(ContextRenderer):
                                 for b in range(self.numblocks)))
     
     def render(self):
-        loader = self.request.view.template
+        view = self.request.view
+        loader = view.template
         return self.inner_template.render(
-                    loader,
-                    loader.context(self.context, request=self.request))
+                    view.template,
+                    view.site.context(self.context, request=self.request))
 

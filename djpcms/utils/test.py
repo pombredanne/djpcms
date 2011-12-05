@@ -93,6 +93,24 @@ class ApplicationTest(test.TestCase):
         
 class TestCase(test.TestCase):
         
+    def build_site(self):
+        return djpcms.Site()
+    
+    def wsgi_middleware(self):
+        return []
+    
+    def response_middleware(self):
+        return []
+    
+    def wsgi_handler(self):
+        '''Crete the WSGI handler for testing. This function invoke the
+ :meth:`build_site` method which needs to be implemented by your test case.'''
+        site = self.build_site()
+        m = self.wsgi_middleware()
+        site.load()
+        m.append(http.WSGI(site))
+        return http.WSGIhandler(m,self.response_middleware())
+    
     def resolve_test(self, path):
         '''Utility function for testing url resolver'''
         self.sites.load()

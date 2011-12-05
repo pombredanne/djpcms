@@ -1,9 +1,14 @@
 '''Vanilla Application'''
 import djpcms
-from djpcms import views
+from djpcms import views, Site, get_settings
 from djpcms.utils import test
 from djpcms.apps.vanilla import Application
 
+
+def site_for_app(app):
+    return Site(get_settings(INSTALLED_APPS = ('stdcms','examples'),
+                             APPLICATION_URLS = (app,)))
+    
 
 class TestVanillaMeta(test.TestCase):
     
@@ -21,8 +26,14 @@ class TestVanillaMeta(test.TestCase):
     def testParentViews(self):
         from examples.models import Portfolio
         app = Application('/',Portfolio)
+        site = site_for_app(app)
+        self.assertEqual(app.model,Portfolio)
+        self.assertEqual(app.mapper,None)
         self.assertEqual(len(app),5)
         self.assertFalse(app.isbound)
+        self.assertEqual(len(site.urls()),1)
+        self.assertTrue(app.isbound)
+        self.assertEqual(app.mapper.model,Portfolio)
         self.assertEqual(len(app.urls()),5)
         self.assertTrue(app.isbound)
         search = app[0]
@@ -40,8 +51,10 @@ class TestVanillaMeta(test.TestCase):
     def testRoutes(self):
         from examples.models import Portfolio
         app = Application('/portfolio/',Portfolio)
+        site = Site(get_settings(APPLICATION_URLS = (app,)))
         self.assertEqual(len(app),5)
         self.assertFalse(app.isbound)
+        self.assertEqual(len(site.urls()),1)
         self.assertEqual(len(app.urls()),5)
         self.assertTrue(app.isbound)
         search = app.views['search']
@@ -106,3 +119,17 @@ class TestVanillaMeta(test.TestCase):
         view, urlargs = site.resolve('bla/56/portfolio/myportfolio/')
         self.assertEqual(urlargs,{'id':'56','pid':'myportfolio'})
 
+
+@test.skipUnless(test.djpapps,"Requires djpapps installed")
+class VanillaSite(test.TestCase):
+    
+    def build_site(self):
+        from examples.models import Book
+        app = Application('/',Book)
+        settings = djpcms.get_settings(APPLICATION_URLS = (app,))
+        return djpcms.Site(settings)
+    
+    def testRequestHome(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code,200)
+        

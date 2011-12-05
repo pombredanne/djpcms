@@ -260,9 +260,7 @@ overwritten to customize its behavior.
                  routes = None, **kwargs):
         # Set the model first
         self.model = model
-        self.mapper = None if not self.model else mapper(self.model)
-        self.instance_key = '__{0}__instance__'.format(self.mapper)\
-                                         if self.mapper else ''
+        self.mapper = None
         self.root_view = None
         self.instance_view = None
         self.views = OrderedDict()
@@ -359,12 +357,15 @@ overwritten to customize its behavior.
         if not self.routes:
             raise UrlException("There are no views in {0}\
  application. Try setting inherit equal to True.".format(self))
+        if not self.site:
+            raise UrlException("There is no site for {0}\
+ application.".format(self))
         # Set the in_nav if required
         if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
         
+        self.mapper = None if not self.model else mapper(self.model)
         self.site.register_app(self)
-            
         for view in self:
             view.parent = self
             view.appmodel = self

@@ -85,7 +85,7 @@ class ContextTemplate(object):
         data = self.context(data, request, processors)
         if data:
             rc = partial(self._render_context, func, template, **kwargs)
-            return self.site.root.render_response(data, rc)
+            return self.site.response(data, callback = rc)
         else:
             return self._render_context(func, template, data, **kwargs)
         
@@ -95,15 +95,16 @@ which updates the input ``dictionary`` with library dependent information.
         '''
         data = data or {}
         if request:
+            cache = request.cache
             environ = request.environ
-            if 'djpcms_context' not in environ:
+            if 'context' not in cache:
                 context_cache = {}
                 processors = self.site.template_context
                 if processors is not None:
                     for processor in processors:
                         context_cache.update(processor(request))
-                environ['djpcms_context'] = context_cache
-            data.update(environ['djpcms_context'])
+                cache['context'] = context_cache
+            data.update(cache['context'])
         return data
         
     def _render_context(self, func, template, context, autoescape = None,

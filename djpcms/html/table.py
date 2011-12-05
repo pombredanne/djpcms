@@ -15,8 +15,7 @@ from djpcms.utils.text import nicename
 from djpcms.utils.const import EMPTY_VALUE
 
 from .nicerepr import *
-from .base import Widget, WidgetMaker
-from .pagination import Paginator 
+from .base import Widget, WidgetMaker 
 
 
 __all__ = ['TableMaker',
@@ -163,6 +162,12 @@ def table(headers, body, **kwargs):
     return Widget(_TableMaker,body,headers=headers,**kwargs)
 
 
+ListItems = WidgetMaker(tag = 'div')
+
+def itemlist(body,**kwargs):
+    return Widget(ListItems,body,**kwargs)
+
+
 class Pagination(object):
     '''Class for specifying options for a table or a general pagination.
     
@@ -207,8 +212,6 @@ class Pagination(object):
     
     Default: None
 '''
-    default_pagination_template_name = ('pagination.html',
-                                        'djpcms/pagination.html')
     table_defaults = {
           'bJQueryUI':True,
           'sPaginationType': 'full_numbers',
@@ -228,10 +231,8 @@ class Pagination(object):
         self.ordering = ordering
         self.sizetolerance = sizetolerance
         self.ajax = ajax
-        self.widget_factory = widget_factory
-        template_name = pagination_template_name or \
-                        self.default_pagination_template_name
-        self.widget_maker = WidgetMaker(template_name = template_name)
+        self.widget_factory = widget_factory if widget_factory is not None else\
+                                itemlist
         heads = {}
         ld = []
         if headers:
@@ -333,10 +334,8 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 if ajax:
                     options['sAjaxSource'] = ajax
             maker = partial(table, self.list_display)
-        elif self.widget_factory:
-            maker = self.widget_factory
         else:
-            raise NotImplementedError
+            maker = self.widget_factory
         return maker(body, pagination = pagination, data = data,
                      footer = self.footer, **kwargs)
         

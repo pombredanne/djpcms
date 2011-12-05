@@ -164,7 +164,9 @@ def navigator(request):
     return {'sitenav': html.LazyHtml(request,sitenav)}
 
 
-def topbar(request):
+def topbar(request, brand = None):
+    '''Build a lazy topbar to be place at the top of your web page.
+    '''
     settings = request.view.settings
     grid = get_grid960(request.page,settings)
     # If we use a grid create the container
@@ -176,6 +178,7 @@ def topbar(request):
         container = None
     sitenav = views.Navigator(secondary = page_links(request),
                               levels = settings.SITE_NAVIGATION_LEVELS,
+                              brand = settings.SITE_NAVIGATION_BRAND,
                               fixed = True,
                               container = container)
     return {'sitenav': html.LazyHtml(request,sitenav)}

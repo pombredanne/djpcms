@@ -164,13 +164,16 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     def unwind_query(self, query, callback = None):
         return self.response_handler(self, query, callback)
     
+    def response(self, data, callback = None):
+        return self.internal_data('response_handler')(self, data, callback)
+    
     @property
     def settings(self):
         return self.internal_data('settings')
     
     @property
-    def tree(self):
-        return self.internal_data('tree')
+    def page_layout(self):
+        return self.internal_data('page_layout')
     
     @property
     def search_engine(self):
@@ -181,12 +184,8 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         return self.internal_data('permissions')
     
     @property
-    def robots(self):
-        return self.internal_data('robots')
-    
-    @property
-    def response_handler(self):
-        return self.internal_data('response_handler')
+    def meta_robots(self):
+        return self.internal_data('meta_robots')
     
     @property
     def template(self):

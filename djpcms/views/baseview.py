@@ -336,13 +336,9 @@ it is the base class of :class:`pageview` and :class:`View`.
         if hasattr(context,'status_code'):
             return context
         
-        settings = self.settings  
-        context.update({'robots': self.robots(request)})      
-        content = self.template.render(request.template_file,
-                                       context,
-                                       request = request,
-                                       encode = 'latin-1',
-                                       encode_errors = 'replace')
+        settings = self.settings
+        context['meta'] = self.html_meta(request)
+        content = self.page_layout(request, context)
         return http.Response(content = content,
                              content_type = 'text/html',
                              encoding = settings.DEFAULT_CHARSET)
@@ -430,6 +426,19 @@ consequently its children.'''
             return view
         except:
             return None
+        
+    def meta_description(self, request):
+        return self.settings.META_DESCRIPTION
+    
+    def meta_keywords(self, request):
+        return self.settings.META_KEYWORDS
+    
+    def html_meta(self, request):
+        return '\n'.join(html.meta_generator(\
+                ('ROBOTS', self.meta_robots(request)),
+                ('description', self.meta_description(request)),
+                ('keywords', self.meta_keywords(request))))  
+        
         
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean

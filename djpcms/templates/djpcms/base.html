@@ -1,10 +1,9 @@
-{# BATTERY INCLUDED SIMPLE TEMPLATE FOR QUICK DEVELOPMENT #}
-{# YOU NEED TO DEFINE YOUR root.html TEMPLATE TO USE THIS #}
-{% extends "root.html" %}{% block html_container %}{% if not is_popup %}
+{# BATTERY INCLUDED TEMPLATE FOR QUICK DEVELOPMENT #}
+{% extends "djpcms/root.html" %}{% block html_container %}
 <div id="page-header">{% block site_pre_header %}{% endblock %}
 <div id="site-header"{% block site_header_class %} class="{{ grid.container_class }}"{% endblock %}>
 {% block site_header %}{% endblock %}</div>
-</div>{% endif %}
+</div>
 
 <div id="page-body">
  <div id="site-body"{% block site_body_class %} class="{{ grid.container_class }}"{% endblock %}>{% block page_prebody %}

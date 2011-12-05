@@ -1,9 +1,7 @@
-{% block doctype_html %}{{ htmldoc.html }}{% endblock %}
+{{ htmldoc.html }}
 <head>
 {{ htmldoc.meta }}
-{% block blockbots %}{%if robots %}<meta name="ROBOTS" content="{{ robots }}" />{% endif %}{% endblock %}
-{% block blockkeywords %}<meta name="keywords" content="{% block site_keywords %}{% endblock %}"/>{% endblock %}
-{% block blockdescriptions %}<meta name="description" content="{% block site_description %}{% endblock %}"/>{% endblock %}
+{{ meta }}
 <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% block sitetitle %}{% endblock %}{% endblock %}</title>
 {% if pagelink %}{% if pagelink.page %}{% for head in pagelink.page.additional_head %}
 {{ head }}{% endfor %}{% endif %}{% endif %}

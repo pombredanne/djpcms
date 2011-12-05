@@ -6,6 +6,10 @@ PROFILING_KEY = None
 DESCRIPTION = 'djpcms framework'
 EPILOG = 'Have fun!'
 
+# META ATTRIBUTE
+META_DESCRIPTION = ''
+META_KEYWORDS = ''
+
 # List of installed application.
 # These must be dotted python paths
 INSTALLED_APPS = ['djpcms']
@@ -41,6 +45,7 @@ EXTRA_CONTENT_PLUGIN = None
 GOOGLE_ANALYTICS_ID = None
 
 SITE_NAVIGATION_LEVELS = 4
+SITE_NAVIGATION_BRAND = None
 ENABLE_BREADCRUMBS = 2
 
 DJPCMS_PLUGINS = ['djpcms.plugins.*']
@@ -68,16 +73,8 @@ FAVICON_MODULE = None
 JQUERY_VERSION = '1.6.2'
 JQUERY_UI_VERSION = '1.8.16'
 SWFOBJECT_VERSION = '2.2'
-DEFAULT_STYLE_SHEET = {'all':['http://yui.yahooapis.com/2.9.0/build/\
-reset-fonts-grids/reset-fonts-grids.css',
-'djpcms/fluid960gs/grid.css'],
-                       'screen':[('djpcms/fluid960gs/ie6.css','IE 6'),
-                                 ('djpcms/fluid960gs/ie.css','IE 7')]}
-DEFAULT_JAVASCRIPT = ['djpcms/modernizr-1.7.min.js',
-                      'djpcms/jquery.cookie.js',
-                      #"{0[MEDIA_URL]}djpcms/jquery.pagination.js",
-                      "djpcms/form.js",
-                      "djpcms/djpcms.js"]
+DEFAULT_STYLE_SHEET = djpcms.DEFAULT_STYLE_SHEET()
+DEFAULT_JAVASCRIPT = djpcms.DEFAULT_JAVASCRIPT()
 
 #SPHINX CONFIG
 SPHINX__extensions = ['sphinx.ext.pngmath',

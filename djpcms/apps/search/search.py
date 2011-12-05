@@ -78,6 +78,7 @@ It returns a queryset.
     
 class Application(views.Application):
     engine = None
+    in_nav = 0
     
     search = SearchView(form = HtmlSearchForm,
                         description = 'Search Results')

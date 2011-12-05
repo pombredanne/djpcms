@@ -12,3 +12,13 @@ class Portfolio(orm.StdModel):
     def __unicode__(self):
         return self.name
     
+    
+class Book(orm.StdModel):
+    title = orm.CharField()
+    author = orm.CharField()
+    year = orm.IntegerField()
+    description = orm.CharField()
+    
+    def __unicode__(self):
+        return self.title
+    

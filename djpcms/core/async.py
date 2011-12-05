@@ -47,12 +47,12 @@ def async_instance(mf):
     return _
 
 
-def default_response_handler(request, response, callback = None):
-    if isinstance(response,dict):
+def default_response_handler(site, data, callback = None):
+    if isinstance(data,dict):
         rr = default_response_handler
-        response = dict(((k,rr(request,v)) for k,v in iteritems(response)))
-    elif isinstance(response,ContextRenderer):
-        response = response.render()
-    elif hasattr(response,'query'):
-        response = response.query
-    return callback(response) if callback else response
+        data = dict(((k,rr(site,v)) for k,v in iteritems(data)))
+    elif isinstance(data,ContextRenderer):
+        data = data.render()
+    elif hasattr(data,'query'):
+        data = data.query
+    return callback(data) if callback else data

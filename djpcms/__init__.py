@@ -27,6 +27,21 @@ DJPCMS_DIR = parentdir(os.path.abspath(__file__))
 path_dir = parentdir(DJPCMS_DIR)
 
 
+def DEFAULT_JAVASCRIPT():
+    return ['djpcms/modernizr-1.7.min.js',
+            'djpcms/jquery.cookie.js',
+            'djpcms/form.js',
+            'djpcms/djpcms.js']
+    
+
+def DEFAULT_STYLE_SHEET():
+    return {'all':['http://yui.yahooapis.com/2.9.0/build/\
+reset-fonts-grids/reset-fonts-grids.css',
+'djpcms/fluid960gs/grid.css'],
+            'screen':[('djpcms/fluid960gs/ie6.css','IE 6'),
+                      ('djpcms/fluid960gs/ie.css','IE 7')]}
+
+
 def install_lib(basepath, dirname, module_name = None):
     if module_name:
         try:
@@ -63,21 +78,6 @@ to_bytestring = py2py3.to_bytestring
 is_string = py2py3.is_string
 UnicodeMixin = py2py3.UnicodeMixin
 
-
-def node(path):
-    '''Retrive a :class:`Node` from the global sitemap from a ``path`` input.
-If the path is not available but its parent path is,
-it returns a new node without storing it in the sitemap.
-Otherwise it raises a :class:`djpcms.core.exceptions.PathException`.
-
-:parameter path: node path.
-'''
-    return sites.tree[path]
-
-
-def get_page(path):
-    return sites.tree.get_page(path)
-        
 
 def init_logging(settings, clear_all = False):
     '''Initialise logging'''

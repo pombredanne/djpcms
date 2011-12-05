@@ -46,3 +46,7 @@ class blockelement(Widget):
         return super(blockelement,self).render(djp,inner)
 
     
+def meta_generator(*meta):
+    for name,content in meta:
+        if content:
+            yield '<meta name="{0}" content="{1}"/>'.format(name,content)

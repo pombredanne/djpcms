@@ -45,7 +45,7 @@ class LoginView(views.ModelView):
         else:
             return self.get_form(request).render(request)
     
-    def default_post(self, request):
+    def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
     
     def success_message(self, instance, mch):

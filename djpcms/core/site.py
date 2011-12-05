@@ -73,17 +73,26 @@ Default ``None``
     else:
         settings_module_name = None
     
-    return conf.get_settings(settings_module_name,
-                             SITE_DIRECTORY = site_path,
-                             SITE_MODULE = name,
-                             **params)
+    return conf.Config(settings_module_name,
+                       SITE_DIRECTORY = site_path,
+                       SITE_MODULE = name,
+                       **params)
 
 
+def default_layout(request, context):
+    return request.view.template.render(request.template_file,
+                                        context,
+                                        request = request,
+                                        encode = 'latin-1',
+                                        encode_errors = 'replace')
+    
+    
 DEFAULT_SITE_HANDLERS = {
     'response_handler': default_response_handler,
     'permissions': PermissionHandler,
-    'robots': SimpleRobots,
+    'meta_robots': SimpleRobots,
     'errors': http.standard_exception_handle,
+    'page_layout': default_layout,
     'cache': CacheHandler()
 }
 

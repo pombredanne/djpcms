@@ -28,10 +28,22 @@ class Navigator(object):
     Default: ``False``.
 '''
     link_active_class = 'active'
+    main_layout = ('brand','nav')
+    secondary_layout = ('search','nav')
     
     def __init__(self, levels = 2, secondary_after = 100,
                  primary = None, secondary = None,
-                 container = None, fixed = False, soft = False):
+                 container = None, fixed = False,
+                 brand = None, search = None, soft = False,
+                 main_layout = None, secondary_layout = None):
+        self.main_layout = main_layout if main_layout\
+                            is not None else self.main_layout
+        self.secondary_layout = secondary_layout if secondary_layout\
+                                 is not None else self.secondary_layout
+        if brand and not isinstance(brand,Widget):
+            brand = Widget('a',brand,cn='brand',href='/')
+        self.brand = brand
+        self.search = search
         self.soft = soft
         self.container = container
         if container is not None and not isinstance(container,Widget):
@@ -44,6 +56,18 @@ class Navigator(object):
         self.primary.addClass('nav')
         self.secondary.addClass('nav secondary-nav')
     
+    def elements(self, layout, nav):
+        float = 'right' if nav.hasClass('secondary-nav') else 'left'
+        for elem in layout:
+            if elem == 'nav':
+                elem = nav
+            else:
+                elem = getattr(self,elem,None)
+                if elem:
+                    elem.css({'float':float})
+            if elem:
+                yield elem
+                
     def render(self, request):
         topbar = Widget('div', cn = 'topbar')
         if self.fixed:
@@ -64,10 +88,11 @@ class Navigator(object):
                 self.secondary.add(li)
             else:
                 self.primary.add(li)
-        if self.primary:
-            topbar.add(self.primary)
-        if self.secondary:
-            topbar.add(self.secondary)
+        for elem in self.elements(self.main_layout, self.primary):
+            topbar.add(elem)
+        for elem in self.elements(reversed(self.secondary_layout),\
+                                                         self.secondary):
+            topbar.add(elem)
         return widget.render(request)
     
     def buildselects(self, request, urlselects):

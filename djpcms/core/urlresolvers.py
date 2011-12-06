@@ -162,7 +162,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         return self.response_handler(self, query, callback)
     
     def response(self, data, callback = None):
-        return self.internal_data('response_handler')(self, data, callback)
+        return self.internal_data('response_handler')(data, callback)
     
     @property
     def settings(self):
@@ -367,11 +367,6 @@ class ResolverMixin(RouteMixin):
         '''Obtain a :class:`djpcms.views.appsite.ModelApplication` for *model*.
 If the application is not available, it returns ``None``. It never fails.'''
         return None
-    
-    def djp(self, request, path):
-        '''Entry points for requests'''
-        site, view, kwargs = self.resolve(path)
-        return view(request, **kwargs)
     
     def make_parent(self, parent):
         parent = super(ResolverMixin,self).make_parent(parent)

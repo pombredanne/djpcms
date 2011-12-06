@@ -395,12 +395,17 @@ arguments.
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
     
-    @lazymethod
     def cssgrid(self):
-        settings = self.view.settings
-        page = self.page
-        layout = settings.LAYOUT_GRID_SYSTEM if not page else page.layout
-        return get_cssgrid(layout)
+        if 'cssgrid' not in self.cache:
+            r = self.for_path()
+            settings = r.view.settings
+            page = r.page
+            layout = settings.LAYOUT_GRID_SYSTEM if not page else page.layout
+            grid = get_cssgrid(layout)
+            if grid:
+                self.media.add(grid.media(r))
+            self.cache['cssgrid'] = grid
+        return self.cache['cssgrid']
 
     @lazymethod
     def children(self):

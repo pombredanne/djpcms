@@ -36,10 +36,7 @@ def DEFAULT_JAVASCRIPT():
 
 def DEFAULT_STYLE_SHEET():
     return {'all':['http://yui.yahooapis.com/2.9.0/build/\
-reset-fonts-grids/reset-fonts-grids.css',
-'djpcms/fluid960gs/grid.css'],
-            'screen':[('djpcms/fluid960gs/ie6.css','IE 6'),
-                      ('djpcms/fluid960gs/ie.css','IE 7')]}
+reset-fonts-grids/reset-fonts-grids.css']}
 
 
 def install_lib(basepath, dirname, module_name = None):

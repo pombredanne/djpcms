@@ -3,19 +3,8 @@ from py2py3 import iteritems
 from djpcms.html import ContextRenderer
 
 
-__all__ = ['Promise','async_instance','default_response_handler']
-
-
-class Promise(object):
-    __slots__ = ('request','callback')
-    
-    def __init__(self, request, callback):
-        self.request = request
-        self.callback = callback
-        
-    def __call__(self, result):
-        return self.callback(self.request,result)
-    
+__all__ = ['async_instance', 'ResponseHandler']
+   
 
 '''wait for an asynchronous instance'''
 class async_instance_callback(object):
@@ -47,12 +36,56 @@ def async_instance(mf):
     return _
 
 
-def default_response_handler(site, data, callback = None):
-    if isinstance(data,dict):
-        rr = default_response_handler
-        data = dict(((k,rr(site,v)) for k,v in iteritems(data)))
-    elif isinstance(data,ContextRenderer):
-        data = data.render()
-    elif hasattr(data,'query'):
-        data = data.query
-    return callback(data) if callback else data
+class ResponseHandler(object):
+    
+    def __call__(self, response, callback = None):
+        return self.handle(response, callback)
+        
+    def release(self, response, callback, nested):
+        pass
+    
+    def async_response(self, response, callback, nested):
+        if hasattr(response,'query'):
+            response = response.query
+        return False,response
+    
+    def handle(self, response, callback = None, nested = False):
+        '''Recursive function for handling asynchronous content
+        '''
+        if isinstance(response,dict):
+            for k,v in list(iteritems(response)):
+                v = self.handle(v, nested = True)
+                r = self.release(v, callback, nested)
+                if r:
+                    return r
+                else:
+                    response[k] = v
+        #
+        elif isinstance(response, ContextRenderer):
+            # we pass the dictionary so the result is either a NOT_DONE or a
+            # a new dictionary
+            v = self.handle(response.context, nested = True)
+            r = self.release(v, callback, nested)
+            if r:
+                return r
+            else:
+                response.context = v
+                response = response.render()
+        #
+        elif isinstance(response, (list,tuple)):
+            new_response = []
+            for v in response:
+                v = self.handle(v, nested = True)
+                r = self.release(v, callback, nested)
+                if r:
+                    return r
+                else:
+                    new_response.append(v)
+            response = new_response
+        #
+        else:
+            async,response = self.async_response(response, callback, nested)
+            if async:
+                return response
+        
+        return callback(response) if callback else response

@@ -1,7 +1,14 @@
+import logging
+
 from djpcms import to_string, UnicodeMixin
+from djpcms.utils.media import Media
 from djpcms.utils.const import EMPTY_VALUE
 
+
 __all__ = ['get_cssgrid','EMPTY_VALUE','grid_systems','Grid960','Yui3']
+
+logger = logging.getLogger('djpcms.html')
+
 
 grid_systems = [
                 ('','-----------------------------'),
@@ -33,10 +40,19 @@ class CssGrid(UnicodeMixin):
         if not self.fixed:
             na += ' float'
         return to_string(na)
+    
+    def media(self, request):
+        return None
         
         
 class Grid960(CssGrid):
     name = '960'
+    media_fixed = Media(css = {'all':['djpcms/fluid960gs/960.css'],
+                               'screen':[('djpcms/fluid960gs/ie6.css','IE 6'),
+                                         ('djpcms/fluid960gs/ie.css','IE 7')]})
+    media_float = Media(css = {'all':['djpcms/fluid960gs/grid.css'],
+                               'screen':[('djpcms/fluid960gs/ie6.css','IE 6'),
+                                         ('djpcms/fluid960gs/ie.css','IE 7')]})
     def setup(self,columns,fixed):
         self.columns = columns if columns in (12,16) else 12
         self.fixed = fixed
@@ -63,8 +79,13 @@ class Grid960(CssGrid):
         self.column_1_6 = 'grid_2'
         self.column_5_6 = 'grid_{0}'.format(columns-2)
         
+    def media(self, request):
+        if self.fixed:
+            return self.media_fixed
+        else:
+            return self.media_float
+        
     
-
 class Yui3(CssGrid):
     name = 'yui3'
     def setup(self,columns,fixed):
@@ -92,6 +113,7 @@ class Yui3(CssGrid):
         self.column_1_6 = 'yui3-u-1-6'
         self.column_5_6 = 'yui3-u-5-6'
     
+    
 def get_cssgrid(name):
     names = name.lower().split('_')
     name = names.pop(0)
@@ -108,7 +130,7 @@ def get_cssgrid(name):
     elif name == 'yui3':
         return Yui3(columns,fixed)
     elif name:
-        raise ValueError('Grid "{0}" is not installed'.format(name))
+        logger.error('Grid "{0}" is not installed'.format(name))
     
     
         

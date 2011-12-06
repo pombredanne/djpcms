@@ -18,7 +18,7 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
-from .async import default_response_handler
+from .async import ResponseHandler
 from .layout import HtmlPage
 from . import http
 from . import orms
@@ -81,7 +81,7 @@ Default ``None``
 
 
 DEFAULT_SITE_HANDLERS = {
-    'response_handler': default_response_handler,
+    'response_handler': ResponseHandler(),
     'permissions': PermissionHandler,
     'meta_robots': SimpleRobots,
     'render_page': HtmlPage(),

@@ -90,7 +90,6 @@ delegate the handling to them.'''
             else:
                 return self.error(Request(environ,e.handler or self.site), 404)
             
-        environ['DJPCMS'] = djpcmsinfo(view, urlargs)
         request = Request(environ, view, urlargs)
         try:
             if request.method not in view.methods(request):

@@ -566,6 +566,8 @@ an empty string.
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
+            if request is None:
+                raise ValueError('No request. Cannot render template.')
             lt = request.view.template
             if self.template:
                 return lt.template_class(self.template).render(context)

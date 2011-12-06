@@ -140,13 +140,13 @@ Attributes available:
         self.plugin_choices = [('','-----------------')]
         if self.parent is None:
             settings = settings or get_settings()
-        path = os.path.join(settings.SITE_DIRECTORY,'templates')
-        if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
-            settings.TEMPLATE_DIRS += path,
-        path = os.path.join(djpcms.__path__[0],'media','djpcms')
-        if path not in settings.TEMPLATE_DIRS:
-            settings.TEMPLATE_DIRS += path,
         if settings:
+            path = os.path.join(settings.SITE_DIRECTORY,'templates')
+            if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
+                settings.TEMPLATE_DIRS += path,
+            path = os.path.join(djpcms.__path__[0],'media','djpcms')
+            if path not in settings.TEMPLATE_DIRS:
+                settings.TEMPLATE_DIRS += path,
             self.internals['settings'] = settings
         self.internals.update(handlers)
         

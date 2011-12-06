@@ -4,45 +4,31 @@ from djpcms.utils import test
 
 
 def appurls():
-    return (vanilla.Application('/strategies/',Strategy),)
-
-
-class TestPageMixin(object):
-    INSTALLED_APPS = ('djpcms','stdcms','examples')
-    
-    def adminurls(self):
-        from djpcms.apps import admin
-        return admin.make_admin_urls(self.INSTALLED_APPS)
-    
-    def appurls(self):
-        from examples.models import Portfolio
-        from djpcms.apps import vanilla
-        return (vanilla.Application('portfolio/',Portfolio),)
-    
-    def loadsite(self):
-        root = djpcms.Site()
-        settings = djpcms.get_settings(
-                INSTALLED_APPS = self.INSTALLED_APPS,
-                APPLICATION_URLS = self.adminurls)
-        root.addsite(settings,'admin/')
-        settings = djpcms.get_settings(
-                INSTALLED_APPS = self.INSTALLED_APPS,
-                APPLICATION_URLS = self.appurls)
-        root.addsite(settings)
-        return root
+    from examples.models import Portfolio
+    from djpcms.apps import vanilla
+    return (vanilla.Application('portfolio/',Portfolio),)
 
 
 @test.skipUnless(test.djpapps,"Requires djpapps installed")
-class TestPage(test.TestCase, TestPageMixin):
+class TestPage(test.TestCase):
+    INSTALLED_APPS = ('stdcms','examples')
     
-    def setUp(self):
-        self.root = self.loadsite()
-        
+    def build_site(self):
+        from djpcms.apps import admin
+        settings = djpcms.get_settings(
+                INSTALLED_APPS = self.INSTALLED_APPS,
+                APPLICATION_URLS = appurls)
+        root = djpcms.Site(settings)
+        settings = djpcms.get_settings(
+                INSTALLED_APPS = self.INSTALLED_APPS,
+                APPLICATION_URLS = admin.make_admin_urls(self.INSTALLED_APPS))
+        root.addsite(settings,'admin/')
+        return root
+    
     def testRootSite(self):
-        root = self.root
-        self.assertTrue(len(root),2)
+        root = self.build_site()
         self.assertFalse(root.isbound)
-        urls = root.urls()
+        self.assertEqual(len(root.urls()),2)
         self.assertTrue(root.isbound)
         
     def __testUpdateRoot(self):

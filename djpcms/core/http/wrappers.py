@@ -8,7 +8,7 @@ from wsgiref.headers import Headers
 from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
                          is_string, UnicodeMixin
 
-from djpcms.utils import lazyproperty, lazymethod
+from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.core.exceptions import *
@@ -45,6 +45,49 @@ class Tree(object):
             self.pages = dict(((p.url,p) for p in pages))
         else:
             self.pages = {}
+            
+            
+class djpcmsinfo(object):
+    '''Holds information and data to be reused during a single request.
+This is used as a way to speed up responses as well as for
+managing settings.'''
+    def __init__(self, view, urlargs = None):
+        self.view = view
+        self.urlargs = urlargs if urlargs is not None else {}
+        self.page = None
+        self.instance = None
+        self.context_cache = None
+        self.environ = {}
+        self._djp_instance_cache = {}
+    
+    def __getitem__(self, key):
+        return self.environ[key]
+    
+    def __setitem__(self, key, value):
+        self.environ[key] = value
+        
+    def get(self, key, default = None):
+        return self.environ.get(key,default)
+        
+    @property
+    def media(self):
+        if not hasattr(self,'_media'):
+            settings = self.view.settings
+            m = media.Media(settings = settings)
+            m.add_js(js.jquery_paths(settings))
+            m.add_js(settings.DEFAULT_JAVASCRIPT)
+            m.add_css(settings.DEFAULT_STYLE_SHEET)
+            m.add(self.view.media(self))
+            self._media = m
+        return self._media
+    
+    def djp_from_instance(self, view, instance):
+        if instance and instance.id: 
+            return self._djp_instance_cache.get((view,instance))
+    
+    def add_djp_instance_cache(self, djp, instance):
+        if instance and getattr(instance,'id',None):
+            self._djp_instance_cache[(djp.view,instance)] = djp
                 
 
 class Request(UnicodeMixin):
@@ -80,6 +123,8 @@ arguments.
         self.environ = environ
         self.view = view
         self.urlargs = urlargs if urlargs is not None else {}
+        if 'DJPCMS' not in self.environ:
+            self.environ['DJPCMS'] = djpcmsinfo(self.view,self.urlargs)
         self.__instance = instance
 
     def for_view_args(self, view = None, urlargs = None, instance = None):
@@ -294,7 +339,7 @@ arguments.
         self.cache['FILES'] = f
     
     def _post_data(self):
-        if '_row_post_data' not in self.cache:
+        if 'raw_post_data' not in self.cache:
             try:
                 content_length = int(self.environ.get('CONTENT_LENGTH', 0))
             except (ValueError, TypeError):
@@ -303,8 +348,8 @@ arguments.
                 data = self.environ['wsgi.input'].read(content_length)
             else:
                 data = b''
-            self.cache['_row_post_data'] = data
-        return self.cache['_row_post_data']
+            self.cache['raw_post_data'] = data
+        return self.cache['raw_post_data']
     
     def get_full_path(self):
         # RFC 3986 requires query string arguments to be in the ASCII range.

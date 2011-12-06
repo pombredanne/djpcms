@@ -135,6 +135,8 @@ class HtmlPage(object):
         
     def render(self, request, context, body_renderer = None):
         '''render a page and return a binary string'''
+        page = request.page
+        context['htmldoc'] = doc = htmldoc(None if not page else page.doctype)
         context = request.view.site.context(context, request)
         callback = partial(self.encode,request,body_renderer)
         return request.view.response(context, callback)

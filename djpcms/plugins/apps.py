@@ -111,7 +111,8 @@ class RenderObject(DJPplugin):
             return ''
     
     
-class ModelLinks(DJPplugin):
+class ApplicationLinks(DJPplugin):
+    '''Display links for an application.'''
     name = 'model-links'
     description = 'Links for a model'
     template_name = ('links.html',
@@ -135,7 +136,10 @@ class ModelLinks(DJPplugin):
                                                     include = include,
                                                     instance = instance),
                             asbuttons = asbuttons)
-        name = appmodel.mapper.class_name(appmodel.model)
+        if appmodel.mapper:
+            name = appmodel.mapper.class_name(appmodel.model)
+        else:
+            name = None
         if links:
             return html.Widget('ul', (l[1] for l in links), cn = name)\
                        .addClass('model-links')\

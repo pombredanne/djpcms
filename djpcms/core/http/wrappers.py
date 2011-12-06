@@ -8,6 +8,7 @@ from wsgiref.headers import Headers
 from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
                          is_string, UnicodeMixin
 
+from djpcms.html import get_cssgrid
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
@@ -57,7 +58,7 @@ managing settings.'''
         self.page = None
         self.instance = None
         self.context_cache = None
-        self.environ = {}
+        self.environ = {'requests':{}}
         self._djp_instance_cache = {}
     
     def __getitem__(self, key):
@@ -88,7 +89,17 @@ managing settings.'''
     def add_djp_instance_cache(self, djp, instance):
         if instance and getattr(instance,'id',None):
             self._djp_instance_cache[(djp.view,instance)] = djp
-                
+            
+
+
+def path_tuple(path):
+    return tuple((b for b in path.split('/') if b))
+    
+    
+def add_to_requests(path, request):
+    bits = path_tuple(path)
+    request.cache['requests'][bits] = request
+                 
 
 class Request(UnicodeMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
@@ -125,6 +136,7 @@ arguments.
         self.urlargs = urlargs if urlargs is not None else {}
         if 'DJPCMS' not in self.environ:
             self.environ['DJPCMS'] = djpcmsinfo(self.view,self.urlargs)
+            self.url
         self.__instance = instance
 
     def for_view_args(self, view = None, urlargs = None, instance = None):
@@ -137,9 +149,19 @@ arguments.
     def for_view(self, view):
         return self.for_view_args(view, self.urlargs.copy(), self.__instance)
     
+    def for_url(self, url):
+        request = self.cache['requests'].get(path_tuple(url))
+        if request:
+            return request
+        else:
+            try:
+                view, args = self.view.root.resolve(url[1:])
+            except Http404:
+                return None
+            return self.for_view_args(view, args)
+        
     def for_path(self):
-        info = self.DJPCMS
-        return Request(info.view,info.urlargs)
+        return self.for_url(self.path)
     
     def __unicode__(self):
         return self.path + ' - ' + self.view.route.rule
@@ -243,13 +265,15 @@ arguments.
     @lazyproperty
     def url(self):
         if self.view is self.DJPCMS.view:
-            return self.path
+            url = self.path
         else:
             try:
-                return self.view.get_url(self.urlargs,
-                                         instance = self.instance)
+                url = self.view.get_url(self.urlargs,
+                                        instance = self.instance)
             except Http404:
                 return None
+        add_to_requests(url,self)
+        return url
             
     @property
     def instance(self):
@@ -322,7 +346,7 @@ arguments.
             # Reconstruct the host using the algorithm from PEP 333.
             host = environ['SERVER_NAME']
             server_port = str(environ['SERVER_PORT'])
-            if server_port != (self.is_secure() and '443' or '80'):
+            if server_port != (self.is_secure and '443' or '80'):
                 host = '%s:%s' % (host, server_port)
         return host
     
@@ -366,11 +390,18 @@ arguments.
         if not location:
             location = self.get_full_path()
         if not absolute_http_url_re.match(location):
-            current_uri = '%s://%s%s' % (self.is_secure() and 'https' or 'http',
+            current_uri = '%s://%s%s' % (self.is_secure and 'https' or 'http',
                                          self.get_host(), self.path)
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
     
+    @lazymethod
+    def cssgrid(self):
+        settings = self.view.settings
+        page = self.page
+        layout = settings.LAYOUT_GRID_SYSTEM if not page else page.layout
+        return get_cssgrid(layout)
+
     @lazymethod
     def children(self):
         return tuple((self.for_view(v) for v in self.view.children(self)))
@@ -379,12 +410,17 @@ arguments.
     def auth_children(self):
         return tuple((c for c in self.children() if c.has_permission()))
     
-    def render(self):
+    def render(self, **kwargs):
         '''\
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         self.media.add(self.view.media(self))
-        return self.view.render(self)
+        return self.view.render(self, **kwargs)
+    
+    def get_context(self, **kwargs):
+        '''Proxy of :meth:`djpcms.views.djpcmsview.get_context`, it return
+ a context dictionary for the view'''
+        return self.view.get_context(self, **kwargs)
     
     @lazyproperty
     def parent(self):
@@ -396,16 +432,12 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             url = url[:-1]
         if url:
             bits = url.split('/')
-            resolve = view.root.resolve
             while bits:
                 bits.pop()
-                url = '/'.join(bits) + '/' if bits else ''
-                try:
-                    view,args = resolve(url)
-                except Http404:
-                    continue
-                else:
-                    return self.for_view_args(view,args)
+                url = '/' + '/'.join(bits) + '/' if bits else '/'
+                p = self.for_url(url)
+                if p:
+                    return p
     
     @lazyproperty
     def in_navigation(self):

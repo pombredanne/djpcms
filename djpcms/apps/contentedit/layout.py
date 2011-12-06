@@ -1,5 +1,5 @@
 from djpcms import forms, html
-from djpcms.forms.layout import uniforms
+from djpcms.forms.layout import uniforms as uni
 
 from .forms import *
 
@@ -15,9 +15,10 @@ HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 HtmlPageForm = forms.HtmlForm(
     PageForm,
-    layout = uniforms.Layout(
-                          uniforms.Fieldset('url','title','link','in_navigation','inner_template'),
-                          uniforms.Row('requires_login','soft_root')
+    layout = uni.Layout(
+                uni.Columns(('title','link','in_navigation'),
+                            ('layout','inner_template','doctype'),
+                            ('url','requires_login','soft_root'))
                           ),
     inputs = (('done',forms.SAVE_KEY),
               ('save',forms.SAVE_AND_CONTINUE_KEY)
@@ -33,12 +34,12 @@ BlockLayoutFormHtml = forms.HtmlForm(
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,
     inputs = (('save',forms.SAVE_KEY),),
-    layout = uniforms.Layout(
-                  uniforms.Fieldset('plugin_name','container_type',
+    layout = uni.Layout(
+                  uni.Fieldset('plugin_name','container_type',
                                     'title','view_permission'),
-                  uniforms.Columns(('for_not_authenticated',),
+                  uni.Columns(('for_not_authenticated',),
                                    ('requires_login',),
-                                   default_style=uniforms.inlineLabels3),
+                                   default_style=uni.inlineLabels3),
                   html.Html(key = 'plugin',
                             tag = 'div',
                             default_class = PLUGIN_DATA_FORM_CLASS,
@@ -50,9 +51,9 @@ ContentBlockHtmlForm = forms.HtmlForm(
 
 HtmlEditContentForm = forms.HtmlForm(
     EditContentForm,
-    layout = uniforms.Layout(
-                          uniforms.Fieldset('title','markup'),
-                          uniforms.Fieldset('body', default_style=uniforms.blockLabels)
+    layout = uni.Layout(
+                          uni.Fieldset('title','markup'),
+                          uni.Fieldset('body', default_style=uni.blockLabels)
         )
 )
 

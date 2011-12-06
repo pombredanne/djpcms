@@ -49,3 +49,9 @@ Renderer Mixin
 .. autoclass:: Renderer
    :members:
    :member-order: bysource
+   
+
+Yui grid 3
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: yuigrid3

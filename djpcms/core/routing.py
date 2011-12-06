@@ -209,8 +209,12 @@ class Route(UnicodeMixin):
             d = self.defaults.copy()
             d.update(values)
             values = d
-        url = '/' + '/'.join(self._url_generator(values))
-        return url if self.is_leaf else url + '/'
+        url = '/'.join(self._url_generator(values))
+        if not url:
+            return '/'
+        else:
+            url = '/' + url
+            return url if self.is_leaf else url + '/'
     
     def match(self, path):
         '''Match a path and return ``None`` if no matching, otherwise

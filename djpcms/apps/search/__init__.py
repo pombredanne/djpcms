@@ -7,10 +7,17 @@ custom engine.
 Setup
 ~~~~~~~~~~~~~~
 
-To use the application you need to 
+To use the application you need to add it to your application urls along these
+lines:: 
 
-    from djpcms.apps.included import search
+    from djpcms.apps import search
     
-    app = search.Application('/search/', engine = mysearchengine)
+    urls = (...,
+            search.Application('/search/', engine = mysearchengine),
+            ...
+            )
+    
+The ``mysearchengine`` is the actual search engine perfoming queries and text
+searching.
 '''
 from .search import *

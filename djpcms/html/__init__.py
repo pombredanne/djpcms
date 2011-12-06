@@ -17,7 +17,7 @@ A simple usage::
 from .context import *
 from .base import *
 from .widgets import *
-from .grid960 import *
+from .grid import *
 from .box import *
 from .nicerepr import *
 from .table import *
@@ -45,7 +45,12 @@ class blockelement(Widget):
         return super(blockelement,self).render(djp,inner)
 
     
-def meta_generator(*meta):
-    for name,content in meta:
-        if content:
-            yield '<meta name="{0}" content="{1}"/>'.format(name,content)
+def anchor_or_button(text, href = None, icon = None, asbutton = False,
+                     **kwargs):
+    if asbutton:
+        w = Widget('button', text, **kwargs)\
+                        .addData('href',href).addData('icon',icon)
+    else:
+        w = Widget('a', text, href = href, **kwargs)
+    return w
+

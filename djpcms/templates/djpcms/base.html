@@ -16,10 +16,10 @@
   <div class="{{ grid.column1 }}">{% for message in messages %}
    {{ message }}{% endfor %}
   </div>{{ grid.clear }}
- </div>{% endif %}{% endblock %}{% block page_body_grid960 %}
- <div class="{{ grid.container_class }}">
-  {{ inner }}
- </div>{% endblock %}{% endblock %}
+ </div>{% endif %}{% endblock %}
+ <div class="{{ grid.container_class }}">{% block page_body_grid960 %}
+  {{ inner }}{% endblock %}
+ </div>{% endblock %}
 </div>
  
 <div id="page-footer">{% block page_footer %}

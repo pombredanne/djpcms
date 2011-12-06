@@ -45,10 +45,9 @@ templates (see at top of file)
         This function produce HTML only if self.view is based on a database Page
         object. Otherwise it does nothing.
         '''
-        root = self.request.view.root
-        BlockContent = root.BlockContent
+        BlockContent = self.request.view.BlockContent
         if self.editing:
-            appmodel = root.for_model(BlockContent,all=True)[0]
+            appmodel = self.request.view.site.for_model(BlockContent)
             return appmodel.blocks(self.request, self.page, self.b)
         else:
             b = BlockContent.objects.for_page_block(self.page, self.b)\

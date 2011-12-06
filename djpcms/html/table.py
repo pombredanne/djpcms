@@ -336,6 +336,8 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
             maker = partial(table, self.list_display)
         else:
             maker = self.widget_factory
+        
+        kwargs['actions'] = data.get('actions')
         return maker(body, pagination = pagination, data = data,
                      footer = self.footer, **kwargs)
         

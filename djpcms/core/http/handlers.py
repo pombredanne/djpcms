@@ -6,7 +6,6 @@ from djpcms.core.exceptions import Http404, HttpException, PermissionDenied
 
 from .profiler import profile_response
 from .wrappers import Request, Response, ResponseRedirect
-from .cache import djpcmsinfo
 
 
 logger = logging.getLogger('djpcms')

@@ -4,6 +4,7 @@ import traceback
 import logging
 from functools import partial
 
+from djpcms import UnicodeMixin
 from djpcms.utils import logtrace
 from djpcms.html import Widget, WidgetMaker
 
@@ -24,7 +25,7 @@ def Meta(*args,**kwargs):
     return Widget(_Meta,*args,**kwargs)
 
 
-class HTMLdoc(object):
+class HTMLdoc(UnicodeMixin):
     
     def __init__(self, typ, name, html, vimg = None, slash = ""):
         self.typ = typ
@@ -33,6 +34,9 @@ class HTMLdoc(object):
         self.vimg = vimg
         self.slash = slash
         
+    def __unicode__(self):
+        return self.name
+    
     def meta(self, request):
         settings = request.view.settings
         if self.typ == 5:

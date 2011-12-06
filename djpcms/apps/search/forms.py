@@ -1,9 +1,10 @@
-from djpcms import html, forms
+from djpcms import html, forms, views
 from djpcms.forms import layout
 
 
 class SearchForm(forms.Form):
     q = forms.CharField(
+                attrname = forms.SEARCH_STRING,
                 required = False,
                 widget = html.TextInput(
                         default_class = 'classy-search autocomplete-off',

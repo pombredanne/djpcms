@@ -90,8 +90,9 @@ very similar to django forms API.
                  widget = None,
                  widget_attrs = None,
                  disabled = None,
+                 attrname = None,
                  **kwargs):
-        self.name = None
+        self.name = attrname
         self.default = default if default is not None else self.default
         self.initial = initial
         self.required = required if required is not None else self.required
@@ -467,7 +468,8 @@ iterable over choices and a model class (if applicable).'''
             value = bfield.value
             data = {'multiple':self.multiple,
                     'minlength':self.minLength,
-                    'maxrows':self.maxRows}
+                    'maxrows':self.maxRows,
+                    'search_string':SEARCH_STRING}
             # If the choice field is on a model we need to have
             # a url for searching
             if model:

@@ -27,6 +27,8 @@ class UserAppBase(views.Application):
 utility methods for dealing with users and user data.'''
     name = 'accounts'
     userpage = False
+    exclude_links = ('login','logout')
+    
     home = views.SearchView()
     login = LoginView(template_file = ('login.html','djpcms/login.html'),
                       inherit_page = False,

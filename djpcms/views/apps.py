@@ -217,7 +217,21 @@ overwritten to customize its behavior.
     
 .. attribute:: url_bits_mapping
     
-    A dictionary for mapping url keys into model fields.
+    A dictionary for mapping :class:`djpcms.Route` variable names into
+    attribute names of :attr:`model`. This attribute is used only when
+    a model. A typical usage::
+    
+        from djpcms import views
+        
+        class MyModel:
+            id = ...
+            
+        class MyApp(views.Application):
+            model = MyModel
+            url_bits_mapping = {'pid':'id'}
+            view = views.ViewView('<pid>')
+            
+    Here the ``pid`` variable is mapped to the ``id`` attribute of your model.
     
     Default: ``None``.
 
@@ -436,7 +450,9 @@ to render a table.'''
         return None
     
     def query(self, request, **kwargs):
+        '''Perform the base query from the request input parameters'''
         if self.mapper:
+            inputs = request.REQUEST
             qs = self.mapper.all()
             related_field = self.related_field
             if related_field:
@@ -445,6 +461,9 @@ to render a table.'''
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
                         qs = qs.filter(**{related_field:instance})
+            search = inputs.get(forms.SEARCH_STRING)
+            if search:
+                qs = qs.search(search)
             if hasattr(qs,'ordering') and not qs.ordering and\
                                                  self.pagination.ordering:
                 qs = qs.sort_by(self.pagination.ordering)

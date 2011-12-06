@@ -1139,6 +1139,7 @@
             selector:'input.autocomplete',
             minLength: 2,
             maxRows: 50,
+            search_string: 'q',
             separator: ', ',
         },
         decorate: function($this,config) {
@@ -1181,13 +1182,15 @@
                     }
                 }
             }
-                
+               
+            /* Loop over each element and setup plugin */
             $(opts.selector,$this).each(function() {
                 var elem = $(this),
                     data = elem.data(),
                     url = data.url,
                     choices = data.choices,
                     maxRows = data.maxrows || opts.maxRows,
+                    search_string = data.search_string || opts.search_string,
                     multiple = data.multiple,
                     separator = data.separator || opts.separator,
                     elemdata = {'get': get_real_data(multiple,separator),
@@ -1259,9 +1262,9 @@
                     options.source = function(request,response) {
                                     var ajax_data = {style: 'full',
                                                      maxRows: maxRows,
-                                                     q: request.term
-                                                     },
-                                        loader = $.djpcms.ajax_loader(url,
+                                                     };
+                                    ajax_data[search_string] = request.term;
+                                    var loader = $.djpcms.ajax_loader(url,
                                                                     'autocomplete',
                                                                     'get',ajax_data),
                                         that = {'response':response,

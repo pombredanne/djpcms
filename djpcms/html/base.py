@@ -10,7 +10,7 @@ from djpcms.utils import force_str, slugify, escape, mark_safe, lazymethod
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 
-from .context import ContextRenderer
+from .context import ContextRenderer, StreamContextRenderer
 
 
 __all__ = ['flatatt',
@@ -268,6 +268,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         if not hasattr(self,'_html'):
             self._html = self.render()
         return self._html
+    
 
 
 class WidgetMaker(Renderer):
@@ -506,7 +507,8 @@ It returns self for concatenating data.'''
     def get_context(self, request, widget, keys):
         '''Called by the :meth:`inner` method it
 returns a dictionary of variables used for rendering. By default it
-loops over the :attr:`allchildren` list and put therendered chuild in a new list.
+loops over the :attr:`allchildren` list and put the rendered child
+in a new list.
 This child rendered list is available at `children` key in the returned
 dictionary.'''
         ctx = widget.internal
@@ -553,14 +555,15 @@ dictionary.'''
         return text
     
     def inner(self, request, widget, keys):
-        '''Render the inner part of the widget. This can be overwritten by
-derived classes and should return the inner part of html.
-By default it renders the template if it is available, otherwise
-an empty string.
+        '''Render the inner part of the widget (it exclude the outer tag). 
 
 :parameter widget: instance of :class:`Widget` to be rendered
 :parameter keys: ???
 :return: A string representing the inner part of the widget.
+
+By default it renders the ;attr:`template` or :attr:`template_name`
+if available, otherwise it returns a join string
+from the strings returned by the :meth:`stream` method.
 '''
         context = self.get_context(request,widget,keys)
         if self.template or self.template_name:
@@ -574,12 +577,15 @@ an empty string.
             else:
                 return lt.render(self.template_name,context)
         else:
-            return '\n'.join(self.stream(request,widget,context))
+            return StreamContextRenderer(request,
+                                         self.stream(request,widget,context))
     
     def stream(self, request, widget, context):
-        '''This method is called when rendering without templates.
-It returns an iterable over chunks of html to be displayed in the
-inner part of the widget.'''
+        '''This method is called by :meth:`inner` when rendering
+without templates. It returns an iterable over chunks of html
+to be displayed in the inner part of the widget.
+This method can be overridden by subclasses if a specific behaviour
+is required.'''
         data2html = self.data2html
         if widget.data_stream:
             for chunk in widget.data_stream:
@@ -592,6 +598,8 @@ inner part of the widget.'''
  data is an instance of :class:`Widget` and returns it.'''
         if isinstance(data,Widget):
             data = data.render(request)
+        if isinstance(data,ContextRenderer):
+            data = data.done()
         return data
 
     def child_widget(self, child, widget, **kwargs):

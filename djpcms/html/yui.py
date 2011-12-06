@@ -8,8 +8,8 @@ class YuiGrid3(WidgetMaker):
     tag = 'div'
     default_class = 'yui3-g'
     
-    def data2html(self, djp, data):
-        val = super(YuiGrid3,self).data2html(djp,data[0])
+    def data2html(self, request, data):
+        val = super(YuiGrid3,self).data2html(request,data[0])
         size = data[1]
         c1 = '<div class="yui3-u-{0}-{1}">'.format(*size)
         return c1 + val + '</div>'
@@ -19,7 +19,8 @@ _YuiGrid3 = YuiGrid3()
     
     
 def yuigrid3(*chunks, **kwargs):
-    '''Render a yui3_ grid with a given number of *chunks*.
+    '''Return a :class:`Widget` instance which render a yui3_ grid
+with a given number of *chunks*.
     
 :parameter chunks: positional arguments made of 2-elements tuples of
     the form::

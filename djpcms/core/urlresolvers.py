@@ -321,6 +321,15 @@ class ResolverMixin(RouteMixin):
     def make_url(self, route, handler, name=None):
         return (route, handler, name)
     
+    def all_views(self):
+        '''generator of all views in site'''
+        for child in self:
+            if isinstance(child,ResolverMixin):
+                for route in child.all_views():
+                    yield route
+            else:
+                yield child
+                    
     def resolve(self, path, urlargs = None):
         with resolver_manager(self,path) as rm:
             for handler in self.urls():

@@ -9,6 +9,7 @@ __all__ = ['FormException',
            'DefaultLayout',
            'generate_prefix',
            'get_ajax_action',
+           'SEARCH_STRING',
            'SAVE_KEY',
            'CANCEL_KEY',
            'SAVE_AND_CONTINUE_KEY',
@@ -21,6 +22,7 @@ __all__ = ['FormException',
 
 
 # some useful hidden keys
+SEARCH_STRING = 'sSearch'
 SAVE_KEY = '_save'
 CANCEL_KEY = '_cancel'
 SAVE_AND_CONTINUE_KEY = '_save_and_continue'

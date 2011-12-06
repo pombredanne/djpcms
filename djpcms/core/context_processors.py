@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 import logging
 
-from djpcms import views, html, UnicodeMixin, CHANGE, ADD
+from djpcms import views, html, UnicodeMixin, CHANGE, ADD, Route
 from djpcms.utils import iri_to_uri, escape
 
 from .exceptions import ApplicationNotAvailable
@@ -38,14 +38,6 @@ def changelink(request, app):
     else:
         return ''
 
-def exitlink(request, path):
-    try:
-        path = path % dict(request.GET.items())
-    except KeyError:
-        return ''
-    return html.Widget('a', href = path, cn = 'exit',
-                        title = 'Exit page editing').render(inner = 'exit')
-
 
 def userlinks(request, asbuttons = False):
     app = request.view.root.for_model(request.view.User)
@@ -79,30 +71,35 @@ def page_links(request, asbuttons = False):
     view = request.view
     Page = view.Page
     if Page:
-        page = request.page
-        page_request = request.view_for_model(Page)
-        isediting = False
-        if page_request is not None:
-            if page_request.view.appmodel == view.appmodel:
-                ul.add(exitlink(request, page.url))
-            else:
-                for name,link in views.application_links(
-                            views.application_views(page_request,
-                                                    instance = page,
-                                                    include = ('add','change')),
-                                asbuttons = asbuttons):
-                    #path = iri_to_uri(request.path,request.urlargs)
+        # We are on a page application view
+        if view.mapper == Page:
+            page = request.instance
+            if page:
+                route = Route(page.url)
+                urlargs = dict(request.GET.items())
+                try:
+                    path = route.url(**urlargs)
+                except:
+                    path = '/'
+                a = html.anchor_or_button('exit', href = path,
+                                          asbutton = asbuttons)
+                ul.add(a)
+        else:
+            page = request.page
+            page_request = request.view_for_model(Page)
+            if page_request is not None:
+                for link in views.application_views_links(
+                                    page_request,
+                                    instance = page,
+                                    include = ('add','change'),
+                                    asbuttons = asbuttons):
+                    path = iri_to_uri(request.path,request.urlargs)
                     ul.add(link)
                     
     for link in userlinks(request, asbuttons):
         ul.add(link)
             
     return ul
-                
-                
-def get_grid960(page, settings):
-    float_layout = settings.DEFAULT_LAYOUT if not page else page.layout
-    return html.grid960(fixed = not float_layout)
 
 
 def djpcms(request):
@@ -115,7 +112,7 @@ def djpcms(request):
             'now': datetime.now(),
             'settings': settings,
             'MEDIA_URL': settings.MEDIA_URL,
-            'grid': get_grid960(page, settings)}
+            'grid': request.cssgrid()}
     return ctx
 
 
@@ -147,7 +144,7 @@ def topbar(request, brand = None):
     '''Build a lazy topbar to be place at the top of your web page.
     '''
     settings = request.view.settings
-    grid = get_grid960(request.page,settings)
+    grid = request.cssgrid()
     # If we use a grid create the container
     if grid:
         container = html.Widget('div', cn = grid.column1)

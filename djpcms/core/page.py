@@ -1,3 +1,8 @@
+'''\
+:class:`Page` and :class:`Block` are used by djpcms to allow for
+page customization on a running web page rather than during design.
+The use of this features requires a backend database model to be implemented.
+'''
 import sys
 import re
 import logging
@@ -23,7 +28,7 @@ def block_htmlid(pageid, block):
 
 
 class Page(object):
-    '''Page object interface'''
+    '''Page object interface.'''
     
     def numblocks(self):
         raise NotImplementedError

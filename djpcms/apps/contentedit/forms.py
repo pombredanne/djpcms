@@ -1,3 +1,5 @@
+from copy import copy
+
 import djpcms
 from djpcms import forms, html, plugins
 from djpcms.core import layout
@@ -17,6 +19,14 @@ def get_templates(bfield):
         return view.Page.model.template_model.objects.all()
     else:
         return ()
+    
+
+def initial_layout(f):
+    request = f.request
+    if request:
+        return request.view.settings.LAYOUT_GRID_SYSTEM
+    else:
+        return ''
 
 
 class TemplateForm(forms.Form):
@@ -31,7 +41,8 @@ class PageForm(forms.Form):
                             required = False)
     link = forms.CharField(label = 'Text to display in links',
                            required = False)
-    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal to 0 used for link ordering in menus.',
+    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal\
+ to 0 used for link ordering in menus.',
                                        initial = 0,
                                        required = False)
     inner_template = forms.ChoiceField(choices = get_templates,
@@ -40,8 +51,8 @@ class PageForm(forms.Form):
     soft_root = forms.BooleanField()
     doctype = forms.ChoiceField(choices = layout.html_choices,
                                 initial = layout.htmldefaultdoc)
-    layout = forms.ChoiceField(choices = ((0,'fixed'),(1,'float')),
-                               initial = 0)
+    layout = forms.ChoiceField(choices = lambda r : copy(html.grid_systems),
+                               initial = initial_layout)
     
     def clean_url(self, value):
         if self.mapper:

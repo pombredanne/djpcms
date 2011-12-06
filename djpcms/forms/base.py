@@ -57,7 +57,8 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
     inlines = []
     for name,obj in list(attrs.items()):
         if isinstance(obj, Field):
-            fields.append((name, attrs.pop(name)))
+            attrname = obj.name or name
+            fields.append((attrname, attrs.pop(name)))
         elif isinstance(obj, FieldList):
             obj = attrs.pop(name)
             fields.extend(obj.fields())

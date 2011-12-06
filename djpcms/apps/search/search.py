@@ -1,13 +1,11 @@
-'''Search Applications which works with the SearchBox plugin.
-'''
 from djpcms import views, forms, html, ajax, ImproperlyConfigured
 
 from .forms import HtmlSearchForm
 
 
-def get_search_url(djp, for_model = None):
+def get_search_url(request, for_model = None):
     if for_model:
-        appmodel = djp.site.for_model(for_model, all = True)
+        appmodel = request.for_model(for_model)
         if appmodel and hasattr(appmodel.model._meta,'searchengine'):
             return appmodel.path
     else:
@@ -28,40 +26,35 @@ class Search(object):
     #        self._engine = getattr(self.model._meta,'searchengine',None)
     #    return self._engine
             
-    def url(self, djp):
+    def url(self, request):
         '''Return the url for searching'''
         if self.model:
-            app = djp.site.for_model(self.model, all = True)
+            app = request.for_model(self.model)
             if app:
                 return app.path
-        search_app = djp.site.search_engine
+        search_app = request.view.search_engine
         if search_app:
             return search_app.search_url(self.model)
 
 
 class SearchView(views.View):
     '''This view renders the search results'''    
-    isplugin = True
+    has_plugins = True
     
     @property
     def engine(self):
         return self.appmodel.engine
         
-    def model(self, djp):
-        if 'model' in djp.kwargs:
-            name = djp.kwargs['model']
-            for model in djp.site._registry:
-                if str(model._meta) == name:
-                    return model  
+    def model(self, request):
+        if 'model' in request.urlargs:
+            name = djp.urlargs['model']
+            return request.for_model(name)  
             
-    def appquery(self, djp, force_prefix = True):
+    def query(self, request, force_prefix = True):
         '''This function implements the search query.
-The query is build using the search fields specifies in
-:attr:`djpcms.views.appsite.ModelApplication.search_fields`.
-It returns a queryset.
         '''
-        model = self.model(djp)
-        f = self.get_form(djp, force_prefix = False)
+        model = self.model(request)
+        f = self.get_form(request, force_prefix = False)
         if f.is_valid():
             q = f.form.cleaned_data['q']
             if q:
@@ -84,7 +77,7 @@ class Application(views.Application):
                         description = 'Search Results')
     search_model = SearchView('<model>/',
                               form = HtmlSearchForm,
-                              description = 'Seach Model')
+                              description = 'Search Model')
     
     def __init__(self,*args,**kwargs):
         self.engine = kwargs.pop('engine',None) or self.engine

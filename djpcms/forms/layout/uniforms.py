@@ -25,6 +25,7 @@ There are three types of layout:
 .. _uni-form: http://sprawsm.com/uni-form/
 '''
 from djpcms import html
+from djpcms.utils import zip
 
 from .base import FormLayout, FormLayoutElement, SubmitElement, check_fields,\
                     nolabel
@@ -70,19 +71,31 @@ class Row(Fieldset):
     
 
 class Columns(UniFormElement):
-    '''A :class:`FormLayoutElement` whiche defines a set of columns. Renders to a set of <div>.'''
+    '''A :class:`FormLayoutElement` which defines a set of columns using
+yui3_ grid layout.
+
+:parameter columns: tuple of columns
+:parameter column_width: optional iterable over t2o-elements tuple for defining
+    the with of the columns. For example::
+    
+        (1,3),(2,3)
+        (1,4),(1,2),(1,4)
+        
+    By default, equally spaced columns are used.
+.. _yui3: http://yuilibrary.com/yui/docs/cssgrids/
+'''
     elem_css = "formColumn"
-    template = None
-    template_dict = {2: ('djpcms/yui/yui-simple.html',),
-                     3: ('djpcms/yui/yui-simple3.html',)}
     
     def __init__(self, *columns, **kwargs):
+        column_width = kwargs.pop('column_width',None) 
         super(Columns,self).__init__(**kwargs)        self.allchildren = columns
         ncols = len(columns)
-        if not self.template or self.template_name:
-            self.template_name = self.template_dict.get(ncols,None)
-        if not (self.template or self.template_name):
-            raise ValueError('Template not available in uniform Column.')
+        if not column_width:
+            column_width = ((1,ncols),)*ncols
+        if len(column_width) != ncols:
+            raise ValueError('Number of column {0} does not match number of\
+ yui elements {1}'.format(ncols,len(column_width)))
+        self.column_width = column_width        
 
     def check_fields(self, missings, layout):
         newcolumns = []
@@ -97,12 +110,9 @@ class Columns(UniFormElement):
             newcolumns.append(column)
         self.allchildren = newcolumns
             
-    def get_context(self, djp, widget, keys):
-        ctx = super(Columns,self).get_context(djp, widget, keys)
-        for i,c in enumerate(ctx.pop('children')):
-            ctx['content%s' % i] = c
-        ctx['grid'] = html.get_grid960(djp)
-        return ctx
+    def stream(self, request, widget, context):
+        data = tuple(zip(context['children'],self.column_width))
+        yield html.yuigrid3(*data).render(request)
 
 class Layout(FormLayout):
     '''Main class for defining the layout of a uniform.'''

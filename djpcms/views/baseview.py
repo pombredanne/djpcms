@@ -236,6 +236,11 @@ it is the base class of :class:`pageview` and :class:`View`.
         if self.appmodel:
             return self.appmodel.model
         
+    @property
+    def mapper(self):
+        if self.appmodel:
+            return self.appmodel.mapper
+        
     def instance_from_variables(self, urlargs):
         if self.appmodel:
             if self.object_view:

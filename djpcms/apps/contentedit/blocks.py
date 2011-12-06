@@ -67,17 +67,19 @@ class ChangeContentView(BlockChangeView):
     '''    
     def get_preview(self, request, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
+        request = request.for_url(url)
+        if not request:
+            return 'Could not get preview'
+        
         try:
-            djpview = request.root.djp(request, url[1:])
-            preview_html = instance.render(djpview,
-                                           plugin = plugin)
+            preview_html = instance.render(request, plugin = plugin)
         except Exception as e:
-            preview_html = '%s' % e
+            preview_html = str(e)
         
         cb = lambda phtml : mark_safe('<div id="%s" class="preview">%s</div>' %\
                                       (instance.pluginid('preview'),phtml))
         if preview_html:
-            return djp.root.render_response(preview_html, callback = cb)
+            return request.view.response(preview_html, callback = cb)
         else:
             return ''
         
@@ -243,7 +245,7 @@ class ContentApplication(views.Application):
 content in a content block.'''
     form = ContentBlockHtmlForm
     has_plugins = False
-    model_id_name = 'id'
+    url_bits_mapping = {'contentblock':'id'}
     
     search = views.SearchView()
     view = views.ViewView('<int:contentblock>/')
@@ -264,19 +266,19 @@ content in a content block.'''
 
     def blockhtml(self, request, instance, editview, wrapper):
         '''A content block rendered in editing mode'''
-        editdjp = editview(request, instance = instance)
-        html = editview.render(editdjp, url = request.url)
+        request = request.for_view_args(editview, instance = instance)
+        html = request.render(url = request.url)
         #layoutview = self.getview('layout')
         #html0 =  layoutview(djp.request, instance = instance).render()
         # html = html0 + html
-        return wrapper(editdjp,instance,html)
+        return wrapper(request,instance,html)
             
     def blocks(self, request, page, blocknum):
         '''Return a generator of edit blocks.
         '''
         blockcontents = self.model.objects.for_page_block(page, blocknum)
         url      = request.url
-        editview = self.getview('change')
+        editview = self.views.get('change')
         wrapper  = EditWrapperHandler(url)
         Tot = len(blockcontents) - 1
         # Clean blocks

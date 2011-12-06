@@ -3,7 +3,7 @@ from inspect import isgenerator
 
 from djpcms import ajax, DELETE
 from djpcms.core.orms import mapper
-from djpcms.html import Widget
+from djpcms.html import anchor_or_button
 
 
 __all__ = ['application_action',
@@ -32,7 +32,8 @@ def application_views(request,
                       ajax_enabled = None):
     '''A generator of :class:`Application` views available to the user.
 
-:parameter exclude: optional iterable of :class:`View` names to exclude.
+:parameter exclude: optional iterable of :class:`View` names to exclude. It
+    provided it overrides the :attr:`Application.exclude_links`.
 :parameter include: optional iterable of :class:`View` names to include.
 :parameter instance: optional instance of :attr:`Application.model`.
     If provided only instance views will be collected.
@@ -40,7 +41,7 @@ def application_views(request,
 :rtype: a generator of dictionaries containing :class:`View` information.
 '''
     appmodel = request.view.appmodel
-    exclude = exclude if exclude is not None else appmodel.exclude_links
+    exclude = set(exclude if exclude is not None else appmodel.exclude_links)
     urlargs = request.urlargs
     if appmodel.model:
         instance = request.instance or instance
@@ -50,6 +51,10 @@ def application_views(request,
     
     if not include:
         include = appmodel.views
+    else:
+        # Check that includes are not excluded, if so remove them from
+        # the exclude set
+        exclude = exclude.difference(include)
         
     for elem in include:
         if elem in exclude:
@@ -122,26 +127,24 @@ the view name and a rendered html tag (either an anchor or a button).
                     :func:`application_views`
 :parameter asbuttons: optional flag for displaying links as button tags.
 '''
-    tag = 'button' if asbuttons else 'a'
     for elem in views:
         request = elem['view']
         view = request.view
-        a = Widget(tag, elem['display'])\
-                           .addAttr('title',elem['title'])\
-                           .addClass(view.name)\
-                           .addData({'view':view.name,
-                                     'method':elem['method'],
-                                     'warning':view.warning_message(request),
-                                     'text':view.link_text})
+        a = anchor_or_button(elem['display'],
+                             href = elem['url'],
+                             icon = elem['icon'],
+                             title = elem['title'],
+                             asbutton = asbuttons)
+        a.addClass(view.name).addData({'view':view.name,
+                                       'method':elem['method'],
+                                       'warning':view.warning_message(request),
+                                       'text':view.link_text})
         if elem['ajax']:
             a.addClass(view.settings.HTML['ajax'])
         
-        if a.tag == 'a':
-            a.addAttr('href',elem['url'])
-            #a.addClass(elem['icon'])
-        else:
-            a.addData('icon', elem['icon']).addData('href',elem['url'])\
-             .addClass(view.link_class)
+        if asbuttons:
+            a.addClass(view.link_class)
+            
         yield view.name, a 
     
 
@@ -211,7 +214,7 @@ an application based on model is available.
 
     return toolbox
 
-
+    
 def paginationResponse(request, query):
     '''Used by :class:`Application` to perform pagination of a query.
     

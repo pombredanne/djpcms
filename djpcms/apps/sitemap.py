@@ -4,9 +4,10 @@ following to your application urls tuple::
     SiteMapApplication('/sitemap/',
                         name = 'sitemap')
 '''
-from djpcms import views
+from djpcms import views, Route, Http404
 from djpcms.core import messages
-from djpcms.html import box, Pagination
+from djpcms.core.layout import htmldoc
+from djpcms.html import box, Pagination, table_header, Widget
 
 from .admin import TabViewMixin
     
@@ -17,27 +18,35 @@ class SiteMapView(views.SearchView):
 
 class PageChangeView(views.ChangeView):
     '''Change page data'''
-    def get_context(self, djp):
-        c = super(PageChangeView,self).get_context(djp)
-        page = djp.instance
-        kwargs = dict(djp.request.GET.items())
+    def get_context(self, request):
+        ctx = super(PageChangeView,self).get_context(request)
+        page = request.instance
+        urlargs = dict(request.GET.items())
+        route = Route(page.url)
         try:
-            url = page.url % kwargs
+            url = route.url(**urlargs)
         except KeyError as e:
-            return c
-        inner = c['inner']
-        c['inner'] = box(collapsed = True, bd = inner,
-                         hd = 'Page properties')
-        try:
-            cdjp = djp.site.djp(djp.request, url[1:])
-        except Exception as e:
-            messages.error(djp.request,
+            messages.error(request,
+                    'This page has problems. The url is probably wrong')
+            return ctx
+        grid = request.cssgrid()
+        prop = box(bd = ctx['inner'], hd = 'Page properties', cn = 'edit-block')
+        sep = Widget('h2','Page layout',
+                     cn='ui-state-default ui-corner-all edit-block')\
+                    .css({'padding':'7px 14px'})
+        inner = Widget('div',(prop,sep))
+        container = Widget('div', inner)
+        if grid:
+            inner.addClass(grid.column1)
+            container.add(grid.clear)
+        underlying = request.for_url(url)
+        if not underlying:
+            messages.error(request,
                            'This page has problems. The url is probably wrong')
-            c['underlying'] = ''
         else:
-            c['underlying'] = cdjp.view.get_context(cdjp,
-                                                    editing = True)['inner']
-        return c     
+            container.add(underlying.get_context(editing = True)['inner'])
+        ctx['inner'] = container.render(request)
+        return ctx
         
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:
@@ -46,23 +55,45 @@ class PageChangeView(views.ChangeView):
                                                           instance = instance,
                                                           **kwargs)
         
+
+class PageView(object):
+    
+    def __init__(self, r):
+        view = r.view
+        page = r.page
+        self.request = r
+        self.view = view.code if view else None
+        self.path = view.path
+        self.in_navigation = r.in_navigation
+        self.page = page
+        self.id = page.id if page else None
+        self.inner_template = page.inner_template if page else None
+        self.doc_type = htmldoc(None if not page else page.doctype)
+    
     
 class SiteMapApplication(TabViewMixin,views.Application):
     has_plugins = False
     '''Application to use for admin sitemaps'''
-    pagination = Pagination(('id', 'url','application','application_view',
-                             'template','inner_template','in_navigation',
-                             'doc_type','soft_root','route'))
+    pagination = Pagination(('path','view','page','template',
+                             'inner_template', 'in_navigation',
+                             'doc_type', 'soft_root'),
+                            bulk_actions = [views.bulk_delete])
+    list_display_links = ('page','inner_template')
     
     search = SiteMapView()
     
     add = views.AddView(force_redirect = True)
     view = views.ViewView()
     change = PageChangeView(force_redirect = True,
-                            template_file = 'djpcms/admin/editpage.html',
                             title = lambda djp: 'editing')
     delete = views.DeleteView()
         
     def on_bound(self):
         self.root.internals['Page'] = self.mapper
+                     
+    def query(self, request, **kwargs):
+        for view in request.view.root.all_views():
+            r = request.for_view(view)
+            yield PageView(r)
+        
     

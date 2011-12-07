@@ -1,9 +1,0 @@
-<ul class="horizontal right user">{% for pagelink in pagelinks %}
- <li class="secondary">{{ pagelink }}</li>{% endfor %}{% if is_authenticated %}{% if user_url %}
-   <li class="secondary"><a href="{{ user_url }}">{{ user.username }}</a></li>{% endif %}{% if logout_url %}
-   <li class="secondary"><a href="{{ logout_url }}?next={{ request.path }}">logout</a></li>{% endif %}
-   {% endblock %}{% else %}{% block not_authenticated %}{% if login_url %}
- <li class="secondary"><a href="{{ login_url }}?next={{ request.path }}">login</a></li>{% if register_url %} 
- <li class="secondary"><a href="{{ register_url }}">register</a></li>{% endif %}{% endif %}
- {% endblock %}{% endif %}
-</ul>

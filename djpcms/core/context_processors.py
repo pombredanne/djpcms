@@ -94,6 +94,13 @@ def page_links(request, asbuttons = False):
                                     include = ('add','change'),
                                     asbuttons = asbuttons):
                     path = iri_to_uri(request.path,request.urlargs)
+                    if page:
+                        kwargs = {'next':request.path}
+                    else:
+                        kwargs = {'url':request.view.path}
+                        kwargs.update(request.urlargs)
+                    href = link.attrs['href']
+                    link.attrs['href'] = iri_to_uri(href,kwargs)
                     ul.add(link)
                     
     for link in userlinks(request, asbuttons):

@@ -36,7 +36,8 @@ class TemplateForm(forms.Form):
 
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
-    url = forms.CharField(initial = '/')
+    url = forms.CharField(initial = '/',
+                          widget = html.TextInput(disabled='disabled'))
     title = forms.CharField(label = 'Page title',
                             required = False)
     link = forms.CharField(label = 'Text to display in links',

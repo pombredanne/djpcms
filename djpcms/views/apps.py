@@ -33,8 +33,11 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                  isinstance(obj.__class__,ApplicationMetaClass):
                 r = attrs.pop(app_name)
                 r.name = app_name
-                routes.append(r)
-
+                routes.append(r)    
+    
+    # order the routes by creation counter
+    routes = sorted(routes, key=lambda x: x.creation_counter)
+    
     # If this class is subclassing another Application,
     # and inherit is True add that Application's views.
     # Note that we loop over the bases in *reverse*. This is necessary in
@@ -43,10 +46,11 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
         for base in bases[::-1]:
             if hasattr(base, 'base_routes'):
                 routes = base.base_routes + routes
-                
-    # override duplicate views
-    routes = sorted(routes, key=lambda x: x.creation_counter)
-    return list(itervalues(OrderedDict(((r.path,r) for r in routes))))
+    
+        routes = list(itervalues(dict(((r.path,r) for r in routes))))
+        routes = sorted(routes, key=lambda x: x.creation_counter)
+    
+    return routes
 
 
 class ApplicationMetaClass(type):
@@ -526,7 +530,7 @@ data to the client.
         try:
             query = dict(self.urlbits(data = urlargs))
         except KeyError:
-            raise djpcms.Http404('Cannot retrieve instance from url')
+            raise djpcms.Http404('View Cannot retrieve instance from url')
             
         try:
             return self.mapper.get(**query)

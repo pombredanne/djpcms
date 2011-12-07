@@ -93,6 +93,16 @@ class TestInputs(test.TestCase):
     
     def testTextInput(self):
         self.create('input:text', 'text')
+    
+    def testDisabled(self):
+        ts = self.create('input:text', 'text', disabled = 'disabled')
+        ht = ts.render()
+        self.assertTrue("disabled='disabled'" in ht)
+            
+    def testReadonly(self):
+        ts = self.create('input:text', 'text', readonly = 'readonly')
+        ht = ts.render()
+        self.assertTrue("readonly='readonly'" in ht)
         
     def testSubmitInput(self):
         self.create('input:submit', 'submit')
@@ -121,3 +131,4 @@ class TestInputs(test.TestCase):
     def testFailTextInput(self):
         self.assertRaises(TypeError,html.TextInput, fake='test')
         
+

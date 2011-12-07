@@ -87,7 +87,8 @@ class SiteMapApplication(TabViewMixin,views.Application):
     view = views.ViewView()
     change = PageChangeView(force_redirect = True,
                             title = lambda djp: 'editing',
-                            linkname = lambda djp : 'edit page')
+                            linkname = lambda djp : 'edit page',
+                            body_class = 'editable')
     delete = views.DeleteView()
         
     def on_bound(self):

@@ -96,6 +96,8 @@ class FieldWidget(FormWidgetMaker):
         w = context['widget']
         if w.attr('disabled') == 'disabled':
             elem.addClass('disabled')
+        if w.attr('readonly') == 'readonly':
+            elem.addClass('readonly')
         name = bfield.name
         error = context['error']
         if bfield.field.required:

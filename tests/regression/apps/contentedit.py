@@ -7,3 +7,4 @@ class ContentEditMeta(test.TestCase):
         from djpcms.apps.contentedit import ContentApplication
         app = ContentApplication('edit/')
         self.assertEqual(len(app),5)
+        

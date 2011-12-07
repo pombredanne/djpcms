@@ -2,7 +2,7 @@
 '''
 import djpcms
 from djpcms.html import Widget, ListWidget
-from djpcms.utils import mark_safe
+from djpcms.utils.const import EMPTY_VALUE
     
 
 __all__ = ['Navigator','Breadcrumbs']
@@ -134,11 +134,14 @@ def navstream(request, urlselects, secondary_after, link_active, level):
 
 class Breadcrumbs(object):
     '''Given a url it build a ``ul`` list of previous url elements.
-    '''    
-    def __init__(self, min_length = 1, divider = None):
+    '''
+    def __init__(self, min_length = 1, divider = None, cn = None,
+                 render_empty = True, tag = 'div'):
         divider = divider or '&rsaquo;'
         self.divider = "<span class='divider'>"+divider+"</span>"
         self.min_length = min_length
+        self.render_empty = render_empty 
+        self.widget = Widget(tag, cn = cn or 'breadcrumbs')
         
     def items(self, request):
         crumbs = []
@@ -170,7 +173,10 @@ class Breadcrumbs(object):
         for li in reversed(tuple(self.items(request))):
             ul.add(li)
         if ul:
-            return Widget('div', ul, cn = 'breadcrumbs').render(request)
+            self.widget.add(ul)
+            return self.widget.render(request)
+        elif self.render_empty:
+            return Widget('div',EMPTY_VALUE).render(request)
         else:
             return ''
 

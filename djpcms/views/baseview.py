@@ -22,7 +22,9 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = openedurl(self.path).replace('/','_')
+        name = openedurl(self.path).replace('/','_')\
+                                   .replace('<','')\
+                                   .replace('>','')
         if not name:
             name = self.__class__.__name__.lower()
     name = name.replace(SPLITTER,'_')

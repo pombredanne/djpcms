@@ -48,10 +48,12 @@ SITE_NAVIGATION_LEVELS = 4
 SITE_NAVIGATION_BRAND = None
 ENABLE_BREADCRUMBS = 2
 
+#######################################    PLUGINS
 DJPCMS_PLUGINS = ['djpcms.plugins.*']
 DJPCMS_WRAPPERS = ['djpcms.plugins.extrawrappers']
-DJPCMS_SITE_MAP = True
 
+
+DJPCMS_SITE_MAP = True
 DJPCMS_USER_CAN_EDIT_PAGES = False
 # Date Format
 DATE_FORMAT = 'd M y'

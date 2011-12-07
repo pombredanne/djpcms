@@ -18,11 +18,12 @@ __all__ = ['urlparse',
 
 
 if ispy3k:
-    urlquote = urlparse.quote
-    urlencode = urlparse.urlencode
+    from urllib.parse import urlparse, unquote, urlsplit, quote, urlencode
 else:
-    from urllib import quote as urlquote
-    from urllib import urlencode
+    from urlparse import urlparse, unquote, urlsplit
+    from urllib import urlencode, quote
+    
+urlquote = quote
 
 URI_RESERVED = set((';','/','?',':','@','&','=','+','$',','))
 #: list of characters that are always safe in URLs.

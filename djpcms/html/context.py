@@ -25,6 +25,13 @@ has :attr:`called` evaluating to ``True``.
         if text is not None:
             self.text = text
         
+    def __repr__(self):
+        if self.called:
+            return self.text
+        else:
+            return repr(self.context)
+    __str__ = __repr__
+    
     @classmethod
     def make(cls, txt):
         if isinstance(txt,cls):

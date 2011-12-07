@@ -3,7 +3,7 @@ from copy import copy
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, ajax, Route, async_instance
+from djpcms import http, ajax, Route, async_instance, Http404
 from djpcms.html import ContextRenderer
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
@@ -181,9 +181,9 @@ views::
     Default ``True``.
 '''
     plugin_form = None
+    has_plugins = False
     force_redirect = False
     default_route = '/'
-    in_nav = 0
     
     def __init__(self,
                  route = None,
@@ -286,12 +286,15 @@ views::
         '''return a generator over children responses.'''
         appmodel = self.appmodel
         for view in appmodel:
-            if view.parent_view == self:
-                if not isinstance(view,View):
-                    if view.root_view:
-                        yield view.root_view
+            if view.parent_view is not self:
+                continue
+            if not isinstance(view,View):
+                if view.root_view:
+                    view = view.root_view
                 else:
-                    yield view
+                    continue
+            if request.for_view(view).url is not None:
+                yield view
         if appmodel.root_view == self and not\
             appmodel.rel_route.breadcrumbs:
             parent = appmodel.parent

@@ -137,6 +137,11 @@ arguments.
         if 'DJPCMS' not in self.environ:
             self.environ['DJPCMS'] = djpcmsinfo(self.view,self.urlargs)
             self.url
+        # we don't want instances of models not part of the view
+        if instance:
+            model = getattr(view,'model',None)
+            if model and not isinstance(instance,model):
+                instance = None
         self.__instance = instance
 
     def for_view_args(self, view = None, urlargs = None, instance = None):
@@ -430,7 +435,9 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     @lazyproperty
     def parent(self):
         view = self.view
-        url = self.url[1:]
+        url = self.url
+        # in some cases we don't have a url, quite rarely.
+        url = url[1:] if url else url
         if not url:
             return None
         if url.endswith('/'):

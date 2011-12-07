@@ -20,7 +20,7 @@ __all__ = ['TextInput',
 
 class FieldWidget(WidgetMaker):
     wrapper_class = None
-    attributes = WidgetMaker.makeattr('value','name','disabled')
+    attributes = WidgetMaker.makeattr('value','name','disabled','readonly')
     
     def set_value(self, value, widget):
         widget.addAttr('value',value)

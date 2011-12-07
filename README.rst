@@ -115,7 +115,8 @@ Python
 
 JavaScript
 ------------
-* jQuery_ core and UI are the building block of the browser side of djpcms. 
+* jQuery_ core and UI are the building block of the browser side of djpcms.
+* jQuery form_ plugin for AJAX forms.
 * jQuery DataTables_ plugin for managing dynamic tables. 
 * jQuery cycle_ plugin for photo galleries. 
 * jQuery bsmSelect_ plugin for multiple select.
@@ -137,3 +138,4 @@ JavaScript
 .. _bsmSelect: https://github.com/vicb/bsmSelect
 .. _coverage: http://nedbatchelder.com/code/coverage/
 .. _DataTables: http://www.datatables.net/
+.. _form: http://jquery.malsup.com/form/

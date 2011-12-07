@@ -37,7 +37,7 @@ class TemplateForm(forms.Form):
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
     url = forms.CharField(initial = '/',
-                          widget = html.TextInput(disabled='disabled'))
+                          widget = html.TextInput(readonly='readonly'))
     title = forms.CharField(label = 'Page title',
                             required = False)
     link = forms.CharField(label = 'Text to display in links',
@@ -62,17 +62,15 @@ class PageForm(forms.Form):
             except self.mapper.DoesNotExist:
                 page = None
             if page and self.instance != page:
-                raise forms.ValidationError('A page with url "{0}" is already available'.format(value))
+                raise forms.ValidationError('A page with url "{0}"\
+ is already available'.format(value))
         else:
-            raise forms.ValidationError('No page model defined. Cannot validate')
+            raise forms.ValidationError('No page model defined.')
         return value
     
 
 class PluginChoice(forms.ChoiceField):
     widget = html.Select(default_class = 'ajax')
-    
-    def __init__(self, *args, **kwargs):
-        super(PluginChoice,self).__init__(*args, **kwargs)
     
     def _clean(self, value, bfield):
         '''Overried default value to return a Content Type object
@@ -88,14 +86,17 @@ class BlockLayoutForm(forms.Form):
     
     
 class ContentBlockForm(forms.Form):
+    '''Form for editing a content block within a page.'''
     url = forms.HiddenField(required = False)
     title = forms.CharField(required = False)
     plugin_name = PluginChoice(label = 'Plugin',
                                choices = plugins.plugingenerator)
-    container_type = forms.ChoiceField(label = 'Container',
-                                       widget = html.Select(default_class = 'ajax'),
-                                       choices = plugins.wrappergenerator,
-                                       help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
+    container_type = forms.ChoiceField(
+                            label = 'Container',
+                            widget = html.Select(default_class = 'ajax'),
+                            choices = plugins.wrappergenerator,
+                            help_text = 'A HTML element which wraps the plugin\
+ before it is rendered in the page.')
     for_not_authenticated = forms.BooleanField(default = False)
     view_permission = forms.CharField(required = False)
     requires_login = forms.BooleanField(default = False)

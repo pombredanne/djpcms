@@ -1,3 +1,5 @@
+'''Utility functions for forms
+'''
 import sys
 import logging
 from datetime import datetime
@@ -8,6 +10,7 @@ from djpcms import forms, http, html
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str, ajax
+from djpcms.utils.urls import urlsplit
 from djpcms.utils.dates import format
 
 from .globals import *
@@ -161,6 +164,22 @@ def return_form_errors(fhtml,request):
         return request.view.handle_response(request)
     
     
+def get_redirect(request):
+    '''get the most suitable redirect url according to the following
+ algorithm:
+ 
+* Check for ``next`` in the environment query string
+* Check for ``next`` in the referer query string
+'''
+    next = request.GET.get('next')
+    if next:
+        return next
+    ref = request.environ.get('HTTP_REFERER')
+    parts = urlsplit(ref)
+    rdict = http.QueryDict(parts.query,request.encoding)
+    return rdict.get('next')
+    
+    
 def saveform(request, force_redirect = False):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
@@ -169,15 +188,16 @@ has been submitted.'''
     appmodel = view.appmodel
     is_ajax = request.is_xhr
     data = request.REQUEST
+    redirect_url = get_redirect(request)
     curr = request.environ.get('HTTP_REFERER')
-    referer = data.get(REFERER_KEY,None)
+    referer = request.REQUEST.get(REFERER_KEY)
     fhtml = view.get_form(request)    
     layout = fhtml.layout
     f = fhtml.form
     instance = f.instance
     
     if CANCEL_KEY in data:
-        redirect_url = referer
+        redirect_url = redirect_url or referer
         if not redirect_url:
             if instance and instance.id:
                 redirect_url = appmodel.viewurl(request,instance)
@@ -217,9 +237,8 @@ has been submitted.'''
                 redirect_url = appmodel.changeurl(request, instance)                    
 
         # Check redirect url
-        else:
+        elif not redirect_url:
             redirect_url = view.defaultredirect(request,
-                                                #next = referer,
                                                 instance = instance)
             
         # not forcing redirect. Check if we can send a JSON message

@@ -36,56 +36,111 @@ def async_instance(mf):
     return _
 
 
+class aList(list):
+    pass
+
+class aDict(dict):
+    pass
+
+
+class AsyncResponse(object):
+    __slots__ = ('handler','response','callback','loops','async')
+    def __init__(self, handler, response, callback):
+        self.handler = handler
+        self.response = response
+        self.callback = callback
+        _process = self._process
+        check_async = handler.check_async
+        self.loops = 0
+        self.async = lambda v : check_async(_process(v))
+        
+    def __iter__(self):
+        yield self.handler.not_done_yet()
+        yield self.run()
+        
+    def run(self):
+        '''Run the asynchronous response. If all resulats are available
+ it return the result otherwise it return ``self``.'''
+        self.loops += 1
+        async, result = self.async(self.response)
+        if async:
+            return self
+        elif self.callback:
+            return self.callback(result)
+        else:
+            return result
+    
+    def _process(self, value):
+        '''Recursive function for handling asynchronous content
+        '''
+        async = self.async
+        if isinstance(value,dict) and not isinstance(value,aDict):
+            new_value = aDict()
+            for k,val in iteritems(value):
+                is_async,val = async(val)
+                if is_async:
+                    return val
+                else:
+                    new_value[k] = val
+            return new_value
+        #
+        elif isinstance(value, ContextRenderer):
+            is_async,val = async(value.context)
+            if is_async:
+                return val
+            else:
+                value.context = val
+                return value.render()
+        #
+        elif isinstance(value, (list,tuple)) and not isinstance(value,aList):
+            new_value = aList()
+            for val in value:
+                is_async,val = async(val)
+                if is_async:
+                    return val
+                else:
+                    new_value.append(val)
+            return new_value
+        #
+        elif isinstance(value,AsyncResponse):
+            return value.run()
+
+        return value
+
+
 class ResponseHandler(object):
     
     def __call__(self, response, callback = None):
-        return self.handle(response, callback)
+        return AsyncResponse(self,response,callback).run()
         
-    def release(self, response, callback, nested):
-        pass
+    def not_done_yet(self):
+        '''This function should return an element recognized by the
+ asynchronous engine and which causes the engine to continue evaluating
+ other requests.
+ '''
+        raise NotImplementedError('Cannot handle Asynchronous responses')
     
-    def async_response(self, response, callback, nested):
-        if hasattr(response,'query'):
-            response = response.query
-        return False,response
-    
-    def handle(self, response, callback = None, nested = False):
-        '''Recursive function for handling asynchronous content
-        '''
-        if isinstance(response,dict):
-            for k,v in list(iteritems(response)):
-                v = self.handle(v, nested = True)
-                r = self.release(v, callback, nested)
-                if r:
-                    return r
-                else:
-                    response[k] = v
-        #
-        elif isinstance(response, ContextRenderer):
-            # we pass the dictionary so the result is either a NOT_DONE or a
-            # a new dictionary
-            v = self.handle(response.context, nested = True)
-            r = self.release(v, callback, nested)
-            if r:
-                return r
-            else:
-                response.context = v
-                response = response.render()
-        #
-        elif isinstance(response, (list,tuple)):
-            new_response = []
-            for v in response:
-                v = self.handle(v, nested = True)
-                r = self.release(v, callback, nested)
-                if r:
-                    return r
-                else:
-                    new_response.append(v)
-            response = new_response
-        #
+    def check_async(self, value):
+        if isinstance(value,AsyncResponse):
+            return True,value
         else:
-            async,response = self.async_response(response, callback, nested)
-            if async:
-                return response
+            return self.async(value)
         
-        return callback(response) if callback else response
+    def async(self, value):
+        '''Check if *value* is an asynchronous element. It returns a two
+ elements tuple containing a boolean flag and a result. If *value* is
+ asynchronous and its result is not yet available, the function should return::
+     
+     (True,newvalue)
+     
+ otherwise::
+ 
+     (False,newvalue)
+     
+ where *newvalue* can be *value* or a modified version.
+ 
+ This function should be implemented by asynchronous engines.'''
+        if hasattr(value,'query'):
+            value = value.query
+        return False,value
+    

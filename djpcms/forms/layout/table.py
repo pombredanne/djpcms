@@ -8,7 +8,7 @@ __all__ = ['TableFormElement','TableRow']
 
 
 class TableRow(FormLayoutElement):
-    
+    '''A row in a form table layout'''
     def stream_errors(self, djp, children):
         for w in children:
             if isinstance(w,dict):

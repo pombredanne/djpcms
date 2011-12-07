@@ -66,9 +66,8 @@ def application_views(request,
             # if this is the current view skip
             if not view or view is request.view:
                 continue
-            if instance:
-                if not view.object_view:
-                    continue
+            elif instance is not None and not view.object_view:
+                continue
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name

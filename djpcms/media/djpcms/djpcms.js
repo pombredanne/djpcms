@@ -1282,7 +1282,7 @@
     $.djpcms.decorator({
     	id: "rearrange",
     	config: {
-    	    body_selector: 'body.admin',
+    	    body_selector: 'body.editable',
     	},
     	description: "Drag and drop functionalities in editing mode",
     	decorate: function($this,config) {
@@ -1423,7 +1423,28 @@
         }
     });
     
-    
+    /**
+     * This little decorator add the 'focus' class to input containers
+     * in djpcms forms when they are on focus.
+     */
+    $.djpcms.decorator({
+    	id: "field_widget_input",
+        config: {
+            selector: '.field-widget.input',
+        },
+        description: "Add focus class to field-widget-input when underlying input is on focus",
+        decorate: function($this,config) {
+        	var selector = config.field_widget_input.selector;
+        	$(selector+' input',$this).focus(function() {
+        		var p = $(this).parent(selector);
+        		p.addClass('focus');
+        	}).blur(function() {
+        		var p = $(this).parent(selector);
+        		p.removeClass('focus');
+        	})
+        }
+    });
+        
     /**
      * Format a number and return a string based on input settings
      * @param {Number} number The input number to format

@@ -256,9 +256,12 @@ class Route(UnicodeMixin):
             raise ValueError('Cannot prepend {0} to another route.\
  It is a leaf.'.format(self))
         cls = self.__class__
-        rule = other.rule if isinstance(other,cls) else str(other)
         defaults = self.defaults.copy()
-        defaults.update(other.defaults)
+        if isinstance(other,cls):
+            rule = other.rule
+            defaults.update(other.defaults)
+        else:
+            rule = str(other)
         return cls(self.rule + rule, defaults)
         
 

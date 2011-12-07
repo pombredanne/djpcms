@@ -11,33 +11,6 @@ from .messages import get_messages
 
 logger = logging.getLogger('djpcms.core.context_processor')
 
-def addlink(request, app):
-    #TODO
-    #REMOVE
-    path = app.addurl(request)
-    if path:
-        info = request.DJPCMS
-        view = info.view
-        kwargs = info.kwargs.copy()
-        kwargs['url'] = request.path if not view else view.path
-        path = iri_to_uri(path,kwargs)
-        return html.Widget('a', title="add page contents", cn = 'add',
-                           href = path).render(inner = 'add page')
-    else:
-        return ''
-
-def changelink(request, app):
-    #TODO
-    #REMOVE
-    path = self.app.changeurl(request, self.page)
-    if path:
-        path = iri_to_uri(path,request.DJPCMS.kwargs)
-        return html.Widget('a', href = path,
-                            title = 'Edit page contents',
-                            cn = 'add').render(inner = 'edit')
-    else:
-        return ''
-
 
 def userlinks(request, asbuttons = False):
     app = request.view.root.for_model(request.view.User)
@@ -111,10 +84,9 @@ def page_links(request, asbuttons = False):
 
 def djpcms(request):
     '''The main template context processor. It must be always included.'''
-    page = request.page
     settings = request.view.settings            
     return {'request': request,
-            'page':page,
+            'page': request.page,
             'user': request.user,
             'now': datetime.now(),
             'settings': settings,

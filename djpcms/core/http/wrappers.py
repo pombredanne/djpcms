@@ -2,6 +2,7 @@ import sys
 import re
 import logging
 import time
+from inspect import isclass
 from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
@@ -97,8 +98,9 @@ def path_tuple(path):
     
     
 def add_to_requests(path, request):
-    bits = path_tuple(path)
-    request.cache['requests'][bits] = request
+    if path is not None:
+        bits = path_tuple(path)
+        request.cache['requests'][bits] = request
                  
 
 class Request(UnicodeMixin):
@@ -136,13 +138,22 @@ arguments.
         self.urlargs = urlargs if urlargs is not None else {}
         if 'DJPCMS' not in self.environ:
             self.environ['DJPCMS'] = djpcmsinfo(self.view,self.urlargs)
-            self.url
-        # we don't want instances of models not part of the view
-        if instance:
-            model = getattr(view,'model',None)
-            if model and not isinstance(instance,model):
-                instance = None
+        model = getattr(view,'model',None)
+        if isclass(model):
+            if not isinstance(instance,model):
+                instance = self._instance_from_variables()
+        else:
+            instance = None
         self.__instance = instance
+        self.__url = self._get_url()
+        
+    @property
+    def instance(self):
+        return self.__instance
+    
+    @property
+    def url(self):
+        return self.__url
 
     def for_view_args(self, view = None, urlargs = None, instance = None):
         if view is not None:
@@ -267,35 +278,22 @@ arguments.
         tree = self.cache['tree']
         return tree.pages.get(self.view.path)
             
-    @lazyproperty
-    def url(self):
+    def _get_url(self):
         if self.view is self.DJPCMS.view:
             url = self.path
         else:
             try:
-                url = self.view.get_url(self.urlargs,
-                                        instance = self.instance)
+                url = self.view.get_url(self.urlargs, instance = self.instance)
             except Http404:
                 return None
         add_to_requests(url,self)
         return url
-            
-    @property
-    def instance(self):
-        return self.instance_from_variables()
         
-    def instance_from_variables(self):
-        if self.__instance is None:
-            try:
-                e = self.view.instance_from_variables(self.urlargs)
-            except Http404:
-                self.__instance = noinstance
-                raise
-            e = e if e is not None else noinstance
-            self.__instance = e
-        else:
-            e = self.__instance
-        return None if e is noinstance else e
+    def _instance_from_variables(self):
+        try:
+            return self.view.instance_from_variables(self.urlargs)
+        except:
+            return None
     
     @lazyproperty    
     def title(self):

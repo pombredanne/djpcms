@@ -161,6 +161,7 @@ procedure calls validation.
     The :class:`djpcms.views.ApplicationSite` serving the form.
 '''
     prefix_input = '_prefixed'
+    request = None
     
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,

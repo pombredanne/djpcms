@@ -5,7 +5,7 @@ from inspect import isgenerator
 from py2py3 import iteritems
 
 import djpcms
-from djpcms import UnicodeMixin, is_string, to_string
+from djpcms import UnicodeMixin, is_string, to_string, is_bytes_or_string
 from djpcms.utils import force_str, slugify, escape, mark_safe, lazymethod
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
@@ -42,7 +42,8 @@ def dump_data_value(v):
 
 
 def iterable(data):
-    return isinstance(data,(list,tuple)) or isgenerator(data)
+    if hasattr(data,'__iter__'):
+        return not is_bytes_or_string(data)
 
 
 class Renderer(object):

@@ -74,27 +74,6 @@ class TableMaker(WidgetMaker):
                     ['djpcms/datatables/TableTools/css/TableTools_JUI.css']
                     }
         )
-    template = '''{% if title %}
-<h3 class='table-title ui-widget-header'>{{ title }}</h3>{% endif %}
-<table>
-<thead>
- <tr>{% for head in headers %}{% if head.description %}
-  <th class="hint" title="{{ head.description }}">{% else %}
-  <th>{% endif %}{{ head.sTitle }}</th>{% endfor %}
- </tr>
-</thead>
-<tbody>{% if rows %}{% for row in rows %}
-<tr{% if row.id %} class="{{ row.id }}"{% endif %}>{% for item in row.display %}
-<td>{{ item }}</td>{% endfor %}
-</tr>{% endfor %}{% endif %}
-</tbody>{% if footer %}
-<tfoot>
- <tr>{% for head in headers %}
-  <th>{{ head.sTitle }}</th>{% endfor %}
- </tr>
-</tfoot>{% endif %}
-</table>
-'''
     
     def get_context(self, request, widget, key):
         title = widget.attrs.get('title')
@@ -113,7 +92,6 @@ class TableMaker(WidgetMaker):
         headers = list(self.aoColumns(ctx['headers']))
         widget.data['options']['aoColumns'] = headers
         ctx.update({'headers': headers, 'title':title})
-        ctx['rows'] = self.stream(request, widget, ctx)
         return ctx
     
     def make_headers(self, headers):
@@ -144,7 +122,31 @@ javascript plugin'''
     def media(self, request):
         return self.table_media
     
-    def stream(self, request, widget, context = None):
+    def stream(self, request, widget, context):
+        title = context.get('title')
+        if title:
+            yield "<h3 class='table-title ui-widget-header'>" + title + "</h3>"
+        yield '<table>\n<thead>\n<tr>'
+        for head in context['headers']:
+            th = Widget('th',head['sTitle'],title=head['description'])
+            if head['description']:
+                th.addClass('hint')
+            yield th.render(request)
+        yield '</tr>\n</thead>\n<tbody>'
+        for row in self.rows(request,widget):
+            tr = Widget('tr', cn = row.get('id'))
+            for item in row['display']:
+                tr.add('<td>{0}</td>'.format(item))
+            yield tr.render(request)
+        yield '</tbody>'
+        if context.get('footer'):
+            yield '<tfoot>\n<tr>'
+            for head in context['headers']:
+                yield '<th>{0}</th>'.format(head['sTitle'])
+            yield '</tr>\n</tfoot>'
+        yield '</table>'
+
+    def rows(self, request, widget):
         if widget.data_stream:
             headers = widget.internal['headers']
             appmodel = widget.internal.get('appmodel')

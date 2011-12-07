@@ -1,6 +1,6 @@
 import re
 
-from py2py3 import ispy3k, urlparse, map, to_string, native_str
+from py2py3 import ispy3k, map, to_string, native_str
 
 
 __all__ = ['urlparse',
@@ -18,9 +18,10 @@ __all__ = ['urlparse',
 
 
 if ispy3k:
-    from urllib.parse import urlparse, unquote, urlsplit, quote, urlencode
+    from urllib.parse import urlparse, unquote, urlsplit, quote, urlencode,\
+                                urlunparse
 else:
-    from urlparse import urlparse, unquote, urlsplit
+    from urlparse import urlparse, unquote, urlsplit, urlunparse
     from urllib import urlencode, quote
     
 urlquote = quote
@@ -96,7 +97,7 @@ def routejoin(*routes):
 
 def parentpath(url):
     slash = '/'
-    s = urlparse.urlparse(url)
+    s = urlparse(url)
     bits = s.path.split(slash)
     c = 0
     for bit in reversed(bits):
@@ -113,7 +114,7 @@ def parentpath(url):
         s = list(s)
         s[2] = path
         s[3] = s[4] = s[5] = ''
-        return urlparse.urlunparse(s)
+        return urlunparse(s)
     else:
         return None
     

@@ -3,24 +3,24 @@ from djpcms import forms, html, to_string
 
 
 class TableTests(test.TestCase):
+    heads = ('first','second')
     
-    def testSimple(self):
-        tbl = html.Pagination(['first','second'])
-        self.assertTrue(tbl.headers)
-        self.assertTrue(tbl.list_display)
-        self.assertTrue(tbl.astable)
-        ht = tbl.render()
-        self.assertTrue('<table>' in ht)
-        self.assertTrue('</table>' in ht)
-        self.assertTrue('<thead>' in ht)
-        self.assertTrue('</thead>' in ht)
-        self.assertTrue('<tbody>' in ht)
-        self.assertTrue('</tbody>' in ht)
-        self.assertTrue('<tfoot>' in ht)
-        self.assertTrue('</tfoot>' in ht)
+    def pagination(self, **kwargs):
+        pag = html.Pagination(self.heads, **kwargs)
+        self.assertTrue(pag.headers)
+        self.assertTrue(pag.list_display)
+        self.assertEqual(len(pag.headers),len(pag.list_display))
+        self.assertTrue(pag.astable)
+        for c,head in zip(self.heads,pag.list_display):
+            self.assertEqual(c,head.code)
+        return pag
         
-    def testSimpleNoFooter(self):
-        tbl = html.Table(['first','second'], footer = False)
+    def testTablePagination(self):
+        self.pagination()
+        
+    def testSimple(self):
+        p = self.pagination()
+        tbl = p.widget(())
         ht = tbl.render()
         self.assertTrue('<table>' in ht)
         self.assertTrue('</table>' in ht)
@@ -30,11 +30,31 @@ class TableTests(test.TestCase):
         self.assertTrue('</tbody>' in ht)
         self.assertFalse('<tfoot>' in ht)
         self.assertFalse('</tfoot>' in ht)
+        self.assertTrue('<tbody>\n</tbody>' in ht)
+        self.assertTrue('</tbody>\n</table>' in ht)
+        
+    def testSimpleFooter(self):
+        p = self.pagination(footer = True)
+        tbl = p.widget(())
+        ht = tbl.render()
+        self.assertTrue('<table>' in ht)
+        self.assertTrue('</table>' in ht)
+        self.assertTrue('<thead>' in ht)
+        self.assertTrue('</thead>' in ht)
+        self.assertTrue('<tbody>' in ht)
+        self.assertTrue('</tbody>' in ht)
+        self.assertTrue('<tfoot>' in ht)
+        self.assertTrue('</tfoot>' in ht)
+        self.assertTrue('<tbody>\n</tbody>' in ht)
+        self.assertFalse('</tbody>\n</table>' in ht)
+        self.assertTrue('</tbody>\n<tfoot>' in ht)
+        self.assertTrue('</tfoot>\n</table>' in ht)
         
     def testTableWithData(self):
+        p = self.pagination(ajax = False)
+        self.assertFalse(p.ajax)
         data = zip(('pippo','pluto','luna'),(3,4,1))
-        tbl = html.Table(['first','second'], data)
-        self.assertFalse(tbl.ajax)
+        tbl = p.widget(data)
         ht = tbl.render()
         self.assertTrue('<td>pippo</td>\n<td>3</td>' in ht)
         self.assertTrue('<td>pluto</td>\n<td>4</td>' in ht)

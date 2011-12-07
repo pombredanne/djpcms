@@ -73,6 +73,7 @@ ispy3k = py2py3.ispy3k
 to_string = py2py3.to_string
 to_bytestring = py2py3.to_bytestring
 is_string = py2py3.is_string
+is_bytes_or_string = py2py3.is_bytes_or_string
 UnicodeMixin = py2py3.UnicodeMixin
 
 

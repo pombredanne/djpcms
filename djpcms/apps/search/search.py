@@ -45,7 +45,7 @@ class SearchView(views.View):
     def engine(self):
         return self.appmodel.engine
         
-    def model(self, request):
+    def get_model(self, request):
         if 'model' in request.urlargs:
             name = djp.urlargs['model']
             return request.for_model(name)  
@@ -53,7 +53,7 @@ class SearchView(views.View):
     def query(self, request, force_prefix = True):
         '''This function implements the search query.
         '''
-        model = self.model(request)
+        model = self.get_model(request)
         f = self.get_form(request, force_prefix = False)
         if f.is_valid():
             q = f.form.cleaned_data['q']

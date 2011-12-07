@@ -7,7 +7,7 @@ Version 0.9.0 - Development
 * No external dependencies for the core library.
 * Configurable Object Relational mapping.    
 * AJAX decorators.
-* **79 unit tests**. Coverage **40%**.
+* **112 unit tests**. Coverage **40%**.
 
 Version 0.8.5 (2010-Nov-16)
 =======================================

@@ -348,7 +348,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         pagination = widget.internal.get('pagination')
         if self.astable:
             aaData = []
-            for item in widget.maker.stream(request,widget):
+            for item in widget.maker.rows(request,widget):
                 id = item['id']
                 aData = {} if not id else {'DT_RowId':id}
                 aData.update(((i,v) for i,v in enumerate(item['display'])))

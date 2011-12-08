@@ -3,6 +3,7 @@ import re
 import logging
 
 from djpcms.core.exceptions import Http404, HttpException, PermissionDenied
+from djpcms.core.tree import DjpcmsTree
 
 from .profiler import profile_response
 from .wrappers import Request, Response, ResponseRedirect
@@ -81,23 +82,30 @@ delegate the handling to them.'''
         return response
         
     def _handle(self, environ, start_response):
+        tree = self.page_tree()
         try:
-            view, urlargs = self.site.resolve(environ['PATH_INFO'][1:])
+            node = tree.resolve(environ['PATH_INFO'])
         except Http404 as e:
             if e.trypath:
                 return ResponseRedirect(e.trypath)
             else:
-                return self.error(Request(environ,e.handler or self.site), 404)
+                return self.error(Request(environ, e.handler or self.site), 404)
             
-        request = Request(environ, view, urlargs)
+        request = Request(environ, node)
         try:
-            if request.method not in view.methods(request):
+            if request.method not in request.methods():
                 raise HttpException(status = 405,
                     msg = 'method {0} is not allowed'.format(request.method))
             elif not request.has_permission():
                 raise PermissionDenied()
-            return view(request)
+            return request.view(request)
         except Exception as e:
             return self.error(request, getattr(e,'status',500))
         
-
+    def page_tree(self):
+        Page = self.site.Page
+        tree = self.site.tree
+        if Page:
+            return DjpcmsTree(tree,Page.all())
+        else:
+            return DjpcmsTree(tree)

@@ -8,6 +8,7 @@ import re
 import logging
 
 import djpcms
+from djpcms import Route
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
@@ -28,7 +29,21 @@ def block_htmlid(pageid, block):
 
 
 class Page(object):
-    '''Page object interface.'''
+    '''Page object interface.
+    
+.. attribute:: route
+
+    The :class:`djpcms.Route` for this page
+    
+ The following attributes must be implemented by subclasses.
+ 
+ .. attribute:: path
+ 
+     The web site relative path
+'''
+    @property
+    def route(self):
+        return Route(self.path)
     
     def numblocks(self):
         raise NotImplementedError

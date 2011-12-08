@@ -171,7 +171,7 @@ class ModelItemsList(DJPplugin):
                table_footer = False,
                **kwargs):
         instance = request.instance
-        request = request.view_for_model(for_model)
+        request = request.for_model(for_model)
         if request is None:
             return ''
         view = request.view

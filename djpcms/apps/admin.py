@@ -92,13 +92,11 @@ administer a group of :class:`djpcms.views.Applications`.'''
     home = views.GroupView(in_nav = 1)
     
     def table_generator(self, request, headers, qs):
-        for r in qs:
-            title = r.title
-            appmodel = r.view.appmodel
-            home = request.for_view(appmodel.root_view)
-            links = ''.join((l[1].render() for l in views.application_links(\
-                                views.application_views(home))))
-            yield ('<a href="{0}">{1}</a>'.format(home.url,title),links)
+        for child in qs:
+            title = child.title
+            links = ''.join((l.render() for l in
+                              views.application_views_links(child)))
+            yield ('<a href="{0}">{1}</a>'.format(child.url,title),links)
     
 
 class AdminSite(views.Application):

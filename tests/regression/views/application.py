@@ -17,6 +17,18 @@ class TestViews(test.TestCase):
         self.assertFalse(v.isbound)
         self.assertEqual(v.render(None),'foo')
 
+    def testViewLevel2(self):
+        v = views.View('foo/bla/', renderer = lambda djp : 'foo')
+        self.assertEqual(v.name,'foo_bla')
+        self.assertEqual(v.description,'Foo bla')
+        self.assertEqual(v.path,'/foo/bla/')
+        self.assertEqual(v.route.path,'/foo/bla/')
+        self.assertEqual(v.route.level,2)
+        self.assertEqual(v.form,None)
+        self.assertEqual(v.in_nav,0)
+        self.assertFalse(v.isbound)
+        self.assertEqual(v.render(None),'foo')
+        
     def testViewWithInputs1(self):
         v = views.View('foo/',
                        name = 'home',

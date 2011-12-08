@@ -13,9 +13,8 @@ logger = logging.getLogger('djpcms.core.context_processor')
 
 
 def userlinks(request, asbuttons = False):
-    app = request.view.root.for_model(request.view.User)
-    if app and app.root_view:
-        request = request.for_view(app.root_view)
+    request = request.for_model(request.view.User)
+    if request:
         if request.user.is_authenticated():
             for a in views.application_views_links(request,
                                         asbuttons = asbuttons,
@@ -59,7 +58,7 @@ def page_links(request, asbuttons = False):
                 ul.add(a)
         else:
             page = request.page
-            page_request = request.view_for_model(Page)
+            page_request = request.for_model(Page)
             if page_request is not None:
                 for link in views.application_views_links(
                                     page_request,

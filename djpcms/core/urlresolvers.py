@@ -12,6 +12,7 @@ from djpcms.utils.importer import import_modules
 
 from .exceptions import *
 from .routing import Route
+from .tree import NRT
 from . import http
 
 
@@ -42,7 +43,7 @@ class resolver_manager(object):
                 
 
 class RouteMixin(UnicodeMixin):
-    '''Class for routing trees, This class is the base class for all
+    '''Class for routing trees. This class is the base class for all
 routing and handler classes in djpcms including, but not only, :class:`Site`,
 :class:`djpcms.views.Application` and :class:`djpcms.views.View`.
     
@@ -62,17 +63,18 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     
 .. attribute:: parent
 
-    The :class:`RouteMixin` immediately before this route. Used to build
-    :attr:`route` from the :attr:`rel_route` attribute. When setting this
-    attribute, the :attr:`route` attribute will get updated.
-    
-.. attribute:: route
-
-    The :class:`Route` for this instance
+    The :class:`RouteMixin` immediately before this route. When setting
+    this attribute, the :attr:`route` is updated from the :attr:`rel_route`
+    attribute as ``self`` and the :attr:`route` of :attr:`parent`.
     
 .. attribute:: rel_route
 
     The relative :class:`Route` with respect :attr:`parent` for this instance.
+    
+.. attribute:: route
+
+    The :class:`Route` for this instance. Calculated from :attr:`rel_route`
+    and :attr:`parent`.
     
 .. attribute:: path
 
@@ -87,6 +89,14 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
 
     The root :class:`RouteMixin` instance for of this route. If this instance
     has :attr:`parent` set to ``None``, the :attr:`root` is equal to ``self``.
+    
+.. attribute:: is_root
+
+    ``True`` if :attr:`root` is ``self``.
+    
+.. attribute:: tree
+
+    The views non-recombining tree
     
 .. attribute:: site
 
@@ -137,6 +147,10 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         return self.__route
     
     @property
+    def is_root(self):
+        return self.parent is None
+    
+    @property
     def path(self):
         return self.route.path
     
@@ -146,6 +160,13 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
             return self.parent.root
         else:
             return self
+        
+    @property
+    def tree(self):
+        if self.is_root:
+            return getattr(self,'_tree',None)
+        else:
+            self.root.tree
     
     @property
     def isbound(self):
@@ -158,10 +179,14 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         else:
             return v
     
-    def unwind_query(self, query, callback = None):
-        return self.response_handler(self, query, callback)
-    
     def response(self, data, callback = None):
+        '''Handle *data* using the
+:ref:`response site handler <response-site-handler>`.
+
+:parameter data: data to evaluate response from.
+:parameter callback: optional callback function invoked once response from data
+    is available.
+:rtype: whatever the response handler or the callback return.'''
         return self.internal_data('response_handler')(data, callback)
     
     @property
@@ -203,6 +228,10 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     @property
     def storage(self):
         return self.internal_data('storage')
+    
+    def encoding(self, request):
+        '''Encoding for this route'''
+        return self.settings.DEFAULT_CHARSET
     
     def instance_from_variables(self, urlargs):
         '''Retrieve an instance form the variable part of the
@@ -300,6 +329,8 @@ class ResolverMixin(RouteMixin):
         if not hasattr(self,'_urls'):
             self._urls = self._load()
             self.on_bound()
+            if self.is_root:
+                self._tree = NRT(self.all_views(),self)
         
     def _isbound(self):
         return hasattr(self,'_urls')
@@ -322,7 +353,7 @@ class ResolverMixin(RouteMixin):
         return (route, handler, name)
     
     def all_views(self):
-        '''generator of all views in site'''
+        '''generator of all application views in self.'''
         for child in self:
             if isinstance(child,ResolverMixin):
                 for route in child.all_views():
@@ -331,6 +362,7 @@ class ResolverMixin(RouteMixin):
                 yield child
                     
     def resolve(self, path, urlargs = None):
+        '''Resolve a path'''            
         with resolver_manager(self,path) as rm:
             for handler in self.urls():
                 match = handler.rel_route.match(path)

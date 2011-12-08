@@ -305,7 +305,6 @@ which updates the input ``dictionary`` with library dependent information.
         data = data or {}
         if request:
             cache = request.cache
-            environ = request.environ
             if 'context' not in cache:
                 context_cache = {}
                 processors = self.request_context

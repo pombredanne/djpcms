@@ -55,6 +55,8 @@ Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 
+.. _response-site-handler:
+
 Response
 ~~~~~~~~~~~~~~~~~~~~~~~
 

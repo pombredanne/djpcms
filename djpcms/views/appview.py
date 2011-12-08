@@ -199,6 +199,7 @@ views::
                  success_message = None,
                  redirect_to_view = None,
                  inherit_page = True,
+                 is_soft = False,
                  **kwargs):
         super(View,self).__init__(route = route or self.default_route,
                                   **kwargs)
@@ -223,6 +224,7 @@ views::
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
         self.plugin_form = plugin_form or self.plugin_form
+        self._is_soft = is_soft
         
     def _isbound(self):
         return self.appmodel is not None
@@ -256,7 +258,7 @@ views::
         
     def is_soft(self, request):
         page = request.page
-        return False if not page else page.soft_root       
+        return self._is_soft if not page else page.soft_root       
         
     def has_permission(self, request = None, page = None, obj = None,
                        user = None):
@@ -281,31 +283,6 @@ views::
     
     def save_as_new(self, request, f, commit = True):
         return f.save_as_new(commit = commit)
-    
-    def children(self, request):
-        '''return a generator over children responses.'''
-        appmodel = self.appmodel
-        for view in appmodel:
-            if view.parent_view is not self:
-                continue
-            if not isinstance(view,View):
-                if view.root_view:
-                    view = view.root_view
-                else:
-                    continue
-            if request.for_view(view).url is not None:
-                yield view
-        if appmodel.root_view == self and not\
-            appmodel.rel_route.breadcrumbs:
-            parent = appmodel.parent
-            if parent:
-                for handler in parent:
-                    if handler is not appmodel:
-                        try:
-                            view,args = handler.resolve('')
-                            yield view
-                        except:
-                            pass
     
     def __deepcopy__(self, memo):
         return copy(self)

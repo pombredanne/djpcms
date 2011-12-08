@@ -42,7 +42,6 @@ def application_views(request,
 '''
     appmodel = request.view.appmodel
     exclude = set(exclude if exclude is not None else appmodel.exclude_links)
-    urlargs = request.urlargs
     if appmodel.model:
         instance = request.instance or instance
         instance = instance if isinstance(instance,appmodel.model) else None
@@ -71,7 +70,7 @@ def application_views(request,
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            dview = request.for_view_args(view, urlargs, instance)
+            dview = request.for_path(view.path, instance = instance)
             url = dview.url
             if not url or not dview.has_permission():
                 continue
@@ -91,7 +90,7 @@ def application_views(request,
                     continue
                 dview = request
             else:
-                dview = request.for_view_args(view, **urlargs)
+                dview = request.for_path(view.path)
             url = request.url
         
         elem = elem._asdict()
@@ -108,7 +107,7 @@ def instance_field_views(request, instance, field_name = None, **kwargs):
         if mp:
             if not isinstance(instance,mp.model):
                 instance = value
-                request = request.view_for_model(instance)
+                request = request.for_model(instance)
     return application_views(request,instance=instance,**kwargs)
 
 

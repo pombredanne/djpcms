@@ -22,20 +22,15 @@ from .exceptions import UrlException
 __all__ = ['Route']
 
 
-PATH_REGEX = '.*'
-
 _rule_re = re.compile(r'''
-    (?P<static>[^<]*)                           # static rule data
-    <
     (?:
         (?P<converter>[a-zA-Z_][a-zA-Z0-9_]*)   # converter name
         (?:\((?P<args>.*?)\))?                  # converter arguments
         \:                                      # variable delimiter
     )?
     (?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)        # variable name
-    >
 ''', re.VERBOSE)
-_simple_rule_re = re.compile(r'<([^>]+)>')
+
 _converter_args_re = re.compile(r'''
     ((?P<name>\w+)\s*=\s*)?
     (?P<value>
@@ -76,30 +71,12 @@ def parse_rule(rule):
 
     :internal:
     """
-    pos = 0
-    end = len(rule)
-    do_match = _rule_re.match
-    used_names = set()
-    while pos < end:
-        m = do_match(rule, pos)
-        if m is None:
-            break
-        data = m.groupdict()
-        if data['static']:
-            yield None, None, data['static']
-        variable = data['variable']
-        converter = data['converter'] or 'default'
-        if variable in used_names:
-            raise ValueError('variable name {0} used twice in rule {1}.'\
-                             .format(variable,rule))
-        used_names.add(variable)
-        yield converter, data['args'] or None, variable
-        pos = m.end()
-    if pos < end:
-        remaining = rule[pos:]
-        if '>' in remaining or '<' in remaining:
-            raise ValueError('malformed url rule: %r' % rule)
-        yield None, None, remaining
+    m = _rule_re.match(rule)
+    if m is None or m.end() < len(rule):
+        raise ValueError('Error while parsing rule {0}'.format(rule))
+    data = m.groupdict()
+    converter = data['converter'] or 'default'
+    return converter, data['args'] or None, data['variable']
 
 
 class Route(UnicodeMixin):
@@ -144,26 +121,38 @@ class Route(UnicodeMixin):
         self.is_leaf = not rule.endswith('/')
         self.rule = rule[1:]
         self.arguments = set(map(str, self.defaults))
-        self.breadcrumbs = []
+        breadcrumbs = []
         self._converters = {}
         regex_parts = []
-        for converter, arguments, variable in parse_rule(self.rule):
-            if converter is None: 
-                regex_parts.append(re.escape(variable))
-                if variable.endswith('/'):
-                    variable = variable[:-1]
-                if variable.startswith('/'):
-                    variable = variable[1:]
-                if variable:
-                    self.breadcrumbs.append((False,variable))
-            else:
-                convobj = get_converter(converter, arguments)
-                regex_parts.append('(?P<%s>%s)' % (variable, convobj.regex))
-                self.breadcrumbs.append((True,variable))
-                self._converters[variable] = convobj
-                self.arguments.add(str(variable))
-        self._regex_string = ''.join(regex_parts)
+        if self.rule:
+            for bit in self.rule.split('/'):
+                if not bit:
+                    continue
+                s = bit[0]
+                e = bit[-1]
+                if s == '<' or e == '>':
+                    if s+e != '<>':
+                        raise ValueError('malformed rule {0}'.format(self.rule))
+                    converter, arguments, variable = parse_rule(bit[1:-1])
+                    if variable in self._converters:
+                        raise ValueError('variable name {0} used twice\
+ in rule {1}.'.format(variable,self.rule))
+                    convobj = get_converter(converter, arguments)
+                    regex_parts.append('(?P<%s>%s)' % (variable, convobj.regex))
+                    breadcrumbs.append((True,variable))
+                    self._converters[variable] = convobj
+                    self.arguments.add(str(variable))
+                else:
+                    variable = bit
+                    regex_parts.append(re.escape(variable))
+                    breadcrumbs.append((False,variable))
+                    
+        self.breadcrumbs = tuple(breadcrumbs)
+        self._regex_string = '/'.join(regex_parts)
+        if self._regex_string and not self.is_leaf:
+            self._regex_string += '/'
         self._regex = re.compile(self.regex, re.UNICODE)
+            
     
     @property
     def regex(self):
@@ -181,6 +170,10 @@ class Route(UnicodeMixin):
     def __unicode__(self):
         return self.path
     
+    @property
+    def level(self):
+        return len(self.breadcrumbs)
+        
     @property
     def path(self):
         return '/' + self.rule
@@ -236,9 +229,14 @@ class Route(UnicodeMixin):
                 result['__remaining__'] = remaining
             return result
 
+    @property
+    def bits(self):
+        return tuple((b[1] for b in self.breadcrumbs))
+        
     def split(self):
         '''Return a two element tuple containing the parent route and
- the last url bit as route.'''
+the last url bit as route. If this route is the root route, it returns
+the root route and ``None``. '''
         rule = self.rule
         if not self.is_leaf:
             rule = rule[:-1]

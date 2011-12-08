@@ -55,12 +55,17 @@ files such as style sheet and javascript.
     def render_css(self):
         prefix = self.settings.get('MEDIA_URL','')
         absolute = self.absolute_path
+        done = set()
         for medium in sorted(self._css):
             paths = self._css[medium]
             medium = '' if medium == 'all' else " media='{0}'".format(medium)
             for path in paths:
+                url = path[0]
+                if url in done:
+                    continue
+                done.add(url)
                 link = "<link href='{0}' type='text/css'{1}\
- rel='stylesheet' />".format(absolute(path[0],prefix), medium)
+ rel='stylesheet' />".format(absolute(url,prefix), medium)
                 if len(path) == 2:
                     link = '<!--[if {0}]>{1}<![endif]-->'.format(path[1],link)
                 yield mark_safe(link)

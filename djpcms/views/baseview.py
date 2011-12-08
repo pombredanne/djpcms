@@ -314,6 +314,10 @@ it is the base class of :class:`pageview` and :class:`View`.
     def breadcrumb(self, request):
         return self.linkname(request)
     
+    def is_soft(self, request):
+        page = request.page
+        return False if not page else page.soft_root
+    
     def inner_contents(self, request, inner_template):
         site = self.site
         InnerContent(request, editing)
@@ -411,12 +415,6 @@ By default it is ``djp.url``'''
     
     def warning_message(self, request):
         return None
-    
-    def children(self, request):
-        '''return a generator over children responses. It uses the
-:func:`djpcms.node` to retrive the node in the sitemap and
-consequently its children.'''
-        raise StopIteration
         
     def meta_description(self, request):
         return self.settings.META_DESCRIPTION
@@ -445,7 +443,5 @@ class pageview(djpcmsview):
         if isinstance(handler,RendererMixin):
             self.appmodel = handler
         self.page = page
-        super(pageview,self).__init__(self.page.url,handler)
+        super(pageview,self).__init__(self.page.route, handler)
     
-    def is_soft(self, request):
-        return self.page.soft_root

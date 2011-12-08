@@ -38,30 +38,15 @@ absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 class noinstance:
     pass
-
-
-class Tree(object):
-    
-    def __init__(self, pages = None):
-        if pages:
-            self.pages = dict(((p.url,p) for p in pages))
-        else:
-            self.pages = {}
             
-            
-class djpcmsinfo(object):
-    '''Holds information and data to be reused during a single request.
-This is used as a way to speed up responses as well as for
-managing settings.'''
-    def __init__(self, view, urlargs = None):
-        self.view = view
-        self.urlargs = urlargs if urlargs is not None else {}
-        self.page = None
-        self.instance = None
-        self.context_cache = None
-        self.environ = {'requests':{}}
-        self._djp_instance_cache = {}
+
+class NodeEnvironMixin(UnicodeMixin):
     
+    def __init__(self, environ, node):
+        self.environ = environ
+        self.node = node
+        self.view = node.view
+        
     def __getitem__(self, key):
         return self.environ[key]
     
@@ -70,7 +55,53 @@ managing settings.'''
         
     def get(self, key, default = None):
         return self.environ.get(key,default)
+    
+    @property
+    def urlargs(self):
+        return self.node.urlargs
+    
+    @property
+    def url(self):
+        return self.node.url
+    
+    @property
+    def settings(self):
+        return self.view.settings
+    
+    @property
+    def page(self):
+        return self.node.page
+    
+    @property
+    def name(self):
+        return self.view.name
+    
+    @property
+    def model(self):
+        return getattr(self.view,'model',None)
+    
+    @property
+    def tree(self):
+        return self.node.tree
+    
+    
+class RequestNode(NodeEnvironMixin):
+    '''Holds information and data to be reused during a single request.
+This is used as a way to speed up responses as well as for
+managing settings.'''
+    def __init__(self, node):
+        environ = {'requests':{}}
+        super(RequestNode,self).__init__(environ, node)
+        self.context_cache = None
+        self._djp_instance_cache = {}
         
+    def __unicode__(self):
+        return self.name
+    
+    @property
+    def path(self):
+        return self.node.path
+    
     @property
     def media(self):
         if not hasattr(self,'_media'):
@@ -90,20 +121,9 @@ managing settings.'''
     def add_djp_instance_cache(self, djp, instance):
         if instance and getattr(instance,'id',None):
             self._djp_instance_cache[(djp.view,instance)] = djp
-            
+                     
 
-
-def path_tuple(path):
-    return tuple((b for b in path.split('/') if b))
-    
-    
-def add_to_requests(path, request):
-    if path is not None:
-        bits = path_tuple(path)
-        request.cache['requests'][bits] = request
-                 
-
-class Request(UnicodeMixin):
+class Request(NodeEnvironMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
 :class:`djpcms.views.djpcmsview` serving the request and the request
 arguments.
@@ -129,58 +149,50 @@ arguments.
     
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
-    _encoding = None
     upload_handlers = []
     
-    def __init__(self, environ, view, urlargs = None, instance = None):
-        self.environ = environ
-        self.view = view
-        self.urlargs = urlargs if urlargs is not None else {}
+    def __init__(self, environ, node, instance = None):
+        super(Request,self).__init__(environ, node)
         if 'DJPCMS' not in self.environ:
-            self.environ['DJPCMS'] = djpcmsinfo(self.view,self.urlargs)
-        model = getattr(view,'model',None)
+            self.environ['DJPCMS'] = RequestNode(self.node)
+        model = self.model
         if isclass(model):
             if not isinstance(instance,model):
                 instance = self._instance_from_variables()
         else:
             instance = None
+        url = self.url
         self.__instance = instance
-        self.__url = self._get_url()
+        if url is not None:
+            self.cache['requests'][url] = self
         
     @property
     def instance(self):
         return self.__instance
     
-    @property
-    def url(self):
-        return self.__url
-
-    def for_view_args(self, view = None, urlargs = None, instance = None):
-        if view is not None:
-            return Request(self.environ,
-                           view if view is not None else self.view,
-                           urlargs,
-                           instance)
-    
-    def for_view(self, view):
-        return self.for_view_args(view, self.urlargs.copy(), self.__instance)
-    
-    def for_url(self, url):
-        request = self.cache['requests'].get(path_tuple(url))
+    def for_path(self, path = None, urlargs = None, instance = None):
+        '''Create a new :class:`Request` from a given *path*.'''
+        path = path if path is not None else self.path
+        request = self.cache['requests'].get(path)
         if request:
             return request
         else:
-            try:
-                view, args = self.view.root.resolve(url[1:])
-            except Http404:
-                return None
-            return self.for_view_args(view, args)
-        
-    def for_path(self):
-        return self.for_url(self.path)
+            urlargs = urlargs if urlargs is not None else urlargs
+            node = self.tree.get(path,urlargs)
+            if node:
+                instance = instance if instance is not None else instance
+                return Request(self.environ, node, instance)
     
+    def for_model(self, model, all = False, name = None):
+        '''Create a new :class:`Request` instance for a model class.'''
+        app = self.app_for_model(model, all)
+        if app:
+            view = app.views.get(name) if name else app.root_view
+            if view:
+                return self.for_path(view.path)
+            
     def __unicode__(self):
-        return self.path + ' - ' + self.view.route.rule
+        return self.path + ' (' + self.node.path + ')'
     
     @property
     def is_secure(self):
@@ -238,19 +250,17 @@ arguments.
     def session(self):
         return self.environ.get('session')
     
-    @property
-    def encoding(self):
-        if not self._encoding:
-            try:
-                self._encoding = self.DJPCMS.site.settings.DEFAULT_CHARSET
-            except:
-                self._encoding = 'utf-8'
-        return self._encoding
+    ############################################################################
+    #    View methods and properties
+    ############################################################################
     
-    ############################################################################
-    #    DJPCMS cached helpers
-    ############################################################################
-        
+    @lazyproperty
+    def encoding(self):
+        return self.view.encoding(self)
+    
+    def methods(self):
+        return self.view.methods(self)
+    
     @property
     def DJPCMS(self):
         return self.environ['DJPCMS']
@@ -262,32 +272,6 @@ arguments.
     @property
     def media(self):
         return self.DJPCMS.media
-    
-    @property
-    def name(self):
-        return self.view.name
-    
-    @lazyproperty
-    def page(self):
-        if 'tree' not in self.cache:
-            Page = self.view.root.Page
-            if Page:
-                self.cache['tree'] = Tree(Page.all())
-            else:
-                self.cache['tree'] = Tree()
-        tree = self.cache['tree']
-        return tree.pages.get(self.view.path)
-            
-    def _get_url(self):
-        if self.view is self.DJPCMS.view:
-            url = self.path
-        else:
-            try:
-                url = self.view.get_url(self.urlargs, instance = self.instance)
-            except Http404:
-                return None
-        add_to_requests(url,self)
-        return url
         
     def _instance_from_variables(self):
         try:
@@ -401,7 +385,7 @@ arguments.
     def cssgrid(self):
         if 'cssgrid' not in self.cache:
             r = self.for_path()
-            settings = r.view.settings
+            settings = r.settings
             page = r.page
             layout = settings.LAYOUT_GRID_SYSTEM if not page else page.layout
             grid = get_cssgrid(layout)
@@ -412,7 +396,7 @@ arguments.
 
     @lazymethod
     def children(self):
-        return tuple((self.for_view(v) for v in self.view.children(self)))
+        return tuple(self._children())
     
     @lazymethod
     def auth_children(self):
@@ -432,22 +416,12 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     
     @lazyproperty
     def parent(self):
-        view = self.view
-        url = self.url
-        # in some cases we don't have a url, quite rarely.
-        url = url[1:] if url else url
-        if not url:
-            return None
-        if url.endswith('/'):
-            url = url[:-1]
-        if url:
-            bits = url.split('/')
-            while bits:
-                bits.pop()
-                url = '/' + '/'.join(bits) + '/' if bits else '/'
-                p = self.for_url(url)
-                if p:
-                    return p
+        node = self.node.parent
+        if node is not None:
+            request = self.cache['requests'].get(node.url)
+            if request:
+                return request
+            return Request(self.environ,node,self.instance)
     
     @lazyproperty
     def in_navigation(self):
@@ -463,7 +437,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         if appmodel:
             return appmodel.viewurl(self, name = name, instance = instance)
     
-    def for_model(self, model, all = False):
+    def app_for_model(self, model, all = False):
         model = native_str(model)
         if isinstance(model,str):
             apps = self.view.site.for_hash(model, all = all)
@@ -474,16 +448,23 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         if apps:
             return apps[0] if all else apps
         
-    def view_for_model(self, model, all = False, name = None):
-        '''return an :class:`Request` instance for a model view.'''
-        app = self.for_model(model, all)
-        if app:
-            if name:
-                return self.for_view(app.views.get(name))
-            else:
-                return self.for_view(app.root_view)
-     
+    ############################################################################
+    #    Private methods
+    ############################################################################
     
+    def _children(self):
+        cache = self.cache['requests']
+        instance = self.instance
+        for node in self.node.children():
+            url = node.url
+            if url is not None:
+                request = cache.get(url)
+                if request is not None:
+                    yield request
+                else:
+                    yield Request(self.environ,node,instance)
+    
+     
 class Response_(object):
     '''A wrapper for response contents.
     

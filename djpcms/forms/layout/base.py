@@ -170,13 +170,19 @@ form layout design.
 
 class FormLayoutElement(BaseFormLayout):
     '''Base :class:`djpcms.html.WidgetMaker` class for :class:`FormLayout`
-components. A instance of this class render one or several form
+components. An instance of this class render one or several form
 :class:`djpcms.forms.Field`.
 
+:parameter children: collection of strings indicating
+    :class:`djpcms.forms.Field` names and other :class:`FormLayoutElement`
+    instances (allowing for nested specification).
+    
 .. attribute:: field_widget_maker
 
-    A template name or tuple for rendering a bound field. If not provided
-    the field will render the widget only.
+    The :class:`WidgetMaker` for fields included in this layout element.
+    There shouldn't be any reason to override this attribute.
+    
+    Default: :class:`FieldWidget`
 '''
     def __init__(self, *children, **kwargs):
         super(FormLayoutElement,self).__init__(**kwargs)

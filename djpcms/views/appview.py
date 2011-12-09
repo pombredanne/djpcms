@@ -1,10 +1,10 @@
 from copy import copy
+from functools import partial
 
 from py2py3 import zip
 
 import djpcms
 from djpcms import http, ajax, Route, async_instance, Http404
-from djpcms.html import ContextRenderer
 from djpcms.forms.utils import saveform, deleteinstance
 from djpcms.utils.text import nicename
 
@@ -13,7 +13,6 @@ from .baseview import djpcmsview
 
 
 __all__ = ['View',
-           'GroupView',
            'ModelView',
            'SearchView',
            'AddView',
@@ -255,14 +254,7 @@ views::
         
     def is_soft(self, request):
         page = request.page
-        return self._is_soft if not page else page.soft_root       
-        
-    def has_permission(self, request = None, page = None, obj = None,
-                       user = None):
-        if super(View,self).has_permission(request, page, obj, user = user):
-            return self.permissions.has(request, self.PERM, obj)
-        else:
-            return False
+        return self._is_soft if not page else page.soft_root
     
     def table_generator(self, request, qs):
         '''Generator of a table view. This function is invoked by
@@ -283,15 +275,6 @@ views::
     
     def __deepcopy__(self, memo):
         return copy(self)
-    
-    
-class GroupView(View):
-    '''An application to display list of children applications.
-It is the equivalent of :class:`SearchView`
-for :class:`Application` without a model.'''
-    def render(self, request):
-        qs = self.query(request)
-        return self.appmodel.render_query(request, qs)
     
     
 class ModelView(View):
@@ -315,15 +298,10 @@ There are three additional parameters that can be set:
     has_plugin = True
     in_nav = 1
     
-    def render(self, request):
-        '''Perform the custom query over the model objects and return a
-paginated result. By default it delegates the
-renderint to the :meth:`Application.render_query` method.
-        '''
-        return ContextRenderer(request,
-                               context = {'qs':self.query(request)},
-                               renderer = self.appmodel.render_query)
-            
+    def render(self, request, **kwargs):
+        kwargs['query'] = self.query(request)
+        return self.appmodel.render(request, **kwargs)
+        
     def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
         qs = self.query(request)
@@ -352,8 +330,8 @@ and handles the saving as default ``POST`` response.'''
     in_nav = 1
     ajax_enabled = False
     
-    def render(self, request):
-        return self.get_form(request).render(request)
+    def render(self, request, **kwargs):
+        return self.get_form(request).render(request, **kwargs)
     
     def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
@@ -403,13 +381,13 @@ an object.'''
     default_link = '{1}'
     
     @async_instance
-    def render(self, request):
+    def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
 By default it calls the :meth:`ModelApplication.render_object`
 method of the :attr:`View.appmodel` attribute.
         '''
-        return self.appmodel.render_object(request)
+        return self.appmodel.render_object(request, **kwargs)
     
     def sitemapchildren(self):
         return self.appmodel.sitemapchildren(self)
@@ -459,8 +437,8 @@ on an instance of a model.'''
     parent_view = 'view'
         
     @async_instance
-    def render(self, request):
-        return self.get_form(request).render(request)
+    def render(self, request, **kwargs):
+        return self.get_form(request).render(request, **kwargs)
     
     @async_instance
     def post_response(self, request):

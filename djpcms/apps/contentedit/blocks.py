@@ -67,7 +67,7 @@ class ChangeContentView(BlockChangeView):
     '''    
     def get_preview(self, request, instance, url, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
-        request = request.for_url(url)
+        request = request.for_path(url)
         if not request:
             return 'Could not get preview'
         
@@ -118,7 +118,7 @@ class ChangeContentView(BlockChangeView):
         form = formhtml.form
         prefix = form.prefix
         pform = self.get_plugin_form(request, instance.plugin, prefix)
-        html = '' if not pform else pform.render(request)
+        html = '' if pform is None else pform.render(request)
         edit_url = plugin.edit_url(request,instance.arguments)
         if edit_url:
             edit_url = HtmlWrap('a',
@@ -211,7 +211,8 @@ class DeleteContentView(views.DeleteView):
         instance = request.instance
         block  = instance.block
         jquery = ajax.jcollection()
-        blockcontents = self.model.objects.for_page_block(instance.page, block)
+        blockcontents = self.model.for_page_block(self.mapper,
+                                                  instance.page, block)
         if instance.position == len(blockcontents) - 1:
             return jquery
         
@@ -259,9 +260,9 @@ content in a content block.'''
         if self.model.objects.delete_and_sort(obj):
             return bid
 
-    def blockhtml(self, request, instance, editview, wrapper):
+    def blockhtml(self, request, instance, editpath, wrapper):
         '''A content block rendered in editing mode'''
-        request = request.for_view_args(editview, instance = instance)
+        request = request.for_path(editpath, instance = instance)
         html = request.render(url = request.url)
         #layoutview = self.getview('layout')
         #html0 =  layoutview(djp.request, instance = instance).render()
@@ -271,9 +272,9 @@ content in a content block.'''
     def blocks(self, request, page, blocknum):
         '''Return a generator of edit blocks.
         '''
-        blockcontents = self.model.objects.for_page_block(page, blocknum)
-        url      = request.url
-        editview = self.views.get('change')
+        blockcontents = self.model.for_page_block(self.mapper, page, blocknum)
+        url = request.url
+        editpath = self.views.get('change').path
         wrapper  = EditWrapperHandler(url)
         Tot = len(blockcontents) - 1
         # Clean blocks
@@ -293,10 +294,10 @@ content in a content block.'''
                 if b.plugin_name:
                     last = None
                 pos += 1
-            yield self.blockhtml(request, b, editview, wrapper)
+            yield self.blockhtml(request, b, editpath, wrapper)
             
         # Create last block
         if last == None:
             last = self.model(page = page, block = blocknum, position = pos)
             last.save()
-            yield self.blockhtml(request, last, editview, wrapper)
+            yield self.blockhtml(request, last, editpath, wrapper)

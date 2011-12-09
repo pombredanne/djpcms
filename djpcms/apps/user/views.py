@@ -55,6 +55,8 @@ class LoginView(views.ModelView):
     def has_permission(self, *args, **kwargs):
         return True
 
+    def defaultredirect(self, request, instance = None):
+        return self.root.path
 
 class UserView(views.ViewView):
     

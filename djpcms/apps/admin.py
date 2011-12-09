@@ -38,39 +38,24 @@ like in the admin interface. Using jQuery UI tabs.
 This is usually called in the view page of the object.
     
 :parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
-    
-    view_template = 'djpcms/admin/viewtemplate.html'
-        
-    def inner(self, request, widget, keys):
-        ctx = []
+    def view_generator(self, request, widget):
         appmodel = widget.internal['appmodel']
         instance = widget.internal['instance']
         for view in appmodel.object_views:
-            if 'get' not in view.methods(request):
+            req = request.for_path(view.path)
+            if 'get' not in req.methods():
                 continue
             if isinstance(view,views.ViewView):
-                html = self.render_object_view(request, appmodel, instance)
+                html = req.render(context='object')
             else:
-                dv = request.for_view(view)
-                try:
-                    dv.url
-                except:
-                    continue
-                html = dv.render()
-            name = view.name
-            o  = appmodel.views_ordering.get(name,100)
-            ctx.append({'name':view.description or nicename(name),
-                        'id':name,
-                        'value':html,
-                        'order': o})
-        ctx = {'views':sorted(ctx, key = lambda x : x['order'])}
-        return ContextRenderer(request,ctx,template=self.view_template)
-    
-    def  render_object_view(self, request, appmodel, instance):
-        if 'object' in appmodel.object_widgets:
-            return appmodel.render_object(request,instance,context='object')
-        else:
-            return ''
+                html = req.render()
+            o  = appmodel.views_ordering.get(view.name,100)
+            yield o,(view.description,html)
+            
+    def inner(self, request, widget, keys):
+        views = (x[1] for x in sorted(self.view_generator(request,widget),
+                                      key = lambda x : x[0]))
+        return html.tabs(views).render(request)
 
 
 class TabViewMixin(object):
@@ -89,7 +74,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
                                  footer = False,
                                  html_data = {'options':{'sDom':'t'}})
     
-    home = views.GroupView(in_nav = 1)
+    home = views.View(in_nav = 1)
     
     def table_generator(self, request, headers, qs):
         for child in qs:
@@ -108,7 +93,7 @@ administer models in groups.'''
                                  ajax = False,
                                  size = None)
     
-    home = views.GroupView(in_nav = 1)
+    home = views.View(in_nav = 1)
     
     def groups(self, request):
         for child in request.auth_children():

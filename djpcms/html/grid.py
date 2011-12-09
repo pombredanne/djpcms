@@ -26,11 +26,25 @@ class CssGrid(UnicodeMixin):
         self.empty = EMPTY_VALUE
         self.clear = ''
         self.container_class = ''
-        self.column1 = ''
         self.setup(columns,fixed)
         
     def setup(self, columns, fixed):
-        pass
+        self.column1 = ''
+        self.column_1_2 = ''
+        #
+        self.column_1_3 = ''
+        self.column_2_3 = ''
+        #
+        self.column_1_4 = ''
+        self.column_3_4 = ''
+        #
+        self.column_1_5 = ''
+        self.column_2_5 = ''
+        self.column_3_5 = ''
+        self.column_4_5 = ''
+        #
+        self.column_1_6 = ''
+        self.column_5_6 = ''
 
     def __unicode__(self):
         if self.columns:

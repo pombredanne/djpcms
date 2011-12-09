@@ -64,7 +64,7 @@ has :attr:`called` evaluating to ``True``.
             template = self.request.view.template
             return template.render(self.template,self.context)
         elif self.renderer:
-            return self.renderer(self.request,self.context)
+            return self.renderer(self.request,**self.context)
         else:
             raise NotImplementedError
         

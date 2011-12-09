@@ -47,6 +47,9 @@ _acc_maker = Accordion()
 
 
 def tabs(data_stream = None, **kwargs):
+    '''Create dynamic tabs or pills. The only input required is an iterable
+over two elements tuple containing the title and the data to display for
+each tab.'''
     kwargs['maker'] = _tabs_maker
     return Widget(data_stream = data_stream, **kwargs)
 

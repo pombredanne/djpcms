@@ -1,5 +1,4 @@
-from djpcms import forms, html, views
-from djpcms.core.orms import mapper
+from djpcms import forms, html, views, VIEW
 from djpcms.plugins import DJPplugin
 from djpcms.core.http import query_from_string
 from djpcms.utils.text import nicename
@@ -8,16 +7,18 @@ from djpcms.utils.text import nicename
 def registered_models(bfield, required = True):
     '''Generator of model Choices'''
     form = bfield.form
-    view = form.request.view 
+    request = form.request
     if not required:
-        yield ('','----------')
-    for model,app in site._registry.items():
-        if not app.hidden:
-            id = getattr(mapper(model),'hash',None)
-            if id:
-                nice = '{0} from {1}'.format(nicename(model._meta.name),
-                                             nicename(model._meta.app_label))
-                yield (id,nice)
+        yield ('','----------')    
+    if request:
+        root = form.request.view.root
+        models = set()
+        for app in root.applications():
+            if app.model and app.model not in models:
+                models.add(app.model)
+                id = app.mapper.hash
+                if id and request.has_permission(VIEW,app.model):
+                    yield (id,str(app.mapper))
 
 
 def get_contet_choices(bfield):

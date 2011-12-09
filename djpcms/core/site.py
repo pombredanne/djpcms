@@ -297,7 +297,6 @@ consequently its children.'''
  as application' % model)
             self._model_registry[model] = application
     
-    
     def context(self, data, request = None, processors=None):
         '''Evaluate the context for the template. It returns a dictionary
 which updates the input ``dictionary`` with library dependent information.
@@ -315,63 +314,17 @@ which updates the input ``dictionary`` with library dependent information.
             data.update(cache['context'])
         return data
             
-    # TO BE CHECKED
-    
-    
-    def get(self, name, default = None):
-        return self._sites.get(name,default)
-            
-    def get_site(self, url = None):
-        url = url or '/'
-        site = self.get(url,None)
-        if not site:
-            try:
-                res = self.resolve(url[1:])
-                return res[0]
-            except Http404:
-                return None
-        else:
-            return site
-        
-    def get_urls(self):
-        urls = []
-        for site in self.values():
-            urls.extend(site.get_urls())
-        return urls
-     
-    def get_url(self, model, view_name, instance = None, url = None, **kwargs):
-        site = self.get_site(url)
-        if not site:
-            return None
-        return site.get_url(model, view_name, instance = None, **kwargs)
-        if not isinstance(model,type):
-            instance = model
-            model = instance.__class__
-        app = site.for_model(model)
-        if app:
-            view = app.getview(view_name)
-            if view:
-                try:
-                    return view.get_url(None, instance = instance, **kwargs)
-                except:
-                    return None
-        return None
-    
-    def view_from_page(self, page):
-        site = self.get_site(page.url)
-    
-    def setsettings(self, **kwargs):
-        for k,v in kwargs.items():
-            setattr(self.settings,k,v)
-            for site in self:
-                setattr(site.settings,k,v)
-            
-    def registered_models(self):
-        '''Generator of model Choices'''
-        p = set()
-        for site in self.all():
-            for model in site._registry:
-                if model not in p:
-                    p.add(model)
-                    yield model
-    
+    def applications(self):
+        sites = []
+        for app in self:
+            if isinstance(app,Site):
+                sites.append(app)
+            else:
+                yield app
+                for app in app.applications():
+                    yield app
+                
+        for site in sites:
+            for app in site.applications():
+                yield app
+                

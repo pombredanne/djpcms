@@ -155,7 +155,6 @@ By default do nothing.
         return kwargs
     
     def __call__(self, request, args = None, block = None, prefix = None):
-        request.block = block
         return self.render(request, block, prefix, **self.arguments(args))
         
     def edit_url(self, request, args = None):
@@ -253,19 +252,11 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
         _plugin_dictionary[self.name] = self
         
     def render(self, request, block, prefix, **kwargs):
-        app  = self.app
-        if app.has_permission(request):
-            if request.view != app or kwargs:
-                args = request.urlargs.copy()
-                args.update(kwargs)
-                request = request.for_view_args(app, args)
-            request.block = block
-            return request.render()
+        req = request.for_path(self.app.path)
+        if req and req.has_permission():
+            return req.render(block = block, **kwargs)
         else:
             return ''
-    
-    def media(self, request):
-        return self.app.media(request)
     
 
 class JavascriptLogger(DJPplugin):

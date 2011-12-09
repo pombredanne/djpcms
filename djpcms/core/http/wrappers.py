@@ -9,6 +9,7 @@ from wsgiref.headers import Headers
 from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
                          is_string, UnicodeMixin
 
+import djpcms
 from djpcms.html import get_cssgrid
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
@@ -42,11 +43,12 @@ class noinstance:
 
 class NodeEnvironMixin(UnicodeMixin):
     
-    def __init__(self, environ, node, instance):
+    def __init__(self, environ, node, instance, url):
         self.environ = environ
         self.node = node
         self.view = node.view
         self.instance = instance
+        self.url = url
         
     def __getitem__(self, key):
         return self.environ[key]
@@ -86,15 +88,17 @@ class RequestNode(NodeEnvironMixin):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
-    def __init__(self, request):
-        environ = {'requests':{request.path:request}}
-        super(RequestNode,self).__init__(environ,request.node,request.instance)
-        self.path = request.path
-        self.url = request.path
-        self._djp_instance_cache = {}
+    def __init__(self, node, instance, path):
+        environ = {'requests':{},'traces':[]}
+        super(RequestNode,self).__init__(environ,node,instance,path)
+        self.path = path
         
     def __unicode__(self):
         return self.name
+    
+    @property
+    def requests(self):
+        return self.environ['requests']
     
     @property
     def media(self):
@@ -108,15 +112,44 @@ managing settings.'''
             self._media = m
         return self._media
     
-    def djp_from_instance(self, view, instance):
-        if instance and instance.id: 
-            return self._djp_instance_cache.get((view,instance))
-    
-    def add_djp_instance_cache(self, djp, instance):
-        if instance and getattr(instance,'id',None):
-            self._djp_instance_cache[(djp.view,instance)] = djp
-                     
 
+def make_request(environ, node, instance = None, cache = True):
+    view = node.view
+    model = view.model
+    if isclass(model):
+        update_args = True
+        if not isinstance(instance,model):
+            try:
+                instance = view.instance_from_variables(node.urlargs)
+                update_args = False
+            except:
+                pass
+        if instance and update_args:
+            urlargs = view.variables_from_instance(instance)
+            node.urlargs.update(urlargs)
+    else:
+        instance = None
+    
+    url = node.url()
+    if 'DJPCMS' not in environ:
+        if url is None:
+            raise ValueError('Critical error in request')
+        environ['DJPCMS'] = RequestNode(node,instance,url)
+    
+    if cache:
+        if url is not None:
+            rn = environ['DJPCMS']
+            request = rn.requests.get(url)
+            if request is None:
+                request = Request(environ, node, instance, url)
+                rn.requests[url] = request
+            return request
+    else:
+        # if we are not caching, return a request regarthless it has
+        # a valid url or not
+        return Request(environ, node, instance, url)
+    
+            
 class Request(NodeEnvironMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
 :class:`djpcms.views.djpcmsview` serving the request and the request
@@ -142,52 +175,34 @@ arguments.
     in this case this attribute is that instance, otherwise it is ``None``.
     
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
-'''
-    upload_handlers = []
-    
-    def __init__(self, environ, node, instance = None):
-        view = node.view
-        model = view.model
-        if isclass(model):
-            if not isinstance(instance,model):
-                try:
-                    instance = view.instance_from_variables(node.urlargs)
-                except:
-                    pass
-        else:
-            instance = None
-        super(Request,self).__init__(environ, node, instance)
-        url = self.url
-        if 'DJPCMS' not in self.environ:
-            if url is None:
-                raise ValueError('Critical error in request')
-            self.environ['DJPCMS'] = RequestNode(self)
-        elif url is not None:
-            self.cache['requests'][url] = self
-    
-    def for_path(self, path = None, urlargs = None, instance = None):
+'''    
+    def for_path(self, path = None, urlargs = None, instance = None,
+                 cache = True):
         '''Create a new :class:`Request` from a given *path*.'''
         path = path if path is not None else self.path
         request = self.cache['requests'].get(path)
         if request:
             return request
-        else:
-            urlargs = urlargs if urlargs is not None else urlargs
-            node = self.tree.get(path,urlargs)
-            if node:
-                instance = instance if instance is not None else instance
-                return Request(self.environ, node, instance)
+        instance = instance if instance is not None else self.instance
+        urlargs = urlargs if urlargs is not None else self.urlargs
+        node = self.tree.get(path,urlargs)
+        if not node:
+            try:
+                node = self.tree.resolve(path)
+            except Http404:
+                return None
+        return make_request(self.environ, node, instance, cache = cache)
     
-    def for_model(self, model, all = False, name = None):
+    def for_model(self, model, all = False, root = False, name = None):
         '''Create a new :class:`Request` instance for a model class.'''
-        app = self.app_for_model(model, all)
+        app = self.app_for_model(model, all = all, root = root)
         if app:
             view = app.views.get(name) if name else app.root_view
             if view:
                 return self.for_path(view.path)
             
     def __unicode__(self):
-        return self.path + ' (' + self.node.path + ')'
+        return self.url + ' (' + self.path + ')'
     
     ############################################################################
     #    environment shortcuts
@@ -254,13 +269,6 @@ arguments.
     ############################################################################
     
     @lazyproperty
-    def url(self):
-        if self.instance:
-            urlargs = self.view.variables_from_instance(self.instance)
-            self.node.urlargs.update(urlargs)
-        return self.node.url()
-    
-    @lazyproperty
     def encoding(self):
         return self.view.encoding(self)
     
@@ -305,8 +313,19 @@ arguments.
         else:
             return de
         
-    def has_permission(self):
-        return self.view.has_permission(self, self.page, self.instance)
+    def has_permission(self, code = None, instance = None, **kwargs):
+        view = self.view
+        perm = view.permissions
+        user = kwargs.pop('user',self.user)
+        # if code is not provided we check if the page can be viewed
+        if code is None:
+            page = self.page
+            if page and not perm.has(self, djpcms.VIEW, page, user = user):
+                return False
+            return perm.has(self, view.PERM, self.instance, user = user)
+        else:
+            # Check permissions on a different entity
+            return perm.has(self, code, obj = instance, user = user, **kwargs)
     
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
@@ -394,10 +413,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     def parent(self):
         node = self.node.parent
         if node is not None:
-            request = self.cache['requests'].get(node.url)
-            if request:
-                return request
-            return Request(self.environ,node,self.instance)
+            return make_request(self.environ,node,self.instance)
     
     @lazyproperty
     def in_navigation(self):
@@ -413,16 +429,23 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         if appmodel:
             return appmodel.viewurl(self, name = name, instance = instance)
     
-    def app_for_model(self, model, all = False):
+    def app_for_model(self, model, all = False, root = False):
+        '''Fetch an :class:`djpcms.views.Application` for a given *model*.
+
+:parameter all: if ``True`` it returns a list of all matched applications,
+    otherwise it return the first found.
+:parameter root: if ``True`` the search will start from the root site,
+    otherwise it starts from the current site.
+    Defaulr: ``False``.
+'''
         model = native_str(model)
+        site = self.view.root if root else self.view.site 
         if isinstance(model,str):
-            apps = self.view.site.for_hash(model, all = all)
+            return site.for_hash(model, all = all)
         elif model is not None:
-            apps = self.view.site.for_model(model,all = all)
+            return site.for_model(model, all = all)
         else:
             return None
-        if apps:
-            return apps[0] if all else apps
         
     ############################################################################
     #    Private methods
@@ -454,16 +477,12 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         return self.cache['raw_post_data']
     
     def _children(self):
-        cache = self.cache['requests']
         instance = self.instance
+        environ = self.environ
         for node in self.node.children():
-            url = node.url
-            if url is not None:
-                request = cache.get(url)
-                if request is not None:
-                    yield request
-                else:
-                    yield Request(self.environ,node,instance)
+            request = make_request(environ, node, instance)
+            if request is not None:
+                yield request
     
      
 class Response_(object):

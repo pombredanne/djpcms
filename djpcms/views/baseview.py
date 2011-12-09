@@ -5,7 +5,7 @@ from py2py3 import range
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin,\
                         Http404
-from djpcms.utils import parentpath, slugify
+from djpcms.utils import parentpath, slugify, escape
 from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
 
@@ -22,14 +22,16 @@ SPLITTER = '-'
 def makename(self, name, description):
     name = name or self.name
     if not name:
-        name = openedurl(self.path).replace('/','_')\
-                                   .replace('<','')\
-                                   .replace('>','')
-        if not name:
+        path = self.path
+        if '<' not in path:
+            name = path.replace('/',' ')
+        else:
             name = self.__class__.__name__.lower()
-    name = name.replace(SPLITTER,'_')
+            if len(name) > 4 and name.endswith('view'):
+                name = name[:-4]
+    name = name.replace(SPLITTER,'_').lower()
     self.description = description or self.description or nicename(name)
-    self.name = str(slugify(name.lower(),rtx='_'))
+    self.name = str(slugify(name,rtx='_'))
     
     
 class RendererMixin(html.Renderer):
@@ -161,14 +163,13 @@ and :class:`djpcmsview`.
                                 self.body_class
         makename(self, self.name, self.description)
             
-    def render(self, request):
-        '''\
-Render the Current View and return a safe string.
+    def render(self, request, **kwargs):
+        '''Render the Current View and return a safe string.
 This function is implemented by subclasses of :class:`View`.
 By default it returns an empty string if the view is a :class:`pageview`
 other wise the ``render`` method of the :attr:`appmodel`.'''
         if self.appmodel:
-            return self.appmodel.render(request)
+            return self.appmodel.render(request, **kwargs)
         else:
             return ''
         
@@ -309,7 +310,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         if not link:
             link = self.default_link or \
                     (self.appmodel.description if self.appmodel else 'view')
-        return link.format(request.urlargs,request.instance)
+        return escape(link.format(request.urlargs,request.instance))
     
     def breadcrumb(self, request):
         return self.linkname(request)
@@ -372,13 +373,6 @@ it is the base class of :class:`pageview` and :class:`View`.
             next = self.defaultredirect(request, next = next)
             return ajax.jredirect(next)
         return self.post_response(request)
-    
-    def has_permission(self, request, page = None, obj = None, user = None):
-        '''Check for page view permissions.'''
-        if page:
-            return self.permissions.has(request,djpcms.VIEW,page,user=user)
-        else:
-            return True
     
     def in_navigation(self, request):
         '''

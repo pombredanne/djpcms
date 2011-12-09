@@ -255,7 +255,7 @@ class DjpNode(MultiNode):
     
 class DjpcmsTree(MultiTree):
  
-    def __init__(self, tree, pages):
+    def __init__(self, tree, pages = None):
         self.tree_pages = p = {}
         if pages:
             ptrees = {}

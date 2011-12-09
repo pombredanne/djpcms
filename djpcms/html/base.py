@@ -141,8 +141,10 @@ Any Operation on this class is similar to jQuery.
                 self.add(data_stream)
         
     def __repr__(self):
-        return '<' + self.tag + self.flatatt() + '>'
-        #return '{0}({1})'.format(self.__class__.__name__,self.maker)
+        if self.tag:
+            return '<' + self.tag + self.flatatt() + '>'
+        else:
+            return '{0}({1})'.format(self.__class__.__name__,self.maker)
     
     def __len__(self):
         return len(self.data_stream)
@@ -562,9 +564,9 @@ dictionary.'''
 :parameter keys: ???
 :return: A string representing the inner part of the widget.
 
-By default it renders the ;attr:`template` or :attr:`template_name`
-if available, otherwise it returns a join string
-from the strings returned by the :meth:`stream` method.
+By default it renders the :attr:`template` or :attr:`template_name`
+if available, otherwise it returns a :class:`StreamContextRenderer`
+from the :meth:`stream` method.
 '''
         context = self.get_context(request,widget,keys)
         if self.template or self.template_name:

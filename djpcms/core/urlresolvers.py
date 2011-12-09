@@ -411,3 +411,7 @@ If the application is not available, it returns ``None``. It never fails.'''
  By default it does nothing, but it can be used to configure things once the
  resolver map is ready.'''
         pass
+    
+    def applications(self):
+        '''generator of registered applications'''
+        raise NotImplementedError

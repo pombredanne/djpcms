@@ -13,7 +13,7 @@ logger = logging.getLogger('djpcms.core.context_processor')
 
 
 def userlinks(request, asbuttons = False):
-    request = request.for_model(request.view.User)
+    request = request.for_model(request.view.User, root = True)
     if request:
         if request.user.is_authenticated():
             for a in views.application_views_links(request,
@@ -60,17 +60,18 @@ def page_links(request, asbuttons = False):
             page = request.page
             page_request = request.for_model(Page)
             if page_request is not None:
+                if page:
+                    kwargs = {'next':request.path}
+                    include = ('change',)
+                else:
+                    kwargs = {'url':request.view.path}
+                    include = ('add',)
                 for link in views.application_views_links(
                                     page_request,
                                     instance = page,
-                                    include = ('add','change'),
+                                    include = include,
                                     asbuttons = asbuttons):
-                    path = iri_to_uri(request.path,request.urlargs)
-                    if page:
-                        kwargs = {'next':request.path}
-                    else:
-                        kwargs = {'url':request.view.path}
-                        kwargs.update(request.urlargs)
+                    kwargs.update(request.urlargs)
                     href = link.attrs['href']
                     link.attrs['href'] = iri_to_uri(href,kwargs)
                     ul.add(link)

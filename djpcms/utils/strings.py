@@ -79,15 +79,15 @@ except:
     
 
 def escape(html):
-    """
-    Returns the given HTML with ampersands, quotes and angle brackets encoded.
-    """
+    """Returns the given HTML with ampersands,
+quotes and angle brackets encoded."""
     if hasattr(html,'__html__'):
         return html
     if html in NOTHING:
         return ''
     else:
-        return force_str(html).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
+        return force_str(html).replace('&', '&amp;').replace('<', '&lt;')\
+            .replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 
 
 def smart_escape(text):

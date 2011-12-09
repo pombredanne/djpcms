@@ -2,19 +2,19 @@ from djpcms import html
 from djpcms.html import icons
 from djpcms.utils.text import nicename
 
-from .base import FormLayoutElement, check_fields
+from .table import BaseTableFormElement, TableRow
 
 
 __all__ = ['TableRelatedFieldset']
 
     
-class TableRelatedFieldset(FormLayoutElement):
+class TableRelatedFieldset(BaseTableFormElement):
     '''A :class:`djpcms.forms.layout.FormLayoutElement`
 class for handling table form layouts.'''
     tag = 'div'
     default_style = 'tablerelated'
-    template_name = ('djpcms/form-layouts/tableformset.html',)
-    field_template = '''\
+    _template_name__ = ('djpcms/form-layouts/tableformset.html',)
+    _field_template__ = '''\
 {% if hidden %}{{ inner }}{% else %}
 <div {% if error %}class="error"{% endif %}>{% if ischeckbox %}
 {{ inner }}
@@ -33,6 +33,7 @@ class for handling table form layouts.'''
         self.fields = fields or ()
         
     def check_fields(self, missings, layout):
+        # Override default
         dfields = self.form_class.base_fields
         nf = list(self.fields)
         for field in dfields:
@@ -42,19 +43,7 @@ class for handling table form layouts.'''
         self.headers = [self.field_head(name,dfields[name])\
                          for name in self.fields]
             
-    def field_head(self, name, field):
-        if field.is_hidden:
-            return {'name':name}
-        else:
-            label = field.label or nicename(name)
-            ch = html.Widget('span')
-            if field.required:
-                ch.addClass('required')
-            return {'label': ch.render(inner = label),
-                    'name':name,
-                    'help_text':field.help_text}
-    
-    def render_form_fields(self,djp,widget):
+    def render_form_fields(self, request, widget):
         form = widget.form
         dfields = form.dfields
         for head in self.headers:
@@ -90,23 +79,30 @@ class for handling table form layouts.'''
         if has_delete:
             yield {'inner':link}
             
+    def row_generator(self, request, widget):
+        formset = widget.form.form_sets[self.formset]
+        for form in formset.forms:
+            dfields = form.dfields
+            row = TableRow(self.headers, form = form)
+            w = self.child_widget(head['name'], widget)
+            
+        if form.instance and form.instance.id:
+            form.mapper.unique_id(form.instance)
+        
     def render_form(self,djp,form,widget):
         '''Render a single form in the formset'''
         widget = widget.copy(form = form)
+        
         ctx = {'fields': list(self.render_form_fields(djp,widget))}
         if form.instance and form.instance.id:
             ctx['id'] = form.mapper.unique_id(form.instance)
         return ctx
     
-    def get_context(self, djp, widget, keys):
-        self.has_delete = None
+    def stream(self, request, widget, context):
+        for data in super(TableRelatedFieldset,self).stream(request, widget,
+                                                            context):
+            yield data
         formset = widget.form.form_sets[self.formset]
-        forms = [self.render_form(djp, form, widget)\
-                                   for form in formset.forms]
-        if self.has_delete:
-            self.headers.append(self.field_head('label','delete'))
-        return {'legend': self.legend_html,
-                'num_forms': formset.num_forms.render(),
-                'headers': self.headers,
-                'forms': forms}
+        yield formset.num_forms.render()
+    
 

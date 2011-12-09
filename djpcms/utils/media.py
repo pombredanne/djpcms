@@ -15,6 +15,7 @@ __all__ = ['MEDIA_TYPES', 'Media']
 
 MEDIA_TYPES = ('css','js')
 
+
 class Media(object):
     '''Originally from django, it is used for manipulating media
 files such as style sheet and javascript.

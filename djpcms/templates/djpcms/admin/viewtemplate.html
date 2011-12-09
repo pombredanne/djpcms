@@ -1,8 +1,0 @@
-<div class="ui-tabs djph">
-    <ul>{% for view in views %}
-        <li><a href="#{{ view.id }}-instance">{{ view.name }}</a></li>{% endfor %}
-    </ul>{% for view in views %}
-    <div id="{{ view.id }}-instance">
-       {{ view.value }} 
-    </div>{% endfor %}
-</div>

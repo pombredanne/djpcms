@@ -6,7 +6,7 @@ from djpcms.core.exceptions import Http404, HttpException, PermissionDenied
 from djpcms.core.tree import DjpcmsTree
 
 from .profiler import profile_response
-from .wrappers import Request, Response, ResponseRedirect
+from .wrappers import make_request, Response, ResponseRedirect
 
 
 logger = logging.getLogger('djpcms')
@@ -37,7 +37,6 @@ class WSGIhandler(object):
         
     def __call__(self, environ, start_response):
         '''The WSGI callable'''
-        #request = self.REQUEST(environ)
         for middleware in self.middleware:
             response = middleware(environ, start_response)
             if response is not None:
@@ -89,9 +88,10 @@ delegate the handling to them.'''
             if e.trypath:
                 return ResponseRedirect(e.trypath)
             else:
-                return self.error(Request(environ, e.handler or self.site), 404)
+                req = make_request(environ, e.handler or self.site)
+                return self.error(req, 404)
             
-        request = Request(environ, node)
+        request = make_request(environ, node)
         try:
             if request.method not in request.methods():
                 raise HttpException(status = 405,

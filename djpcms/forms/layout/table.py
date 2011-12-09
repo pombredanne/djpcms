@@ -9,14 +9,14 @@ __all__ = ['TableFormElement','TableRow']
 
 class TableRow(FormLayoutElement):
     '''A row in a form table layout'''
-    def stream_errors(self, djp, children):
+    def stream_errors(self, request, children):
         for w in children:
             if isinstance(w,dict):
                 yield '<td id="{0[error_id]}">{0[error]}</td>'.format(w)
             else:
                 yield '<td></td>'
     
-    def stream_fields(self, djp, children):
+    def stream_fields(self, request, children):
         for w in children:
             if isinstance(w,dict):
                 if w['ischeckbox']:
@@ -27,23 +27,57 @@ class TableRow(FormLayoutElement):
             else:
                 yield '<td>{0}</td>'.format(w)
     
-    def stream(self, djp, ctx):
+    def stream(self, request, ctx):
         children = ctx['children']
-        yield '<tr>'+''.join(self.stream_errors(djp, children))+'</tr>'
-        yield '<tr>'+''.join(self.stream_fields(djp, children))+'</tr>'
+        yield '<tr>'+''.join(self.stream_errors(request, children))+'</tr>'
+        yield '<tr>'+''.join(self.stream_fields(request, children))+'</tr>'
         
-    def get_context(self, djp, widget, keys):
+    def get_context(self, request, widget, keys):
         children = []
         for child in self.children_widgets(widget):
             if isinstance(child,FormWidget):
-                ctx = child.get_context(djp)
+                ctx = child.get_context(request)
             else:
-                ctx = child.render(djp)
+                ctx = child.render(request)
             children.append(ctx)
         return {'children': children}
         
+
+class BaseTableFormElement(FormLayoutElement):
+
+    def field_head(self, name, field):
+        if field.is_hidden:
+            return {'name':name}
+        else:
+            label = field.label or nicename(name)
+            ch = html.Widget('span')
+            if field.required:
+                ch.addClass('required')
+            return {'label': ch.render(inner = label),
+                    'name':name,
+                    'help_text':field.help_text}
+            
+    def row_generator(self, request, widget):
+        for child in self.allchildren:
+            if isinstance(child,TableRow):
+                widget = self.child_widget(child, widget)
+                for data in child.stream(request,widget.get_context(request)):
+                    yield data
+            
+    def stream(self, request, widget, context):
+        '''We override inner so that the actual rendering is delegate to
+ :class:`djpcms.html.Table`.'''
+        t1 = '<th>'
+        t2 = '</th>'
+        head = ''.join((t1+h+t2 for h in self.headers))
+        rows = '\n'.join(self.row_generator(request, widget))
+        table = html.Widget('table',('<thead>',head,'</thead>',\
+                                     '<tbody>',rows,'</tbody>'))\
+                                    .addClass(self.elem_css)
+        yield table.render(request)
+        
     
-class TableFormElement(FormLayoutElement):
+class TableFormElement(BaseTableFormElement):
     elem_css = "uniFormTable"
     tag = None
         
@@ -57,22 +91,3 @@ class TableFormElement(FormLayoutElement):
             trows.append(row)
         super(TableFormElement,self).__init__(*trows)
 
-    def row_generator(self, djp, widget):
-        for child in self.allchildren:
-            if isinstance(child,TableRow):
-                widget = self.child_widget(child, widget)
-                for data in child.stream(djp,widget.get_context(djp)):
-                    yield data
-            
-    def inner(self, djp, widget, keys):
-        '''We override inner so that the actual rendering is delegate to
- :class:`djpcms.html.Table`.'''
-        t1 = '<th>'
-        t2 = '</th>'
-        head = ''.join((t1+h+t2 for h in self.headers))
-        rows = '\n'.join(self.row_generator(djp, widget))
-        table = html.Widget('table',('<thead>',head,'</thead>',\
-                                     '<tbody>',rows,'</tbody>'))\
-                                    .addClass(self.elem_css)
-        return table.render(djp)
-    

@@ -50,7 +50,8 @@ templates (see at top of file)
             appmodel = self.request.view.site.for_model(BlockContent)
             return appmodel.blocks(self.request, self.page, self.b)
         else:
-            b = BlockContent.objects.for_page_block(self.page, self.b)\
+            b = BlockContent.model.for_page_block(BlockContent,\
+                                                   self.page, self.b)\
                  if self.page else (blockelement(b) for b in self.b)
             return self._blocks(b)
         

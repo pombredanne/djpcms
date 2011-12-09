@@ -19,7 +19,7 @@ from .layout import htmldoc
 contentre = re.compile('{{ content\d }}')
 
 
-__all__ = ['Page','Block','Template','BlockContentManager','MarkupMixin']
+__all__ = ['Page','Block','Template','BlockContentMapper','MarkupMixin']
 
 
 
@@ -37,13 +37,17 @@ class Page(object):
     
  The following attributes must be implemented by subclasses.
  
- .. attribute:: path
+ .. attribute:: url
  
-     The web site relative path
+     The web site relative url
 '''
     @property
     def route(self):
-        return Route(self.path)
+        return Route(self.url)
+    
+    @property
+    def path(self):
+        return self.url
     
     def numblocks(self):
         raise NotImplementedError
@@ -134,16 +138,15 @@ with the wrapper callable.'''
         plugin_response = None
         plugin = plugin or self.plugin
         wrapper = wrapper or self.wrapper
-        view = request.view
-        if plugin and view.permissions.has(request, djpcms.VIEW, self):
+        if plugin and request.has_permission(djpcms.VIEW, self):
             try:
                 request.media.add(plugin.media(request))
                 plugin_response = plugin(request, self.arguments, block = self)
             except Exception as e:
-                if getattr(view.settings,'TESTING',False):
-                    raise
+                exc_info = sys.exc_info()
+                request.cache['traces'].append(exc_info)
                 self.logger.error('%s - block %s -- %s' % (plugin,self,e),
-                    exc_info=True,
+                    exc_info=exc_info,
                     extra={'request':request}
                 )
                 if request.user.is_superuser:
@@ -192,11 +195,8 @@ with the wrapper callable.'''
         else:
             return None
     
-    
-    
-class BlockContentManager(object):
-    
-    def for_page_block(self, page, block):
+    @classmethod
+    def for_page_block(cls, mapper, page, block):
         '''\
 Get contentblocks for a given page and block
 
@@ -205,7 +205,7 @@ Get contentblocks for a given page and block
 
 Return an iterable over ordered items (by position) in block  
 '''
-        blockcontents = sorted(self.filter(page = page, block = block),
+        blockcontents = sorted(mapper.filter(page = page, block = block),
                                key = lambda x : x.position)
         create = False
         pos = None
@@ -220,9 +220,9 @@ Return an iterable over ordered items (by position) in block
             pos = blockcontents[-1].position + 1
             
         if create:
-            bc = self.model(page = page, block = block, position = pos)
+            bc = mapper.model(page = page, block = block, position = pos)
             bc.save()
-            return self.filter(page = page, block = block)
+            return mapper.filter(page = page, block = block)
         else:
             return blockcontents
     

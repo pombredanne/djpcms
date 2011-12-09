@@ -1,3 +1,5 @@
+from inspect import isgenerator
+
 from py2py3 import iteritems
 
 from djpcms.html import ContextRenderer
@@ -92,7 +94,10 @@ class AsyncResponse(object):
                 value.context = val
                 return value.render()
         #
-        elif isinstance(value, (list,tuple)) and not isinstance(value,aList):
+        elif isgenerator(value):
+            value = tuple(value)
+            
+        if isinstance(value, (list,tuple)) and not isinstance(value,aList):
             new_value = aList()
             for val in value:
                 is_async,val = async(val)

@@ -26,14 +26,7 @@ Widget
    
 Tools
 ===================
-   
-Pagination
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Pagination
-   :members:
-   :member-order: bysource
-   
    
 Media
 ~~~~~~~~~~~~~~
@@ -51,6 +44,23 @@ Renderer Mixin
    :member-order: bysource
    
 
+Included Widgets
+=========================
+
+Pagination
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Pagination
+   :members:
+   :member-order: bysource
+   
+   
+Tabs
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: tabs
+
+   
 Yui grid 3
 ~~~~~~~~~~~~~~~~~~~~~~
 

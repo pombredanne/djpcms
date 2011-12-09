@@ -49,10 +49,12 @@ def application_views(request,
         instance = None
     
     if not include:
+        weak_include = True
         include = appmodel.views
     else:
         # Check that includes are not excluded, if so remove them from
         # the exclude set
+        weak_include = False
         exclude = exclude.difference(include)
         
     for elem in include:
@@ -65,20 +67,19 @@ def application_views(request,
             # if this is the current view skip
             if not view or view is request.view:
                 continue
-            elif instance is not None and not view.object_view:
+            elif instance is not None and not view.object_view and weak_include:
                 continue
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            dview = request.for_path(view.path, instance = instance)
-            url = dview.url
-            if not url or not dview.has_permission():
+            req = request.for_path(view.path, instance = instance)
+            if req is None or not req.has_permission():
                 continue
             # The special view class
             #display = nicename(view.name)
-            elem = menu_link(dview,
-                             dview.linkname,
-                             dview.title,
+            elem = menu_link(req,
+                             req.linkname,
+                             req.title,
                              view.PERM,
                              view.ICON,
                              view.DEFAULT_METHOD,
@@ -88,14 +89,14 @@ def application_views(request,
             if not view:
                 if not hasattr(appmodel,'ajax__{0}'.format(elem.view)):
                     continue
-                dview = request
+                req = request
             else:
-                dview = request.for_path(view.path)
-            url = request.url
+                req = request.for_path(view.path)
         
-        elem = elem._asdict()
-        elem['url'] = url
-        yield elem
+        if req is not None:
+            elem = elem._asdict()
+            elem['url'] = req.url
+            yield elem
 
 
 def instance_field_views(request, instance, field_name = None, **kwargs):
@@ -213,7 +214,7 @@ an application based on model is available.
     return toolbox
 
     
-def paginationResponse(request, query):
+def paginationResponse(request, query, block = None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
     
 :parameter query: a query on a model.

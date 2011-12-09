@@ -4,8 +4,7 @@ from inspect import isclass
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
 from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, NOTHING
-from djpcms.utils import force_str, mark_safe, significant_format
-from djpcms.utils import escape as default_escape
+from djpcms.utils import force_str, mark_safe, significant_format, escape
 
 from .icons import yes,no
 from .base import Widget
@@ -151,14 +150,13 @@ class get_app_result(object):
         except:
             return None
     
-    def __call__(self, request, head, result, appmodel,
-                 nd = 3, path = None, escape = None, **kwargs):
+    def __call__(self, request, head, result, appmodel, **kwargs):
         mapper = self.mapper
         first = self.first
         url = None
         attrname = head.code if hasattr(result,head.code) else head.attrname
         result_repr = field_repr(request, attrname, result,
-                                 appmodel = appmodel, nd = nd)
+                                 appmodel = appmodel, **kwargs)
         if(self.first and not appmodel.list_display_links) or \
                 head.code in appmodel.list_display_links:
             first = False
@@ -166,10 +164,11 @@ class get_app_result(object):
         
         var = result_repr
         if url:
-            if url != path:
+            var = escape(var)
+            if url != request.path:
                 if head.function != head.code:
                     title = field_repr(request, head.function, result,
-                                       appmodel = appmodel, nd = nd)
+                                       appmodel = appmodel, **kwargs)
                 else:
                     title = '{0} - {1}'.format(head.name,result_repr)
                 var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
@@ -181,8 +180,8 @@ class get_app_result(object):
             first = False 
             var = action_checkbox(var, getattr(result,'id',None))
         
-        escape = escape or default_escape
-        var = escape(var)
+        esc = kwargs.get('escape',escape)
+        var = esc(var)
         self.first = first
         return var
     

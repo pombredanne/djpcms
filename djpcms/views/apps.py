@@ -5,8 +5,8 @@ from py2py3 import iteritems, is_string, itervalues, to_string
 import djpcms
 from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
                      UrlException, AlreadyRegistered
-from djpcms.html import SubmitInput, table_header
-from djpcms.core.orms import mapper, DummyMapper
+from djpcms.html import table_header, ContextRenderer
+from djpcms.core.orms import mapper
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
 from djpcms.utils.structures import OrderedDict
@@ -362,6 +362,13 @@ overwritten to customize its behavior.
                     self.object_views.append(route)
                 self.routes.append(route)
                 
+    def applications(self):
+        for app in self:
+            if isinstance(app,Application):
+                yield app
+                for app in app.applications():
+                    yield app
+                    
     def for_model(self, model, all = False):
         return self.parent.for_model(model, all = all)
     
@@ -475,12 +482,18 @@ to render a table.'''
         else:
             return request.auth_children()  
     
-    def render_query(self, request, query):
+    def render(self, request, **context):
+        if 'query' not in context:
+            context['query'] = self.query(request)
+        return ContextRenderer(request, context = context,
+                               renderer = self.render_query)
+    
+    def render_query(self, request, query = None, **kwargs):
         '''Render a *query* as a table or a list of items.
 
 :param query: an iterable over items.
 '''
-        return paginationResponse(request, query)
+        return paginationResponse(request, query, **kwargs)
         
     def gen_autocomplete(self, qs, maxRows = None):
         '''generator of 3-elements tuples for autocomplete responses.
@@ -603,8 +616,27 @@ data to the client.
                                          include = (name,)))
         if views:
             return views[0]['url']
-        
+    
+    def get_instances(self, request):
+        data = request.REQUEST
+        if 'ids[]' in data:
+            return self.mapper.filter(id__in = data.getlist('ids[]'))
+    
+    def ajax__bulk_delete(self, request):
+        '''An ajax view for deleting a list of ids.'''
+        objs = self.get_instances(request)
+        mapper = self.mapper
+        c = ajax.jcollection()
+        if objs:
+            for obj in objs:
+                id = mapper.unique_id(obj)
+                obj.delete()
+                c.append(ajax.jremove('#'+id))
+        return c
+    
+    ############################################################################    
     #TODO
+    #
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
                 
     def remove_object(self, obj):
@@ -643,20 +675,4 @@ The search looks in::
 Can be overritten to include request dictionary.'''
         return '%s:%s' % (obj._meta,obj.id)
     
-    def get_instances(self, djp):
-        data = djp.request.REQUEST
-        if 'ids[]' in data:
-            return self.mapper.filter(id__in = data.getlist('ids[]'))
-    
-    def ajax__bulk_delete(self, djp):
-        '''An ajax view for deleting a list of ids.'''
-        objs = self.get_instances(djp)
-        mapper = self.mapper
-        c = ajax.jcollection()
-        if objs:
-            for obj in objs:
-                id = mapper.unique_id(obj)
-                obj.delete()
-                c.append(ajax.jremove('#'+id))
-        return c
     

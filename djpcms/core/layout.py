@@ -198,25 +198,26 @@ class HtmlPage(object):
         status = context.get('status_code',500)
         title = STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0]
         handler = request.view
-        info = request.environ.get('DJPCMS')
-        if not info:
-            info = djpcmsinfo(handler)
-            request.environ['DJPCMS'] = info
-        settings = handler.settings
+        settings = request.settings
         exc_info = sys.exc_info()
         # Store the stack trace in the request cache
-        request.cache['exc_info'] = exc_info
+        request.cache['traces'].append(exc_info)
         logtrace(logger, request, exc_info, status)
-        inner = Widget('div', cn = 'error error{0}'.format(status))
+        grid = request.cssgrid()
+        error = Widget('div', cn = 'page-error error{0}'.format(status))
+        if grid.column1:
+            inner = Widget('div', error, cn = grid.column1)
+        else:
+            inner = error
         if settings.DEBUG:
             stack_trace = traceback.format_exception(*exc_info)
-            inner.addClass('ui-state-error')
-            inner.add(Widget('h2','{0} {1}'.format(status,title)))
-            inner.add(Widget('h3',request.path))
+            error.addClass('ui-state-error')
+            error.add(Widget('h2','{0} {1}'.format(status,title)))
+            error.add(Widget('h3',request.path))
             for trace in traceback.format_exception(*exc_info):
-                inner.add(Widget('p',trace))
+                error.add(Widget('p',trace))
         else:
-            inner.add(self.errorhtml.get(status,500))
+            error.add(self.errorhtml.get(status,500))
         context.update({
             'title':title,
             'body_class': 'error',

@@ -56,7 +56,7 @@ class AuthenticationError(Exception):
 class SimpleRobots(object):
     
     def __call__(self, request):
-        if request.view.has_permission(request, request.page, user = None):
+        if request.has_permission(user = None):
             #if not self.page or self.page.insitemap:
             return 'ALL'
         return 'NONE,NOARCHIVE'

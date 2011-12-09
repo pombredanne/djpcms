@@ -41,8 +41,8 @@ def dump_data_value(v):
     return mark_safe(v)
 
 
-def iterable(data):
-    if hasattr(data,'__iter__'):
+def iterable_for_widget(data):
+    if not isinstance(data,Widget) and hasattr(data,'__iter__'):
         return not is_bytes_or_string(data)
 
 
@@ -134,7 +134,7 @@ Any Operation on this class is similar to jQuery.
         self.internal = params
         self.tag = self.maker.tag
         if data_stream is not None:
-            if iterable(data_stream):
+            if iterable_for_widget(data_stream):
                 for d in data_stream:
                     self.add(d)
             else:

@@ -434,14 +434,28 @@ By default it is ``djp.url``'''
         elif self.appmodel:
             return self.appmodel.body_class
         
+    def _site(self):
+        if self.appmodel:
+            return self.appmodel.site
+        else:
+            return self.parent
+        
         
 class pageview(djpcmsview):
     '''A :class:`djpcmsview` for flat pages. A flat page does not mean
- static data, it means there is not a specific application associate with it.'''
+static data, it means it is view not available in any :class;`Application`.
+In this case the view will display plugins which are of course dynamic.
+This view is only available when a :class:`djpcms.Page` implementation
+is installed.
+
+:parameter page: Instance of a :class:`djpcms.Page`.
+:parameter parent: the :class:`djpcms.ResolverMixin` which is the parent of
+    this view. If it is an instance of a class:`Application`, it will also be
+    the :attr:`RendererMixin.appmodel` attribute for the view.'''
     name = 'flat'
-    def __init__(self, page, handler):
-        if isinstance(handler,RendererMixin):
-            self.appmodel = handler
+    def __init__(self, page, parent):
+        if isinstance(parent,RendererMixin):
+            self.appmodel = parent
         self.page = page
-        super(pageview,self).__init__(self.page.route, handler)
+        super(pageview,self).__init__(self.page.route, parent)
     

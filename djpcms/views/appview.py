@@ -229,9 +229,6 @@ views::
     def _isbound(self):
         return self.appmodel is not None
     
-    def _site(self):
-        return self.appmodel.site
-    
     def media(self, request):
         return self.appmodel.media(request)
     

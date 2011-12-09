@@ -42,10 +42,11 @@ class noinstance:
 
 class NodeEnvironMixin(UnicodeMixin):
     
-    def __init__(self, environ, node):
+    def __init__(self, environ, node, instance):
         self.environ = environ
         self.node = node
         self.view = node.view
+        self.instance = instance
         
     def __getitem__(self, key):
         return self.environ[key]
@@ -59,10 +60,6 @@ class NodeEnvironMixin(UnicodeMixin):
     @property
     def urlargs(self):
         return self.node.urlargs
-    
-    @property
-    def url(self):
-        return self.node.url
     
     @property
     def settings(self):
@@ -89,18 +86,15 @@ class RequestNode(NodeEnvironMixin):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
-    def __init__(self, node):
-        environ = {'requests':{}}
-        super(RequestNode,self).__init__(environ, node)
-        self.context_cache = None
+    def __init__(self, request):
+        environ = {'requests':{request.path:request}}
+        super(RequestNode,self).__init__(environ,request.node,request.instance)
+        self.path = request.path
+        self.url = request.path
         self._djp_instance_cache = {}
         
     def __unicode__(self):
         return self.name
-    
-    @property
-    def path(self):
-        return self.node.path
     
     @property
     def media(self):
@@ -152,23 +146,24 @@ arguments.
     upload_handlers = []
     
     def __init__(self, environ, node, instance = None):
-        super(Request,self).__init__(environ, node)
-        if 'DJPCMS' not in self.environ:
-            self.environ['DJPCMS'] = RequestNode(self.node)
-        model = self.model
+        view = node.view
+        model = view.model
         if isclass(model):
             if not isinstance(instance,model):
-                instance = self._instance_from_variables()
+                try:
+                    instance = view.instance_from_variables(node.urlargs)
+                except:
+                    pass
         else:
             instance = None
+        super(Request,self).__init__(environ, node, instance)
         url = self.url
-        self.__instance = instance
-        if url is not None:
+        if 'DJPCMS' not in self.environ:
+            if url is None:
+                raise ValueError('Critical error in request')
+            self.environ['DJPCMS'] = RequestNode(self)
+        elif url is not None:
             self.cache['requests'][url] = self
-        
-    @property
-    def instance(self):
-        return self.__instance
     
     def for_path(self, path = None, urlargs = None, instance = None):
         '''Create a new :class:`Request` from a given *path*.'''
@@ -193,6 +188,10 @@ arguments.
             
     def __unicode__(self):
         return self.path + ' (' + self.node.path + ')'
+    
+    ############################################################################
+    #    environment shortcuts
+    ############################################################################
     
     @property
     def is_secure(self):
@@ -255,6 +254,13 @@ arguments.
     ############################################################################
     
     @lazyproperty
+    def url(self):
+        if self.instance:
+            urlargs = self.view.variables_from_instance(self.instance)
+            self.node.urlargs.update(urlargs)
+        return self.node.url()
+    
+    @lazyproperty
     def encoding(self):
         return self.view.encoding(self)
     
@@ -273,12 +279,6 @@ arguments.
     def media(self):
         return self.DJPCMS.media
         
-    def _instance_from_variables(self):
-        try:
-            return self.view.instance_from_variables(self.urlargs)
-        except:
-            return None
-    
     @lazyproperty    
     def title(self):
         return self.view.title(self)
@@ -337,31 +337,6 @@ arguments.
                 host = '%s:%s' % (host, server_port)
         return host
     
-    def _load_post_and_files(self):
-        # Populates self._post and self._files
-        if self.method != 'post':
-            p,f = QueryDict('', encoding=self.encoding),MultiValueDict()
-        elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
-            p,f = parse_form_data(self.environ, self.encoding)
-        else:
-            p,f = QueryDict(self._post_data(),encoding=self.encoding),\
-                  MultiValueDict()
-        self.cache['POST'] = p
-        self.cache['FILES'] = f
-    
-    def _post_data(self):
-        if 'raw_post_data' not in self.cache:
-            try:
-                content_length = int(self.environ.get('CONTENT_LENGTH', 0))
-            except (ValueError, TypeError):
-                content_length = 0
-            if content_length:
-                data = self.environ['wsgi.input'].read(content_length)
-            else:
-                data = b''
-            self.cache['raw_post_data'] = data
-        return self.cache['raw_post_data']
-    
     def get_full_path(self):
         # RFC 3986 requires query string arguments to be in the ASCII range.
         # Rather than crash if this doesn't happen, we encode defensively.
@@ -387,7 +362,8 @@ arguments.
             r = self.for_path()
             settings = r.settings
             page = r.page
-            layout = settings.LAYOUT_GRID_SYSTEM if not page else page.layout
+            layout = page.layout if page else None
+            layout = layout or settings.LAYOUT_GRID_SYSTEM
             grid = get_cssgrid(layout)
             if grid:
                 self.media.add(grid.media(r))
@@ -451,6 +427,31 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     ############################################################################
     #    Private methods
     ############################################################################
+
+    def _load_post_and_files(self):
+        # Populates self._post and self._files
+        if self.method != 'post':
+            p,f = QueryDict('', encoding=self.encoding),MultiValueDict()
+        elif self.environ.get('CONTENT_TYPE', '').startswith('multipart'):
+            p,f = parse_form_data(self.environ, self.encoding)
+        else:
+            p,f = QueryDict(self._post_data(),encoding=self.encoding),\
+                  MultiValueDict()
+        self.cache['POST'] = p
+        self.cache['FILES'] = f
+    
+    def _post_data(self):
+        if 'raw_post_data' not in self.cache:
+            try:
+                content_length = int(self.environ.get('CONTENT_LENGTH', 0))
+            except (ValueError, TypeError):
+                content_length = 0
+            if content_length:
+                data = self.environ['wsgi.input'].read(content_length)
+            else:
+                data = b''
+            self.cache['raw_post_data'] = data
+        return self.cache['raw_post_data']
     
     def _children(self):
         cache = self.cache['requests']

@@ -1,6 +1,6 @@
 from djpcms.utils import gen_unique_id
 
-from .base import Widget, WidgetMaker, iterable
+from .base import Widget, WidgetMaker, iterable_for_widget
 
 __all__ = ['TabsMaker','tabs','accordion']
 
@@ -11,7 +11,7 @@ class TabsMaker(WidgetMaker):
     
     def add_to_widget(self, widget, keyvalue, value = None):
         '''Override to allow for tuples and single values.'''
-        if value is None and iterable(keyvalue):
+        if value is None and iterable_for_widget(keyvalue):
             key, value = tuple(keyvalue)
         else:
             key, value = keyvalue, value

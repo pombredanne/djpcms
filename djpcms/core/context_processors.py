@@ -118,8 +118,9 @@ def navigator(request):
     return {'sitenav': html.LazyHtml(request,sitenav)}
 
 
-def topbar(request, brand = None):
+def topbar(request):
     '''Build a lazy topbar to be place at the top of your web page.
+There are several customizable parameters available.
     '''
     settings = request.view.settings
     grid = request.cssgrid()
@@ -130,12 +131,12 @@ def topbar(request, brand = None):
         outer.add(grid.clear)
     else:
         container = None
-    sitenav = views.Navigator(secondary = page_links(request),
-                              levels = settings.SITE_NAVIGATION_LEVELS,
-                              brand = settings.SITE_NAVIGATION_BRAND,
-                              fixed = True,
-                              container = container)
-    return {'topbar': html.LazyHtml(request,sitenav)}
+    topbar = views.Navigator(secondary = page_links(request),
+                             levels = settings.SITE_NAVIGATION_LEVELS,
+                             brand = settings.SITE_NAVIGATION_BRAND,
+                             fixed = True,
+                             container = container)
+    return {'topbar': html.LazyHtml(request,topbar)}
     
     
 def breadcrumbs(request):

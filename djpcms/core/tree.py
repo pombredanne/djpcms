@@ -126,7 +126,7 @@ class MultiNode(UnicodeMixin):
     
     @property
     def urlargs(self):
-        return copy(self.__urlargs)
+        return self.__urlargs
     
     @lazyproperty
     def parent(self):
@@ -142,12 +142,10 @@ class MultiNode(UnicodeMixin):
         else:
             return self.tree.node(p,self.__urlargs)
         
-    @lazymethod
     def children(self):
         '''tuple containing children nodes'''
         return tuple(self.tree.children(self.path, self.__urlargs))
     
-    @lazyproperty
     def url(self):
         try:
             return self.route.url(**self.__urlargs)

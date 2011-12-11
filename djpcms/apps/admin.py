@@ -156,14 +156,13 @@ application will be included.
 :parameter params: key-value pairs of extra parameters for input in the
     :class:`AdminSite` constructor.
 '''
-    def __init__(self, INSTALLED_APPS, grouping = None, name = 'admin',
-                 **params):
-        self.INSTALLED_APPS = INSTALLED_APPS
+    def __init__(self, grouping = None, name = 'admin', **params):
         self.grouping = grouping
         self.name = name
         self.params = params
         
-    def __call__(self):
+    def __call__(self, site):
+        settings = site.settings
         adming = {}
         agroups = {}
         if self.grouping:
@@ -176,7 +175,7 @@ application will be included.
                             v['urls'] = ()
                             agroups[url] = v
         groups = []
-        for name_,route,urls in get_admins(self.INSTALLED_APPS):
+        for name_,route,urls in get_admins(settings.INSTALLED_APPS):
             if urls:
                 rname = route[1:-1]
                 if rname in adming:

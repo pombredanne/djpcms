@@ -10,7 +10,6 @@ from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
                          is_string, UnicodeMixin
 
 import djpcms
-from djpcms.html import get_cssgrid
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
@@ -28,7 +27,9 @@ __all__ = ['STATUS_CODE_TEXT',
            'setResponseClass',
            'Request',
            'Response',
-           'ResponseRedirect']
+           'ResponseRedirect',
+           'save_on_cache',
+           'save_on_request']
 
 
 STATUS_CODE_TEXT = BaseHTTPRequestHandler.responses
@@ -39,7 +40,26 @@ absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 class noinstance:
     pass
-            
+
+
+def save_on_cache(f):
+    name = getattr(f,'cache_key',f.__name__)
+    def _(self,request):
+        cache = request.cache
+        if name not in cache:
+            cache[name] = f(self,request) 
+        return cache[name]
+    return _
+
+
+def save_on_request(f):
+    name = '_cached_function_' + f.__name__
+    def _(self,request):
+        if not hasattr(request,name):
+            setattr(request, name, f(self,request))
+        return getattr(request,name)
+    return _
+
 
 class NodeEnvironMixin(UnicodeMixin):
     
@@ -113,24 +133,29 @@ managing settings.'''
         return self._media
     
 
-def make_request(environ, node, instance = None, cache = True):
+def make_request(environ, node, instance = None, cache = True, safe = True):
     view = node.view
-    model = view.model
-    if isclass(model):
-        update_args = True
-        if not isinstance(instance,model):
-            try:
-                instance = view.instance_from_variables(node.urlargs)
-                update_args = False
-            except:
-                pass
-        if instance and update_args:
-            urlargs = view.variables_from_instance(instance)
-            node.urlargs.update(urlargs)
+    if node.error:
+        url = environ.get('PATH_INFO', '/')
     else:
-        instance = None
+        model = view.model
+        if isclass(model):
+            update_args = True
+            if not isinstance(instance,model):
+                try:
+                    instance = view.instance_from_variables(node.urlargs)
+                    update_args = False
+                except:
+                    if not safe:
+                        raise
+            if instance and update_args:
+                urlargs = view.variables_from_instance(instance)
+                node.urlargs.update(urlargs)
+        else:
+            instance = None
+        
+        url = node.url()
     
-    url = node.url()
     if 'DJPCMS' not in environ:
         if url is None:
             raise ValueError('Critical error in request')
@@ -148,6 +173,7 @@ def make_request(environ, node, instance = None, cache = True):
         # if we are not caching, return a request regarthless it has
         # a valid url or not
         return Request(environ, node, instance, url)
+    
     
             
 class Request(NodeEnvironMixin):
@@ -193,13 +219,14 @@ arguments.
                 return None
         return make_request(self.environ, node, instance, cache = cache)
     
-    def for_model(self, model, all = False, root = False, name = None):
+    def for_model(self, model, all = False, root = False, name = None,
+                  urlargs = None):
         '''Create a new :class:`Request` instance for a model class.'''
         app = self.app_for_model(model, all = all, root = root)
         if app:
             view = app.views.get(name) if name else app.root_view
             if view:
-                return self.for_path(view.path)
+                return self.for_path(view.path, urlargs = urlargs)
             
     def __unicode__(self):
         return self.url + ' (' + self.path + ')'
@@ -376,18 +403,12 @@ arguments.
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
     
+    @lazymethod
     def cssgrid(self):
-        if 'cssgrid' not in self.cache:
-            r = self.for_path()
-            settings = r.settings
-            page = r.page
-            layout = page.layout if page else None
-            layout = layout or settings.LAYOUT_GRID_SYSTEM
-            grid = get_cssgrid(layout)
-            if grid:
-                self.media.add(grid.media(r))
-            self.cache['cssgrid'] = grid
-        return self.cache['cssgrid']
+        grid = self.view.cssgrid(self)
+        if grid:
+            self.media.add(grid.media(self))
+        return grid
 
     @lazymethod
     def children(self):
@@ -438,14 +459,17 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     otherwise it starts from the current site.
     Defaulr: ``False``.
 '''
-        model = native_str(model)
-        site = self.view.root if root else self.view.site 
-        if isinstance(model,str):
-            return site.for_hash(model, all = all)
-        elif model is not None:
-            return site.for_model(model, all = all)
+        if model == self.model:
+            return self.view.appmodel
         else:
-            return None
+            model = native_str(model)
+            site = self.view.root if root else self.view.site 
+            if isinstance(model,str):
+                return site.for_hash(model, all = all)
+            elif model is not None:
+                return site.for_model(model, all = all)
+            else:
+                return None
         
     ############################################################################
     #    Private methods

@@ -232,15 +232,16 @@ class MultiTree(object):
 
 class DjpNode(MultiNode):
     '''Node used by djpcms to handle responses.'''
+    error = False
     def __init__(self, tree, view, page, **kwargs):
         self.page = page
-        self.__view = view
+        self._view = view
         route = view.route if view is not None else page.route
         super(DjpNode,self).__init__(tree,route,**kwargs)
     
     @property
     def view(self):
-        view = self.__view
+        view = self._view
         if view is None:
             from djpcms.views import pageview
             parent = self.parent
@@ -249,12 +250,18 @@ class DjpNode(MultiNode):
             else:
                 view = parent.view
                 handler = view.appmodel or view.site
-            self.__view = view = pageview(self.page, handler)
+            self._view = view = pageview(self.page, handler)
         return view
     
+
+class BadNode(DjpNode):
+    error = True
+    def __init__(self, tree, view):
+        super(BadNode,self).__init__(tree, view, None)
+        
     
 class DjpcmsTree(MultiTree):
- 
+    
     def __init__(self, tree, pages = None):
         self.tree_pages = p = {}
         if pages:

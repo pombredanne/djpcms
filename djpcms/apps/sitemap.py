@@ -7,6 +7,7 @@ following to your application urls tuple::
 from djpcms import views, Http404
 from djpcms.core import messages
 from djpcms.core.layout import htmldoc
+from djpcms.core.http import save_on_request
 from djpcms.html import box, Pagination, table_header, Widget
 
 from .admin import TabViewMixin
@@ -41,22 +42,30 @@ class SiteMapView(views.SearchView):
 class PageChangeView(views.ChangeView):
     name = 'change'
     '''Change page data'''
-    def get_context(self, request):
-        ctx = super(PageChangeView,self).get_context(request)
-        page = request.instance
+    
+    @save_on_request
+    def underlying(self, request):
         urlargs = dict(request.GET.items())
-        route = page.route
+        route = request.instance.route
         try:
             url = route.url(**urlargs)
         except KeyError as e:
             messages.error(request,
                 'Could not build for page. The url is probably wrong')
-            return ctx
-        underlying = request.for_path(url)
+        else:
+            underlying = request.for_path(url)
+            if not underlying:
+                messages.error(request,
+                    'This page has problems. Could not find matching view')
+            return underlying
+        
+    def get_context(self, request):
+        ctx = super(PageChangeView,self).get_context(request)
+        underlying = self.underlying(request)
         if not underlying:
-            messages.error(request,
-                'This page has problems. Could not find matching view')
-        grid = underlying.cssgrid()
+            return ctx
+        page = request.instance
+        grid = request.cssgrid()
         prop = box(bd = ctx['inner'], hd = 'Page properties', cn = 'edit-block')
         sep = Widget('h2','Page layout',
                      cn='ui-state-default ui-corner-all edit-block')\
@@ -69,6 +78,13 @@ class PageChangeView(views.ChangeView):
         container.add(underlying.get_context(editing = True)['inner'])
         ctx['inner'] = container.render(underlying)
         return ctx
+    
+    def cssgrid(self, request):
+        underlying = self.underlying(request)
+        if underlying is not None:
+            return underlying.cssgrid()
+        else:
+            return super(PageChangeView,self).cssgrid(request)
         
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:

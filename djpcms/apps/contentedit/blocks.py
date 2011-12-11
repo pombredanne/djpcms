@@ -1,6 +1,7 @@
 from djpcms import forms, html, views, ajax
 from djpcms.core.page import block_htmlid
 from djpcms.core.exceptions import PermissionDenied
+from djpcms.forms.utils import get_redirect
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
 
@@ -207,7 +208,7 @@ The instance.plugin object is maintained but its fields may change.'''
         
 class DeleteContentView(views.DeleteView):
     
-    def port_response(self, request):
+    def post_response(self, request):
         instance = request.instance
         block  = instance.block
         jquery = ajax.jcollection()
@@ -232,8 +233,7 @@ class DeleteContentView(views.DeleteView):
         if request.is_xhr:
             return jquery
         else:
-            refer = sjp.request.environ.get('HTTP_REFERER')
-            return self.redirect(refer)
+            return self.redirect(get_redirect(request,force_redirect=True))
 
 
 class ContentApplication(views.Application):
@@ -255,10 +255,10 @@ content in a content block.'''
     def submit(self, *args, **kwargs):
         return [html.Widget('input:submit', value = "save", name = '_save')]
     
-    def remove_object(self, obj):
-        bid = obj.htmlid()
-        if self.model.objects.delete_and_sort(obj):
-            return bid
+    def remove_instance(self, instance):
+        bid = instance.htmlid()
+        instance.delete()
+        return bid
 
     def blockhtml(self, request, instance, editpath, wrapper):
         '''A content block rendered in editing mode'''

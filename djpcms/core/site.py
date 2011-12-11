@@ -162,7 +162,7 @@ Attributes available:
                 if isinstance(appurls,str):
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
-                appurls = appurls()
+                appurls = appurls(self)
             self.routes.extend(appurls)
             
         self.internals['template'] = html.ContextTemplate(self)

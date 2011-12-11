@@ -61,13 +61,6 @@ Application View
 .. autoclass:: View
    :members:
    :member-order: bysource
-
-Application Group View
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: GroupView
-   :members:
-   :member-order: bysource
    
 
 Model Application Views

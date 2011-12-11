@@ -7,12 +7,14 @@ from py2py3 import is_bytes_or_string, iteritems, itervalues
 
 from djpcms import UnicodeMixin
 from djpcms.utils import force_str
+from djpcms.html import get_cssgrid
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_modules
 
 from .exceptions import *
 from .routing import Route
 from .tree import NRT
+from .permissions import VIEW
 from . import http
 
 
@@ -33,13 +35,15 @@ class resolver_manager(object):
         return self
     
     def __exit__(self, type, value, traceback):
-        if isinstance(value,Http404) and not self.path.endswith('/'):
+        path = self.path
+        if path and isinstance(value,Http404) and not path.endswith('/'):
+            path = path+'/'
             try:
-                v,u = self.resolver.resolve(self.path+'/')
+                v,u = self.resolver.resolve(path)
             except:
                 pass
             else:
-                value.trypath = self.path+'/'
+                value.trypath = '/'+path
                 
 
 class RouteMixin(UnicodeMixin):
@@ -106,6 +110,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
 
     web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
+    PERM = VIEW
     def __init__(self, route, parent = None):
         self.lock = Lock()
         if not isinstance(route,Route):
@@ -232,6 +237,13 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     def encoding(self, request):
         '''Encoding for this route'''
         return self.settings.DEFAULT_CHARSET
+    
+    def cssgrid(self, request):
+        settings = self.settings
+        page = request.page
+        layout = page.layout if page else None
+        layout = layout or settings.LAYOUT_GRID_SYSTEM
+        return get_cssgrid(layout)
     
     def instance_from_variables(self, urlargs):
         '''Retrieve an instance form the variable part of the
@@ -391,7 +403,7 @@ class ResolverMixin(RouteMixin):
         if Page:
             from djpcms.views import pageview
             try:
-                return pageview(Page.objects.get(url = path.path),self)
+                return pageview(Page.get(url = path.path),self)
             except Page.DoesNotExist:
                 pass
     

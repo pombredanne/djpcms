@@ -51,8 +51,28 @@ ResolverMixin
 Site handlers
 ============================
 
+.. _permissions:
+
 Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PermissionHandler
+   :members:
+   :member-order: bysource
+
+
+.. _authentication:
+
+Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+Authentication backends are used by :ref:`permissions <permissions>` handlers
+to authenticate users.
+
+An authentication backend must implement the following methods:
+
+* ``authenticate``
+* ``login``
+* ``logout``
 
 
 .. _response-site-handler:

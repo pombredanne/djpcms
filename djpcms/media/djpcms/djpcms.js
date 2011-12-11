@@ -1353,10 +1353,10 @@
     				revert: 300,
     	            delay: 100,
     	            opacity: 0.8,
-    	            containment: holderelem,
+    	            //containment: holderelem,
     	            placeholder: divpaceholder,
     	            start: function (e,ui) {
-    	                $(ui.helper).addClass('dragging');
+    	                //$(ui.helper).addClass('dragging').css({width:''});
     	            },
     	            stop: function (e,ui) {
     	                var elem = ui.item;

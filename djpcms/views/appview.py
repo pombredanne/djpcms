@@ -22,22 +22,6 @@ __all__ = ['View',
            'DeleteView',
            'ObjectActionView',
            'ChangeView']
-
-
-
-def model_defaultredirect(self, request, next = None,
-                          instance = None, **kwargs):
-    '''Default redirect for a model view is the View url for that model
-if an instance is available'''
-    if self.redirect_to_view:
-        view = self.appmodel.getview(self.redirect_to_view)
-        next = view(request, instance = instance).url
-    elif instance:
-        next = self.appmodel.viewurl(request,instance) or next
-    return super(ModelView,self).defaultredirect(request,
-                                                 next = next,
-                                                 instance = instance,
-                                                 **kwargs)
     
 
 class View(djpcmsview):
@@ -205,7 +189,8 @@ views::
         self.func = None
         self.code = None
         self.inherit_page = inherit_page
-        self.redirect_to_view = redirect_to_view
+        self.redirect_to_view = redirect_to_view if redirect_to_view\
+                                     is not None else self.redirect_to_view
         if title:
             self.title = title
         if linkname:
@@ -280,8 +265,7 @@ views::
 class ModelView(View):
     '''A :class:`View` class for applications with
 :attr:`Application.model` attribute defined.'''
-    def defaultredirect(self, request, **kwargs):
-        return model_defaultredirect(self, request, **kwargs)
+    pass
 
     
 class SearchView(ModelView):
@@ -335,10 +319,6 @@ and handles the saving as default ``POST`` response.'''
     
     def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
-    
-    def defaultredirect(self, request, next = None, instance = None, **kwargs):
-        return model_defaultredirect(self, request, next = next,
-                                     instance = instance, **kwargs)
 
 
 class DeleteAllView(ModelView):
@@ -368,10 +348,6 @@ A view of this type has an embedded object available which is used to
 generate the full url.'''
     object_view = True
 
-    def defaultredirect(self, request, next = None, instance = None, **kwargs):
-        return model_defaultredirect(self, request, next = next,
-                                     instance = instance, **kwargs)
-    
 
 class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
@@ -408,9 +384,6 @@ class DeleteView(ObjectView):
     default_title = 'delete {1}'
     default_link = 'delete'
     _methods      = ('post',)
-    
-    def remove_object(self, instance):
-        return self.appmodel.remove_object(instance)
     
     @async_instance
     def post_response(self, request):

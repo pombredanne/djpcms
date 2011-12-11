@@ -61,7 +61,7 @@ class AsyncResponse(object):
         yield self.run()
         
     def run(self):
-        '''Run the asynchronous response. If all resulats are available
+        '''Run the asynchronous response. If all results are available
  it return the result otherwise it return ``self``.'''
         self.loops += 1
         async, result = self.async(self.response)

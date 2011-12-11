@@ -36,7 +36,7 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                 routes.append(r)    
     
     # order the routes by creation counter
-    routes = sorted(routes, key=lambda x: x.creation_counter)
+    routes = sorted(routes, key=lambda x: x.view_ordering)
     
     # If this class is subclassing another Application,
     # and inherit is True add that Application's views.
@@ -48,7 +48,7 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                 routes = base.base_routes + routes
     
         routes = list(itervalues(dict(((r.path,r) for r in routes))))
-        routes = sorted(routes, key=lambda x: x.creation_counter)
+        routes = sorted(routes, key=lambda x: x.view_ordering)
     
     return routes
 
@@ -617,6 +617,13 @@ data to the client.
         if views:
             return views[0]['url']
     
+    def remove_instance(self, instance):
+        '''Remove a model instance. must return the unique id for
+the instance.'''
+        id = self.mapper.unique_id(instance)
+        instance.delete()
+        return id
+    
     def get_instances(self, request):
         data = request.REQUEST
         if 'ids[]' in data:
@@ -628,9 +635,8 @@ data to the client.
         mapper = self.mapper
         c = ajax.jcollection()
         if objs:
-            for obj in objs:
-                id = mapper.unique_id(obj)
-                obj.delete()
+            for instance in objs:
+                id = self.remove_instance(instance)
                 c.append(ajax.jremove('#'+id))
         return c
     
@@ -638,11 +644,6 @@ data to the client.
     #TODO
     #
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
-                
-    def remove_object(self, obj):
-        id = self.mapper.unique_id(obj)
-        obj.delete()
-        return id
     
     def get_object_view_template(self, obj, wrapper):
         '''Return the template file which render the object *obj*.

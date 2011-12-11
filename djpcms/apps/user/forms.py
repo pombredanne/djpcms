@@ -12,15 +12,17 @@ class LoginForm(forms.Form):
         '''process login
         '''
         data = self.cleaned_data
-        backend = self.request.view.permissions.backend
-        if backend:
+        for backend in self.request.view.permissions.auth_backends:
             try:
-                data['user'] = backend.authenticate_and_login(
+                user = backend.authenticate_and_login(
                                 self.request.environ, **data)
+                if user:
+                    data['user'] = user
+                    return
             except ValueError as e:
                 raise forms.ValidationError(str(e))
-        else:
-            raise ValueError('No authentication backend available.')
+            
+        raise ValueError('No authentication backend available.')
     
     def save(self,commit=True):
         return self.cleaned_data['user']

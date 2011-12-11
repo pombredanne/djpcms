@@ -164,20 +164,26 @@ def return_form_errors(fhtml,request):
         return request.view.handle_response(request)
     
     
-def get_redirect(request):
+def get_redirect(request, instance = None, force_redirect = False):
     '''get the most suitable redirect url according to the following
  algorithm:
  
 * Check for ``next`` in the environment query string
 * Check for ``next`` in the referer query string
 '''
-    next = request.GET.get('next')
-    if next:
-        return next
-    ref = request.environ.get('HTTP_REFERER')
-    parts = urlsplit(ref)
-    rdict = http.QueryDict(parts.query,request.encoding)
-    return rdict.get('next')
+    def _next():
+        next = request.GET.get('next')
+        if next:
+            return next
+        ref = request.environ.get('HTTP_REFERER')
+        parts = urlsplit(ref)
+        rdict = http.QueryDict(parts.query,request.encoding)
+        next = rdict.get('next')
+        if next:
+            return next
+        elif force_redirect:
+            return view.defaultredirect(request,instance=instance)
+    return request.build_absolute_uri(_next())
     
     
 def saveform(request, force_redirect = False):
@@ -188,13 +194,14 @@ has been submitted.'''
     appmodel = view.appmodel
     is_ajax = request.is_xhr
     data = request.REQUEST
-    redirect_url = get_redirect(request)
     curr = request.environ.get('HTTP_REFERER')
     referer = request.REQUEST.get(REFERER_KEY)
     fhtml = view.get_form(request)    
     layout = fhtml.layout
     f = fhtml.form
     instance = f.instance
+    redirect_url = get_redirect(request,instance=instance,
+                                force_redirect=force_redirect)
     
     if CANCEL_KEY in data:
         redirect_url = redirect_url or referer
@@ -234,12 +241,7 @@ has been submitted.'''
                     set_request_message(f,request)
                     return http.ResponseRedirect(curr)
             else:
-                redirect_url = appmodel.changeurl(request, instance)                    
-
-        # Check redirect url
-        elif not redirect_url:
-            redirect_url = view.defaultredirect(request,
-                                                instance = instance)
+                redirect_url = appmodel.changeurl(request, instance)
             
         # not forcing redirect. Check if we can send a JSON message
         if not force_redirect:
@@ -262,20 +264,18 @@ has been submitted.'''
 def deleteinstance(request, force_redirect = True):
     '''Delete an instance from database'''
     instance = request.instance
-    view    = request.view
-    #next = request.environ.get('HTTP_REFERER')
-    bid = view.appmodel.remove_object(instance)
+    view = request.view
+    next = get_redirect(request,force_redirect=force_redirect)
+    bid = view.appmodel.remove_instance(instance)
     msg = 'Successfully deleted %s' % instance
     if request.is_xhr and bid and not force_redirect:
         return ajax.jremove('#%s' % bid)
-    
-    messages.info(request,msg)
-    root_url = request.for_view(view.appmodel.root_view).url
-    if request.is_xhr:
-        return ajax.jredirect(root_url)
-    else:
-        return http.ResponseRedirect(next)
-    
+    if next:
+        messages.info(request,msg)
+        if request.is_xhr:
+            return ajax.jredirect(next)
+        else:
+            return http.ResponseRedirect(next)
     
 
 def fill_form_data(f):

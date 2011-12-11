@@ -5,6 +5,7 @@ from py2py3 import range
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin,\
                         Http404
+from djpcms.forms.utils import get_redirect
 from djpcms.utils import parentpath, slugify, escape
 from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
@@ -134,8 +135,10 @@ and :class:`djpcmsview`.
     def __init__(self, name = None, parent_view = None, pagination = None,
                  ajax_enabled = None, form = None, template_file = None,
                  description = None, in_nav = None, has_plugins = None,
-                 insitemap = None, body_class = None):
+                 insitemap = None, body_class = None, view_ordering = None):
         self.creation_counter = RendererMixin.creation_counter
+        self.view_ordering = view_ordering if view_ordering is not None else\
+                                self.creation_counter
         RendererMixin.creation_counter += 1
         self.name = name if name is not None else self.name
         self.description = description if description is not None else\
@@ -215,7 +218,6 @@ it is the base class of :class:`pageview` and :class:`View`.
     An icon for this view
              
     '''
-    PERM = djpcms.VIEW
     DEFAULT_METHOD = 'get'
     object_view = False
     ICON = None
@@ -223,6 +225,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     default_title = None
     default_link = None
     link_text = True
+    redirect_to_view = None
     logger = logging.getLogger('djpcmsview')
     
     _methods      = ('get','post')
@@ -369,8 +372,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         data = request.REQUEST
         action = forms.get_ajax_action(data)
         if action == forms.CANCEL_KEY:
-            next = data.get(forms.REFERER_KEY,None)
-            next = self.defaultredirect(request, next = next)
+            next = get_redirect(request,True)
             return ajax.jredirect(next)
         return self.post_response(request)
     
@@ -385,8 +387,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         else:
             return 0
     
-    def defaultredirect(self, request, next = None,
-                        instance = None, **kwargs):
+    def defaultredirect(self, request, instance = None):
         '''This function is used to build a redirect ``url`` for ``self``.
 It is called by ``djpcms`` only when a redirect is needed.
 
@@ -397,15 +398,17 @@ It is called by ``djpcms`` only when a redirect is needed.
 
 By default it returns ``next`` if available, otherwise ``request.path``.
 '''
-        if next:
-            return request.build_absolute_uri(next)
+        if self.redirect_to_view:
+            view = self.appmodel.views.get(self.redirect_to_view)
+        elif instance:
+            view = self.appmodel.view_view
         else:
-            return request.environ.get('HTTP_REFERER')
-    
-    def nextviewurl(self, request):
-        '''Calculate the best possible url for a possible next view.
-By default it is ``djp.url``'''
-        return request.path
+            view = self.appmodel.root_view
+        if view:
+            r = request.for_path(view.path,instance=instance)
+            if r:
+                return r.url
+        return '/'
     
     def warning_message(self, request):
         return None

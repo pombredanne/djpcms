@@ -63,14 +63,35 @@ class SimpleRobots(object):
      
      
 class PermissionHandler(object):
-    '''Base class for permissions handler.
+    '''Base class for permissions handlers.
     
-.. attribute:: backend
+:parameter settings: a settings dictionary.
+:parameter auth_backends: set the :attr:`auth_backends`. If not provided, the
+    :attr:`auth_backends` will be created by the :meth:`default_backends`.
+:parameter requires_login: if ``True``, an authenticated user is always
+    required.
+    
+.. attribute:: auth_backends
 
-    an instance of a Permission backend
+    an iterable over authentication backends.
+    
+
+.. attribute:: requires_login
+
+    boolean indicating if login is required.
+    
 '''
     AuthenticationError = AuthenticationError
-    backend = None
+    
+    def __init__(self, settings, auth_backends = None, requires_login = False):
+        if auth_backends is None:
+            auth_backends = self.default_backends(settings)
+        self.auth_backends = auth_backends
+        self.requires_login = requires_login
+    
+    def default_backends(self):
+        '''Create the default authentication backends.'''
+        return []
     
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
@@ -85,12 +106,21 @@ class PermissionHandler(object):
             view = None, user = None):
         '''Check for permissions for a given request.
         
-:parameter request: a wsgi :class:`djpcms.Request` instance.
+:parameter request: a :class:`djpcms.Request` instance.
 :parameter permission_code: numeric code for permissions, the higher the code
-    the more restrictive is permission.
+    the more restrictive the permission. By default :mod:`djpcms` provides
+    the following codes::
+    
+        VIEW = 10
+        ADD = 20
+        COPY = 25
+        CHANGE = 30
+        DELETE = 40
+        DELETEALL = 50
+        
 :parameter obj: optional instance of an object for which we require permission.
 :parameter model: optional model class for which we require permission.
-:parameter view: optional user for which we require permission.
+:parameter user: optional user for which we require permission.
 '''
         return True
 

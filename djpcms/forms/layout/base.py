@@ -70,35 +70,40 @@ class FormWidgetMaker(html.WidgetMaker):
 class FieldWidget(FormWidgetMaker):
     default_class = 'ctrlHolder'
     
-    def get_context(self, djp, widget, keys):
+    def get_context(self, request, widget, keys):
         bfield = widget.internal['field']
         parent = widget.parent.maker
-        w = bfield.widget(djp)
+        w = bfield.widget(request)
         parent.add_widget_classes(bfield,w)
         wrapper_class = getattr(w.maker,'wrapper_class',None)
         wrapper_class = wrapper_class + ' ' + bfield.name if wrapper_class else\
                         bfield.name
+        hidden = w.attr('type')=='hidden'
+        checkbox = w.maker.ischeckbox()
+        
+        if hidden or checkbox:
+            wrapper = w
+        else:
+            wrapper = html.Widget('div', w, cn = wrapper_class)\
+                                        .addClass(' '.join(w.classes))
+            
         return {'field':bfield,
                 'name':bfield.name,
-                'inner':w.render(djp),
-                'widget':w,
+                'widget':wrapper,
                 'parent':parent,
                 'error': bfield.form.errors.get(bfield.name,''),
                 'error_id': bfield.errors_id,
-                'wrapper_class': wrapper_class,
-                'ischeckbox':w.maker.ischeckbox(),
-                'hidden':w.attr('type')=='hidden'}
+                'ischeckbox':checkbox,
+                'hidden': hidden}
         
-    def _stream(self, elem, context):
+    def _stream(self, request, elem, context):
+        w = context['widget']
         bfield =  context['field']
         parent = context['parent']
-        whtml = context['inner']
-        w = context['widget']
         if w.attr('disabled') == 'disabled':
             elem.addClass('disabled')
         if w.attr('readonly') == 'readonly':
             elem.addClass('readonly')
-        name = bfield.name
         error = context['error']
         if bfield.field.required:
             elem.addClass('required')
@@ -108,6 +113,7 @@ class FieldWidget(FormWidgetMaker):
             
         yield "<div id='{0}'>{1}</div>".format(bfield.errors_id,error)
 
+        whtml = w.render(request)
         if context['ischeckbox']:
             yield "<p class='label'></p><div class='field-widget'>\
 <label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
@@ -115,19 +121,16 @@ class FieldWidget(FormWidgetMaker):
             if label:
                 yield "<label for='{0}' class='label'>{1}</label>"\
                         .format(bfield.id,label)
-            yield "<div class='field-widget input {0} ui-widget-content'>\
- {1}</div>".format(name,whtml)
-        #if bfield.help_text:
-        #    yield "<div id='hint_{0}' class='formHint'>{1}</div>".\
-        #            format(bfield.id,bfield.help_text)
+            yield whtml
 
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         if context['hidden']:
-            yield context['inner']
+            yield context['widget'].render(request)
         else:
             elem = html.Widget('div', cn = self.default_class)
-            inner = '\n'.join(self._stream(elem,context))
-            yield elem.render(djp,inner)
+            inner = '\n'.join(self._stream(request,elem,context))
+            elem.add(inner)
+            yield elem.render(request)
 
 
 class BaseFormLayout(FormWidgetMaker):
@@ -193,17 +196,19 @@ components. An instance of this class render one or several form
 remove available fields from the missing set.'''
         self.allchildren = check_fields(self.allchildren,missings,layout)
     
-    def child_widget(self, child, widget):
+    def child_widget(self, child, widget, form = None):
         '''Override the :meth:`djpcms.html.WidgetMaker.child_widget` method
  in order to account for *child* which are form :class:`djpcms.forms.Fields`
  names.'''
-        form = widget.internal.get('form')
+        form = form if form is not None else widget.internal.get('form')
         make = super(FormLayoutElement,self).child_widget
         if form and child in form.dfields:
-            return make(self.field_widget_maker,
-                        widget, field = form.dfields[child])
+            w =  make(self.field_widget_maker,
+                      widget, field = form.dfields[child])
         else:
-            return make(child, widget)
+            w = make(child, widget)
+        w.internal['form'] = form
+        return w
 
     def add_widget_classes(self, field, widget):
         pass

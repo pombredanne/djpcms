@@ -224,8 +224,6 @@ it looks for the following inputs in the request data:
 * `sSearch` for performing search
 * `iSortingCols` for sorting.
 '''
-    if isinstance(query,dict):
-        query = query.get('qs')
     if isgenerator(query):
         query = list(query)
     
@@ -251,9 +249,9 @@ it looks for the following inputs in the request data:
             needbody = False
     
     sort_by = {}
-    search = inputs.get('sSearch')
-    if search:
-        query = query.search(search)
+    #search = inputs.get('sSearch')
+    #if search:
+    #    query = query.search(search)
         
     if pagination.astable:
         sortcols = inputs.get('iSortingCols')
@@ -262,11 +260,11 @@ it looks for the following inputs in the request data:
             head = None
             for col in range(int(sortcols)):
                 c = int(inputs['iSortCol_{0}'.format(col)])
-                if c < num_headers:
+                if c < len(headers):
                     d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
                              else ''
                     head = headers[c]
-                    qs = qs.sort_by('{0}{1}'.format(d,head.attrname))
+                    qs = query.sort_by('{0}{1}'.format(d,head.attrname))
             
     # Reduce the ammount of data
     if load_only and hasattr(query,'load_only'):

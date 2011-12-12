@@ -298,7 +298,7 @@ There are three additional parameters that can be set:
     
     def ajax_get_response(self, request):
         query = self.query(request)
-        return paginationResponse(request,query)
+        return paginationResponse(request, query)
     ajax_post_response = ajax_get_response
     
 
@@ -356,7 +356,6 @@ an object.'''
     default_title = '{1}'
     default_link = '{1}'
     
-    @async_instance
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
@@ -385,11 +384,9 @@ class DeleteView(ObjectView):
     default_link = 'delete'
     _methods      = ('post',)
     
-    @async_instance
     def post_response(self, request):
         return deleteinstance(request, force_redirect = self.force_redirect)
     
-    @async_instance
     def warning_message(self, request):
         return {'title':'Deleting',
                 'body':'<p>Once you have deleted <b>{0}</b>,\

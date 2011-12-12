@@ -182,7 +182,7 @@ def get_redirect(request, instance = None, force_redirect = False):
         if next:
             return next
         elif force_redirect:
-            return view.defaultredirect(request,instance=instance)
+            return request.view.defaultredirect(request,instance=instance)
     return request.build_absolute_uri(_next())
     
     

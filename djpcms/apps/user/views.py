@@ -15,9 +15,8 @@ class LogoutView(views.ModelView):
     def __call__(self, request):
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
-        for backend in request.view.permissions.auth_backends:
-            if backend.logout(request.environ):
-                return http.ResponseRedirect(url)
+        if request.view.permissions.logout(request.environ):
+            return http.ResponseRedirect(url)
         raise ValueError('Could not logout')
 
 
@@ -28,6 +27,7 @@ class LoginView(views.ModelView):
     '''
     has_plugin = True
     redirect_to_view = 'home'
+    force_redirect = True
     default_route = 'login'
     default_title = 'Sign in'
     default_link = 'Sign in'
@@ -53,9 +53,7 @@ class LoginView(views.ModelView):
     
     def has_permission(self, *args, **kwargs):
         return True
-
-    def defaultredirect(self, request, instance = None):
-        return self.root.path
+    
 
 class UserView(views.ViewView):
     

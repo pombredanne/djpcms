@@ -101,6 +101,37 @@ class PermissionHandler(object):
                     return user
             except:
                 continue
+            
+    def authenticate_and_login(self, environ, **params):
+        '''authenticate and login user. If it fails raises
+a AuthenticationError exception.'''
+        user = self.authenticate(environ, **params)
+        if user is not None and user.is_authenticated():
+            if user.is_active:
+                return self.login(environ, user)
+            else:
+                msg = '%s is not active' % username
+        else:
+            msg = 'username or password not recognized'
+        raise ValueError(msg)
+    
+    def login(self, environ, user):
+        for b in self.auth_backends:
+            try:
+                u = b.login(environ, user)
+                if u is not None:
+                    return u
+            except:
+                continue
+            
+    def logout(self, environ):
+        '''Logout user'''
+        for b in self.auth_backends:
+            try:
+                if b.logout(environ):
+                    return True
+            except:
+                continue
     
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))

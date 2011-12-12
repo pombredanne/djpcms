@@ -5,7 +5,21 @@ SWFOBJECT_PATH = 'https://ajax.googleapis.com/ajax/libs/swfobject/\
 {0}/swfobject.js'
 JQUERY_TEMPLATE = 'http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/\
 jquery.tmpl.min.js'
+HIGHLIGHTS = 'http://yandex.st/highlightjs/6.1/highlight.min.js'
 
+
+BOOSTRAP_TWIPSY = 'http://twitter.github.com/bootstrap/1.4.0/bootstrap-twipsy.js'
+BOOSTRAP_TWIPSY = 'http://twitter.github.com/bootstrap/1.4.0/bootstrap-twipsy.js'
+
+
+def bootstrap(settings):
+    v = settings.BOOTSTRAP_VERSION
+    libs = settings.BOOTSTRAP_LIBS
+    if libs:
+        base = 'http://twitter.github.com/bootstrap/{0}/'.format(v)
+        return tuple((base+'bootstrap-{0}.js'.format(lib) for lib in libs))
+    else:
+        return ()
 
 def jquery_path(settings):
     v = settings.JQUERY_VERSION

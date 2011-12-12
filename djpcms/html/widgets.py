@@ -51,6 +51,7 @@ class HiddenInput(InputWidget):
     
     
 class CheckboxInput(InputWidget):
+    wrapper_class = None
     default_attrs = {'type':'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
     
@@ -84,6 +85,7 @@ class TextArea(InputWidget):
 class Select(FieldWidget):
     tag = 'select'
     inline = False
+    wrapper_class = 'field-widget select ui-widget-content'
     attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
@@ -138,7 +140,8 @@ class FileInput(InputWidget):
     attributes = InputWidget.makeattr('multiple')
         
         
-for tag in ('div','p','h1','h2','h3','h4','h5','th','li','tr','span','button'):
+for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
+            'li','tr','span','button'):
     WidgetMaker(tag = tag)
     
     

@@ -20,6 +20,8 @@ dotted path to a python module containing a class named ``OrmWrapper``
 derived from :class:`BaseOrmWrapper`.'''
     global model_wrappers
     if isclass(name):
+        if not name.orm:
+            raise ValueError('"orm" not defined in OrmWrapper')
         model_wrappers[name.orm] = name
     else:
         names = name.split('.')

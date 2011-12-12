@@ -8,7 +8,6 @@ from djpcms.utils.text import nicename
 
 __all__ = ['OrmWrapper',
            'OrmQuery',
-           'DummyMapper',
            'model_from_hash']
 
 
@@ -187,12 +186,4 @@ Return an iterable over items'''
  site initialization.'''
         pass
 
-
-class DummyMapper(OrmWrapper):
-    
-    def test(self):
-        pass
-    
-    def all(self):
-        return self.model.all()
         

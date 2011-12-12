@@ -26,7 +26,7 @@ __all__ = ['TableMaker',
 
 
 table_header_ = namedtuple('table_header_',
-'code name description function sortable width extraclass attrname')
+'code name description function sortable width extraclass attrname hidden')
 
 simple_table_dom = {'sDom':'t'}
 
@@ -39,7 +39,7 @@ def attrname_from_header(header, code):
 
 def table_header(code, name = None, description = None, function = None,
                  attrname = None, sortable = True, width = None,
-                 extraclass = None):
+                 extraclass = None, hidden = False):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
     
 :param code: unique code for the header
@@ -57,7 +57,7 @@ def table_header(code, name = None, description = None, function = None,
     function = function or code
     attrname = attrname or code
     return table_header_(code,name,description,function,sortable,width,
-                         extraclass,attrname)
+                         extraclass,attrname,hidden)
     
 
 class TableMaker(WidgetMaker):
@@ -188,7 +188,14 @@ class Pagination(object):
 :parameter actions: a list of actions available to the table.
 
     Default: ``[]``
+    
 :parameter bulk_actions: a list of bulk actions available to the table.
+    Bulk actions are instances of :class:`djpcms.views.application_action`
+    namedtuple::
+    
+        from djpcms import views, DELETE
+        
+        bulk_actions=(views.application_action('bulk_delete','Delete',DELETE),)
 
     Default: ``[]``
     

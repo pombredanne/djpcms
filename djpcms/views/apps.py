@@ -538,7 +538,7 @@ data to the client.
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
     
-    def instance_from_variables(self, urlargs):
+    def instance_from_variables(self, environ, urlargs):
         '''Retrive an instance of self.model from request.'''
         try:
             query = dict(self.urlbits(data = urlargs))
@@ -549,7 +549,7 @@ data to the client.
             return self.mapper.get(**query)
         except self.mapper.DoesNotExist:
             if self.appmodel:
-                pi = self.appmodel.instance_from_variables(urlargs)
+                pi = self.appmodel.instance_from_variables(environ, urlargs)
                 if pi:
                     return self.get_from_parent_object(pi,urlargs)
             raise djpcms.Http404('Cannot retrieve instance from url')
@@ -576,9 +576,9 @@ data to the client.
             return maker.widget(instance = instance,
                                 appmodel = self,
                                 cn = cn)\
-                                .addClass(self.mapper.class_name(instance))\
-                                .addClass(self.mapper.unique_id(instance))\
-                                .render(request)
+                      .addClass(self.mapper.class_name(instance))\
+                      .addClass(self.mapper.unique_id(instance))\
+                      .render(request)
         else:
             return ''
     

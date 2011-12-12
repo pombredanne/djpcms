@@ -1428,13 +1428,13 @@
      * in djpcms forms when they are on focus.
      */
     $.djpcms.decorator({
-    	id: "field_widget_input",
+    	id: "field_widget",
         config: {
-            selector: '.field-widget.input',
+            selector: '.field-widget',
         },
         description: "Add focus class to field-widget-input when underlying input is on focus",
         decorate: function($this,config) {
-        	var selector = config.field_widget_input.selector;
+        	var selector = config.field_widget.selector;
         	$(selector+' input',$this).focus(function() {
         		var p = $(this).parent(selector);
         		p.addClass('focus');
@@ -1444,6 +1444,33 @@
         	})
         }
     });
+    
+    $.djpcms.decorator({
+        id: "popover",
+        config: {
+        	selector: '.pop-over, .label',
+            x:10,
+            y:30,
+            predelay: 400,
+            effect:'fade',
+            fadeOutSpeed:200,
+            position: "top"
+        },
+        decorate: function($this,config) {
+            if($.fn.popover) {
+                var that = this,
+                	c = config.popover;
+                $(c.selector,$this).each(function(){
+                	var el = $(this),
+                		data = el.data(),
+                		des = el.data('content');
+                	if(des) {
+                		el.attr('rel','popover');
+                		el.popover();
+                	}
+                });
+            }
+        }});
         
     /**
      * Format a number and return a string based on input settings

@@ -3,6 +3,7 @@ import re
 import logging
 import time
 from inspect import isclass
+from functools import partial 
 from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
@@ -126,6 +127,7 @@ managing settings.'''
             settings = self.view.settings
             m = media.Media(settings = settings)
             m.add_js(js.jquery_paths(settings))
+            m.add_js(js.bootstrap(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
             m.add_css(settings.DEFAULT_STYLE_SHEET)
             m.add(self.view.media(self))
@@ -134,28 +136,33 @@ managing settings.'''
     
 
 def make_request(environ, node, instance = None, cache = True, safe = True):
-    view = node.view
-    if node.error:
-        url = environ.get('PATH_INFO', '/')
-    else:
+    if not node.error:
+        view = node.view
         model = view.model
         if isclass(model):
-            update_args = True
             if not isinstance(instance,model):
                 try:
-                    instance = view.instance_from_variables(node.urlargs)
-                    update_args = False
+                    instance = view.instance_from_variables(environ,
+                                                            node.urlargs)
+                    callback = partial(build_request,environ,node,cache)
+                    return view.response(instance,callback)
                 except:
                     if not safe:
                         raise
-            if instance and update_args:
+            if instance:
                 urlargs = view.variables_from_instance(instance)
                 node.urlargs.update(urlargs)
         else:
             instance = None
-        
-        url = node.url()
     
+    return build_request(environ,node,cache,instance)
+
+
+def build_request(environ, node, cache, instance):
+    if node.error:
+        url = environ.get('PATH_INFO', '/')
+    else:
+        url = node.url()
     if 'DJPCMS' not in environ:
         if url is None:
             raise ValueError('Critical error in request')

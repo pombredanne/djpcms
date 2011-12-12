@@ -11,8 +11,8 @@ class YuiGrid3(WidgetMaker):
     def data2html(self, request, data):
         val = super(YuiGrid3,self).data2html(request,data[0])
         size = data[1]
-        c1 = '<div class="yui3-u-{0}-{1}">'.format(*size)
-        return c1 + val + '</div>'
+        return Widget('div', val,
+                      cn = 'yui3-u-{0}-{1}'.format(*size)).render(request)
     
     
 _YuiGrid3 = YuiGrid3()

@@ -42,6 +42,7 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
                  related_name = None,
                  clean = None,
                  initial_length = 3,
+                 extra_length = 3,
                  instances_from_related = None):
         self.form_class = form_class
         self.model = model
@@ -57,6 +58,7 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
         self.name = None
         self.creation_counter = FormSet.creation_counter
         self.initial_length = initial_length
+        self.extra_length = extra_length
         FormSet.creation_counter += 1
         self.form = None
     
@@ -101,7 +103,6 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
             num_forms = int(form.rawdata[nf])
         else:
             related = form.instance
-            num_forms = self.initial_length
             if related.id:
                 if self.instances_from_related:
                     instances = self.instances_from_related(related)
@@ -109,7 +110,8 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
                     instances = self.mapper.filter(\
                                     **{self.related_name:related})
                 instances = list(instances)
-                num_forms += len(instances)
+                num_forms = self.extra_length + len(instances)
+            num_forms = max(num_forms,self.initial_length)
         
         self.num_forms = HiddenInput(name = nf, value = num_forms)
         

@@ -32,8 +32,7 @@ def async_instance(mf):
             return mf(self, request, *args, **kwargs)
         else:
             cbk = async_instance_callback(mf,self,request,*args,**kwargs)
-            return request.view.response_handler(request, instance,
-                                                 callback = cbk)
+            return request.view.response(instance, callback = cbk)
     
     return _
 

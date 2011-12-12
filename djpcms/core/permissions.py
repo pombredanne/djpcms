@@ -93,6 +93,15 @@ class PermissionHandler(object):
         '''Create the default authentication backends.'''
         return []
     
+    def authenticate(self, request, **params):
+        for b in self.auth_backends:
+            try:
+                user = b.authenticate(request, **params)
+                if user is not None:
+                    return user
+            except:
+                continue
+    
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     

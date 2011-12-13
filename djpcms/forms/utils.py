@@ -163,6 +163,15 @@ def return_form_errors(fhtml,request):
     else:
         return request.view.handle_response(request)
     
+
+def request_get_data(request):
+    if request.GET:
+        return request.GET
+    else:
+        ref = request.environ.get('HTTP_REFERER')
+        parts = urlsplit(ref)
+        return http.QueryDict(parts.query,request.encoding)
+    
     
 def get_redirect(request, instance = None, force_redirect = False):
     '''get the most suitable redirect url according to the following
@@ -170,15 +179,12 @@ def get_redirect(request, instance = None, force_redirect = False):
  
 * Check for ``next`` in the environment query string
 * Check for ``next`` in the referer query string
+* If *force_redirect* is ``True``, calculate next from the
+  :meth:`djpcms.views.djpcmsview.defaultredirect`.
 '''
     def _next():
-        next = request.GET.get('next')
-        if next:
-            return next
-        ref = request.environ.get('HTTP_REFERER')
-        parts = urlsplit(ref)
-        rdict = http.QueryDict(parts.query,request.encoding)
-        next = rdict.get('next')
+        data = request_get_data(request)
+        next = data.get('next')
         if next:
             return next
         elif force_redirect:
@@ -200,22 +206,18 @@ has been submitted.'''
     layout = fhtml.layout
     f = fhtml.form
     instance = f.instance
-    redirect_url = get_redirect(request,instance=instance,
-                                force_redirect=force_redirect)
     
     if CANCEL_KEY in data:
-        redirect_url = redirect_url or referer
-        if not redirect_url:
-            if instance and instance.id:
-                redirect_url = appmodel.viewurl(request,instance)
-            if not redirect_url:
-                redirect_url = appmodel.searchurl(request) or '/'
-
+        redirect_url = get_redirect(request,instance,True)
         if is_ajax:
             return ajax.jredirect(url = redirect_url)
         else:
             return http.ResponseRedirect(redirect_url)
     
+    
+    redirect_url = get_redirect(request,
+                                instance=instance,
+                                force_redirect=force_redirect)
     if SAVE_AS_NEW_KEY in data and instance:
         f.instance = instance = appmodel.mapper.save_as_new(instance,
                                                             commit = False)

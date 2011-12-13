@@ -34,7 +34,8 @@ templates (see at top of file)
         ctx = self.context
         for k in sorted(self.context):
             yield ctx[k]
-        yield '{0}</div>'.format(EMPTY_VALUE)
+        yield '</div>'
+        #yield '{0}</div>'.format(EMPTY_VALUE)
             
     def render(self):
         return '\n'.join(self.stream())

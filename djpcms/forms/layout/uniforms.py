@@ -46,14 +46,13 @@ WIDGET_CLASSES = {'CharField': 'textInput',
 
 class UniFormElement(FormLayoutElement):
     default_class = 'ctrlHolder'
-    
     def add_widget_classes(self, field, widget):
         cls = field.field.__class__.__name__
         if cls in WIDGET_CLASSES:
             widget.addClass(WIDGET_CLASSES[cls])
 
 
-class Fieldset(UniFormElement):
+class Fieldset(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
     tag = 'fieldset'
     def __init__(self, *children, **kwargs):
@@ -67,10 +66,10 @@ class Fieldset(UniFormElement):
 class Row(Fieldset):
     '''A :class:`FormLayoutElement` which renders to a <div>.'''
     tag = 'div'
-    elem_css = "formRow"
+    default_style = "formRow"
     
 
-class Columns(UniFormElement):
+class Columns(FormLayoutElement):
     '''A :class:`FormLayoutElement` which defines a set of columns using
 yui3_ grid layout.
 
@@ -84,7 +83,8 @@ yui3_ grid layout.
     By default, equally spaced columns are used.
 .. _yui3: http://yuilibrary.com/yui/docs/cssgrids/
 '''
-    elem_css = "formColumn"
+    tag = 'div'
+    default_style = "formColumns"
     
     def __init__(self, *columns, **kwargs):
         column_width = kwargs.pop('column_width',None) 
@@ -110,7 +110,7 @@ yui3_ grid layout.
             newcolumns.append(column)
         self.allchildren = newcolumns
             
-    def stream(self, request, widget, context):
+    def layout_stream(self, request, widget, context):
         data = tuple(zip(context['children'],self.column_width))
         yield html.yuigrid3(*data).render(request)
 

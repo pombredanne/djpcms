@@ -73,20 +73,6 @@ def extend_widgets(d, target = None):
     return target
 
 
-def clean_url_bits(mapper, urlbits, mapping):
-    if not mapping:
-        mapping = {}
-    check = set()
-    for bit in urlbits:
-        b = mapping.get(bit,bit)
-        if b is None:
-            b = mapper.model_attribute(bit) or 'id'
-        if b in check or not b:
-            raise ValueError('bad url mapping')
-        check.add(b)
-        yield bit,b
-
-
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
     '''Application class which implements :class:`djpcms.ResolverMixin` and
 :class:`RendererMixin` and defines a set of :class:`View` instances
@@ -289,7 +275,6 @@ overwritten to customize its behavior.
         RendererMixin.__init__(self, **kwargs)
         if not self.pagination:
             self.pagination = html.Pagination()
-        self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.object_views = []
         self.model_url_bits = ()
         self.editavailable = editavailable if editavailable is not None else\
@@ -309,6 +294,8 @@ overwritten to customize its behavior.
                 head = table_header(head)
                 d.append(self.pagination.headers.get(head.code,head))
             self.object_display = tuple(d)   
+        
+        self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         
     def _site(self):
         if self.appmodel:
@@ -400,18 +387,18 @@ overwritten to customize its behavior.
                         raise UrlException('Application {0} has more\
  than one ViewView instance. Not possible.'.format(self))
                     self.instance_view = view
-                    self.model_url_bits = view.route.ordered_variables()
-                    if not self.model_url_bits:
+                    # url bit mapping
+                    vars = view.route.ordered_variables()
+                    if not vars:
                         raise UrlException('Application {0} has no\
- parameters to initialize objects.'.format(self))           
+ parameters to initialize objects.'.format(self.name))
+                    self.model_url_bits = vars
+                    if not self.url_bits_mapping:
+                        self.url_bits_mapping = dict(((v,v) for v in vars))   
                 if self.has_plugins and view.has_plugins:
                     register_application(view)
             else:
                 view.load()
-                
-        self.url_bits_mapping = dict(clean_url_bits(self.mapper,
-                                                    self.model_url_bits,
-                                                    self.url_bits_mapping))
         return tuple(self)
     
     def get_form(self, request, form_class, addinputs = True, instance  = None,
@@ -600,8 +587,9 @@ data to the client.
     def urlbits(self, instance = None, data = None):
         '''generator of key,value pair for urls construction'''
         # loop over the url bits for the instance
+        mapping = self.url_bits_mapping
         for name in self.model_url_bits:
-            attrname = self.url_bits_mapping.get(name)
+            attrname = mapping.get(name)
             if attrname:
                 if instance:
                     yield name,getattr(instance,attrname)
@@ -615,7 +603,7 @@ data to the client.
                                          field_name = field_name,
                                          include = (name,)))
         if views:
-            return views[0]['url']
+            return views[0].url
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for

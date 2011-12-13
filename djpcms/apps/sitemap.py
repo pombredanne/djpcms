@@ -7,10 +7,26 @@ following to your application urls tuple::
 from djpcms import views, Http404
 from djpcms.core import messages
 from djpcms.core.layout import htmldoc
-from djpcms.core.http import save_on_request
+from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
 
 from .admin import TabViewMixin
+
+
+def underlying_response(request, page):
+    urlargs = dict(request_get_data(request).items())
+    route = page.route
+    try:
+        url = route.url(**urlargs)
+    except KeyError as e:
+        messages.error(request,
+            'Could not build for page. The url is probably wrong')
+    else:
+        underlying = request.for_path(url)
+        if not underlying:
+            messages.error(request,
+                'This page has problems. Could not find matching view')
+        return underlying
 
 
 class PageView(object):
@@ -43,25 +59,12 @@ class PageChangeView(views.ChangeView):
     name = 'change'
     '''Change page data'''
     
-    @save_on_request
     def underlying(self, request):
-        urlargs = dict(request.GET.items())
-        route = request.instance.route
-        try:
-            url = route.url(**urlargs)
-        except KeyError as e:
-            messages.error(request,
-                'Could not build for page. The url is probably wrong')
-        else:
-            underlying = request.for_path(url)
-            if not underlying:
-                messages.error(request,
-                    'This page has problems. Could not find matching view')
-            return underlying
+        return underlying_response(request, request.instance)
         
     def get_context(self, request):
         ctx = super(PageChangeView,self).get_context(request)
-        underlying = self.underlying(request)
+        underlying = request.underlying()
         if not underlying:
             return ctx
         page = request.instance
@@ -80,7 +83,7 @@ class PageChangeView(views.ChangeView):
         return ctx
     
     def cssgrid(self, request):
-        underlying = self.underlying(request)
+        underlying = request.underlying()
         if underlying is not None:
             return underlying.cssgrid()
         else:

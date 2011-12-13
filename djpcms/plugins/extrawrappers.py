@@ -49,7 +49,12 @@ class BoxWrapper(DJPwrapper):
     
     def wrap(self, request, cblock, html):
         if html:
-            cn,deleteurl = self._wrap(request, cblock, html)
+            cn = self.extra_class(request, cblock, html)
+            urls = self.actions(request, cblock)
+            if urls:
+                deleteurl = urls[0]
+            else:
+                deleteurl = None
             return box(id = self.id(cblock),
                        hd = self.title(cblock),
                        bd = html,
@@ -70,8 +75,11 @@ class BoxWrapper(DJPwrapper):
     def id(self, cblock):
         return None
     
-    def _wrap(self, request, cblock, html):
-        return None,None
+    def actions(self, request, cblock):
+        return ()
+    
+    def extra_class(self, request, cblock, html):
+        return None
     
     def footer(self, request, cblock, html):
         return ''

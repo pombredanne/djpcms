@@ -14,7 +14,7 @@ def registered_models(bfield, required = True):
         root = form.request.view.root
         models = set()
         for app in root.applications():
-            if app.model and app.model not in models:
+            if app.mapper and app.model not in models:
                 models.add(app.model)
                 id = app.mapper.hash
                 if id and request.has_permission(VIEW,app.model):
@@ -39,7 +39,7 @@ def get_contet_choices(bfield):
 class ForModelForm(forms.Form):
     for_model = forms.ChoiceField(
                       required = False,
-                      widget = html.Select(default_class = 'ajax'),
+                      #widget = html.Select(default_class = 'ajax'),
                       choices = lambda x : sorted(registered_models(x,False),
                                                     key = lambda y : y[1]))
     
@@ -158,7 +158,8 @@ def attrquery(heads,query):
     
     
 class ModelItemsList(DJPplugin):
-    '''Display filtered items for a Model.'''
+    '''Filter a model according to editable criteria snd displays a
+certain number of items as specified in the max display input.'''
     name = 'model-items'
     description = 'Filtered items for a model'
     form = ModelItemListForm

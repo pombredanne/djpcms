@@ -9,6 +9,7 @@ import logging
 
 import djpcms
 from djpcms import Route
+from djpcms.html import EMPTY_VALUE
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
@@ -154,6 +155,8 @@ with the wrapper callable.'''
         
         # html can be a string or whatever the plugin returns.
         if plugin_response is not None:
+            if not plugin_response:
+                plugin_response = EMPTY_VALUE
             callback = lambda r : wrapper(request, self, r)
             return request.view.response(plugin_response, callback)
     

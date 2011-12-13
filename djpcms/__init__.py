@@ -144,7 +144,8 @@ HTML_CLASSES = {
     'main_nav': 'main-nav',
     'link_active': 'ui-state-active',
     'link_default': '',
-    'secondary_in_list': 'secondary'
+    'secondary_in_list': 'secondary',
+    'legend': 'legend ui-state-default ui-corner-all'
     }
 
 from .core import *

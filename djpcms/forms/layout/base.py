@@ -63,9 +63,10 @@ See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         return self.form.is_valid()
  
  
+ 
 class FormWidgetMaker(html.WidgetMaker):
     _widget = FormWidget
-            
+           
 
 class FieldWidget(FormWidgetMaker):
     default_class = 'ctrlHolder'
@@ -145,10 +146,8 @@ form layout design.
     
     Default: ``None``.
 '''
-    _widget = FormWidget
     field_widget_maker = FieldWidget()
     required_tag = ''
-    legend_class = 'legend ui-state-default'
     
     def __init__(self, required_tag = None,
                  field_template = None, legend = None,
@@ -163,12 +162,15 @@ form layout design.
         self.legend_html = legend
         super(BaseFormLayout,self).__init__(**params)
         
-    def inner(self, djp, widget, keys):
-        html = super(BaseFormLayout,self).inner(djp, widget, keys)
-        if html and self.legend_html:
-            html = '<div class="{0}">{1}</div>\n{2}'.\
-                        format(self.legend_class,self.legend_html,html)
-        return html
+    def stream(self, request, widget, keys):
+        if self.legend_html:
+            yield html.legend(self.legend_html).render(request)
+        for text in self.layout_stream(request, widget, keys):
+            yield text
+            
+    def layout_stream(self, request, widget, keys):
+        for text in super(BaseFormLayout,self).stream(request, widget, keys):
+            yield text
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -187,6 +189,8 @@ components. An instance of this class render one or several form
     
     Default: :class:`FieldWidget`
 '''
+    default_class = 'layout-element'
+    
     def __init__(self, *children, **kwargs):
         super(FormLayoutElement,self).__init__(**kwargs)
         self.allchildren = children

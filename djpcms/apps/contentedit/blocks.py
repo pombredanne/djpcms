@@ -4,6 +4,7 @@ from djpcms.core.exceptions import PermissionDenied
 from djpcms.forms.utils import get_redirect
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
+from djpcms.apps.sitemap import underlying_response
 
 from .layout import ContentBlockHtmlForm, PLUGIN_DATA_FORM_CLASS,\
                     BlockLayoutFormHtml
@@ -25,10 +26,7 @@ editing content.'''
     auto_register = False
     header_classes = CollapsedWrapper.header_classes + ' ui-state-active'
     body_classes = CollapsedWrapper.body_classes + ' plugin-form'
-    
-    def __init__(self, url):
-        self.url = url
-        
+
     def __call__(self, request, cblock, html):
         return self.wrap(request, cblock, html)
     
@@ -41,15 +39,21 @@ editing content.'''
     def id(self, cblock):
         return 'edit-{0}'.format(cblock.htmlid())
     
-    def _wrap(self, request, cblock, html):
+    def extra_class(self, request, cblock, html):
         if cblock.plugin_name:
-            cl = edit_movable
+            return edit_movable
         else:
-            cl = edit_class
-        return cl,request.viewurl('delete', instance = request.instance)
+            return edit_class
+        
+    def actions(self, request, cblock):
+        delete = request.for_model(name = 'delete')
+        if delete:
+            return (delete.url,)
+        else:
+            return ()
     
     def footer(self, request, cblock, html):
-        return request.view.get_preview(request, request.instance, self.url)
+        return request.view.get_preview(request, request.instance)
 
 
 class BlockChangeView(views.ChangeView):
@@ -65,17 +69,20 @@ class ChangeLayoutView(BlockChangeView):
 
 class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
-    '''    
-    def get_preview(self, request, instance, url, plugin = None):
+    '''
+    def underlying(self, request):
+        return underlying_response(request, request.instance.page)
+    
+    def get_preview(self, request, instance, plugin = None):
         '''Render a plugin and its wrapper for preview within a div element'''
-        request = request.for_path(url)
-        if not request:
+        underlying = request.underlying()
+        if underlying:
+            try:
+                preview_html = instance.render(underlying, plugin = plugin)
+            except Exception as e:
+                preview_html = str(e)
+        else:
             return 'Could not get preview'
-        
-        try:
-            preview_html = instance.render(request, plugin = plugin)
-        except Exception as e:
-            preview_html = str(e)
         
         cb = lambda phtml : mark_safe('<div id="%s" class="preview">%s</div>' %\
                                       (instance.pluginid('preview'),phtml))
@@ -142,7 +149,6 @@ The instance.plugin object is maintained but its fields may change.'''
         if not form.is_valid():
             return layout.json_messages(form)        
         data = form.cleaned_data
-        url = data['url']
         pform = self.get_plugin_form(request, data['plugin_name'], prefix)
         
         if commit and pform and not pform.is_valid():
@@ -158,7 +164,7 @@ The instance.plugin object is maintained but its fields may change.'''
         jquery = ajax.jhtmls(identifier = '.' + PLUGIN_DATA_FORM_CLASS,
                              html = plugin_options,
                              alldocument = False)
-        preview = self.get_preview(request, instance, url)
+        preview = self.get_preview(request, instance)
         jquery.add('#%s' % instance.pluginid('preview'), preview)
         
         if commit:
@@ -241,6 +247,7 @@ class ContentApplication(views.Application):
 content in a content block.'''
     form = ContentBlockHtmlForm
     has_plugins = False
+    pop_up = False
     url_bits_mapping = {'contentblock':'id'}
     
     search = views.SearchView()
@@ -273,9 +280,8 @@ content in a content block.'''
         '''Return a generator of edit blocks.
         '''
         blockcontents = self.model.for_page_block(self.mapper, page, blocknum)
-        url = request.url
         editpath = self.views.get('change').path
-        wrapper  = EditWrapperHandler(url)
+        wrapper  = EditWrapperHandler()
         Tot = len(blockcontents) - 1
         # Clean blocks
         pos = 0

@@ -226,14 +226,33 @@ arguments.
                 return None
         return make_request(self.environ, node, instance, cache = cache)
     
-    def for_model(self, model, all = False, root = False, name = None,
-                  urlargs = None):
-        '''Create a new :class:`Request` instance for a model class.'''
+    def for_model(self, model = None, all = False, root = False, name = None,
+                  urlargs = None, instance = None):
+        '''Create a new :class:`Request` instance for a model class.
+
+:parameter model: model class to search.
+:parameter model: all check all sites.
+:parameter root: Start the search from the root site.
+:parameter name: view name
+:parameter urlargs: url variables.
+:parameter instance: optional instance of model
+
+If *instance* is provided, *model* is given by the instance class and therefore
+overrides the *model* input. In addition if *name* is not given and *instance*
+is available, the name is set to ``view``.
+'''
+        if instance is None:
+            model = model or self.model
+        else:
+            model = instance.__class__
+            if name is None:
+                name=  'view'
         app = self.app_for_model(model, all = all, root = root)
         if app:
             view = app.views.get(name) if name else app.root_view
             if view:
-                return self.for_path(view.path, urlargs = urlargs)
+                return self.for_path(view.path, urlargs = urlargs,
+                                     instance = instance)
             
     def __unicode__(self):
         return self.url + ' (' + self.path + ')'
@@ -305,6 +324,10 @@ arguments.
     @lazyproperty
     def encoding(self):
         return self.view.encoding(self)
+    
+    @lazymethod
+    def underlying(self):
+        return self.view.underlying(self)
     
     def methods(self):
         return self.view.methods(self)
@@ -450,12 +473,6 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     @property
     def pagination(self):
         return self.view.pagination or self.view.appmodel.pagination
-    
-    def viewurl(self, name = None, instance = None):
-        '''retrieve a view url within this application.'''
-        appmodel = self.view.appmodel
-        if appmodel:
-            return appmodel.viewurl(self, name = name, instance = instance)
     
     def app_for_model(self, model, all = False, root = False):
         '''Fetch an :class:`djpcms.views.Application` for a given *model*.

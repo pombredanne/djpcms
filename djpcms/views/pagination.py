@@ -9,6 +9,7 @@ from djpcms.html import anchor_or_button
 __all__ = ['application_action',
            'application_views',
            'application_links',
+           'application_link',
            'instance_field_views',
            'application_views_links',
            'table_toolbox',
@@ -19,12 +20,33 @@ __all__ = ['application_action',
 application_action = namedtuple('application_action',
                                 'view display permission')
 menu_link = namedtuple('menu_link',
-                       'view display title permission icon method ajax')
+                       'view display title permission icon method ajax url')
 
 
 bulk_delete = application_action('bulk_delete','delete',DELETE)
 
 
+def application_action_to_menu_link(action, url):
+    return menu_link(action.view,
+                     action.display,
+                     action.display,
+                     action.permission,
+                     None,
+                     None,
+                     True,
+                     url)
+    
+def request_to_menu_link(request):
+    view = request.view
+    return menu_link(request,
+                     request.linkname,
+                     request.title,
+                     view.PERM,
+                     view.ICON,
+                     view.DEFAULT_METHOD,
+                     view.ajax_enabled,
+                     request.url)
+    
 def application_views(request,
                       exclude = None,
                       include = None,
@@ -75,15 +97,8 @@ def application_views(request,
             req = request.for_path(view.path, instance = instance)
             if req is None or not req.has_permission():
                 continue
-            # The special view class
-            #display = nicename(view.name)
-            elem = menu_link(req,
-                             req.linkname,
-                             req.title,
-                             view.PERM,
-                             view.ICON,
-                             view.DEFAULT_METHOD,
-                             ajax_enabled)
+            elem = request_to_menu_link(req)
+            yield elem
         else:
             view = appmodel.views.get(elem.view,None)
             if not view:
@@ -92,11 +107,8 @@ def application_views(request,
                 req = request
             else:
                 req = request.for_path(view.path)
-        
-        if req is not None:
-            elem = elem._asdict()
-            elem['url'] = req.url
-            yield elem
+            if req is not None:
+                yield application_action_to_menu_link(elem,req.url)
 
 
 def instance_field_views(request, instance, field_name = None, **kwargs):
@@ -114,7 +126,10 @@ def instance_field_views(request, instance, field_name = None, **kwargs):
 
 def views_serializable(views):
     for elem in views:
-        elem['view'] = elem['view'].view.name
+        elem = elem._asdict()
+        view = elem['view']
+        if hasattr(view,'view'):
+            elem['view'] = view.view.name
         yield elem
         
         
@@ -127,18 +142,20 @@ the view name and a rendered html tag (either an anchor or a button).
 :parameter asbuttons: optional flag for displaying links as button tags.
 '''
     for elem in views:
-        request = elem['view']
+        if not isinstance(elem,menu_link):
+            elem = request_to_menu_link(elem)
+        request = elem.view
         view = request.view
-        a = anchor_or_button(elem['display'],
-                             href = elem['url'],
-                             icon = elem['icon'],
-                             title = elem['title'],
+        a = anchor_or_button(elem.display,
+                             href = elem.url,
+                             icon = elem.icon,
+                             title = elem.title,
                              asbutton = asbuttons)
         a.addClass(view.name).addData({'view':view.name,
-                                       'method':elem['method'],
+                                       'method':elem.method,
                                        'warning':view.warning_message(request),
                                        'text':view.link_text})
-        if elem['ajax']:
+        if elem.ajax:
             a.addClass(view.settings.HTML['ajax'])
         
         if asbuttons:
@@ -157,7 +174,10 @@ anchor or button :class:`djpcms.html.Widget`.'''
 
 
 def application_link(view, asbutton = True):
-    return list(application_links((view,),asbutton))[0][1]
+    if view is not None:
+        return list(application_links((view,),asbutton))[0][1]
+    else:
+        return None
     
 
 def headers_from_groups(pagination, groups):

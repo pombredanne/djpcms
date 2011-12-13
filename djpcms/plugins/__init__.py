@@ -89,11 +89,14 @@ This function should be implemented by derived classes.
         return html if html else ''
     
     def __call__(self, request, cblock, html):
-        name  = cblock.plugin_name
-        id    = cblock.htmlid()
-        head  = self._head_template.format(id,name)
-        inner = self.wrap(request, cblock, html)
-        return self._wrap_template.format(head,inner)
+        if html:
+            name  = cblock.plugin_name
+            id    = cblock.htmlid()
+            head  = self._head_template.format(id,name)
+            inner = self.wrap(request, cblock, html)
+            return self._wrap_template.format(head,inner)
+        else:
+            return ''
     
     def _register(self):
         global _wrapper_dictionary

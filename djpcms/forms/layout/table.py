@@ -10,19 +10,28 @@ __all__ = ['TableFormElement','TableRow']
 class TableRow(FormLayoutElement):
     '''A row in a form table layout'''
     def stream_errors(self, request, children):
+        '''Create the error ``td`` elements.
+They all have the class ``error``.'''
         for w in children:
             if isinstance(w,dict):
-                yield '<td id="{0[error_id]}">{0[error]}</td>'.format(w)
+                yield '<td id="{0[error_id]}" class="error">{0[error]}</td>'\
+                                        .format(w)
             else:
-                yield '<td></td>'
+                yield '<td class="error"></td>'
     
     def stream_fields(self, request, children):
         for w in children:
             if isinstance(w,dict):
-                w = w['widget'].render(request)
-            yield '<td>{0}</td>'.format(w)
+                wi = Widget('td',w['widget'])
+                if w['ischeckbox']:
+                    wi.addAttr('align','center')
+                yield wi.render(request)
+            else:
+                yield '<td>{0}</td>'.format(w)
     
     def stream(self, request, widget, ctx):
+        '''We override stream since we don't care about a legend in a
+table row'''
         children = ctx['children']
         yield '<tr>'+''.join(self.stream_errors(request, children))+'</tr>'
         yield '<tr>'+''.join(self.stream_fields(request, children))+'</tr>'
@@ -39,8 +48,9 @@ class TableRow(FormLayoutElement):
         
 
 class TableFormElement(FormLayoutElement):
+    tag = 'div'
+    default_style = 'tablefield'
     elem_css = "uniFormTable"
-    tag = None
         
     def __init__(self, headers, *rows, **kwargs):
         self.headers = list(self.field_heads(headers))
@@ -79,7 +89,7 @@ class TableFormElement(FormLayoutElement):
                 w = self.child_widget(child, widget)
                 yield w.render(request)
             
-    def stream(self, request, widget, context):
+    def layout_stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
         head = ''.join(self.render_heads(request, widget, context))

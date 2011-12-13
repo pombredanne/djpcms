@@ -10,9 +10,7 @@ __all__ = ['TableRelatedFieldset']
 class TableRelatedFieldset(TableFormElement):
     '''A :class:`djpcms.forms.layout.FormLayoutElement`
 class for handling table form layouts.'''
-    tag = 'div'
-    default_style = 'tablerelated'
-    
+
     def __init__(self, form, formset, fields = None, **kwargs):
         self.formset = formset
         self.form_class = form.base_inlines[formset].form_class
@@ -45,13 +43,10 @@ class for handling table form layouts.'''
         for form in formset.forms:
             row = self.child_widget(self.row_maker, widget, form = form)
             yield row.render(request)
-            
-        #if form.instance and form.instance.id:
-        #    form.mapper.unique_id(form.instance)
     
-    def stream(self, request, widget, context):
-        for data in super(TableRelatedFieldset,self).stream(request, widget,
-                                                            context):
+    def layout_stream(self, request, widget, context):
+        for data in super(TableRelatedFieldset,self).layout_stream(request,\
+                                                    widget, context):
             yield data
         formset = widget.form.form_sets[self.formset]
         # Loop over hidden fields
@@ -60,6 +55,7 @@ class for handling table form layouts.'''
                 for field in self.hidden_fields:
                      child = self.child_widget(field, widget, form = form)
                      yield child.render(request)
+        # the number of forms
         yield formset.num_forms.render()
     
 

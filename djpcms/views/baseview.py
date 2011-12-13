@@ -318,6 +318,9 @@ it is the base class of :class:`pageview` and :class:`View`.
     def breadcrumb(self, request):
         return self.linkname(request)
     
+    def underlying(self, request):
+        return None
+    
     def is_soft(self, request):
         page = request.page
         return False if not page else page.soft_root
@@ -369,11 +372,6 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests'''
-        data = request.REQUEST
-        action = forms.get_ajax_action(data)
-        if action == forms.CANCEL_KEY:
-            next = get_redirect(request,True)
-            return ajax.jredirect(next)
         return self.post_response(request)
     
     def in_navigation(self, request):
@@ -398,16 +396,18 @@ It is called by ``djpcms`` only when a redirect is needed.
 
 By default it returns ``next`` if available, otherwise ``request.path``.
 '''
-        if self.redirect_to_view:
-            view = self.appmodel.views.get(self.redirect_to_view)
-        elif instance:
-            view = self.appmodel.view_view
-        else:
-            view = self.appmodel.root_view
-        if view:
-            r = request.for_path(view.path,instance=instance)
-            if r:
-                return r.url
+        appmodel = self.appmodel
+        if appmodel:
+            if self.redirect_to_view:
+                view = self.appmodel.views.get(self.redirect_to_view)
+            elif instance:
+                view = self.appmodel.instance_view
+            else:
+                view = self.appmodel.root_view
+            if view:
+                r = request.for_path(view.path,instance=instance)
+                if r:
+                    return r.url
         return '/'
     
     def warning_message(self, request):

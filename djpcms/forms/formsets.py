@@ -103,6 +103,7 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
             num_forms = int(form.rawdata[nf])
         else:
             related = form.instance
+            num_forms = 0
             if related.id:
                 if self.instances_from_related:
                     instances = self.instances_from_related(related)

@@ -154,7 +154,7 @@ with the wrapper callable.'''
                     plugin_response = escape('%s' % e)
         
         # html can be a string or whatever the plugin returns.
-        if plugin_response is not None:
+        if plugin_response or not self.position:
             if not plugin_response:
                 plugin_response = EMPTY_VALUE
             callback = lambda r : wrapper(request, self, r)

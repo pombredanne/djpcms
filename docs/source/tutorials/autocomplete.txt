@@ -4,9 +4,26 @@
 Autocomplete
 =========================
 
-To activate autocomplete for a :class:`djpcms.views.Application` there are few steps
-to follow:
+To activate autocomplete for a :class:`djpcms.views.Application` there
+are few steps to follow:
 
 * Setup a serch engine for your application.
 * Set :attr:`djpcms.views.Application.autocomplete_fields` list for limiting the number of
   fields to retrieve from the database (speed up).
+  
+  
+Choice Field in a form
+==========================
+
+A typical example::
+
+    from djpcms import forms
+    from djpcms.apps import search
+    
+    class StrategyForm(forms.Form):
+        '''Form for adding a new strategy to a portfolio'''
+        portfolio = forms.ChoiceField(choices = get_portfolios)
+        strategy = forms.ChoiceField(choices = search.Search(model = Strategy),
+                                     autocomplete = True)
+
+  

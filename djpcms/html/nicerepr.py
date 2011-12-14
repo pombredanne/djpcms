@@ -86,7 +86,7 @@ several possibilities in the following order.
         val = obj[field_name]
     
     if appmodel:
-        val = appmodel.object_field_value(request, obj, field_name, val)
+        val = appmodel.instance_field_value(request, obj, field_name, val)
 
     return nicerepr(val,**kwargs)
             

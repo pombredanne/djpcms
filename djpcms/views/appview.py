@@ -5,7 +5,7 @@ from py2py3 import zip
 
 import djpcms
 from djpcms import http, ajax, Route, async_instance, Http404
-from djpcms.forms.utils import saveform, deleteinstance
+from djpcms.forms.utils import saveform, deleteinstance, get_redirect
 from djpcms.utils.text import nicename
 
 from .pagination import paginationResponse
@@ -114,6 +114,12 @@ views::
     
     Default: ``None``.
     
+:keyword query:
+
+    Optional function to override the :meth:`RendererMixin.query` method.
+    
+    Default: ``None``.
+    
     
 .. attribute:: default_route
 
@@ -183,6 +189,7 @@ views::
                  redirect_to_view = None,
                  inherit_page = True,
                  is_soft = False,
+                 query = None,
                  **kwargs):
         super(View,self).__init__(route = route or self.default_route,
                                   **kwargs)
@@ -203,6 +210,8 @@ views::
             self.success_message = success_message
         if force_redirect is not None:
             self.force_redirect = force_redirect
+        if query:
+            self.query = query
         # Overrides
         self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
@@ -334,12 +343,17 @@ in a model. Quite drastic.'''
     _methods = ('post',)
     
     def post_response(self, request):
-        self.appmodel.delete_all(request)
-        url = request.for_view(self.appmodel.root_view).url
+        qs = self.query(request)
+        num = qs.count()
+        qs.delete()
         if request.is_xhr:
-            return ajax.jredirect(url)
+            c = ajax.jcollection()
+            for instance in qs:
+                c.append(ajax.jremove('#'+instance.id))
+            return c
         else:
-            return http.ResponseRedirect(url)
+            url = get_redirect(request,force_redirect=True)
+            return self.redirect(url)
         
         
 class ObjectView(ModelView):
@@ -359,10 +373,10 @@ an object.'''
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
-By default it calls the :meth:`ModelApplication.render_object`
+By default it calls the :meth:`ModelApplication.render_instance`
 method of the :attr:`View.appmodel` attribute.
         '''
-        return self.appmodel.render_object(request, **kwargs)
+        return self.appmodel.render_instance(request, **kwargs)
     
     def sitemapchildren(self):
         return self.appmodel.sitemapchildren(self)

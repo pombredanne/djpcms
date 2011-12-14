@@ -420,7 +420,10 @@ form as only argument'''
         self.minLength = minLength
         self.maxRows = maxRows
         if self.autocomplete:
-            self.widget = html.TextInput(default_class = 'autocomplete')
+            if not self.widget.attrs.get('type') == 'text':
+                self.widget = html.TextInput(default_class = 'autocomplete')
+            else:
+                self.widget.default_class = 'autocomplete'
         super(ChoiceField,self).handle_params(**kwargs)
     
     def value_from_datadict(self, data, files, key):

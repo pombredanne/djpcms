@@ -245,11 +245,11 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         layout = layout or settings.LAYOUT_GRID_SYSTEM
         return get_cssgrid(layout)
     
-    def instance_from_variables(self, urlargs):
+    def instance_from_variables(self, environ, urlargs):
         '''Retrieve an instance form the variable part of the
  :attr:`route` attribute.
  
- :parameter urlargs: dictionary of url arguments
+ :parameter urlargs: dictionary of url arguments.
  
  This function needs to be implemented by subclasses. By default it returns
  ``None``.
@@ -257,7 +257,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         pass
     
     def variables_from_instance(self, instance):
-        '''retrieve the url bits from an instance. It returns an iterator
+        '''Retrieve the url bits from an instance. It returns an iterator
  over key-value touples or a dictionary. This is the inverse of
  :meth:`instance_from_variables` function.'''
         raise StopIteration

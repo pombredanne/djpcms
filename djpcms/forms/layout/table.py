@@ -24,10 +24,10 @@ They all have the class ``error``.'''
             if isinstance(w,dict):
                 wi = Widget('td',w['widget'])
                 if w['ischeckbox']:
-                    wi.addAttr('align','center')
+                    wi.addClass('checkbox')
                 yield wi.render(request)
             else:
-                yield '<td>{0}</td>'.format(w)
+                yield "<td class='one-line'>{0}</td>".format(w)
     
     def stream(self, request, widget, ctx):
         '''We override stream since we don't care about a legend in a
@@ -48,6 +48,11 @@ table row'''
         
 
 class TableFormElement(FormLayoutElement):
+    '''A :class:`FormLayoutElement` for rendering a group of :class:`Field`
+in a table.
+
+:parameter headers: The headers to display in table.
+'''
     tag = 'div'
     default_style = 'tablefield'
     elem_css = "uniFormTable"
@@ -94,7 +99,7 @@ class TableFormElement(FormLayoutElement):
  :class:`djpcms.html.Table`.'''
         head = ''.join(self.render_heads(request, widget, context))
         rows = '\n'.join(self.row_generator(request, widget, context))
-        table = Widget('table',('<thead>',head,'</thead>',\
+        table = Widget('table',('<thead><tr>',head,'</tr></thead>',\
                                  '<tbody>',rows,'</tbody>'))\
                                     .addClass(self.elem_css)
         yield table.render(request)

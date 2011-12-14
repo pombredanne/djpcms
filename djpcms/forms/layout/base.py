@@ -15,6 +15,7 @@ __all__ = ['FormWidget',
            'FormWidgetMaker',
            'FieldWidget',
            'FormLayout',
+           'SimpleFormLayout',
            'SubmitElement',
            'nolabel',
            'SUBMITS']
@@ -69,7 +70,6 @@ class FormWidgetMaker(html.WidgetMaker):
            
 
 class FieldWidget(FormWidgetMaker):
-    default_class = 'ctrlHolder'
     
     def get_context(self, request, widget, keys):
         bfield = widget.internal['field']
@@ -128,10 +128,13 @@ class FieldWidget(FormWidgetMaker):
         if context['hidden']:
             yield context['widget'].render(request)
         else:
-            elem = html.Widget('div', cn = self.default_class)
-            inner = '\n'.join(self._stream(request,elem,context))
-            elem.add(inner)
-            yield elem.render(request)
+            if self.default_class:
+                elem = html.Widget('div', cn = self.default_class)
+                inner = '\n'.join(self._stream(request,elem,context))
+                elem.add(inner)
+                yield elem.render(request)
+            else:
+                yield '\n'.join(self._stream(request,None,context))
 
 
 class BaseFormLayout(FormWidgetMaker):
@@ -146,20 +149,14 @@ form layout design.
     
     Default: ``None``.
 '''
-    field_widget_maker = FieldWidget()
-    required_tag = ''
+    field_widget_class = None
+    field_widget_maker = FieldWidget 
     
-    def __init__(self, required_tag = None,
-                 field_template = None, legend = None,
-                 field_widget_maker = None,
-                 **params):
-        self.field_widget_maker = field_widget_maker or self.field_widget_maker
-        self.required_tag = required_tag or self.required_tag
-        if legend:
-            legend = '{0}'.format(legend)
-        else:
-            legend = ''
-        self.legend_html = legend
+    def __init__(self, legend = None, field_widget_maker = None, **params):
+        field_widget_maker = field_widget_maker or self.field_widget_maker
+        self.field_widget_maker = field_widget_maker(
+                                default_class = self.field_widget_class)
+        self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout,self).__init__(**params)
         
     def stream(self, request, widget, keys):
@@ -190,6 +187,7 @@ components. An instance of this class render one or several form
     Default: :class:`FieldWidget`
 '''
     default_class = 'layout-element'
+    field_widget_class = 'ctrlHolder'
     
     def __init__(self, *children, **kwargs):
         super(FormLayoutElement,self).__init__(**kwargs)
@@ -324,5 +322,16 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                          alldocument = False, removable=True)
 
 
-        
-        
+class SimpleLayoutElement(FormLayoutElement):
+    tag = None
+    default_style = nolabel
+    default_class = 'layout-element'
+    
+    
+class SimpleFormLayout(FormLayout):
+    form_messages_container_class = None
+    form_error_class = None
+    form_message_class = None
+    from_input_class = None
+    default_element = SimpleLayoutElement
+    

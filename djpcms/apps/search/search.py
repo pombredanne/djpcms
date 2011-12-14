@@ -1,7 +1,5 @@
 from djpcms import views, forms, html, ajax, ImproperlyConfigured
 
-from .forms import HtmlSearchForm
-
 
 def get_search_url(request, for_model = None):
     if for_model:
@@ -15,23 +13,23 @@ def get_search_url(request, for_model = None):
     
 
 class Search(object):
-    '''Utility class for searching models'''
+    '''Utility class for providing searching urls for models lazily.
+You can use this in an autocomplete form fields.
+    
+:parameter model: Optional model to search
+
+If no model is provided, a global search view must be available.
+'''
         
     def __init__(self, model = None):
         self.model = model
     
-    #@property
-    #def engine(self):
-    #    if not self._engine and self.model:
-    #        self._engine = getattr(self.model._meta,'searchengine',None)
-    #    return self._engine
-            
     def url(self, request):
         '''Return the url for searching'''
         if self.model:
-            app = request.for_model(self.model)
+            app = request.for_model(model = self.model)
             if app:
-                return app.path
+                return app.url
         search_app = request.view.search_engine
         if search_app:
             return search_app.search_url(self.model)
@@ -73,10 +71,8 @@ class Application(views.Application):
     engine = None
     in_nav = 0
     
-    search = SearchView(form = HtmlSearchForm,
-                        description = 'Search Results')
+    search = SearchView(description = 'Search Results')
     search_model = SearchView('<model>/',
-                              form = HtmlSearchForm,
                               description = 'Search Model')
     
     def __init__(self,*args,**kwargs):

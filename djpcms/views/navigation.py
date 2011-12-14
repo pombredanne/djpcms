@@ -63,9 +63,9 @@ class Navigator(object):
                 elem = nav
             else:
                 elem = getattr(self,elem,None)
-                if elem:
+                if elem is not None:
                     elem.css({'float':float})
-            if elem:
+            if elem is not None:
                 yield elem
                 
     def render(self, request):

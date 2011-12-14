@@ -55,20 +55,11 @@ utility methods for dealing with users and user data.'''
     def on_bound(self):
         '''Set the user model in the application site'''
         self.root.internals['User'] = self.mapper
-    
-    def objectbits(self, obj):
-        if self.userpage and isinstance(obj,self.model):
-            return {'username': obj.username}
-        else:
-            return {}
         
-    def get_object(self, request, *args, **kwargs):
+    def instance_from_variables(self, environ, urlargs):
         if self.userpage:
-            try:
-                username = kwargs.get('username',None)
-                return self.mapper.get(username = username)
-            except:
-                return None
+            return super(UserAppBase,self).instance_from_variables(environ,
+                                                                   urlargs)
         else:
             return request.user
 

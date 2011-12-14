@@ -2,30 +2,28 @@ from djpcms import html, forms, views
 from djpcms.forms import layout
 
 
-class SearchForm(forms.Form):
-    q = forms.CharField(
-                attrname = forms.SEARCH_STRING,
-                required = False,
-                widget = html.TextInput(
-                        default_class = 'classy-search autocomplete-off',
-                        title = 'Enter your search text'))
-
-
-SearchSubmit = html.WidgetMaker(
-                    tag = 'div',
-                    default_class='cx-submit',
-                    inner = html.Widget('input:submit',
-                                        cn='cx-search-btn '+forms.NOBUTTON,
-                                        title = 'Search').render())
-
-HtmlSearchForm = forms.HtmlForm(
-        SearchForm,
-        inputs = [SearchSubmit],
-        layout = layout.FormLayout(
-                    layout.SubmitElement(tag = None),
-                    layout.DivFormElement('q', default_class = 'cx-input'),
-                    tag = 'div',
-                    default_style = layout.nolabel,
-                    default_class = 'cx-search-bar'
-            )
-)
+def search_form(name, placeholder = 'search', input_name = None,
+                submit = None, cn = None, choices = None):
+    if cn:
+        cn += ' submit-on-enter'
+    else:
+        cn = 'submit-on-enter'
+    input_name = input_name or forms.SEARCH_STRING
+    widget = html.TextInput(placeholder = placeholder,
+                            default_style = cn)
+    
+    if choices:
+        field = forms.ChoiceField(attrname = input_name,
+                                  required = False,
+                                  choices = choices,
+                                  widget = widget,
+                                  autocomplete = True)
+    else:
+        field = forms.CharField(attrname = input_name,
+                                required = False,
+                                widget = widget)
+    form_cls = forms.MakeForm(name,(field,))
+    submit = submit or []
+    return forms.HtmlForm(form_cls,
+                          inputs = submit,
+                          layout = layout.SimpleFormLayout())

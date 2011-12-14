@@ -116,17 +116,14 @@ FieldList
    :members:
    :member-order: bysource
 
-   
-Form Utilities API
-=====================
 
 BoundField
-~~~~~~~~~~~~~~
+====================
 
 .. autoclass:: BoundField
    :members:
    :member-order: bysource
-      
+   
 
 .. _forms-layout:
 
@@ -150,3 +147,32 @@ FormLayout
    :members:
    :member-order: bysource
    
+
+Form Utilities API
+=====================
+
+.. automodule:: djpcms.forms.utils
+      
+   
+get_form
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_form
+
+
+saveform
+~~~~~~~~~~~~~~
+
+.. autofunction:: saveform
+
+
+get_redirect
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_redirect
+
+
+fill_form_data
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: fill_form_data

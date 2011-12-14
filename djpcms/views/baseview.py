@@ -177,7 +177,12 @@ other wise the ``render`` method of the :attr:`appmodel`.'''
             return ''
         
     def query(self, request, **kwargs):
-        '''This function implements a query.'''
+        '''This function implements a query on the :attr:`RedererMixin.model`
+if available. By defaults it invoke the ``query`` method in the
+:attr:`appmodel`.
+
+:parameter kwargs: extra parameters for the query.
+:rtype: an iterable instance over model instances.'''
         if self.appmodel:
             return self.appmodel.query(request, **kwargs)
     
@@ -359,7 +364,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         return self.render_page(request, context)
     
     def post_response(self, request):
-        '''Get response handler.'''
+        '''The post response handler.'''
         return self.get_response(request)
     
     def ajax_get_response(self, request):

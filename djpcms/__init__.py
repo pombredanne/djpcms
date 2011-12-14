@@ -30,7 +30,8 @@ path_dir = parentdir(DJPCMS_DIR)
 def DEFAULT_JAVASCRIPT():
     return ['djpcms/modernizr-1.7.min.js',
             'djpcms/jquery.cookie.js',
-            'djpcms/form.js',
+            'http://malsup.github.com/jquery.form.js',
+            #'djpcms/form.js',
             'djpcms/showdown.js',
             'djpcms/djpcms.js']
     

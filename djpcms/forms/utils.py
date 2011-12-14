@@ -174,13 +174,17 @@ def request_get_data(request):
     
     
 def get_redirect(request, instance = None, force_redirect = False):
-    '''get the most suitable redirect url according to the following
- algorithm:
+    '''Obtain the most suitable url to redirect the request to
+according to the following algorithm:
  
-* Check for ``next`` in the environment query string
-* Check for ``next`` in the referer query string
+* Check for ``next`` in the request environment query string
+* Check for ``next`` in the environment referer query string
 * If *force_redirect* is ``True``, calculate next from the
-  :meth:`djpcms.views.djpcmsview.defaultredirect`.
+  :meth:`djpcms.views.djpcmsview.defaultredirect` passing both *request*
+  and the optional *instance* parameter.
+  
+If none of the above works, it returns ``None``, otherwise it returns an
+absolute url.
 '''
     def _next():
         data = request_get_data(request)

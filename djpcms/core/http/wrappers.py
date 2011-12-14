@@ -14,6 +14,7 @@ import djpcms
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
+from djpcms.html import ContextRenderer
 from djpcms.core.exceptions import *
 
 from .utils import parse_cookie, BaseHTTPRequestHandler,\
@@ -233,7 +234,8 @@ arguments.
 :parameter model: model class to search.
 :parameter model: all check all sites.
 :parameter root: Start the search from the root site.
-:parameter name: view name
+:parameter name: Optional view name if you require a non standard view
+    (root view when instance is ``None`` or the ``instance_view).
 :parameter urlargs: url variables.
 :parameter instance: optional instance of model
 
@@ -245,11 +247,12 @@ is available, the name is set to ``view``.
             model = model or self.model
         else:
             model = instance.__class__
-            if name is None:
-                name=  'view'
         app = self.app_for_model(model, all = all, root = root)
         if app:
-            view = app.views.get(name) if name else app.root_view
+            view = app.views.get(name) if name else None
+            if not view and instance:
+                view = app.instance_view
+            view = view or app.root_view
             if view:
                 return self.for_path(view.path, urlargs = urlargs,
                                      instance = instance)
@@ -453,7 +456,11 @@ is available, the name is set to ``view``.
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         self.media.add(self.view.media(self))
-        return self.view.render(self, **kwargs)
+        r = self.view.render(self, **kwargs)
+        if isinstance(r,ContextRenderer) and r.called:
+            return r.text
+        else:
+            return r
     
     def get_context(self, **kwargs):
         '''Proxy of :meth:`djpcms.views.djpcmsview.get_context`, it return

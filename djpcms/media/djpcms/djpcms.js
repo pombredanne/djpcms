@@ -318,6 +318,7 @@
     	    set_options: setOptions,
     	    'ajaxparams': ajaxparams,
     	    set_inrequest: function(v){inrequest=v;},
+    	    before_form_submit: [],
     	    //
     	    // Action in slements ids
     	    'addAction': addAction,
@@ -803,7 +804,7 @@
             selector_link: 'a.ajax, button',
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
-            submit_opacity: '0.5'
+            submit_class: 'submitted'
         },
         description: "add ajax functionality to links, buttons and selects",
         decorate: function($this,config) {
@@ -812,13 +813,6 @@
                 callback = $.djpcms.jsonCallBack,
                 logger = $.djpcms.logger,
                 that = this;
-            
-            function presubmit_form(formData, jqForm, opts) {
-                jqForm.css({'opacity':cfg.submit_opacity});
-                //$('.'+config.errorlist+
-                // ',.'+config.ajax_server_error,jqForm).fadeOut(100);
-                return true;
-            }
             
     		$(cfg.selector_link,$this).click(function(event) {
     		    event.preventDefault();
@@ -877,19 +871,32 @@
     				f.ajaxSubmit(opts);
     			}
     		});
-    		var success_form = function(o,s,jform) {
-    			$.djpcms.jsonCallBack(o,s,jform);
-    			jform.css({'opacity':'1'});
-    		};
+    		
+    		function form_beforeSerialize(jqForm, opts) {
+            	return true;
+            }
+            function form_beforeSubmit(formData, jqForm, opts) {
+            	$.each($.djpcms.before_form_submit,function() {
+            		formData = this(formData,jqForm);
+            	});
+                jqForm.addClass(cfg.submit_class);
+                return true;
+            }
+    		function success_form(o,s,jqForm) {
+    			jqForm.removeClass(cfg.submit_class);
+    			$.djpcms.jsonCallBack(o,s,jqForm);
+    		}
+    		// Form submission
     		$(cfg.selector_form,$this).each(function() {
     		    var f = $(this);
     		    var opts = {
-    		            url:      	 this.action,
-    		            type:     	 this.method,
-    				   		success:  	 success_form,
-    				   		submitkey: 	 config.post_view_key,
-    				   		dataType:    "json",
-    				   		beforeSubmit: presubmit_form};
+    		    		url: this.action,
+    		    		type: this.method,
+    		    		success: success_form,
+    		    		submitkey: config.post_view_key,
+    		    		dataType: "json",
+    		    		beforeSerialize: form_beforeSerialize,
+    		    		beforeSubmit: form_beforeSubmit};
     			f.ajaxForm(opts);
     			if(f.hasClass(config.autoload_class))  {
     				var name = f.attr("name");
@@ -1132,11 +1139,19 @@
         }
     });  
     
+    /**
+     * Decorator for autocomplete.
+     * 
+     * The actual values are stored in the data attribute of the input element.
+     * The positioning is with respect the "widgetcontainer" parent element if
+     * available.
+     */
     $.djpcms.decorator({
         id: "autocomplete",
         description: "Autocomplete to an input",
         config: {
             selector:'input.autocomplete',
+            widgetcontainer:'.field-widget',
             minLength: 2,
             maxRows: 50,
             search_string: 'q',
@@ -1162,7 +1177,8 @@
                 return new_data;
             }
             
-            // The call back from from to obtain the real data
+            // The call back from the form to obtain the real data for
+            // the autocomplete input field.
             function get_real_data(multiple,separator) {
                 return function(val) {
                     if(multiple) {
@@ -1182,10 +1198,39 @@
                     }
                 }
             }
+            
+            function single_add_data(item) {
+            	this.real.val(item.real_value);
+            	this.proxy.val(item.value);
+            	this.real.data('value',item.value);
+            }
+            
+            function multiple_add_data(item) {
+                var terms = split(this.value);
+                terms.pop();
+                data = clean_data(terms,data);
+                terms.push(display);
+                new_data.push(item);
+                terms.push("");
+                display = terms.join(separator);
+                real_data['data'] = data;
+            }
+            
+            function get_autocomplete_data(jform, options, veto) {
+            	var value = this.proxy.val();
+            	if(this.multiple) {
+            		
+            	} else {	
+            		if(this.real.data('value') != value) {
+            			this.real.val(value);
+            		}
+            	}
+            }
                
             /* Loop over each element and setup plugin */
             $(opts.selector,$this).each(function() {
                 var elem = $(this),
+                	name = elem.attr('name'),
                     data = elem.data(),
                     url = data.url,
                     choices = data.choices,
@@ -1193,34 +1238,42 @@
                     search_string = data.search_string || opts.search_string,
                     multiple = data.multiple,
                     separator = data.separator || opts.separator,
-                    elemdata = {'get': get_real_data(multiple,separator),
-                                'data': []},
                     initials,
+                    manager = {
+                		'name': name,
+                		proxy: elem,
+                		widget: elem,
+                		'multiple': multiple,
+                		add_data: multiple ? multiple_add_data : single_add_data,
+                	},
                     options = {
                             minLength: data.minlength || opts.minLength,
                             select: function(event, ui) {
-                                var item = ui.item,
-                                    display = item.label,
-                                    real_data = $.data(this,'real_value'),
-                                    data = real_data['data'];
-                                if(multiple) {
-                                    var terms = split(this.value);
-                                    terms.pop();
-                                    data = clean_data(terms,data);
-                                    terms.push(display);
-                                    new_data.push(item);
-                                    terms.push("");
-                                    display = terms.join(separator);
-                                }
-                                else {
-                                    data = [item];
-                                }
-                                real_data['data'] = data;
-                                $.data(this,'real_value',real_data);
-                                this.value = display;
+                            	manager.add_data(ui.item);
                                 return false;
                             }
                     };
+                
+                
+                elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data,manager));
+                // Optain the widget container for positioning if specified. 
+                if(opts.widgetcontainer) {
+                	manager.widget = elem.parent(opts.widgetcontainer);
+                	if(!manager.widget.length) {
+                		manager.widget = elem;
+                	}
+                	options.position = {of: manager.widget};
+                }
+                
+                // Build the real (hidden) input
+                if(multiple) {
+                	manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
+                }
+                else {
+                	manager.real = $('<input name="'+ name +'"></input>');
+                }
+                elem.attr('name',name+'_proxy');
+                manager.widget.prepend(manager.real.hide());
                 
                 if(multiple) {
                     options.focus = function() {
@@ -1236,11 +1289,9 @@
                 initials = $.data(this,'initial_value');
                 if(initials) {
                     $.each(initials, function(i,initial) {
-                        elemdata['data'].push({value:initial[0],
-                                               label:initial[1]});
+                    	manager.add_data(initial);
                     });
                 }
-                elem.data('real_value',elemdata);
                 
                 if(choices) {
                     var sources = [];
@@ -1434,14 +1485,23 @@
         },
         description: "Add focus class to field-widget-input when underlying input is on focus",
         decorate: function($this,config) {
-        	var selector = config.field_widget.selector;
-        	$(selector+' input',$this).focus(function() {
+        	var selector = config.field_widget.selector,
+        		elem = $(selector+' input',$this);
+        	elem.focus(function() {
         		var p = $(this).parent(selector);
         		p.addClass('focus');
         	}).blur(function() {
         		var p = $(this).parent(selector);
         		p.removeClass('focus');
-        	})
+        	});
+        	if(elem.hasClass('submit-on-enter')) {
+        		elem.keypress(function(e){
+        		    if(e.which == 13){
+        		    	var form = elem.closest('form');
+        		    	form.submit();
+        		    }
+        		});
+        	}
         }
     });
     

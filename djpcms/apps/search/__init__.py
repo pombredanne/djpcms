@@ -20,4 +20,5 @@ lines::
 The ``mysearchengine`` is the actual search engine perfoming queries and text
 searching.
 '''
+from .forms import search_form
 from .search import *

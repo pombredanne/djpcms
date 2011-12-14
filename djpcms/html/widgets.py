@@ -30,7 +30,7 @@ class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
     wrapper_class = 'field-widget input ui-widget-content'
-    attributes = FieldWidget.makeattr('type')
+    attributes = FieldWidget.makeattr('type','placeholder')
     
         
 class TextInput(InputWidget):

@@ -137,12 +137,6 @@ overwritten to customize its behavior.
 
     Instance of :class:`djpcms.core.orms.OrmWrapper` or ``None``.
     Created from :attr:`model` if available, during construction.
-    
-.. attribute:: list_display
-
-    An list or a tuple over attribute's names to display in pagination views.
-    
-        Default ``()``
         
 .. attribute:: autocomplete_fields
 
@@ -193,9 +187,8 @@ overwritten to customize its behavior.
     
 .. attribute:: object_display
 
-    Same as :attr:`list_display` attribute at object level.
     The field list is used to display the object definition.
-    If not available, :attr:`list_display` is used.
+    If not available, :attr:`pagination.list_display` is used.
     
     Default ``None``.
     
@@ -207,9 +200,9 @@ overwritten to customize its behavior.
     
 .. attribute:: url_bits_mapping
     
-    A dictionary for mapping :class:`djpcms.Route` variable names into
-    attribute names of :attr:`model`. This attribute is used only when
-    a model. A typical usage::
+    An optional dictionary for mapping :class:`djpcms.Route` variable names
+    into attribute names of :attr:`model`. It is used when
+    a :attr:`model` is available only. A typical usage::
     
         from djpcms import views
         
@@ -448,7 +441,10 @@ to render a table.'''
         return None
     
     def query(self, request, **kwargs):
-        '''Perform the base query from the request input parameters'''
+        '''Overrides the :meth:`RendererMixin.query` to perform the base
+query from the request input parameters. If a :attr:`mapper` is available,
+it delegates the query to it, otherwise it returns the children views for
+the *request*.'''
         if self.mapper:
             inputs = request.REQUEST
             qs = self.mapper.all()
@@ -493,10 +489,6 @@ to render a table.'''
         for q in qs:
             l = str(q)
             yield l,l,q.id
-            
-    def delete_all(self, request):
-        '''Remove all model instances from database.'''
-        self.mapper.delete_all()
         
     def table_column_groups(self, request):
         '''A hook for returning group of table headers before sending
@@ -526,7 +518,19 @@ data to the client.
     ############################################################################
     
     def instance_from_variables(self, environ, urlargs):
-        '''Retrive an instance of self.model from request.'''
+        '''Retrieve an :attr:`model` instance from a dictionary of route
+variables values. This is used when an :ref:`instance view <instance-views>`
+has been requested. This function overrides the
+:meth:`RouteMixin.instance_from_variables` method.
+
+:parameter environ: The request WSGI environment. This function is called
+    before the :class:`djpcms.core.http.Request` is created, that is why the
+    environment is passed instead.
+:parameter urlargs: dictionary of url variables with their values.
+:rtype: an instance of :attr:`model`
+
+It uses the :meth:`urlbits` generator for the purpose.
+If the instance could not be retrieved, it raises a 404 exception.'''
         try:
             query = dict(self.urlbits(data = urlargs))
         except KeyError:
@@ -542,6 +546,10 @@ data to the client.
             raise djpcms.Http404('Cannot retrieve instance from url')
             
     def variables_from_instance(self, instance):
+        '''Override the :meth:`RouteMixin.variables_from_instance` method
+to obtain a dictionary of url variables from an instance of :attr:`model`.
+This is used when an :ref:`instance view <instance-views>`
+has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
         bits = {}
         if isinstance(instance,self.model):
             if self.appmodel and self.related_field:
@@ -550,11 +558,11 @@ data to the client.
             bits.update(self.urlbits(instance = instance))
         return bits
     
-    def render_object(self, request, instance = None,
-                      context = None, cn = None):
-        '''Render an object in its object page.
-        This is usually called in the view page of the object.
-        '''
+    def render_instance(self, request, instance = None,
+                        context = None, cn = None):
+        '''Render an instance of :attr:`model`.
+This is used when an :ref:`instance view <instance-views>`
+has been requested.'''
         instance = instance or request.instance
         maker = self.object_widgets.get(context,None)
         if not maker:
@@ -569,13 +577,13 @@ data to the client.
         else:
             return ''
     
-    def object_field_value(self, request, obj, field_name, val = None):
+    def instance_field_value(self, request, instance, field_name, val = None):
         '''Return the value associated with *field_name* for the
- object *obj*, an instance of :attr:`model`. This function is only used
+ object *instance*, an instance of :attr:`model`. This function is only used
  when the application as a model associated with it.
 
 :parameter request: a WSGI request. 
-:parameter obj: an instance of :attr:`model`.
+:parameter instance: an instance of :attr:`model`.
 :parameter field_name: name of the field to obtain value from.
 :parameter val: A value of the field already obtained.
 :return: the value of *field_name*.
@@ -585,7 +593,21 @@ data to the client.
         return val
     
     def urlbits(self, instance = None, data = None):
-        '''generator of key,value pair for urls construction'''
+        '''Generator of key, value pairs of url variables
+from an *instance* of :attr:`model` or from a *data* dictionary.
+It loops through the :attr:`djpcms.RouteMixin.route` variables, map them
+to :attr:`model` attributes by using the :attr:`url_bits_mapping`
+and get the values. If an instance is provided it yields::
+
+    url_variable_name, url_variable_value
+    
+otherwise::
+
+    url_model_attribute, url_variable_value
+    
+This method is called by both :meth:`variables_from_instance` and
+:meth:`instance_field_value`.
+'''
         # loop over the url bits for the instance
         mapping = self.url_bits_mapping
         for name in self.model_url_bits:
@@ -597,13 +619,19 @@ data to the client.
                     yield attrname,data[name]
 
     def viewurl(self, request, instance = None, name = None, field_name = None):
+        '''Obtain the url for instance field if possible.
+        
+:parameter instance: an instance of :attr`model`
+:parameter name: optional view name. By default it is the object view.
+:parameter field_name: the instance field name.
+:rtype: a url string or ``None``.
+
+It uses the :func:`instance_field_views` for the purpose.
+'''
         name = name or 'view'
-        views = list(instance_field_views(request,
-                                         instance,
-                                         field_name = field_name,
-                                         include = (name,)))
-        if views:
-            return views[0].url
+        r = instance_field_view(request,instance,field_name,name=name)
+        if r:
+            return r.url
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for
@@ -619,7 +647,7 @@ the instance.'''
     
     def ajax__bulk_delete(self, request):
         '''An ajax view for deleting a list of ids.'''
-        objs = self.get_instances(request)
+        objs = self.instance_instances(request)
         mapper = self.mapper
         c = ajax.jcollection()
         if objs:
@@ -633,35 +661,9 @@ the instance.'''
     #
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
     
-    def get_object_view_template(self, obj, wrapper):
-        '''Return the template file which render the object *obj*.
-The search looks in::
-
-         [<<app_label>>/<<model_name>>.html,
-          "djpcms/components/object.html"]
-'''
-        opts = self.mapper
-        template_name = '%s.html' % opts.module_name
-        return ['%s/%s' % (opts.app_label,template_name),
-                'djpcms/components/object.html']
-            
-    def get_item_template(self, obj):
-        '''
-        Search item template. Look in
-         1 - <<app_label>>/<<module_name>>_list_item.html
-         2 - djpcms/object_list_item.html (fall back)
-        '''
-        opts = self.mapper
-        template_name = '%s_list_item.html' % opts.module_name
-        return ['%s/%s' % (opts.app_label,template_name),
-                'djpcms/object_list_item.html']
-    
-    def sitemapchildren(self, view):
-        return []
-    
-    def instancecode(self, request, obj):
+    def instancecode(self, request, instance):
         '''Obtain an unique code for an instance.
 Can be overritten to include request dictionary.'''
-        return '%s:%s' % (obj._meta,obj.id)
+        return '%s:%s' % (instance._meta,instance.id)
     
     

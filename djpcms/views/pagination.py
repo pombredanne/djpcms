@@ -10,7 +10,7 @@ __all__ = ['application_action',
            'application_views',
            'application_links',
            'application_link',
-           'instance_field_views',
+           'instance_field_view',
            'application_views_links',
            'table_toolbox',
            'paginationResponse',
@@ -111,17 +111,22 @@ def application_views(request,
                 yield application_action_to_menu_link(elem,req.url)
 
 
-def instance_field_views(request, instance, field_name = None, **kwargs):
-    '''Same as :func:`application_views` but for field of 
- *instance* if that field is an instance of a registered model.'''
+def instance_field_view(request, instance, field_name, name = None):
+    '''Retrieve a view for a field of an *instance* (if that field is
+an instance of a registered model).
+
+:parameter instance: a model instance.
+:parameter field_name: an *instance* field name.
+:parameter name: optional view name
+
+It is used by :meth:`Application.viewurl`.'''
     if field_name:
         value = getattr(instance,field_name,None)
         mp = mapper(value)
         if mp:
             if not isinstance(instance,mp.model):
                 instance = value
-                request = request.for_model(instance)
-    return application_views(request,instance=instance,**kwargs)
+    return request.for_model(instance = instance, name = name)
 
 
 def views_serializable(views):

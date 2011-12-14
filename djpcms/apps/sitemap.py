@@ -123,7 +123,7 @@ class SiteMapApplication(TabViewMixin,views.Application):
     def on_bound(self):
         self.root.internals['Page'] = self.mapper
         
-    def object_field_value(self, request, page, field_name, val = ''):
+    def instance_field_value(self, request, page, field_name, val = ''):
         if field_name == 'view':
             node = request.tree.get(page.url)
             view = node.view

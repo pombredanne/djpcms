@@ -24,7 +24,8 @@ from .fields import Field
 __all__ = ['FormType',
            'Form',
            'BoundField',
-           'FieldList']
+           'FieldList',
+           'MakeForm']
 
 
 class FieldList(list):
@@ -504,3 +505,11 @@ or None if it wasn't given.
                         self.form.data, self.form.files, self.html_name)
     data = property(_data)
 
+
+def MakeForm(name,fields):
+    '''Create a form class from a list of fields'''
+    if not isinstance(fields,dict):
+        fields = dict(((f.name,f) for f in fields))
+    return FormType(name,(Form,),fields)
+
+ 

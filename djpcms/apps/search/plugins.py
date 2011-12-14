@@ -2,7 +2,6 @@ from djpcms import html, plugins, forms, ImproperlyConfigured
 from djpcms.plugins.apps import FormModelForm
 from djpcms.forms.utils import get_form
 
-from .forms import HtmlSearchForm
 from .search import get_search_url
 
 

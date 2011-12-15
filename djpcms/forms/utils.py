@@ -135,11 +135,11 @@ def get_form(request,
     elif addinputs:
         inputs = form_inputs(instance,  request.path == request.url)
     
+    inputs = inputs or []
+    inputs.append(Widget('input:hidden',name=REFERER_KEY,value=referer))
     if not prefix and force_prefix:
         prefix = generate_prefix()
         inputs.append(Widget('input:hidden',name=PREFIX_KEY,value=prefix))
-        
-    inputs.append( Widget('input:hidden',name=REFERER_KEY,value=referer))
                 
     # Create the form instance
     form  = form_factory(inputs = inputs,

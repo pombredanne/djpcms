@@ -6,10 +6,9 @@
 Plugins
 ============================
 
-Plugins are the design principle of ``djpcms``, without them there would be no
-system, just a collection of python scripts!
-Plugins are components that add capabilities to ``djpcms``
-which, in turns, acts as a manager and placeholder for them.
+Plugins are the design principle of ``djpcms``. Plugins are components
+that add capabilities to ``djpcms`` which, in turns, acts as a manager
+and placeholder for them.
 Adding your own is extremely simple as well as moving them around
 in a page.
 
@@ -18,6 +17,10 @@ a straightforward python class. Plugins are not
 database models, they simply describe how content is displayed
 in a page and how users can interact with them. Thats it!
 
+.. admonition:: Plugins from application views
+
+    Most plugins are strictly connected with :class:`djpcms.views.View`
+    as we will see shortly.
 
 .. admonition:: How do we tell djpcms to include our plugins?
 

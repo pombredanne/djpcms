@@ -122,7 +122,7 @@ on a ``djpcms`` powered site. The basics:
     name          = None
     '''Unique name. If not provided the class name will be used. Default ``None``.'''
     description   = None
-    '''A short description to display in forms.'''
+    '''A short description to display in forms when editing content.'''
     form          = None
     '''Form class for editing the plugin parameters. Default ``None``, the plugin has no arguments.'''
     permission      = 'authenticated'

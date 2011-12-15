@@ -726,27 +726,9 @@
         }
     });
     
-       /**
+    /**
      * Accordion menu
-     */
-    /*
-    $.djpcms.decorator({
-        id:"accordion_menu",
-        decorate: function($this,config) {
-            $('ul.accordionmenu',$this).each(function() {
-                var menu = $(this);
-                var act = $('li.selected a',menu);
-                if(!act.length) {
-                    act = 0;
-                }
-                var el = menu.accordion({header: "a.menuitem",
-                                         event: "mouseover",
-                                         active: act});
-                menu.fadeTo(config.fadetime,1);
-            });
-        }
-    });*/
-    
+     */    
     $.djpcms.decorator({
         id:"accordion",
         config:{
@@ -888,8 +870,8 @@
     		}
     		// Form submission
     		$(cfg.selector_form,$this).each(function() {
-    		    var f = $(this);
-    		    var opts = {
+    		    var f = $(this),
+    		        opts = {
     		    		url: this.action,
     		    		type: this.method,
     		    		success: success_form,
@@ -897,11 +879,16 @@
     		    		dataType: "json",
     		    		beforeSerialize: form_beforeSerialize,
     		    		beforeSubmit: form_beforeSubmit};
-    			f.ajaxForm(opts);
+    		    f.submit(function(e) {
+    		        e.preventDefault();
+    		        $(this).ajaxSubmit(opts);
+    		        return false;
+    		    });
+    			//f.ajaxForm(opts);
     			if(f.hasClass(config.autoload_class))  {
     				var name = f.attr("name");
     				f[0].clk = $(":submit[name='"+name+"']",f)[0];
-    				f.ajaxSubmit(opts);
+    				f.submit();
     			}
     		});
     	}

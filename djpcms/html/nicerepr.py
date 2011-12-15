@@ -153,26 +153,27 @@ class get_app_result(object):
     def __call__(self, request, head, result, appmodel, **kwargs):
         mapper = self.mapper
         first = self.first
-        url = None
+        view = None
         attrname = head.code if hasattr(result,head.code) else head.attrname
         result_repr = field_repr(request, attrname, result,
                                  appmodel = appmodel, **kwargs)
         if(self.first and not appmodel.list_display_links) or \
                 head.code in appmodel.list_display_links:
             first = False
-            url = appmodel.viewurl(request, result, field_name = head.code)
+            view = appmodel.instance_field_view(request, result,
+                                                field_name = head.code)
         
         var = result_repr
-        if url:
+        if view:
             var = escape(var)
-            if url != request.path:
+            if view.url != request.path:
                 if head.function != head.code:
                     title = field_repr(request, head.function, result,
                                        appmodel = appmodel, **kwargs)
                 else:
                     title = '{0} - {1}'.format(head.name,result_repr)
                 var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
-                                .format(url, var, title))
+                                .format(view.url, var, title))
             else:
                 var = mark_safe('<a>{0}</a>'.format(var))
         

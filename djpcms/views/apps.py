@@ -440,14 +440,14 @@ to render a table.'''
     def addurl(self, request, name = 'add'):
         return None
     
-    def query(self, request, **kwargs):
+    def query(self, request, query = None, **kwargs):
         '''Overrides the :meth:`RendererMixin.query` to perform the base
 query from the request input parameters. If a :attr:`mapper` is available,
 it delegates the query to it, otherwise it returns the children views for
 the *request*.'''
         if self.mapper:
             inputs = request.REQUEST
-            qs = self.mapper.all()
+            qs = query if query is not None else self.mapper.all()
             related_field = self.related_field
             if related_field:
                 parent = request.parent
@@ -516,6 +516,9 @@ data to the client.
     ############################################################################
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
+    
+    def view_for_instance(self, instance):
+        return self.instance_view
     
     def instance_from_variables(self, environ, urlargs):
         '''Retrieve an :attr:`model` instance from a dictionary of route
@@ -618,7 +621,8 @@ This method is called by both :meth:`variables_from_instance` and
                 else:
                     yield attrname,data[name]
 
-    def viewurl(self, request, instance = None, name = None, field_name = None):
+    def instance_field_view(self, request, instance, field_name = None,
+                            name = None):
         '''Obtain the url for instance field if possible.
         
 :parameter instance: an instance of :attr`model`
@@ -628,10 +632,7 @@ This method is called by both :meth:`variables_from_instance` and
 
 It uses the :func:`instance_field_views` for the purpose.
 '''
-        name = name or 'view'
-        r = instance_field_view(request,instance,field_name,name=name)
-        if r:
-            return r.url
+        return instance_field_view(request,instance,field_name,name=name)
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for
@@ -647,7 +648,7 @@ the instance.'''
     
     def ajax__bulk_delete(self, request):
         '''An ajax view for deleting a list of ids.'''
-        objs = self.instance_instances(request)
+        objs = self.get_instances(request)
         mapper = self.mapper
         c = ajax.jcollection()
         if objs:

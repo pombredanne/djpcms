@@ -122,10 +122,10 @@ an instance of a registered model).
 It is used by :meth:`Application.viewurl`.'''
     if field_name:
         value = getattr(instance,field_name,None)
-        mp = mapper(value)
-        if mp:
-            if not isinstance(instance,mp.model):
-                instance = value
+        if hasattr(value,'__call__'):
+            value = value()
+        if mapper(value):
+            instance = value
     return request.for_model(instance = instance, name = name)
 
 

@@ -292,7 +292,7 @@ There are three additional parameters that can be set:
     in_nav = 1
     
     def render(self, request, **kwargs):
-        kwargs['query'] = self.query(request)
+        kwargs['query'] = self.query(request, **kwargs)
         return self.appmodel.render(request, **kwargs)
         
     def ajax__autocomplete(self, request):

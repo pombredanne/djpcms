@@ -13,19 +13,37 @@ from .layout import FormWidgetMaker, FormLayout
 __all__ = ['HtmlForm']
 
 
+def default_success_message(instance, mch):
+    from djpcms.core.orms import mapper
+    '''Very basic success message. Write your own for a better one.'''
+    c = {'mch': mch}
+    if instance:
+        c['name'] = mapper(instance).pretty_repr(instance)
+        return '{0[name]} succesfully {0[mch]}'.format(c)
+    else:
+        return '0[mch]'.format(c)
+
+
 class HtmlForm(FormWidgetMaker):
-    '''The :class:`Form` class is designed to be used for validation purposes and therefore it needs this
-wrapper class for web rendering on web pages.
+    '''The :class:`Form` class is designed to be used for validation purposes.
+To render an instance of :class:`Form` on a web page we use this class.
+:class:`HtmlForm` is a specialized :class:`FormWidgetMaker`.
     
 :parameter form_class: A form class setting the :attr:`form_class` attribute.
-:parameter layout: An optional layout instance which sets the :attr:`layout` attribute.
-                   Default ``None``.
+:parameter layout: An optional layout instance which sets the :attr:`layout`
+    attribute.
+    
+    Default: ``None``.
+    
 :parameter ajax: Set the :attr:`ajax` attribute.
  
                    
 Simple usage::
 
-    MyHtmlForm = HtmlForm(MyFormClass) 
+    from djpcms import forms
+    
+    MyHtmlForm = forms.HtmlForm(MyFormClass,
+                                method = 'get') 
 
 
 .. attribute:: form_class
@@ -35,7 +53,8 @@ Simple usage::
     
 .. attribute:: layout
 
-    An instance of :class:`djpcms.forms.layout.FormLayout` used to render the :attr:`form_class`.
+    An instance of :class:`djpcms.forms.layout.FormLayout` used to render
+    the :attr:`form_class`.
 
 .. attribute:: ajax
 
@@ -60,6 +79,7 @@ Simple usage::
                  model = None,
                  inputs = None,
                  ajax = True,
+                 success_message = None,
                  **params):
         super(HtmlForm,self).__init__(**params)
         self.form_class = form_class
@@ -80,6 +100,7 @@ Simple usage::
         missings = list(form_class.base_fields)
         self.layout.check_fields(missings)
         self.add(self.layout)
+        self.success_message = success_message or default_success_message
         
     def __call__(self, model = None, inputs = None,
                  action = '.', **kwargs):
@@ -90,7 +111,8 @@ input paramaters ``kwargs``.'''
                          inputs = inputs or [],
                          layout = self.layout,
                          method = self.attrs['method'],
-                         action = action)\
+                         action = action,
+                         success_message = self.success_message)\
                             .addClass(self.layout.form_class)
         if self.ajax:
             w.addClass('ajax')

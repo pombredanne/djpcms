@@ -251,7 +251,7 @@ is available, the name is set to ``view``.
         if app:
             view = app.views.get(name) if name else None
             if not view and instance:
-                view = app.instance_view
+                view = app.view_for_instance(instance)
             view = view or app.root_view
             if view:
                 return self.for_path(view.path, urlargs = urlargs,

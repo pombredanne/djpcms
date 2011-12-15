@@ -22,7 +22,9 @@ __all__ = ['Field',
            'FloatField',
            'EmailField',
            'FileField',
-           'HiddenField']
+           'HiddenField',
+           'ChoiceFieldOptions',
+           'Choices']
 
 
 standard_validation_error = '{0} is required'
@@ -128,7 +130,13 @@ are available. Override for customized behaviour.'''
         
     def value_from_datadict(self, data, files, key):
         """Given a dictionary of data this field name, returns the value
-of this field. Returns None if it's not provided."""
+of this field. Returns None if it's not provided.
+
+:parameter data: multi dictionary of data.
+:parameter files: multi dictionary of files.
+:parameter files: key for this field.
+:return: the value for this field
+"""
         if key in data:
             return data[key]
         
@@ -179,9 +187,12 @@ Get the initial value of field if available.
     def html_name(self, name):
         return name
     
-    def get_widget_data(self, djp, bfield):
-        '''Return a disctionary of data to be addeded to the widget data
-attribute. By default return ``None``. Override for custom behaviour.'''
+    def get_widget_data(self, bfield):
+        '''Returns a dictionary of data to be added to the widget data
+attribute. By default return ``None``. Override for custom behaviour.
+
+:parameter bfield: instance of :class:`BoundField` of this field.
+:rtype: an instance of ``dict`` or ``None``.'''
         return None
     
 
@@ -349,153 +360,211 @@ class MultileField(Field):
     def html_name(self, name):
         return name if not self.multiple else '{0}[]'.format(name)
     
+    def value_from_datadict(self, data, files, key):
+        return self._value_from_datadict(data,key)
+    
     def _value_from_datadict(self, data, key):
         if self.multiple and hasattr(data,'getlist'):
             return data.getlist(key)
         elif key in data:
             return data[key]
     
-    
-class ChoiceField(MultileField):
-    '''A :class:`Field` which validates against a set of ``choices``.
-It has several additional attributes which can be used to customize its
-behaviour in validation as well as when rendering in html::
 
-.. attribuite:: choices
+class ChoiceFieldOptions(object):
+    '''A class for handling :class:`ChoiceField` options. Each one of the
+parameters can be overridden at initialization. 
 
-    A callable or any iterable over two-dimensional tuples.
-    If a callable, it must accept a one parameter given by
-    the bounded field instance.
-    
-.. attribute:: model
+.. attribute:: autocomplete
 
-    An optional model class if the Choice field is based on a database model.
+    An optional boolean indicating if the field is rendered as
+    an autocomplete widget.
     
-    Default ``None``.
-    
+    Default: ``False``.
+
 .. attribute:: multiple
 
     ``True`` if multiple choices are possible.
     
-    Default:: ``False``
+    Default: ``False``.
     
-.. attribute:: separator
+.. attribute:: search
 
-    An optional character to separate elements when the field is used
-    in conjunction with javascript autocomplete.
-    This attribute is used only if :attr:`multiple` is set to ``True``.
+    A flag indicating if the field can be used as a search input in the case
+    no choices where made.
     
-    Default ``", "``
-    
-.. attribute:: autocomplete
-
-    an optional boolean indicating if the field is rendered as
-    an autocomplete widget.
-    
-    Default ``False``.
+    Default: ``False``.
     
 .. attribute:: empty_label
 
     If provided it represents an empty choice
+'''
+    multiple = False
+    model = None
+    query = None
+    field = 'id'
+    autocomplete = False
+    search = False
+    autocomplete = None
+    empty_label = '-----------'
+    minLength = 2
+    maxRows = 30
     
-This field works in conjunction with the ``autocomplete`` decorator in
-``djpcms.js``.
+    def __init__(self, **kwargs):
+        for attname in dir(self.__class__):
+            if not attname.startswith('__') and attname in kwargs:
+                setattr(self,attname,kwargs[attname])
+        if not self.model and self.query is not None:
+            self.model = self.query.model
+        self.mapper = mapper(self.model)
+                
+    def all(self, bfield):
+        '''An iterable over choices or ``None``.'''
+        if self.model and not self.autocomplete:
+            query = self.query if self.query is not None else\
+                             self.mapper.all()
+            for v in query:
+                yield v.id,v
+    
+    def url(self, request):
+        '''Retrieve a url for search.'''
+        return None
+    
+    def clean(self, value, bfield):
+        '''Perform the cleaning of *value* for the :class:`BoundField`
+instance *bfield*. The :class:`ChoiceField` uses this method to
+clean its values.'''
+        if self.mapper:
+            if self.multiple:
+                return self.clean_multiple_model_value(value, bfield)
+            else:
+                return self.clean_model_value(value, bfield)
+        else:
+            return self.clean_simple(value, bfield)
+        
+    def clean_simple(self, value, bfield):
+        '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
+        ch = set((to_string(x[0]) for x in self.choices(bfield)))
+        values = value if self.multiple else (value,)
+        for v in values:
+            if v not in ch:
+                raise ValidationError('{0} is not a valid choice'.format(v))
+        return value
+        
+    def clean_model_value(self, value, bfield):
+        '''Invoked by :meth:`clean` if :attr:`model` is defined
+and :attr:`multiple` is ``False``. It return an instance of :attr:`model`
+otherwise it raises a validation exception unless :attr:`search`
+is ``True``, in which case the value is returned.'''
+        if isinstance(value, self.model):
+            return value
+        mapper = self.mapper
+        try:
+            return self.mapper.get(**{self.field: value})
+        except (mapper.DoesNotExist,mapper.FieldValueError):
+            if self.search:
+                # if search is allowed, return the value
+                return value
+            else:
+                raise
+    
+    def clean_multiple_model_value(self, value, bfield):
+        field = '{0}__in'.format(self.field)
+        return self.mapper.filter(**{field:value})
+    
+    def get_widget_data(self, bfield):
+        '''Called by the :meth:`Field.get_widget_data` method of
+:class:`ChoiceField`.'''
+        if not self.autocomplete:
+            return
+        value = bfield.value
+        ch = self.all(bfield)
+        if not hasattr(ch,'__len__'):
+            ch = tuple(ch)
+        data = {'multiple':self.multiple,
+                'minlength':self.minLength,
+                'maxrows':self.maxRows,
+                'search_string':bfield.name,
+                'url': self.url(bfield.request),
+                'choices': ch}
+        if self.model:
+            if value:
+                initial = None
+                if not self.multiple:
+                    if not isinstance(value,self.model):
+                        if self.search:
+                            initial = [(value,value)]
+                    else:
+                        initial = [(value.id,str(value))]
+                else:
+                    initial = [(v.id,str(v)) for v in value]
+                data['initial_value'] = initial
+        else:
+            if value:
+                chd = dict(ch)
+                values = []
+                for val in value.split(self.separator):
+                    if val in chd:
+                        values.append((val,chd[val]))
+                if values:
+                    data['initial_value'] = values
+        return data
+    
+class Choices(ChoiceFieldOptions):
+    '''A :class:`ChoiceFieldOptions` which wraps a ``choices`` iterable
+or callable.'''
+    def __init__(self, choices, **kwargs):
+        super(Choices,self).__init__(**kwargs)
+        self._choices = choices
+        
+    def all(self, bfield):
+        c = self._choices
+        if hasattr(c,'__call__'):
+            c = c(bfield)
+        return c
+    
+    
+class ChoiceField(MultileField):
+    '''A :class:`Field` which validates against a set of ``choices``.
+It has several additional attributes which can be specified
+via the :class:`ChoiceFieldOptions` class.
+
+.. attribute:: choices
+
+    An instance of :class:`ChoiceFieldOptions`, an iterable over
+    two-elements tuples or a callable.
+    If a callable, it must accept a one parameter given by
+    the :class:`BoundField` instance for this field and return an iterable over
+    two-elements tuples. It can be a *generator function*.
 '''
     widget = html.Select()
-    autocomplete = False
     
-    def handle_params(self, choices = None, model = None,
-                       separator = ', ', autocomplete = None,
-                       empty_label = '-----------',
-                       minLength = 2, maxRows = 30,
-                       **kwargs):
+    def handle_params(self, choices = None, **kwargs):
         '''Choices is an iterable or a callable which takes the
 form as only argument'''
+        if not isinstance(choices, ChoiceFieldOptions):
+            if not hasattr(choices,'__call__') and\
+               not hasattr(choices,'__iter__'):
+                raise TypeError('choices must be an instance of\
+ ChoiceFieldOptions, iterable or a callable. Got "{0}" instead'.format(choices))
+            choices = Choices(choices)
         self.choices = choices
-        self._model = model
-        self.empty_label = empty_label
-        self.separator = separator
-        self.autocomplete = autocomplete if autocomplete is not None else\
-                             self.autocomplete
-        self.minLength = minLength
-        self.maxRows = maxRows
-        if self.autocomplete:
+        if choices.autocomplete:
             if not self.widget.attrs.get('type') == 'text':
                 self.widget = html.TextInput(default_class = 'autocomplete')
             else:
                 self.widget.default_class = 'autocomplete'
         super(ChoiceField,self).handle_params(**kwargs)
-    
-    def value_from_datadict(self, data, files, key):
-        return self._value_from_datadict(data,key)
-        
-    def choices_and_model(self, bfield):
-        '''Return an tuple containing an
-iterable over choices and a model class (if applicable).'''
-        ch = self.choices
-        if hasattr(ch,'__call__'):
-            ch = ch(bfield)
-        model = self._model
-        if not model and hasattr(ch,'model'):
-            model = ch.model
-        return ch,model
                 
     def _clean(self, value, bfield):
         if value is not None:
-            ch,model = self.choices_and_model(bfield)
-            if model:
-                try:
-                    mp = mapper(model)
-                    if not isinstance(value,mp.model):
-                        value = mp.get(id = value)
-                except:
-                    raise ValidationError(
-                                '{0} is not a valid choice'.format(value))
-            if value:
-                if not model:
-                    ch = set((to_string(x[0]) for x in ch))
-                values = value if self.multiple else (value,)
-                if not model:
-                    for val in values:
-                        if not str(val) in ch:
-                            raise ValidationError(
-                                    '{0} is not a valid choice'.format(value))
-                if self.multiple and model:
-                    value = values
+            try:
+                return self.choices.clean(value, bfield)
+            except Exception as e:
+                raise ValidationError(str(e))
         return value
     
-    def get_widget_data(self, djp, bfield):
-        data = None
-        if self.autocomplete:
-            ch,model = self.choices_and_model(bfield)
-            value = bfield.value
-            data = {'multiple':self.multiple,
-                    'minlength':self.minLength,
-                    'maxrows':self.maxRows,
-                    'search_string':SEARCH_STRING}
-            # If the choice field is on a model we need to have
-            # a url for searching
-            if model:
-                data['url'] = ch.url(djp)
-                if value:
-                    if self.multiple:
-                        raise NotImplemented
-                    else:
-                        if not isinstance(value,model):
-                            value = mapper(model).get(id = value)
-                        initial_value = ((value.id,str(value)),)
-                    data['initial_value'] = initial_value
-            else:
-                data['choices'] = ch
-                if value:
-                    chd = dict(ch)
-                    values = []
-                    for val in value.split(self.separator):
-                        if val in chd:
-                            values.append((val,chd[val]))
-                    if values:
-                        data['initial_value'] = values
-        return data
+    def get_widget_data(self, bfield):
+        return self.choices.get_widget_data(bfield)
         
 
 class EmailField(CharField):

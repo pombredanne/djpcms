@@ -433,7 +433,7 @@ class BoundField(object):
 a :class:`Field` instance which belongs to the form,
 and field bound data.
 Instances of BoundField are created during form validation
-and shouldn't be used otherwise. It is an utility class.
+and shouldn't be used otherwise.
 
 .. attribute:: form
 
@@ -442,6 +442,10 @@ and shouldn't be used otherwise. It is an utility class.
 .. attribute::    field
 
     An instance of :class:`Field`
+    
+.. attribute::    request
+
+    An instance of :class:`djpcms.core.Request`
     
 .. attribute::    name
 
@@ -457,6 +461,7 @@ and shouldn't be used otherwise. It is an utility class.
     def __init__(self, form, field, name, prefix):
         self.form = form
         self.field = field
+        self.request = form.request
         self.name = name
         self.for_name = '{0}{1}'.format(prefix,name)
         self.html_name = field.html_name(self.for_name)
@@ -477,16 +482,18 @@ and shouldn't be used otherwise. It is an utility class.
         return self.field.is_hidden
     
     def clean(self, value):
-        '''return a cleaned value for ``value`` by running the validation
+        '''Return a cleaned value for ``value`` by running the validation
 algorithm on :attr:`field`.'''
         self.value = self.field.clean(value, self)
         return self.value
     
-    def widget(self, djp = None):
+    def widget(self):
+        '''Return an :class:`djpcms.html.Widget` instance for the field
+with bound data and attributes.'''
         widget = self._widget
         field = self.field
         if not widget:
-            data = field.get_widget_data(djp,self)
+            data = field.get_widget_data(self)
             widget = field.widget.widget()\
                          .addAttrs(field.widget_attrs)\
                          .addData(data)

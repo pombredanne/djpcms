@@ -58,6 +58,10 @@ forms using the :mod:`djpcms.forms.layout` API.'''
     def inputs(self):
         return self.internal['inputs']
     
+    @property
+    def success_message(self):
+        return self.internal['success_message']
+    
     def is_valid(self):
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
@@ -74,7 +78,9 @@ class FieldWidget(FormWidgetMaker):
     def get_context(self, request, widget, keys):
         bfield = widget.internal['field']
         parent = widget.parent.maker
-        w = bfield.widget(request)
+        if bfield.request is not request:
+            bfield.request = request
+        w = bfield.widget()
         parent.add_widget_classes(bfield,w)
         wrapper_class = getattr(w.maker,'wrapper_class',None)
         wrapper_class = wrapper_class + ' ' + bfield.name if wrapper_class else\

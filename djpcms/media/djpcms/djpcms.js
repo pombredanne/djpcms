@@ -846,7 +846,8 @@
     						type:      'get',
     						success:   callback,
     						submitkey: config.post_view_key,
-    						dataType: "json"
+    						dataType: "json",
+    						iframe: false,
     						};
     				f[0].clk = elem[0];
     				logger.info('Submitting select change from "'+elem[0].name+'"');
@@ -864,7 +865,7 @@
                 jqForm.addClass(cfg.submit_class);
                 return true;
             }
-    		function success_form(o,s,jqForm) {
+    		function success_form(o,s,xhr,jqForm) {
     			jqForm.removeClass(cfg.submit_class);
     			$.djpcms.jsonCallBack(o,s,jqForm);
     		}
@@ -878,12 +879,15 @@
     		    		submitkey: config.post_view_key,
     		    		dataType: "json",
     		    		beforeSerialize: form_beforeSerialize,
-    		    		beforeSubmit: form_beforeSubmit};
-    		    f.submit(function(e) {
-    		        e.preventDefault();
-    		        $(this).ajaxSubmit(opts);
-    		        return false;
-    		    });
+    		    		beforeSubmit: form_beforeSubmit,
+    		    		iframe: false
+    		    		};
+    		    f.ajaxForm(opts);
+    		    //f.submit(function(e) {
+    		    //   e.preventDefault();
+    		    //    $(this).ajaxSubmit(opts);
+    		    //    return false;
+    		    //});
     			//f.ajaxForm(opts);
     			if(f.hasClass(config.autoload_class))  {
     				var name = f.attr("name");
@@ -1276,11 +1280,13 @@
                 initials = $.data(this,'initial_value');
                 if(initials) {
                     $.each(initials, function(i,initial) {
-                    	manager.add_data(initial);
+                    	manager.add_data({real_value: initial[0],
+                    					  value: initial[1]});
                     });
                 }
                 
-                if(choices) {
+                // If choices are available, it is a locfal autocomplete.
+                if(choices && choices.length) {
                     var sources = [];
                     $.each(choices,function(i,val) {
                         sources[i] = {value:val[0],label:val[1]};

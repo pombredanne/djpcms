@@ -83,8 +83,9 @@ class ModelLinksForm(forms.Form):
     
 
 class ContentForm(forms.Form):
-    content = forms.ChoiceField(choices = get_contet_choices,
-                                autocomplete = True)
+    content = forms.ChoiceField(choices = forms.Choices(\
+                                    get_contet_choices,
+                                    autocomplete = True))
 #
 #______________________________________________ PLUGINS
 

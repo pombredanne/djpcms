@@ -3,7 +3,7 @@ from djpcms.forms import layout
 
 
 def search_form(name, placeholder = 'search', input_name = None,
-                submit = None, cn = None, choices = None):
+                submit = None, cn = None, choices = None, **kwargs):
     if cn:
         cn += ' submit-on-enter'
     else:
@@ -16,8 +16,7 @@ def search_form(name, placeholder = 'search', input_name = None,
         field = forms.ChoiceField(attrname = input_name,
                                   required = False,
                                   choices = choices,
-                                  widget = widget,
-                                  autocomplete = True)
+                                  widget = widget)
     else:
         field = forms.CharField(attrname = input_name,
                                 required = False,
@@ -26,4 +25,5 @@ def search_form(name, placeholder = 'search', input_name = None,
     submit = submit or []
     return forms.HtmlForm(form_cls,
                           inputs = submit,
-                          layout = layout.SimpleFormLayout())
+                          layout = layout.SimpleFormLayout(),
+                          **kwargs)

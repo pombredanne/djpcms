@@ -34,14 +34,7 @@ class ObjectItem(html.WidgetMaker):
     def get_context(self, request, widget, keys):
         ctx = super(ObjectItem,self).get_context(request, widget, keys)
         instance = ctx['instance']
-        links = dict(((elem.view.name,elem) for\
-                       elem in application_views(request, instance = instance)))
-        view = links.pop('view',None)
-        if not view:
-            view = links.pop('change',None)
-        ctx['links'] = links
-        ctx['view'] = view
-        ctx['link_list'] = itervalues(links)
+        ctx['links'] = list(application_views(request, instance = instance))
         return ctx
     
     def code_or_url(self, context):

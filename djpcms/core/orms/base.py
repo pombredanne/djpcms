@@ -43,6 +43,7 @@ class OrmWrapper(UnicodeMixin):
 '''
     orm = None
     DoesNotExist = None
+    FieldValueError = None
     short_description = 'short_description'
     module_name = None
     

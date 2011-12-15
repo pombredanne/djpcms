@@ -77,16 +77,6 @@ def add_extra_fields(form, name, field):
 def add_hidden_field(form, name, required = False):
     return add_extra_fields(form,name,forms.CharField(\
                         widget=forms.HiddenInput, required = required))
-
-
-def success_message(instance, mch):
-    '''Very basic success message. Write your own for a better one.'''
-    c = {'mch': mch}
-    if instance:
-        c['name'] = mapper(instance).pretty_repr(instance)
-        return '{0[name]} succesfully {0[mch]}'.format(c)
-    else:
-        return '0[mch]'.format(c)
     
     
 def form_inputs(instance, own_view = False):
@@ -234,8 +224,8 @@ has been submitted.'''
             return instance
         elif instance == f:
             return layout.json_messages(f)
-        smsg = getattr(view,'success_message',success_message)
-        msg = smsg(instance, 'changed' if editing else 'added')
+        msg = fhtml.success_message(instance,
+                                    'changed' if editing else 'added')
         f.add_message(msg)
         
         # Save and continue. Redirect to referer if not AJAX or send messages 

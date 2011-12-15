@@ -12,18 +12,15 @@ def get_search_url(request, for_model = None):
             return engine.path
     
 
-class Search(object):
-    '''Utility class for providing searching urls for models lazily.
+class Search(forms.ChoiceFieldOptions):
+    '''A :class:`ChoiceFieldOptions` class for providing searching urls
+for models in a lazy way.
 You can use this in an autocomplete form fields.
     
 :parameter model: Optional model to search
 
 If no model is provided, a global search view must be available.
-'''
-        
-    def __init__(self, model = None):
-        self.model = model
-    
+'''    
     def url(self, request):
         '''Return the url for searching'''
         if self.model:

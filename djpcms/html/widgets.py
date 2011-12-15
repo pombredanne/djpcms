@@ -97,11 +97,6 @@ class Select(FieldWidget):
     
     def set_value(self, val, widget):
         bfield =  widget.internal.get('bfield',None)
-        if bfield:
-            field = bfield.field
-            choices, model = field.choices_and_model(bfield)
-            widget.internal['model'] = model
-            widget.internal['choices'] = choices
         if val:
             selected_choices = val if widget.attr('multiple') else (val,)
         else:
@@ -113,23 +108,17 @@ class Select(FieldWidget):
     
     def render_options(self, djp, widget):
         selected_choices = widget.internal.get('selected_choices',())
-        model = widget.internal.get('model',None)
-        choices = widget.internal.get('choices',self.choices) or ()
-        option = self._option
-        selected = self._selected
-        if model:
-            field = widget.internal['bfield'].field
-            if field and not field.required:
-                yield option.format('','',field.empty_label)
-            for val in choices:
-                sel = (val in selected_choices) and selected or EMPTY
-                yield option.format(val.id,sel,val)
-        elif choices:
-            for val,des in choices:
-                sel = (val in selected_choices) and selected or EMPTY
-                yield option.format(val,sel,des)
-        else:
-            raise StopIteration
+        if 'bfield' in widget.internal:
+            bfield = widget.internal['bfield']
+            field = bfield.field
+            choices =  field.choices
+            option = self._option
+            selected = self._selected
+            if not field.required:
+                yield option.format('','',choices.empty_label)
+            for id,val in choices.all(bfield):
+                sel = (id in selected_choices) and selected or EMPTY
+                yield option.format(id,sel,val)
 
     def media(self, djp = None):
         return self.select_media

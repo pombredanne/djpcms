@@ -7,6 +7,7 @@ from functools import partial
 from djpcms import UnicodeMixin
 from djpcms.utils import logtrace
 from djpcms.html import Widget, WidgetMaker
+from djpcms.utils.ajax import jservererror
 
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
 
@@ -101,7 +102,8 @@ class HtmlPage(object):
     "<p>Whoops! We can't find what you are looking for, sorry.</p>",
     500:
     "<p>Whoops! Server error. Something did not quite work right, sorry.</p>"}
-    def __init__(self, body_renderer = None, error_renderer = None, errorhtml = None):
+    def __init__(self, body_renderer = None, error_renderer = None,
+                 errorhtml = None):
         if body_renderer:
             self.body_renderer = body_renderer
         if error_renderer:
@@ -203,12 +205,14 @@ class HtmlPage(object):
         # Store the stack trace in the request cache
         request.cache['traces'].append(exc_info)
         logtrace(logger, request, exc_info, status)
-        grid = request.cssgrid()
         error = Widget('div', cn = 'page-error error{0}'.format(status))
-        if grid.column1:
-            inner = Widget('div', error, cn = grid.column1)
-        else:
-            inner = error
+        inner = error
+        
+        if not request.is_xhr:
+            grid = request.cssgrid()
+            if grid.column1:
+                inner = Widget('div', error, cn = grid.column1)
+                
         if settings.DEBUG:
             stack_trace = traceback.format_exception(*exc_info)
             error.addClass('ui-state-error')
@@ -218,12 +222,16 @@ class HtmlPage(object):
                 error.add(Widget('p',trace))
         else:
             error.add(self.errorhtml.get(status,500))
-        context.update({
-            'title':title,
-            'body_class': 'error',
-            'stack_trace':stack_trace,
-            'inner':inner.render(request)})
-        return self.body_renderer(request,context)
+            
+        if request.is_xhr:
+            return jservererror(request, inner.render(request))
+        else:
+            context.update({
+                'title':title,
+                'body_class': 'error',
+                'stack_trace':stack_trace,
+                'inner':inner.render(request)})
+            return self.body_renderer(request,context)
     
     def page_script(self, request):
         settings = request.view.settings

@@ -12,8 +12,11 @@ __all__ = ['PERMISSION_CODES',
            'DELETEALL',
            'addcode',
            'PermissionHandler',
-           'SimpleRobots']
+           'SimpleRobots',
+           'authenticated_view']
 
+
+from .exceptions import PermissionDenied
 
 
 
@@ -164,3 +167,14 @@ a AuthenticationError exception.'''
 '''
         return True
 
+
+def authenticated_view(f):
+    
+    def _(self, request, *args, **kwargs):
+        user = request.user
+        if user.is_authenticated() and user.is_active:
+            return f(self, request, *args, **kwargs)
+        else:
+            raise PermissionDenied()
+
+    return _

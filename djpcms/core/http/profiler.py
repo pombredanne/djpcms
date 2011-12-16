@@ -1,31 +1,33 @@
-'''\
-Orignal version taken from http://djangosnippets.org/snippets/605/
-
-Modified for use with djpcms
-
-include in your MIDDLEWARE_CLASSES as the first one.
-
-MIDDLEWARE_CLASSES = ('djpcms.utils.middleware.profiling.ProfileMiddleware',...)
-'''
 import sys
 import os
 import re
-#import hotshot, hotshot.stats
 import tempfile
 import cProfile as profiler
 import pstats
 
-from djpcms.utils import mark_safe
-
-from .wrappers import Response
+from djpcms.html import Pagination, Widget, tabs
 
 from py2py3 import StringIO
-
 
 words_re = re.compile( r'\s+' )
 line_func = re.compile(r'(?P<line>\d+)\((?P<func>\w+)\)')
 
 group_prefix_re = None
+
+
+profile_table1 = Pagination(('calls','totcalls','tottime','percall','cumtime',
+                             'percall','module', 'filename','lineno','function'),
+                            footer = False,
+                            sortable = True,
+                            html_data = {'options':{'sDom':'t'}})
+profile_table2 = Pagination(('module','time','cumtime'),
+                            footer = False,
+                            sortable = True,
+                            html_data = {'options':{'sDom':'t'}})
+profile_table3 = Pagination(('module','filename','time','cumtime'),
+                            footer = False,
+                            sortable = True,
+                            html_data = {'options':{'sDom':'t'}})
 
 
 class mod_helper(object):
@@ -123,15 +125,13 @@ def summary_for_files(stats_str, mygroups, sum, sumc, settings):
                 lineno,func
 
 
-def make_stat_table(djp, stats_str, settings):
-    from djpcms import html
+def make_stat_table(request, stats_str):
     groups = {}
     sum = 0
     sumc = 0
-    header = ('calls','totcalls','tottime','percall','cumtime','percall',
-              'module', 'filename','lineno','function')
-    data = list(summary_for_files(stats_str,groups,sum,sumc,settings))
-    table = html.Table(header, data, footer = False)
+    settings = request.settings
+    data1 = list(summary_for_files(stats_str, groups, sum, sumc, settings))
+    table1 = profile_table1.widget(data1)
     
     data2 = []
     data3 = []
@@ -139,16 +139,11 @@ def make_stat_table(djp, stats_str, settings):
         data2.append((mod,val['time'],val['cumtime']))
         for filename,ft in val['files'].items():
             data3.append((mod,filename,ft['time'],ft['cumtime']))
-    table2 = html.Table(('module','time','cumtime'),data2,
-                        footer = False,
-                        data = {'options':{'sDom':'t'}})        
-    table3 = html.Table(('module','filename','time','cumtime'),
-                        data3,
-                        footer = False)
-    return {'media':table.maker.media(),
-            'table':table.render(djp),
-            'modules':table2.render(djp),
-            'files':table3.render(djp)}
+    table2 = profile_table2.widget(data2)
+    table3 = profile_table3.widget(data3)
+    return (('global',table1.render(request)),
+            ('modules',table2.render(request)),
+            ('files',table3.render(request)))
     
 
 def data_stream(lines, num = None):
@@ -172,17 +167,12 @@ def make_header(headers):
             yield '<p>{0}</p>'.format(h)
 
 
-def profile_response(environ, start_response, sites, PK, callback, settings):
+def profile_response(environ, start_response, callback):
     """Displays profiling for any view.
 http://yoursite.com/yourview/?prof
 
 Add the "prof" key to query string by appending ?prof (or &prof=)
 and you'll see the profiling results in your browser."""
-    from djpcms import html
-    query = environ.get('QUERY_STRING','')
-    if PK not in query:
-        return callback(environ, start_response)
-    
     tmp = tempfile.mktemp()
     out = StringIO()    
     prof = profiler.Profile()
@@ -196,17 +186,12 @@ and you'll see the profiling results in your browser."""
     os.unlink(tmp)
     stats_str = stats_str.split('\n')
     headers = '\n'.join(make_header(stats_str[:4]))
-    stats_str = stats_str[6:]
-    data = data_stream(stats_str,100)
-    info = environ['DJPCMS']
-    djp = info.djp(environ)
-    ctx = make_stat_table(djp,data,settings)
-    ctx.update({'headers':headers,
-                'stats':stats_str})
-    content = djp.render_template('djpcms/profile.html',
-                                  ctx,
-                                  request = djp.request,
-                                  encode = 'latin-1',
-                                  encode_errors = 'replace')
-    return Response(content, content_type = 'text/html')
-
+    data = data_stream(stats_str[6:],100)
+    request = environ['DJPCMS'].request
+    tables = make_stat_table(request, data)
+    w = Widget(cn = 'profiler')
+    w.add(Widget('div', headers, cn = 'legend'))
+    w.add(tabs(tables))
+    context = {'inner': w.render(request),
+               'title': 'Profile of {0}'.format(request.path)}    
+    return request.view.response.render_to_response(request, context)

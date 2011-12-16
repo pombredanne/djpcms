@@ -56,37 +56,52 @@ Site handlers
 Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+Default: :class:`PermissionHandler`
+
+
+The permission handler is responsible for both authentication and permissions.
+It must implement the following methods:
+
+* :meth:`PermissionHandler.authenticate`
+* :meth:`PermissionHandler.login`
+* :meth:`PermissionHandler.logout`
+* :meth:`PermissionHandler.has`
+
+
+.. _response-handler:
+
+Response handler
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: :class:`ResponseHandler`
+
+To specify a different page render, pass a callable to the :class:`Site`
+constructor::
+
+    site = djpcms.Site(..., page_renderer = my_page_renderer)
+
+
+Robots
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Default Handlers
+========================
+
+Permission Handler
+~~~~~~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: PermissionHandler
    :members:
    :member-order: bysource
 
 
-.. _authentication:
+Response Handler
+~~~~~~~~~~~~~~~~~~~~~
 
-Authentication
-~~~~~~~~~~~~~~~~~~~~~~~
-Authentication backends are used by :ref:`permissions <permissions>` handlers
-to authenticate users.
-
-An authentication backend must implement the following methods:
-
-* ``authenticate``
-* ``login``
-* ``logout``
-
-
-.. _response-site-handler:
-
-Response
-~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Errors
-~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Robots
-~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: ResponseHandler
+   :members:
+   :member-order: bysource
 
 
 WSGI
@@ -131,3 +146,4 @@ Block
 .. autoclass:: Block
    :members:
    :member-order: bysource
+

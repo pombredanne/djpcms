@@ -10,8 +10,36 @@
     /**
      * DJPCMS Decorator for jQuery dataTable plugin
      */
+	
+	$.djpcms.decorator({
+		id: "color_number",
+        config: {
+        	selector: 'tr .color'
+        },
+        decorate: function(elem,config) {
+            $(config.color_number.selector,elem).each(function() {
+                var el = $(this),
+                    val = el.html();
+                try {
+                    val = parseFloat(val);
+                    if(val < 0) {
+                        el.addClass('ui-state-error-text');
+                    }
+                    if(el.hasClass('arrow') && val === val) {
+                        var ar = $('<span></span>').css({'margin-right':'.3em',
+                                                     'float':'right'});
+                        val > 0 ? ar.addClass('ui-icon ui-icon-arrowthick-1-n') :
+                                  ar.addClass('ui-icon ui-icon-arrowthick-1-s');
+                        el.append(ar);
+                    }
+                }catch(e){}
+            });
+        }});
+        
+        
     if ($.djpcms && $.fn.dataTable) {
         
+    	// djpcms dataTable handler
         $.djpcms.dataTable = {};
         
         // from
@@ -331,6 +359,10 @@
                     }
                 });
             } 
+        });
+        
+        $.djpcms.options.datatable.fnRowCallbacks.push(function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        	$(nRow).djpcms();
         });
     }
 }(jQuery));

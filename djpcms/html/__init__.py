@@ -49,10 +49,10 @@ def anchor_or_button(text, href = None, icon = None, asbutton = False,
                      **kwargs):
     if asbutton:
         w = Widget('button', text, **kwargs)\
-                        .addData('href',href).addData('icon',icon)
+                        .addData('href',href)
     else:
         w = Widget('a', text, href = href, **kwargs)
-    return w
+    return w.addData('icon',icon)
 
 
 def legend(text, styling = None):

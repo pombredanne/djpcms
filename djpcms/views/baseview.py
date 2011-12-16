@@ -263,6 +263,12 @@ it is the base class of :class:`pageview` and :class:`View`.
                 return self.appmodel.variables_from_instance(instance)
         return ()
     
+    def parent_instance(self, instance):
+        '''Return the parent instance for *instance*. This is the instance
+for the parent view. By default it returns *instance*. This function
+is used by the :attr:`djpcms.Request.parent` attribute.'''
+        return instance
+    
     def __call__(self, request):
         is_xhr = request.is_xhr
         method = request.method
@@ -278,23 +284,7 @@ it is the base class of :class:`pageview` and :class:`View`.
                 callable = getattr(self, ajax_view)
             else:
                 callable = getattr(self.appmodel, ajax_view, callable)
-        #TODO
-        #make this asynchronous
-        res = callable(request)
-        content = res.dumps().encode('latin-1','replace')
-        return http.Response(content = content,
-                             content_type = res.mimetype())
-        #else:
-        #    return res
-        #except Exception as e:
-        #    if is_ajax:
-        #        res = handle_ajax_error(self,e)
-        #        content = res.dumps().encode('latin-1','replace')
-        #        return http.Response(content = content,
-        #                             content_type = res.mimetype())
-         #   else:
-         #       raise
-    
+        return self.response.render_to_response(request, callable(request))
     
     def methods(self, request):
         '''Allowed request methods for this view.
@@ -359,9 +349,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     def get_response(self, request):
         '''Get response handler.'''
         context = self.get_context(request)
-        if hasattr(context,'status_code'):
-            return context
-        return self.render_page(request, context)
+        return self.response.render_to_response(request, context)
     
     def post_response(self, request):
         '''The post response handler.'''

@@ -119,6 +119,10 @@ managing settings.'''
         return self.name
     
     @property
+    def request(self):
+        return self.requests.get(self.path)
+    
+    @property
     def requests(self):
         return self.environ['requests']
     
@@ -229,15 +233,17 @@ arguments.
     
     def for_model(self, model = None, all = False, root = False, name = None,
                   urlargs = None, instance = None):
-        '''Create a new :class:`Request` instance for a model class.
+        '''Create a new :class:`Request` instance for a model class. The
+model can be specified directly or indirectly via the *instance* parameter.
 
 :parameter model: model class to search.
 :parameter model: all check all sites.
 :parameter root: Start the search from the root site.
 :parameter name: Optional view name if you require a non standard view
-    (root view when instance is ``None`` or the ``instance_view).
+    (root view when instance is ``None`` or the
+    :meth:`djpcms.views.Application.view_for_instance` result).
 :parameter urlargs: url variables.
-:parameter instance: optional instance of model
+:parameter instance: optional instance of model.
 
 If *instance* is provided, *model* is given by the instance class and therefore
 overrides the *model* input. In addition if *name* is not given and *instance*
@@ -320,6 +326,14 @@ is available, the name is set to ``view``.
     def session(self):
         return self.environ.get('session')
     
+    @property
+    def DJPCMS(self):
+        return self.environ['DJPCMS']
+    
+    @property
+    def cache(self):
+        return self.DJPCMS.environ
+    
     ############################################################################
     #    View methods and properties
     ############################################################################
@@ -336,14 +350,6 @@ is available, the name is set to ``view``.
         return self.view.methods(self)
     
     @property
-    def DJPCMS(self):
-        return self.environ['DJPCMS']
-    
-    @property
-    def cache(self):
-        return self.DJPCMS.environ
-    
-    @property
     def media(self):
         return self.DJPCMS.media
         
@@ -354,6 +360,13 @@ is available, the name is set to ``view``.
     @lazyproperty    
     def linkname(self):
         return self.view.linkname(self)
+    
+    @lazyproperty
+    def icon(self):
+        icon = self.view.ICON
+        if hasattr(icon,'__call__'):
+            icon = icon(self)
+        return icon
     
     @lazyproperty
     def template_file(self):
@@ -372,6 +385,9 @@ is available, the name is set to ``view``.
             return t
         else:
             return de
+        
+    def render_to_response(self, context, **kwargs):
+        return self.view.response.render_to_response(self, context, **kwargs)
         
     def has_permission(self, code = None, instance = None, **kwargs):
         view = self.view
@@ -470,8 +486,11 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     @lazyproperty
     def parent(self):
         node = self.node.parent
-        if node is not None:
-            return make_request(self.environ,node,self.instance)
+        instance = self.view.parent_instance(self.instance)
+        if instance != self.instance:
+            return self.for_model(instance = instance)
+        elif node:
+            return make_request(self.environ,node,instance)
     
     @lazyproperty
     def in_navigation(self):

@@ -52,7 +52,7 @@ class WSGI(object):
 delegate the handling to them.'''
     def __init__(self, site):
         self.site = site
-        self.error = site.render_page.error_to_response
+        self.error = site.response.error_to_response
         
     @property
     def route(self):
@@ -68,14 +68,10 @@ delegate the handling to them.'''
         cleaned_path = clean_path(environ)
         if cleaned_path is not None:
             return cleaned_path
-        settings = self.site.settings
-        if settings.PROFILING_KEY:
-            return profile_response(environ,
-                                    start_response,
-                                    self.site,
-                                    settings.PROFILING_KEY,
-                                    self._handle,
-                                    settings)
+        query = environ.get('QUERY_STRING','')
+        PK = self.site.settings.PROFILING_KEY
+        if PK and PK in query:
+            return profile_response(environ, start_response, self._handle)
         else:
             return self._handle(environ, start_response)
         return response

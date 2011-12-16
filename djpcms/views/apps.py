@@ -19,7 +19,8 @@ from .pagination import *
 
 __all__ = ['Application',
            'application_action',
-           'extend_widgets']
+           'extend_widgets',
+           'store_on_instance']
 
 
 def get_declared_application_routes(bases, attrs):
@@ -71,6 +72,22 @@ def extend_widgets(d, target = None):
     target = target.copy()
     target.update(d)
     return target
+
+
+def store_on_instance(f):
+    name = '_djpcms_' + f.__name__
+    
+    def _(self, instance):
+        if not hasattr(instance,name):
+            res = f(self, instance)
+            if res:
+                setattr(instance,name,res)
+            return res
+        return getattr(instance,name)
+    
+    _.__name__ = f.__name__
+    _.__doc__ = f.__doc__
+    return _
 
 
 class Application(ApplicationBase,ResolverMixin,RendererMixin):
@@ -518,6 +535,10 @@ data to the client.
     ############################################################################
     
     def view_for_instance(self, instance):
+        '''Return the view for *instance*. By default it returns the
+:attr:`instance_view`.
+This is used when an :ref:`instance view <instance-views>`
+has been requested.'''
         return self.instance_view
     
     def instance_from_variables(self, environ, urlargs):
@@ -547,7 +568,8 @@ If the instance could not be retrieved, it raises a 404 exception.'''
                 if pi:
                     return self.get_from_parent_object(pi,urlargs)
             raise djpcms.Http404('Cannot retrieve instance from url')
-            
+    
+    @store_on_instance        
     def variables_from_instance(self, instance):
         '''Override the :meth:`RouteMixin.variables_from_instance` method
 to obtain a dictionary of url variables from an instance of :attr:`model`.
@@ -622,17 +644,20 @@ This method is called by both :meth:`variables_from_instance` and
                     yield attrname,data[name]
 
     def instance_field_view(self, request, instance, field_name = None,
-                            name = None):
+                            name = None, asbutton = None):
         '''Obtain the url for instance field if possible.
         
 :parameter instance: an instance of :attr`model`
 :parameter name: optional view name. By default it is the object view.
 :parameter field_name: the instance field name.
+:parameter asbutton: optional boolean. If specified it returns a link widget.
 :rtype: a url string or ``None``.
 
 It uses the :func:`instance_field_views` for the purpose.
 '''
-        return instance_field_view(request,instance,field_name,name=name)
+        view = instance_field_view(request,instance,field_name,name=name)
+        if asbutton is not None:
+            return application_link(view,asbutton)
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for

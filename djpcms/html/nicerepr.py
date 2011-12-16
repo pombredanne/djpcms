@@ -19,7 +19,8 @@ __all__ = ['nicerepr',
 FIELD_SPLITTER = '__'
 NONE_VALUE = '(None)'
 NONE_VALUE = float('nan')
-divchk = '<div class="action-check">{0}<span class="value">{1}</span></div>'
+#divchk = '<div class="action-check">{0}<span class="value">{1}</span></div>'
+divchk = '<div class="action-check">{0}{1}</div>'
 
 
 def action_checkbox(val, id):
@@ -153,29 +154,20 @@ class get_app_result(object):
     def __call__(self, request, head, result, appmodel, **kwargs):
         mapper = self.mapper
         first = self.first
-        view = None
-        attrname = head.code if hasattr(result,head.code) else head.attrname
-        result_repr = field_repr(request, attrname, result,
-                                 appmodel = appmodel, **kwargs)
-        if(self.first and not appmodel.list_display_links) or \
-                head.code in appmodel.list_display_links:
+        link = None
+        if(first and not appmodel.list_display_links) or \
+           head.code in appmodel.list_display_links:
             first = False
-            view = appmodel.instance_field_view(request, result,
-                                                field_name = head.code)
-        
-        var = result_repr
-        if view:
-            var = escape(var)
-            if view.url != request.path:
-                if head.function != head.code:
-                    title = field_repr(request, head.function, result,
-                                       appmodel = appmodel, **kwargs)
-                else:
-                    title = '{0} - {1}'.format(head.name,result_repr)
-                var = mark_safe('<a href="{0}" title="{2}">{1}</a>'\
-                                .format(view.url, var, title))
-            else:
-                var = mark_safe('<a>{0}</a>'.format(var))
+            link = appmodel.instance_field_view(request, result,
+                                                field_name = head.code,
+                                                asbutton = False)
+            
+        if link and link.attr('href') != request.path:
+            var = link.render()
+        else:
+            attrname = head.code if hasattr(result,head.code) else head.attrname
+            var = field_repr(request, attrname, result,
+                             appmodel = appmodel, **kwargs)
         
         if self.first and self.actions:
             first = False 

@@ -42,7 +42,7 @@ def request_to_menu_link(request):
                      request.linkname,
                      request.title,
                      view.PERM,
-                     view.ICON,
+                     request.icon,
                      view.DEFAULT_METHOD,
                      view.ajax_enabled,
                      request.url)
@@ -180,9 +180,8 @@ anchor or button :class:`djpcms.html.Widget`.'''
 
 def application_link(view, asbutton = True):
     if view is not None:
-        return list(application_links((view,),asbutton))[0][1]
-    else:
-        return None
+        for _,link in application_links((view,),asbutton):
+            return link
     
 
 def headers_from_groups(pagination, groups):

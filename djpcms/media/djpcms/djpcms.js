@@ -277,33 +277,41 @@
     	
     	/**
     	 * DJPCMS Handler constructor
+    	 * It applys djpcms decorator to the element.
     	 */
     	function _construct() {
     		return this.each(function() {
-    			var config = defaults,
-    				me = $(this),
-    				lp = $('.djp-logging-panel',me);
+    			var me = $(this),
+    				config = defaults,
+    				lp = $('.djp-logging-panel',me),
+    				parent = me.closest('.djpcms-loaded');
     			
-    			me.trigger('djpcms-before-loading');
-    			
-    			if(lp) {
-    				set_logging_pannel(lp);
+    			if(!parent.length) {
+    				if(this === document) {
+    					me = $('body');
+    				}
+    				me.addClass('djpcms-loaded')
+    				  .trigger('djpcms-before-loading');
+	    			
+	    			if(lp) {
+	    				set_logging_pannel(lp);
+	    			}
+	    			
+	    			$.each(decorators,function(id,decorator) {
+	    				logger.info('Adding decorator ' + id);
+	    				decorator(me,config);
+	    			});
+	    			
+	    			if(this === document) {
+	    			    $.data(this,'djpcms',config);
+	    			    $.each(appqueue, function(i,app) {
+	    			        app();
+	    			    });
+	    			    appqueue = [];
+	    			}
+	    			
+	    			me.trigger('djpcms-after-loading');
     			}
-    			
-    			$.each(decorators,function(id,decorator) {
-    				logger.info('Adding decorator ' + id);
-    				decorator(me,config);
-    			});
-    			
-    			if(this == document) {
-    			    $.data(this,'djpcms',config);
-    			    $.each(appqueue, function(i,app) {
-    			        app();
-    			    });
-    			    appqueue = [];
-    			}
-    			
-    			me.trigger('djpcms-after-loading');
     		});
     	}
     	
@@ -662,70 +670,9 @@
     });
     
     
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     //						DECORATORS
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    $.djpcms.decorator({
-        id:'anchors',
-        description:'Decorate anchors button and submits',
-        config: {
-            blank_target: true,
-            jquery: true
-        },
-        decorate: function(obj, config) {
-            var options = config.anchors,
-                jquery = options.jquery,
-                bt = options.blank_target;
-           
-            if(jquery) {
-                $('input[type="submit"]',obj).each(function(){
-                    var el = $(this);
-                    if(!el.hasClass('nobutton')) {
-                        el.button();
-                    }
-                });
-                $('button',obj).each(function() {
-                    var el = $(this),
-                        data = el.data(),
-                        icon = data.icon,
-                        text = data.text;
-                    if(!text) {
-                         text = icon ? false : true;
-                    }
-                    el.button({
-                        icons:{primary:icon},
-                        text:text
-                    });
-                });
-            }
-            if(bt || jquery) {
-                $('a',obj).each(function() {
-                    var a = $(this), href;
-                    if(jquery && a.hasClass('button')) {
-                        var sp = a.children('span'),
-                            opts,ico;
-                        if(sp.length) {
-                            ico = sp[0].className;
-                            sp.remove();
-                        }
-                        if(ico) {
-                            opts = {icons:{primary:ico}};
-                            if(!a.html()) {opts.text = false;}
-                        }
-                        a.button(opts).removeClass('djph');
-                    }
-                    if(bt) {
-                        var href = a.attr('href');
-                        if(href && href.substring(0,4) == 'http') {
-                            a.attr('target','_blank');
-                        }
-                    }
-                });
-            }
-        }
-    });
-    
+    ////////////////////////////////////////////////////////////////////////////
     /**
      * Accordion menu
      */    
@@ -778,12 +725,19 @@
     
     
     /**
-     * Ajax links, buttons and select 
+     * Ajax links, buttons, select and forms
+     * 
+     * Decorate elements for jQuery ui if the jquery flag is true (default).
+     * and apply ajax functionality where required.
      */
     $.djpcms.decorator({
         id:	"ajax_widgets",
         config: {
-            selector_link: 'a.ajax, button',
+        	blank_target: true,
+        	submit: {jquery: true,
+        			 selector: 'input[type="submit"]'},
+        	link: {jquery: true,
+        		   selector: 'a, button'},
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_class: 'submitted'
@@ -794,9 +748,45 @@
                 cfg = config.ajax_widgets,
                 callback = $.djpcms.jsonCallBack,
                 logger = $.djpcms.logger,
-                that = this;
+                bt = cfg.blank_target,
+                that = this, links
             
-    		$(cfg.selector_link,$this).click(function(event) {
+            // Submits
+            if(cfg.submit.jquery) {
+            	$(cfg.submit.selector,$this).button();
+            }
+            
+            // Links and buttons
+            links = $(cfg.link.selector,$this);
+            if(cfg.link.jquery) {
+            	links.each(function() {
+            		var el = $(this),
+                    	data = el.data(),
+                    	icon = data.icon,
+                    	text = data.text;
+            		if(this.tagName.toLowerCase() === 'a') {
+            			if(icon) { 
+	            			icon = '<span class="ui-icon '+icon+'"></span>';
+	            			el.before(icon);
+	            			if(bt) {
+	                            var href = el.attr('href');
+	                            if(href && href.substring(0,4) == 'http') {
+	                                el.attr('target','_blank');
+	                            }
+	                        }
+            			}
+            		} else {
+            			if(!text) {
+            				text = icon ? false : true;
+            			}
+            			el.button({
+            				icons:{primary:icon},
+            				text:text
+            			});
+            		}
+            	});
+            }
+    		links.click(function(event) {
     		    event.preventDefault();
     		    var elem = $(this),
     		        ajax = elem.hasClass('ajax'),

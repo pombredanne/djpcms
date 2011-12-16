@@ -133,7 +133,9 @@ def navstream(request, urlselects, secondary_after, link_active, level):
             
 
 class Breadcrumbs(object):
-    '''Given a url it build a ``ul`` list of previous url elements.
+    '''A lazy class for building a site breadcrumb trail to keep track
+of current request location. It renders as a ``ul`` element
+with class name defaulted to ``"breadcrumbs"``.
     '''
     def __init__(self, min_length = 1, divider = None, cn = None,
                  render_empty = True, tag = 'div'):

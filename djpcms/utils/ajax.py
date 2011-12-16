@@ -28,7 +28,7 @@ as JSON string.
         '''Serialize ``self`` as a ``JSON`` string'''
         return self._dump(self.dict())
     
-    def mimetype(self):
+    def content_type(self):
         return 'application/javascript'
     
     def mark_safe(self, s):

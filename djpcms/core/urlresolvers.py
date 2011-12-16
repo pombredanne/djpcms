@@ -184,23 +184,14 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         else:
             return v
     
-    def response(self, data, callback = None):
-        '''Handle *data* using the
-:ref:`response site handler <response-site-handler>`.
-
-:parameter data: data to evaluate response from.
-:parameter callback: optional callback function invoked once response from data
-    is available.
-:rtype: whatever the response handler or the callback return.'''
-        return self.internal_data('response_handler')(data, callback)
+    @property
+    def response(self):
+        '''Access the site :ref:`response handler <response-handler>`.'''
+        return self.internal_data('response_handler')
     
     @property
     def settings(self):
         return self.internal_data('settings')
-    
-    @property
-    def render_page(self):
-        return self.internal_data('render_page')
     
     @property
     def search_engine(self):

@@ -9,20 +9,28 @@ __all__ = ['SiteLoader']
 
 
 class SiteLoader(object):
-    '''An utility class for loading and configuring djpcms sites.
+    '''An class for loading and configuring djpcms sites. Users can
+subclass this class and override the :meth:`load` method.
  
- .. attribute:: name
- 
-     The configuration name, useful when different types of configuration are
-     needed (WEB, RPC, ...)
+.. attribute:: name
+
+    The configuration name, useful when different types of configuration are
+    needed (WEB, RPC, ...)
+     
+    default: ``"DJPCMS"``
+
+.. attribute:: sites
+
+    instance of :class:`Site` lazily created when an instance of this
+    class is called.
 '''
     ENVIRON_NAME = None
     settings = None
     
     def __init__(self, name = None, **params):
         self.sites = None
-        self._wsgi_middleware = None
-        self._response_middleware = None
+        self._wsgi_middleware = []
+        self._response_middleware = []
         self.name = name or 'DJPCMS'
         self.setup(**params)
         
@@ -32,12 +40,20 @@ class SiteLoader(object):
     def __getstate__(self):
         d = self.__dict__.copy()
         d['sites'] = None
-        d['_wsgi_middleware'] = None
-        d['_response_middleware'] = None
+        d['_wsgi_middleware'] = []
+        d['_response_middleware'] = []
         return d
         
     def __call__(self):
         return self.build_sites()
+    
+    def add_wsgi_middleware(self, m):
+        '''Add a wsgi callable middleware'''
+        self._wsgi_middleware.append(m)
+        
+    def add_response_middleware(self, m):
+        '''Add a callable response middleware'''
+        self._response_middleware.append(m)
     
     def build_sites(self):
         if self.sites is None:
@@ -63,7 +79,10 @@ class SiteLoader(object):
         return self._response_middleware or []
     
     def load(self):
-        '''Default loading'''
+        '''create the :class:`Site` for your web.
+
+:rtype: an instance of :class:`Site`.
+'''
         settings = get_settings(settings = self.settings)
         return Site(settings)
         

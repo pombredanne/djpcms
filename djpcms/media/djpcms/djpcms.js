@@ -767,7 +767,7 @@
             		if(this.tagName.toLowerCase() === 'a') {
             			if(icon) { 
 	            			icon = '<span class="ui-icon '+icon+'"></span>';
-	            			el.before(icon);
+	            			el.before(icon).css({'padding-left':0});
 	            			if(bt) {
 	                            var href = el.attr('href');
 	                            if(href && href.substring(0,4) == 'http') {

@@ -10,7 +10,6 @@ from py2py3 import iteritems
 
 from djpcms.html import ContextRenderer, Widget
 from djpcms.utils.ajax import jservererror, isajax
-from djpcms.utils import logtrace
 
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
 from .layout import Meta, htmldoc
@@ -254,7 +253,8 @@ A typical usage::
 :rtype: a :class:`Response` object'''
         if isinstance(context,dict):
             page = request.page
-            context['htmldoc'] = doc = htmldoc(None if not page else page.doctype)
+            context['htmldoc'] = doc = htmldoc(None if not page\
+                                               else page.doctype)
             # get the site context
             context = request.view.site.context(context, request)
         elif not isajax(context) and hasattr(context,'status_code'):
@@ -273,18 +273,22 @@ A typical usage::
         return content.dumps()
             
     def body(self, request, response, context, body_renderer):
+        '''This is the final piece of :meth:`render_to_response`.
+The context is ready to be rendered.'''
         if isajax(context):
             content = self.ajax_content(response, context)
         else:
             body_renderer = body_renderer or self.body_renderer
             response.status_code = context.get('status_code',200)
-            content = '\n'.join(self._stream(request, body_renderer,
-                                             context))
+            body = body_renderer(request, context)
+            if isajax(body):
+                content = self.ajax_content(response, body)
+            else:
+                context['body'] = body
+                content = '\n'.join(self._stream(request, context))
         return self.encode(request, content)
         
-    def _stream(self, request, body_renderer, context):
-        body_renderer = body_renderer or self.body_renderer
-        body = body_renderer(request, context)
+    def _stream(self, request, context):
         media = request.media
         page = request.page
         doc = htmldoc(None if not page else page.doctype)
@@ -305,22 +309,15 @@ A typical usage::
             yield "<body class='{0}'>".format(body_class)
         else:
             yield '<body>'
-        yield body
+        yield context['body']
         yield media.all_js
         yield self.page_script(request)
         yield '</body>\n</html>'
         
-    def render(self, request, context, body_renderer = None):
-        '''render a page and return a binary string'''
-        page = request.page
-        context['htmldoc'] = doc = htmldoc(None if not page else page.doctype)
-        context = request.view.site.context(context, request)
-        callback = partial(self.body, request, body_renderer)
-        return request.view.response(context, callback)
-        
     def error_to_response(self, request, status):
         '''A wrapper of :meth:`render_to_response` for errors.'''
-        context = {'status_code':status}
+        context = {'status_code':status,
+                   'exc_info': sys.exc_info()}
         return self.render_to_response(request, context,
                                        self.error_renderer)
     
@@ -350,13 +347,15 @@ A typical usage::
     def error_renderer(self, request, context):
         '''The default error handler for djpcms'''
         status = context.get('status_code',500)
+        exc_info = context.get('exc_info')
         title = STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0]
         handler = request.view
         settings = request.settings
-        exc_info = sys.exc_info()
-        # Store the stack trace in the request cache
-        request.cache['traces'].append(exc_info)
-        logtrace(logger, request, exc_info, status)
+        if exc_info and exc_info[0] is not None:
+            # Store the stack trace in the request cache and log the traceback
+            request.cache['traces'].append(exc_info)
+        else:
+            exc_info = None
         error = Widget('div', cn = 'page-error error{0}'.format(status))
         inner = error
         
@@ -366,12 +365,12 @@ A typical usage::
                 inner = Widget('div', error, cn = grid.column1)
                 
         if settings.DEBUG:
-            stack_trace = traceback.format_exception(*exc_info)
             error.addClass('ui-state-error')
             error.add(Widget('h2','{0} {1}'.format(status,title)))
             error.add(Widget('h3',request.path))
-            for trace in traceback.format_exception(*exc_info):
-                error.add(Widget('p',trace))
+            if exc_info:
+                for trace in traceback.format_exception(*exc_info):
+                    error.add(Widget('p',trace))
         else:
             error.add(self.errorhtml.get(status,500))
             
@@ -381,7 +380,6 @@ A typical usage::
             context.update({
                 'title':title,
                 'body_class': 'error',
-                'stack_trace':stack_trace,
                 'inner':inner.render(request)})
             return self.body_renderer(request,context)
     

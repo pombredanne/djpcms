@@ -4,6 +4,7 @@ import logging
 
 from djpcms.core.exceptions import Http404, HttpException, PermissionDenied
 from djpcms.core.tree import DjpcmsTree, BadNode
+from djpcms.utils import logtrace
 
 from .profiler import profile_response
 from .wrappers import make_request, Response, ResponseRedirect
@@ -100,7 +101,9 @@ delegate the handling to them.'''
         except Exception as e:
             if request is None:
                 request = make_request(environ, node)
-            return self.error(request, getattr(e,'status',500))
+            status = getattr(e,'status',500)
+            logtrace(logger, request, True, status)
+            return self.error(request, status)
         
     def page_tree(self):
         Page = self.site.Page

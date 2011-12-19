@@ -118,6 +118,7 @@ an instance of a registered model).
 :parameter instance: a model instance.
 :parameter field_name: an *instance* field name.
 :parameter name: optional view name
+:rtype: a two element tuple ``(view,field_value)``
 
 It is used by :meth:`Application.viewurl`.'''
     if field_name:
@@ -126,7 +127,10 @@ It is used by :meth:`Application.viewurl`.'''
             value = value()
         if mapper(value):
             instance = value
-    return request.for_model(instance = instance, name = name)
+            value = None
+    else:
+        value = None
+    return request.for_model(instance = instance, name = name),value
 
 
 def views_serializable(views):
@@ -178,9 +182,11 @@ anchor or button :class:`djpcms.html.Widget`.'''
         yield w
 
 
-def application_link(view, asbutton = True):
+def application_link(view, value = None, asbutton = True):
     if view is not None:
         for _,link in application_links((view,),asbutton):
+            if value is not None:
+                link.data_stream[0] = value
             return link
     
 
@@ -238,7 +244,7 @@ an application based on model is available.
     return toolbox
 
     
-def paginationResponse(request, query, block = None, **kwargs):
+def paginationResponse(request, query, block = None, toolbox = None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
     
 :parameter query: a query on a model.
@@ -251,7 +257,7 @@ it looks for the following inputs in the request data:
     if isgenerator(query):
         query = list(query)
     
-    toolbox = table_toolbox(request)
+    toolbox = toolbox if toolbox is not None else table_toolbox(request)
     render = True
     needbody = True
     pagination = request.pagination

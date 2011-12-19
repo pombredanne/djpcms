@@ -44,6 +44,7 @@ class OrmWrapper(UnicodeMixin):
     orm = None
     DoesNotExist = None
     FieldValueError = None
+    model = None
     short_description = 'short_description'
     module_name = None
     
@@ -61,6 +62,9 @@ class OrmWrapper(UnicodeMixin):
         pass
     
     def test(self):
+        '''Test if this is the right mapper for :attr:`model`. If not it
+must raise a ValueError.
+'''
         raise NotImplementedError
     
     def is_query(self, query):
@@ -138,6 +142,9 @@ class OrmWrapper(UnicodeMixin):
     
     def has_delete_permission(self, user, obj=None):
         return user.is_superuser
+    
+    def id(self, obj):
+        return obj.id
     
     def unique_id(self, obj = None):
         '''A unique id for Html purposes. Here we remove dots

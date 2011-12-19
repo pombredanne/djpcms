@@ -472,7 +472,8 @@ the *request*.'''
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
                         qs = qs.filter(**{related_field:instance})
-            search = inputs.get(forms.SEARCH_STRING)
+            search_string = inputs.get('search_string',forms.SEARCH_STRING)
+            search = inputs.get(search_string)
             if search:
                 qs = qs.search(search)
             if hasattr(qs,'ordering') and not qs.ordering and\
@@ -655,9 +656,9 @@ This method is called by both :meth:`variables_from_instance` and
 
 It uses the :func:`instance_field_views` for the purpose.
 '''
-        view = instance_field_view(request,instance,field_name,name=name)
+        view,value = instance_field_view(request,instance,field_name,name=name)
         if asbutton is not None:
-            return application_link(view,asbutton)
+            return application_link(view, value = value, asbutton = asbutton)
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for

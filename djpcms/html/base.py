@@ -210,9 +210,13 @@ Any Operation on this class is similar to jQuery.
         return self
     
     def css(self, mapping):
-        '''Upsate the css dictionary'''
-        self._css.update(mapping)
-        return self
+        '''Upsate the css dictionary if *mapping* is a dictionary, otherwise
+ return the css value at *mapping*.'''
+        if isinstance(mapping,dict):
+            self._css.update(mapping)
+            return self
+        else:
+            return self._css.get(mapping)
         
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
@@ -266,6 +270,9 @@ with key ``name`` and value ``value`` and return ``self``.'''
         ctx.add_renderer(mark_safe)
         return ctx.done()
     
+    def hide(self):
+        self.css({'display':'none'})
+        
     @property
     def html(self):
         if not hasattr(self,'_html'):

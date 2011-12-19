@@ -15,6 +15,7 @@ from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
 from djpcms.html import ContextRenderer
+from djpcms.core import orms
 from djpcms.core.exceptions import *
 
 from .utils import parse_cookie, BaseHTTPRequestHandler,\
@@ -252,7 +253,10 @@ is available, the name is set to ``view``.
         if instance is None:
             model = model or self.model
         else:
-            model = instance.__class__
+            mapper = orms.mapper(instance)
+            if not mapper:
+                return
+            model = mapper.model
         app = self.app_for_model(model, all = all, root = root)
         if app:
             view = app.views.get(name) if name else None

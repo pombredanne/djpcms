@@ -393,7 +393,7 @@ By default it returns ``next`` if available, otherwise ``request.path``.
         if appmodel:
             if self.redirect_to_view:
                 view = self.appmodel.views.get(self.redirect_to_view)
-            elif instance:
+            elif instance and instance.id:
                 view = self.appmodel.instance_view
             else:
                 view = self.appmodel.root_view

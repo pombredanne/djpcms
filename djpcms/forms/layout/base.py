@@ -80,12 +80,12 @@ class FieldWidget(FormWidgetMaker):
         parent = widget.parent.maker
         if bfield.request is not request:
             bfield.request = request
-        w = bfield.widget()
+        w = bfield.widget
         parent.add_widget_classes(bfield,w)
         wrapper_class = getattr(w.maker,'wrapper_class',None)
         wrapper_class = wrapper_class + ' ' + bfield.name if wrapper_class else\
                         bfield.name
-        hidden = w.attr('type')=='hidden'
+        hidden = w.attr('type')=='hidden' or  w.css('display') == 'none'
         checkbox = w.maker.ischeckbox()
         
         if hidden or checkbox:

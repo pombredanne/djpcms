@@ -23,6 +23,8 @@ derived from :class:`BaseOrmWrapper`.'''
         if not name.orm:
             raise ValueError('"orm" not defined in OrmWrapper')
         model_wrappers[name.orm] = name
+        if name.model:
+            register_wrapper(name(name.model))
     else:
         names = name.split('.')
         if len(names) == 1:
@@ -36,6 +38,10 @@ derived from :class:`BaseOrmWrapper`.'''
         model_wrappers[name] = mod.OrmWrapper
 
 
+def register_wrapper(wrapper):
+    setattr(wrapper.model,'_djpcms_orm_wrapper',wrapper)
+    
+    
 def getmodel(appmodel):
     global _models
     for wrapper in _models.itervalues():
@@ -50,7 +56,7 @@ def getmodel(appmodel):
     if not isinstance(model,type):
         instance = model
         model = instance.__class__
-    wrapper = getattr(model,'_djpcms_orm_wrapper',None)
+    wrapper = getattr(model,'_djpcms_orm_wrapper',None)    
     if not wrapper:
         for wrapper_cls in ORMS():
             try:
@@ -61,9 +67,8 @@ def getmodel(appmodel):
         if not wrapper:
             return None
             return DummyMapper(model)
-            #raise AttributeError('Could not find ORM wrapper for {0}'.format(model))
         else:
-            setattr(model,'_djpcms_orm_wrapper',wrapper)
+            register_wrapper(wrapper)
     return wrapper
 
 

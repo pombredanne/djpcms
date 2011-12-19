@@ -1121,7 +1121,7 @@
     });  
     
     /**
-     * Decorator for autocomplete.
+     * AUTOCOMPLETE
      * 
      * The actual values are stored in the data attribute of the input element.
      * The positioning is with respect the "widgetcontainer" parent element if
@@ -1235,7 +1235,7 @@
                             }
                     };
                 
-                
+                // Bind to form pre-serialize 
                 elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data,manager));
                 // Optain the widget container for positioning if specified. 
                 if(opts.widgetcontainer) {
@@ -1293,9 +1293,11 @@
                     elem.autocomplete(options);
                 }
                 else if(url) {
+                	// We have a url, the data is obtained remotely.
                     options.source = function(request,response) {
                                     var ajax_data = {style: 'full',
                                                      maxRows: maxRows,
+                                                     'search_string': search_string 
                                                      };
                                     ajax_data[search_string] = request.term;
                                     var loader = $.djpcms.ajax_loader(url,

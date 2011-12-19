@@ -207,12 +207,8 @@ has been submitted.'''
             return ajax.jredirect(url = redirect_url)
         else:
             return http.ResponseRedirect(redirect_url)
-    
-    
-    redirect_url = get_redirect(request,
-                                instance=instance,
-                                force_redirect=force_redirect)
-    if SAVE_AS_NEW_KEY in data and instance:
+        
+    if SAVE_AS_NEW_KEY in data and instance and instance.id:
         f.instance = instance = appmodel.mapper.save_as_new(instance,
                                                             commit = False)
         
@@ -220,6 +216,10 @@ has been submitted.'''
     if f.is_valid():
         editing = bool(instance and instance.id)
         instance = view.save(request,f)
+        redirect_url = get_redirect(request,
+                                    instance=instance,
+                                    force_redirect=force_redirect)
+
         if ajax.isajax(instance):
             return instance
         elif instance == f:

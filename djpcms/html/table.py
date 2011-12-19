@@ -134,7 +134,7 @@ javascript plugin'''
             yield th.render(request)
         yield '</tr>\n</thead>\n<tbody>'
         for row in self.rows(request,widget):
-            tr = Widget('tr', cn = row.get('id'))
+            tr = Widget('tr', id = row.get('id'))
             for item in row['display']:
                 tr.add('<td>{0}</td>'.format(item))
             yield tr.render(request)
@@ -330,6 +330,9 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         data.update(deepcopy(self.html_data))
         if toolbox:
             data.update(toolbox)
+            headers = toolbox['headers']
+        else:
+            headers = self.list_display
         if 'options' not in data:
             options = {}
             data['options'] = options
@@ -342,7 +345,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 options['bServerSide'] = True
                 if ajax:
                     options['sAjaxSource'] = ajax
-            maker = partial(table, self.list_display)
+            maker = partial(table, headers)
         else:
             maker = self.widget_factory
         

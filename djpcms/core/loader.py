@@ -48,12 +48,18 @@ subclass this class and override the :meth:`load` method.
         return self.build_sites()
     
     def add_wsgi_middleware(self, m):
-        '''Add a wsgi callable middleware'''
-        self._wsgi_middleware.append(m)
+        '''Add a wsgi callable middleware or a list of middlewares'''
+        if isinstance(m,(list,tuple)):
+            self._wsgi_middleware.extend(m)
+        else:
+            self._wsgi_middleware.append(m)
         
     def add_response_middleware(self, m):
-        '''Add a callable response middleware'''
-        self._response_middleware.append(m)
+        '''Add a callable response middleware or a list of middleware'''
+        if isinstance(m,(list,tuple)):
+            self._response_middleware.extend(m)
+        else:
+            self._response_middleware.append(m)
     
     def build_sites(self):
         if self.sites is None:

@@ -169,9 +169,9 @@ class get_app_result(object):
             var = field_repr(request, attrname, result,
                              appmodel = appmodel, **kwargs)
         
-        if self.first and self.actions:
-            first = False 
-            var = action_checkbox(var, getattr(result,'id',None))
+        if self.first and self.actions and mapper:
+            first = False
+            var = action_checkbox(var, mapper.id(result))
         
         esc = kwargs.get('escape',escape)
         var = esc(var)

@@ -2,7 +2,6 @@
 
 Several parts are originally from django
 '''
-from copy import deepcopy, copy
 import json
 
 from py2py3 import iteritems
@@ -11,7 +10,7 @@ import djpcms
 from djpcms import UnicodeMixin
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
-from djpcms.utils import force_str
+from djpcms.utils import force_str, lazyproperty
 from djpcms.utils.text import nicename
 from djpcms.utils.const import NOTHING
 from djpcms.html import SubmitInput
@@ -119,7 +118,6 @@ procedure calls validation.
 :parameter request: An optional Http Request object of any kind.
     Not used by the class itself but stored in the :attr:`request`
     attribute for convenience.
-:parameter site: An optional site instance when used in a web site.
 
 .. attribute:: is_bound
 
@@ -156,10 +154,6 @@ procedure calls validation.
     included in the current form.
     
     Default: ``[]``.
-    
-.. attribute:: site
-
-    The :class:`djpcms.views.ApplicationSite` serving the form.
 '''
     prefix_input = '_prefixed'
     request = None
@@ -167,7 +161,7 @@ procedure calls validation.
     def __init__(self, data = None, files = None,
                  initial = None, prefix = None,
                  model = None, instance = None,
-                 request = None, site = None):
+                 request = None):
         self.is_bound = data is not None or files is not None
         self.rawdata = data
         self._files = files
@@ -179,14 +173,9 @@ procedure calls validation.
         self.model = model
         self.instance = instance
         self.messages = {}
-        self.hidden_fields = set()
         self.request = request
-        self._site = site
         self.changed = False
-        if request:
-            self.user = getattr(request,'user',None)
-        else:
-            self.user = None 
+        self.user = getattr(request,'user',None) if request else None 
         if self.instance:
             model = self.instance.__class__
         self.model = model
@@ -228,7 +217,8 @@ if they occur.'''
     @property
     def fields(self):
         '''List of :class:`BoundField` instances after
-validation.'''
+validation, if the form is bound, otherwise a list of :class:`BoundField`
+instances with initial values.'''
         self._unwind()
         return self._fields
     
@@ -455,7 +445,6 @@ and shouldn't be used otherwise.
 
     The :attr:`field` name to be used in HTML.
 '''
-    _widget = None
     auto_id='id_{0[for_name]}'
     
     def __init__(self, form, field, name, prefix):
@@ -487,16 +476,16 @@ algorithm on :attr:`field`.'''
         self.value = self.field.clean(value, self)
         return self.value
     
+    @lazyproperty
     def widget(self):
-        '''Return an :class:`djpcms.html.Widget` instance for the field
-with bound data and attributes.'''
-        widget = self._widget
+        '''The :class:`djpcms.html.Widget` instance for the field
+with bound data and attributes. This is obtained from the :class:`Field.widget`
+factory.'''
         field = self.field
-        if not widget:
-            data = field.get_widget_data(self)
-            widget = field.widget.widget()\
-                         .addAttrs(field.widget_attrs)\
-                         .addData(data)
+        data = field.get_widget_data(self)
+        widget = field.widget.widget()\
+                     .addAttrs(field.widget_attrs)\
+                     .addData(data)
         widget.internal['bfield'] = self
         widget.addAttrs({'id': self.id,
                          'name':self.html_name,

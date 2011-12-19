@@ -41,12 +41,24 @@ Field are specified as attribute of a form, for example::
         age = forms.IntegerField()
     
 very similar to django forms API.
+
+:parameter required: set the :attr:`required` attribute.
+:parameter default: set the :attr:`default` attribute.
+:parameter initial: set the :attr:`initial` attribute.
+:parameter widget: set the :attr:`widget` attribute.
     
 .. attribute:: required
 
     boolean specifying if the field is required or not.
     If a field is required and
     it is not available or empty it will fail validation.
+    
+    Default: ``True``.
+    
+.. attribute:: default
+
+    Default value for this field. It can be a callable accepting 
+    a :class:`BoundField` instance for the field as only parameter.
     
     Default: ``None``.
     
@@ -66,13 +78,19 @@ very similar to django forms API.
         an unbounded form. The :func:`Form.initials`
         method return a dictionary of initial values for fields
         providing one. 
+        
+.. attribute:: widget
+
+    The :class:`djpcms.html.WidgetMaker` for this field.
+    
+    Default: ``None``.
     
 .. attribute:: widget_attrs
 
     dictionary of widget attributes used for setting the widget
     html attributes. For example::
     
-        widget_attrs = {'title':'myt title'}
+        widget_attrs = {'title':'my title'}
     
     Default: ``None``.
 '''
@@ -105,6 +123,8 @@ very similar to django forms API.
         widget = widget or self.widget
         if isclass(widget):
             widget = widget()
+        else:
+            widget = copy(widget)
         self.widget = widget
         if not isinstance(self.widget,html.WidgetMaker):
             raise ValueError("Form field widget of wrong type")
@@ -415,7 +435,7 @@ parameters can be overridden at initialization.
                 setattr(self,attname,kwargs[attname])
         if not self.model and self.query is not None:
             self.model = self.query.model
-        self.mapper = mapper(self.model)
+        self.mapper = mapper(self.model) if self.model else None
                 
     def all(self, bfield):
         '''An iterable over choices or ``None``.'''
@@ -471,6 +491,15 @@ is ``True``, in which case the value is returned.'''
         field = '{0}__in'.format(self.field)
         return self.mapper.filter(**{field:value})
     
+    def widget_value(self, value):
+        model = self.model
+        if not value or not model:
+            return value
+        if self.multiple:
+            return [v.id if isinstance(v,model) else v for v in value]
+        else:
+            return value.id if isinstance(value,model) else value
+        
     def get_widget_data(self, bfield):
         '''Called by the :meth:`Field.get_widget_data` method of
 :class:`ChoiceField`.'''

@@ -297,10 +297,10 @@ There are three additional parameters that can be set:
         
     def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
+        params = request.REQUEST
         qs = self.query(request)
         if fields:
             qs = qs.load_only(*fields)
-        params = request.REQUEST
         maxRows = params.get('maxRows')
         auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
         return ajax.CustomHeaderBody('autocomplete',auto_list)

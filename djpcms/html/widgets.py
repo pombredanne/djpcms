@@ -97,6 +97,8 @@ class Select(FieldWidget):
     
     def set_value(self, val, widget):
         bfield =  widget.internal.get('bfield',None)
+        if bfield:
+            val = bfield.field.choices.widget_value(val)
         if val:
             selected_choices = val if widget.attr('multiple') else (val,)
         else:

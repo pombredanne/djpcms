@@ -58,6 +58,9 @@ class AuthenticationError(Exception):
 
 class SimpleRobots(object):
     
+    def __init__(self, settings):
+        pass
+    
     def __call__(self, request):
         if request.has_permission(user = None):
             #if not self.page or self.page.insitemap:
@@ -92,7 +95,7 @@ class PermissionHandler(object):
         self.auth_backends = auth_backends
         self.requires_login = requires_login
     
-    def default_backends(self):
+    def default_backends(self, settings):
         '''Create the default authentication backends.'''
         return []
     

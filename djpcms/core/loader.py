@@ -39,6 +39,7 @@ subclass this class and override the :meth:`load` method.
         
     def __getstate__(self):
         d = self.__dict__.copy()
+        d['local'] = {}
         d['sites'] = None
         d['_wsgi_middleware'] = []
         d['_response_middleware'] = []
@@ -67,7 +68,7 @@ subclass this class and override the :meth:`load` method.
                 os.environ[self.ENVIRON_NAME] = self.name
             name = '_load_{0}'.format(self.name.lower())
             self.sites = getattr(self,name,self.load)()
-            if self.sites:
+            if self.sites is not None:
                 self.sites.load()
                 self.finish()
         return self.sites
@@ -81,6 +82,7 @@ subclass this class and override the :meth:`load` method.
         return m
     
     def response_middleware(self):
+        '''Return a list of response middleware.'''
         sites = self.build_sites()
         return self._response_middleware or []
     
@@ -101,5 +103,6 @@ subclass this class and override the :meth:`load` method.
         pass
 
     def wsgi(self):
+        '''Return the WSGI handeler for your application.'''
         return http.WSGIhandler(self.wsgi_middleware(),
                                 self.response_middleware())

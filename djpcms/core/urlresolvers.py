@@ -332,7 +332,7 @@ class ResolverMixin(RouteMixin):
         if not hasattr(self,'_urls'):
             self._urls = self._load()
             self.on_bound()
-            if self.is_root:
+            if self.is_root and self:
                 self._tree = NRT(self.all_views(),self)
         
     def _isbound(self):

@@ -378,29 +378,11 @@ is used by the :attr:`djpcms.Request.parent` attribute.'''
         else:
             return 0
     
-    def defaultredirect(self, request, instance = None):
-        '''This function is used to build a redirect ``url`` for ``self``.
-It is called by ``djpcms`` only when a redirect is needed.
-
-:parameter request: HttpRequest object.
-:parameter url: optional ``url`` provided.
-:parameter instance: optional instance of a model.
-:parameter kwargs: additional url bits.
-
-By default it returns ``next`` if available, otherwise ``request.path``.
-'''
+    def redirect_url(self, request, instance = None, name = None):
+        '''Call the :meth:`Application.redirect_url` by default.'''
         appmodel = self.appmodel
         if appmodel:
-            if self.redirect_to_view:
-                view = self.appmodel.views.get(self.redirect_to_view)
-            elif instance and instance.id:
-                view = self.appmodel.instance_view
-            else:
-                view = self.appmodel.root_view
-            if view:
-                r = request.for_path(view.path,instance=instance)
-                if r:
-                    return r.url
+            return appmodel.redirect_url(request, instance, name)
         return '/'
     
     def warning_message(self, request):

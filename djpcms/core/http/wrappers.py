@@ -155,6 +155,8 @@ def make_request(environ, node, instance = None, cache = True, safe = True):
                 except:
                     if not safe:
                         raise
+                    # set instance to None
+                    instance = None
             if instance:
                 urlargs = view.variables_from_instance(instance)
                 node.urlargs.update(urlargs)

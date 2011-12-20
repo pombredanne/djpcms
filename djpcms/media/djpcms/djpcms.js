@@ -737,7 +737,8 @@
         	submit: {jquery: true,
         			 selector: 'input[type="submit"]'},
         	link: {jquery: true,
-        		   selector: 'a, button'},
+        		   selector: 'a, button',
+        		   ajax_selector: 'a.ajax, button.ajax'},
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_class: 'submitted'
@@ -786,7 +787,7 @@
             		}
             	});
             }
-    		links.click(function(event) {
+    		$(cfg.link.ajax_selector,$this).click(function(event) {
     		    event.preventDefault();
     		    var elem = $(this),
     		        ajax = elem.hasClass('ajax'),
@@ -1267,7 +1268,7 @@
                         }
                     });
                 }
-                initials = $.data(this,'initial_value');
+                initials = data.initial_value;
                 if(initials) {
                     $.each(initials, function(i,initial) {
                     	manager.add_data({real_value: initial[0],

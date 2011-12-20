@@ -23,8 +23,7 @@ __all__ = ['Field',
            'EmailField',
            'FileField',
            'HiddenField',
-           'ChoiceFieldOptions',
-           'Choices']
+           'ChoiceFieldOptions']
 
 
 standard_validation_error = '{0} is required'
@@ -367,12 +366,10 @@ class BooleanField(Field):
                 return bool(value)
     
 
-class MultileField(Field):
-    multiple = False
+class MultipleField(Field):
     
     def handle_params(self, multiple = None, **kwargs):
-        self.multiple = multiple if multiple is not None else\
-                             self.multiple
+        self.multiple = multiple or False
         if self.multiple:
             self.widget_attrs['multiple'] = 'multiple'
         self._raise_error(kwargs)
@@ -391,9 +388,18 @@ class MultileField(Field):
     
 
 class ChoiceFieldOptions(object):
-    '''A class for handling :class:`ChoiceField` options. Each one of the
-parameters can be overridden at initialization. 
+    '''A class for handling :class:`ChoiceField` options. Each
+parameters can be overridden at initialization. It can handle both
+queries on models as well as list of two-elements tuples ``(value,label)``.
 
+.. attribute:: query
+
+    In most cases, this is the only attribute required. It can be an iterable
+    over two elements tuples, a query set on a model or ``None``. It can
+    be a callable returning one of the above also. If a callable it accept
+    a :class:`BoundField` instance as only parameter.
+    It can be a *generator function* (but not a generator).
+    
 .. attribute:: autocomplete
 
     An optional boolean indicating if the field is rendered as
@@ -433,17 +439,29 @@ parameters can be overridden at initialization.
         for attname in dir(self.__class__):
             if not attname.startswith('__') and attname in kwargs:
                 setattr(self,attname,kwargs[attname])
-        if not self.model and self.query is not None:
-            self.model = self.query.model
-        self.mapper = mapper(self.model) if self.model else None
+        self.mapper = mapper(self.model) if self.model is not None else None
+        self._setmodel(self.query)
                 
     def all(self, bfield):
         '''An iterable over choices or ``None``.'''
-        if self.model and not self.autocomplete:
-            query = self.query if self.query is not None else\
-                             self.mapper.all()
+        query = self.query
+        if hasattr(query,'__call__'):
+            query = query(bfield)
+            self._setmodel(query)
+        if self.mapper:
+            if not self.autocomplete:
+                query = query if query is not None else self.mapper.all()
+                for v in query:
+                    yield v.id,v
+        elif query:
             for v in query:
-                yield v.id,v
+                yield v
+    
+    def _setmodel(self, query):
+        if not self.model and query is not None:
+            self.model = getattr(query,'model',None)
+            if self.model:
+                self.mapper = mapper(self.model)
     
     def url(self, request):
         '''Retrieve a url for search.'''
@@ -463,7 +481,7 @@ clean its values.'''
         
     def clean_simple(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
-        ch = set((to_string(x[0]) for x in self.choices(bfield)))
+        ch = set((to_string(x[0]) for x in self.all(bfield)))
         values = value if self.multiple else (value,)
         for v in values:
             if v not in ch:
@@ -499,7 +517,13 @@ is ``True``, in which case the value is returned.'''
             return [v.id if isinstance(v,model) else v for v in value]
         else:
             return value.id if isinstance(value,model) else value
-        
+    
+    def html_name(self, name):
+        if not self.autocomplete and self.multiple:
+            return '{0}[]'.format(name)
+        else:
+            return name
+            
     def get_widget_data(self, bfield):
         '''Called by the :meth:`Field.get_widget_data` method of
 :class:`ChoiceField`.'''
@@ -538,32 +562,17 @@ is ``True``, in which case the value is returned.'''
                     data['initial_value'] = values
         return data
     
-class Choices(ChoiceFieldOptions):
-    '''A :class:`ChoiceFieldOptions` which wraps a ``choices`` iterable
-or callable.'''
-    def __init__(self, choices, **kwargs):
-        super(Choices,self).__init__(**kwargs)
-        self._choices = choices
-        
-    def all(self, bfield):
-        c = self._choices
-        if hasattr(c,'__call__'):
-            c = c(bfield)
-        return c
     
-    
-class ChoiceField(MultileField):
+class ChoiceField(Field):
     '''A :class:`Field` which validates against a set of ``choices``.
 It has several additional attributes which can be specified
 via the :class:`ChoiceFieldOptions` class.
 
 .. attribute:: choices
 
-    An instance of :class:`ChoiceFieldOptions`, an iterable over
-    two-elements tuples or a callable.
-    If a callable, it must accept a one parameter given by
-    the :class:`BoundField` instance for this field and return an iterable over
-    two-elements tuples. It can be a *generator function*.
+    An instance of :class:`ChoiceFieldOptions` or any of the
+    possible values for the :attr:`ChoiceFieldOptions.query`
+    attribute.
 '''
     widget = html.Select()
     
@@ -575,13 +584,15 @@ form as only argument'''
                not hasattr(choices,'__iter__'):
                 raise TypeError('choices must be an instance of\
  ChoiceFieldOptions, iterable or a callable. Got "{0}" instead'.format(choices))
-            choices = Choices(choices)
+            choices = ChoiceFieldOptions(query = choices)
         self.choices = choices
         if choices.autocomplete:
             if not self.widget.attrs.get('type') == 'text':
                 self.widget = html.TextInput(default_class = 'autocomplete')
             else:
                 self.widget.default_class = 'autocomplete'
+        elif choices.multiple:
+            self.widget_attrs['multiple'] = 'multiple'
         super(ChoiceField,self).handle_params(**kwargs)
                 
     def _clean(self, value, bfield):
@@ -595,12 +606,15 @@ form as only argument'''
     def get_widget_data(self, bfield):
         return self.choices.get_widget_data(bfield)
         
-
+    def html_name(self, name):
+        return self.choices.html_name(name)
+    
+    
 class EmailField(CharField):
     pass
 
 
-class FileField(MultileField):
+class FileField(MultipleField):
     widget = html.FileInput()
     
     def value_from_datadict(self, data, files, key):

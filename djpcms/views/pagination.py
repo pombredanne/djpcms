@@ -10,7 +10,7 @@ __all__ = ['application_action',
            'application_views',
            'application_links',
            'application_link',
-           'instance_field_view',
+           'instance_field_view_value',
            'application_views_links',
            'table_toolbox',
            'paginationResponse',
@@ -111,14 +111,14 @@ def application_views(request,
                 yield application_action_to_menu_link(elem,req.url)
 
 
-def instance_field_view(request, instance, field_name, name = None):
+def instance_field_view_value(request, instance, field_name, name = None):
     '''Retrieve a view for a field of an *instance* (if that field is
-an instance of a registered model).
+an instance of a registered model) and its correspondent value.
 
 :parameter instance: a model instance.
-:parameter field_name: an *instance* field name.
+:parameter field_name: an *instance* field attribute name.
 :parameter name: optional view name
-:rtype: a two element tuple ``(view,field_value)``
+:rtype: a two element tuple ``(view, field_value)``
 
 It is used by :meth:`Application.viewurl`.'''
     if field_name:
@@ -128,6 +128,8 @@ It is used by :meth:`Application.viewurl`.'''
         if mapper(value):
             instance = value
             value = None
+        elif not value:
+            return None,None
     else:
         value = None
     return request.for_model(instance = instance, name = name),value
@@ -308,9 +310,11 @@ it looks for the following inputs in the request data:
         body = appmodel.table_generator(request, toolbox['headers'], body)
         
     if render:
-        return pagination.widget(body, pagination = pag,
-                                 ajax = ajax, toolbox = toolbox,
-                                 appmodel = appmodel).render(request)
+        title = block.title if block else None
+        return pagination.widget(
+                     body, pagination = pag,
+                     ajax = ajax, toolbox = toolbox,
+                     appmodel = appmodel, title = title).render(request)
     else:
         return pagination.ajaxresponse(request, body, pagination = pag,
                                        ajax = ajax, toolbox = toolbox,

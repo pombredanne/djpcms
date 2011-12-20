@@ -231,8 +231,7 @@ the plugin will display the search view for that application.
     description = 'Current View'
     
     def render(self, request, block, prefix, **kwargs):
-        request.block = block
-        return request.render()
+        return request.render(block = block)
     
     
 class ApplicationPlugin(DJPplugin):

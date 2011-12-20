@@ -125,16 +125,7 @@ ChoiceFieldOptions
 
 .. autoclass:: ChoiceFieldOptions
    :members:
-   :member-order: bysource
-
-
-Choices
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Choices
-   :members:
    :member-order: bysource   
-   
    
 BoundField
 ~~~~~~~~~~~~~~~~~~

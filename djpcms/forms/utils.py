@@ -170,7 +170,7 @@ according to the following algorithm:
 * Check for ``next`` in the request environment query string
 * Check for ``next`` in the environment referer query string
 * If *force_redirect* is ``True``, calculate next from the
-  :meth:`djpcms.views.djpcmsview.defaultredirect` passing both *request*
+  :meth:`djpcms.views.djpcmsview.redirect_url` passing both *request*
   and the optional *instance* parameter.
   
 If none of the above works, it returns ``None``, otherwise it returns an
@@ -182,8 +182,9 @@ absolute url.
         if next:
             return next
         elif force_redirect:
-            return request.view.defaultredirect(request,instance=instance)
-    return request.build_absolute_uri(_next())
+            return request.view.redirect_url(request,instance=instance)
+    n = _next()
+    return request.build_absolute_uri(n) if n else None
     
     
 def saveform(request, force_redirect = False):
@@ -199,32 +200,25 @@ has been submitted.'''
     fhtml = view.get_form(request)    
     layout = fhtml.layout
     f = fhtml.form
-    instance = f.instance
     
     if CANCEL_KEY in data:
-        redirect_url = get_redirect(request,instance,True)
-        if is_ajax:
-            return ajax.jredirect(url = redirect_url)
-        else:
-            return http.ResponseRedirect(redirect_url)
+        url = get_redirect(request,f.instance,True)
+        return view.redirect(request, url)
         
-    if SAVE_AS_NEW_KEY in data and instance and instance.id:
-        f.instance = instance = appmodel.mapper.save_as_new(instance,
-                                                            commit = False)
+    if SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
+        f.instance = appmodel.mapper.save_as_new(f.instance,
+                                                 commit = False)
         
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
-        editing = bool(instance and instance.id)
+        editing = bool(f.instance and f.instance.id)
         instance = view.save(request,f)
-        redirect_url = get_redirect(request,
-                                    instance=instance,
-                                    force_redirect=force_redirect)
 
         if ajax.isajax(instance):
             return instance
         elif instance == f:
             return layout.json_messages(f)
-        msg = fhtml.success_message(instance,
+        msg = fhtml.success_message(request, instance,
                                     'changed' if editing else 'added')
         f.add_message(msg)
         
@@ -237,19 +231,21 @@ has been submitted.'''
                     set_request_message(f,request)
                     return http.ResponseRedirect(curr)
             else:
-                redirect_url = appmodel.changeurl(request, instance)
-            
-        # not forcing redirect. Check if we can send a JSON message
-        if not force_redirect:
-            if redirect_url == curr and is_ajax:
-                return layout.json_messages(f)
-            
-        # We are Redirecting
-        set_request_message(f,request)
-        if is_ajax:
-            return ajax.jredirect(url = redirect_url)
+                url = view.redirect_url(request, instance, 'change')
         else:
-            return http.ResponseRedirect(redirect_url)
+            url = get_redirect(request,
+                               instance=instance,
+                               force_redirect=force_redirect)
+        
+        if not url:
+            if is_ajax:
+                return layout.json_messages(f)
+            else:
+                set_request_message(f,request)
+                return view.get_response(request)
+        else:
+            set_request_message(f,request)
+            return view.redirect(request, url)
     else:
         if is_ajax:
             return layout.json_messages(f)

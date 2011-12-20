@@ -322,6 +322,7 @@ and handles the saving as default ``POST`` response.'''
     has_plugin = True
     in_nav = 1
     ajax_enabled = False
+    force_redirect = True
     
     def render(self, request, **kwargs):
         return self.get_form(request).render(request, **kwargs)
@@ -406,14 +407,7 @@ class DeleteView(ObjectView):
                 'body':'<p>Once you have deleted <b>{0}</b>,\
  there is no going back.</p>\
  <p>Are you really sure? If so press OK.</p>'.format(request.instance)}
-    
-    def nextviewurl(self, request):
-        view = request.view
-        if view.object_view and getattr(view,'model',None) == self.model:
-            return request.for_view(self.appmodel.root_view).url
-        else: 
-            return request.url
-    
+        
     
 class ObjectActionView(ObjectView):
     '''An :class:`ObjectView` class specialised for performing actions
@@ -438,4 +432,5 @@ an instance of a model.'''
     ICON = 'ui-icon-pencil'
     default_title = 'edit {1}'
     default_link = 'edit'
+    force_redirect = True 
     

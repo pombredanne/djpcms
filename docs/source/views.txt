@@ -146,10 +146,10 @@ application_views_links
 
 .. autofunction :: application_views_links
 
-instance_field_views
+instance_field_view_value
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction :: instance_field_view
+.. autofunction :: instance_field_view_value
 
 Table toolbox
 ~~~~~~~~~~~~~~~~~~~~

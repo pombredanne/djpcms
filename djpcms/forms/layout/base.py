@@ -324,8 +324,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 continue
             ul = html.Widget('ul',
                              (html.Widget('li',d,cn=msg_class) for d in msg))   
-            ListDict.add(name, ul.render(),
-                         alldocument = False, removable=True)
+            ListDict.add(name, ul.render(), removable=True)
 
 
 class SimpleLayoutElement(FormLayoutElement):

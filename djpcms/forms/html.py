@@ -13,13 +13,13 @@ from .layout import FormWidgetMaker, FormLayout
 __all__ = ['HtmlForm']
 
 
-def default_success_message(instance, mch):
+def default_success_message(request, instance, mch):
     from djpcms.core.orms import mapper
     '''Very basic success message. Write your own for a better one.'''
     c = {'mch': mch}
     if instance:
         c['name'] = mapper(instance).pretty_repr(instance)
-        return '{0[name]} succesfully {0[mch]}'.format(c)
+        return '{0[name]} successfully {0[mch]}'.format(c)
     else:
         return '0[mch]'.format(c)
 
@@ -31,11 +31,11 @@ To render an instance of :class:`Form` on a web page we use this class.
     
 :parameter form_class: A form class setting the :attr:`form_class` attribute.
 :parameter layout: An optional layout instance which sets the :attr:`layout`
-    attribute.
-    
-    Default: ``None``.
-    
+    attribute.    
 :parameter ajax: Set the :attr:`ajax` attribute.
+:parameter success_message: optional function which overrides the
+    :attr:`success_message` attribute
+
  
                    
 Simple usage::
@@ -67,6 +67,11 @@ Simple usage::
     An iterable of form inputs.
     
     Default:: ``[]``
+    
+.. attribute:: success_message
+
+    A callable which accept the request object, an instance of an object
+    and a string indicating if the form has changed or created the instance.
 '''
     tag = 'form'
     default_attrs = {'method':'post',

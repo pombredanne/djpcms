@@ -315,7 +315,13 @@ The context is ready to be rendered.'''
         yield '</body>\n</html>'
         
     def error_to_response(self, request, status):
-        '''A wrapper of :meth:`render_to_response` for errors.'''
+        '''A wrapper of :meth:`render_to_response` for errors. It is
+equivalent to call :meth:`render_to_response` with the following parameter::
+
+    self.render_to_response(request, 
+                            {'status_code':status,'exc_info': sys.exc_info()},
+                            self.error_renderer)
+    '''
         context = {'status_code':status,
                    'exc_info': sys.exc_info()}
         return self.render_to_response(request, context,
@@ -345,7 +351,8 @@ The context is ready to be rendered.'''
             return context.get('inner','')
         
     def error_renderer(self, request, context):
-        '''The default error handler for djpcms'''
+        '''The default error renderer. It handles both ajax and
+ standard responses. Override if you need to.'''
         status = context.get('status_code',500)
         exc_info = context.get('exc_info')
         title = STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0]

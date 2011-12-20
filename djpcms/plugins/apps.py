@@ -83,8 +83,8 @@ class ModelLinksForm(forms.Form):
     
 
 class ContentForm(forms.Form):
-    content = forms.ChoiceField(choices = forms.Choices(\
-                                    get_contet_choices,
+    content = forms.ChoiceField(choices = forms.ChoiceFieldOptions(\
+                                    query = get_contet_choices,
                                     autocomplete = True))
 #
 #______________________________________________ PLUGINS
@@ -198,7 +198,8 @@ certain number of items as specified in the max display input.'''
             order_by = html.attrname_from_header(appheads,order_by)
             if decr:
                 order_by = '-{0}'.format(order_by)
-                
+        
+        # query with the instancde of the current page
         qs = view.query(request, instance = instance)
         if text_search:
             qs = qs.search(text_search)
@@ -223,8 +224,8 @@ certain number of items as specified in the max display input.'''
         else:
             w = html.Widget('div', cn = 'filtered-list')\
                     .addClass(appmodel.mapper.class_name())
-            render_object = appmodel.render_object
-            inner = '\n'.join(render_object(request, item, 'list')\
+            render_instance = appmodel.render_instance
+            inner = '\n'.join(render_instance(request, item, 'list')\
                               for item in items)
             return w.render(request,inner)
 

@@ -160,7 +160,14 @@ overwritten to customize its behavior.
     List of fields to load when querying for autocomplete. Usually you may
     want to limit this to a small set to speed up retrieval.
     
-    Default ``None``.
+    Default: ``None``.
+    
+.. attribute:: always_load_fields
+
+    list or tuple of :attr:`model` fields which must be loaded every time
+    we query the model. Used by the :meth:`load_fields` method.
+    
+    Default: ``None``.
         
 .. attribute:: list_display_links
 
@@ -250,6 +257,7 @@ overwritten to customize its behavior.
     inherit = False
     authenticated = False
     related_field = None
+    always_load_fields = None
     autocomplete_fields = None
     editavailable = True
     object_display = None
@@ -271,7 +279,7 @@ overwritten to customize its behavior.
     def __init__(self, route, model = None, editavailable = None,
                  list_display_links = None, object_display = None,
                  related_field = None, url_bits_mapping = None,
-                 routes = None, **kwargs):
+                 routes = None, always_load_fields = None, **kwargs):
         # Set the model first
         self.model = model
         self.mapper = None
@@ -291,6 +299,7 @@ overwritten to customize its behavior.
                                 self.editavailable
         self.list_display_links = list_display_links or self.list_display_links
         self.related_field = related_field or self.related_field
+        self.always_load_fields = always_load_fields or self.always_load_fields
         if self.parent_view and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent_view,self))
@@ -521,13 +530,18 @@ data to the client.
         pass
     
     def load_fields(self, headers = None):
+        '''Return a tuple containing the name of the fields to be loaded
+from attr:`model` if available. These fields are obtained from the
+input *headers*.'''
         if headers:
-            load_only = tuple((h.attrname for h in headers))
+            load_only = set((h.attrname for h in headers))
             # If the application has a related_field make sure it is in the
             # load_only tuple.
-            if self.related_field and self.related_field not in load_only:
-                load_only += (self.related_field,)
-            return load_only
+            if self.related_field:
+                load_only.add(self.related_field)
+            if self.always_load_fields:
+                load_only.update(self.always_load_fields)
+            return tuple(load_only)
         else:
             return ()
         
@@ -585,7 +599,7 @@ has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
         return bits
     
     def render_instance(self, request, instance = None,
-                        context = None, cn = None):
+                        context = None, cn = None, **kwargs):
         '''Render an instance of :attr:`model`.
 This is used when an :ref:`instance view <instance-views>`
 has been requested.'''
@@ -654,9 +668,10 @@ This method is called by both :meth:`variables_from_instance` and
 :parameter asbutton: optional boolean. If specified it returns a link widget.
 :rtype: a url string or ``None``.
 
-It uses the :func:`instance_field_views` for the purpose.
+It uses the :func:`instance_field_view_value` for the purpose.
 '''
-        view,value = instance_field_view(request,instance,field_name,name=name)
+        view,value = instance_field_view_value(request, instance, field_name,
+                                               name = name)
         if asbutton is not None:
             return application_link(view, value = value, asbutton = asbutton)
     
@@ -683,6 +698,42 @@ the instance.'''
                 c.append(ajax.jremove('#'+id))
         return c
     
+    def redirect_url(self, request, instance = None, name = None):
+        '''Evaluate a url for an applicationview.
+It uses the following algorithm:
+        
+* Checks if *name* correspond to a valid view in the :attr:`views` dictionary.
+* Checks if the view has a :attr:`View.redirect_to_view` attribute available.
+* Checks for the instance view via :meth:`view_for_instance` if the input
+  *instance* is not ``None``.
+* Last it picks the :attr:`root_view`.
+        
+:parameter instance: optional instance.
+:parameter name: optional :class:`View` name in :attr:`views` dictionary.
+:rtype: a url string or ``None``.
+
+.. seealso::
+
+    The :attr:`View.force_redirect` attribute af a view class can
+    be used to force the call of this function to evaluate
+    a redirect url. For example the ``force_redirect`` of the
+    :class:`AddView` is set to ``True`` and it will redirect to
+    the instance view.
+'''
+        name = request.view.redirect_to_view
+        view = None
+        if name:
+            view = self.views.get(name)
+        if not view:
+            if instance and instance.id:
+                view = self.view_for_instance(instance)
+            if not view:
+                view = self.root_view
+        if view:
+            r = request.for_path(view.path,instance=instance)
+            if r:
+                return r.url
+            
     ############################################################################    
     #TODO
     #

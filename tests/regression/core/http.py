@@ -2,19 +2,25 @@ import time
 from datetime import datetime, timedelta
 
 from djpcms.utils import test
-from djpcms import http
+from djpcms.core.http.wrappers import RequestNode, Request, BytesIO
 
 
 class Http(test.TestCase):
+    
+    def makeRequest(self, **kwargs):
+        environ = self.environ(**kwargs)
+        path = environ['PATH_INFO']
+        environ['DJPCMS'] = RequestNode(None,None,path)
+        return Request(environ,None,None,path)
     
     def environ(self, method = 'POST', input = b'', path = None):
         return {'PATH_INFO': path or '/',
                 'REQUEST_METHOD': method,
                 'CONTENT_LENGTH':len(input),
-                'wsgi.input': http.BytesIO(input)}
+                'wsgi.input': BytesIO(input)}
         
     def testRequest(self):
-        request = http.Request(self.environ('bogus',path='bogus'),None)
+        request = self.makeRequest(path = 'bodus', method = 'bogus')
         self.assertFalse(request.GET)
         self.assertFalse(request.POST)
         self.assertFalse(request.COOKIES)
@@ -26,7 +32,7 @@ class Http(test.TestCase):
         self.assertEqual(http.parse_cookie('invalid:key=true'), {})
 
     def test_httprequest_location(self):
-        request = http.Request(self.environ(),None)
+        request = self.makeRequest()
         self.assertEqual(\
             request.build_absolute_uri(location="https://www.example.com/asdf"),
             'https://www.example.com/asdf')
@@ -77,7 +83,7 @@ class Http(test.TestCase):
         self.assertTrue(example_cookie['httponly'])
 
     def test_stream(self):
-        request = http.Request(self.environ(input = b'name=value'),None)
+        request = self.makeRequest(input = b'name=value')
         self.assertFalse('raw_post_data' in request.cache)
         self.assertEqual(request.POST, {'name': ['value']})
         self.assertEqual(request.cache['raw_post_data'], b'name=value')

@@ -11,7 +11,6 @@ Original License
 .. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
 import re
-import copy
 
 from djpcms import UnicodeMixin, to_string, py2py3
 from djpcms.utils import iri_to_uri, remove_double_slash, urlquote
@@ -117,7 +116,7 @@ class Route(UnicodeMixin):
         if rule and append_slash and not rule.endswith('/'):
             rule += '/'
         rule = '/' + rule
-        self.defaults = defaults or {}
+        self.defaults = defaults if defaults is not None else {}
         self.is_leaf = not rule.endswith('/')
         self.rule = rule[1:]
         self.arguments = set(map(str, self.defaults))
@@ -261,6 +260,10 @@ the root route and ``None``. '''
         else:
             rule = str(other)
         return cls(self.rule + rule, defaults)
+    
+    def __deepcopy__(self, memo):
+        return self.__class__(self.rule, self.defaults.copy())
+        
         
 
 class BaseConverter(object):

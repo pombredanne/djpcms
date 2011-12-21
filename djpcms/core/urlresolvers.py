@@ -46,7 +46,37 @@ class resolver_manager(object):
                 value.trypath = '/'+path
                 
 
-class RouteMixin(UnicodeMixin):
+class LocalMixin(object):
+    
+    @property
+    def local(self):
+        if not hasattr(self,'_local'):
+            self._local = {}
+        return self._local
+     
+    def __getstate__(self):
+        '''Remove the local dictionary.'''
+        d = self.__dict__.copy()
+        d.pop('_local',None)
+        return d
+    
+    def __deepcopy__(self, memo):
+        o = self.__class__.__new__(self.__class__)
+        memo[id(self)] = o
+        d = self.__dict__.copy()
+        d.pop('_local',None)
+        for attr,value in d.items():
+            setattr(o, attr, deepcopy(value, memo))
+        return o
+    
+    @property
+    def lock(self):
+        if '_lock' not in self.local:
+            self.local['_lock'] = Lock()
+        return self.local['_lock']
+    
+    
+class RouteMixin(UnicodeMixin,LocalMixin):
     '''Class for routing trees. This class is the base class for all
 routing and handler classes in djpcms including, but not only, :class:`Site`,
 :class:`djpcms.views.Application` and :class:`djpcms.views.View`.
@@ -112,7 +142,6 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
 '''
     PERM = VIEW
     def __init__(self, route, parent = None):
-        self.lock = Lock()
         if not isinstance(route,Route):
             route = Route(route)
         self.__rel_route = route
@@ -305,10 +334,10 @@ class ResolverMixin(RouteMixin):
                              .format(route))
         super(ResolverMixin,self).__init__(route,parent)
         
-    def __deepcopy__(self,memo):
-        obj = copy(self)
-        obj.routes = deepcopy(self.routes)
-        return obj
+    #def __deepcopy__(self,memo):
+    #    obj = copy(self)
+    #    obj.routes = deepcopy(self.routes)
+    #    return obj
     
     def __unicode__(self):
         return '{0} - {1}'.format(self.path,list(self))

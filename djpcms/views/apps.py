@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from py2py3 import iteritems, is_string, itervalues, to_string
 
@@ -361,9 +361,9 @@ overwritten to customize its behavior.
             for route in routes:
                 if route.path == '/':
                     self.root_view = route
-                else:
-                    p,c = route.route.split()
-                    route.parent_view = proutes.get(p.path)
+                #else:
+                #    p,c = route.route.split()
+                #    route.parent_view = proutes.get(p.path)
                 if isinstance(route,View) and route.object_view:
                     self.object_views.append(route)
                 self.routes.append(route)

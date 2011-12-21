@@ -1,4 +1,3 @@
-from copy import copy
 from functools import partial
 
 from py2py3 import zip
@@ -266,9 +265,6 @@ views::
     
     def save_as_new(self, request, f, commit = True):
         return f.save_as_new(commit = commit)
-    
-    def __deepcopy__(self, memo):
-        return copy(self)
     
     
 class ModelView(View):

@@ -65,11 +65,12 @@ def save_on_request(f):
 
 
 class NodeEnvironMixin(UnicodeMixin):
-    
+    view = None
     def __init__(self, environ, node, instance, url):
         self.environ = environ
         self.node = node
-        self.view = node.view
+        if self.node is not None:
+            self.view = node.view
         self.instance = instance
         self.url = url
         
@@ -190,7 +191,6 @@ def build_request(environ, node, cache, instance):
         return Request(environ, node, instance, url)
     
     
-            
 class Request(NodeEnvironMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
 :class:`djpcms.views.djpcmsview` serving the request and the request

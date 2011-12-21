@@ -4,7 +4,6 @@ from djpcms.forms.utils import get_form
 
 from .search import get_search_url
 
-
 class SearchModelForm(FormModelForm):
     autocomplete = forms.BooleanField()
     multiple = forms.BooleanField(initial = True)
@@ -18,17 +17,16 @@ class SearchBox(plugins.DJPplugin):
     description = 'Search your Models'
     form = SearchModelForm
     
-    def render(self, djp, wrapper, prefix,
+    def render(self, request, wrapper, prefix,
                for_model = None, method = 'get',
                tooltip = None, ajax = False,
                autocomplete = False,
                multiple = False,  **kwargs):
-        url = get_search_url(djp, for_model)
+        url = get_search_url(request, for_model)
         if not url:
             raise ImproperlyConfigured('No search engine installed with site.\
  Cannot add search plugin. You need to install one!\
  Check documentation on how to do it.')
-        request = djp.request
         w = get_form(djp, HtmlSearchForm).addAttr('action',url)\
                                          .addAttr('method',method)
         if tooltip:
@@ -37,5 +35,5 @@ class SearchBox(plugins.DJPplugin):
             w.addClass(forms.AJAX)
         else:
             w.removeClass(forms.AJAX)
-        return w.render(djp)
+        return w.render(request)
 

@@ -3,14 +3,19 @@ from copy import copy
 
 from . import http
 from .site import get_settings, Site
+from .exceptions import ImproperlyConfigured
 
 
 __all__ = ['SiteLoader']
 
 
 class SiteLoader(object):
-    '''An class for loading and configuring djpcms sites. Users can
-subclass this class and override the :meth:`load` method.
+    '''A class for callable instances for loading and configuring sites.
+Users can subclass this class and override the :meth:`load` method or
+the ``load_{{ name }}`` where ``name`` is the value of the
+:attr:`name` attribute.
+Instances are pickable so that they can be used to create site applications
+in a multiprocessing framework.
  
 .. attribute:: name
 
@@ -19,18 +24,27 @@ subclass this class and override the :meth:`load` method.
      
     default: ``"DJPCMS"``
 
-.. attribute:: sites
+.. attribute:: site
 
     instance of :class:`Site` lazily created when an instance of this
     class is called.
+        
+.. attribute:: wsgi_middleware
+    
+    A list of WSGI_ middleware callables created during the loading of the
+    application.
+    
+.. attribute:: response_middleware
+
+    A list of response middleware callables created during the loading of the
+    application.
+
 '''
     ENVIRON_NAME = None
     settings = None
     
     def __init__(self, name = None, **params):
-        self.sites = None
-        self._wsgi_middleware = []
-        self._response_middleware = []
+        self.local = {}
         self.name = name or 'DJPCMS'
         self.setup(**params)
         
@@ -40,13 +54,23 @@ subclass this class and override the :meth:`load` method.
     def __getstate__(self):
         d = self.__dict__.copy()
         d['local'] = {}
-        d['sites'] = None
-        d['_wsgi_middleware'] = []
-        d['_response_middleware'] = []
         return d
-        
-    def __call__(self):
-        return self.build_sites()
+    
+    @property
+    def site(self):
+        return self.local.get('site')
+    
+    @property
+    def _wsgi_middleware(self):
+        if '_wsgi_middleware' not in self.local:
+            self.local['_wsgi_middleware'] = []
+        return self.local['_wsgi_middleware']
+    
+    @property
+    def _response_middleware(self):
+        if '_response_middleware' not in self.local:
+            self.local['_response_middleware'] = []
+        return self.local['_response_middleware']
     
     def add_wsgi_middleware(self, m):
         '''Add a wsgi callable middleware or a list of middlewares'''
@@ -62,28 +86,33 @@ subclass this class and override the :meth:`load` method.
         else:
             self._response_middleware.append(m)
     
-    def build_sites(self):
-        if self.sites is None:
+    def __call__(self):
+        if self.site is None:
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
-            name = '_load_{0}'.format(self.name.lower())
-            self.sites = getattr(self,name,self.load)()
-            if self.sites is not None:
-                self.sites.load()
+            name = 'load_{0}'.format(self.name.lower())
+            loader = getattr(self,name,self.load)
+            self.local['site'] = loader()
+            if self.site is not None:
+                try:
+                    self.site.load()
+                except ImproperlyConfigured:
+                    if getattr(loader,'web_site',True):
+                        raise
                 self.finish()
-        return self.sites
+        return self.site
     
     def wsgi_middleware(self):
         '''Return a list of WSGI middleware for serving wsgi requests.'''
-        sites = self.build_sites()
+        site = self()
         m = self._wsgi_middleware or []
         m = copy(m)
-        m.append(http.WSGI(sites))
+        m.append(http.WSGI(site))
         return m
     
     def response_middleware(self):
         '''Return a list of response middleware.'''
-        sites = self.build_sites()
+        site = self()
         return self._response_middleware or []
     
     def load(self):
@@ -95,7 +124,7 @@ subclass this class and override the :meth:`load` method.
         return Site(settings)
         
     def finish(self):
-        '''Callback once the sites are loaded.'''
+        '''Callback once the site are loaded.'''
         pass
     
     def on_server_ready(self, server):

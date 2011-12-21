@@ -147,7 +147,22 @@ class ResponseCallback(object):
 
 class ResponseHandler(object):
     '''An asynchronous, fully customizable,
-:ref:`response handler <response-handler>` implementation.
+:ref:`response handler <response-handler>` implementation. An instance
+of this class is a callable which accepts two arguments, the response to
+evaluate and an optional callback function receiving as only
+parameter the result from the call.
+It is used to obtain synchronous results from a, potentially asynchronous,
+input *response*::
+
+    import djpcms
+    
+    handler = djpcms.ResponseHandler()
+    
+    result = handler({'bla':'foo'})
+    result = handler({'bla':'foo'}, callback = lambda r : r)
+
+    result = handler({'bla':'foo'},
+                     callback = lambda r : "the value is {0[bla]}".format(r))
     
 :parameter body_renderer: a function for rendering the body part of your
     html page. If provided it overrides the :meth:`body_renderer`.
@@ -159,21 +174,7 @@ class ResponseHandler(object):
 :parameter errorhtml: overrides the :attr:`errorhtml` dictionary.
 
 
-An instance of this class is a callable object which is used to obtain
-synchronous results from a, potentially asynchronous, input *response*::
-
-    import djpcms
-    
-    handler = djpcms.ResponseHandler()
-    
-    result = handler({'bla':'foo'})
-    result = handler({'bla':'foo'}, callback = lambda r : r)
-    
-The callable accpet two arguments, the response to evaluate and an optional
-callback function receiving as only parameter the result from the call.::
-
-    result = handler({'bla':'foo'},
-                     callback = lambda r : "the value is {0[bla]}".format(r))
+**Attributes**
 
 .. attribute:: errorhtml
 

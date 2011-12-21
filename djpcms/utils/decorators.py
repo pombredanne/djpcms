@@ -1,8 +1,11 @@
 import functools
 
 
-__all__ = ['memoized','storegenarator',
-           'LazyMethod','lazymethod','lazyproperty']
+__all__ = ['memoized',
+           'storegenarator',
+           'LazyMethod',
+           'lazymethod',
+           'lazyproperty']
 
 
 class memoized(object):
@@ -64,9 +67,8 @@ class LazyMethod(object):
         self.as_property = as_property
         
     def __call__(self, f):
-        '''Decorator which can be used on a member function.
-    It stores the result for futures uses.
-        '''
+        '''Decorator which can be used on a member function
+to store the result for futures uses.'''
         name = '_lazy_%s' % f.__name__
         
         def _(obj, *args, **kwargs):

@@ -174,7 +174,8 @@ class Pagination(object):
     '''Class for specifying options for a table or a general pagination.
     
 :parameter headers: Optional iterable of headers. If specified the pagination
-    will be rendered as a :class:`Table`.
+    will be rendered as a :class:`Table`. It sets the :attr:`headers` and
+    :attr:`list_display` attributes.
 
 :parameter size: The number of elements to display in one page.
     If set to ``None``, all elements will be displayed.
@@ -220,6 +221,21 @@ class Pagination(object):
     :class:`Widget`
     
     Default: None
+    
+**Attributes**
+
+.. attribute:: headers
+
+    Dictionary of table headers. The key are the headers code, value are
+    instances of :class:`table_header`. If ``None``, the pagination
+    is not a table.
+    
+.. attribute:: list_display
+
+    List of :class:`table_header` in the order specified at initialization.
+    It contains the same instances as :attr:`headers` but in a list.
+    
+**Methods**
 '''
     table_defaults = {
           'bJQueryUI':True,
@@ -319,12 +335,13 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
 
     def widget(self, body, toolbox = None, pagination = None, ajax = None,
                **kwargs):
-        '''Return the pagination widget. This is either a *table* or
- a standard pagination.
+        '''Return the pagination :class:`Widget`. This is either a *table* or
+a standard pagination.
  
 :parameter body: body to paginate. An iterable over data.
 :parameter toolbox: Additional tool to display in the pagination page.
-:parameter pagination: disctionary containing pagination information.
+:parameter pagination: disctionary containing pagination information which
+    can be obtained by the :meth:`paginate`.
 '''
         data = self.defaultdata()
         data.update(deepcopy(self.html_data))

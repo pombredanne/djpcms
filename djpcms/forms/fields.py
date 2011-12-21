@@ -503,7 +503,8 @@ is ``True``, in which case the value is returned.'''
                 # if search is allowed, return the value
                 return value
             else:
-                raise
+                raise ValidationError(
+                    '{0} is not a valid {1}'.format(value,self.mapper))
     
     def clean_multiple_model_value(self, value, bfield):
         field = '{0}__in'.format(self.field)

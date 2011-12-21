@@ -109,7 +109,8 @@ views::
 
     String indicating a redirection to another view within
     the same application. Check :attr:`redirect_to_view`
-    for more information.
+    for more information. It can also be a callable taking the request
+    object and an optional instance as as only arguments.
     
     Default: ``None``.
     
@@ -139,7 +140,8 @@ views::
 
     String indicating a redirection to another view within the same application.
     Used in view with forms to define the behavior after a form has been
-    subbmitted.
+    subbmitted. It can be a callable function taking the
+    request instance and an optional instance as only parameters.
     It is used in :meth:`djpcmsview.defaultredirect`
     to calculate the redirect url.
     

@@ -1,3 +1,4 @@
+from djpcms.utils import is_string
 
 __all__ = ['ContextRenderer','StreamContextRenderer']
     
@@ -87,6 +88,8 @@ class StreamContextRenderer(ContextRenderer):
                 s = s.done()
                 if isinstance(s,ContextRenderer):
                     done = False
+            if not is_string(s) and not isinstance(s,ContextRenderer):
+                s=  str(s)
             data.append(s)
         text = '\n'.join(data) if done else None
         super(StreamContextRenderer,self).__init__(request, data, text = text)

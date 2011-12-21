@@ -4,7 +4,7 @@ import json
 import unicodedata
 from uuid import uuid4
 
-from py2py3 import ispy3k, zip, map, range
+from py2py3 import ispy3k, zip, map, range, is_string
 
 from .strings import *
 from .jsontools import *

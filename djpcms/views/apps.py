@@ -720,19 +720,21 @@ It uses the following algorithm:
     :class:`AddView` is set to ``True`` and it will redirect to
     the instance view.
 '''
-        name = request.view.redirect_to_view
+        name = name or request.view.redirect_to_view
         view = None
-        if name:
+        if hasattr(name,'__call__'):
+            view = name(request,instance)
+        elif name:
             view = self.views.get(name)
         if not view:
             if instance and instance.id:
                 view = self.view_for_instance(instance)
             if not view:
                 view = self.root_view
+        if isinstance(view,RendererMixin):
+            view = request.for_path(view.path,instance=instance)
         if view:
-            r = request.for_path(view.path,instance=instance)
-            if r:
-                return r.url
+                return view.url
             
     ############################################################################    
     #TODO

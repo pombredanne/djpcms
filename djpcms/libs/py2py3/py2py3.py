@@ -50,6 +50,8 @@ if ispy3k: # Python 3
             return s.decode(UTF8)
         return s
     
+    is_string = lambda x : isinstance(x,str)
+    
 else: # Python 2
     string_type = unicode
     itervalues = lambda d : d.itervalues()
@@ -77,9 +79,10 @@ else: # Python 2
         if isinstance(s,unicode):
             return s.encode(UTF8)
         return s
+    
+    is_string = lambda x : isinstance(x,basestring)
 
 is_int = lambda x : isinstance(x,int_type)
-is_string = lambda x : isinstance(x,string_type)
 is_bytes_or_string = lambda x : isinstance(x,string_type) or isinstance(x,bytes)
 
 

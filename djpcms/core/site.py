@@ -148,12 +148,12 @@ Attributes available:
             self.internals['settings'] = settings
         self.internals.update(handlers)
         
-    def _load(self):
+    def setup_environment(self):
+        '''Set up the the site.'''
         if self.root == self:
             for wrapper in orms.model_wrappers.values():
                 wrapper.setup_environment(self)
             add_default_handlers(self)
-                
         appurls = self.settings.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls,'__call__'):
@@ -162,7 +162,10 @@ Attributes available:
             if hasattr(appurls,'__call__'):
                 appurls = appurls(self)
             self.routes.extend(appurls)
-            
+        return len(self)
+    
+    def _load(self):
+        self.setup_environment()
         self.internals['template'] = html.ContextTemplate(self)
         return super(Site,self)._load()
     

@@ -2,6 +2,7 @@
 '''
 import sys
 import logging
+from functools import partial
 from datetime import datetime
 
 from py2py3 import to_string
@@ -190,15 +191,12 @@ absolute url.
 def saveform(request, force_redirect = False):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
-has been submitted.'''
+has been submitted, including possible asynchronous behavior.'''
     view = request.view
-    appmodel = view.appmodel
-    is_ajax = request.is_xhr
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referer = request.REQUEST.get(REFERER_KEY)
-    fhtml = view.get_form(request)    
-    layout = fhtml.layout
+    fhtml = view.get_form(request)
     f = fhtml.form
     
     if CANCEL_KEY in data:
@@ -206,52 +204,62 @@ has been submitted.'''
         return view.redirect(request, url)
         
     if SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
-        f.instance = appmodel.mapper.save_as_new(f.instance,
-                                                 commit = False)
+        f.instance = view.mapper.save_as_new(f.instance, commit = False)
         
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing = bool(f.instance and f.instance.id)
-        instance = view.save(request,f)
-
-        if ajax.isajax(instance):
-            return instance
-        elif instance == f:
-            return layout.json_messages(f)
-        msg = fhtml.success_message(request, instance,
-                                    'changed' if editing else 'added')
-        f.add_message(msg)
-        
-        # Save and continue. Redirect to referer if not AJAX or send messages 
-        if SAVE_AND_CONTINUE_KEY in data:
-            if editing:
-                if is_ajax:
-                    return layout.json_messages(f)
-                else:
-                    set_request_message(f,request)
-                    return http.ResponseRedirect(curr)
-            else:
-                url = view.redirect_url(request, instance, 'change')
-        else:
-            url = get_redirect(request,
-                               instance=instance,
-                               force_redirect=force_redirect)
-        
-        if not url:
-            if is_ajax:
-                return layout.json_messages(f)
-            else:
-                set_request_message(f,request)
-                return view.get_response(request)
-        else:
-            set_request_message(f,request)
-            return view.redirect(request, url)
+        instance = view.save(request, f)
+        return request.view.response(
+                        instance,
+                        partial(_saveinstance, request, editing,
+                                fhtml, force_redirect))
     else:
-        if is_ajax:
-            return layout.json_messages(f)
+        if request.is_xhr:
+            return fhtml.layout.json_messages(f)
         else:
             return view.get_response(request)
         
+
+def _saveinstance(request, editing, fhtml, force_redirect, instance):
+    view = request.view
+    f = fhtml.form
+    if ajax.isajax(instance):
+        return instance
+    elif instance == f:
+        return fhtml.layout.json_messages(f)
+    data = request.REQUEST
+    msg = fhtml.success_message(request, instance,
+                                'changed' if editing else 'added')
+    f.add_message(msg)
+    
+    # Save and continue. Redirect to referer if not AJAX or send messages 
+    if SAVE_AND_CONTINUE_KEY in data:
+        if editing:
+            if request.is_xhr:
+                return fhtml.layout.json_messages(f)
+            else:
+                #editing and continuing to edit
+                curr = request.environ.get('HTTP_REFERER')
+                set_request_message(f,request)
+                return http.ResponseRedirect(curr)
+        else:
+            url = view.redirect_url(request, instance, 'change')
+    else:
+        url = get_redirect(request,
+                           instance=instance,
+                           force_redirect=force_redirect)
+    
+    if not url:
+        if request.is_xhr:
+            return fhtml.layout.json_messages(f)
+        else:
+            set_request_message(f,request)
+            return view.get_response(request)
+    else:
+        set_request_message(f,request)
+        return view.redirect(request, url)
+
 
 def deleteinstance(request, force_redirect = True):
     '''Delete an instance from database'''

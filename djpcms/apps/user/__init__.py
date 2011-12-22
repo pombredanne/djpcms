@@ -13,7 +13,8 @@ as your user model, than you can define the application::
 
 from djpcms.forms import HtmlForm
 
-from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm
+from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm,\
+                    HtmlLoginForm
 from .views import *
 
 from djpcms import views
@@ -32,8 +33,7 @@ utility methods for dealing with users and user data.'''
     home = views.SearchView()
     login = LoginView(template_file = ('login.html','djpcms/login.html'),
                       inherit_page = False,
-                      form = HtmlForm(LoginForm,
-                                      inputs = (('Sign in','login_user'),)))
+                      form = HtmlLoginForm)
     logout = LogoutView()
     add = views.AddView(in_nav = 0,
                         form = HtmlForm(RegisterForm,

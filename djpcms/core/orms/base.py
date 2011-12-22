@@ -37,8 +37,12 @@ class OrmWrapper(UnicodeMixin):
     
 .. attribute:: DoesNotExist
 
-    proxy to the exception thorwn when a query for a model instance produce
+    proxy to the exception thrown when a query for a model instance produce
     no results.
+    
+.. attribute:: FieldValueError
+
+    proxy to the exception thrown when a model field has wrong value.
 
 '''
     orm = None

@@ -574,15 +574,16 @@ If the instance could not be retrieved, it raises a 404 exception.'''
             query = dict(self.urlbits(data = urlargs))
         except KeyError:
             raise djpcms.Http404('View Cannot retrieve instance from url')
-            
-        try:
-            return self.mapper.get(**query)
-        except self.mapper.DoesNotExist:
-            if self.appmodel:
-                pi = self.appmodel.instance_from_variables(environ, urlargs)
-                if pi:
-                    return self.get_from_parent_object(pi,urlargs)
-            raise djpcms.Http404('Cannot retrieve instance from url')
+        
+        if self.mapper:
+            try:
+                return self.mapper.get(**query)
+            except (self.mapper.DoesNotExist,self.mapper.FieldValueError):
+                if self.appmodel:
+                    pi = self.appmodel.instance_from_variables(environ, urlargs)
+                    if pi:
+                        return self.get_from_parent_object(pi,urlargs)
+        raise djpcms.Http404('Cannot retrieve instance from url')
     
     @store_on_instance        
     def variables_from_instance(self, instance):

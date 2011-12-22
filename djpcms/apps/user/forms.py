@@ -92,3 +92,11 @@ class UserChangeForm(forms.Form):
     is_superuser = forms.BooleanField()
     is_active = forms.BooleanField(initial = True)
     
+
+HtmlLoginForm = forms.HtmlForm(
+    LoginForm,
+    success_message = lambda request, user, m :\
+     '{0} successfully signed in'.format(instance),
+    inputs = (('Sign in','login_user'),)
+)
+

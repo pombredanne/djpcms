@@ -738,7 +738,7 @@
         			 selector: 'input[type="submit"]'},
         	link: {jquery: true,
         		   selector: 'a, button',
-        		   ajax_selector: 'a.ajax, button.ajax'},
+        		   ajax_selector: 'a.ajax, button'},
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_class: 'submitted'

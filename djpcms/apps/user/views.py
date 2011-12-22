@@ -48,9 +48,6 @@ class LoginView(views.ModelView):
     def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
     
-    def success_message(self, instance, mch):
-        return ''
-    
     def has_permission(self, *args, **kwargs):
         return True
     

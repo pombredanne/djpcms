@@ -419,13 +419,14 @@ corner cases, users can subclass it to customize behavior.
                  description = '', widget = None,
                  attributes = None, inner = None,
                  renderer = None, data2html = None,
-                 **params):
+                 media = None, **params):
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
         self.allchildren = []
         self.children = {}
         self.attrs = attrs = {}
+        self._media = media
         self.description = description or self.description
         self.renderer = renderer
         self.inline = inline if inline is not None else self.inline
@@ -632,6 +633,9 @@ is required.'''
 Here because checkboxes have slighltly different way of rendering.
         '''
         return False
+    
+    def media(self, request):
+        return self._media
         
         
 DefaultMaker = WidgetMaker()

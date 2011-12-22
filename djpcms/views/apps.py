@@ -583,7 +583,8 @@ If the instance could not be retrieved, it raises a 404 exception.'''
                     pi = self.appmodel.instance_from_variables(environ, urlargs)
                     if pi:
                         return self.get_from_parent_object(pi,urlargs)
-        raise djpcms.Http404('Cannot retrieve instance from url')
+        raise djpcms.Http404('Cannot retrieve instance from url parameters\
+ {0}'.format(query))
     
     @store_on_instance        
     def variables_from_instance(self, instance):

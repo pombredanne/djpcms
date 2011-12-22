@@ -15,8 +15,26 @@ Users can subclass this class and override the :meth:`load` method or
 the ``load_{{ name }}`` where ``name`` is the value of the
 :attr:`name` attribute.
 Instances are pickable so that they can be used to create site applications
-in a multiprocessing framework.
+in a multiprocessing framework. Typical usage::
+
+    class Loader(djpcms.SiteLoader):
+    
+        def load(self):
+            settings = djpcms.get_settings(__file__,
+                                           APPLICATION_URLS = self.urls)
+            return djpcms.Site(settings)
+        
+        def urls(self, site):
+            return (
+                Application('/',
+                    name = 'Hello world example',
+                    routes = (View(renderer = lambda request : 'Hello world!'),)
+                ),)
  
+The :meth:`load` or ``load_{{ name }}`` methods can have an attribute
+**web_site** which if it does result in ``False`` will treat the loading not
+for djpcms web sites.
+
 .. attribute:: name
 
     The configuration name, useful when different types of configuration are

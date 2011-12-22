@@ -12,7 +12,7 @@ import sitedjpcms.signals
 
 parent = lambda x : os.path.split(x)[0]
 
-#_________________________________________________ Create the documentation view handler
+#________________________________________ Create the documentation view handler
 class DjpcmsDoc(DocApplication):
     inherit = True
     name = 'djpcms_documentation'
@@ -22,7 +22,7 @@ class DjpcmsDoc(DocApplication):
         return ("build", "json")
 
 
-#__________________________________________________ Add user account support
+#________________________________________ Add user account support
 appurls = (
            SocialUserApplication(settings.USER_ACCOUNT_HOME_URL, User),
            DjpcmsDoc('/docs/')

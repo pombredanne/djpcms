@@ -56,6 +56,7 @@ class for handling table form layouts.'''
                      child = self.child_widget(field, widget, form = form)
                      yield child.render(request)
         # the number of forms
-        yield formset.num_forms.render()
+        w = formset.num_forms.widget()
+        yield w.render(request)
     
 

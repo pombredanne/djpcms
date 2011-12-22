@@ -259,16 +259,15 @@ with key ``name`` and value ``value`` and return ``self``.'''
  :meth:`WidgetMaker.add_to_widget` method.'''
         self.maker.add_to_widget(self,*args,**kwargs)
         
-    def get_context(self, request, keys = None, **kwargs):
+    def get_context(self, request, context = None):
         '''Return the context dictionary for this widget.'''
-        return self.maker.get_context(request, self, keys or kwargs)
+        context = context if context is not None else {}
+        return self.maker.get_context(request, self, context)
     
-    def render(self, request = None, inner = None, keys = None, **kwargs):
+    def render(self, request = None, context = None):
         '''Render the widget'''
-        ctx = self.maker.render_from_widget(request, self, inner,
-                                            keys or kwargs)
-        ctx.add_renderer(mark_safe)
-        return ctx.done()
+        context = context if context is not None else {}
+        return self.maker.render_from_widget(request, self, context)
     
     def hide(self):
         self.css({'display':'none'})
@@ -417,9 +416,9 @@ corner cases, users can subclass it to customize behavior.
     
     def __init__(self, inline = None, default = False,
                  description = '', widget = None,
-                 attributes = None, inner = None,
-                 renderer = None, data2html = None,
-                 media = None, **params):
+                 attributes = None, renderer = None,
+                 data2html = None, media = None,
+                 **params):
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
@@ -438,7 +437,6 @@ corner cases, users can subclass it to customize behavior.
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
         self._widget = widget or self._widget or Widget
-        self._inner = inner
         if data2html:
             self.data2html =\
                      lambda request, data : data2html(self, request, data)
@@ -515,7 +513,7 @@ It returns self for concatenating data.'''
         for child in self.allchildren:
             yield self.child_widget(child, widget)
             
-    def get_context(self, request, widget, keys):
+    def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method it
 returns a dictionary of variables used for rendering. By default it
 loops over the :attr:`allchildren` list and put the rendered child
@@ -526,46 +524,40 @@ dictionary.'''
         children = []
         for w in self.children_widgets(widget):
             key = w.maker.key
-            if key and key in keys:
-                text = w.render(request, keys[key])
-            else:
-                text = w.render(request, keys = keys)
-                #if key:
-                #    ctx[key] = text
-                #    continue
-            children.append(text)
+            if key and key in context:
+                w.add(context.pop(key))
+            children.append(w.render(request,context))
         ctx['children'] = children
         return ctx
     
-    def render(self, request = None, inner = None, **kwargs):
-        '''Render into html. This is a shortcut function which build a
- :class:`Widget` using  the :meth:`widget` method and invokes the
- :meth:`Widget.render` method on it.'''
-        return self.widget(**kwargs).render(request,inner)
-    
-    def render_from_widget(self, request, widget, inner, keys):
+    def render_from_widget(self, request, widget, context):
         if self.inline:
             if widget.tag:
                 fattr = widget.flatatt()
                 text = '<{0}{1}/>'.format(self.tag,fattr)
             else:
                 text = ''
-            text = ContextRenderer.make(text)
         else:
-            text = inner or self._inner
-            if text is None:
-                text = self.inner(request, widget, keys)
-            text = ContextRenderer.make(text)
+            text = self.inner(request, widget, context)
             if widget.tag:
                 fattr = widget.flatatt()
-                text.add_renderer(
-                    lambda c : self._template.format(widget.tag,fattr,c))
-        text.add_renderer(self.renderer)
+                if isinstance(text,ContextRenderer):
+                    text.add_renderer(
+                        lambda c : self._template.format(widget.tag,fattr,c))
+                else:
+                    text = self._template.format(widget.tag,fattr,text)
         if request:
             request.media.add(self.media(request))
-        return text
+        if isinstance(text,ContextRenderer):
+            text.add_renderer(self.renderer)
+            text.add_renderer(mark_safe)
+            return text.done()
+        else:
+            if self.renderer:
+                text = self.renderer(text)
+            return mark_safe(text)
     
-    def inner(self, request, widget, keys):
+    def inner(self, request, widget, context):
         '''Render the inner part of the widget (it exclude the outer tag). 
 
 :parameter widget: instance of :class:`Widget` to be rendered
@@ -576,7 +568,7 @@ By default it renders the :attr:`template` or :attr:`template_name`
 if available, otherwise it returns a :class:`StreamContextRenderer`
 from the :meth:`stream` method.
 '''
-        context = self.get_context(request,widget,keys)
+        context = self.get_context(request,widget,context)
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
@@ -643,9 +635,4 @@ DefaultMaker = WidgetMaker()
 
 class Html(WidgetMaker):
     '''A :class:`FormLayoutElement` which renders to `self`.'''
-    def __init__(self, html = '', renderer = None, **kwargs):
-        super(Html,self).__init__(**kwargs)
-        self.html = html
-
-    def inner(self, *args, **kwargs):
-        return self.html
+    pass

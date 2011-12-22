@@ -82,8 +82,8 @@ class Application(application.Application):
     name = 'reStructuredText'
     _setup = None
     
-    def setup(self):
-        settings = djpcms.sites.settings
+    def setup(self, request):
+        settings = request.settings
         cfgdir = settings.SITE_DIRECTORY
         smod = settings.SITE_MODULE
         outdir = os.path.join(cfgdir,'media',smod,self.code)
@@ -97,9 +97,9 @@ class Application(application.Application):
         self.outdir = outdir
         self.media_url = '{0}{1}/{2}/'.format(settings.MEDIA_URL,smod,self.code)
         
-    def __call__(self, text):
+    def __call__(self, request, text):
         if not self._setup:
-            self.setup()
+            self.setup(request)
             self._setup = True
         sx = DjpSphinx(self.srcdir,
                        self.outdir,

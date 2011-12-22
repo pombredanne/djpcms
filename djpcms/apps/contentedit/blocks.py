@@ -114,6 +114,9 @@ class ChangeContentView(BlockChangeView):
         pluginview = self.appmodel.views.get('plugin')
         return pluginview.post_response(pluginview(request,
                                                    instance = request.instance))
+
+    def ajax_get_response(self, request):
+        return self.post_response(request, commit = False)
     
     def render(self, request, url = None):
         formhtml = self.get_form(request,
@@ -125,8 +128,7 @@ class ChangeContentView(BlockChangeView):
             return ''
         form = formhtml.form
         prefix = form.prefix
-        pform = self.get_plugin_form(request, instance.plugin, prefix)
-        html = '' if pform is None else pform.render(request)
+        plugin_form = self.get_plugin_form(request, instance.plugin, prefix)
         edit_url = plugin.edit_url(request,instance.arguments)
         if edit_url:
             edit_url = HtmlWrap('a',
@@ -136,7 +138,7 @@ class ChangeContentView(BlockChangeView):
                              .addAttr('title','Edit plugin')\
                              .addData('method','get')
             formhtml.inputs.append(edit_url)
-        return formhtml.render(request, plugin = html)
+        return formhtml.render(request, {'plugin': plugin_form})
     
     def post_response(self, request, commit = True):
         '''View called when changing the content plugin values.
@@ -172,7 +174,7 @@ The instance.plugin object is maintained but its fields may change.'''
                               % instance.plugin.description)
             
         jquery.update(layout.json_messages(form))
-        return jquery
+        return jquery        
 
     def ajax__rearrange(self, request):
         '''Move the content block to a new position.'''

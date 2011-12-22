@@ -1,4 +1,4 @@
-from djpcms.utils import escape, js, media, gen_unique_id
+from djpcms.utils import escape, js, media
 from djpcms.utils.const import *
 
 from .base import WidgetMaker, Widget
@@ -14,7 +14,6 @@ __all__ = ['TextInput',
            'FileInput',
            'ListWidget',
            'SelectWithAction',
-           'TextSelect',
            'DefinitionList']
 
 
@@ -75,10 +74,10 @@ class TextArea(InputWidget):
     def set_value(self, value, widget):
         widget.internal['value'] = escape(value)
         
-    def inner(self, djp, widget, keys):
+    def inner(self, request, widget, keys):
         return widget.internal['value']
     
-    def media(self, djp = None):
+    def media(self, request = None):
         return self.area_media
     
     
@@ -91,38 +90,35 @@ class Select(FieldWidget):
     _selected = ' selected="selected"'
     select_media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
     
-    def __init__(self, choices = None, **kwargs):
-        self.choices = choices
-        super(Select,self).__init__(**kwargs)
-    
     def set_value(self, val, widget):
         bfield =  widget.internal.get('bfield',None)
         if bfield:
-            val = bfield.field.choices.widget_value(val)
+            choices = bfield.field.choices
+            for c in choices.all(bfield):
+                 widget.add(c)
+            val = choices.widget_value(val)
         if val:
             selected_choices = val if widget.attr('multiple') else (val,)
         else:
             selected_choices = ()
         widget.internal['selected_choices'] = selected_choices
 
-    def inner(self, djp, widget, keys):
-        return '\n'.join(self.render_options(djp, widget))
-    
-    def render_options(self, djp, widget):
+    def stream(self, request, widget, context):
         selected_choices = widget.internal.get('selected_choices',())
+        option = self._option
+        selected = self._selected
         if 'bfield' in widget.internal:
             bfield = widget.internal['bfield']
             field = bfield.field
             choices =  field.choices
-            option = self._option
             selected = self._selected
             if not field.required:
                 yield option.format('','',choices.empty_label)
-            for id,val in choices.all(bfield):
-                sel = (id in selected_choices) and selected or EMPTY
-                yield option.format(id,sel,val)
+        for id,val in widget.data_stream:
+            sel = (id in selected_choices) and selected or EMPTY
+            yield option.format(id,sel,val)
 
-    def media(self, djp = None):
+    def media(self, request = None):
         return self.select_media
         
         
@@ -144,7 +140,7 @@ SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 CheckboxInput(default='input:checkbox')
-Select()
+Select(default='select')
 
 
 class ListWidget(WidgetMaker):
@@ -162,7 +158,7 @@ ListWidget(default = 'ul')
 class DefinitionListMaker(WidgetMaker):
     tag = 'div'
     
-    def data2html(self, djp, data):
+    def data2html(self, request, data):
         return '<dl><dt>{0}</dt><dd>{1}</dd></dl>'.format(*data)
     
 
@@ -176,18 +172,3 @@ def SelectWithAction(choices, action_url, **kwargs):
     s = Select(choices = choices, **kwargs).addClass('ajax actions')
     return a.render()+s.render()
 
-
-class TextSelect(Widget):
-    
-    def __init__(self, choices, html):
-        '''If no htmlid is provided, a new widget containing the target html
-    is created and data is an iterable over three elements tuples.'''
-        htmlid = gen_unique_id()[:8]
-        select = Widget('select', choices = choices, cn = 'text-select')\
-                    .addData('target','#{0}'.format(htmlid))
-        html = '\n'.join((Widget('div', cn = '{0} target'.format(name))\
-                          .render(inner=body) for name,body in html))
-        target = Widget('div',id=htmlid).render(inner=html)
-        super(TextSelect,self).__init__(data_stream = (select.render(),target))
-        
-    

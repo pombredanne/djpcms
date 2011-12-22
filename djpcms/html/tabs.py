@@ -2,7 +2,7 @@ from djpcms.utils import gen_unique_id
 
 from .base import Widget, WidgetMaker, iterable_for_widget
 
-__all__ = ['TabsMaker','tabs','accordion']
+__all__ = ['TabsMaker','tabs','accordion','ajax_html_select']
 
 
 class TabsMaker(WidgetMaker):
@@ -53,6 +53,22 @@ each tab.'''
     kwargs['maker'] = _tabs_maker
     return Widget(data_stream = data_stream, **kwargs)
 
+
 def accordion(data_stream = None, **kwargs):
     kwargs['maker'] = _acc_maker
     return Widget(data_stream = data_stream, **kwargs)
+
+
+def ajax_html_select(name_title_html, **kwargs):
+    '''If no htmlid is provided, a new widget containing the target html
+    is created and data is an iterable over three elements tuples.'''
+    htmlid = gen_unique_id()[:8]
+    target = Widget('div',id=htmlid)
+    select = Widget('select', cn = 'text-select')\
+                    .addData('target','#{0}'.format(htmlid))
+    
+    for name,title,body in name_title_html:
+        select.add((name,title))
+        target.add(Widget('div', body, cn = '{0} target'.format(name)))
+                    
+    return Widget(None,(select,target))

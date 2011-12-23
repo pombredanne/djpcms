@@ -102,8 +102,9 @@ class ContentBlockForm(forms.Form):
     requires_login = forms.BooleanField(default = False)
         
     def save(self, commit = True):
-        pt = self.cleaned_data.pop('plugin_name')
-        pe = self.cleaned_data.pop('view_permission')
+        data = self.cleaned_data
+        pt = data.pop('plugin_name')
+        pe = data.pop('view_permission')
         instance = self.instance
         if pt:
             instance.plugin_name = pt.name
@@ -111,6 +112,8 @@ class ContentBlockForm(forms.Form):
             instance.plugin_name = ''
         if pe:
             instance.requires_login = True
+        if 'container_type' in data:
+            instance.container_type = data['container_type'] 
         cb = super(ContentBlockForm,self).save(commit = commit)
         #if commit and cb.id:
         #    ObjectPermission.objects.set_view_permission(cb, groups = pe)

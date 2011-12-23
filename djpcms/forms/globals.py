@@ -9,6 +9,7 @@ __all__ = ['FormException',
            'DefaultLayout',
            'generate_prefix',
            'get_ajax_action',
+           'get_ajax_action_value',
            'SEARCH_STRING',
            'SAVE_KEY',
            'CANCEL_KEY',
@@ -53,6 +54,14 @@ def get_ajax_action(data):
         if prefix and prefix in action:
             action = action[len(prefix):]
     return action
+
+
+def get_ajax_action_value(action, data):
+    prefix = data.get(PREFIX_KEY,None)
+    if prefix:
+        action = prefix + action
+    return data.get(action)
+    
 
 
 nodata = NoData()

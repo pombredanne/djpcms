@@ -397,27 +397,29 @@ class ResolverMixin(RouteMixin):
     def resolve(self, path, urlargs = None):
         '''Resolve a path'''            
         with resolver_manager(self,path) as rm:
+            urlargs = urlargs if urlargs is not None else {}
             for handler in self.urls():
                 match = handler.rel_route.match(path)
                 if match is None:
                     continue
                 remaining_path = match.pop('__remaining__','')
-                if urlargs:
-                    urlargs.update(match)
-                else:
-                    urlargs = match
+                urlargs.update(match)
                 if isinstance(handler,ResolverMixin):
-                    return handler.resolve(remaining_path, urlargs)
+                    res = handler.resolve(remaining_path, urlargs)
+                    if res:
+                        return res
                 elif not remaining_path:
                     return handler, urlargs
                 
             # Nothing found Check the static pages if they are available
-            path = self.route + path
-            view = self.pageview(path)
-            if view:
-                return view, {}
-            else:
+            if self.is_root:
                 raise Http404(path, handler = self)
+                path = self.route + path
+                view = self.pageview(path)
+                if view:
+                    return view, {}
+                else:
+                    raise Http404(path, handler = self)
             
     def pageview(self, path):
         Page = self.root.Page

@@ -9,7 +9,6 @@ __all__ = ['HtmlTemplateForm',
            'HtmlEditContentForm',
            'BlockLayoutFormHtml']
 
-PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
 
 HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
@@ -40,11 +39,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
                   uni.Columns(('for_not_authenticated',),
                                    ('requires_login',),
                                    default_style=uni.inlineLabels3),
-                  html.Html(key = 'plugin',
-                            tag = 'div',
-                            default_class = PLUGIN_DATA_FORM_CLASS,
-                            description = "Add an Html element with key so that\
- we can inject extra form data at runtime")
+                  html.Html(key = 'plugin')
                 )
 )
 

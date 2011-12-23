@@ -11,6 +11,7 @@ _plugin_dictionary = {}
 _wrapper_dictionary = {}
 
 CLOSE_DIV = '\n</div>'
+PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
 
 
 def ordered_generator(di):
@@ -49,13 +50,19 @@ class DJPpluginMetaBase(type):
         if pname is None:
             pname = name
         pname = pname.lower()
-        descr = attrs.get('description',None)
+        descr = attrs.get('description')
         if not descr:
             descr = pname
         if pname != '':
             descr = nicename(descr) 
         attrs['name'] = pname
         attrs['description'] = descr
+        form = attrs.get('form')
+        if isinstance(form,forms.FormType):
+            form = forms.HtmlForm(form)
+            attrs['form'] = form
+        if isinstance(form,forms.HtmlForm):
+            form.tag = None
         pcls = new_class(cls, name, bases, attrs)
         pcls()._register()
         return pcls
@@ -124,7 +131,10 @@ on a ``djpcms`` powered site. The basics:
     description   = None
     '''A short description to display in forms when editing content.'''
     form          = None
-    '''Form class for editing the plugin parameters. Default ``None``, the plugin has no arguments.'''
+    '''A :class:`djpcms.forms.Form` class or :class:`djpcms.forms.HtmlForm`
+instance for editing the plugin parameters.
+    
+Default: ``None``, the plugin has no arguments.'''
     permission      = 'authenticated'
     #storage       = _plugin_dictionary
     #URL           = None
@@ -187,18 +197,14 @@ Used to edit the plugin when
 in editing mode. Usually, there is no need to override this function.
 If your plugin needs input parameters when editing, simple set the
 :attr:`form` attribute.'''
-        form_class = self.form
-        if form_class:
-            if isinstance(form_class,forms.FormType):
-                form_class = forms.HtmlForm(form_class)
-            form_class.tag = None
+        form_factory = self.form
+        if form_factory is not None:
             initial = self.arguments(args) or None
-            form =  form_class(**form_kwargs(request = request,
-                                             initial = initial,
-                                             prefix = prefix,
-                                             model = self.for_model))
+            form =  form_factory(**form_kwargs(request = request,
+                                               initial = initial,
+                                               prefix = prefix,
+                                               model = self.for_model))
             return form
-        #form_class.widget(form, **kwargs)
     
     def _register(self):
         global _plugin_dictionary

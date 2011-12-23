@@ -161,6 +161,10 @@ class jcollection(HeaderBody):
 class jhtmls(HeaderBody):
     '''Contains a list of objects
         {identifier, html and type}
+        
+:parameter html: html to add to web page.
+:parameter identifier: jquery selector
+:parameter type: one of ``"replacewith"``, ``"replace"``, ``"addto"``.
     '''
     def __init__(self, html = None, identifier = None, alldocument = True,
                         type = 'replace', removable = False):

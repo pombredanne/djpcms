@@ -1,4 +1,4 @@
-from djpcms import forms, views
+from djpcms import forms, views, html
 from djpcms.plugins import DJPplugin
 
 layouts = (
@@ -22,6 +22,7 @@ class SoftNavigation(DJPplugin):
     
     def render(self, request, wrapper, prefix, levels = 1,
                layout = 'v', **kwargs):
-        nav = views.Navigator(request, soft = True, levels = levels,
-                              classes = dlayouts[layout])
-        return nav.render()
+        nav_element = html.Widget('div', cn = dlayouts[layout])
+        nav = views.Navigator(soft = True, levels = int(levels),
+                              nav_element = nav_element)
+        return nav.render(request)

@@ -106,7 +106,7 @@ class NRT(dict):
         
 
 class MultiNode(UnicodeMixin):
-    
+    '''A node for the multi tree class'''
     def __init__(self, tree, route, parent = None, urlargs = None):
         self.tree = tree
         self.__route = route
@@ -217,15 +217,18 @@ class MultiTree(object):
             return tree[view.path],args
     
     def __children(self, path):
+        #generator of direct children nodes for path
         bits = tuple((b for b in path.split('/') if b))
+        # the current level (0 for root)
         level = len(bits)
         for tree in self.trees:
+            # if the path is in tree delegate to the node children method
             if path in tree:
                 for child in tree[path].children:
                     yield child
             else:
                 for child in tree.nodes():
-                    if child.level > level and not child.parent:
+                    if child.level == level+1 and not child.parent:
                         if child.route.bits[:level] == bits:
                             yield child
         

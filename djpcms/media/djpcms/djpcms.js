@@ -355,7 +355,7 @@
     
     
     /**
-     * _____________________________________________ PLUGINS CALLBAKS AND DECORATORS
+     * ______________________ PLUGINS CALLBACKS AND DECORATORS
      * 
      */
     // extend plugin scope
@@ -529,27 +529,29 @@
     					el.val(b.html);
     				}
     				else if(b.type === 'append') {
-    					var nel = $(b.html).appendTo(el);
-    					nel.djpcms();
+    					$(b.html).djpcms().appendTo(el);
     				}
     				else {
+    					html = $(b.html).djpcms();
     				    el.show();
     				    el.fadeOut(fade,'linear',function(){
     				        if(b.type === 'replacewith') {
-    				            el.replaceWith(b.html);
+    				            el.replaceWith(html);
     				        }
     				        else {
     				            if(b.type === 'addto') {
-    				                html = el.html() + b.html;
+    				            	el.append(html);
     				            }
     				            else {
-    				                html = b.html;
+    				            	// The append method does not seems to
+    				            	// presenve events on html. So I use this
+    				            	// hack.
+    				            	var tmp = $('<div></div>');
+    				            	el.empty().append(tmp);
+    				            	tmp.replaceWith(html);
     				            }
-    				            el.html(b.html);
     				        }
-    				        el.djpcms();
     				        el.fadeIn(fade);
-    				        //el.show();
     					});
     				}
     			}
@@ -791,7 +793,8 @@
     		    event.preventDefault();
     		    var elem = $(this),
     		        ajax = elem.hasClass('ajax'),
-    		        conf = elem.data('warning');
+    		        conf = elem.data('warning'),
+    		        form = elem.closest('form');
     		    
     		    function handleClick(handle) {
     		        var url = elem.attr('href') || elem.data('href') || '.';
@@ -815,34 +818,38 @@
     		    }
     		});
     		
+    		// AJAX Select
     		$(cfg.selector_select,$this).change(function(event) {
     			var elem = $(this),
-    			    url = elem.attr('href'),
-    			    f = elem.parents('form');
-    			if(f.length === 1 && !url) {
-    				url = f.attr('action');
+    				data = elem.data(),
+    			    url = data.href,
+    			    name = elem.attr('name'),
+    			    form = elem.closest('form'),
+    			    method = data.method || 'get';
+    			if(form.length === 1 && !url) {
+    				url = form.attr('action');
     			}
     			if(!url) {
     				url = window.location.toString();
     			}
     			
-    			if(!f) {
+    			if(!form) {
     				var p   = $.djpcms.ajaxparams(elem.attr('name'));
     				p.value = elem.val();
     				$.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
     			}
     			else {
     				var opts = {
-    						'url':     url,
-    						type:      'get',
-    						success:   callback,
-    						submitkey: config.post_view_key,
+    						'url': url,
+    						type: 'get',
+    						success: callback,
     						dataType: "json",
+    						data: {xhr: name},
     						iframe: false,
     						};
-    				f[0].clk = elem[0];
-    				logger.info('Submitting select change from "'+elem[0].name+'"');
-    				f.ajaxSubmit(opts);
+    				form[0].clk = elem[0];
+    				logger.info('Submitting select change from "'+name+'"');
+    				form.ajaxSubmit(opts);
     			}
     		});
     		

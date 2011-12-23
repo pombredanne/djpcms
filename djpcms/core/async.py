@@ -283,6 +283,7 @@ The context is ready to be rendered.'''
             response.status_code = context.get('status_code',200)
             body = body_renderer(request, context)
             if isajax(body):
+                response.status_code = 200
                 content = self.ajax_content(response, body)
             else:
                 context['body'] = body

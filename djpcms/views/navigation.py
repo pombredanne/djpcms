@@ -15,6 +15,10 @@ class Navigator(object):
 
     Default: ``2``
     
+:parameter nav_element: the navigation element. It must be an instance of
+    a class:`djpcms.html.Widget` or ``None``. This is the outer element of the
+    navigation. If not provided a topbar element is created.
+    
 :parameter container: The container class for the inner part of the navigation.
     If available a ``div`` element with this class is created inside the
     navigation element.
@@ -32,7 +36,7 @@ class Navigator(object):
     secondary_layout = ('search','nav')
     
     def __init__(self, levels = 2, secondary_after = 100,
-                 primary = None, secondary = None,
+                 nav_element = None, primary = None, secondary = None,
                  container = None, fixed = False,
                  brand = None, search = None, soft = False,
                  main_layout = None, secondary_layout = None):
@@ -45,6 +49,7 @@ class Navigator(object):
         self.brand = brand
         self.search = search
         self.soft = soft
+        self.nav_element = nav_element
         self.container = container
         if container is not None and not isinstance(container,Widget):
             self.container = Widget('div', cn = self.container)
@@ -69,14 +74,19 @@ class Navigator(object):
                 yield elem
                 
     def render(self, request):
-        topbar = Widget('div', cn = 'topbar')
+        if self.nav_element is None:
+            self.nav_element = Widget('div', cn = 'topbar')
         if self.fixed:
-            widget = Widget('div', topbar, cn = 'topbar-fixed')
+            widget = Widget('div', self.nav_element, cn = 'topbar-fixed')
         else:
-            widget = topbar
+            widget = self.nav_element
+            
         if self.container is not None:
-            topbar.add(self.container.root)
-            topbar = self.container
+            self.nav_element.add(self.container.root)
+            nav_element = self.container
+        else:
+            nav_element = self.nav_element
+            
         urlselects = []
         request = self.buildselects(request,urlselects)
         for li,secondary in navstream(request,
@@ -89,10 +99,10 @@ class Navigator(object):
             else:
                 self.primary.add(li)
         for elem in self.elements(self.main_layout, self.primary):
-            topbar.add(elem)
+            nav_element.add(elem)
         for elem in self.elements(reversed(self.secondary_layout),\
                                                          self.secondary):
-            topbar.add(elem)
+            nav_element.add(elem)
         return widget.render(request)
     
     def buildselects(self, request, urlselects):

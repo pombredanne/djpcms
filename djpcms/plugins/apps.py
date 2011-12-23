@@ -39,7 +39,7 @@ def get_contet_choices(bfield):
 class ForModelForm(forms.Form):
     for_model = forms.ChoiceField(
                       required = False,
-                      #widget = html.Select(default_class = 'ajax'),
+                      widget = html.Select(default_class = 'ajax'),
                       choices = lambda x : sorted(registered_models(x,False),
                                                     key = lambda y : y[1]))
     
@@ -164,6 +164,9 @@ certain number of items as specified in the max display input.'''
     name = 'model-items'
     description = 'Filtered items for a model'
     form = ModelItemListForm
+    
+    def ajax__for_model(self, request, for_model):
+        pass
     
     def render(self, request, block, prefix,
                for_model = None, max_display = 5,

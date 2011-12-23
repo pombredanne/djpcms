@@ -174,7 +174,7 @@ application will be included.
                             v = v.copy()
                             v['urls'] = ()
                             agroups[url] = v
-        groups = []
+                            
         for name_,route,urls in get_admins(settings.INSTALLED_APPS):
             if urls:
                 rname = route[1:-1]
@@ -185,12 +185,11 @@ application will be included.
                     adming[rname] = route
                     agroups[route] = {'name':name_,
                                       'urls':urls}
-                    
+        
+        groups = [AdminSite('/', name = self.name, **self.params)]
         for route,data in agroups.items():
             groups.append(ApplicationGroup(route,
                                            name = data['name'],
                                            routes = data['urls']))
             
-        # Create the admin application
-        admin = AdminSite('/', name = self.name, routes = groups, **self.params)
-        return (admin,)
+        return tuple(groups)

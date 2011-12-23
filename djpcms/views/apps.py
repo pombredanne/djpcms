@@ -288,7 +288,7 @@ overwritten to customize its behavior.
         self.views = OrderedDict()
         views = deepcopy(self.base_routes)
         if routes:
-            views.extend(routes)
+            views.extend(deepcopy(routes))
         ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
         if not self.pagination:

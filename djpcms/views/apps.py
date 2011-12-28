@@ -421,18 +421,24 @@ overwritten to customize its behavior.
         return tuple(self)
     
     def get_form(self, request, form_class, addinputs = True, instance  = None,
-                 **kwargs):
+                 block = None, **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
 :parameter form_class: form class to use.
+
 :parameter addinputs: boolean flag indicating if submit inputs should be added.
-                    
-                      Default ``True``.
+    
+    Default ``True``.
+
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False``
-                     no instance will be passed to the form constructor.
-                     If ``None`` the instance will be obtained from '`request``.
+    no instance will be passed to the form constructor.
+    If ``None`` the instance will be obtained from '`request``.
                      
-                     Default ``None``.
+    Default ``None``.
+    
+:parameter block: The content block holding the form.
+
+:rtype: An instance of :class:`djpcms.forms.Form`.
 '''
         # Check the Form Class
         form_class = form_class or self.form

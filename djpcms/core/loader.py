@@ -64,7 +64,7 @@ for djpcms web sites.
     def __init__(self, name = None, site = None, **params):
         self.local = {}
         self.callbacks = []
-        self.name = name or 'DJPCMS'
+        self.name = name or 'DJPCMS' 
         self.setup(**params)
         
     def setup(self, **params):

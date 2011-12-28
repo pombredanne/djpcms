@@ -46,7 +46,7 @@ class ForModelForm(forms.Form):
     def clean_for_model(self, mhash):
         if mhash:
             try:
-                return self.request.DJPCMS.site.for_hash(mhash,safe=False)
+                return self.request.view.root.for_hash(mhash,safe=False)
             except Exception as e:
                 raise forms.ValidationError(str(e))
 

@@ -138,6 +138,16 @@ a AuthenticationError exception.'''
                     return True
             except:
                 continue
+            
+    def create_user(self, *args, **kwargs):
+        for b in self.auth_backends:
+            try:
+                user = b.create_user(*args, **kwargs)
+                if user:
+                    return user
+            except:
+                continue
+        raise ValueError('Could not create user')
     
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))

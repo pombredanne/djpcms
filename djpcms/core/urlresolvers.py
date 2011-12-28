@@ -375,9 +375,12 @@ class ResolverMixin(RouteMixin):
     def _load(self):
         if not self.routes:
             raise ImproperlyConfigured('No sites registered.')
-        for site in self:
-            site.parent = self
-            site.load()
+        for route in self:
+            if route.isbound:
+                raise ImproperlyConfigured('Route {0} already bound.'\
+                                           .format(route))
+            route.parent = self
+            route.load()
         import_modules(self.settings.DJPCMS_PLUGINS)
         import_modules(self.settings.DJPCMS_WRAPPERS)
         return tuple(self)

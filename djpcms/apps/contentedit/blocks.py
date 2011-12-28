@@ -175,10 +175,11 @@ The instance.plugin object is maintained but its fields may change.'''
                         value = forms.get_ajax_action_value(action,
                                                             request.REQUEST)
                         return action_func(request, value)
-                plugin_form = pform.render(request)
                 # if committing, we get the arguments from the form
                 if commit:
                     instance.arguments = plugin.save(pform.form)
+                    instance.save()
+                plugin_form = pform.render(request)
             else:
                 instance = form.save(commit = commit)
                 plugin_form = ''

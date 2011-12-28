@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from inspect import isclass
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from py2py3 import iteritems, itervalues, native_str
 
@@ -162,7 +162,7 @@ Attributes available:
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls(self)
-            self.routes.extend(appurls)
+            self.routes.extend(deepcopy(appurls))
         return len(self)
     
     def _load(self):

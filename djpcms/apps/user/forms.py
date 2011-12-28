@@ -82,7 +82,9 @@ class RegisterForm(PasswordChangeForm):
     def save(self, commit = True):
         '''Create the new user.'''
         cd = self.cleaned_data
-        return create_user(self.mapper,cd['username'],cd['password'])
+        pe = self.request.view.permissions
+        return pe.create_user(username = cd['username'],
+                              password = cd['password'])
     
 
 class UserChangeForm(forms.Form):

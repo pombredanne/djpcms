@@ -38,6 +38,14 @@ def register_application(app, name = None, description = None):
         p = ApplicationPlugin(app)
 
 
+def html_plugin_form(form):
+    if isinstance(form,forms.FormType):
+        form = forms.HtmlForm(form)
+    if isinstance(form,forms.HtmlForm):
+        form.tag = None
+    return form
+    
+    
 class DJPpluginMetaBase(type):
     '''
     Just a metaclass to differentiate plugins from other calsses
@@ -57,12 +65,8 @@ class DJPpluginMetaBase(type):
             descr = nicename(descr) 
         attrs['name'] = pname
         attrs['description'] = descr
-        form = attrs.get('form')
-        if isinstance(form,forms.FormType):
-            form = forms.HtmlForm(form)
-            attrs['form'] = form
-        if isinstance(form,forms.HtmlForm):
-            form.tag = None
+        if 'form' in attrs:
+            attrs['form'] = html_plugin_form(attrs['form'])
         pcls = new_class(cls, name, bases, attrs)
         pcls()._register()
         return pcls

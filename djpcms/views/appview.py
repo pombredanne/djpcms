@@ -3,8 +3,9 @@ from functools import partial
 from py2py3 import zip
 
 import djpcms
-from djpcms import http, ajax, Route, async_instance, Http404
+from djpcms import http, forms, ajax, Route, async_instance, Http404
 from djpcms.forms.utils import saveform, deleteinstance, get_redirect
+from djpcms.plugins import html_plugin_form
 from djpcms.utils.text import nicename
 
 from .pagination import paginationResponse
@@ -217,7 +218,9 @@ views::
         self.PERM = permission if permission is not None else self.PERM
         self.ICON = icon if icon is not None else self.ICON
         self._methods = methods if methods else self._methods
-        self.plugin_form = plugin_form or self.plugin_form
+        plugin_form = plugin_form if plugin_form is not None\
+                             else self.plugin_form
+        self.plugin_form = html_plugin_form(plugin_form)
         self._is_soft = is_soft
         
     def _isbound(self):

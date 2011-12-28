@@ -206,7 +206,7 @@ overwritten to customize its behavior.
 
 .. attribute:: object_widgets
     
-    Dictioanry of object renderers.
+    Dictionary of object :class:`djpcms.html.WidgetMaker`.
     
     
 .. attribute:: object_display
@@ -604,7 +604,15 @@ has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
                         context = None, cn = None, **kwargs):
         '''Render an instance of :attr:`model`.
 This is used when an :ref:`instance view <instance-views>`
-has been requested.'''
+has been requested.
+
+:parameter instance: instance of :attr:`model` or ``None``. If not provided, the
+    instance on the *request* parameter will be used.
+:parameter context: string representing the context for rendering. If not
+    provided, the ``"home"`` renderer will be used. This parameter is closely
+    linked with the :attr:`Application.object_widgets`` dictionary
+    of widgets.
+'''
         instance = instance or request.instance
         maker = self.object_widgets.get(context,None)
         if not maker:

@@ -326,7 +326,7 @@ and handles the saving as default ``POST`` response.'''
     force_redirect = True
     
     def render(self, request, **kwargs):
-        return self.get_form(request).render(request, **kwargs)
+        return self.get_form(request).render(request)
     
     def post_response(self, request):
         return saveform(request, force_redirect = self.force_redirect)
@@ -417,7 +417,7 @@ on an instance of a model.'''
         
     @async_instance
     def render(self, request, **kwargs):
-        return self.get_form(request).render(request, **kwargs)
+        return self.get_form(request).render(request)
     
     @async_instance
     def post_response(self, request):

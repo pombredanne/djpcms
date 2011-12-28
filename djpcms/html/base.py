@@ -635,4 +635,12 @@ DefaultMaker = WidgetMaker()
 
 class Html(WidgetMaker):
     '''A :class:`FormLayoutElement` which renders to `self`.'''
-    pass
+    def __init__(self, inner = None, **kwargs):
+        self._inner = inner
+        super(Html,self).__init__(**kwargs)
+
+    def stream(self, request, widget, context):
+        if self._inner is not None:
+            yield self._inner
+        for v in super(Html,self).stream(request, widget, context):
+            yield v

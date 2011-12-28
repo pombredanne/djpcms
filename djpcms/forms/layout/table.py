@@ -33,7 +33,8 @@ They all have the class ``error``.'''
         '''We override stream since we don't care about a legend in a
 table row'''
         children = ctx['children']
-        yield '<tr>'+''.join(self.stream_errors(request, children))+'</tr>'
+        yield '<tr class="error-row">'+\
+                ''.join(self.stream_errors(request, children))+'</tr>'
         yield '<tr>'+''.join(self.stream_fields(request, children))+'</tr>'
         
     def get_context(self, request, widget, keys):

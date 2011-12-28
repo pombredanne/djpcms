@@ -5,6 +5,7 @@ from py2py3 import range
 import djpcms
 from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin,\
                         Http404
+from djpcms.html import ContextRenderer
 from djpcms.forms.utils import get_redirect
 from djpcms.utils import parentpath, slugify, escape
 from djpcms.utils.urls import openedurl
@@ -175,6 +176,11 @@ other wise the ``render`` method of the :attr:`appmodel`.'''
             return self.appmodel.render(request, **kwargs)
         else:
             return ''
+        
+    def async_render(self, request, renderer, **context):
+        return ContextRenderer(request,
+                               renderer = renderer,
+                               context = context)
         
     def query(self, request, **kwargs):
         '''This function implements a query on the :attr:`RedererMixin.model`

@@ -83,10 +83,10 @@ Response handler
 
 Default: :class:`ResponseHandler`
 
-To specify a different page render, pass a callable to the :class:`Site`
+To specify a different response handler, pass a callable to the :class:`Site`
 constructor::
 
-    site = djpcms.Site(..., page_renderer = my_page_renderer)
+    site = djpcms.Site(..., response_handler = my_response_handler)
 
 
 Robots

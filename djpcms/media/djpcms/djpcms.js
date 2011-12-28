@@ -3,8 +3,8 @@
  * Language:     Javascript
  * License:      new BSD licence
  * Contact:      luca.sbardella@gmail.com
- * web:			 https://github.com/lsbardel/djpcms
- * @requires:	 jQuery, jQuery-UI
+ * web:          https://github.com/lsbardel/djpcms
+ * @requires:    jQuery, jQuery-UI
  * 
  * Copyright (c) 2009-2011, Luca Sbardella
  * New BSD License 
@@ -153,204 +153,204 @@
             appqueue = [],
             logger = djplogger(),
             defaults = {
-    	        media_url: "/media/",
-    	        confirm_actions:{
-    	            'delete': 'Please confirm delete',
-    	            'flush': 'Please confirm flush'
-    	                },
-    	        autoload_class: "autoload",
-    	        ajax_server_error: "ajax-server-error",
-    	        errorlist: "errorlist",
-    	        formmessages: "form-messages",
-    	        box_effect: {type:"blind",duration:500},
-    	        remove_effect: {type:"drop",duration:500},
-    	        bitly_key: null,
-    	        twitter_user: null,
-    	        fadetime: 200,
-    	        ajaxtimeout: 30,
-    	        debug: false
-    	        };
-    	
-    	function set_logging_pannel(panel) {
-    	    var panel = $(panel);
-    	    if(panel.length) {
-    	        logger.addHandler(function(msg,level) {
-    	            panel.prepend(msg);
-    	        });
-    	    }
-    	}
-    	    	
-    	function ajaxparams(name, data) {
-    	    var p = {'xhr':name};
-    	    if(data) {
-    	        return $.extend(p,data);
-    	    }
-    	    else {
-    	        return p;
-    	    }
-    	}
-    	
-    	function queue_application(app) {
-    	    if($.data(document,'djpcms')) {
-    	        app();
-    	    }
-    	    else {
-    	        appqueue.push(app);
-    	    }
-    	}
-    	
-    	// Set options
-    	function setOptions(options_) {
-    		$.extend(true, defaults, options_);
-    	}
-    	
-    	// Add a new decorator
-    	function addDecorator(deco) {
-    	    var config = deco.config || {},
-    	        opts = defaults[deco.id] || {}; 
-    		decorators[deco.id] = $.proxy(deco.decorate, deco);
-    		defaults[deco.id] = $.extend(config,opts);
-    	}
-    	
-    	// Add a new callback for JSON data
-    	function addJsonCallBack(jcb) {
-    		jsonCallBacks[jcb.id] = jcb;
-    	}
-    	
-    	// Remove a decorator
-    	function removeDecorator(rid) {
-    		if(decorators.hasOwnMethod(rid)) {
-    		    delete decorators[rid];
-    		}
-    	}
-    	
-    	function _jsonParse(data, elem) {
-    	    var id  = data.header;
-    	    var jcb = jsonCallBacks[id];
-    	    if(jcb) {
-    	        return jcb.handle(data.body, elem, defaults) & data.error;
-    	    }
-    	    else {
-    	        logger.error('Could not find callback ' + id);
-    	    }
-    	}
-    	
-    	function addAction(id, action) {
-    	    var a = actions[id];
-    	    if(!a) {
-    	       a = {'action':action, 'ids': {}};
-    	       actions[id] = a;
-    	    } else if(action) {
-    	        a.action = action;
-    	    }
-    	    return a;
-    	}
-    	
-    	function registerActionElement(actionid, id) {
-    	    var action = addAction(actionid,null);
-    	    action.ids[id] = id;
-    	}
-    	
-    	function getAction(actionid, id) {
-    	    var action = addAction(actionid,null);
-    	    if(action.ids[id]) {
-    	        delete action.ids[id];
-    	        return action.action;
-    	    }
+                media_url: "/media/",
+                confirm_actions:{
+                    'delete': 'Please confirm delete',
+                    'flush': 'Please confirm flush'
+                        },
+                autoload_class: "autoload",
+                ajax_server_error: "ajax-server-error",
+                errorlist: "errorlist",
+                formmessages: "form-messages",
+                box_effect: {type:"blind",duration:500},
+                remove_effect: {type:"drop",duration:500},
+                bitly_key: null,
+                twitter_user: null,
+                fadetime: 200,
+                ajaxtimeout: 30,
+                debug: false
+                };
+        
+        function set_logging_pannel(panel) {
+            var panel = $(panel);
+            if(panel.length) {
+                logger.addHandler(function(msg,level) {
+                    panel.prepend(msg);
+                });
+            }
         }
-    	
-    	/**
-    	 * Handle a JSON call back by looping through all the callback
-    	 * objects registered
-    	 * @param data JSON object already unserialized
-    	 * @param status String status flag
-    	 * @param elem (Optional) jQuery object or HTMLObject
-    	 */
-    	function _jsonCallBack(data, status, elem) {
-    		var v = false;
-    		if(status === "success") {
-    			v = _jsonParse(data,elem);
-    		}
-    		inrequest = false;
-    		return v;
-    	}
-    	
-    	/**
-    	 * DJPCMS Handler constructor
-    	 * It applys djpcms decorator to the element.
-    	 */
-    	function _construct() {
-    		return this.each(function() {
-    			var me = $(this),
-    				config = defaults,
-    				lp = $('.djp-logging-panel',me),
-    				parent = me.closest('.djpcms-loaded');
-    			
-    			if(!parent.length) {
-    				if(this === document) {
-    					me = $('body');
-    				}
-    				me.addClass('djpcms-loaded')
-    				  .trigger('djpcms-before-loading');
-	    			
-	    			if(lp) {
-	    				set_logging_pannel(lp);
-	    			}
-	    			
-	    			$.each(decorators,function(id,decorator) {
-	    				logger.info('Adding decorator ' + id);
-	    				decorator(me,config);
-	    			});
-	    			
-	    			if(this === document) {
-	    			    $.data(this,'djpcms',config);
-	    			    $.each(appqueue, function(i,app) {
-	    			        app();
-	    			    });
-	    			    appqueue = [];
-	    			}
-	    			
-	    			me.trigger('djpcms-after-loading');
-    			}
-    		});
-    	}
-    	
-    	//    API
-    	return {
-    	    construct: _construct,
-    	    options: defaults,
-    	    jsonParse: _jsonParse,
-    	    'addJsonCallBack': addJsonCallBack,
-    	    'jsonCallBack': _jsonCallBack,
-    	    decorator: addDecorator,
-    	    set_options: setOptions,
-    	    'ajaxparams': ajaxparams,
-    	    set_inrequest: function(v){inrequest=v;},
-    	    before_form_submit: [],
-    	    //
-    	    // Action in slements ids
-    	    'addAction': addAction,
-    	    'registerActionElement': registerActionElement,
-    	    'getAction': getAction,
-    	    //
-    	    'inrequest': function(){return inrequest;},
-    	    'logger': logger,
-    	    'queue': queue_application,
-    	    'panel': function() {
-    	        // A floating panel
-    	        if(!panel) {
+                
+        function ajaxparams(name, data) {
+            var p = {'xhr':name};
+            if(data) {
+                return $.extend(p,data);
+            }
+            else {
+                return p;
+            }
+        }
+        
+        function queue_application(app) {
+            if($.data(document,'djpcms')) {
+                app();
+            }
+            else {
+                appqueue.push(app);
+            }
+        }
+        
+        // Set options
+        function setOptions(options_) {
+            $.extend(true, defaults, options_);
+        }
+        
+        // Add a new decorator
+        function addDecorator(deco) {
+            var config = deco.config || {},
+                opts = defaults[deco.id] || {}; 
+            decorators[deco.id] = $.proxy(deco.decorate, deco);
+            defaults[deco.id] = $.extend(config,opts);
+        }
+        
+        // Add a new callback for JSON data
+        function addJsonCallBack(jcb) {
+            jsonCallBacks[jcb.id] = jcb;
+        }
+        
+        // Remove a decorator
+        function removeDecorator(rid) {
+            if(decorators.hasOwnMethod(rid)) {
+                delete decorators[rid];
+            }
+        }
+        
+        function _jsonParse(data, elem) {
+            var id  = data.header;
+            var jcb = jsonCallBacks[id];
+            if(jcb) {
+                return jcb.handle(data.body, elem, defaults) & data.error;
+            }
+            else {
+                logger.error('Could not find callback ' + id);
+            }
+        }
+        
+        function addAction(id, action) {
+            var a = actions[id];
+            if(!a) {
+               a = {'action':action, 'ids': {}};
+               actions[id] = a;
+            } else if(action) {
+                a.action = action;
+            }
+            return a;
+        }
+        
+        function registerActionElement(actionid, id) {
+            var action = addAction(actionid,null);
+            action.ids[id] = id;
+        }
+        
+        function getAction(actionid, id) {
+            var action = addAction(actionid,null);
+            if(action.ids[id]) {
+                delete action.ids[id];
+                return action.action;
+            }
+        }
+        
+        /**
+         * Handle a JSON call back by looping through all the callback
+         * objects registered
+         * @param data JSON object already unserialized
+         * @param status String status flag
+         * @param elem (Optional) jQuery object or HTMLObject
+         */
+        function _jsonCallBack(data, status, elem) {
+            var v = false;
+            if(status === "success") {
+                v = _jsonParse(data,elem);
+            }
+            inrequest = false;
+            return v;
+        }
+        
+        /**
+         * DJPCMS Handler constructor
+         * It applys djpcms decorator to the element.
+         */
+        function _construct() {
+            return this.each(function() {
+                var me = $(this),
+                    config = defaults,
+                    lp = $('.djp-logging-panel',me),
+                    parent = me.closest('.djpcms-loaded');
+                
+                if(!parent.length) {
+                    if(this === document) {
+                        me = $('body');
+                    }
+                    me.addClass('djpcms-loaded')
+                      .trigger('djpcms-before-loading');
+                    
+                    if(lp) {
+                        set_logging_pannel(lp);
+                    }
+                    
+                    $.each(decorators,function(id,decorator) {
+                        logger.info('Adding decorator ' + id);
+                        decorator(me,config);
+                    });
+                    
+                    if(this === document) {
+                        $.data(this,'djpcms',config);
+                        $.each(appqueue, function(i,app) {
+                            app();
+                        });
+                        appqueue = [];
+                    }
+                    
+                    me.trigger('djpcms-after-loading');
+                }
+            });
+        }
+        
+        //    API
+        return {
+            construct: _construct,
+            options: defaults,
+            jsonParse: _jsonParse,
+            'addJsonCallBack': addJsonCallBack,
+            'jsonCallBack': _jsonCallBack,
+            decorator: addDecorator,
+            set_options: setOptions,
+            'ajaxparams': ajaxparams,
+            set_inrequest: function(v){inrequest=v;},
+            before_form_submit: [],
+            //
+            // Action in slements ids
+            'addAction': addAction,
+            'registerActionElement': registerActionElement,
+            'getAction': getAction,
+            //
+            'inrequest': function(){return inrequest;},
+            'logger': logger,
+            'queue': queue_application,
+            'panel': function() {
+                // A floating panel
+                if(!panel) {
                     panel = $('<div>').hide().appendTo($('body'))
                                     .addClass('float-panel ui-widget ui-widget-content ui-corner-all')
                                     .css({position:'absolute',
                                          'text-align':'left',
                                           padding:'5px'});
                 }
-    	        return panel;
-    	    },
-    	    smartwidth: function(html) {
-    	        return Math.max(15*Math.sqrt(html.length),200);
-    	    }
-    	};
+                return panel;
+            },
+            smartwidth: function(html) {
+                return Math.max(15*Math.sqrt(html.length),200);
+            }
+        };
     }());
     
     
@@ -470,16 +470,16 @@
      * ERROR and SERVER ERROR callback
      */
     $.djpcms.addJsonCallBack({
-    	id: "error",
-    	handle: function(data, elem) {
-    	    $.djpcms.errorDialog(data);
-    	}
+        id: "error",
+        handle: function(data, elem) {
+            $.djpcms.errorDialog(data);
+        }
     });
     $.djpcms.addJsonCallBack({
-    	id: "servererror",
-    	handle: function(data, elem) {
-    	    $.djpcms.errorDialog(data,"Unhandled Server Error");
-    	}
+        id: "servererror",
+        handle: function(data, elem) {
+            $.djpcms.errorDialog(data,"Unhandled Server Error");
+        }
     });
     
     /**
@@ -496,136 +496,136 @@
      * collection callback
      */
     $.djpcms.addJsonCallBack({
-    	id: "collection",
-    	handle: function(data, elem) {
-    		$.each(data, function(i,component) {
-    			$.djpcms.jsonParse(component,elem);
-    		});
-    		return true;
-    	}
+        id: "collection",
+        handle: function(data, elem) {
+            $.each(data, function(i,component) {
+                $.djpcms.jsonParse(component,elem);
+            });
+            return true;
+        }
     });
     
     /**
      * html JSON callback
      */
     $.djpcms.addJsonCallBack({
-    	id: "htmls",
-    	handle: function(data, elem, config) {
-    		$.each(data, function(i,b) {
-    			var el = $(b.identifier,elem),
-    			    fade = config.fadetime,
-    			    html;
-    			if(!el.length & b.alldocument) {
-    				el = $(b.identifier);
-    			}
-    			if(el.length) {
-    				if(b.type === 'hide') {
-    					el.hide();
-    				}
-    				else if(b.type === 'show') {
-    					el.show();
-    				}
-    				else if(b.type === 'value') {
-    					el.val(b.html);
-    				}
-    				else if(b.type === 'append') {
-    					$(b.html).djpcms().appendTo(el);
-    				}
-    				else {
-    					html = $(b.html).djpcms();
-    				    el.show();
-    				    el.fadeOut(fade,'linear',function(){
-    				        if(b.type === 'replacewith') {
-    				            el.replaceWith(html);
-    				        }
-    				        else {
-    				            if(b.type === 'addto') {
-    				            	el.append(html);
-    				            }
-    				            else {
-    				            	// The append method does not seems to
-    				            	// presenve events on html. So I use this
-    				            	// hack.
-    				            	var tmp = $('<div></div>');
-    				            	el.empty().append(tmp);
-    				            	tmp.replaceWith(html);
-    				            }
-    				        }
-    				        el.fadeIn(fade);
-    					});
-    				}
-    			}
-    		});
-    		return true;
-    	}
+        id: "htmls",
+        handle: function(data, elem, config) {
+            $.each(data, function(i,b) {
+                var el = $(b.identifier,elem),
+                    fade = config.fadetime,
+                    html;
+                if(!el.length & b.alldocument) {
+                    el = $(b.identifier);
+                }
+                if(el.length) {
+                    if(b.type === 'hide') {
+                        el.hide();
+                    }
+                    else if(b.type === 'show') {
+                        el.show();
+                    }
+                    else if(b.type === 'value') {
+                        el.val(b.html);
+                    }
+                    else if(b.type === 'append') {
+                        $(b.html).djpcms().appendTo(el);
+                    }
+                    else {
+                        html = $(b.html).djpcms();
+                        el.show();
+                        el.fadeOut(fade,'linear',function(){
+                            if(b.type === 'replacewith') {
+                                el.replaceWith(html);
+                            }
+                            else {
+                                if(b.type === 'addto') {
+                                    el.append(html);
+                                }
+                                else {
+                                    // The append method does not seems to
+                                    // presenve events on html. So I use this
+                                    // hack.
+                                    var tmp = $('<div></div>');
+                                    el.empty().append(tmp);
+                                    tmp.replaceWith(html);
+                                }
+                            }
+                            el.fadeIn(fade);
+                        });
+                    }
+                }
+            });
+            return true;
+        }
     });
     
     /**
      * attribute JSON callback
      */
     $.djpcms.addJsonCallBack({
-    	id: "attribute",
-    	handle: function(data, elem) {
-    		var selected = [];
-    		$.each(data, function(i,b) {
-    			var el;
-    			if(b.alldocument) {
-    				el = $(b.selector);
-    			}
-    			else {
-    				el = $(b.selector,elem);
-    			}
-    			if(el.length) {
-    				b.elem = el;
-    			}
-    		});
-    		$.each(data, function(i,b) {
-    			if(b.elem) {
-    				b.elem.attr(b.attr,b.value);
-    			}
-    		});
-    	}
+        id: "attribute",
+        handle: function(data, elem) {
+            var selected = [];
+            $.each(data, function(i,b) {
+                var el;
+                if(b.alldocument) {
+                    el = $(b.selector);
+                }
+                else {
+                    el = $(b.selector,elem);
+                }
+                if(el.length) {
+                    b.elem = el;
+                }
+            });
+            $.each(data, function(i,b) {
+                if(b.elem) {
+                    b.elem.attr(b.attr,b.value);
+                }
+            });
+        }
     });
     
     /**
      * Remove html elements
      */
     $.djpcms.addJsonCallBack({
-    	id: "remove",
-    	handle: function(data, elem) {
-    		$.each(data, function(i,b) {
-    			var el = $(b.identifier,elem);
-    			if(!el.length & b.alldocument) {
-    				el = $(b.identifier);
-    			}
-    			if(el.length) {
-    			    var be = $.djpcms.options.remove_effect;
-    			    el.fadeIn(be.duration, function() {el.remove();});
-    				//el.hide(be.type,{},be.duration,function() {el.remove();});
-    			}
-    		});
-    		return true;
-    	}
+        id: "remove",
+        handle: function(data, elem) {
+            $.each(data, function(i,b) {
+                var el = $(b.identifier,elem);
+                if(!el.length & b.alldocument) {
+                    el = $(b.identifier);
+                }
+                if(el.length) {
+                    var be = $.djpcms.options.remove_effect;
+                    el.fadeIn(be.duration, function() {el.remove();});
+                    //el.hide(be.type,{},be.duration,function() {el.remove();});
+                }
+            });
+            return true;
+        }
     });
     
     /**
      * Redirect
      */
     $.djpcms.addJsonCallBack({
-    	id: "redirect",
-    	handle: function(data, elem) {
-    		window.location = data;
-    	}
+        id: "redirect",
+        handle: function(data, elem) {
+            window.location = data;
+        }
     });
     
     /**
      * Popup
      */
     $.djpcms.addJsonCallBack({
-    	id: "popup",
-    	handle: function(data, elem) {
-    		$.popupWindow({windowURL:data,centerBrowser:1});
-    	}
+        id: "popup",
+        handle: function(data, elem) {
+            $.popupWindow({windowURL:data,centerBrowser:1});
+        }
     });
     
     /**
@@ -634,46 +634,46 @@
      * Create a jQuery dialog from JSON data
      */
     $.djpcms.addJsonCallBack({
-    	id: "dialog",
-    	handle: function(data, elem) {
-    		var el = $('<div></div>').html(data.html).djpcms();
-    		var buttons = {};
-    		$.each(data.buttons,function(n,b) {
-    			buttons[b.name] = function() {
-    				b.d = $(this);
-    				
-    				b.dialogcallBack = function(data) {
-    					$.djpcms.jsonCallBack(data,'success',el);
-    					if(b.close) {
-    						b.d.dialog("close");
-    					}
-    				};
-    				
-    				if(b.url) {
-    					var params = $('form',el).formToArray();
-    					if(b.func) {
-    						var extra = $.djpcms.ajaxparams(b.func);
-    						$.each(extra, function(k,v) {
-    							params.push({'name':k, 'value':v});
-    						});
-    					}
-    					$.post(b.url,$.param(params),b.dialogcallBack,"json");
-    				}
-    				else {
-    					b.d.dialog('close');
-    				}
-    			};
-    		});
-    		var options = data.options;
-    		options.buttons = buttons;
-    		el.dialog(options);
-    		return true;
-    	}
+        id: "dialog",
+        handle: function(data, elem) {
+            var el = $('<div></div>').html(data.html).djpcms();
+            var buttons = {};
+            $.each(data.buttons,function(n,b) {
+                buttons[b.name] = function() {
+                    b.d = $(this);
+                    
+                    b.dialogcallBack = function(data) {
+                        $.djpcms.jsonCallBack(data,'success',el);
+                        if(b.close) {
+                            b.d.dialog("close");
+                        }
+                    };
+                    
+                    if(b.url) {
+                        var params = $('form',el).formToArray();
+                        if(b.func) {
+                            var extra = $.djpcms.ajaxparams(b.func);
+                            $.each(extra, function(k,v) {
+                                params.push({'name':k, 'value':v});
+                            });
+                        }
+                        $.post(b.url,$.param(params),b.dialogcallBack,"json");
+                    }
+                    else {
+                        b.d.dialog('close');
+                    }
+                };
+            });
+            var options = data.options;
+            options.buttons = buttons;
+            el.dialog(options);
+            return true;
+        }
     });
     
     
     ////////////////////////////////////////////////////////////////////////////
-    //						DECORATORS
+    //                      DECORATORS
     ////////////////////////////////////////////////////////////////////////////
     /**
      * Accordion menu
@@ -689,10 +689,10 @@
         decorate: function($this,config) {
             var c = $.extend({},config.accordion);
             $('.ui-accordion-container',$this).each(function() {
-            	var el = $(this),
-            		options = el.data('options'),
-            		opts = $.extend(c,options);
-            	el.accordion(opts).show(opts.effect,{},opts.fadetime);
+                var el = $(this),
+                    options = el.data('options'),
+                    opts = $.extend(c,options);
+                el.accordion(opts).show(opts.effect,{},opts.fadetime);
             });
         }
     });
@@ -715,14 +715,14 @@
 
     $.djpcms.decorator({
         id:'ui-state-hover',
-    	decorate: function(obj, config) {
-    	    $('.edit-menu a',obj).addClass('ui-corner-all')
-    	        .mouseenter(function(){$(this).addClass('ui-state-hover');})
-    	        .mouseleave(function(){$(this).removeClass('ui-state-hover');});
-    	    $('a.ui-hoverable',obj).addClass('ui-corner-all')
+        decorate: function(obj, config) {
+            $('.edit-menu a',obj).addClass('ui-corner-all')
                 .mouseenter(function(){$(this).addClass('ui-state-hover');})
                 .mouseleave(function(){$(this).removeClass('ui-state-hover');});
-    	}
+            $('a.ui-hoverable',obj).addClass('ui-corner-all')
+                .mouseenter(function(){$(this).addClass('ui-state-hover');})
+                .mouseleave(function(){$(this).removeClass('ui-state-hover');});
+        }
     });
     
     
@@ -733,14 +733,14 @@
      * and apply ajax functionality where required.
      */
     $.djpcms.decorator({
-        id:	"ajax_widgets",
+        id: "ajax_widgets",
         config: {
-        	blank_target: true,
-        	submit: {jquery: true,
-        			 selector: 'input[type="submit"]'},
-        	link: {jquery: true,
-        		   selector: 'a, button',
-        		   ajax_selector: 'a.ajax, button'},
+            blank_target: true,
+            submit: {jquery: true,
+                     selector: 'input[type="submit"]'},
+            link: {jquery: true,
+                   selector: 'a, button',
+                   ajax_selector: 'a.ajax, button'},
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_class: 'submitted'
@@ -756,184 +756,184 @@
             
             // Submits
             if(cfg.submit.jquery) {
-            	$(cfg.submit.selector,$this).button();
+                $(cfg.submit.selector,$this).button();
             }
             
             // Links and buttons
             links = $(cfg.link.selector,$this);
             if(cfg.link.jquery) {
-            	links.each(function() {
-            		var el = $(this),
-                    	data = el.data(),
-                    	icon = data.icon,
-                    	text = data.text;
-            		if(this.tagName.toLowerCase() === 'a') {
-            			if(icon) { 
-	            			icon = '<span class="ui-icon '+icon+'"></span>';
-	            			el.before(icon).css({'padding-left':0});
-	            			if(bt) {
-	                            var href = el.attr('href');
-	                            if(href && href.substring(0,4) == 'http') {
-	                                el.attr('target','_blank');
-	                            }
-	                        }
-            			}
-            		} else {
-            			if(!text) {
-            				text = icon ? false : true;
-            			}
-            			el.button({
-            				icons:{primary:icon},
-            				text:text
-            			});
-            		}
-            	});
+                links.each(function() {
+                    var el = $(this),
+                        data = el.data(),
+                        icon = data.icon,
+                        text = data.text;
+                    if(this.tagName.toLowerCase() === 'a') {
+                        if(icon) { 
+                            icon = '<span class="ui-icon '+icon+'"></span>';
+                            el.before(icon).css({'padding-left':0});
+                            if(bt) {
+                                var href = el.attr('href');
+                                if(href && href.substring(0,4) == 'http') {
+                                    el.attr('target','_blank');
+                                }
+                            }
+                        }
+                    } else {
+                        if(!text) {
+                            text = icon ? false : true;
+                        }
+                        el.button({
+                            icons:{primary:icon},
+                            text:text
+                        });
+                    }
+                });
             }
-    		$(cfg.link.ajax_selector,$this).click(function(event) {
-    		    event.preventDefault();
-    		    var elem = $(this),
-    		        ajax = elem.hasClass('ajax'),
-    		        conf = elem.data('warning'),
-    		        form = elem.closest('form');
-    		    
-    		    function handleClick(handle) {
-    		        var url = elem.attr('href') || elem.data('href') || '.';
-    		        if(!handle) {return;}
-    		        if(!elem.hasClass('ajax')) {
-    		            window.location = url;
-    		        } else {
+            $(cfg.link.ajax_selector,$this).click(function(event) {
+                event.preventDefault();
+                var elem = $(this),
+                    ajax = elem.hasClass('ajax'),
+                    conf = elem.data('warning'),
+                    form = elem.closest('form');
+                
+                function handleClick(handle) {
+                    var url = elem.attr('href') || elem.data('href') || '.';
+                    if(!handle) {return;}
+                    if(!elem.hasClass('ajax')) {
+                        window.location = url;
+                    } else {
                         var method = elem.data('method') || 'post',
                             action = elem.attr('name');
                         $.djpcms.ajax_loader(url,action,method,{})();
-    		        }
-    		    }
-    		    
-    		    if(conf) {
-    		        var title = conf.title || '',
-    		            body = conf.body || conf;
-    		        $.djpcms.warning_dialog(title,body,handleClick);
-    		    }
-    		    else {
-    		        handleClick(true);
-    		    }
-    		});
-    		
-    		// AJAX Select
-    		$(cfg.selector_select,$this).change(function(event) {
-    			var elem = $(this),
-    				data = elem.data(),
-    			    url = data.href,
-    			    name = elem.attr('name'),
-    			    form = elem.closest('form'),
-    			    method = data.method || 'get';
-    			if(form.length === 1 && !url) {
-    				url = form.attr('action');
-    			}
-    			if(!url) {
-    				url = window.location.toString();
-    			}
-    			
-    			if(!form) {
-    				var p   = $.djpcms.ajaxparams(elem.attr('name'));
-    				p.value = elem.val();
-    				$.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
-    			}
-    			else {
-    				var opts = {
-    						'url': url,
-    						type: 'get',
-    						success: callback,
-    						dataType: "json",
-    						data: {xhr: name},
-    						iframe: false,
-    						};
-    				form[0].clk = elem[0];
-    				logger.info('Submitting select change from "'+name+'"');
-    				form.ajaxSubmit(opts);
-    			}
-    		});
-    		
-    		function form_beforeSerialize(jqForm, opts) {
-            	return true;
+                    }
+                }
+                
+                if(conf) {
+                    var title = conf.title || '',
+                        body = conf.body || conf;
+                    $.djpcms.warning_dialog(title,body,handleClick);
+                }
+                else {
+                    handleClick(true);
+                }
+            });
+            
+            // AJAX Select
+            $(cfg.selector_select,$this).change(function(event) {
+                var elem = $(this),
+                    data = elem.data(),
+                    url = data.href,
+                    name = elem.attr('name'),
+                    form = elem.closest('form'),
+                    method = data.method || 'get';
+                if(form.length === 1 && !url) {
+                    url = form.attr('action');
+                }
+                if(!url) {
+                    url = window.location.toString();
+                }
+                
+                if(!form) {
+                    var p   = $.djpcms.ajaxparams(elem.attr('name'));
+                    p.value = elem.val();
+                    $.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
+                }
+                else {
+                    var opts = {
+                            'url': url,
+                            type: 'get',
+                            success: callback,
+                            dataType: "json",
+                            data: {xhr: name},
+                            iframe: false,
+                            };
+                    form[0].clk = elem[0];
+                    logger.info('Submitting select change from "'+name+'"');
+                    form.ajaxSubmit(opts);
+                }
+            });
+            
+            function form_beforeSerialize(jqForm, opts) {
+                return true;
             }
             function form_beforeSubmit(formData, jqForm, opts) {
-            	$.each($.djpcms.before_form_submit,function() {
-            		formData = this(formData,jqForm);
-            	});
+                $.each($.djpcms.before_form_submit,function() {
+                    formData = this(formData,jqForm);
+                });
                 jqForm.addClass(cfg.submit_class);
                 return true;
             }
-    		function success_form(o,s,xhr,jqForm) {
-    			jqForm.removeClass(cfg.submit_class);
-    			$.djpcms.jsonCallBack(o,s,jqForm);
-    		}
-    		// Form submission
-    		$(cfg.selector_form,$this).each(function() {
-    		    var f = $(this),
-    		        opts = {
-    		    		url: this.action,
-    		    		type: this.method,
-    		    		success: success_form,
-    		    		submitkey: config.post_view_key,
-    		    		dataType: "json",
-    		    		beforeSerialize: form_beforeSerialize,
-    		    		beforeSubmit: form_beforeSubmit,
-    		    		iframe: false
-    		    		};
-    		    f.ajaxForm(opts);
-    		    //f.submit(function(e) {
-    		    //   e.preventDefault();
-    		    //    $(this).ajaxSubmit(opts);
-    		    //    return false;
-    		    //});
-    			//f.ajaxForm(opts);
-    			if(f.hasClass(config.autoload_class))  {
-    				var name = f.attr("name");
-    				f[0].clk = $(":submit[name='"+name+"']",f)[0];
-    				f.submit();
-    			}
-    		});
-    	}
+            function success_form(o,s,xhr,jqForm) {
+                jqForm.removeClass(cfg.submit_class);
+                $.djpcms.jsonCallBack(o,s,jqForm);
+            }
+            // Form submission
+            $(cfg.selector_form,$this).each(function() {
+                var f = $(this),
+                    opts = {
+                        url: this.action,
+                        type: this.method,
+                        success: success_form,
+                        submitkey: config.post_view_key,
+                        dataType: "json",
+                        beforeSerialize: form_beforeSerialize,
+                        beforeSubmit: form_beforeSubmit,
+                        iframe: false
+                        };
+                f.ajaxForm(opts);
+                //f.submit(function(e) {
+                //   e.preventDefault();
+                //    $(this).ajaxSubmit(opts);
+                //    return false;
+                //});
+                //f.ajaxForm(opts);
+                if(f.hasClass(config.autoload_class))  {
+                    var name = f.attr("name");
+                    f[0].clk = $(":submit[name='"+name+"']",f)[0];
+                    f.submit();
+                }
+            });
+        }
     });
     
     /**
      * Autocomplete Off
      */
     $.djpcms.decorator({
-    	id:"autocomplete_off",
-    	decorate: function($this,config) {
-    		$('.autocomplete-off',$this).each(function() {
-    			$(this).attr('autocomplete','off');
-    		});
-    		$('input:password',$this).each(function() {
-    			$(this).attr('autocomplete','off');
-    		});
-    	}
+        id:"autocomplete_off",
+        decorate: function($this,config) {
+            $('.autocomplete-off',$this).each(function() {
+                $(this).attr('autocomplete','off');
+            });
+            $('input:password',$this).each(function() {
+                $(this).attr('autocomplete','off');
+            });
+        }
     });
     
     /**
      * Classy Search
      */
     $.djpcms.decorator({
-    	id:"classy-search",
-    	decorate: function($this,config) {
-    		$('.classy-search',$this).each(function() {
-    			var el = $(this),
-    			    val = el.val(),
-    			    df = el.attr('title');
-    			if(!val) {
-    				el.val(df);
-    			}
-    			if(el.val() === df) {
-    				el.addClass('idlefield');
-    			}
-    			el.focus(function() {
-    					$(this).removeClass('idlefield').val('');
-    			}).blur(function() {
-    				$(this).addClass('idlefield');
-    			});
-    		});
-    	}
+        id:"classy-search",
+        decorate: function($this,config) {
+            $('.classy-search',$this).each(function() {
+                var el = $(this),
+                    val = el.val(),
+                    df = el.attr('title');
+                if(!val) {
+                    el.val(df);
+                }
+                if(el.val() === df) {
+                    el.addClass('idlefield');
+                }
+                el.focus(function() {
+                        $(this).removeClass('idlefield').val('');
+                }).blur(function() {
+                    $(this).addClass('idlefield');
+                });
+            });
+        }
     });
     
     /**
@@ -941,50 +941,50 @@
      * Collappsable boxes
      */
     $.djpcms.decorator({
-    	id:"djpcms_box",
-    	description:"Decorate a DJPCMS box element",
-    	decorate: function($this,config) {
-    		var pselector = '.djpcms-html-box.collapsable',
-    		    cname = pselector + ' a.collapse',
-    		    bname = '.hd',
-    		    elems;
-    		$(cname,$this).mousedown(function (e) {
-    			e.stopPropagation();    
-    		}).click(function() {
-    		    var self = $(this),
-    		        span = $('span',this),
-    		        cp = self.parents(pselector).first(),
-    		        be = config.box_effect,
-    		        bd = $('.bd',cp).first();
-    			if(cp.hasClass('collapsed')) {
-    				bd.show(be.type,{},be.duration,function(){
-    				    cp.removeClass('collapsed');
-    				    span.removeClass('ui-icon-circle-triangle-s')
-    				        .addClass('ui-icon-circle-triangle-n');
-    				});
-    			}
-    			else {
-    				bd.hide(be.type,{},be.duration, function(){cp.addClass('collapsed');});
-    				span.removeClass('ui-icon-circle-triangle-n')
+        id:"djpcms_box",
+        description:"Decorate a DJPCMS box element",
+        decorate: function($this,config) {
+            var pselector = '.djpcms-html-box.collapsable',
+                cname = pselector + ' a.collapse',
+                bname = '.hd',
+                elems;
+            $(cname,$this).mousedown(function (e) {
+                e.stopPropagation();    
+            }).click(function() {
+                var self = $(this),
+                    span = $('span',this),
+                    cp = self.parents(pselector).first(),
+                    be = config.box_effect,
+                    bd = $('.bd',cp).first();
+                if(cp.hasClass('collapsed')) {
+                    bd.show(be.type,{},be.duration,function(){
+                        cp.removeClass('collapsed');
+                        span.removeClass('ui-icon-circle-triangle-s')
+                            .addClass('ui-icon-circle-triangle-n');
+                    });
+                }
+                else {
+                    bd.hide(be.type,{},be.duration, function(){cp.addClass('collapsed');});
+                    span.removeClass('ui-icon-circle-triangle-n')
                         .addClass('ui-icon-circle-triangle-s');
-    			}
-    			//cp.toggleClass('collapsed');
-    			return false;
-    		});
-    	}
+                }
+                //cp.toggleClass('collapsed');
+                return false;
+            });
+        }
     });
     
     // Calendar Date Picker Decorator
     $.djpcms.decorator({
-    	id:"datepicker",
-    	config: {
+        id:"datepicker",
+        config: {
             selector: 'input.dateinput',
             dateFormat: 'd M yy',
         },
-    	decorate: function($this, config) {
-    	    var opts = config.datepicker;
-    		$(opts.selector,$this).datepicker(opts);
-    	}
+        decorate: function($this, config) {
+            var opts = config.datepicker;
+            $(opts.selector,$this).datepicker(opts);
+        }
     });
     
     // Currency Input
@@ -1015,55 +1015,55 @@
      * 
      */ 
     $.djpcms.decorator({
-    	id:"image_cycle",
-    	decorate: function($this, config) {
-    		if(!$.cycle) {
-    			return;
-    		}
-    		$('.image-cycle', $this).each(function() {
-    			var this_ = $(this);
-    			var w     = this_.width();
-    			var h     = this_.height();
-    			var classes = this.className.split(" ");
-    			var type_  = 'fade';
-    			var speed_ = 5000;
-    			var timeout_ = 10000;
-    			$('img',this_).width(w).height(h);
-    			$.each(classes,function(i,v) {
-    				if(v.substr(0,6) === "speed-"){
-    					try {
-    						speed_ = parseInt(v.substr(6));
-    					} catch(e) {}
-    				}
-    				else if(v.substr(0,8) === "timeout-"){
-    					try {
-    						timeout_ = parseInt(v.substr(8));
-    					} catch(e2) {}
-    				}
-    				else if(v.substr(0,5) === "type-") {
-    					type_ = v.substr(5);
-    				}
+        id:"image_cycle",
+        decorate: function($this, config) {
+            if(!$.cycle) {
+                return;
+            }
+            $('.image-cycle', $this).each(function() {
+                var this_ = $(this);
+                var w     = this_.width();
+                var h     = this_.height();
+                var classes = this.className.split(" ");
+                var type_  = 'fade';
+                var speed_ = 5000;
+                var timeout_ = 10000;
+                $('img',this_).width(w).height(h);
+                $.each(classes,function(i,v) {
+                    if(v.substr(0,6) === "speed-"){
+                        try {
+                            speed_ = parseInt(v.substr(6));
+                        } catch(e) {}
+                    }
+                    else if(v.substr(0,8) === "timeout-"){
+                        try {
+                            timeout_ = parseInt(v.substr(8));
+                        } catch(e2) {}
+                    }
+                    else if(v.substr(0,5) === "type-") {
+                        type_ = v.substr(5);
+                    }
                 });
-    			this_.cycle({fx: type_,
-    					  speed: speed_,
-    					  timeout: timeout_});
-    		});
-    	}
+                this_.cycle({fx: type_,
+                          speed: speed_,
+                          timeout: timeout_});
+            });
+        }
     });
 
     
     $.djpcms.decorator({
-    	id: 'taboverride',
-    	description: "Override tab key to insert n spaces",
-    	config: {
-    	 spaces: 4    
-    	},
-    	decorate: function($this,config) {
-    		if($.fn.tabOverride) {
-    			$.fn.tabOverride.setTabSize(config.taboverride.spaces);
-    			$('textarea.taboverride',$this).tabOverride(true);
-    		}
-    	}
+        id: 'taboverride',
+        description: "Override tab key to insert n spaces",
+        config: {
+         spaces: 4    
+        },
+        decorate: function($this,config) {
+            if($.fn.tabOverride) {
+                $.fn.tabOverride.setTabSize(config.taboverride.spaces);
+                $('textarea.taboverride',$this).tabOverride(true);
+            }
+        }
     });
     
 
@@ -1189,9 +1189,9 @@
             }
             
             function single_add_data(item) {
-            	this.real.val(item.real_value);
-            	this.proxy.val(item.value);
-            	this.real.data('value',item.value);
+                this.real.val(item.real_value);
+                this.proxy.val(item.value);
+                this.real.data('value',item.value);
             }
             
             function multiple_add_data(item) {
@@ -1206,20 +1206,20 @@
             }
             
             function get_autocomplete_data(jform, options, veto) {
-            	var value = this.proxy.val();
-            	if(this.multiple) {
-            		
-            	} else {	
-            		if(this.real.data('value') != value) {
-            			this.real.val(value);
-            		}
-            	}
+                var value = this.proxy.val();
+                if(this.multiple) {
+                    
+                } else {    
+                    if(this.real.data('value') != value) {
+                        this.real.val(value);
+                    }
+                }
             }
                
             /* Loop over each element and setup plugin */
             $(opts.selector,$this).each(function() {
                 var elem = $(this),
-                	name = elem.attr('name'),
+                    name = elem.attr('name'),
                     data = elem.data(),
                     url = data.url,
                     choices = data.choices,
@@ -1229,16 +1229,16 @@
                     separator = data.separator || opts.separator,
                     initials,
                     manager = {
-                		'name': name,
-                		proxy: elem,
-                		widget: elem,
-                		'multiple': multiple,
-                		add_data: multiple ? multiple_add_data : single_add_data,
-                	},
+                        'name': name,
+                        proxy: elem,
+                        widget: elem,
+                        'multiple': multiple,
+                        add_data: multiple ? multiple_add_data : single_add_data,
+                    },
                     options = {
                             minLength: data.minlength || opts.minLength,
                             select: function(event, ui) {
-                            	manager.add_data(ui.item);
+                                manager.add_data(ui.item);
                                 return false;
                             }
                     };
@@ -1247,19 +1247,19 @@
                 elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data,manager));
                 // Optain the widget container for positioning if specified. 
                 if(opts.widgetcontainer) {
-                	manager.widget = elem.parent(opts.widgetcontainer);
-                	if(!manager.widget.length) {
-                		manager.widget = elem;
-                	}
-                	options.position = {of: manager.widget};
+                    manager.widget = elem.parent(opts.widgetcontainer);
+                    if(!manager.widget.length) {
+                        manager.widget = elem;
+                    }
+                    options.position = {of: manager.widget};
                 }
                 
                 // Build the real (hidden) input
                 if(multiple) {
-                	manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
+                    manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
                 }
                 else {
-                	manager.real = $('<input name="'+ name +'"></input>');
+                    manager.real = $('<input name="'+ name +'"></input>');
                 }
                 elem.attr('name',name+'_proxy');
                 manager.widget.prepend(manager.real.hide());
@@ -1278,8 +1278,8 @@
                 initials = data.initial_value;
                 if(initials) {
                     $.each(initials, function(i,initial) {
-                    	manager.add_data({real_value: initial[0],
-                    					  value: initial[1]});
+                        manager.add_data({real_value: initial[0],
+                                          value: initial[1]});
                     });
                 }
                 
@@ -1301,7 +1301,7 @@
                     elem.autocomplete(options);
                 }
                 else if(url) {
-                	// We have a url, the data is obtained remotely.
+                    // We have a url, the data is obtained remotely.
                     options.source = function(request,response) {
                                     var ajax_data = {style: 'full',
                                                      maxRows: maxRows,
@@ -1324,41 +1324,41 @@
     
     
     $.djpcms.decorator({
-    	id: "rearrange",
-    	config: {
-    	    body_selector: 'body.editable',
-    	},
-    	description: "Drag and drop functionalities in editing mode",
-    	decorate: function($this,config) {
-    		// The selectors
-    	    if(!$(config.rearrange.body_selector).length) {
-    	        if(!$.djpcms.content_edit) {
-    	            return;
-    	        }
-    	    }
-    	    $.djpcms.content_edit = (function() {
-    	        
-    	        var sortblock = '.sortable-block',
-    	            divpaceholder = 'djpcms-placeholder',
-    	            editblock = 'div.edit-block',
-    	            columns = $(sortblock),
-    	            holderelem = columns.commonAncestor(),
-    	            curposition = null,
-    	            logger = $.djpcms.logger;
-    	        
-    	        
-    	        columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
-    	            curposition = position($(this).parent(editblock));
-    	            $.djpcms.logger.info('selected item to move');
-    	            var elem = $(this).parent();
+        id: "rearrange",
+        config: {
+            body_selector: 'body.editable',
+        },
+        description: "Drag and drop functionalities in editing mode",
+        decorate: function($this,config) {
+            // The selectors
+            if(!$(config.rearrange.body_selector).length) {
+                if(!$.djpcms.content_edit) {
+                    return;
+                }
+            }
+            $.djpcms.content_edit = (function() {
+                
+                var sortblock = '.sortable-block',
+                    divpaceholder = 'djpcms-placeholder',
+                    editblock = 'div.edit-block',
+                    columns = $(sortblock),
+                    holderelem = columns.commonAncestor(),
+                    curposition = null,
+                    logger = $.djpcms.logger;
+                
+                
+                columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
+                    curposition = position($(this).parent(editblock));
+                    $.djpcms.logger.info('selected item to move');
+                    var elem = $(this).parent();
                     elem.css({
                         width: elem.width() + 'px'
                     });
-    	        });
-    	        
-    	        function position(elem) {
-    	            var neighbour = elem.prev(editblock),
-    	                data = {};
+                });
+                
+                function position(elem) {
+                    var neighbour = elem.prev(editblock),
+                        data = {};
                     if(neighbour.length) {
                         data.previous = neighbour.attr('id');
                     }
@@ -1369,59 +1369,59 @@
                         }
                     }
                     return data;
-    	        }
-    	        
-    			function moveblock(elem, pos, callback) {
-    				var data = $.extend($.djpcms.ajaxparams('rearrange'),pos);
-    				var form = $('form.djpcms-blockcontent',elem);
-    				function movedone(e,s) {
-    					$.djpcms.jsonCallBack(e,s);
-    					callback();
-    				}
-    				if(form) {
-    					var url = form.attr('action');
-    					logger.info('Sending rearrange post request to "'+url+'"')
-    					$.post(url,
-    						   data,
-    						   movedone,
-    						   'json');
-    				}
-    			}
-    		
-    			columns.sortable({
-    				items: editblock,
-    				cancel: "div.edit-block:not(.movable)",
-    				handle: 'div.hd',
-    	            forcePlaceholderSize: true,
-    	            connectWith: sortblock,
-    				revert: 300,
-    	            delay: 100,
-    	            opacity: 0.8,
-    	            //containment: holderelem,
-    	            placeholder: divpaceholder,
-    	            start: function (e,ui) {
-    	                //$(ui.helper).addClass('dragging').css({width:''});
-    	            },
-    	            stop: function (e,ui) {
-    	                var elem = ui.item;
-    	                logger.info('Stopping drag and drop of element ' + elem);
-    	                elem.css({width:''}).removeClass('dragging');
-    	                function updatedone() {
-    	                	columns.sortable('enable');
-    	                }
-    	                var pos = position(elem);
-    	                if(pos.previous) {
-    	                    if(pos.previous === curposition.previous) {return;}
-    	                }
-    	                else {
-    	                    if(pos.next === curposition.next) {return;}
-    	                }
-    	                columns.sortable('disable');
-    	                moveblock(elem,pos,updatedone);
-    	            }
-    			});
-    	    }());
-    	}
+                }
+                
+                function moveblock(elem, pos, callback) {
+                    var data = $.extend($.djpcms.ajaxparams('rearrange'),pos);
+                    var form = $('form.djpcms-blockcontent',elem);
+                    function movedone(e,s) {
+                        $.djpcms.jsonCallBack(e,s);
+                        callback();
+                    }
+                    if(form) {
+                        var url = form.attr('action');
+                        logger.info('Sending rearrange post request to "'+url+'"')
+                        $.post(url,
+                               data,
+                               movedone,
+                               'json');
+                    }
+                }
+            
+                columns.sortable({
+                    items: editblock,
+                    cancel: "div.edit-block:not(.movable)",
+                    handle: 'div.hd',
+                    forcePlaceholderSize: true,
+                    connectWith: sortblock,
+                    revert: 300,
+                    delay: 100,
+                    opacity: 0.8,
+                    //containment: holderelem,
+                    placeholder: divpaceholder,
+                    start: function (e,ui) {
+                        //$(ui.helper).addClass('dragging').css({width:''});
+                    },
+                    stop: function (e,ui) {
+                        var elem = ui.item;
+                        logger.info('Stopping drag and drop of element ' + elem);
+                        elem.css({width:''}).removeClass('dragging');
+                        function updatedone() {
+                            columns.sortable('enable');
+                        }
+                        var pos = position(elem);
+                        if(pos.previous) {
+                            if(pos.previous === curposition.previous) {return;}
+                        }
+                        else {
+                            if(pos.next === curposition.next) {return;}
+                        }
+                        columns.sortable('disable');
+                        moveblock(elem,pos,updatedone);
+                    }
+                });
+            }());
+        }
     });
     
     $.djpcms.decorator({
@@ -1472,36 +1472,36 @@
      * in djpcms forms when they are on focus.
      */
     $.djpcms.decorator({
-    	id: "field_widget",
+        id: "field_widget",
         config: {
             selector: '.field-widget',
         },
         description: "Add focus class to field-widget-input when underlying input is on focus",
         decorate: function($this,config) {
-        	var selector = config.field_widget.selector,
-        		elem = $(selector+' input',$this);
-        	elem.focus(function() {
-        		var p = $(this).parent(selector);
-        		p.addClass('focus');
-        	}).blur(function() {
-        		var p = $(this).parent(selector);
-        		p.removeClass('focus');
-        	});
-        	if(elem.hasClass('submit-on-enter')) {
-        		elem.keypress(function(e){
-        		    if(e.which == 13){
-        		    	var form = elem.closest('form');
-        		    	form.submit();
-        		    }
-        		});
-        	}
+            var selector = config.field_widget.selector,
+                elem = $(selector+' input',$this);
+            elem.focus(function() {
+                var p = $(this).parent(selector);
+                p.addClass('focus');
+            }).blur(function() {
+                var p = $(this).parent(selector);
+                p.removeClass('focus');
+            });
+            if(elem.hasClass('submit-on-enter')) {
+                elem.keypress(function(e){
+                    if(e.which == 13){
+                        var form = elem.closest('form');
+                        form.submit();
+                    }
+                });
+            }
         }
     });
     
     $.djpcms.decorator({
         id: "popover",
         config: {
-        	selector: '.pop-over, .label',
+            selector: '.pop-over, .label',
             x:10,
             y:30,
             predelay: 400,
@@ -1512,15 +1512,15 @@
         decorate: function($this,config) {
             if($.fn.popover) {
                 var that = this,
-                	c = config.popover;
+                    c = config.popover;
                 $(c.selector,$this).each(function(){
-                	var el = $(this),
-                		data = el.data(),
-                		des = el.data('content');
-                	if(des) {
-                		el.attr('rel','popover');
-                		el.popover();
-                	}
+                    var el = $(this),
+                        data = el.data(),
+                        des = el.data('content');
+                    if(des) {
+                        el.attr('rel','popover');
+                        el.popover();
+                    }
                 });
             }
         }});
@@ -1550,64 +1550,64 @@
      * indicating if it is negative
      */
     $.djpcms.format_currency = function(s,precision) {
-    	if(!precision) {
-    		precision = 3;
-    	}
-    	s = s.replace(/,/g,'');
-    	var c = parseFloat(s),
-    	    isneg = false,
-    	    decimal = false,
-    	    cs,cn,d,k,N,de = '';
-    	if(isNaN(c))  {
-    		return {value:s,negative:isneg};
-    	}
-    	cs = s.split('.',2);
-    	if(c<0) {
-    		isneg = true;
-    		c = Math.abs(c);
-    	}
-    	cn = parseInt(c,10);
-    	if(cs.length == 2) {
-    	    de = cs[1];
-    	    if(!de) {
-    	        de = '.';
-    	    } else {
-    	        decimal = true;
-    	        de = c - cn;
-    	    }
-    	}
-    	if(decimal) {
-    		var mul = Math.pow(10,precision);
-    		var atom = (parseInt(c*mul)/mul + '').split(".")[1];
-    		var de = '';
-    		decimal = false;
-			for(var i=0;i<Math.min(atom.length,precision);i++)  {
-			    de += atom[i];
-				if(parseInt(atom[i],10) > 0)  {
-					decimal = true;
-				}
-			}
-			if(decimal) {de = '.' + de;}
-    	}
-    	cn += "";
-    	N  = cn.length;
-    	cs = "";
-    	for(var j=0;j<N;j++)  {
-    		cs += cn[j];
-    		k = N - j - 1;
-    		d = parseInt(k/3,10);
-    		if(3*d == k && k > 0) {
-    			cs += ',';
-    		}
-    	}
-    	cs += de;
-    	if(isneg) {
-    		cs = '-'+cs;
-    	}
-    	else {
-    		cs = ''+cs;
-    	}
-    	return {value:cs,negative:isneg};
+        if(!precision) {
+            precision = 3;
+        }
+        s = s.replace(/,/g,'');
+        var c = parseFloat(s),
+            isneg = false,
+            decimal = false,
+            cs,cn,d,k,N,de = '';
+        if(isNaN(c))  {
+            return {value:s,negative:isneg};
+        }
+        cs = s.split('.',2);
+        if(c<0) {
+            isneg = true;
+            c = Math.abs(c);
+        }
+        cn = parseInt(c,10);
+        if(cs.length == 2) {
+            de = cs[1];
+            if(!de) {
+                de = '.';
+            } else {
+                decimal = true;
+                de = c - cn;
+            }
+        }
+        if(decimal) {
+            var mul = Math.pow(10,precision);
+            var atom = (parseInt(c*mul)/mul + '').split(".")[1];
+            var de = '';
+            decimal = false;
+            for(var i=0;i<Math.min(atom.length,precision);i++)  {
+                de += atom[i];
+                if(parseInt(atom[i],10) > 0)  {
+                    decimal = true;
+                }
+            }
+            if(decimal) {de = '.' + de;}
+        }
+        cn += "";
+        N  = cn.length;
+        cs = "";
+        for(var j=0;j<N;j++)  {
+            cs += cn[j];
+            k = N - j - 1;
+            d = parseInt(k/3,10);
+            if(3*d == k && k > 0) {
+                cs += ',';
+            }
+        }
+        cs += de;
+        if(isneg) {
+            cs = '-'+cs;
+        }
+        else {
+            cs = ''+cs;
+        }
+        return {value:cs,negative:isneg};
     }
     
     
@@ -1615,56 +1615,56 @@
     
     
     
-    (function($){ 		  
-    	$.popupWindow = function(instanceSettings){
-    		
-    		var defaultSettings = {
-    			centerBrowser:0, // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
-    		centerScreen:0, // center window over entire screen? {1 (YES) or 0 (NO)}. overrides top and left
-    		height:500, // sets the height in pixels of the window.
-    		left:0, // left position when the window appears.
-    		location:0, // determines whether the address bar is displayed {1 (YES) or 0 (NO)}.
-    		menubar:0, // determines whether the menu bar is displayed {1 (YES) or 0 (NO)}.
-    		resizable:0, // whether the window can be resized {1 (YES) or 0 (NO)}. Can also be overloaded using resizable.
-    		scrollbars:0, // determines whether scrollbars appear on the window {1 (YES) or 0 (NO)}.
-    		status:0, // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
-    		width:500, // sets the width in pixels of the window.
-    		windowName:null, // name of window set from the name attribute of the element that invokes the click
-    		windowURL:null, // url used for the popup
-    		top:0, // top position when the window appears.
-    		toolbar:0 // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
-    	};
-    	
-    	settings = $.extend({}, defaultSettings, instanceSettings || {});
-    	
-    	var windowFeatures =    'height=' + settings.height +
-    							',width=' + settings.width +
-    							',toolbar=' + settings.toolbar +
-    							',scrollbars=' + settings.scrollbars +
-    							',status=' + settings.status + 
-    							',resizable=' + settings.resizable +
-    							',location=' + settings.location +
-    							',menuBar=' + settings.menubar;
+    (function($){         
+        $.popupWindow = function(instanceSettings){
+            
+            var defaultSettings = {
+                centerBrowser:0, // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
+            centerScreen:0, // center window over entire screen? {1 (YES) or 0 (NO)}. overrides top and left
+            height:500, // sets the height in pixels of the window.
+            left:0, // left position when the window appears.
+            location:0, // determines whether the address bar is displayed {1 (YES) or 0 (NO)}.
+            menubar:0, // determines whether the menu bar is displayed {1 (YES) or 0 (NO)}.
+            resizable:0, // whether the window can be resized {1 (YES) or 0 (NO)}. Can also be overloaded using resizable.
+            scrollbars:0, // determines whether scrollbars appear on the window {1 (YES) or 0 (NO)}.
+            status:0, // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
+            width:500, // sets the width in pixels of the window.
+            windowName:null, // name of window set from the name attribute of the element that invokes the click
+            windowURL:null, // url used for the popup
+            top:0, // top position when the window appears.
+            toolbar:0 // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
+        };
+        
+        settings = $.extend({}, defaultSettings, instanceSettings || {});
+        
+        var windowFeatures =    'height=' + settings.height +
+                                ',width=' + settings.width +
+                                ',toolbar=' + settings.toolbar +
+                                ',scrollbars=' + settings.scrollbars +
+                                ',status=' + settings.status + 
+                                ',resizable=' + settings.resizable +
+                                ',location=' + settings.location +
+                                ',menuBar=' + settings.menubar;
     
-    	settings.windowName = this.name || settings.windowName;
-    	var centeredY,centeredX;
+        settings.windowName = this.name || settings.windowName;
+        var centeredY,centeredX;
     
-    	if(settings.centerBrowser){
-    			
-    		if ($.browser.msie) {//hacked together for IE browsers
-    			centeredY = (window.screenTop - 120) + ((((document.documentElement.clientHeight + 120)/2) - (settings.height/2)));
-    			centeredX = window.screenLeft + ((((document.body.offsetWidth + 20)/2) - (settings.width/2)));
-    		}else{
-    			centeredY = window.screenY + (((window.outerHeight/2) - (settings.height/2)));
-    			centeredX = window.screenX + (((window.outerWidth/2) - (settings.width/2)));
-    		}
-    		window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
-    	}else if(settings.centerScreen){
-    		centeredY = (screen.height - settings.height)/2;
-    		centeredX = (screen.width - settings.width)/2;
-    		window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
-    	}else{
-    		window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + settings.left +',top=' + settings.top).focus();	
-    	}
+        if(settings.centerBrowser){
+                
+            if ($.browser.msie) {//hacked together for IE browsers
+                centeredY = (window.screenTop - 120) + ((((document.documentElement.clientHeight + 120)/2) - (settings.height/2)));
+                centeredX = window.screenLeft + ((((document.body.offsetWidth + 20)/2) - (settings.width/2)));
+            }else{
+                centeredY = window.screenY + (((window.outerHeight/2) - (settings.height/2)));
+                centeredX = window.screenX + (((window.outerWidth/2) - (settings.width/2)));
+            }
+            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
+        }else if(settings.centerScreen){
+            centeredY = (screen.height - settings.height)/2;
+            centeredX = (screen.width - settings.width)/2;
+            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
+        }else{
+            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + settings.left +',top=' + settings.top).focus();  
+        }
     };
 }(jQuery));

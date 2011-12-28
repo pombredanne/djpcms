@@ -3,6 +3,7 @@
 #
 import os
 import sys
+import pickle
 import argparse
 
 import djpcms
@@ -80,18 +81,13 @@ class ManagementUtility(object):
     A ManagementUtility has a number of commands, which can be manipulated
     by editing the self.commands dictionary.
     """
-    def __init__(self, sites, argv = None):
+    def __init__(self, site_factory, argv = None):
         if argv is None:
             argv = sys.argv[:]
         self.prog_name = os.path.basename(argv[0])
         self.argv = argv[1:]
-        if hasattr(sites,'__call__'):
-            self.site_factory = sites
-            sites = sites()
-        else:
-            self.site_factory = lambda : sites
-        self.sites = sites
-        self.sites.load()
+        self.site_factory = site_factory
+        self.sites = site_factory()
 
     def get_parser(self):
         return argparse.ArgumentParser(usage = self.get_usage())
@@ -149,9 +145,9 @@ and runs it."""
             utility = ManagementUtility(argv)
             utility.execute()
         else:
-            self.fetch_command(command).run_from_argv(self.site_factory,
-                                                      command,
-                                                      argv[1:])
+            cmd = self.fetch_command(command)
+            site_factory = pickle.loads(pickle.dumps(self.site_factory))
+            cmd.run_from_argv(site_factory, command, argv[1:])
 
 
 def execute(sites, argv=None, **params):

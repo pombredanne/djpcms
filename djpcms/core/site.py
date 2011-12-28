@@ -90,7 +90,8 @@ DEFAULT_SITE_HANDLERS = {
 def add_default_handlers(site):
     internals = site.internals
     for key,value in DEFAULT_SITE_HANDLERS.items():
-        if key not in internals:
+        handler = internals.get(key)
+        if handler is None:
             if isclass(value):
                 value = value(site.settings)
             internals[key] = value

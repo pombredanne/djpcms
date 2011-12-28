@@ -61,8 +61,9 @@ for djpcms web sites.
     ENVIRON_NAME = None
     settings = None
     
-    def __init__(self, name = None, **params):
+    def __init__(self, name = None, site = None, **params):
         self.local = {}
+        self.callbacks = []
         self.name = name or 'DJPCMS'
         self.setup(**params)
         
@@ -117,6 +118,8 @@ for djpcms web sites.
                 except ImproperlyConfigured:
                     if getattr(loader,'web_site',True):
                         raise
+                for callback in self.callbacks:
+                    callback(self)
                 self.finish()
         return self.site
     

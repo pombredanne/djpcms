@@ -51,9 +51,11 @@ class Config(object):
     def fill(self, mod, override = True):
         v = self._values
         for sett in dir(mod):
+            if sett.startswith('_'):
+                continue
             setts = sett.split('__')
             s = setts[0]
-            if s == s.upper():
+            if s and s == s.upper():
                 d = v
                 for s in setts[:-1]:
                     if s not in d:
@@ -66,6 +68,13 @@ class Config(object):
     def get(self, name, default = None):
         return self._values.get(name,default)
        
+    def __getstate__(self):
+        return self.__dict__.copy()
+    
+    def __setstate__(self, state):
+        for k,v in state.items():
+            self.__dict__[k] = v
+        
     def __contains__(self, name):
         return name in self._values
     

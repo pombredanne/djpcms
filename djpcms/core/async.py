@@ -397,14 +397,16 @@ equivalent to call :meth:`render_to_response` with the following parameter::
         html_options = settings.HTML.copy()
         html_options.update({'debug':settings.DEBUG,
                              'media_url': settings.MEDIA_URL})
+        on_document_ready = '\n'.join(request.on_document_ready)
         return '''\
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
         $.djpcms.set_options(%s);
         $(document).djpcms().trigger('djpcms-loaded');
+        %s
     });
 }(jQuery));
-</script>''' % json.dumps(html_options)
+</script>''' % (json.dumps(html_options),on_document_ready)
 
 

@@ -113,7 +113,9 @@ class RequestNode(NodeEnvironMixin):
 This is used as a way to speed up responses as well as for
 managing settings.'''
     def __init__(self, node, instance, path):
-        environ = {'requests':{},'traces':[]}
+        environ = {'requests':{},
+                   'traces':[],
+                   'on_document_ready':[]}
         super(RequestNode,self).__init__(environ,node,instance,path)
         self.path = path
         
@@ -140,6 +142,10 @@ managing settings.'''
             m.add(self.view.media(self))
             self._media = m
         return self._media
+    
+    @property
+    def on_document_ready(self):
+        return self.environ['on_document_ready']
     
 
 def make_request(environ, node, instance = None, cache = True, safe = True):
@@ -358,6 +364,10 @@ is available, the name is set to ``view``.
     @property
     def media(self):
         return self.DJPCMS.media
+    
+    @property
+    def on_document_ready(self):
+        return self.DJPCMS.on_document_ready
         
     @lazyproperty    
     def title(self):

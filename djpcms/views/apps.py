@@ -674,9 +674,9 @@ This method is called by both :meth:`variables_from_instance` and
                 else:
                     yield attrname,data[name]
 
-    def instance_field_view(self, request, instance, field_name = None,
-                            name = None, asbutton = None):
-        '''Obtain the url for instance field if possible.
+    def instance_field_view(self, request, instance = None, field_name = None,
+                            name = None, urlargs = None, asbutton = None):
+        '''Obtain a link for instance field if possible.
         
 :parameter instance: an instance of :attr`model`
 :parameter name: optional view name. By default it is the object view.
@@ -686,10 +686,13 @@ This method is called by both :meth:`variables_from_instance` and
 
 It uses the :func:`instance_field_view_value` for the purpose.
 '''
+        instance = instance or request.instance
         view,value = instance_field_view_value(request, instance, field_name,
-                                               name = name)
+                                               name = name, urlargs = urlargs)
         if asbutton is not None:
             return application_link(view, value = value, asbutton = asbutton)
+        else:
+            return view
     
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for

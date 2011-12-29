@@ -51,7 +51,8 @@ def application_views(request,
                       exclude = None,
                       include = None,
                       instance = None,
-                      ajax_enabled = None):
+                      ajax_enabled = None,
+                      urlargs = None):
     '''A generator of :class:`Application` views available to the user.
 
 :parameter exclude: optional iterable of :class:`View` names to exclude. It
@@ -60,6 +61,7 @@ def application_views(request,
 :parameter instance: optional instance of :attr:`Application.model`.
     If provided only instance views will be collected.
 :parameter ajax_enabled: if ``True`` only ajax enabled views are considered.
+:parameter urlargs: Additional url parameters to use.
 :rtype: a generator of dictionaries containing :class:`View` information.
 '''
     appmodel = request.view.appmodel
@@ -111,7 +113,8 @@ def application_views(request,
                 yield application_action_to_menu_link(elem,req.url)
 
 
-def instance_field_view_value(request, instance, field_name, name = None):
+def instance_field_view_value(request, instance, field_name, name = None,
+                              urlargs = None):
     '''Retrieve a view for a field of an *instance* (if that field is
 an instance of a registered model) and its correspondent value.
 
@@ -132,7 +135,8 @@ It is used by :meth:`Application.viewurl`.'''
             return None,None
     else:
         value = None
-    return request.for_model(instance = instance, name = name),value
+    return request.for_model(instance = instance, name = name,
+                             urlargs = urlargs),value
 
 
 def views_serializable(views):

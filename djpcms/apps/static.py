@@ -9,7 +9,7 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views, http
+from djpcms import views, Http404, http
 from djpcms.utils.importer import import_module
 
 # Third party application list.
@@ -106,7 +106,7 @@ class StaticRootView(StaticMapMixin):
             return http.Response(content = html.encode('latin-1','replace'),
                                  content_type = 'text/html')
         else:
-            raise http.Http404()
+            raise Http404()
 
 
 class StaticFileView(StaticMapMixin):
@@ -123,14 +123,14 @@ class StaticFileView(StaticMapMixin):
                 if self.appmodel.show_indexes:
                     return self.directory_index(request, fullpath)
                 else:
-                    raise http.Http404()
+                    raise Http404()
             elif os.path.exists(fullpath):
                 return self.serve_file(request, fullpath)
             else:
-                raise http.Http404('No file "{0}" in application "{1}".\
+                raise Http404('No file "{0}" in application "{1}".\
  Could not render {1}'.format(paths,app))
         else:
-            raise http.Http404('Static application "{0}" not available.\
+            raise Http404('Static application "{0}" not available.\
  Could not render "{1}"'.format(app,paths))
         
     def directory_index(self, request, fullpath):
@@ -212,7 +212,7 @@ class FavIconView(StaticFileView):
                 hd = mapping[name]
                 fullpath = os.path.join(hd.absolute_path,'favicon.ico')
                 return self.serve_file(request, fullpath)
-        raise http.Http404()
+        raise Http404()
     
 
 class Static(views.Application):

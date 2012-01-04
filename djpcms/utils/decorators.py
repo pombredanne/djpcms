@@ -97,3 +97,5 @@ def lazymethod(f):
 
 def lazyproperty(f):
     return LazyMethod(False,True)(f)
+
+        

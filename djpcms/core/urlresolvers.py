@@ -135,7 +135,12 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         o._local = {}
         d = self._oncopy(d)
         for attr,value in d.items():
-            setattr(o, attr, deepcopy(value, memo))
+            if not isclass(value):
+                try:
+                    value = deepcopy(value, memo)
+                except TypeError:
+                    pass
+            setattr(o, attr, value)
         return o
     
     def __getstate__(self):

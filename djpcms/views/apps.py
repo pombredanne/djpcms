@@ -273,14 +273,10 @@ overwritten to customize its behavior.
           'pagination': ObjectPagination()
           }    
 
-    DELETE_ALL_MESSAGE = "No really! Are you sure you want to remove \
- all {0[model]} from the database?"
-    
     def __init__(self, route, model = None, editavailable = None,
                  list_display_links = None, object_display = None,
                  related_field = None, url_bits_mapping = None,
                  routes = None, always_load_fields = None, **kwargs):
-        # Set the model first
         self.model = model
         self.mapper = None
         self.root_view = None
@@ -303,7 +299,6 @@ overwritten to customize its behavior.
         if self.parent_view and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent_view,self))
-        self.addroutes(views)
         object_display = object_display or self.object_display
         if not object_display:
             self.object_display = self.pagination.list_display
@@ -313,8 +308,9 @@ overwritten to customize its behavior.
                 head = table_header(head)
                 d.append(self.pagination.headers.get(head.code,head))
             self.object_display = tuple(d)   
-        
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
+        #
+        self.addroutes(views)
         
     def _site(self):
         if self.appmodel:

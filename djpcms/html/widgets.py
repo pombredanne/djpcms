@@ -31,13 +31,16 @@ class InputWidget(FieldWidget):
     wrapper_class = 'field-widget input ui-widget-content'
     attributes = FieldWidget.makeattr('type','placeholder')
     
-        
+
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
 
 
 class PasswordInput(InputWidget):
     default_attrs = {'type': 'password'}
+    
+    def set_value(self, value, widget):
+        pass
     
     
 class SubmitInput(InputWidget):

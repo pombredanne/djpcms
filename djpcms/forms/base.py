@@ -106,26 +106,14 @@ class Form(BaseForm):
 This class can be used for browser based application as well as remote
 procedure calls validation.
 
-:parameter data: dictionary type object containing data to validate.
-:parameter files: dictionary type object containing files to upload.
-:parameter initial: dictionary type object containing initial values for
-    form fields (see  :class:`Field`).
-:parameter prefix: Optional string to use as prefix for field keys.
-:parameter model: An optional model class. The model must be registered with
-    the library (see :func:`djpcms.RegisterORM`).
-:parameter instance: An optional instance of a model class. The model must
-    be registered with the library (see :func:`djpcms.RegisterORM`).
-:parameter request: An optional Http Request object of any kind.
-    Not used by the class itself but stored in the :attr:`request`
-    attribute for convenience.
-
 .. attribute:: is_bound
 
     If ``True`` the form has data which can be validated.
     
 .. attribute:: initial
 
-    Dictionary of initial values for fields.
+    Dictionary of initial values for fields. The values in :attr:`initial` are
+    only used when :attr:`is_bound` is ``False``.
     
 .. attribute:: request
 
@@ -149,11 +137,17 @@ procedure calls validation.
     
 .. attribute:: form_sets
 
-    A list of :class:`FormSet` instances. If available,
-    formsets are used to create a given number of sub-forms which are
+    A disctionary of :class:`FormSet` instances. If available,
+    form-sets are used to create a given number of sub-forms which are
     included in the current form.
     
-    Default: ``[]``.
+    Default: ``{}``.
+    
+.. attribute:: instance
+
+    An optional instance of a model.
+    
+    Default: ``None``.
 '''
     prefix_input = '_prefixed'
     request = None
@@ -162,6 +156,23 @@ procedure calls validation.
                  initial = None, prefix = None,
                  model = None, instance = None,
                  request = None):
+        '''Initialize a :class:`Form` with *data* or *initial* values.
+If *data* is not ``None`` the form will bound itself to the data, otherwise
+it remains unbounded.
+    
+:parameter data: dictionary type object containing data to validate.
+:parameter files: dictionary type object containing files to upload.
+:parameter initial: dictionary type object containing initial values for
+    form fields (see  :class:`Field`).
+:parameter prefix: Optional string to use as prefix for field keys.
+:parameter model: An optional model class. The model must be registered with
+    the library (see :func:`djpcms.RegisterORM`).
+:parameter instance: An optional instance of a model class. The model must
+    be registered with the library. It sets the :attr:`instance` attribute.
+:parameter request: An optional Http Request object of any kind.
+    Not used by the class itself but stored in the :attr:`request`
+    attribute for convenience.
+    '''
         self.is_bound = data is not None or files is not None
         self.rawdata = data
         self._files = files
@@ -256,6 +267,12 @@ validation.'''
                     initials[name] = value
     
     def value_from_instance(self, instance, name):
+        '''Utility function for extracting an attribute value from an
+*instance*. This function is called when :class:`Form` is not bounded to data
+and an :attr:`instance` of a model is available.
+
+By default it returns the attribute value for the instance or ``None``.
+Override if you need to.'''
         value = getattr(instance,name,None)
         if hasattr(value,'__call__'):
             value = value()
@@ -292,12 +309,12 @@ if it is bound.'''
         self._fields_dict = dfields = {}
         
         prefix = self.prefix
-        self.initial = initial = self.initial or {}
+        self.initial = initial = self.initial
         is_bound = self.is_bound
         form_message = self.form_message
         
         # Loop over form fields
-        for name,field in iteritems(self.base_fields):         
+        for name,field in iteritems(self.base_fields):
             bfield = BoundField(self,field,name,self.prefix)
             key = bfield.html_name
             fields.append(bfield)
@@ -407,6 +424,9 @@ This method works if an instance or a model is available.
         else:
             return ''
         
+    def get_widget_data(self, bound_field):
+        pass
+        
     @classmethod
     def initials(cls):
         '''Iterator over initial field values.
@@ -483,8 +503,17 @@ with bound data and attributes. This is obtained from the :class:`Field.widget`
 factory.'''
         field = self.field
         data = field.get_widget_data(self)
+        fdata = self.form.get_widget_data(self)
+        if fdata:
+            if not data:
+                data = fdata
+            else:
+                data.update(fdata)
+        attr = field.widget_attrs
+        if hasattr(attr,'__call__'):
+            attr = attr(self)
         widget = field.widget.widget()\
-                     .addAttrs(field.widget_attrs)\
+                     .addAttrs(attr)\
                      .addData(data)
         widget.internal['bfield'] = self
         widget.addAttrs({'id': self.id,

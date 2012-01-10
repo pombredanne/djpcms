@@ -91,6 +91,9 @@ very similar to django forms API.
     
         widget_attrs = {'title':'my title'}
     
+    It can also be a callable which accept a :class:`BoundField` as the
+    only parameter.
+    
     Default: ``None``.
 '''
     default = None
@@ -128,7 +131,11 @@ very similar to django forms API.
         if not isinstance(self.widget,html.WidgetMaker):
             raise ValueError("Form field widget of wrong type")
         widget_attrs = widget_attrs or {}
-        self.widget_attrs = widget_attrs.copy()
+        if not hasattr(widget_attrs,'__call__'):
+            widget_attrs = widget_attrs or {}
+            self.widget_attrs = widget_attrs.copy()
+        else:
+            self.widget_attrs = widget_attrs
         if self.disabled:
             self.widget_attrs['disabled'] = 'disabled'
         self.handle_params(**kwargs)
@@ -285,7 +292,7 @@ optional parameter (attribute):
 
 
 class IntegerField(Field):
-    default = 0
+    default = None
     widget = html.TextInput(default_class = 'numeric')
     convert_error = '"{0}" is not a valid integer.'
     

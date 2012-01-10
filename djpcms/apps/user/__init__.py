@@ -13,8 +13,8 @@ as your user model, than you can define the application::
 
 from djpcms.forms import HtmlForm
 
-from .forms import LoginForm, PasswordChangeForm, RegisterForm, UserChangeForm,\
-                    HtmlLoginForm
+from .forms import LoginForm, HtmlRegisterForm, \
+                    UserChangeForm, HtmlLoginForm, HtmlChangePassword
 from .views import *
 
 from djpcms import views
@@ -36,8 +36,7 @@ utility methods for dealing with users and user data.'''
                       form = HtmlLoginForm)
     logout = LogoutView()
     add = views.AddView(in_nav = 0,
-                        form = HtmlForm(RegisterForm,
-                                        inputs = (('Create','create_user'),)),
+                        form = HtmlRegisterForm,
                         force_redirect = True)
     
     def userhomeurl(self, request):
@@ -72,7 +71,7 @@ No assumption has been taken over which model is used for storing user data.'''
     change_password = views.ChangeView('change-password',
                                        has_plugins = True,
                                        parent_view = 'home',
-                                       form = HtmlForm(PasswordChangeForm))
+                                       form = HtmlChangePassword)
         
     def has_add_permission(self, request = None, obj = None):
         # Add new user permissions
@@ -96,7 +95,7 @@ The userhome view'''
     change_password = views.ChangeView('change-password',
                                        parent_view = 'userhome',
                                        has_plugins = True,
-                                       form = HtmlForm(PasswordChangeForm))
+                                       form = HtmlChangePassword)
     #userdata = UserDataView('(?P<path>[\w./-]*)',
     #                        parent_view = 'userhome')
     

@@ -149,11 +149,31 @@ a AuthenticationError exception.'''
                 continue
         raise ValueError('Could not create user')
     
+    def set_password(self, user, password):
+        '''Loop though all :attr:`athentication_backends` and try to set
+a new *password* for *user*. If it fails on all backends a ``ValueError``
+is raised. User shouldn't need to override this function, instead they should
+implement the :meth:`set_password` method on their authentication backend
+if needed.
+
+:parameter user: a user instance
+:parameter password: the row password to assign to user.
+'''
+        success = False
+        for b in self.auth_backends:
+            try:
+                b.set_password(user, password)
+                success = True
+            except:
+                continue
+        if not success:
+            raise ValueError('Could not set password for user {0}'.format(user))
+    
     def permission_choices():
         return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     
     def authenticated(self, request, obj, default = False):
-        if getattr(obj,'requires_login',default):
+        if getattr(obj, 'requires_login', default):
             return request.user.is_authenticated()
         else:
             return True

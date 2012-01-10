@@ -17,22 +17,33 @@ __all__ = ['FormSet']
         
         
 class FormSet(UnicodeMixin):
-    '''A factory class for foreign key model fields. Instances
-of this class are declared in the body of :class:`djpcms.forms.Form`.
+    '''A factory class for foreign keys model fields. Instances
+of this class are declared in the body of a :class:`Form`.
 
-:parameter form_class: A :class:`djpcms.forms.Form` class used to
-                       create the formset.
+:parameter form_class: A :class:`Form` class which generates forms.
 :parameter model: A model class which generate instances from form data.
 :parameter related_name: The field attribute name in ``model`` which
-                         specifies the related model.
+    specifies the related model.
 :parameter clean: A function which takes the formset instance as parameter
-                  and perform the last validation check.
+    and perform the last validation check on all forms.
                   
-                  Default ``None``.
+    Default ``None``.
 :parameter instances_from_related: a callable for retrieving instances
     from the related instance.
                                    
-    Default ``None``'''
+    Default ``None``.
+    
+:parameter initial_length: The initial number of forms. This is the number
+    of forms when no instance is available. By setting this number to ``0``
+    there won't be any forms when no related instance is available.
+    
+    Default ``3``.
+
+:parameter extra_length: When a related instance is available, this is the
+    number of extra form to add to the formset.
+    
+    Default ``3``.
+'''
     creation_counter = 0
     NUMBER_OF_FORMS_CODE = 'NUMBER_OF_FORMS'
     
@@ -154,8 +165,9 @@ of this class are declared in the body of :class:`djpcms.forms.Form`.
         return f
     
     def clean(self):
-        '''Equivalent to the :class:`djpcms.forms.Form.clean` method, it
-is the last step in the validation process for for a set of related forms.'''
+        '''Equivalent to the :meth:`Form.clean` method, it
+is the last step in the validation process for a set of related forms.
+This method can be overridden in the constructor.'''
         pass
         
     def save(self):

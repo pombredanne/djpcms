@@ -1,4 +1,5 @@
 from djpcms import forms, html
+from djpcms.forms.layout import uniforms as uni
 
 
 class LoginForm(forms.Form):
@@ -28,7 +29,7 @@ class LoginForm(forms.Form):
     save_as_new = save
     
 
-class PasswordChangeForm(forms.Form):
+class PasswordChange(forms.Form):
     password = forms.CharField(max_length=32,
                                widget=html.PasswordInput())
     re_type  = forms.CharField(max_length=32,
@@ -56,24 +57,43 @@ class PasswordChangeForm(forms.Form):
             except:
                 pass
         return data
-    
-    def save(self, commit = True):
-        self.user.set_password(self.cleaned_data['password'])
-        self.user.save()
-        return self.user
         
  
-class RegisterForm(PasswordChangeForm):
+class PasswordChangeForm(PasswordChange):
+    
+    def save(self, commit = True):
+        request = self.request
+        user = self.user
+        if request:
+            User = request.view.User
+            if User and isinstance(self.instance, User.model):
+                user = self.instance
+        pe = self.request.view.permissions
+        pe.set_password(user, self.cleaned_data['password'])
+        return user
+    
+
+def  change_passwrod_message(request, user, m):
+    if request.user == user:
+        return '{0}, you have successfully changed your password.'.format(user)
+    else:
+        return 'Successfully changed password for {0}.'.format(user)
+    
+    
+class RegisterForm(PasswordChange):
+    '''use this form for a simple user registration with *username*,
+*password* and *password confirmation*.'''
     username = forms.CharField(max_length=32)
     #email_address = UniqueEmail(help_text="This will be used for confirmation only.")
     
     def clean_username(self, value):
         '''Username must be unique and without spaces'''
-        value = value.replace(' ','')
+        value = value.replace(' ','').lower()
         if not value:
             raise forms.ValidationError('Please provide a username')
         elif self.mapper.filter(username = value):
-            raise forms.ValidationError('Not available')
+            raise forms.ValidationError('Username "{0}" is not available.\
+ Choose a different one.'.format(value))
         return value
     
     def clean(self):
@@ -102,3 +122,16 @@ HtmlLoginForm = forms.HtmlForm(
     inputs = (('Sign in','login_user'),)
 )
 
+HtmlRegisterForm = forms.HtmlForm(
+    RegisterForm,
+    layout = uni.Layout(uni.Fieldset('username','password','re_type')),
+    success_message = lambda request, user, m :\
+     'Successfully created user {0}.'.format(user),
+    inputs = (('create','create'),)
+)
+
+HtmlChangePassword = forms.HtmlForm(
+    PasswordChangeForm,
+    success_message = change_passwrod_message,
+    inputs = (('change','change'),)
+)

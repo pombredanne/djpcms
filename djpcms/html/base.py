@@ -234,7 +234,8 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def addAttrs(self, mapping):
-        self.attrs.update(mapping)
+        if mapping:
+            self.attrs.update(mapping)
         return self
     
     def attr(self, name):

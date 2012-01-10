@@ -26,7 +26,9 @@ Form
 .. autoclass:: Form
    :members:
    :member-order: bysource
-
+   
+   .. automethod:: __init__
+   
 
 HtmlForm
 ~~~~~~~~~~~~~~
@@ -133,6 +135,14 @@ BoundField
 .. autoclass:: BoundField
    :members:
    :member-order: bysource
+   
+FormSet
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FormSet
+   :members:
+   :member-order: bysource
+   
    
 
 .. _forms-layout:

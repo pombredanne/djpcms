@@ -13,7 +13,7 @@ Original License
 import re
 
 from djpcms import UnicodeMixin, to_string, py2py3
-from djpcms.utils import iri_to_uri, remove_double_slash, urlquote
+from djpcms.utils import remove_double_slash, iri_to_uri
 
 from .exceptions import UrlException
 
@@ -275,7 +275,7 @@ class BaseConverter(object):
         return value
 
     def to_url(self, value):
-        return urlquote(str(value))
+        return iri_to_uri(value)
 
 
 class UnicodeConverter(BaseConverter):

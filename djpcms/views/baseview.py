@@ -54,7 +54,7 @@ and :class:`djpcmsview`.
 
     Useful description of the renderer in few words
     (no more than 20~30 characters). Used only when the
-    :attr:`has_plugin` flag is set to ``True``.
+    :attr:`has_plugins` flag is set to ``True``.
     In this case its value is used when
     displaying menus of available plugins. If not defined it is
     calculated from the attribute name of the view
@@ -88,7 +88,7 @@ and :class:`djpcmsview`.
     
     Default: ``0``
     
-.. attribute:: has_plugin:
+.. attribute:: has_plugins:
 
     If ``True`` the view can be placed in any page via the plugin API.
     (Check :class:`djpcms.plugins.ApplicationPlugin` for more info).

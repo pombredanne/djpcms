@@ -1,7 +1,7 @@
 from copy import copy
 
 from djpcms import UnicodeMixin
-from djpcms.utils import lazyproperty, lazymethod
+from djpcms.utils import lazyproperty, lazymethod, uri_to_iri
 
 from py2py3 import itervalues
 
@@ -110,7 +110,11 @@ class MultiNode(UnicodeMixin):
     def __init__(self, tree, route, parent = None, urlargs = None):
         self.tree = tree
         self.__route = route
-        self.__urlargs = {} if urlargs is None else copy(urlargs)
+        if urlargs:
+            urlargs = dict(((k,uri_to_iri(v)) for k,v in urlargs.items()))
+        else:
+            urlargs = {}
+        self.__urlargs = urlargs
         self.__parent = parent
         
     def __unicode__(self):

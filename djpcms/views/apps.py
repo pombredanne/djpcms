@@ -671,7 +671,8 @@ This method is called by both :meth:`variables_from_instance` and
                     yield attrname,data[name]
 
     def instance_field_view(self, request, instance = None, field_name = None,
-                            name = None, urlargs = None, asbutton = None):
+                            name = None, urlargs = None, asbutton = None,
+                            icon = True):
         '''Obtain a link for instance field if possible.
         
 :parameter instance: an instance of :attr`model`
@@ -686,7 +687,8 @@ It uses the :func:`instance_field_view_value` for the purpose.
         view,value = instance_field_view_value(request, instance, field_name,
                                                name = name, urlargs = urlargs)
         if asbutton is not None:
-            return application_link(view, value = value, asbutton = asbutton)
+            return application_link(view, value = value, asbutton = asbutton,
+                                    icon = icon)
         else:
             return view
     

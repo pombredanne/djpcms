@@ -156,12 +156,14 @@ def return_form_errors(fhtml,request):
     
 
 def request_get_data(request):
-    if request.GET:
-        return request.GET
-    else:
+    data = request.GET
+    if request.is_xhr or request.POST:
         ref = request.environ.get('HTTP_REFERER')
         parts = urlsplit(ref)
-        return http.QueryDict(parts.query,request.encoding)
+        extra_data = http.QueryDict(parts.query,request.encoding)
+        extra_data.update(data)
+        data = extra_data
+    return data
     
     
 def get_redirect(request, instance = None, force_redirect = False):

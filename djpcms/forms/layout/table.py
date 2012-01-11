@@ -98,10 +98,11 @@ in a table.
     def layout_stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
-        head = ''.join(self.render_heads(request, widget, context))
         rows = '\n'.join(self.row_generator(request, widget, context))
-        table = Widget('table',('<thead><tr>',head,'</tr></thead>',\
-                                 '<tbody>',rows,'</tbody>'))\
-                                    .addClass(self.elem_css)
-        yield table.render(request)
+        if rows:
+            head = ''.join(self.render_heads(request, widget, context))
+            table = Widget('table',('<thead><tr>',head,'</tr></thead>',\
+                                     '<tbody>',rows,'</tbody>'))\
+                                        .addClass(self.elem_css)
+            yield table.render(request)
         

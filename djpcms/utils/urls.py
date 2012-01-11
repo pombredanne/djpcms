@@ -1,6 +1,6 @@
 import re
 
-from py2py3 import ispy3k, map, to_string, native_str
+from py2py3 import ispy3k, force_native_str
 
 
 __all__ = ['urlparse',
@@ -8,42 +8,28 @@ __all__ = ['urlparse',
            'urlbits',
            'urlfrombits',
            'urlquote',
+           'urlunquote',
            'parentpath',
            'closedurl',
            'openedurl',
            'routejoin',
            'iri_to_uri',
+           'uri_to_iri',
            'remove_double_slash',
            'URI_RESERVED']
 
 
 if ispy3k:
     from urllib.parse import urlparse, unquote, urlsplit, quote, urlencode,\
-                                urlunparse
+                                unquote, urlunparse
 else:
     from urlparse import urlparse, unquote, urlsplit, urlunparse
-    from urllib import urlencode, quote
+    from urllib import urlencode, quote, unquote
     
 urlquote = quote
+urlunquote = unquote
 
-URI_RESERVED = set((';','/','?',':','@','&','=','+','$',','))
-#: list of characters that are always safe in URLs.
-_always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                'abcdefghijklmnopqrstuvwxyz'
-                '0123456789_.-')
-_safe_map = dict((c, c) for c in _always_safe)
-for i in range(0x80):
-    c = chr(i)
-    if c not in _safe_map:
-        _safe_map[c] = '%%%02X' % i
-_safe_map.update((chr(i), '%%%02X' % i) for i in range(0x80, 0x100))
-_safemaps = {}
-
-#: lookup table for encoded characters.
-_hexdig = '0123456789ABCDEFabcdef'
-_hextochr = dict((a + b, chr(int(a + b, 16)))
-                 for a in _hexdig for b in _hexdig)
-
+URI_RESERVED = frozenset((';','/','?',':','@','&','=','+','$',','))
 
 def urlbits(url):
     if url.endswith('/'):
@@ -117,30 +103,17 @@ def parentpath(url):
         return urlunparse(s)
     else:
         return None
-    
-    
-def _urlquote(s, safe='/'):
-    s = to_string(s)
-    if not s or not s.rstrip(_always_safe + safe):
-        return s
-    try:
-        quoter = _safemaps[safe]
-    except KeyError:
-        safe_map = _safe_map.copy()
-        safe_map.update([(c, c) for c in safe])
-        _safemaps[safe] = quoter = safe_map.__getitem__
-    return _join(map(quoter, s))
 
 
 def iri_to_uri(iri, kwargs = None):
     """Convert an Internationalized Resource Identifier (IRI) portion to a URI
-    portion that is suitable for inclusion in a URL.
+portion that is suitable for inclusion in a URL.
 
-    This is the algorithm from section 3.1 of RFC 3987.  However, since we are
-    assuming input is either UTF-8 or unicode already, we can simplify things a
-    little from the full method.
+This is the algorithm from section 3.1 of RFC 3987.  However, since we are
+assuming input is either UTF-8 or unicode already, we can simplify things a
+little from the full method.
 
-    Returns an ASCII string containing the encoded result.
+Returns an ASCII string containing the encoded result.
     """
     # The list of safe characters here is constructed from the "reserved" and
     # "unreserved" characters specified in sections 2.2 and 2.3 of RFC 3986:
@@ -156,6 +129,12 @@ def iri_to_uri(iri, kwargs = None):
     # converted.
     if iri is None:
         return iri
+    iri = force_native_str(iri)
     if kwargs:
-        iri = '{0}?{1}'.format(iri,'&'.join(('{0}={1}'.format(k,v) for k,v in kwargs.items())))
-    return urlquote(native_str(iri), safe="/#%[]=:;$&()+,!?*@'~")
+        iri = '{0}?{1}'.format(iri,'&'.join(('{0}={1}'.format(k,v)\
+                                              for k,v in kwargs.items())))
+    return urlquote(iri, safe=''.join(URI_RESERVED))
+
+
+def uri_to_iri(uri):
+    return urlunquote(force_native_str(uri))

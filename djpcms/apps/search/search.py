@@ -23,13 +23,14 @@ If no model is provided, a global search view must be available.
 '''    
     def url(self, request):
         '''Return the url for searching'''
-        if self.model:
-            app = request.for_model(model = self.model)
-            if app:
-                return app.url
-        search_app = request.view.search_engine
-        if search_app:
-            return search_app.search_url(self.model)
+        if request:
+            if self.model:
+                app = request.for_model(model = self.model)
+                if app:
+                    return app.url
+            search_app = request.view.search_engine
+            if search_app:
+                return search_app.search_url(self.model)
 
 
 class SearchView(views.View):

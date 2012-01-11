@@ -148,7 +148,7 @@ def views_serializable(views):
         yield elem
         
         
-def application_links(views, asbuttons = True):
+def application_links(views, asbuttons = True, icon = True):
     '''A generator of two dimensional tuples containing
 the view name and a rendered html tag (either an anchor or a button).
 
@@ -161,9 +161,10 @@ the view name and a rendered html tag (either an anchor or a button).
             elem = request_to_menu_link(elem)
         request = elem.view
         view = request.view
+        icon = elem.icon if icon else None
         a = anchor_or_button(elem.display,
                              href = elem.url,
-                             icon = elem.icon,
+                             icon = icon,
                              title = elem.title,
                              asbutton = asbuttons)
         a.addClass(view.name).addData({'view':view.name,
@@ -179,18 +180,20 @@ the view name and a rendered html tag (either an anchor or a button).
         yield view.name, a 
     
 
-def application_views_links(request, asbuttons = True, **kwargs):
+def application_views_links(request, asbuttons = True, icon = True, **kwargs):
     '''Shurtcut function which combines :func:`application_views`
 and :func:`application_links` generators. It returns a generator over
 anchor or button :class:`djpcms.html.Widget`.'''
     views = application_views(request,**kwargs)
-    for _,w in application_links(views,asbuttons=asbuttons):
+    for _,w in application_links(views,
+                                 asbuttons = asbuttons,
+                                 icon = icon):
         yield w
 
 
-def application_link(view, value = None, asbutton = True):
+def application_link(view, value = None, asbutton = True, icon = True):
     if view is not None:
-        for _,link in application_links((view,),asbutton):
+        for _,link in application_links((view,),asbutton,icon = icon):
             if value is not None:
                 link.data_stream[0] = value
             return link

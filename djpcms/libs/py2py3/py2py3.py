@@ -47,8 +47,16 @@ if ispy3k: # Python 3
         
     def native_str(s):
         if isinstance(s,bytes):
-            return s.decode(UTF8)
+            return s.decode('utf-8')
         return s
+    
+    def force_native_str(s):
+        if isinstance(s,bytes):
+            return s.decode('utf-8')
+        elif not isinstance(s,str):
+            return str(s)
+        else:
+            return s
     
     is_string = lambda x : isinstance(x,str)
     
@@ -77,8 +85,16 @@ else: # Python 2
     
     def native_str(s):
         if isinstance(s,unicode):
-            return s.encode(UTF8)
+            return s.encode('utf-8')
         return s
+    
+    def force_native_str(s):
+        if isinstance(s,unicode):
+            return s.encode('utf-8')
+        elif not isinstance(s,bytes):
+            return bytes(s)
+        else:
+            return s
     
     is_string = lambda x : isinstance(x,basestring)
 

@@ -271,7 +271,14 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self.maker.render_from_widget(request, self, context)
     
     def hide(self):
+        '''Set the ``css`` ``display`` property to ``none`` and return self
+for concatenation.'''
         self.css({'display':'none'})
+        return self
+        
+    def show(self):
+        self.css.pop('display',None)
+        return self
         
     @property
     def html(self):

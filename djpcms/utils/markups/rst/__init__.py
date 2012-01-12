@@ -121,6 +121,4 @@ class Application(application.Application):
         os.remove(fname)
         os.remove(fdoc)
         return res
-    
-    
-app = Application()
+

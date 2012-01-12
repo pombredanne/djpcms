@@ -10,7 +10,7 @@ To use it::
 
     from djpcms.utils import markups
     
-    html = markups.get('rst')['handler'](txt)
+    html = markups.get('rst')(txt)
 '''
 import os
 from djpcms.utils.importer import import_module
@@ -20,52 +20,65 @@ _default_markup = None
 MARKUP_HANDLERS = {}
 
 
-def add(code, name, handler):
+class Application(object):
+    code = None
+    name = None
+            
+    def setup_extension(self, extension):
+        pass
+    
+    def __call__(self, request, text):
+        raise NotImplementedError()
+
+
+def add(handler):
     '''
     Add new markup handler
     '''
     global _default_markup, MARKUP_HANDLERS
+    code = handler.code
     if not _default_markup:
         _default_markup = code
-    if not MARKUP_HANDLERS.has_key(code): 
-        MARKUP_HANDLERS[code] = {'name': name,
-                                 'handler': handler}
+    if not code in MARKUP_HANDLERS: 
+        MARKUP_HANDLERS[code] = handler
+
 
 def choices():
     load()
     global MARKUP_HANDLERS
     yield ('','raw')
-    for k,v in MARKUP_HANDLERS.items():
-        yield (k,v.get('name'))
+    for k in MARKUP_HANDLERS:
+        yield k, MARKUP_HANDLERS[k].name
+
 
 def default():
     load()
     global _default_markup
     return _default_markup
 
+
 def get(name):
     load()
     global MARKUP_HANDLERS
-    return MARKUP_HANDLERS.get(name,None)
+    return MARKUP_HANDLERS.get(name)
 
 
 def load():
-    '''Load markup applications'''
+    '''Load markup applications.'''
     global _loaded
     if not _loaded:
         path = os.path.split(os.path.abspath(__file__))[0]
-        for d in os.listdir(path):
-            if os.path.isdir(os.path.join(path,d)):
+        for name in os.listdir(path):
+            if not name.startswith('_'):
+                name = name.split('.')[0] 
                 try:
-                    appmod = import_module('djpcms.utils.markups.{0}'.format(d))
-                    app = appmod.app
+                    appmod = import_module('djpcms.utils.markups.'+name)
                 except ImportError as e:
                     pass
                 else:
-                    add(d,app.name,app)
+                    add(appmod.Application())
         _loaded = True
         
-
 
 def help(code = 'crl'):
     c = get(code)

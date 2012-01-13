@@ -5,7 +5,7 @@ from djpcms.utils import logtrace
 
 logger = logging.getLogger('djpcms.core.messanges')
 
-MESSAGE_KEY = 'request-messanges'
+MESSAGE_KEY = 'request-messages'
 
 __all__ = (
     'add_message',

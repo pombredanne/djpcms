@@ -245,7 +245,7 @@ class Pagination(object):
     
     def __init__(self, headers = None, actions = None, bulk_actions = None,
                  sortable = False, footer = False, ajax = True,
-                 size = 25, size_choices = (10,25,50,100), ordering = None,
+                 size = 25, size_choices = (10,25,50,100,-1), ordering = None,
                  html_data = None, sizetolerance = 1,
                  pagination_template_name = None, widget_factory = None):
         self.actions = tuple(actions or ())

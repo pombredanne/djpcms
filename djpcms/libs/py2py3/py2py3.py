@@ -45,9 +45,9 @@ if ispy3k: # Python 3
         def __repr__(self):
             return '%s: %s' % (self.__class__.__name__,self)
         
-    def native_str(s):
+    def native_str(s, encoding = 'utf-8'):
         if isinstance(s,bytes):
-            return s.decode('utf-8')
+            return s.decode(encoding)
         return s
     
     def force_native_str(s):
@@ -83,9 +83,9 @@ else: # Python 2
         def __repr__(self):
             return '%s: %s' % (self.__class__.__name__,self)
     
-    def native_str(s):
+    def native_str(s, encoding = 'utf-8'):
         if isinstance(s,unicode):
-            return s.encode('utf-8')
+            return s.encode(encoding)
         return s
     
     def force_native_str(s):

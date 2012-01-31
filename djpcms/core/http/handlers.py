@@ -109,6 +109,6 @@ delegate the handling to them.'''
         Page = self.site.Page
         tree = self.site.tree
         if Page:
-            return DjpcmsTree(tree,Page.all())
+            return DjpcmsTree(tree,Page.query())
         else:
             return DjpcmsTree(tree)

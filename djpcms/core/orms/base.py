@@ -62,6 +62,9 @@ class OrmWrapper(UnicodeMixin):
         if self.hash:
             model_from_hash[self.hash] = model
         
+    def __unicode__(self):
+        return str(self.model)
+    
     def setup(self):
         pass
     
@@ -71,6 +74,18 @@ must raise a ValueError.
 '''
         raise NotImplementedError
     
+    def query(self):
+        '''Return a query class for the model'''
+        raise NotImplementedError
+    
+    def filter(self, **kwargs):
+        '''Return a query class for the model'''
+        raise NotImplementedError
+    
+    def get(self, **kwargs):
+        '''Return a query class for the model'''
+        raise NotImplementedError
+        
     def is_query(self, query):
         return True
     
@@ -83,9 +98,6 @@ must raise a ValueError.
     @classmethod
     def clear(cls):
         pass
-    
-    def __unicode__(self):
-        return str(self.model)
     
     def _hash(self):
         raise NotImplementedError
@@ -135,18 +147,6 @@ must raise a ValueError.
         else:
             return sites.settings.DJPCMS_EMPTY_VALUE
         
-    def has_add_permission(self, user, obj=None):
-        return user.is_superuser
-    
-    def has_change_permission(self, user, obj=None):
-        return user.is_superuser
-    
-    def has_view_permission(self, user, obj = None):
-        return True
-    
-    def has_delete_permission(self, user, obj=None):
-        return user.is_superuser
-    
     def id(self, obj):
         return obj.id
     

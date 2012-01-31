@@ -475,7 +475,7 @@ it delegates the query to it, otherwise it returns the children views for
 the *request*.'''
         if self.mapper:
             inputs = request.REQUEST
-            qs = query if query is not None else self.mapper.all()
+            qs = query if query is not None else self.mapper.query()
             related_field = self.related_field
             if related_field:
                 parent = request.parent

@@ -589,7 +589,7 @@ from the :meth:`stream` method.
                 return lt.render(self.template_name,context)
         else:
             return StreamContextRenderer(request,
-                                         self.stream(request,widget,context))
+                                    self.stream(request, widget, context))
     
     def stream(self, request, widget, context):
         '''This method is called by :meth:`inner` when rendering

@@ -17,16 +17,17 @@ class TabsMaker(WidgetMaker):
             key, value = keyvalue, value
         widget.data_stream.append((key, value))
         
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         if widget.data_stream:
             ul = Widget('ul')
-            di = []
+            divs = []
             for key,val in widget.data_stream:
                 id = gen_unique_id()[:8]
                 ul.add(Widget('a',key,href='#{0}'.format(id)))
-                di.append(Widget('div',val,id=id).render(djp))
-            yield ul.render(djp)
-            yield '\n'.join(di)
+                divs.append(Widget('div', val, id=id))
+            yield ul.render(request)
+            for div in divs:
+                yield div.render(request)
         
 
 class Accordion(TabsMaker):

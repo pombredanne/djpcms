@@ -49,8 +49,8 @@ This is usually called in the view page of the object.
                 html = req.render(context='object')
             else:
                 html = req.render()
-            o  = appmodel.views_ordering.get(view.name,100)
-            yield o,(view.description,html)
+            order = appmodel.views_ordering.get(view.name,100)
+            yield order,(view.description,html)
             
     def inner(self, request, widget, keys):
         views = (x[1] for x in sorted(self.view_generator(request,widget),

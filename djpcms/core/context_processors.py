@@ -38,7 +38,7 @@ def userlinks(request, asbuttons = False):
                 
                 
 def page_links(request, asbuttons = False):
-    '''Utility for displaying user navigation links.'''
+    '''Utility for displaying page navigation links.'''
     ul = html.Widget('ul')
     view = request.view
     Page = view.Page

@@ -23,7 +23,7 @@ from . import http
 from . import orms
 
 
-__all__ = ['Site', 'get_settings']
+__all__ = ['Site', 'ViewRenderer', 'get_settings']
 
 
 logger = logging.getLogger('djpcms')
@@ -95,9 +95,21 @@ def add_default_handlers(site):
             if isclass(value):
                 value = value(site.settings)
             internals[key] = value
+            
+
+class ViewRenderer(html.Renderer):
+    
+    template_file = None
+    appmodel = None
+    
+    def parent_instance(self, instance):
+        '''Return the parent instance for *instance*. This is the instance
+for the parent view. By default it returns *instance*. This function
+is used by the :attr:`djpcms.Request.parent` attribute.'''
+        return instance
         
         
-class Site(ResolverMixin,html.Renderer):
+class Site(ResolverMixin, ViewRenderer):
     '''A :class:`ResolverMixin` holding other :class:`Site` instances
 and :class:`djpcms.views.Application` instances::
 

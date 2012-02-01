@@ -53,6 +53,8 @@ def getmodel(appmodel):
 
 def mapper(model):
     '''Return an instance of a ORM djpcms wrapper'''
+    if model is None:
+        return
     if not isinstance(model,type):
         instance = model
         model = instance.__class__

@@ -42,6 +42,8 @@ class Page(object):
  
      The web site relative url
 '''
+    template_model = None
+    
     @property
     def route(self):
         return Route(self.url)

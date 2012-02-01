@@ -36,7 +36,7 @@ def makename(self, name, description):
     self.name = str(slugify(name,rtx='_'))
     
     
-class RendererMixin(html.Renderer):
+class RendererMixin(djpcms.ViewRenderer):
     '''\
 A :class:`djpcms.html.Renderer` used as mixin class for :class:`Application`
 and :class:`djpcmsview`.
@@ -205,7 +205,7 @@ belongs to a user, otherwise returns ``None``.'''
             return http.ResponseRedirect(url)            
 
 
-class djpcmsview(RouteMixin,RendererMixin):
+class djpcmsview(RouteMixin, RendererMixin):
     '''A virtual class inheriting from :class:`RendererMixin`
 and :class:`djpcms.RouteMixin` for handling http requests on a given
 :class:`djpcms.Route`. This class should not be used directly,
@@ -268,12 +268,6 @@ it is the base class of :class:`pageview` and :class:`View`.
             if self.object_view:
                 return self.appmodel.variables_from_instance(instance)
         return ()
-    
-    def parent_instance(self, instance):
-        '''Return the parent instance for *instance*. This is the instance
-for the parent view. By default it returns *instance*. This function
-is used by the :attr:`djpcms.Request.parent` attribute.'''
-        return instance
     
     def __call__(self, request):
         is_xhr = request.is_xhr

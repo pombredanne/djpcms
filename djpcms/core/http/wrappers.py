@@ -506,7 +506,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         if instance != self.instance:
             return self.for_model(instance = instance)
         elif node:
-            return make_request(self.environ,node,instance)
+            return make_request(self.environ, node, instance)
     
     @lazyproperty
     def in_navigation(self):

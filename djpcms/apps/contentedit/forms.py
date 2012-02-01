@@ -2,7 +2,7 @@ from copy import copy
 
 import djpcms
 from djpcms import forms, html, plugins
-from djpcms.core import layout
+from djpcms.core import layout, orms
 from djpcms.utils import markups
 
 
@@ -16,9 +16,10 @@ __all__ = ['TemplateForm',
 def get_templates(bfield):
     view = bfield.form.view
     if view and view.Page:
-        return view.Page.model.template_model.objects.all()
-    else:
-        return ()
+        tm = orms.mapper(view.Page.model.template_model)
+        if tm:
+            return tm.query()
+    return ()
     
 
 def initial_layout(f):

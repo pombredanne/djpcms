@@ -374,7 +374,7 @@ overwritten to customize its behavior.
     def for_model(self, model, all = False):
         return self.parent.for_model(model, all = all)
     
-    def get_from_parent_object(self, parent, id):
+    def get_from_parent_object(self, parent, urlargs):
         return parent
     
     def _get_view_name(self, name):
@@ -580,11 +580,13 @@ If the instance could not be retrieved, it raises a 404 exception.'''
         if self.mapper:
             try:
                 return self.mapper.get(**query)
-            except (self.mapper.DoesNotExist,self.mapper.FieldValueError):
+            except (self.mapper.DoesNotExist, self.mapper.FieldValueError):
+                # Not found. If this application has a parent application
+                # try to get the retrieve the parent object
                 if self.appmodel:
                     pi = self.appmodel.instance_from_variables(environ, urlargs)
                     if pi:
-                        return self.get_from_parent_object(pi,urlargs)
+                        return self.get_from_parent_object(pi, urlargs)
         raise djpcms.Http404('Cannot retrieve instance from url parameters\
  {0}'.format(query))
     
@@ -599,7 +601,7 @@ has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
             if self.appmodel and self.related_field:
                 related = getattr(instance,self.related_field)
                 bits.update(self.appmodel.variables_from_instance(related))
-            bits.update(self.urlbits(instance = instance))
+            bits.update(self.urlbits(instance = instance, bits = bits))
         return bits
     
     def render_instance(self, request, instance = None,
@@ -644,7 +646,7 @@ has been requested.
  '''
         return val
     
-    def urlbits(self, instance = None, data = None):
+    def urlbits(self, instance = None, data = None, bits = None):
         '''Generator of key, value pairs of url variables
 from an *instance* of :attr:`model` or from a *data* dictionary.
 It loops through the :attr:`djpcms.RouteMixin.route` variables, map them
@@ -661,12 +663,14 @@ This method is called by both :meth:`variables_from_instance` and
 :meth:`instance_field_value`.
 '''
         # loop over the url bits for the instance
+        bits = bits if bits is not None else ()
         mapping = self.url_bits_mapping
         for name in self.model_url_bits:
             attrname = mapping.get(name)
-            if attrname:
+            if attrname and attrname not in bits:
                 if instance:
-                    yield name,getattr(instance,attrname)
+                    if hasattr(instance,attrname):
+                        yield name,getattr(instance,attrname)
                 else:
                     yield attrname,data[name]
 

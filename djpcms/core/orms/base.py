@@ -55,7 +55,6 @@ class OrmWrapper(UnicodeMixin):
     def __init__(self, model):
         self.model = model
         self.appmodel = None
-        self.hash = None
         self.nicename = None
         self.test()
         self.setup()

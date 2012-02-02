@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from inspect import isclass
+import logging
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
@@ -16,11 +17,13 @@ __all__ = ['nicerepr',
            'action_checkbox',
            'NONE_VALUE']
 
-FIELD_SPLITTER = '__'
+
 NONE_VALUE = '(None)'
 NONE_VALUE = float('nan')
 #divchk = '<div class="action-check">{0}<span class="value">{1}</span></div>'
 divchk = '<div class="action-check">{0}{1}</div>'
+
+logger = logging.getLogger('djpcms.nicerepr') 
 
 
 def action_checkbox(val, id):
@@ -56,6 +59,8 @@ Prettify a value to be displayed in html.
         try:
             return significant_format(val, n = nd, thousand_sep = None)
         except TypeError:
+            if hasattr(val,'_meta'):
+                val = val._meta
             val = force_str(val)
             if val.startswith('http://') or val.startswith('https://'):
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
@@ -83,6 +88,8 @@ several possibilities in the following order.
                 val = val()
         except Exception as e:
             val = str(e)
+            logger.error('Unhadled exception in field representation',
+                         exc_info = True)
     elif hasattr(obj,'__getitem__') and field_name in obj:
         val = obj[field_name]
     

@@ -131,11 +131,12 @@ It is used by :meth:`Application.viewurl`.'''
         if mapper(value):
             instance = value
             value = None
-        elif not value:
+        elif value is None:
             return None,None
     else:
         value = None
-    return request.for_model(instance = instance, name = name,
+    return request.for_model(instance = instance,
+                             name = name,
                              urlargs = urlargs),value
 
 

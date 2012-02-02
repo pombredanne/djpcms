@@ -301,10 +301,9 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
             return self._paginate(None,data,withbody)
         if total <= self.sizetolerance*per_page:
             return self._paginate(None,data,withbody)
-        tp = int(total/per_page)
-        if per_page*tp < total:
-            tp += 1
-        pages = tp
+        pages = int(total/per_page)
+        if per_page*pages < total:
+            pages += 1
         multiple = pages > 1
         start = int(start)
         page = int(start/per_page)
@@ -322,14 +321,18 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 'start':start,
                 'end':end,
                 'page_menu':page_menu}
-        return self._paginate(pagi,data,withbody)
+        return self._paginate(pagi, data, withbody)
         
     def _paginate(self,pagi,data,withbody):
+        # Return a tuple with the pagination info dictionary and
+        # a list of elements if the body is required, otherwise None.
         if withbody:
-            if pagi:
+            if pagi and self.ajax:
                 return pagi,data[pagi['start']:pagi['end']]
             else:
-                return pagi,list(data)
+                if not isinstance(data,(list,tuple)):
+                    data = list(data)
+                return pagi,data
         else:
             return pagi,None
 

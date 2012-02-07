@@ -304,7 +304,7 @@ it looks for the following inputs in the request data:
                     d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
                              else ''
                     head = headers[c]
-                    qs = query.sort_by('{0}{1}'.format(d,head.attrname))
+                    query = query.sort_by('{0}{1}'.format(d,head.attrname))
             
     # Reduce the ammount of data
     if load_only and hasattr(query,'load_only'):

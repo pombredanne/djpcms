@@ -204,7 +204,7 @@ class Pagination(object):
 
     Default: ``False``
     
-:parameter ordering: ptional string indicating the default field for ordering.
+:parameter ordering: optional string indicating the default field for ordering.
     Starting with a minus means in descending order.
     
         Default ``None``

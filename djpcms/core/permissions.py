@@ -99,6 +99,13 @@ class PermissionHandler(object):
         '''Create the default authentication backends.'''
         return []
     
+    def request_middleware(self):
+        return (self.process_request,)
+    
+    def process_request(self, environ, start_response):
+        '''Request middleware. Add self to the environment'''
+        environ['permission_handler'] = self
+    
     def authenticate(self, request, **params):
         for b in self.auth_backends:
             try:

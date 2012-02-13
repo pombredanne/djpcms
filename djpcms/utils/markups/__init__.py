@@ -43,7 +43,7 @@ def add(handler):
         MARKUP_HANDLERS[code] = handler
 
 
-def choices():
+def choices(*args,**kwargs):
     load()
     global MARKUP_HANDLERS
     yield ('','raw')
@@ -51,7 +51,7 @@ def choices():
         yield k, MARKUP_HANDLERS[k].name
 
 
-def default():
+def default(*args,**kwargs):
     load()
     global _default_markup
     return _default_markup

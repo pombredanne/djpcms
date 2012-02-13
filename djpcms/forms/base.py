@@ -51,14 +51,13 @@ class FieldList(list):
                 
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
-    """Adapted form django
-    """
     fields = []
     inlines = []
     for name,obj in list(attrs.items()):
         if isinstance(obj, Field):
-            attrname = obj.name or name
-            fields.append((attrname, attrs.pop(name)))
+            # field name priority is the name in the instance
+            obj.name = obj.name or name
+            fields.append((obj.name, attrs.pop(name)))
         elif isinstance(obj, FieldList):
             obj = attrs.pop(name)
             fields.extend(obj.fields())

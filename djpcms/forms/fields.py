@@ -142,7 +142,11 @@ very similar to django forms API.
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
-        
+    
+    def __repr__(self):
+        return self.name
+    __str__ = __repr__
+    
     def set_name(self, name):
         self.name = name
         if not self.label:

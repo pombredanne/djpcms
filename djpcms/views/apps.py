@@ -667,9 +667,9 @@ This method is called by both :meth:`variables_from_instance` and
         mapping = self.url_bits_mapping
         for name in self.model_url_bits:
             attrname = mapping.get(name)
-            if attrname and attrname not in bits:
+            if attrname:
                 if instance:
-                    if hasattr(instance,attrname):
+                    if name not in bits and hasattr(instance, attrname):
                         yield name,getattr(instance,attrname)
                 else:
                     yield attrname,data[name]
@@ -713,9 +713,10 @@ the instance.'''
         objs = self.get_instances(request)
         mapper = self.mapper
         c = ajax.jcollection()
+        objs = objs.delete()
         if objs:
-            for instance in objs:
-                id = self.remove_instance(instance)
+            for id in objs:
+                id = mapper.unique_id(id)
                 c.append(ajax.jremove('#'+id))
         return c
     

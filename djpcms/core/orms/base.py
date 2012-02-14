@@ -152,11 +152,13 @@ must raise a ValueError.
     def unique_id(self, obj = None):
         '''A unique id for Html purposes. Here we remove dots
 since they seems to confuse jQuery selectors.'''
-        if obj:
-            id = obj.uuid
-        else:
-            id = self.model.hash
-        return 'o-{0}'.format(id.replace('.','-'))
+        id = obj
+        if hasattr(obj,'id'):
+            id = obj.id
+        uuid = self.hash
+        if id:
+            uuid = '{0}-{1}'.format(uuid,id)
+        return 'o-{0}'.format(uuid.replace('.','_'))
     
     def class_name(self, obj = None):
         obj = obj or self.model

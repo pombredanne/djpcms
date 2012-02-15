@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from inspect import isclass
 import logging
 
@@ -39,6 +39,7 @@ def nicerepr(val,
              none_value = NONE_VALUE,
              dateformat = None,
              timeformat = None,
+             settings = None,
              **kwargs):
     '''\
 Prettify a value to be displayed in html.
@@ -48,8 +49,8 @@ Prettify a value to be displayed in html.
 '''
     if val is None:
         return NONE_VALUE
-    elif isinstance(val,datetime):
-        return smart_time(val,dateformat,timeformat)
+    elif isinstance(val,date):
+        return smart_time(val,dateformat,timeformat,settings)
     elif isinstance(val,bool):
         if val:
             return yes()
@@ -96,7 +97,7 @@ several possibilities in the following order.
     if appmodel:
         val = appmodel.instance_field_value(request, obj, field_name, val)
 
-    return nicerepr(val,**kwargs)
+    return nicerepr(val, settings = request.settings)
             
             
 def results_for_item(request, headers, result, appmodel = None, 

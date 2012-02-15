@@ -50,11 +50,11 @@ class NiceTimeDelta(object):
     
     
 nicetimedelta = NiceTimeDelta()
-
+empty_dict = {}
 
 def smart_time(t, dateformat = None, timeformat = None, settings = None):
     '''Format a date or datetime.'''
-    settings = settings or {}
+    settings = settings or empty_dict
     if not isinstance(t,date):
         try:
             t = datetime.fromtimestamp(t)

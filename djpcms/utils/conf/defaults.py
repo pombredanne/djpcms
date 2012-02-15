@@ -56,7 +56,7 @@ DJPCMS_WRAPPERS = ['djpcms.plugins.extrawrappers']
 DJPCMS_SITE_MAP = True
 DJPCMS_USER_CAN_EDIT_PAGES = False
 # Date Format
-DATE_FORMAT = 'd M y'
+DATE_FORMAT = 'd M Y'
 TIME_FORMAT = 'H:i:s'
 
 

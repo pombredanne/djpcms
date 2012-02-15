@@ -12,6 +12,8 @@ of different scales in a uniform way.'''
     return r % number
 
 
+#python 2.7
+#'{:,}'.format(number)
 def significant_format(number, decimal_sep = '.', thousand_sep=',', n = 3):
     """Format a number according to a given number of significant figures.
 """

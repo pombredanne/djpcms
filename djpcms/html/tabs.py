@@ -2,7 +2,7 @@ from djpcms.utils import gen_unique_id
 
 from .base import Widget, WidgetMaker, iterable_for_widget
 
-__all__ = ['TabsMaker','tabs','accordion','ajax_html_select']
+__all__ = ['TabsMaker','tabs','Accordion','ajax_html_select']
 
 
 class TabsMaker(WidgetMaker):
@@ -34,13 +34,13 @@ class Accordion(TabsMaker):
     tag = 'div'
     default_class = 'ui-accordion-container djph'
     
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         if widget.data_stream:
             ul = Widget('ul')
             di = []
             for key,val in widget.data_stream:
-                yield Widget('h3',key).render(djp)
-                yield Widget('div',val).render(djp)
+                yield Widget('h3',key).render(request)
+                yield Widget('div',val).render(request)
         
 _tabs_maker = TabsMaker()
 _acc_maker = Accordion()

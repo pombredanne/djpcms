@@ -517,6 +517,10 @@ It returns self for concatenating data.'''
         kwargs.pop('maker',None)
         return self._widget(self, **kwargs)
     
+    def __call__(self, *args, **kwargs):
+        kwargs.pop('maker',None)
+        return self._widget(self, *args, **kwargs)
+    
     def children_widgets(self, widget):
         for child in self.allchildren:
             yield self.child_widget(child, widget)

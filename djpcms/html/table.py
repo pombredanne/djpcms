@@ -161,14 +161,20 @@ _TableMaker = TableMaker()
 
 
 def table(headers, body, **kwargs):
-    return Widget(_TableMaker,body,headers=headers,**kwargs)
+    return Widget(_TableMaker, body, headers=headers,**kwargs)
 
 
-ListItems = WidgetMaker(tag = 'div')
-
-def itemlist(body,**kwargs):
-    return Widget(ListItems,body,**kwargs)
-
+class ListItems(WidgetMaker):
+    '''A widget maker which creates a list of underlying item makers.'''
+    tag = 'div'
+        
+    def stream(self, request, widget, context):
+        for item in widget.data_stream:
+            yield self.render_item(request, widget, context, item)
+    
+    def render_item(self, request, widget, context, item):
+        yield item
+            
 
 class Pagination(object):
     '''Class for specifying options for a table or a general pagination.
@@ -222,6 +228,13 @@ class Pagination(object):
     
     Default: None
     
+:parameter flat_layout: An optional :class:`WidgetMaker` to render flat
+    pagination (rather than table pagination).
+    
+:parameter pagination_entry: An optional :class:`WidgetMaker` to render each
+    element within a flat layout pagination (rather than table pagination).
+
+    
 **Attributes**
 
 .. attribute:: headers
@@ -246,8 +259,7 @@ class Pagination(object):
     def __init__(self, headers = None, actions = None, bulk_actions = None,
                  sortable = False, footer = False, ajax = True,
                  size = 25, size_choices = (10,25,50,100,-1), ordering = None,
-                 html_data = None, sizetolerance = 1,
-                 pagination_template_name = None, widget_factory = None):
+                 html_data = None, sizetolerance = 1, layout = None):
         self.actions = tuple(actions or ())
         self.bulk_actions = tuple(bulk_actions or ())
         self.footer = footer
@@ -256,8 +268,7 @@ class Pagination(object):
         self.ordering = ordering
         self.sizetolerance = sizetolerance
         self.ajax = ajax
-        self.widget_factory = widget_factory if widget_factory is not None else\
-                                itemlist
+        self.widget_factory = layout if layout is not None else ListItems()
         heads = {}
         ld = []
         if headers:
@@ -343,8 +354,8 @@ a standard pagination.
  
 :parameter body: body to paginate. An iterable over data.
 :parameter toolbox: Additional tool to display in the pagination page.
-:parameter pagination: disctionary containing pagination information which
-    can be obtained by the :meth:`paginate`.
+:parameter pagination: Optional dictionary containing pagination information
+    which in the form returned by the :meth:`paginate` method.
 '''
         data = self.defaultdata()
         data.update(deepcopy(self.html_data))
@@ -396,19 +407,3 @@ a standard pagination.
         else:
             raise NotImplementedError()
         
-        
-    def default_paginator(self, body, pagination = None, data = None,
-                          footer = False):
-        #TODO
-        #FIX THIS
-        c  = djp.kwargs.copy()
-        c.update({'paginator': p,
-                  'djp': djp,
-                  'url': djp.url,
-                  'appmodel': self,
-                  'headers': self.headers})
-        maker = self.object_widgets['pagination']
-        render = self.render_object
-        qs = query[p.start:p.end]
-        c['items'] = (render(djp,item,'pagination') for item in qs)
-        return djp.render_template(self.pagination_template_name, c)

@@ -21,7 +21,8 @@ else:
 from djpcms.utils.structures import MultiValueDict
 
 WEEK_DAYS = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
-MONTHS3 = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+MONTHS3 = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
+           'Sep', 'Oct', 'Nov', 'Dec')
 
 
 __all__ = ['cookie_date',
@@ -29,7 +30,8 @@ __all__ = ['cookie_date',
            'parse_cookie',
            'BytesIO',
            'QueryDict',
-           'query_from_string']
+           'query_from_string',
+           'query_from_querydict']
 
 
 class QueryDict(MultiValueDict):
@@ -47,14 +49,21 @@ def query_from_string(val):
     r = {}
     if val:
         try:
-            for k,v in QueryDict(val).lists():
-                if len(v) > 1:
-                    k = '{0}__in'.format(k)
-                else:
-                    v = v[0]
-                r[k] = v
+            q = QueryDict(val)
+            return query_from_querydict(q)
         except:
             return r
+    return r
+
+
+def query_from_querydict(q):
+    r = {}
+    for k,v in q.lists():
+        if len(v) > 1:
+            k = '{0}__in'.format(k)
+        else:
+            v = v[0]
+        r[k] = v
     return r
 
 

@@ -3,6 +3,7 @@ from inspect import isgenerator
 
 from djpcms import ajax, DELETE
 from djpcms.core.orms import mapper
+from djpcms.core.http import query_from_querydict
 from djpcms.html import anchor_or_button
 
 
@@ -269,7 +270,6 @@ it looks for the following inputs in the request data:
     
     toolbox = toolbox if toolbox is not None else table_toolbox(request)
     render = True
-    needbody = True
     pagination = request.pagination
     view = request.view
     appmodel = view.appmodel
@@ -280,13 +280,15 @@ it looks for the following inputs in the request data:
     page_menu = None
     body = None
     
+    needbody = True
     if pagination.ajax:
-        ajax = request.url
+        ajax = request.get_full_path()
         if request.is_xhr:
             render = False
-            needbody = True
         else:
             needbody = False
+    if needbody and request.GET:
+        query = query.filter(**query_from_querydict(request.GET))
     
     sort_by = {}
     #search = inputs.get('sSearch')

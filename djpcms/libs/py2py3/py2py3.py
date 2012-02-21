@@ -89,9 +89,9 @@ else: # Python 2
         return s
     
     def force_native_str(s):
-        if isinstance(s,unicode):
+        if isinstance(s, unicode):
             return s.encode('utf-8')
-        elif not isinstance(s,bytes):
+        elif not isinstance(s, bytes):
             return bytes(s)
         else:
             return s

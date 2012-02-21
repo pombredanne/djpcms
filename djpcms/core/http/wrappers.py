@@ -449,10 +449,12 @@ is available, the name is set to ``view``.
         return host
     
     def get_full_path(self):
-        # RFC 3986 requires query string arguments to be in the ASCII range.
-        # Rather than crash if this doesn't happen, we encode defensively.
-        return '%s%s' % (self.path, self.environ.get('QUERY_STRING', '') \
-            and ('?' + iri_to_uri(self.environ.get('QUERY_STRING', ''))) or '')
+        url = self.url
+        qs = self.environ.get('QUERY_STRING', '')
+        if url == self.path and qs:
+            return url + '?' + iri_to_uri(qs)
+        else:
+            return url
     
     def build_absolute_uri(self, location=None):
         """

@@ -377,7 +377,7 @@ class BooleanField(Field):
                 return bool(value)
     
 
-class MultipleField(Field):
+class MultipleMixin(Field):
     
     def handle_params(self, multiple = None, **kwargs):
         self.multiple = multiple or False
@@ -494,6 +494,9 @@ clean its values.'''
         '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
         ch = set((to_string(x[0]) for x in self.all(bfield)))
         values = value if self.multiple else (value,)
+        if not isinstance(values,(list,tuple)):
+            raise ValidationError('Critical error. {0} is not a list'\
+                                  .format(values))
         for v in values:
             if v not in ch:
                 raise ValidationError('{0} is not a valid choice'.format(v))
@@ -575,7 +578,7 @@ is ``True``, in which case the value is returned.'''
         return data
     
     
-class ChoiceField(Field):
+class ChoiceField(MultipleMixin, Field):
     '''A :class:`Field` which validates against a set of ``choices``.
 It has several additional attributes which can be specified
 via the :class:`ChoiceFieldOptions` class.
@@ -605,7 +608,11 @@ form as only argument'''
                 self.widget.default_class = 'autocomplete'
         elif choices.multiple:
             self.widget_attrs['multiple'] = 'multiple'
-        super(ChoiceField,self).handle_params(**kwargs)
+        self._raise_error(kwargs)
+        
+    @property
+    def multiple(self):
+        return self.choices.multiple
                 
     def _clean(self, value, bfield):
         if value is not None:
@@ -626,7 +633,7 @@ class EmailField(CharField):
     pass
 
 
-class FileField(MultipleField):
+class FileField(MultipleMixin, Field):
     widget = html.FileInput()
     
     def value_from_datadict(self, data, files, key):

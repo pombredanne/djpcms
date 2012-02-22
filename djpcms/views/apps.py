@@ -443,7 +443,7 @@ overwritten to customize its behavior.
  application "{1}" @ "{2}".\
  Make sure to pass a class form to the view or application constructor.'\
                     .format(request.view,self.__class__.__name__,self))
-        elif isinstance(form_class,forms.FormType):
+        elif isinstance(form_class, forms.FormType):
             form_class = forms.HtmlForm(form_class)
         
         # Check instance and model    

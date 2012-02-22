@@ -313,8 +313,8 @@ if it is bound.'''
         form_message = self.form_message
         
         # Loop over form fields
-        for name,field in iteritems(self.base_fields):
-            bfield = BoundField(self,field,name,self.prefix)
+        for name, field in iteritems(self.base_fields):
+            bfield = BoundField(self, field, name, self.prefix)
             key = bfield.html_name
             fields.append(bfield)
             dfields[name] = bfield

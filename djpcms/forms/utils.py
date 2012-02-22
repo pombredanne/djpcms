@@ -119,12 +119,12 @@ def get_form(request,
 '''
     referer = request.environ.get('HTTP_REFERER')
     data = request.REQUEST
-    prefix = data.get(PREFIX_KEY,None)
+    prefix = data.get(PREFIX_KEY, None)
     inputs = form_factory.inputs
     if inputs is not None:
         inputs = [inp.widget() for inp in inputs]
     elif addinputs:
-        inputs = form_inputs(instance,  request.path == request.url)
+        inputs = form_inputs(instance,  request.path==request.url)
     
     inputs = inputs or []
     inputs.append(Widget('input:hidden',name=REFERER_KEY,value=referer))
@@ -202,7 +202,7 @@ has been submitted, including possible asynchronous behavior.'''
     f = fhtml.form
     
     if CANCEL_KEY in data:
-        url = get_redirect(request,f.instance,True)
+        url = get_redirect(request, f.instance, True)
         return view.redirect(request, url)
         
     if SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:

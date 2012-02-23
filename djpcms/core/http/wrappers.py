@@ -222,7 +222,7 @@ arguments.
     in this case this attribute is that instance, otherwise it is ``None``.
     
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
-'''    
+'''
     def for_path(self, path = None, urlargs = None, instance = None,
                  cache = True):
         '''Create a new :class:`Request` from a given *path*.'''
@@ -269,11 +269,12 @@ is available, the name is set to ``view``.
         if app:
             view = app.views.get(name) if name else None
             if not view and instance:
-                view = app.view_for_instance(instance)
+                view = app.view_for_instance(self, instance)
             view = view or app.root_view
-            if view:
-                return self.for_path(view.path, urlargs = urlargs,
+            if view and not isinstance(view, self.__class__):
+                view = self.for_path(view.path, urlargs = urlargs,
                                      instance = instance)
+            return view
             
     def __unicode__(self):
         return self.url + ' (' + self.path + ')'

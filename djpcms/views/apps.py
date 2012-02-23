@@ -551,8 +551,8 @@ input *headers*.'''
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
     
-    def view_for_instance(self, instance):
-        '''Return the view for *instance*. By default it returns the
+    def view_for_instance(self, request, instance):
+        '''Return the :class:`View` for *instance*. By default it returns the
 :attr:`instance_view`.
 This is used when an :ref:`instance view <instance-views>`
 has been requested.'''
@@ -750,7 +750,7 @@ It uses the following algorithm:
             view = self.views.get(name)
         if not view:
             if instance and instance.id:
-                view = self.view_for_instance(instance)
+                view = self.view_for_instance(request, instance)
             if not view:
                 view = self.root_view
         if isinstance(view,RendererMixin):

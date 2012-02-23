@@ -253,17 +253,14 @@ validation.'''
         for name,field in iteritems(self.base_fields):
             if name in initials:
                 continue
-            # The instance is a new one (no id). precedence to the
-            # initial of the form field
-            if not instanceid:
-                initial = field.get_initial(self)
-                if initial is not None:
-                    initials[name] = initial
-                    continue
-            if instance:
-                value = self.value_from_instance(instance,name)
+            initial = field.get_initial(self)
+            # Instance with id can override the initial value
+            if instance and instanceid:
+                value = self.value_from_instance(instance, name)
                 if value is not None:
-                    initials[name] = value
+                    initial = value
+            if initial is not None:
+                initials[name] = initial
     
     def value_from_instance(self, instance, name):
         '''Utility function for extracting an attribute value from an

@@ -2,7 +2,8 @@ import time
 from datetime import datetime, timedelta
 
 from djpcms.utils import test
-from djpcms.core.http.wrappers import RequestNode, Request, BytesIO
+from djpcms.core import http
+from djpcms.core.http.wrappers import RequestNode, BytesIO
 
 
 class Http(test.TestCase):
@@ -11,7 +12,7 @@ class Http(test.TestCase):
         environ = self.environ(**kwargs)
         path = environ['PATH_INFO']
         environ['DJPCMS'] = RequestNode(None,None,path)
-        return Request(environ,None,None,path)
+        return http.Request(environ,None,None,path)
     
     def environ(self, method = 'POST', input = b'', path = None):
         return {'PATH_INFO': path or '/',

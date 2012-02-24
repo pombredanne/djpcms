@@ -1,9 +1,9 @@
 import creole
 
-from djpcms.utils import markups
+from . import base
 
 
-class Application(markups.Application):
+class Application(base.Application):
     code = 'crl'
     name = 'creole'
     

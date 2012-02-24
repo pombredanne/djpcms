@@ -1,6 +1,6 @@
 from djpcms import forms, html
 from djpcms.utils import test
-from djpcms.apps.search import HtmlSearchForm
+from djpcms.apps.search import search_form
 from djpcms.apps.contentedit import HtmlPageForm,\
                                     ContentBlockHtmlForm,\
                                     HtmlEditContentForm

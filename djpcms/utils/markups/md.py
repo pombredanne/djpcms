@@ -1,9 +1,9 @@
 import markdown
 
-from djpcms.utils import markups
+from . import base
     
 
-class Application(markups.Application):
+class Application(base.Application):
     code = 'markdown'
     name = 'Markdown'
     

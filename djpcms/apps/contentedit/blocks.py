@@ -312,12 +312,11 @@ content in a content block.'''
         blockcontents = self.model.for_page_block(self.mapper, page, blocknum)
         editpath = self.views.get('change').path
         wrapper  = EditWrapperHandler()
-        Tot = len(blockcontents) - 1
-        # Clean blocks
+        Tot = len(blockcontents)
         pos = 0
-        t = 0
         last = None
-        for b in blockcontents:
+        # We update positions if needed
+        for t, b in enumerate(blockcontents,1):
             last = b
             if not b.plugin_name and t < Tot:
                 b.delete()

@@ -5,7 +5,7 @@ from sphinx import application as Sphinx
 
 import djpcms
 from djpcms.utils import gen_unique_id
-from djpcms.utils.markups import application
+from djpcms.utils.markups import base
 
 from py2py3 import StringIO
 
@@ -77,7 +77,7 @@ without a config file. The problem are the extensions.'''
         pass
 
 
-class Application(application.Application):
+class Application(base.Application):
     code = 'rst'
     name = 'reStructuredText'
     _setup = None

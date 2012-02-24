@@ -4,6 +4,7 @@ from djpcms.forms import layout
 
 def search_form(name, placeholder = 'search', input_name = None,
                 submit = None, cn = None, choices = None, **kwargs):
+    '''Create a new :class:`djpcms.forms.HtmlForm` for searching.'''
     if cn:
         cn += ' submit-on-enter'
     else:

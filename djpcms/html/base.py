@@ -355,22 +355,6 @@ corner cases, users can subclass it to customize behavior.
     
     Default ``None``
     
-.. attribute:: template
-
-    optional template string for rendering the inner part of the widget.
-    Use with care as it slow down the rendering.
-    
-    Default ``None``.
-    
-.. attribute:: template_name
-
-    optional template file name, or iterable over template file names,
-    for rendering the widget. If :attr:`template` is available, this attribute
-    has no effect.
-    Use with care as it slow down the rendering.
-    
-    default ``None``.
-    
 .. attribute:: key
 
     An optional string which can be used to easily retrieve the
@@ -419,8 +403,6 @@ corner cases, users can subclass it to customize behavior.
     is_hidden = False
     default_style = None
     inline = False
-    template = None
-    template_name = None
     attributes = ('id','title','dir','style')
     default_class = None
     default_attrs = None
@@ -444,10 +426,8 @@ corner cases, users can subclass it to customize behavior.
         self.renderer = renderer
         self.inline = inline if inline is not None else self.inline
         self.key = params.pop('key',self.key)
-        self.template = params.pop('template',self.template)
         self.is_hidden = params.pop('is_hidden',self.is_hidden)
         self.tag = params.pop('tag',self.tag)
-        self.template_name = params.pop('template_name',self.template_name)
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
         self._widget = widget or self._widget or Widget
@@ -544,6 +524,10 @@ dictionary.'''
                 w.add(context.pop(key))
             children.append(w.render(request, context))
         ctx['children'] = children
+        if context:
+            context = context.copy()
+            context.update(ctx)
+            ctx = context
         return ctx
     
     def render_from_widget(self, request, widget, context):
@@ -569,12 +553,12 @@ information contained in this :class:`WidgetMaker`.'''
         if request:
             request.media.add(self.media(request))
         if isinstance(text,ContextRenderer):
-            text.add_renderer(self.renderer)
+            #text.add_renderer(self.renderer)
             text.add_renderer(mark_safe)
             return text.done()
         else:
-            if self.renderer:
-                text = self.renderer(text)
+            #if self.renderer:
+            #    text = self.renderer(text)
             return mark_safe(text)
     
     def inner(self, request, widget, context):
@@ -584,25 +568,13 @@ information contained in this :class:`WidgetMaker`.'''
 :parameter context: A dictionary of data for rendering.
 :rtype: A string representing the inner part of the widget or
     a :class:`ContextRenderer` if asynchronous data is found.
-
-By default it renders the :attr:`template` or :attr:`template_name`
-if available, otherwise it returns a :class:`StreamContextRenderer`
-from the :meth:`stream` method.
 '''
         context = self.get_context(request, widget, context)
-        if self.template or self.template_name:
-            context.update({'maker':self,
-                            'widget':widget})
-            if request is None:
-                raise ValueError('No request. Cannot render template.')
-            lt = request.view.template
-            if self.template:
-                return lt.template_class(self.template).render(context)
-            else:
-                return lt.render(self.template_name,context)
+        if self.renderer:
+            return self.renderer(request, widget, context)
         else:
             return StreamContextRenderer(request,
-                                    self.stream(request, widget, context))
+                        self.stream(request, widget, context))
     
     def stream(self, request, widget, context):
         '''This method is called by :meth:`inner` when rendering

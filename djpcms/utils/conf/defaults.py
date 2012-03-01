@@ -36,8 +36,7 @@ ADMIN_GROUPING = None
 
 #MIDDLEWARE AND CONTEXT PROCESSORS
 AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
-REQUEST_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
-                              "djpcms.core.context_processors.messages")
+REQUEST_CONTEXT_PROCESSORS = ()
 
 TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = 'default'

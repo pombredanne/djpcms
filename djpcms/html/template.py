@@ -3,7 +3,7 @@ from functools import partial
 
 from djpcms import DJPCMS_DIR
 
-from .layout import LayoutDoesNotExist, PageLayout, get_layout
+from .layout import LayoutDoesNotExist, page, get_layout
 
 
 __all__ = ['template_handle', 'ContextTemplate', 'TemplateHandler']
@@ -178,7 +178,7 @@ class djpcms_page_renderer(TemplateHandler):
     '''Default template handler'''
     name = 'djpcms'
     TemplateDoesNotExist = LayoutDoesNotExist
-    template_class = PageLayout
+    template_class = page
     
     def setup(self):
         pass

@@ -145,6 +145,4 @@ def get_cssgrid(name):
         return Yui3(columns,fixed)
     elif name:
         logger.error('Grid "{0}" is not installed'.format(name))
-    
-    
         

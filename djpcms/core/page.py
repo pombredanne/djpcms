@@ -118,7 +118,7 @@ class Template(object):
     def render(self, loader, c):
         '''Render the inner template given the context ``c``.
         '''
-        return loader.render_from_string(self.template,c)
+        return loader.render_from_string(self.template, c)
     
     def numblocks(self):
         '''Number of ``blocks`` within template.'''

@@ -488,14 +488,14 @@ corner cases, users can subclass it to customize behavior.
                                self.tag if self.tag else '')
     
     def add(self, *widgets):
-        '''Add children *widgets* to ``self``,
-*widgets* must be instances of :class:`WidgetMaker`.
+        '''Add children *widgets* to this class:`WidgetMaker`.
+*widgets* must be class:`WidgetMaker` theirself.
 If a child has an :attr:`WidgetMaker.key` attribute specified,
 it will be added to the ``children`` dictionary
 for easy retrieval.
 It returns self for concatenating data.'''
         for widget in widgets:
-            if isinstance(widget,WidgetMaker):
+            if isinstance(widget, WidgetMaker):
                 if not widget.default_style:
                     widget.default_style = self.default_style
                 self.allchildren.append(widget)
@@ -520,10 +520,6 @@ It returns self for concatenating data.'''
     def __call__(self, *args, **kwargs):
         kwargs.pop('maker',None)
         return self._widget(self, *args, **kwargs)
-    
-    def children_widgets(self, widget):
-        for child in self.allchildren:
-            yield self.child_widget(child, widget)
             
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method it
@@ -617,6 +613,11 @@ is required.'''
             data = data.done()
         return data
 
+    def children_widgets(self, widget):
+        # Internal function for creating child widgets
+        for child in self.allchildren:
+            yield self.child_widget(child, widget)
+            
     def child_widget(self, child, widget, **kwargs):
         '''Function invoked when there are children available. See the
 :attr:`allchildren`` attribute for more information on children.

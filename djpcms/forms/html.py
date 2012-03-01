@@ -1,9 +1,8 @@
 from copy import copy
 from inspect import isclass
 
-from py2py3 import iteritems
-
 from djpcms import html
+from djpcms.utils.py2py3 import iteritems
 from djpcms.utils import slugify, escape
 
 from .globals import *
@@ -112,13 +111,14 @@ Simple usage::
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model,**kwargs)
-        w =  self.widget(form = f,
-                         inputs = inputs or [],
-                         layout = self.layout,
-                         method = self.attrs['method'],
-                         action = action,
-                         success_message = self.success_message)\
-                            .addClass(self.layout.form_class)
+        w = super(HtmlForm,self).__call__(
+                form = f,
+                inputs = inputs or [],
+                layout = self.layout,
+                method = self.attrs['method'],
+                action = action,
+                success_message = self.success_message)\
+                    .addClass(self.layout.form_class)
         if self.ajax:
             w.addClass('ajax')
         return w

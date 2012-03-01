@@ -1,12 +1,11 @@
 import json
-from copy import copy
+from copy import copy, deepcopy
 from inspect import isgenerator
 
-from py2py3 import iteritems
-
 import djpcms
-from djpcms import UnicodeMixin, is_string, to_string, is_bytes_or_string
-from djpcms.utils import force_str, slugify, escape, mark_safe, lazymethod
+from djpcms.utils.py2py3 import UnicodeMixin, is_string, to_string,\
+                                is_bytes_or_string, iteritems
+from djpcms.utils import slugify, escape, mark_safe, lazymethod
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.const import NOTHING
 
@@ -114,6 +113,13 @@ Any Operation on this class is similar to jQuery.
     def __init__(self, maker = None, data_stream = None,
                  cn = None, data = None, options = None, 
                  css = None, **params):
+        '''Initialize a widget. Usually this constructor is not invoked
+directly, Instead it is called by the callable :class:`WidgetMaker` which
+is a factory of :class:`Widget`.
+
+:parameter maker: The :class:`WidgetMaker` creating this :class:`Widget`.
+:parameter data_stream: set the :attr:`data_stream` attribute.
+'''
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
@@ -287,7 +293,6 @@ for concatenation.'''
         return self._html
     
 
-
 class WidgetMaker(Renderer):
     '''A :class:`Renderer` used as factory for :class:`Widget` instances.
 It is general enough that it can be use for a vast array of HTML widgets. For
@@ -426,13 +431,14 @@ corner cases, users can subclass it to customize behavior.
                  description = '', widget = None,
                  attributes = None, renderer = None,
                  data2html = None, media = None,
-                 **params):
+                 data = None, **params):
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
         self.allchildren = []
         self.children = {}
         self.attrs = attrs = {}
+        self.data = data or {}
         self._media = media
         self.description = description or self.description
         self.renderer = renderer
@@ -460,10 +466,8 @@ corner cases, users can subclass it to customize behavior.
                     value = getattr(self,attrp)(value)
                 if value is not None:
                     attrs[attr] = value
-        if params:
-            keys = list(params)
-            raise TypeError("__init__() got an unexpected keyword argument\
- '{0}'".format(keys[0]))
+        # the remaining parameters are added to the data dictionary
+        self.data.update(params)
         key = None
         if default:
             key = default
@@ -473,6 +477,20 @@ corner cases, users can subclass it to customize behavior.
         if key:
             default_widgets_makers[key] = self
     
+    def __call__(self, data_stream = None, cn = None,
+                 data = None, css = None, **params):
+        if self.data:
+            d = deepcopy(self.data)
+            if data:
+                d.update(data)
+            data = d
+        return self._widget(self,
+                            data_stream = data_stream,
+                            cn = cn,
+                            data = data,
+                            css = css,
+                            **params)
+        
     @property
     def widget_class(self):
         return self._widget
@@ -510,16 +528,6 @@ It returns self for concatenating data.'''
         if isinstance(element,Widget):
             element.internal['parent'] = widget
         widget.data_stream.append(element)
-        
-    def widget(self, **kwargs):
-        '''Create an instance of a :class:`Widget` for rendering.
- It invokes the constructor of the :attr:`widget_class` attribute.'''
-        kwargs.pop('maker',None)
-        return self._widget(self, **kwargs)
-    
-    def __call__(self, *args, **kwargs):
-        kwargs.pop('maker',None)
-        return self._widget(self, *args, **kwargs)
             
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method it
@@ -534,18 +542,22 @@ dictionary.'''
             key = w.maker.key
             if key and key in context:
                 w.add(context.pop(key))
-            children.append(w.render(request,context))
+            children.append(w.render(request, context))
         ctx['children'] = children
         return ctx
     
     def render_from_widget(self, request, widget, context):
+        '''Render the *widget* using the *context* dictionary and
+information contained in this :class:`WidgetMaker`.'''
         if self.inline:
+            # inline widget
             if widget.tag:
                 fattr = widget.flatatt()
                 text = '<{0}{1}/>'.format(self.tag,fattr)
             else:
                 text = ''
         else:
+            # standard widget
             text = self.inner(request, widget, context)
             if widget.tag:
                 fattr = widget.flatatt()
@@ -553,7 +565,7 @@ dictionary.'''
                     text.add_renderer(
                         lambda c : self._template.format(widget.tag,fattr,c))
                 else:
-                    text = self._template.format(widget.tag,fattr,text)
+                    text = self._template.format(widget.tag, fattr, text)
         if request:
             request.media.add(self.media(request))
         if isinstance(text,ContextRenderer):
@@ -569,14 +581,15 @@ dictionary.'''
         '''Render the inner part of the widget (it exclude the outer tag). 
 
 :parameter widget: instance of :class:`Widget` to be rendered
-:parameter keys: ???
-:return: A string representing the inner part of the widget.
+:parameter context: A dictionary of data for rendering.
+:rtype: A string representing the inner part of the widget or
+    a :class:`ContextRenderer` if asynchronous data is found.
 
 By default it renders the :attr:`template` or :attr:`template_name`
 if available, otherwise it returns a :class:`StreamContextRenderer`
 from the :meth:`stream` method.
 '''
-        context = self.get_context(request,widget,context)
+        context = self.get_context(request, widget, context)
         if self.template or self.template_name:
             context.update({'maker':self,
                             'widget':widget})
@@ -595,8 +608,14 @@ from the :meth:`stream` method.
         '''This method is called by :meth:`inner` when rendering
 without templates. It returns an iterable over chunks of html
 to be displayed in the inner part of the widget.
-This method can be overridden by subclasses if a specific behaviour
-is required.'''
+This method can be overridden by subclasses if a specific behavior
+is required.
+
+First, data in :attr:`data_stream` is rendered. Second, children of the
+widget are rendered.
+
+:rtype: a generator of strings and :class:`ContextRenderer`.
+'''
         data2html = self.data2html
         if widget.data_stream:
             for chunk in widget.data_stream:
@@ -607,9 +626,9 @@ is required.'''
     def data2html(self, request, data):
         '''Process data from :meth:`stream`. By default it renders data if
  data is an instance of :class:`Widget` and returns it.'''
-        if isinstance(data,Widget):
+        if isinstance(data, Widget):
             data = data.render(request)
-        if isinstance(data,ContextRenderer):
+        if isinstance(data, ContextRenderer):
             data = data.done()
         return data
 
@@ -628,7 +647,7 @@ is required.'''
     widget constructor.
 :rtype: An instance of :class:`Widget` for the child element.
 '''
-        w = child.widget(**widget.internal)
+        w = child(**widget.internal)
         w.internal.update(kwargs)
         w.internal['parent'] = widget
         return w    

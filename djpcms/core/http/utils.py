@@ -5,7 +5,7 @@ import re
 from datetime import datetime, date
 from email.utils import formatdate
 
-from py2py3 import ispy3k, to_string
+from djpcms.utils.py2py3 import ispy3k, to_string
 
 if ispy3k:
     from http.cookies import SimpleCookie, Morsel, CookieError, BaseCookie

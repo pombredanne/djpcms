@@ -1,6 +1,7 @@
 from djpcms import views, forms, html, ajax
 from djpcms.forms.utils import saveform
 from djpcms.forms.layout import uniforms as uni
+from djpcms.apps import static
 
 from .geonames import Geonames
 
@@ -29,12 +30,12 @@ class GeoEntry(html.WidgetMaker):
                ('adminName2','Administration')
                )
     
-    def stream(self, djp, widget, context):
+    def stream(self, request, widget, context):
         orig_data = widget.data_stream
         data = ((h[1],orig_data.pop(h[0],None)) for h in self.header1)
         yield html.DefinitionList(data_stream = data)\
-                  .addClass(djp.settings.HTML.objectdef)\
-                  .render(djp)
+                  .addClass(request.settings.HTML.objectdef)\
+                  .render(request)
         
     
 
@@ -44,40 +45,38 @@ geo_entry = GeoEntry()
     
 class geosearch(views.View):
     
-    def render(self, djp):
-        return self.get_form(djp).render(djp)
+    def render(self, request):
+        return self.get_form(request).render(request)
     
-    def default_post(self, djp):
+    def default_post(self, request):
         '''handle the post request from the search'''
-        return saveform(djp)
+        return saveform(request)
 
-    def save(self, djp, f, commit = True):
+    def save(self, request, f, commit = True):
         '''called by the search view. It doesn't save anything,
 just perform the query.'''
         q = f.cleaned_data['q']
         res = self.appmodel.api.search(q)
         if res:
             g = geo_entry.widget
-            html = '\n'.join((g(data_stream = elem).render(djp) for elem in res))
+            html = '\n'.join((g(data_stream = elem).render(request) for elem in res))
         else:
             html = '<p>Your search - <b>{0}</b> -\
  did not match any documents.</p>'.format(q)
         return ajax.jhtmls(html,'#geo-search-result')
     
 
+def home_view(request):
+    return 'Testing'
+
 
 class Geonames(views.Application):
     api = Geonames()
-    search = geosearch(form = GeoSearchFormHtml,
-                       in_navigation = 1)
-    
-
-
-def home_view(djp):
-    return 'Testing'
+    search = geosearch(form=GeoSearchFormHtml, in_nav=1)
 
 
 class PlayGround(views.Application):
     home = views.View(renderer = home_view)
+    favicon = static.FavIconView()
     
         

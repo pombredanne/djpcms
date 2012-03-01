@@ -1,6 +1,6 @@
 from gzip import GzipFile
 
-from py2py3 import ispy3k
+from .py2py3 import ispy3k
 if ispy3k:
     from io import BytesIO
 else:

@@ -1,10 +1,8 @@
 import logging
 
-from py2py3 import range
-
 import djpcms
-from djpcms import UnicodeMixin, forms, http, html, ajax, Route, RouteMixin,\
-                        Http404
+from djpcms.utils.py2py3 import range, UnicodeMixin
+from djpcms import forms, http, html, ajax, Route, RouteMixin, Http404
 from djpcms.html import ContextRenderer
 from djpcms.forms.utils import get_redirect
 from djpcms.utils import parentpath, slugify, escape
@@ -387,7 +385,10 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def warning_message(self, request):
         return None
-        
+
+    def meta_charset(self, request):
+        return self.settings.DEFAULT_CHARSET
+            
     def meta_description(self, request):
         return self.settings.META_DESCRIPTION
     
@@ -396,6 +397,9 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def meta_author(self, request):
         return self.settings.META_AUTHOR
+    
+    def meta_viewport(self, request):
+        return self.settings.META_VIEWPORT
       
     def get_body_class(self, request):
         page = request.page

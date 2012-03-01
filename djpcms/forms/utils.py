@@ -5,9 +5,8 @@ import logging
 from functools import partial
 from datetime import datetime
 
-from py2py3 import to_string
-
 from djpcms import forms, http, html
+from djpcms.utils.py2py3 import to_string
 from djpcms.core import messages
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str, ajax
@@ -122,7 +121,7 @@ def get_form(request,
     prefix = data.get(PREFIX_KEY, None)
     inputs = form_factory.inputs
     if inputs is not None:
-        inputs = [inp.widget() for inp in inputs]
+        inputs = [inp() for inp in inputs]
     elif addinputs:
         inputs = form_inputs(instance,  request.path==request.url)
     

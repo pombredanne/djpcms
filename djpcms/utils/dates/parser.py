@@ -15,7 +15,7 @@ import datetime
 import string
 import time
 
-from py2py3 import StringIO, is_string
+from djpcms.utils.py2py3 import StringIO, is_string
 
 from .relativedelta import relativedelta
 

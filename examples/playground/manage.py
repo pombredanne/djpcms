@@ -11,37 +11,53 @@ To create the style sheet::
 '''
 import djpcms
 from djpcms.apps import static
-
+from djpcms import html
 
 class Loader(djpcms.SiteLoader):
-    loaded = False
     
-    def default_load(self):
-        settings = self.get_settings(__file__,
+    def load(self):
+        settings = djpcms.get_settings(
+                __file__,
                 APPLICATION_URLS = self.urls,
                 INSTALLED_APPS = ('djpcms',
-                                  'medplate',
+                                  #'medplate',
                                   'playground'),
                 ENABLE_BREADCRUMBS = 1,
                 # the favicon to use is in the djpcms module
                 FAVICON_MODULE = 'djpcms',
                 # the profiling key to profile
                 PROFILING_KEY = 'prof',
+                DEFAULT_STYLE_SHEET = {'all':[
+'http://yui.yahooapis.com/2.9.0/build/reset-fonts-grids/reset-fonts-grids.css',
+"playground/smooth.css"]},
                 DEBUG = True
-                )
-        self.sites.make(settings)
+            )
+        self.page_layout()
+        return djpcms.Site(settings)
     
-    def urls(self):
+    def urls(self, site):
         from playground.application import PlayGround, Geonames
         # we serve static files too in this case
         return (
-                static.FavIcon(),
-                static.Static(self.sites.settings.MEDIA_URL,
+                static.Static(site.settings.MEDIA_URL,
                               show_indexes=True),
                 Geonames('/geo/'),
                 PlayGround('/')
                 )
     
+    def page_layout(self):
+        html.page_layout(
+            html.page_row(key = 'title',
+                          id = 'page-header',
+                          role = 'header',
+                          renderer = self.render_header),
+            html.page_row(html.grid(1,3, key = 'sitenav'),
+                          html.grid(2,3, key = 'inner')),
+            html.page_row(role =  'footer'),
+            role = 'page',
+            id = 'body-container').register('default')
+            
+    def render_header(self):
     
 if __name__ == '__main__':
     djpcms.execute(Loader())

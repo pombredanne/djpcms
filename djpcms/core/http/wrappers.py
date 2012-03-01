@@ -7,10 +7,9 @@ from functools import partial
 from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
-from py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
-                         is_string, UnicodeMixin
-
 import djpcms
+from djpcms.utils.py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
+                                is_string, UnicodeMixin
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri

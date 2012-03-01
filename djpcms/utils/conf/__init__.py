@@ -1,7 +1,6 @@
 import os
 
-from py2py3 import is_bytes_or_string
-
+from djpcms.utils.py2py3 import is_bytes_or_string
 from djpcms.utils.importer import import_module
 
 from . import defaults

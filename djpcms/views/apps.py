@@ -1,8 +1,7 @@
 from copy import deepcopy
 
-from py2py3 import iteritems, is_string, itervalues, to_string
-
 import djpcms
+from djpcms.utils.py2py3 import iteritems, is_string, itervalues, to_string
 from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
                      UrlException, AlreadyRegistered
 from djpcms.html import table_header, ContextRenderer

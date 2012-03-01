@@ -4,7 +4,7 @@ import codecs
 from datetime import datetime, date, time
 from decimal import Decimal
 
-from py2py3 import string_type
+from .py2py3 import string_type
 
 
 __all__ = ['nodata',

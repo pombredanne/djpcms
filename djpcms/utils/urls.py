@@ -1,6 +1,6 @@
 import re
 
-from py2py3 import ispy3k, force_native_str
+from .py2py3 import ispy3k, force_native_str
 
 
 __all__ = ['urlparse',

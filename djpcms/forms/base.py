@@ -4,10 +4,8 @@ Several parts are originally from django
 '''
 import json
 
-from py2py3 import iteritems
-
 import djpcms
-from djpcms import UnicodeMixin
+from djpcms.utils.py2py3 import iteritems, UnicodeMixin
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str, lazyproperty
@@ -508,9 +506,7 @@ factory.'''
         attr = field.widget_attrs
         if hasattr(attr,'__call__'):
             attr = attr(self)
-        widget = field.widget.widget()\
-                     .addAttrs(attr)\
-                     .addData(data)
+        widget = field.widget(data = data).addAttrs(attr)
         widget.internal['bfield'] = self
         widget.addAttrs({'id': self.id,
                          'name':self.html_name,

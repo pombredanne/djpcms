@@ -2,8 +2,7 @@ from copy import copy
 
 from djpcms import UnicodeMixin
 from djpcms.utils import lazyproperty, lazymethod, uri_to_iri
-
-from py2py3 import itervalues
+from djpcms.utils.py2py3 import itervalues
 
 
 class Node(UnicodeMixin):

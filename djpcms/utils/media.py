@@ -4,9 +4,9 @@ Originally from django
 '''
 from copy import deepcopy
 
-from py2py3 import urlparse
-
 from djpcms.utils import mark_safe
+
+from .py2py3 import urlparse
 
 urljoin = urlparse.urljoin
 

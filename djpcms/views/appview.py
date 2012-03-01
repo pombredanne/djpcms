@@ -1,8 +1,7 @@
 from functools import partial
 
-from py2py3 import zip
-
 import djpcms
+from djpcms.utils.py2py3 import zip
 from djpcms import http, forms, ajax, Route, async_instance, Http404
 from djpcms.forms.utils import saveform, deleteinstance, get_redirect
 from djpcms.plugins import html_plugin_form

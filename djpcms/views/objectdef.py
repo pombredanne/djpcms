@@ -1,8 +1,7 @@
 from collections import namedtuple
 
-from py2py3 import zip, to_string, itervalues
-
-from djpcms import UnicodeMixin, html
+from djpcms import html
+from djpcms.utils.py2py3 import UnicodeMixin, zip, to_string, itervalues 
 from djpcms.utils import smart_escape
 
 from .pagination import application_views, application_links

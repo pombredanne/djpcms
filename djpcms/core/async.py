@@ -6,8 +6,7 @@ import logging
 from functools import partial
 import logging
 
-from py2py3 import iteritems
-
+from djpcms.utils.py2py3 import iteritems
 from djpcms.html import ContextRenderer, Widget
 from djpcms.utils.ajax import jservererror, isajax
 
@@ -20,6 +19,8 @@ logger = logging.getLogger('djpcms')
 
 __all__ = ['async_instance', 'ResponseHandler']
    
+
+meta_default = lambda r : None
 
 '''wait for an asynchronous instance'''
 class async_instance_callback(object):
@@ -127,8 +128,8 @@ class AsyncResponse(object):
         return value
 
 
-class ResponseCallback(object):
-    
+class _ResponseCallback(object):
+    # Internal class for handling asyncronous rendering of an HTML page
     def __init__(self, handler, request, body_renderer):
         self.handler = handler
         self.request = request
@@ -261,7 +262,7 @@ A typical usage::
         elif not isajax(context) and hasattr(context,'status_code'):
             return context
         # build the callback
-        callback = ResponseCallback(self, request, body_renderer)
+        callback = _ResponseCallback(self, request, body_renderer)
         content = request.view.response(context, callback)
         response = Response(content = content,
                             content_type = self.default_content_type,
@@ -335,20 +336,17 @@ equivalent to call :meth:`render_to_response` with the following parameter::
     
     def meta(self, request, doc):
         view = request.view
-        charset = request.view.settings.DEFAULT_CHARSET
-        for name in ('robots','description','keywords','author'):
-            attr = getattr(view,'meta_'+name,None)
-            if attr:
-                val = attr(request)
-                if val: 
-                    yield Meta(name=name, content=val)
-        for meta in doc.meta(request):
-            yield meta
+        for name in request.view.settings.META_TAGS:
+            value = getattr(view, 'meta_'+name, meta_default)(request)
+            meta = doc.meta(name, value)
+            if meta is not None:
+                yield meta
         
     def body_renderer(self, request, context):
+        '''Render the HTML page using the *context* dictionary.'''
         template_file = request.template_file
         if template_file:
-            return request.view.template.render(template_file,context)
+            return request.view.template.render(template_file, context)
         else:
             return context.get('inner','')
         

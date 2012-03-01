@@ -4,13 +4,11 @@ import json
 import unicodedata
 from uuid import uuid4
 
-from py2py3 import ispy3k, zip, map, range, is_string
-
+from .py2py3 import ispy3k, zip, map, range, is_string
 from .strings import *
 from .jsontools import *
 from .numbers import *
 from .urls import *
-from .arc4 import *
 from .decorators import *
 
 if ispy3k:

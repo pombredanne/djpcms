@@ -27,15 +27,17 @@ class HTMLdoc(UnicodeMixin):
     def __unicode__(self):
         return self.name
     
-    def meta(self, request):
-        settings = request.view.settings
-        if self.typ == 5:
-            yield Meta(charset = settings.DEFAULT_CHARSET)
-        else:
-            yield Meta(content = 'text/html; charset='+\
-                    settings.DEFAULT_CHARSET).attr('http-equiv','content-type')
-        #yield Meta(content = settings.LANGUAGE_CODE)\
-        #                .addAttr('http-equiv','content-language')
+    def meta(self, name, value):
+        if value:
+            if name == 'charset':
+                if self.typ == 5:
+                    return Meta(charset = value)
+                else:
+                    return Meta(content = 'text/html; charset='+value)\
+                                .attr('http-equiv','content-type')
+            else:
+                return Meta(name = name, content = value)
+                        
 
 htmldocs = (
             (1, 

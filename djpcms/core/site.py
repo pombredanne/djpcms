@@ -4,12 +4,11 @@ import logging
 from inspect import isclass
 from copy import deepcopy
 
-from py2py3 import iteritems, itervalues, native_str
-
 import djpcms
 from djpcms import html
+from djpcms.utils.py2py3 import iteritems, itervalues, native_str
 from djpcms.utils.importer import import_module, module_attribute
-from djpcms.utils import conf, force_str, lazyproperty
+from djpcms.utils import conf, lazyproperty
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
                         ImproperlyConfigured, DjpcmsException,\

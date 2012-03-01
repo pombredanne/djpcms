@@ -1,8 +1,7 @@
 from inspect import isclass
 
-from py2py3 import itervalues
-
 import djpcms
+from djpcms.utils.py2py3 import itervalues
 from djpcms.core.exceptions import ModelException
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_module

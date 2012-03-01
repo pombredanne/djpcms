@@ -40,37 +40,7 @@ def DEFAULT_STYLE_SHEET():
     return {'all':['http://yui.yahooapis.com/2.9.0/build/\
 reset-fonts-grids/reset-fonts-grids.css']}
 
-
-def install_lib(basepath, dirname, module_name = None):
-    if module_name:
-        try:
-            return __import__(module_name)
-        except ImportError:
-            dir = os.path.join(basepath,dirname)
-            sys.path.insert(0,dir)
-            try:
-                return __import__(module_name)
-            except ImportError:
-                pass
-    else:
-        dir = os.path.join(basepath,dirname)
-        sys.path.insert(0,dir)
-        
-        
-def install_libs():
-    '''Install libraries to python Path if needed'''
-    if path_dir not in sys.path:
-        sys.path.insert(0,path_dir)
-    dlibs = os.path.join(DJPCMS_DIR,'libs')
-    py2py3 = install_lib(dlibs, 'py2py3', 'py2py3')
-    if py2py3.ispy3k:
-        install_lib(dlibs, 'jinja2_3', 'jinja2')
-    else:
-        install_lib(dlibs, 'jinja2', 'jinja2')
-
-install_libs()
-
-import py2py3
+from .utils import py2py3
 ispy3k = py2py3.ispy3k
 to_string = py2py3.to_string
 to_bytestring = py2py3.to_bytestring

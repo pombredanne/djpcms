@@ -6,8 +6,7 @@ import cProfile as profiler
 import pstats
 
 from djpcms.html import Pagination, Widget, tabs
-
-from py2py3 import StringIO
+from djpcms.utils.py2py3 import StringIO
 
 words_re = re.compile( r'\s+' )
 line_func = re.compile(r'(?P<line>\d+)\((?P<func>\w+)\)')

@@ -3,15 +3,17 @@ from functools import partial
 
 from djpcms import DJPCMS_DIR
 
+from .layout import LayoutDoesNotExist, PageLayout, get_layout
+
 
 __all__ = ['template_handle', 'ContextTemplate', 'TemplateHandler']
 
 
 def template_handle(engine, settings = None):
     '''Return an instance of a :class:`TemplateHandler`.'''
-    engine = engine.lower()
+    engine = (engine or 'djpcms').lower()
     if engine not in _handlers and engine == 'jinja2':
-        #jinja2 is special, it is our default template library
+        #try to import jinja2 binding. This will fail if jinja2 is not installed
         import djpcms.apps.jinja2template
     try:
         handle = _handlers[engine]
@@ -58,8 +60,8 @@ class ContextTemplate(object):
     
     def __init__(self, site):
         self.site = site
-        self._engine = template_handle(site.settings.TEMPLATE_ENGINE,
-                                       site.settings)
+        engine = site.settings.TEMPLATE_ENGINE
+        self._engine = template_handle(engine, site.settings)
     
     @property
     def engine(self):
@@ -96,7 +98,9 @@ class ContextTemplate(object):
             text = text.encode(encode,encode_errors)
         return text
 
-
+################################################################################
+##    Template handlers
+################################################################################
 class TemplateHandlerMetaClass(type):
     
     def __new__(cls, name, bases, attrs):
@@ -107,7 +111,7 @@ class TemplateHandlerMetaClass(type):
             _handlers[engine_name.lower()] = new_class
         return new_class
 
-
+_handlers = {}
 # Needed for Python 2 and python 3 compatibility
 TemplateHandlerBase = TemplateHandlerMetaClass('TemplateHandlerBase',\
                                                (object,), {})
@@ -135,7 +139,7 @@ relevant for end-user but for developers wanting to add additional libraries.'''
         raise NotImplementedError
     
     def loaders(self):
-        '''List of template loaders for thie library'''
+        '''List of template loaders for the library'''
         raise NotImplementedError
     
     def render(self, template_name, dictionary, autoescape=False):
@@ -144,7 +148,7 @@ relevant for end-user but for developers wanting to add additional libraries.'''
 :parameter template_name: template file name.
 :parameter dictionary: a dictionary of context variables.
 :parameter autoescape: if ``True`` the resulting string will be escaped.'''
-        raise NotImplementedError
+        raise NotImplementedError()
     
     def render_from_string(self, template_string, dictionary,
                            autoescape = False):
@@ -170,4 +174,33 @@ relevant for end-user but for developers wanting to add additional libraries.'''
         raise self.TemplateDoesNotExist            
         
 
-_handlers = {}
+class djpcms_page_renderer(TemplateHandler):
+    '''Default template handler'''
+    name = 'djpcms'
+    TemplateDoesNotExist = LayoutDoesNotExist
+    template_class = PageLayout
+    
+    def setup(self):
+        pass
+    
+    def render(self, template_name, dictionary, autoescape=False):
+        if isinstance(template_name, (list, tuple)):
+            layout = self.select_layout(template_name)
+        else:
+            layout = get_layout(template_name)
+        request = dictionary.get('request')
+        return layout().render(request, context = dictionary)
+        
+    def render_from_string(self, template_string, dictionary,
+                           autoescape = False):
+        return self.render(template_string, dictionary, autoescape)
+    
+    def select_layout(self, template_name_list):
+        for template_name in template_name_list:
+            try:
+                return get_layout(template_name)
+            except LayoutDoesNotExist:
+                continue
+        # If we get here, none of the templates could be loaded
+        raise LayoutDoesNotExist(', '.join(template_name_list))
+    

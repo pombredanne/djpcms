@@ -3,10 +3,8 @@ from inspect import isclass
 from copy import copy, deepcopy
 from threading import Lock
 
-from py2py3 import is_bytes_or_string, iteritems, itervalues
-
-from djpcms import UnicodeMixin
-from djpcms.utils import force_str
+from djpcms.utils.py2py3 import UnicodeMixin, is_bytes_or_string, iteritems,\
+                                itervalues
 from djpcms.html import get_cssgrid
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_modules

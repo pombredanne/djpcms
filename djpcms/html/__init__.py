@@ -23,6 +23,7 @@ from .nicerepr import *
 from .table import *
 from .tabs import *
 from .yui import *
+from .layout import *
 from .template import *
 
 

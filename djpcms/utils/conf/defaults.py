@@ -1,15 +1,20 @@
 import djpcms
 
+#######################################    GLOBAL FLAGS
 DEBUG = False
 SECRET_KEY = 'djpcms'   # Secret key, please change this to a unique value
 PROFILING_KEY = None
+TEMPLATE_ENGINE = None
 DESCRIPTION = 'djpcms framework'
 EPILOG = 'Have fun!'
 
-# META ATTRIBUTE
+#######################################    META ATTRIBUTE
+META_TAGS = ('charset', 'robots', 'description',
+             'keywords', 'author', 'viewport')
 META_DESCRIPTION = ''
 META_KEYWORDS = ''
 META_AUTHOR = ''
+META_VIEWPORT = 'width=device-width, initial-scale=1'
 DEFAULT_CHARSET = 'utf-8'
 TIME_ZONE = 'Europe/London'
 LANGUAGE_CODE = 'en-uk'
@@ -35,7 +40,7 @@ REQUEST_CONTEXT_PROCESSORS = ("djpcms.core.context_processors.djpcms",
                               "djpcms.core.context_processors.messages")
 
 TEMPLATE_DIRS = ()  # Additional template location directories
-DEFAULT_TEMPLATE_NAME = ('base.html','djpcms/base.html')
+DEFAULT_TEMPLATE_NAME = 'default'
 DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 JS_START_END_PAGE = 101
 EXTRA_CONTENT_PLUGIN = None
@@ -61,14 +66,14 @@ TIME_FORMAT = 'H:i:s'
 
 
 #######################################    JINJA2 Settings
-TEMPLATE_ENGINE = 'jinja2'
+#TEMPLATE_ENGINE = 'jinja2'
 JINJA2_EXTENSIONS = []
 JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)
 
 #######################################    STATIC FILES
 MEDIA_URL = '/media/'
 FAVICON_MODULE = None
-JQUERY_VERSION = '1.6.2'
+JQUERY_VERSION = '1.7.1'
 JQUERY_UI_VERSION = '1.8.16'
 SWFOBJECT_VERSION = '2.2'
 BOOTSTRAP_VERSION = '1.4.0'

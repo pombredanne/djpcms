@@ -36,12 +36,15 @@ class Page(object):
 
     The :class:`djpcms.Route` for this page
     
- The following attributes must be implemented by subclasses.
+The following attributes must be implemented by subclasses.
  
- .. attribute:: url
- 
-     The web site relative url
+.. attribute:: url
+
+    The web site relative url
+    
+.. attribute:: layout
 '''
+    layout = 0
     template_model = None
     
     @property

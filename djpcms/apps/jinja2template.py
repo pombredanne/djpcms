@@ -1,3 +1,5 @@
+'''Jinja2 template binding for djpcms.
+'''
 import os
 
 import jinja2

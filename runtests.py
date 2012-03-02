@@ -19,16 +19,8 @@ if pulsar:
     from pulsar.apps.test import TestSuite, TestOptionPlugin
     from pulsar.apps.test.plugins import bench, httpclient
 
-    
-def suite():
-    return TestSuite(description = 'Djpcms Asynchronous test suite',
-                     modules = ('tests',),
-                     plugins = (bench.BenchMark(),
-                                httpclient.HttpClient())
-                     )
-
-
-if __name__ == '__main__':
+def start():
+    global pulsar
     argv = sys.argv
     if len(argv) > 1 and argv[1] == 'nose':
         pulsar = None
@@ -46,3 +38,6 @@ if __name__ == '__main__':
         os.environ['djpcms_test_suite'] = 'nose'
         import nose
         nose.main()
+
+if __name__ == '__main__':
+    start()

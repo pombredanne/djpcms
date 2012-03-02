@@ -1,6 +1,21 @@
-from .templates import *
+from .pycss import *
 from . import defaults
+from .mixins import *
 vars.declare_from_module(defaults)
+
+################################################# BODY
+css('body',
+    background = vars.body_background,
+    color = vars.body_color,
+    font_family = vars.body_font_family,
+    font_size = vars.body_font_size,
+    min_width = vars.body_min_width,
+    line_height = vars.body_line_height,
+    text_align = vars.body_text_align)
+
+################################################# GRID
+grid(12,60,20).css()
+fluidgrid(12).css()
 
 ################################################# DJPCMS BOX
 css('.djpcms-html-box',

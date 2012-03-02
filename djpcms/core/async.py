@@ -346,7 +346,8 @@ equivalent to call :meth:`render_to_response` with the following parameter::
         '''Render the HTML page using the *context* dictionary.'''
         template_file = request.template_file
         if template_file:
-            return request.view.template.render(template_file, context)
+            return request.view.template.render(template_file, context,
+                                                request = request)
         else:
             return context.get('inner','')
         

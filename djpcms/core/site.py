@@ -325,6 +325,7 @@ which updates the input ``dictionary`` with library dependent information.
                         context_cache.update(processor(request))
                 cache['context'] = context_cache
             data.update(cache['context'])
+            data['request'] = request
         return data
             
     def applications(self):

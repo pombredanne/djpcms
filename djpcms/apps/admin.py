@@ -13,11 +13,10 @@ registered in the same ApplicationSite::
                  )
                   
 '''
-from py2py3 import iteritems
-
 from djpcms import views, html
 from djpcms.html import Widget, ContextRenderer
 from djpcms.utils import force_str, routejoin
+from djpcms.utils.py2py3 import iteritems
 from djpcms.utils.urls import closedurl
 from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename

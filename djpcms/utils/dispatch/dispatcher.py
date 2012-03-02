@@ -1,7 +1,7 @@
 import weakref
 import threading
 
-from py2py3 import range
+from djpcms.utils.py2py3 import range
 
 from . import saferef
 

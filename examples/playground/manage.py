@@ -11,7 +11,7 @@ To create the style sheet::
 '''
 import djpcms
 from djpcms.apps import static
-from djpcms.html.layout import page, row, column
+from djpcms.html.layout import page, row, column, container
 
 class Loader(djpcms.SiteLoader):
     
@@ -46,14 +46,16 @@ class Loader(djpcms.SiteLoader):
                 )
     
     def page_layout(self):
+        # Page layout
         page(
-             row(id = 'page-header',
-                 role = 'header',
-                 renderer = self.page_header_layout),
+             container(
+             row(column(1,1,renderer = self.page_header_layout),
+                 id = 'page-header',
+                 role = 'header'),
              row(column(1, 3, key = 'sitenav'),
                  column(2, 3, key = 'inner')),
              row(role =  'footer',
-                 renderer = self.page_footer_layout),
+                 renderer = self.page_footer_layout)),
              role = 'page',
              id = 'body-container').register('default')
             

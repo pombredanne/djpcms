@@ -373,6 +373,14 @@ corner cases, users can subclass it to customize behavior.
 
     A dictionary containing children with keys.
     
+.. attribute:: parent
+
+    The ancestor of this :class:`WidgetMaker`. This attribute is assigned by
+    the API when a :class:`WidgetMaker` is added to another :class:`WidgetMaker`
+    via the :meth:`WidgetMaker.add`.
+    
+    default: ``None``
+    
 .. attribute:: widget_class
 
     The widget class used by the :meth:`widget` method when creating widgets.
@@ -400,6 +408,7 @@ corner cases, users can subclass it to customize behavior.
 '''
     tag = None
     key = None
+    parent = None
     is_hidden = False
     default_style = None
     inline = False
@@ -497,6 +506,7 @@ It returns self for concatenating data.'''
                 if not widget.default_style:
                     widget.default_style = self.default_style
                 self.allchildren.append(widget)
+                widget.parent = self
                 if widget.key:
                     self.children[widget.key] = widget
         return self
@@ -510,25 +520,9 @@ It returns self for concatenating data.'''
         widget.data_stream.append(element)
             
     def get_context(self, request, widget, context):
-        '''Called by the :meth:`inner` method it
-returns a dictionary of variables used for rendering. By default it
-loops over the :attr:`allchildren` list and put the rendered child
-in a new list.
-This child rendered list is available at `children` key in the returned
-dictionary.'''
-        ctx = widget.internal
-        children = []
-        for w in self.children_widgets(widget):
-            key = w.maker.key
-            if key and key in context:
-                w.add(context.pop(key))
-            children.append(w.render(request, context))
-        ctx['children'] = children
-        if context:
-            context = context.copy()
-            context.update(ctx)
-            ctx = context
-        return ctx
+        '''Called by the :meth:`inner` method to build extra context.
+ By default it return *context*.'''
+        return context
     
     def render_from_widget(self, request, widget, context):
         '''Render the *widget* using the *context* dictionary and
@@ -592,8 +586,9 @@ widget are rendered.
         if widget.data_stream:
             for chunk in widget.data_stream:
                 yield data2html(request, chunk)
-        for child in context['children']:
-            yield data2html(request, child)
+        for w in self.children_widgets(widget):
+            chunk = w.render(request, context)
+            yield data2html(request, chunk)
         
     def data2html(self, request, data):
         '''Process data from :meth:`stream`. By default it renders data if

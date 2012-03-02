@@ -8,6 +8,24 @@ class LayoutDoesNotExist(Exception):
     pass
 
 
+class CssGrid(object):
+    
+    def __init__(self, columns = 12, fixed = True):
+        self.columns = columns
+        self.fixed = bool(fixed)
+        
+    def add_css_data(self, widget):
+        maker = widget.maker
+        if isinstance(maker,row):
+            if isinstance(maker.parent, page) and self.fixed:
+                widget.addClass('row_{0}'.format(self.columns))
+            else:
+                widget.addClass('row-fluid_{0}'.format(self.columns))
+        elif isinstance(maker, column):
+            span = maker.size * self.columns // maker.over
+            widget.addClass('span{0}'.format(span))
+    
+    
 def page_layouts():
     return sorted(_page_layouts)
 
@@ -50,13 +68,11 @@ class PageLayoutElement(WidgetMaker):
         raise NotImplementedError()
 
     def render_from_widget(self, request, widget, context):
-        grid = request.cssgrid()
-        self.add_grid_data(grid, widget)
+        #grid = request.cssgrid()
+        grid = CssGrid()
+        grid.add_css_data(widget)
         return super(PageLayoutElement,self).render_from_widget(
                                             request, widget, context)
-    
-    def add_grid_data(self, grid, widget):
-        pass
         
 
 class PageBlockElement(PageLayoutElement):
@@ -68,17 +84,13 @@ class PageBlockElement(PageLayoutElement):
 
 class page(PageLayoutElement):
     '''layout for a page'''
-    child_maker = PageLayoutElement
+    columns = 12
     
     def __init__(self, *rows, **kwargs):
         self.columns = kwargs.pop('columns',self.columns)
         super(page,self).__init__(*rows, **kwargs)
         for block in self.blocks():
             block.on_layout_done()
-    
-    def add_grid_data(self, grid, widget):
-        main = not isinstance(self.parent, page)
-        widget.addClass(grid.page_class(main))
     
     @classmethod
     def childtype(cls):
@@ -90,7 +102,14 @@ class page(PageLayoutElement):
         return self
 
 
-class column(PageBlockElement):
+class container(PageBlockElement):
+    default_class = 'grid-container'
+    @classmethod
+    def childtype(cls):
+        return row
+    
+    
+class column(container):
     
     def __init__(self, size = 1, over = 1, *rows, **kwargs):
         self.size = size
@@ -99,17 +118,10 @@ class column(PageBlockElement):
             raise ValueError('Column span "{0}" is greater than one!'\
                              .format(self.span))
         super(column, self).__init__(*rows, **kwargs)
-
-    def add_grid_data(self, grid, widget):
-        widget.addClass(grid.column_class(self.size,self.over))
         
     @property
     def span(self):
         return float(self.size)/self.over
-    
-    @classmethod
-    def childtype(cls):
-        return row
         
         
 class row(PageBlockElement):
@@ -118,13 +130,7 @@ class row(PageBlockElement):
         if not columns:
             columns = (column(),)
         super(row, self).__init__(*columns, **kwargs)
-
-    def add_grid_data(self, grid, widget):
-        if isinstance(self.parent,page): # main row
-            widget.addClass(grid.rowclass)
-        else:   # secondary row
-            widget.addClass(grid.secondary_rowclass)
-            
+        
     @classmethod
     def childtype(cls):
         return column

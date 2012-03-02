@@ -65,16 +65,15 @@ forms using the :mod:`djpcms.forms.layout` API.'''
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         return self.form.is_valid()
- 
- 
- 
+
+
 class FormWidgetMaker(html.WidgetMaker):
     _widget = FormWidget
-           
+
 
 class FieldWidget(FormWidgetMaker):
     
-    def get_context(self, request, widget, keys):
+    def get_context(self, request, widget, context):
         bfield = widget.internal['field']
         parent = widget.parent.maker
         if bfield.request is not request:
@@ -92,15 +91,16 @@ class FieldWidget(FormWidgetMaker):
         else:
             wrapper = html.Widget('div', w, cn = wrapper_class)\
                                         .addClass(' '.join(w.classes))
-            
-        return {'field':bfield,
-                'name':bfield.name,
-                'widget':wrapper,
-                'parent':parent,
-                'error': bfield.form.errors.get(bfield.name,''),
-                'error_id': bfield.errors_id,
-                'ischeckbox':checkbox,
-                'hidden': hidden}
+        context = context.copy() 
+        context.update({'field':bfield,
+                        'name':bfield.name,
+                        'widget':wrapper,
+                        'parent':parent,
+                        'error': bfield.form.errors.get(bfield.name,''),
+                        'error_id': bfield.errors_id,
+                        'ischeckbox':checkbox,
+                        'hidden': hidden})
+        return context
         
     def _stream(self, request, elem, context):
         w = context['widget']
@@ -164,14 +164,14 @@ form layout design.
         self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout,self).__init__(**params)
         
-    def stream(self, request, widget, keys):
+    def stream(self, request, widget, context):
         if self.legend_html:
             yield html.legend(self.legend_html).render(request)
-        for text in self.layout_stream(request, widget, keys):
+        for text in self.layout_stream(request, widget, context):
             yield text
             
-    def layout_stream(self, request, widget, keys):
-        for text in super(BaseFormLayout,self).stream(request, widget, keys):
+    def layout_stream(self, request, widget, context):
+        for text in super(BaseFormLayout,self).stream(request, widget, context):
             yield text
 
 
@@ -233,9 +233,9 @@ class SubmitElement(FormLayoutElement):
         if SUBMITS in missings:
             missings.remove(SUBMITS) 
     
-    def get_context(self, djp, widget, keys):
+    def get_context(self, djp, widget, context):
         return {'children': [input.render(djp) for input in widget.inputs]}
-        
+
 
 class FormLayout(BaseFormLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
@@ -291,9 +291,9 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             if addinputs:
                 self.add(SubmitElement())
     
-    def get_context(self, djp, widget, keys):
+    def get_context(self, djp, widget, context):
         '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''
-        ctx = super(FormLayout,self).get_context(djp, widget, keys)
+        ctx = super(FormLayout,self).get_context(djp, widget, context)
         ctx['messages'] = ''
         return ctx
 

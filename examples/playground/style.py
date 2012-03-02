@@ -1,20 +1,13 @@
-from medplate import CssBody, CssContext, CssTheme
-
-CssBody()
-
-
-CssContext('footer',
-           tag = '#page-footer',
-           data = {
-            'overflow':'hidden',
-            'min-height':'200px',
-            'font_size':'90%',
-            'padding':'20px 0 0'
-            }
-        )
+from djpcms.style import css
 
 CssContext('page-header',
            tag = '#page-header')
+
+css('#page-footer',
+    overflow = 'hidden',
+    min_height = '200px',
+    font_size = '90%',
+    padding = '20px 0 0')
 
 CssContext('geo-entry',
            tag = '.geo-entry',
@@ -29,11 +22,3 @@ CssContext('geo-entry',
                         })
                      ]
             )
-
-#_____________________________________ THEMES
-
-CssTheme('page-header',
-         'smooth',
-         data = {
-            'background':'#ccc'
-        })

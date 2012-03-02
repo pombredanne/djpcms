@@ -111,7 +111,9 @@ yui3_ grid layout.
         self.allchildren = newcolumns
             
     def layout_stream(self, request, widget, context):
-        data = tuple(zip(context['children'],self.column_width))
+        children = (w.render(request, context) for w in\
+                         self.children_widgets(widget))
+        data = tuple(zip(children, self.column_width))
         yield html.yuigrid3(*data).render(request)
 
 class Layout(FormLayout):

@@ -1,13 +1,13 @@
 # Default variables for djpcms.style
 
 # body
-body__background = '#ffffff'
-body__color = '#222222'
-body__font_family = "Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif"
-body__font_size = 14
-body__line_height = '18px'
-body__min_width = '960px'
-body__text_align = 'left'
+body_background = '#ffffff'
+body_color = '#222222'
+body_font_family = "Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif"
+body_font_size = 14
+body_line_height = '18px'
+body_min_width = '960px'
+body_text_align = 'left'
 
 # Corner radius
 corner_all = '5px'

@@ -3,7 +3,7 @@ from optparse import make_option
 
 import djpcms
 from djpcms.utils.importer import import_module
-from djpcms.style.templates import rendercss, variables
+from djpcms.style import css, vars
 
 
 def render(sites, theme, target, apps, mediaurl = None,
@@ -35,8 +35,8 @@ def render(sites, theme, target, apps, mediaurl = None,
                 print('Successfully imported style from {0}.'.format(modname))
             except:
                 pass
-    
-    variables.set_theme(theme)
+    # set the theme
+    vars.set_theme(theme)
     if show_variables:
         print('STYLE: {0}'.format(variables.theme))
         section = None
@@ -49,7 +49,7 @@ def render(sites, theme, target, apps, mediaurl = None,
                 print('==================================================')
             print('{0}: {1}'.format(var.name,var.value))
     else:
-        data = rendercss(mediaurl,site.template)
+        data = css.render(mediaurl)
         f = open(target,'w')
         f.write(data)
         f.close()
@@ -95,7 +95,7 @@ class Command(djpcms.Command):
                                 'media',
                                 sites.settings.SITE_MODULE)
             if os.path.isdir(mdir):
-                target = os.path.join(mdir,target)
+                target = os.path.join(mdir, target)
         render(sites,theme,target,apps,mediaurl,options.variables)
         
         

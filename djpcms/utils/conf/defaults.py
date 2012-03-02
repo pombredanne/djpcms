@@ -8,12 +8,14 @@ TEMPLATE_ENGINE = None
 DESCRIPTION = 'DYNAMIC CONTENT MANAGEMENT SYSTEM FOR PYTHON AND JQUERY'
 EPILOG = 'HAVE FUN!'
 
+
 #######################################    APPLICATIONS
 INSTALLED_APPS = () # These must be dotted python paths
 DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
 APPLICATION_URLS = None
+
 
 #######################################    META ATTRIBUTE
 META_TAGS = ('charset', 'robots', 'description',
@@ -42,13 +44,12 @@ TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = 'default'
 JS_START_END_PAGE = 101
 
-#######################################    CSS GRID LAYOUT
-LAYOUT_GRID_SYSTEM = '960' # '960_16_float' for a 16 columns float layout
 
 #######################################    NAVIGATION
 SITE_NAVIGATION_LEVELS = 4
 SITE_NAVIGATION_BRAND = None
 ENABLE_BREADCRUMBS = 2
+
 
 #######################################    PLUGINS
 DJPCMS_PLUGINS = ['djpcms.plugins.*']
@@ -62,12 +63,9 @@ DATE_FORMAT = 'd M Y'
 TIME_FORMAT = 'H:i:s'
 
 
-#######################################    JINJA2 Settings
-#TEMPLATE_ENGINE = 'jinja2'
-JINJA2_EXTENSIONS = []
-JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)
-
-#######################################    STATIC FILES
+#######################################    CSS AND JAVASCRIPT FILES
+STYLING = 'smooth'
+LAYOUT_GRID_SYSTEM = '960' # '960_16_float' for a 16 columns float layout
 MEDIA_URL = '/media/'
 FAVICON_MODULE = None
 JQUERY_VERSION = '1.7.1'
@@ -79,9 +77,11 @@ HTML = djpcms.HTML_CLASSES.copy()
 DEFAULT_STYLE_SHEET = djpcms.DEFAULT_STYLE_SHEET()
 DEFAULT_JAVASCRIPT = djpcms.DEFAULT_JAVASCRIPT()
 
+
 #######################################    SPHINX CONFIG
 SPHINX__extensions = ['sphinx.ext.pngmath',
                       'sphinx.ext.extlinks']
+
 
 #######################################    LOGGING
 LOGGING = djpcms.LOGGING_SAMPLE
@@ -89,3 +89,8 @@ LOGGING = djpcms.LOGGING_SAMPLE
 
 #######################################    ANALYTICS
 GOOGLE_ANALYTICS_ID = None
+
+#######################################    JINJA2 Settings
+#TEMPLATE_ENGINE = 'jinja2'
+JINJA2_EXTENSIONS = []
+JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)

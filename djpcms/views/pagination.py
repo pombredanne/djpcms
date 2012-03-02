@@ -186,7 +186,7 @@ def application_views_links(request, asbuttons = True, icon = True, **kwargs):
     '''Shurtcut function which combines :func:`application_views`
 and :func:`application_links` generators. It returns a generator over
 anchor or button :class:`djpcms.html.Widget`.'''
-    views = application_views(request,**kwargs)
+    views = application_views(request, **kwargs)
     for _,w in application_links(views,
                                  asbuttons = asbuttons,
                                  icon = icon):

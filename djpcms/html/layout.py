@@ -1,3 +1,5 @@
+'''Layouts for pages.
+'''
 from .base import WidgetMaker
 
 _page_layouts = {}

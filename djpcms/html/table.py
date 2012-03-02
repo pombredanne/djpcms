@@ -20,6 +20,7 @@ from .base import Widget, WidgetMaker
 
 __all__ = ['TableMaker',
            'Pagination',
+           'ListItems',
            'table_header',
            'attrname_from_header',
            'simple_table_dom']

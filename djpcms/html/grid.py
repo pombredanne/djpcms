@@ -126,6 +126,9 @@ class Yui3(CssGrid):
         #
         self.column_1_6 = 'yui3-u-1-6'
         self.column_5_6 = 'yui3-u-5-6'
+        
+        
+class BootstrapGrid():
     
     
 def get_cssgrid(name):

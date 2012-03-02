@@ -5,8 +5,15 @@ DEBUG = False
 SECRET_KEY = 'djpcms'   # Secret key, please change this to a unique value
 PROFILING_KEY = None
 TEMPLATE_ENGINE = None
-DESCRIPTION = 'djpcms framework'
-EPILOG = 'Have fun!'
+DESCRIPTION = 'DYNAMIC CONTENT MANAGEMENT SYSTEM FOR PYTHON AND JQUERY'
+EPILOG = 'HAVE FUN!'
+
+#######################################    APPLICATIONS
+INSTALLED_APPS = () # These must be dotted python paths
+DATASTORE = {}
+# Dictionary used to configure applications
+INSTALLED_APPS_CONF = {}
+APPLICATION_URLS = None
 
 #######################################    META ATTRIBUTE
 META_TAGS = ('charset', 'robots', 'description',
@@ -19,13 +26,6 @@ DEFAULT_CHARSET = 'utf-8'
 TIME_ZONE = 'Europe/London'
 LANGUAGE_CODE = 'en-uk'
 
-# List of installed application.
-# These must be dotted python paths
-INSTALLED_APPS = ()
-DATASTORE = {}
-# Dictionary used to configure applications
-INSTALLED_APPS_CONF = {}
-APPLICATION_URLS = None
 CACHE_VIEW_OBJECTS = True
 DJPCMS_IMAGE_UPLOAD_FUNCTION = None
 DJPCMS_EMPTY_VALUE = '(None)'
@@ -40,9 +40,7 @@ REQUEST_CONTEXT_PROCESSORS = ()
 
 TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = 'default'
-DEFAULT_INNER_TEMPLATE = 'djpcms/inner/cols2_66_33.html'
 JS_START_END_PAGE = 101
-EXTRA_CONTENT_PLUGIN = None
 
 #######################################    CSS GRID LAYOUT
 LAYOUT_GRID_SYSTEM = '960' # '960_16_float' for a 16 columns float layout

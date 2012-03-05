@@ -1,13 +1,21 @@
 '''Uniform Styling
 '''
-from djpcms.style import css, cssv
+from djpcms.style import css, mixin, cssv, radius, shadow, clearfix
+
+################################################# CLEARINPUT
+class clearinp(mixin):
+    '''For clearing floats to all *elements*.'''    
+    def __call__(self, elem):
+        elem['border'] = 'none'
+        elem['outline'] = 'none'
+
 
 ################################################################################
 # Uniform variables
 ################################################################################
 cssv.declare('input_radius',0)
-cssv.declare('input_focus_color',None)
-cssv.declare('input_focus_shadow',shadow('0 3px 3px rgba(0,0,0,0.2)'))
+cssv.declare('input_focus_color', None)
+cssv.declare('input_focus_shadow', '0 3px 3px rgba(0,0,0,0.2)')
 cssv.declare('input_required_font_weight',None)
 cssv.declare('uniform_padding',4)
 cssv.declare('uniform_table_layout','auto')
@@ -44,16 +52,29 @@ def process_elems(elem, data):
 #    INPUT FIELDS
 ################################################################################
 css('.field-widget',
+    css('input[type="text"],input[type="password"],textarea,select',
+        clearinp(),
+        line_height = 1,
+        padding = 0,
+        margin = 0,
+        width = '100%',
+        background = 'transaprent'),
+    css('input:focus,textarea:focus,select:focus', clearinp()),
+    radius(cssv.input_radius),
     padding = cssv.input_padding,
-    radius = radius(cssv.input_radius),
     border_size = cssv.input_border_size,
     focus_border_color = cssv.input_focus_color,
     input_focus_shadow = cssv.input_focus_shadow)
 
+css('.field-widget.focus',
+    shadow(cssv.input_focus_shadow),
+    border_color = cssv.input_focus_color)
+
+
+
 for n in range(1,10):
-    CssContext('field-widget-span{0}'.format(n),
-               tag = '.field-widget.span{0}'.format(n),
-               data = {'width':'{0}px'.format(size(n))})
+    css('.field-widget.span{0}'.format(n),
+         width = '{0}px'.format(size(n)))
 
 
 css('.required label',
@@ -71,12 +92,13 @@ css('form.uniForm',
     css('.errorlist', overflow='hidden'),
     css('.legend', margin=cssv.uniform_padding),
     css('label'),
-    clearfix(css('.ctrlHolder,.buttonHolder',
-             margin = 0,
-             overflow = 'hidden',
-             padding = cssv.uniform_padding)),
+    css('.ctrlHolder,.buttonHolder',
+        clearfix(),
+        margin = 0,
+        overflow = 'hidden',
+        padding = cssv.uniform_padding),
     css('.layout-element',
-        margin = '0 0 {0}px'.format(int(1.5*cssv.uniform_padding))))
+        margin = lambda: '0 0 {0}px'.format(int(cssv.uniform_padding*1.5))))
 
 
 #                   'buttonholder_padding': "10px 0",
@@ -86,20 +108,19 @@ css('form.uniForm',
 ################################################################################
 #    TABLE LAYOUT
 ################################################################################
-clearfix(
-         css('table.uniFormTable',
-             css('input[type="checkbox"]',
-                 float = 'none',
-                 margin = 0),
-             css('th,td',
-                 padding = lambda: '{0}px 0 {0}px {0}px'.format(\
-                                                cssv.uniform_padding.value)),
-             css('th:last-child,td:last-child',
-                 padding = cssv.uniform_padding),
-             process_elems(css('td.error')),
-             css('td.error:last-child',
-                 padding = lambda: table_last_child_padding),
-             table_layout = cssv.uniform_table_layout,
-             width = '100%')
-         ).css()
+css('table.uniFormTable',
+    css('input[type="checkbox"]',
+        float = 'none',
+        margin = 0),
+    css('th,td',
+        padding = lambda: '{0}px 0 {0}px {0}px'.format(cssv.uniform_padding)),
+    css('th:last-child,td:last-child',
+        padding = cssv.uniform_padding),
+    clearfix(),
+    #process_elems(css('td.error')),
+    css('td.error:last-child',
+        padding = cssv.uniform_padding),
+    table_layout = cssv.uniform_table_layout,
+    width = '100%'
+)
          

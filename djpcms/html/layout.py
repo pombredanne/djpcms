@@ -118,7 +118,7 @@ class container(PageBlockElement):
     default_class = 'grid-container'
     @classmethod
     def childtype(cls):
-        return (row,page,inner)
+        return PageBlockElement
     
     
 class column(container):

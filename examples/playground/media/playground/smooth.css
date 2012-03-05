@@ -1,23 +1,40 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by pycss  2012-03-02 16:58:11.470000
+Created by pycss  2012-03-05 18:47:11.943000
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
 body {
     font-size: 14;
     color: #222222;
-    min-width: 960px;
-    background: #ffffff;
-    font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
-    line-height: 18px;
     text-align: left;
+    background: #ffffff;
+    min-width: 960px;
+    line-height: 18px;
+    font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
+}
+
+a {
+    color: #08c;
+    text-decoration: none;
+    weight: normal;
+}
+
+a:link,
+a:visited {
+    color: #08c;
+}
+
+a:link:hover {
+    color: #00547f;
+    text-decoration: none;
+    background: none;
 }
 
 .row_12 {
-    *zoom: 1;
     margin-left: 20px;
+    *zoom: 1;
 }
 
 .row_12:before,
@@ -81,6 +98,23 @@ body {
 .row_12 > [class*="span"] {
     float: left;
     margin-left: 20px;
+}
+
+.grid-container {
+    margin-right: auto;
+    margin-left: auto;
+    width: 940px;
+    *zoom: 1;
+}
+
+.grid-container:before,
+.grid-container:after {
+    content: "";
+    display: table;
+}
+
+.grid-container:after {
+    clear: both;
 }
 
 .row-fluid_12 {
@@ -151,43 +185,417 @@ body {
     margin-left: 2.5641%;
 }
 
-.collapsed > .bd {
-    display: none;
+.grid-container-fluid {
+    padding-right: 20px;
+    padding-left: 20px;
+    *zoom: 1;
+}
+
+.grid-container-fluid:before,
+.grid-container-fluid:after {
+    content: "";
+    display: table;
+}
+
+.grid-container-fluid:after {
+    clear: both;
 }
 
 .djpcms-html-box {
 }
 
-.hd {
-    padding: 6px 5px;
-    overflow: hidden;
-}
-
-.hd h1,
-.hd h2,
-.hd h3,
-.hd h4,
-.hd h5 {
-    font-size: 110%;
-    float: left;
-    padding: 0;
-    background: transparent;
-    font-weight: bold;
-    margin: 0;
-}
-
-.bd {
-    padding: 5px 5px;
-    overflow: hidden;
-    border: none;
-}
-
-.ft {
-    padding: 5px 5px;
-    overflow: hidden;
-    border: none;
+.djpcms-html-box .collapsed > .bd {
+    display: none;
 }
 
 .widget {
 }
 
+.widget .hd {
+    padding: 6px 5px;
+    overflow: hidden;
+}
+
+.widget .hd h1,
+.widget .hd h2,
+.widget .hd h3,
+.widget .hd h4,
+.widget .hd h5 {
+    font-size: 110%;
+    float: left;
+    padding: 0;
+    font-weight: bold;
+    background: transparent;
+    margin: 0;
+}
+
+.widget .bd {
+    padding: 5px 5px;
+    overflow: hidden;
+    border: none;
+}
+
+.widget .ft {
+    padding: 5px 5px;
+    overflow: hidden;
+    border: none;
+}
+
+.field-widget {
+    padding: 3;
+    border-size: 1;
+    input-focus-shadow: 0 3px 3px rgba(0,0,0,0.2);
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+            border-radius: 0;
+}
+
+.field-widget input[type="text"],
+.field-widget input[type="password"],
+.field-widget textarea,
+.field-widget select {
+    padding: 0;
+    width: 100%;
+    line-height: 1;
+    margin: 0;
+    background: transaprent;
+    border: none;
+    outline: none;
+}
+
+.field-widget input:focus,
+.field-widget textarea:focus,
+.field-widget select:focus {
+    border: none;
+    outline: none;
+}
+
+.field-widget.focus {
+    -webkit-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+       -moz-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+}
+
+.field-widget.span1 {
+    width: 30px;
+}
+
+.field-widget.span2 {
+    width: 60px;
+}
+
+.field-widget.span3 {
+    width: 120px;
+}
+
+.field-widget.span4 {
+    width: 180px;
+}
+
+.field-widget.span5 {
+    width: 240px;
+}
+
+.field-widget.span6 {
+    width: 300px;
+}
+
+.field-widget.span7 {
+    width: 360px;
+}
+
+.field-widget.span8 {
+    width: 420px;
+}
+
+.field-widget.span9 {
+    width: 480px;
+}
+
+.required label {
+}
+
+.disabled .field-widget,
+ .readonly .field-widget,
+ 
+input[disabled],
+ select[disabled],
+ textarea[disabled],
+
+input[readonly],
+ select[readonly],
+ textarea[readonly]
+ {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+form.uniForm {
+}
+
+form.uniForm .errorlist {
+    overflow: hidden;
+}
+
+form.uniForm .legend {
+    margin: 4;
+}
+
+form.uniForm label {
+}
+
+form.uniForm .ctrlHolder,
+form.uniForm .buttonHolder {
+    padding: 4;
+    overflow: hidden;
+    margin: 0;
+    *zoom: 1;
+}
+
+form.uniForm .ctrlHolder,.buttonHolder:before,
+form.uniForm .ctrlHolder,.buttonHolder:after {
+    content: "";
+    display: table;
+}
+
+form.uniForm .ctrlHolder,.buttonHolder:after {
+    clear: both;
+}
+
+form.uniForm .layout-element {
+    margin: 0 0 6px;
+}
+
+table.uniFormTable {
+    width: 100%;
+    table-layout: auto;
+    *zoom: 1;
+}
+
+table.uniFormTable:before,
+table.uniFormTable:after {
+    content: "";
+    display: table;
+}
+
+table.uniFormTable:after {
+    clear: both;
+}
+
+table.uniFormTable input[type="checkbox"] {
+    float: none;
+    margin: 0;
+}
+
+table.uniFormTable th,
+table.uniFormTable td {
+    padding: 4px 0 4px 4px;
+}
+
+table.uniFormTable th:last-child,
+table.uniFormTable td:last-child {
+    padding: 4;
+}
+
+table.uniFormTable td.error:last-child {
+    padding: 4;
+}
+
+td.checkbox {
+    text-align: center;
+}
+
+td.one-line {
+    white-space: nowrap;
+}
+
+.data-table {
+    head-border: 1px solid #a6c9e2;
+    head-padding: 4px;
+    body-border-color: #a6c9e2;
+    DTTT-margin: 0 1em 1em 0;
+    text-align: left;
+    dataTables-info-float: left;
+    dataTables-info-margin: 0 1em 0 0;
+    toolbox-min-height: 40px;
+    odd-background-color: transparent;
+    DTTT-float: right;
+    col-selector-margin: 0 0 1em;
+    row-selector-float: left;
+    width: 100%;
+    even-background-color: transparent;
+    processing-float: left;
+    col-selector-float: right;
+    row-selector-margin: 0;
+    background: transparent;
+    pagination-float: right;
+    dataTables-filter-margin: 0.5em 0 0 0;
+    row-border: 1px solid transparent;
+    head-border-color: #fff;
+    dataTables-filter-float: right;
+    margin: 0;
+    display: none;
+    processing-margin: 0 0 0 1em;
+}
+
+.data-table .dataTables_filter input {
+    padding: 5px 5px;
+    width: 200px;
+    font-size: 110%;
+}
+
+.data-table table.main {
+}
+
+.data-table th.sortable {
+    cursor: pointer;
+}
+
+.data-table tbody td {
+    padding: 4px;
+    vertical-align: center;
+}
+
+.action-check {
+}
+
+.action-check input {
+    margin: 0 5px 0 0;
+}
+
+.popover {
+    z-index: 1000;
+    top: 0;
+    padding: 5px;
+    position: absolute;
+    display: none;
+    left: 0;
+}
+
+.popover.top {
+    margin-top: -5px;
+}
+
+.popover.right {
+    margin-left: 5px;
+}
+
+.popover.bottom {
+    margin-top: 5px;
+}
+
+.popover.left {
+    margin-left: -5px;
+}
+
+.topbar {
+    min-width: 960px;
+    overflow: visible;
+    height: 40px;
+    z-index: 10000;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+       -moz-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #222;
+    background-image: -moz-linear-gradient(top, #333, #222);
+    background-image: -ms-linear-gradient(top, #333, #222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333), to(#222));
+    background-image: -webkit-linear-gradient(top, #333, #222);
+    background-image: -o-linear-gradient(top, #333, #222);
+    background-image: linear-gradient(top, #333, #222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333', endColorstr='#222', GradientType=0);
+}
+
+.topbar .nav {
+    position: relative;
+    float: left;
+    margin: 0 10px 0 0;
+    display: block;
+}
+
+.topbar .nav ul {
+    position: absolute;
+}
+
+.topbar .nav li {
+    position: relative;
+}
+
+.topbar .nav {
+    position: relative;
+    float: left;
+    margin: 0 10px 0 0;
+    display: block;
+}
+
+.topbar .nav ul {
+    position: absolute;
+}
+
+.topbar .nav li {
+    position: relative;
+}
+
+.topbar .nav.secondary-nav {
+    float: right;
+    margin: 0 0 0 10px;
+}
+
+.topbar .nav > li {
+    float: left;
+    display: block;
+}
+
+.topbar .nav li.active {
+    background: #000;
+}
+
+.topbar .nav a {
+    color: #BFBFBF;
+    float: none;
+    display: inline-block;
+    padding: 10px 10px 11px;
+    line-height: 19px;
+    text-decoration: none;
+}
+
+.topbar a.brand {
+    font-size: 20px;
+    color: #ffffff;
+    display: block;
+    padding: 10px 20px 10px 0;
+    line-height: 20px;
+}
+
+.topbar form {
+    margin: 7px 0 0 0;
+}
+
+.topbar-fixed {
+    left: 0;
+    top: 0;
+    right: 0;
+    position: fixed;
+    zindex: 2000;
+}
+
+#page-header {
+}
+
+#page-footer {
+    padding: 20px 0 0;
+    min-height: 200px;
+    overflow: hidden;
+    font-size: 90%;
+}
+
+.geo-entry {
+    padding: 7px;
+    margin: 0 0 20px 0;
+}
+
+.geo-entry .object-definition {
+    margin: 0;
+}

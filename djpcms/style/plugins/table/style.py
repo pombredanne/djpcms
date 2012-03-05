@@ -1,9 +1,26 @@
 '''Top bar styling
 '''
-from medplate import CssContext, CssTheme, gradient, radius, shadow, variables
+from djpcms.style import css, gradient, radius, shadow, cssv
 from . import defaults
 
-variables.declare_from_module(defaults)
+cssv.declare_from_module(defaults)
+
+############################################################
+#    START THEME
+start = cssv.theme_setter('start')
+start.table_odd_background_color = '#f2f2f2'
+start.table_even_background_color = 'transparent'
+start.table_even_sort_background = '#fcefa1'
+start.table_odd_sort_background = '#f7eeb5'
+
+
+############################################################
+#    SIRO THEME
+siro = cssv.theme_setter('siro')
+siro.table_odd_background_color = '#f2f2f2'
+siro.table_even_background_color = 'transparent'
+siro.table_even_sort_background = '#fbec88'
+siro.table_odd_sort_background = '#f0e7ad'
 
 
 ################################################################################
@@ -17,6 +34,13 @@ css('td.one-line', white_space='nowrap')
 # DATATABLE
 ################################################################################
 css('.data-table',
+    css('.dataTables_filter input',
+        width = '200px',
+        padding = '5px 5px',
+        font_size = '110%'),
+    css('table.main'),
+    css('th.sortable', cursor = 'pointer'),
+    css('tbody td', vertical_align = 'center', padding = '4px'),
     width = '100%',
     display = 'none',
     text_align = 'left',
@@ -54,68 +78,14 @@ css('.data-table',
     col_selector_float = 'right',
     col_selector_margin = '0 0 1em',
     #
-    odd_background_color = vars.table_odd_background_color,
-    even_background_color = vars.table_even_background_color,
+    odd_background_color = cssv.table_odd_background_color,
+    even_background_color = cssv.table_even_background_color,
     #
-    even_sort_background = vars.table_even_sort_background,
-    odd_sort_background = vars.table_odd_sort_background
+    even_sort_background = cssv.table_even_sort_background,
+    odd_sort_background = cssv.table_odd_sort_background
 )
 
-css('h3.table-title',
-                               data = {
-                                'padding':'4px',
-                                'margin':'0',
-                                'font-size':'110%'
-                            }),
-                    CssContext('datatable_filter_input',
-                               tag ='.dataTables_filter input',
-                               data = {'width': '200px',
-                                       'padding': '5px 5px',
-                                       #'border':'1px solid'},
-                                       'font_size':'110%'
-                            }),
-                    CssContext('datatable_table',
-                               tag='table.main',
-                               data = {
-                            }),
-                    CssContext('datatable_thead',
-                               tag='th.sortable',
-                               data = {
-                                'cursor': 'pointer'
-                            }),
-                    CssContext('datatable-tbody-td',
-                               tag='tbody td',
-                               data = {
-                                'vertical_align': 'center',
-                                'padding':'4px'
-                            }),
-                    ]
-           )
+css('.action-check',
+    css('input', margin = '0 5px 0 0')
+    )
 
-
-CssContext('action-check',
-           tag = '.action-check',
-           elems = CssContext(
-                    'action-check-input',
-                     tag = 'input',
-                     data = {
-                        'margin':'0 5px 0 0'
-                    })
-           )
-
-############################################################
-#    START THEME
-start = vars.theme_setter('start')
-start.table_odd_background_color = '#f2f2f2'
-start.table_even_background_color = 'transparent'
-start.table_even_sort_background = '#fcefa1'
-start.table_odd_sort_background = '#f7eeb5'
-
-
-############################################################
-#    SIRO THEME
-siro = vars.theme_setter('siro')
-siro.table_odd_background_color = '#f2f2f2'
-siro.table_even_background_color = 'transparent'
-siro.table_even_sort_background = '#fbec88'
-siro.table_odd_sort_background = '#f0e7ad'

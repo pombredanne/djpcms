@@ -1,5 +1,4 @@
 
-
 topbar_height = 40
 topbar_height_padding = 10
 topbar_width_padding = 10

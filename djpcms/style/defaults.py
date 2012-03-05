@@ -1,4 +1,5 @@
 # Default variables for djpcms.style
+from djpcms.style import color, cssv, lazy
 
 # body
 body_background = '#ffffff'
@@ -16,8 +17,13 @@ input_padding = 3
 input_border_size = 1
 
 #links
-link_text_decoration = 'none'
 link_weight = 'normal'
+link_color = '#08c'
+link_background = None
+link_decoration = 'none'
+link_color_hover = lazy(lambda: color.darken(cssv.link_color, 15))
+link_background_hover = None
+link_decoration_hover = 'none'
 
 # disabled elements
 disabled_opacity = 0.7

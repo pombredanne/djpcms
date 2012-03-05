@@ -1,6 +1,7 @@
 from .pycss import *
 from . import defaults
 from .mixins import *
+from .generators import *
 cssv.declare_from_module(defaults)
 
 ################################################# BODY
@@ -13,9 +14,21 @@ css('body',
     line_height = cssv.body_line_height,
     text_align = cssv.body_text_align)
 
-################################################# GRID
-grid(12,60,20).css()
-fluidgrid(12).css()
+css('a',
+    cssa('link,visited', color = cssv.link_color),
+    cssa('link:hover',
+         color = cssv.link_color_hover,
+         text_decoration = cssv.link_decoration_hover,
+         background = cssv.link_background_hover),
+    color = cssv.link_color,
+    background = cssv.link_background,
+    weight = cssv.link_weight,
+    text_decoration = cssv.link_decoration,
+)
+
+################################################# GRID GENERATORS
+grid(12,60,20)
+fluidgrid(12)
 
 ################################################# DJPCMS BOX
 css('.djpcms-html-box',

@@ -1,68 +1,72 @@
 from decimal import Decimal
 
-from .pycss import mixin, css, as_mixin, deval
+from .pycss import mixin, css, cssa, deval
 
-__all__=  ['clearfix', 'shadow', 'gradient',
-           'grid', 'fluidgrid']
+__all__=  ['clearfix', 'fixtop', 'shadow', 'radius', 'gradient']
 
 ################################################# CLEARFIX
 class clearfix(mixin):
-    '''For clearing floats to all *elements*.'''
-    def __init__(self, elements):
-        self.mixin = as_mixin(elements)
-    
-    def __call__(self):
-        for elem in self.mixin.css():
-            tag = elem.tag
-            elem['*zoom'] = 1
-            yield elem
-            yield css(tag+':before,'+tag+':after',
-                      display = 'table',
-                      content = '""')
-            yield css(tag+':after', clear = 'both')
+    '''For clearing floats to all *elements*.'''    
+    def __call__(self, elem):
+        elem['*zoom'] = 1
+        yield cssa('before,after',
+                   parent = elem,
+                   display = 'table',
+                   content = '""')
+        yield cssa('after',
+                   parent = elem,
+                   clear = 'both')
             
+################################################# FIXTOP
+class fixtop(mixin):
+    '''For clearing floats to all *elements*.'''
+    def __init__(self, zindex = 2000):
+        self.zindex = zindex
+            
+    def __call__(self, elem):
+        elem['left'] = 0
+        elem['top'] = 0
+        elem['right'] = 0
+        elem['position'] = 'fixed'
+        elem['zindex'] = self.zindex
+        
             
 ################################################# CSS3
 class shadow(mixin):
-    def __init__(self, elements, shadow):
-        self.mixin = as_mixin(elements)
+    def __init__(self, shadow):
         self.shadow = shadow
         
-    def __call__(self):
-        for elem in self.mixin.css():
-            elem['-webkit-box-shadow'] = self.shadow
-            elem['   -moz-box-shadow'] = self.shadow
-            elem['        box-shadow'] = self.shadow
-            yield elem
+    def __call__(self, elem):
+        elem['-webkit-box-shadow'] = self.shadow
+        elem['   -moz-box-shadow'] = self.shadow
+        elem['        box-shadow'] = self.shadow
         
         
 class radius(mixin):
-    def __init__(self, elements, radius):
-        self.mixin = as_mixin(elements)
+    def __init__(self, radius):
         self.radius = radius
         
-    def __call__(self):
-        for elem in self.mixin.css():
-            elem['-webkit-border-radius'] = self.radius
-            elem['   -moz-border-radius'] = self.radius
-            elem['        border-radius'] = self.radius
-            yield elem
+    def __call__(self, elem):
+        r = self.radius
+        if hasattr(r,'__call__'):
+            r = r()
+        elem['-webkit-border-radius'] = r
+        elem['   -moz-border-radius'] = r
+        elem['        border-radius'] = r
 
 
 class gradient(mixin):
-    def __init__(self, elements, direction_start_end):
-        self.mixin = as_mixin(elements)
+    def __init__(self, direction_start_end):
         self.direction_start_end = direction_start_end
         
-    def __call__(self):
+    def __call__(self, elem):
         d,s,e = deval(self.direction_start_end)
         if d in ('h','v','r','s'):
             self.decorate = getattr(self, d+'gradient')
         else:
             d = int(d)
             self.decorate = self.dgradient
-        for elem in self.mixin.css():
-            yield self.decorate(elem,d,s,e)
+        self.decorate(elem,d,s,e)
             
     def _gradient(self, elem, l, s, e):
         p = '100% 0' if l == 'left' else '0 100%'
@@ -94,65 +98,11 @@ class gradient(mixin):
         # IE9 and down
         elem['filter'] = "progid:DXImageTransform.Microsoft.gradient(\
 startColorstr='{0}', endColorstr='{1}', GradientType={2})".format(s,e,t)
-        return elem
         
     def hgradient(self, elem, d, s, e):
-        return self._gradient(elem, 'left', s, e)
+        self._gradient(elem, 'left', s, e)
         
     def vgradient(self, elem, d, s, e):
-        return self._gradient(elem, 'top', s, e)
+        self._gradient(elem, 'top', s, e)
 
         
-################################################# FIXED GRID MIXIN
-class grid(mixin):
-    grid_class = ''
-    unit = 'px'
-    def __init__(self, columns, span = 40, gutter = 20):
-        if columns <=1:
-            raise ValueError('Grid must have at least 2 columns')
-        self.span = span
-        self.gutter = gutter
-        self.columns = columns
-        self.width = columns*span + (columns-1)*gutter
-    
-    def row(self, tag):
-        m = '{0}{1}'.format(self.gutter,self.unit)
-        return css(tag, margin_left = m)
-    
-    def container(self, tag):
-        return css(tag, width = '{0}px'.format(self.width),
-                   margin_left = 'auto',
-                   margin_right = 'auto')
-        
-    def __call__(self):
-        row = '.{0}_{1}'.format('row'+self.grid_class,self.columns)
-        yield clearfix(self.row(row))
-        for s in range(1,self.columns+1):
-            w = '{0}{1}'.format(s*self.span + (s-1)*self.gutter,self.unit)
-            yield css('{0} > .span{1}'.format(row,s), width=w)
-        yield css('{0} > [class*="span"]'.format(row),
-                  float='left',
-                  margin_left='{0}{1}'.format(self.gutter,self.unit))
-        yield clearfix(self.container('.grid-container'+self.grid_class))
-        
-
-################################################# FLUID GRID MIXIN        
-class fluidgrid(grid):
-    grid_class = '-fluid'
-    unit = '%'
-    def __init__(self, columns, gutter = 2.5641):
-        if columns <=1:
-            raise ValueError('Grid must have at least 2 columns')
-        if gutter < 0:
-            raise ValueError('gutter must be positive')
-        self.columns = columns
-        self.gutter = gutter
-        self.span = round((100 - (columns-1)*gutter)/columns,4)
-        if self.span <= 0:
-            raise ValueError('gutter too large')
-    
-    def row(self, tag):
-        return css(tag, width = '100%')
-    
-    def container(self, tag):
-        return css(tag, padding_left = '20px', padding_right = '20px')

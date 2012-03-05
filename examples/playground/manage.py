@@ -12,6 +12,7 @@ To create the style sheet::
 import djpcms
 from djpcms.apps import static
 from djpcms.html.layout import page, row, column, container
+from djpcms.apps.nav import topbar
 
 class Loader(djpcms.WebSite):
     
@@ -20,7 +21,8 @@ class Loader(djpcms.WebSite):
                 __file__,
                 APPLICATION_URLS = self.urls,
                 INSTALLED_APPS = ('djpcms',
-                                  #'medplate',
+                                  'djpcms.style.plugins',
+                                  'djpcms.apps.nav',
                                   'playground'),
                 ENABLE_BREADCRUMBS = 1,
                 # the favicon to use is in the djpcms module
@@ -48,6 +50,7 @@ class Loader(djpcms.WebSite):
     def page_layout(self):
         # Page layout
         page(
+             topbar(brand = 'Playground'),
              container(
              row(column(1,1,renderer = self.page_header_layout),
                  id = 'page-header',

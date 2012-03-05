@@ -51,7 +51,7 @@ class Navigator(object):
         self.soft = soft
         self.nav_element = nav_element
         self.container = container
-        if container is not None and not isinstance(container,Widget):
+        if container is not None and not isinstance(container, Widget):
             self.container = Widget('div', cn = self.container)
         self.fixed = fixed
         self.levels = max(levels,1)

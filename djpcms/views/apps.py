@@ -454,7 +454,7 @@ overwritten to customize its behavior.
         model = instance.__class__ if instance else self.model
         return get_form(request,
                         form_class,
-                        instance = instance,
+                        instance=instance,
                         addinputs=addinputs,
                         model=model,
                         **kwargs)

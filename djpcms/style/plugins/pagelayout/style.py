@@ -1,22 +1,13 @@
-from medplate import CssContext, CssTheme, gradient, radius, shadow, variables
+from djpcms.style import css,  vars, gradient, radius, shadow, variables
 
-variables.declare('page_error_padding','10px')
+vars.declare('page_error_padding','10px')
 
-variables.declare('footer_gradient',None)
-variables.declare('footer_min_height','100px')
-variables.declare('footer_font_size','90%')
-variables.declare('footer_color',None)
+vars.declare('footer_gradient',None)
+vars.declare('footer_min_height','100px')
+vars.declare('footer_font_size','90%')
+vars.declare('footer_color',None)
 
-CssContext('body-container',
-           tag = '#body-container',
-           data = {
-              #'min-width': variables.body_min_width,
-              'width': '100%',
-              'overflow': 'hidden'
-            })
-
-CssContext('page-footer',
-           tag = '#page-footer',
+css('#page-footer',
            data = {
             'gradient': variables.footer_gradient,
             'min-height': variables.footer_min_height,

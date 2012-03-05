@@ -10,14 +10,20 @@ from djpcms.utils.py2py3 import UnicodeMixin, iteritems, itervalues, StringIO,\
                                 native_str
 from djpcms.utils.structures import OrderedDict
 
-__all__ = ['css', 'var', 'mixin', 'vars', 'as_mixin']
+__all__ = ['css', 'var', 'mixin', 'cssv', 'as_mixin', 'deval']
 
 
 def deval(o):
     return o.value if isinstance(o,var) else o
 
-
+def itertuple(mapping):
+    if isinstance(mapping,dict):
+        return iteritems(mapping)
+    else:
+        return mapping
+    
 def unwind(components):
+    '''Unwind components into individual css elements'''
     for c in components:
         if isinstance(c, css):
             yield c
@@ -62,12 +68,9 @@ class css(UnicodeMixin):
         self._parent = None
         parent = attributes.pop('parent',None)
         self.process = attributes.pop('process',None)
-        attrs = attributes.pop('data',{})
+        self._attributes = list(itertuple(attributes.pop('data',{})))
         for name,value in iteritems(attributes):
-            if value is not None:
-                name = name.replace('_','-')
-                attrs[name] = value
-        self._attributes = attrs
+            self[name] = value
         self.parent = parent
         self.set_components(components)
         
@@ -76,22 +79,18 @@ class css(UnicodeMixin):
             c.parent = self                    
     
     def __setitem__(self, name, value):
-        self._attributes[name] = value
+        if value is not None:
+            name = name.replace('_','-')
+            self._attributes.append((name,value))
     
     def __getitem__(self, name):
-        return self._attributes[name]
+        raise NotImplementedError()
     
     def __len__(self):
         return len(self._attributes)
     
     def __iter__(self):
         return iter(self._attributes)
-    
-    def items(self):
-        return iteritems(self._attributes)
-    
-    def values(self):
-        return itervalues(self._attributes)
     
     @property
     def tag(self):
@@ -136,7 +135,7 @@ class css(UnicodeMixin):
     def stream(self):
         tag = ',\n'.join(self.alltags())
         yield tag + ' {'
-        for k,v in self.items():
+        for k,v in self:
             yield '    {0}: {1};'.format(k,v)
         yield '}'
         
@@ -291,7 +290,7 @@ class Variables(object):
                 self.set_or_declare(name, val)
 
         
-vars = Variables()
+cssv = Variables()
 jquery_theme_mapping = {}   
 
 def jqueryui(context, loader, theme):

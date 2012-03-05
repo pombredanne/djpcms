@@ -328,7 +328,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         '''View context as a dictionary.'''
         page = request.page
         inner_template = page.inner_template if page else None
-
+        inner_template = None
         if inner_template:
             inner = InnerContent(request, inner_template, editing)
         else:

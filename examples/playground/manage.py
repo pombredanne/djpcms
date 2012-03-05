@@ -13,7 +13,7 @@ import djpcms
 from djpcms.apps import static
 from djpcms.html.layout import page, row, column, container
 
-class Loader(djpcms.SiteLoader):
+class Loader(djpcms.WebSite):
     
     def load(self):
         settings = djpcms.get_settings(

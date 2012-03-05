@@ -1,4 +1,4 @@
-'''Layouts for pages.
+'''Grid layouts for pages.
 '''
 from .base import WidgetMaker
 
@@ -17,7 +17,7 @@ class CssGrid(object):
     def add_css_data(self, widget):
         maker = widget.maker
         if isinstance(maker,row):
-            if isinstance(maker.parent, page) and self.fixed:
+            if isinstance(maker.parent, container) and self.fixed:
                 widget.addClass('row_{0}'.format(self.columns))
             else:
                 widget.addClass('row-fluid_{0}'.format(self.columns))
@@ -57,7 +57,10 @@ class PageLayoutElement(WidgetMaker):
                 
     def add(self, *widgets):
         child = self.childtype()
-        widgets = tuple((w for w in widgets if isinstance(w, child)))
+        for w in widgets:
+            if not isinstance(w, child):
+                raise ValueError('"{0}" cannot be a child of "{1}".'\
+                                 .format(w,self))
         return super(PageLayoutElement,self).add(*widgets)
     
     def on_layout_done(self):
@@ -94,7 +97,7 @@ class page(PageLayoutElement):
     
     @classmethod
     def childtype(cls):
-        return (page,row)
+        return (page,container,row)
     
     def register(self, name):
         name = name.lower()
@@ -102,15 +105,24 @@ class page(PageLayoutElement):
         return self
 
 
+class inner(PageLayoutElement):
+    tag = None
+    def add(self, *widgets):
+        pass
+    
+    def render_from_widget(self, request, widget, context):
+        return context['inner']
+    
+    
 class container(PageBlockElement):
     default_class = 'grid-container'
     @classmethod
     def childtype(cls):
-        return row
+        return (row,page,inner)
     
     
 class column(container):
-    
+    default_class = None
     def __init__(self, size = 1, over = 1, *rows, **kwargs):
         self.size = size
         self.over = over
@@ -134,7 +146,7 @@ class row(PageBlockElement):
     @classmethod
     def childtype(cls):
         return column
-
+    
 
 # Simple layout with single row with two elements of the same size
 page(

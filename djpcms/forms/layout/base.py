@@ -233,8 +233,8 @@ class SubmitElement(FormLayoutElement):
         if SUBMITS in missings:
             missings.remove(SUBMITS) 
     
-    def get_context(self, djp, widget, context):
-        return {'children': [input.render(djp) for input in widget.inputs]}
+    def children_widgets(self, widget):
+        return widget.inputs
 
 
 class FormLayout(BaseFormLayout):

@@ -88,7 +88,7 @@ class StreamContextRenderer(ContextRenderer):
                 s = s.done()
                 if isinstance(s,ContextRenderer):
                     done = False
-            if not is_string(s) and not isinstance(s,ContextRenderer):
+            if not is_string(s) and not isinstance(s, ContextRenderer):
                 s = str(s)
             data.append(s)
         text = '\n'.join(data) if done else None

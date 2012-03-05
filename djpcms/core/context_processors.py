@@ -120,7 +120,7 @@ def navigator(request):
 
 
 def topbar(request):
-    '''Build a lazy topbar to be place at the top of your web page.
+    '''Build a lazy topbar to be placed at the top of your web page.
 There are several customizable parameters available.
     '''
     settings = request.view.settings
@@ -137,7 +137,7 @@ There are several customizable parameters available.
                              brand = settings.SITE_NAVIGATION_BRAND,
                              fixed = True,
                              container = container)
-    return {'topbar': html.LazyHtml(request,topbar)}
+    return {'topbar': html.LazyHtml(request, topbar)}
     
     
 def breadcrumbs(request):

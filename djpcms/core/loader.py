@@ -6,10 +6,10 @@ from .site import get_settings, Site
 from .exceptions import ImproperlyConfigured
 
 
-__all__ = ['SiteLoader']
+__all__ = ['WebSite']
 
 
-class SiteLoader(object):
+class WebSite(object):
     '''A class for callable instances for loading and configuring sites.
 Users can subclass this class and override the :meth:`load` method or
 the ``load_{{ name }}`` where ``name`` is the value of the

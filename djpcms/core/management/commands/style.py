@@ -3,7 +3,7 @@ from optparse import make_option
 
 import djpcms
 from djpcms.utils.importer import import_module
-from djpcms.style import css, vars
+from djpcms.style import css, cssv
 
 
 def render(sites, theme, target, apps, mediaurl = None,
@@ -36,7 +36,7 @@ def render(sites, theme, target, apps, mediaurl = None,
             except:
                 pass
     # set the theme
-    vars.set_theme(theme)
+    cssv.set_theme(theme)
     if show_variables:
         print('STYLE: {0}'.format(variables.theme))
         section = None

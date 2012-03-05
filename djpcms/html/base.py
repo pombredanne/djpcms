@@ -528,14 +528,12 @@ It returns self for concatenating data.'''
         '''Render the *widget* using the *context* dictionary and
 information contained in this :class:`WidgetMaker`.'''
         if self.inline:
-            # inline widget
             if widget.tag:
                 fattr = widget.flatatt()
-                text = '<{0}{1}/>'.format(self.tag,fattr)
+                text = '<' + self.tag + fattr + '/>'
             else:
                 text = ''
         else:
-            # standard widget
             text = self.inner(request, widget, context)
             if widget.tag:
                 fattr = widget.flatatt()
@@ -546,7 +544,7 @@ information contained in this :class:`WidgetMaker`.'''
                     text = self._template.format(widget.tag, fattr, text)
         if request:
             request.media.add(self.media(request))
-        if isinstance(text,ContextRenderer):
+        if isinstance(text, ContextRenderer):
             #text.add_renderer(self.renderer)
             text.add_renderer(mark_safe)
             return text.done()
@@ -571,8 +569,8 @@ information contained in this :class:`WidgetMaker`.'''
                         self.stream(request, widget, context))
     
     def stream(self, request, widget, context):
-        '''This method is called by :meth:`inner` when rendering
-without templates. It returns an iterable over chunks of html
+        '''This method is called by :meth:`inner` method.
+It returns an iterable over chunks of html
 to be displayed in the inner part of the widget.
 This method can be overridden by subclasses if a specific behavior
 is required.

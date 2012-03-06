@@ -55,13 +55,13 @@ class PageLayoutElement(WidgetMaker):
             if not cb:
                 yield child
                 
-    def add(self, *widgets):
-        child = self.childtype()
-        for w in widgets:
-            if not isinstance(w, child):
-                raise ValueError('"{0}" cannot be a child of "{1}".'\
-                                 .format(w,self))
-        return super(PageLayoutElement,self).add(*widgets)
+    #def add(self, *widgets):
+    #    child = self.childtype()
+    #    for w in widgets:
+    #        if not isinstance(w, child):
+    #            raise ValueError('"{0}" cannot be a child of "{1}".'\
+    #                             .format(w,self))
+    #    return super(PageLayoutElement,self).add(*widgets)
     
     def on_layout_done(self):
         pass

@@ -16,7 +16,7 @@ corner_all = '5px'
 input_padding = 3
 input_border_size = 1
 
-#links
+########################### LINKS
 link_weight = 'normal'
 link_color = '#08c'
 link_background = None
@@ -41,4 +41,7 @@ widget_hd_fontweight = 'bold'
 
 # dragging
 dragging_width = '200px'
+
+########################### DEFINITION LIST
+definition_list_opacity = 0.8
 

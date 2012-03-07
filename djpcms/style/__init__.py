@@ -14,6 +14,7 @@ css('body',
     line_height = cssv.body_line_height,
     text_align = cssv.body_text_align)
 
+################################################# DEFAULT ANCHORS
 css('a',
     cssa('link,visited', color = cssv.link_color),
     cssa('link:hover',
@@ -57,3 +58,18 @@ css('.widget',
         overflow = 'hidden',
         border = 'none')
 )
+
+################################################# OBJECT DEFINITIONS
+css('.object-definition',
+    css('dl',
+        cssa(':first-child', margin_top = 0),
+        css('dt',
+            opacity = cssv.definition_list_opacity,
+            float = 'left', width = '40%', margin = 0),
+        css('dd', margin = 0)
+        ),
+    cssc('.w20 dl dt', width = '20%'),
+    cssc('.w40 dl dt', width = '40%'),
+    cssc('.w50 dl dt', width = '50%'),
+    overflow = 'hidden',
+    margin = '5px 0 0')

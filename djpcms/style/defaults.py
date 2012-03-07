@@ -1,5 +1,5 @@
 # Default variables for djpcms.style
-from djpcms.style import color, cssv, lazy
+from pycss import color, cssv, lazy
 
 # body
 body_background = '#ffffff'

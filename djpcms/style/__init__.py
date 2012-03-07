@@ -1,7 +1,13 @@
-from .pycss import *
+try:
+    from pycss import *
+except ImportError:
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.split(os.path.abspath(__file__))[0],
+                                 '_pycss'))
+    from pycss import *
 from . import defaults
-from .mixins import *
-from .generators import *
+
 cssv.declare_from_module(defaults)
 
 ################################################# BODY

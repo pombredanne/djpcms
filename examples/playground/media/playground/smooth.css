@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by pycss  2012-03-05 18:47:11.943000
+Created by pycss  2012-03-07 13:46:51.367000
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -29,7 +29,6 @@ a:visited {
 a:link:hover {
     color: #00547f;
     text-decoration: none;
-    background: none;
 }
 
 .row_12 {
@@ -241,6 +240,41 @@ a:link:hover {
     border: none;
 }
 
+.object-definition {
+    overflow: hidden;
+    margin: 5px 0 0;
+}
+
+.object-definition dl {
+}
+
+.object-definition dl::first-child {
+    margin-top: 0;
+}
+
+.object-definition dl dt {
+    opacity: 0.8;
+    width: 40%;
+    float: left;
+    margin: 0;
+}
+
+.object-definition dl dd {
+    margin: 0;
+}
+
+.object-definition.w20 dl dt {
+    width: 20%;
+}
+
+.object-definition.w40 dl dt {
+    width: 40%;
+}
+
+.object-definition.w50 dl dt {
+    width: 50%;
+}
+
 .field-widget {
     padding: 3;
     border-size: 1;
@@ -412,16 +446,18 @@ td.one-line {
 .data-table {
     head-border: 1px solid #a6c9e2;
     head-padding: 4px;
+    even-sort-background: #fbec88;
     body-border-color: #a6c9e2;
     DTTT-margin: 0 1em 1em 0;
     text-align: left;
     dataTables-info-float: left;
     dataTables-info-margin: 0 1em 0 0;
     toolbox-min-height: 40px;
-    odd-background-color: transparent;
+    odd-background-color: #f2f2f2;
     DTTT-float: right;
     col-selector-margin: 0 0 1em;
     row-selector-float: left;
+    odd-sort-background: #f0e7ad;
     width: 100%;
     even-background-color: transparent;
     processing-float: left;

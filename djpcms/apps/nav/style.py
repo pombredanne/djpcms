@@ -1,7 +1,9 @@
 '''Top bar styling
 '''
 from djpcms.apps.nav import topbar_class, topbar_fixed
-from djpcms.style import css, generator, cssv, gradient, shadow, fixtop
+
+from pycss import *
+
 from . import defaults
 
 cssv.declare_from_module(defaults)
@@ -14,8 +16,6 @@ topbar_data = {
     #
     # Default Theme
     'subnav_color': '#808080',
-    'color-hover': '#fff',
-    'hover-background': '#333',
     'subnav-hover-background': '#222',
     'active-background': '#000',
     'active-color': '#fff',
@@ -28,6 +28,9 @@ topbar_data = {
 
 class topbar(generator):
     
+    def __init__(self, topbar_class ='topbar'):
+        self.topbar_class = topbar_class
+        
     def __call__(self):
         height = cssv.topbar_height
         a1 = cssv.topbar_height_padding
@@ -36,18 +39,33 @@ class topbar(generator):
         if anchor_line_height < 10:
             raise valueError('Anchor line height in topbar is too low.\
  Change the "topbar_height" or "topbar_height_padding" values')
-            
-        container = css('.'+topbar_class,
+        
+        # The container for the top bar
+        container = css('.'+self.topbar_class,
                         shadow(cssv.topbar_shadow),
-                        gradient(cssv.topbar_gradient),
+                        gradient(cssv.topbar_background),
                         height = '{0}px'.format(height),
                         z_index = 10000,
                         overflow = 'visible',
                         text_shadow = cssv.topbar_text_shadow,
                         min_width = cssv.body_min_width)
+        hm = cssv.topbar_horizontal_margin
         nav = css('.nav',
-                  css('ul', position = 'absolute'),
-                  css('li', position = 'relative'),
+                  css('.secondary-nav',
+                      float = 'right',
+                      margin = lambda : '0 0 0 {0}px'.format(hm)),
+                  cssb('li',
+                       cssa('hover', background=cssv.topbar_background_hover),
+                       display = 'block', float = 'left'),
+                  css('ul',
+                      position = 'absolute',
+                      display = 'none',
+                      background = cssv.topbar_background_hover),
+                  css('li',
+                      cssc('.active',
+                           background=cssv.topbar_background_active,
+                           color=cssv.topbar_color_active),
+                      position = 'relative'),
                   parent = container,
                   display = 'block',
                   float = 'left',
@@ -56,17 +74,11 @@ class topbar(generator):
                                                 cssv.topbar_horizontal_margin))
         yield container
         yield nav
-        yield css('.nav.secondary-nav', parent = container,
-                  float = 'right',
-                  margin = lambda : '0 0 0 {0}px'.format(
-                                                cssv.topbar_horizontal_margin))
-        yield css('.nav > li', parent = container,
-                  display = 'block', float = 'left')
-        yield css('li.active', parent = nav,
-                  background = cssv.topbar_active_background)
         #
         # topbar anchor
-        yield css('a', parent = nav,
+        yield css('a',
+                  cssa('hover', color = cssv.topbar_color_hover),
+                  parent = nav,
                   float = 'none',
                   display = 'inline-block',
                   text_decoration = 'none',

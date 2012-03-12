@@ -197,8 +197,8 @@ By default do nothing.
     
     def get_form(self, request, args = None, prefix = None, **kwargs):
         '''Return an instance of a :attr:`form` or `None`.
-Used to edit the plugin when
-in editing mode. Usually, there is no need to override this function.
+Used to edit the plugin when in editing mode.
+Usually, there is no need to override this function.
 If your plugin needs input parameters when editing, simple set the
 :attr:`form` attribute.'''
         form_factory = self.form
@@ -207,7 +207,8 @@ If your plugin needs input parameters when editing, simple set the
             form =  form_factory(**form_kwargs(request = request,
                                                initial = initial,
                                                prefix = prefix,
-                                               model = self.for_model))
+                                               model = self.for_model,
+                                               **kwargs))
             return form
     
     def _register(self):

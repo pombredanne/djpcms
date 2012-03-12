@@ -80,7 +80,37 @@ class LazyHtml(djpcms.UnicodeMixin):
         return mark_safe(self.elem.render(self.request))
     
 
-class Widget(object):
+class AttributeMixin(object):
+    
+    def __init__(self, cn = None, **params):
+        self.classes = set()
+        self.addClass(cn)
+    
+    def addClass(self, cn):
+        '''Add the specific class names to the class set and return ``self``.'''
+        if cn:
+            add = self.classes.add
+            for cn in cn.split():
+                cn = slugify(cn)
+                add(cn)
+        return self
+    
+    def hasClass(self, cn):
+        '''``True`` if ``cn`` is a class of self.'''
+        return cn in self.classes
+                
+    def removeClass(self, cn):
+        '''Remove classes
+        '''
+        if cn:
+            ks = self.classes
+            for cn in cn.split():
+                if cn in ks:
+                    ks.remove(cn)
+        return self
+    
+    
+class Widget(AttributeMixin):
     '''A class which exposes jQuery-alike API for
 handling HTML classes, attributes and data on a html object::
 
@@ -114,19 +144,18 @@ Any Operation on this class is similar to jQuery.
     def __init__(self, maker = None, data_stream = None,
                  cn = None, data = None, options = None, 
                  css = None, **params):
+        super(Widget,self).__init__(cn = cn)
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
         self.maker = maker
-        self.classes = set()
         self._css = css or {}
         self.data = data or {}
         self.attrs = attrs = maker.attrs.copy()
-        self.addClass(maker.default_style)\
-            .addClass(maker.default_class)\
-            .addClass(cn)
+        self.addClass(maker.default_style).addClass(maker.default_class)
+        self.classes.update(maker.classes)
         attributes = maker.attributes
         for att in list(params):
             if att in attributes:
@@ -217,15 +246,6 @@ Any Operation on this class is similar to jQuery.
             return self
         else:
             return self._css.get(mapping)
-        
-    def addClass(self, cn):
-        '''Add the specific class names to the class set and return ``self``.'''
-        if cn:
-            add = self.classes.add
-            for cn in cn.split():
-                cn = slugify(cn)
-                add(cn)
-        return self
     
     def addAttr(self, name, val):
         '''Add the specific attribute to the attribute dictionary
@@ -240,20 +260,6 @@ with key ``name`` and value ``value`` and return ``self``.'''
     
     def attr(self, name):
         return self.attrs.get(name,None)
-    
-    def hasClass(self, cn):
-        '''``True`` if ``cn`` is a class of self.'''
-        return cn in self.classes
-                
-    def removeClass(self, cn):
-        '''Remove classes
-        '''
-        if cn:
-            ks = self.classes
-            for cn in cn.split():
-                if cn in ks:
-                    ks.remove(cn)
-        return self
     
     def add(self, *args, **kwargs):
         '''Add to the stream. This functions delegates the adding to the
@@ -288,7 +294,7 @@ for concatenation.'''
     
 
 
-class WidgetMaker(Renderer):
+class WidgetMaker(Renderer, AttributeMixin):
     '''A :class:`Renderer` used as factory for :class:`Widget` instances.
 It is general enough that it can be use for a vast array of HTML widgets. For
 corner cases, users can subclass it to customize behavior. 
@@ -426,7 +432,8 @@ corner cases, users can subclass it to customize behavior.
                  description = '', widget = None,
                  attributes = None, renderer = None,
                  data2html = None, media = None,
-                 **params):
+                 cn = None, **params):
+        AttributeMixin.__init__(self, cn = cn)
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)

@@ -95,30 +95,32 @@ class ChangeContentView(BlockChangeView):
         pid = 'edit-plugin-data-{0}'.format(instance.id)
         return html.Widget('div', pform, id = pid, cn = PLUGIN_DATA_FORM_CLASS)
     
-    def get_plugin_form(self, request, plugin, prefix):
+    def get_plugin_form(self, request, plugin, prefix, **kwargs):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''
         if plugin:
             instance = request.instance
             args     = None
             if instance.plugin == plugin:
                 args = instance.arguments
-            return plugin.get_form(request, args, prefix = prefix)
+            return plugin.get_form(request, args, prefix = prefix, **kwargs)
             
     def edit_block(self, request):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
                       html = self.instance.plugin_edit_block(request))
     
     def ajax__container_type(self, request):
+        '''Change container'''
         return self.post_response(request, commit = False, plugin_form = False)
     
     def ajax__plugin_name(self, request):
+        '''Change plugin'''
         return self.post_response(request, commit = False)
         
     def ajax__edit_content(self, request):
         pluginview = self.appmodel.views.get('plugin')
         return pluginview.post_response(pluginview(request,
                                                    instance = request.instance))
-
+        
     def ajax_get_response(self, request):
         return self.post_response(request, commit = False)
     
@@ -156,9 +158,15 @@ The instance.plugin object is maintained but its fields may change.'''
             prefix = form.prefix
             layout = fhtml.layout
             if not form.is_valid():
-                return layout.json_messages(form)        
+                if commit:
+                    return layout.json_messages(form)
+                else:
+                    return ajax.jhtmls() 
             data = form.cleaned_data
-            pform = self.get_plugin_form(request, data['plugin_name'], prefix)
+            pform = self.get_plugin_form(request,
+                                         data['plugin_name'],
+                                         prefix,
+                                         withdata = commit)
             
             #plugin editing form is available
             if pform is not None:

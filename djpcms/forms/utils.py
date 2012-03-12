@@ -30,7 +30,7 @@ def set_request_message(f, request):
 
 
 def form_kwargs(request,
-                withdata = False,
+                withdata = None,
                 method = 'post',
                 inputs = None,
                 initial = None,
@@ -40,15 +40,19 @@ Usage::
 
     form = MyForm(**form_kwargs(request))
 
-:parameter withdata: if set to ``True`` force a bound form if data is
-    available, otherwise it bound the form only if the request method is the
-    same as the form method.
+:parameter withdata: Force the form to have or not have bound data.
+    If not supplied, the form is bound to data only if the request
+    method is the same as the form method.
                      
-    Default ``False``.
+    Default ``None``.
     
+:parameter method: the form method ('post' or 'get')
+
+    Default: "post".
 '''
     data = request.REQUEST
-    if (withdata or request.method == method.lower()) and data:
+    if (withdata or (withdata is None and request.method == method.lower()))\
+        and data:
         kwargs['data'] = data
         kwargs['files'] = request.FILES
     elif data:
@@ -102,7 +106,7 @@ def get_form(request,
              initial = None,
              prefix = None,
              addinputs = None,
-             withdata = False,
+             withdata = None,
              instance = None,
              model = None,
              force_prefix = True):

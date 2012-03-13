@@ -119,14 +119,19 @@ This function should be implemented by derived classes.
 
 class DJPplugin(DJPpluginBase):
     '''Base class for Plugins. These classes are used to display contents
-on a ``djpcms`` powered site. The basics:
+on a ``djpcms`` powered web site. The basics:
     
 * A Plugin is dynamic application.
-* It is rendered within a :class:`DJPwrapper` and each :class:`DJPwrapper`
+* It is rendered within a :class:`DJPwrapper`, and each :class:`DJPwrapper`
   displays a plugin.
 * It can define style and javascript to include in the page, in a static way
   (as a ``meta`` property of the class) or in a dynamic way by member functions.
-* It can have parameters to control its behaviour.'''
+* It can have parameters to control its behavior.
+
+.. attribute:: css_name
+
+    Optional ``name`` which associate this plugin with a css element.
+'''
     
     virtual       = True
     '''If set to true, the class won't be registered with the plugin's dictionary. Default ``False``.'''
@@ -140,6 +145,7 @@ instance for editing the plugin parameters.
     
 Default: ``None``, the plugin has no arguments.'''
     permission      = 'authenticated'
+    css_name = None
     #storage       = _plugin_dictionary
     #URL           = None
     for_model = None

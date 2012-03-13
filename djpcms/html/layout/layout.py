@@ -1,6 +1,6 @@
-'''Grid layouts for pages.
+'''Page layout and grids
 '''
-from .base import WidgetMaker
+from djpcms.html import WidgetMaker
 
 _page_layouts = {}
 
@@ -37,6 +37,8 @@ def get_layout(name):
 
 
 class PageLayoutElement(WidgetMaker):
+    '''A page layout contains all the information for rendering and styling a
+web page'''
     tag = 'div'
     
     def __init__(self, *children, **kwargs):

@@ -1,5 +1,5 @@
-from djpcms.utils import test, zip
-from djpcms import forms, html, to_string
+from djpcms import html
+from djpcms.utils import test, zip, to_string
 
 
 class TestDomTree(test.TestCase):

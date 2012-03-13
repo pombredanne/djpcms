@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from inspect import isclass
 
-from djpcms import UnicodeMixin
+from djpcms.utils.py2py3 import UnicodeMixin
 from djpcms.utils import force_str
 from djpcms.utils.text import nicename
 

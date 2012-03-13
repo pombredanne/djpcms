@@ -1,5 +1,5 @@
-from djpcms import UnicodeMixin
 from djpcms.html import Widget, WidgetMaker
+from djpcms.utils.py2py3 import UnicodeMixin
 
 __all__ = ['Meta','html_choices',
            'htmldoc','htmldefaultdoc']

@@ -3,9 +3,16 @@
 import json
 import os
 import sys
-import unittest
-from copy import copy
-from pulsar.utils.test import test
+if sys.version_info >= (2,7):
+    import unittest as test
+else:
+    try:
+        import unittest2 as test
+    except ImportError:
+        print('To run tests in python 2.6 you need to install\
+ the unitest2 package')
+        exit(0)
+
 
 # Try to import djpapps. If not available several tests won't run.
 try:
@@ -19,18 +26,29 @@ except ImportError:
     BeautifulSoup = None
     
 import djpcms
-from djpcms import views, forms, UnicodeMixin, http
+from djpcms import Site, WebSite, get_settings, views, forms, http
 from djpcms.forms.utils import fill_form_data
-from djpcms.core.exceptions import *
 
 
 skipUnless = test.skipUnless
 
 
+class TestWebSite(WebSite):
+    
+    def __init__(self, test):
+        self.test = test
+        super(TestWebSite,self).__init__()
+        
+    def load(self):
+        settings = get_settings(settings = self.settings,
+                                APPLICATION_URLS = self.test.urls)
+        return Site(settings)
+
+
 class TestCase(test.TestCase):
         
-    def build_site(self):
-        return djpcms.Site()
+    def website(self):
+        return TestWebSite(self)
     
     def wsgi_middleware(self):
         return []
@@ -41,13 +59,13 @@ class TestCase(test.TestCase):
     def wsgi_handler(self):
         '''Crete the WSGI handler for testing. This function invoke the
  :meth:`build_site` method which needs to be implemented by your test case.'''
-        site = self.build_site()
+        site = self.website()
         m = self.wsgi_middleware()
         site.load()
         m.append(http.WSGI(site))
         return http.WSGIhandler(m,self.response_middleware())
     
-    def resolve_test(self, path):
+    def __resolve_test(self, path):
         '''Utility function for testing url resolver'''
         self.sites.load()
         res  = self.sites.resolve(path)  
@@ -57,6 +75,14 @@ class TestCase(test.TestCase):
 
     def bs(self, doc):
         return BeautifulSoup(doc)
+    
+    def urls(self, site):
+        '''This should be configured by tests requiring the web
+site interface. By default it return a simple view.'''
+        return views.Application('/',
+                    routes = (
+                        views.View('/', renderer = lambda request: 'Hello!'),)
+                ),
         
         
 class PluginTest(TestCase):

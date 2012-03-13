@@ -14,7 +14,7 @@ class Command(djpcms.Command):
  if it's available."
     shells = ['ipython', 'bpython']
 
-    def ipython(self):
+    def ipython(self):  #pragma nocoverage
         try:
             from IPython.frontend.terminal.embed import TerminalInteractiveShell
             shell = TerminalInteractiveShell()
@@ -31,11 +31,11 @@ class Command(djpcms.Command):
                 # IPython not found at all, raise ImportError
                 raise
 
-    def bpython(self):
+    def bpython(self):   #pragma nocoverage
         import bpython
         bpython.embed()
 
-    def run_shell(self):
+    def run_shell(self):     #pragma nocoverage
         for shell in self.shells:
             try:
                 return getattr(self, shell)()
@@ -43,10 +43,9 @@ class Command(djpcms.Command):
                 pass
         raise ImportError
 
-    def handle(self, callable, options):
+    def handle(self, callable, options):     #pragma nocoverage
         # XXX: (Temporary) workaround for ticket #1796: force early loading of all
         # models from installed apps.
-        sites = callable()
         use_plain = options.plain
         try:
             if use_plain:

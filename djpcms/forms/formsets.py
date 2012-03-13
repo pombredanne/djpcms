@@ -1,6 +1,6 @@
 from copy import copy
 
-from djpcms import UnicodeMixin, ispy3k, to_string
+from djpcms.utils.py2py3 import UnicodeMixin, ispy3k, to_string
 from djpcms.html import HiddenInput
 from djpcms.core.orms import mapper
 

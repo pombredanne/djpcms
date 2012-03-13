@@ -12,7 +12,7 @@ Original License
 '''
 import re
 
-from djpcms import UnicodeMixin, to_string, py2py3
+from djpcms.utils.py2py3 import UnicodeMixin, to_string, iteritems
 from djpcms.utils import remove_double_slash, iri_to_uri
 
 from .exceptions import UrlException
@@ -218,7 +218,7 @@ class Route(UnicodeMixin):
             remaining = path[match.end():]
             groups = match.groupdict()
             result = {}
-            for name, value in py2py3.iteritems(groups):
+            for name, value in iteritems(groups):
                 try:
                     value = self._converters[name].to_python(value)
                 except UrlException:

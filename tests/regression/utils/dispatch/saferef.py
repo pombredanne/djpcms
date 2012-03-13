@@ -6,10 +6,11 @@ class Test1(object):
     def __call__(self):
         pass
 
-def test2(obj):
+def zest2(obj):
     pass
 
-class Test2(object):
+class Zest2(object):
+    
     def __call__(self, obj):
         pass
 
@@ -25,10 +26,10 @@ class Tester(test.TestCase):
             ts.append(t)
             s = safeRef(t, self._closure)
             ss.append(s)
-        ts.append(test2)
-        ss.append(safeRef(test2, self._closure))
+        ts.append(zest2)
+        ss.append(safeRef(zest2, self._closure))
         for x in range(30):
-            t = Test2()
+            t = Zest2()
             ts.append(t)
             s = safeRef(t, self._closure)
             ss.append(s)

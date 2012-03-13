@@ -28,7 +28,7 @@ class TestSimpleForm(test.TestCase):
         self.assertTrue('enctype' in hf.attributes)
         self.assertTrue('method' in hf.attributes)
         self.assertTrue(hf.form_class,SimpleForm)
-        w = hf.widget(form = hf.form_class(), action = '/test/')
+        w = hf(action = '/test/')
         self.assertTrue(isinstance(w.form,SimpleForm))
         self.assertEqual(w.attrs['action'],'/test/')
         self.assertEqual(w.attrs['method'],'post')

@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views, Http404
 from djpcms.core import messages
-from djpcms.core.layout import htmldoc
+from djpcms.html.layout import htmldoc
 from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
 

@@ -1,30 +1,24 @@
 '''A dynamic content management system using jQuery and Python'''
-
 VERSION = (0, 9, 0)
 
-def get_version():
-    return '.'.join(map(str,VERSION))
 
 # This list is updated by the views.appsite.appsite handler
 empty_choice = ('','-----------------')
 
 
-__version__   = get_version()
+__version__   = '.'.join(map(str,VERSION))
 __license__   = "BSD"
 __author__    = "Luca Sbardella"
 __contact__   = "luca.sbardella@gmail.com"
 __homepage__  = "http://djpcms.com/"
 __docformat__ = "restructuredtext"
 
-LIBRARY_NAME = 'djpcms'
 
 import os
 import sys
 
-parentdir = lambda dir,up=1: dir if not up else\
-                     parentdir(os.path.split(dir)[0],up-1)
-DJPCMS_DIR = parentdir(os.path.abspath(__file__))
-path_dir = parentdir(DJPCMS_DIR)
+PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+LIBRARY_NAME = os.path.basename(PACKAGE_DIR)
 
 
 def DEFAULT_JAVASCRIPT():
@@ -39,14 +33,6 @@ def DEFAULT_JAVASCRIPT():
 def DEFAULT_STYLE_SHEET():
     return {'all':['http://yui.yahooapis.com/2.9.0/build/\
 reset-fonts-grids/reset-fonts-grids.css']}
-
-from .utils import py2py3
-ispy3k = py2py3.ispy3k
-to_string = py2py3.to_string
-to_bytestring = py2py3.to_bytestring
-is_string = py2py3.is_string
-is_bytes_or_string = py2py3.is_bytes_or_string
-UnicodeMixin = py2py3.UnicodeMixin
 
 
 def init_logging(settings, clear_all = False):

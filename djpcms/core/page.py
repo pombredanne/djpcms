@@ -9,12 +9,11 @@ import logging
 
 import djpcms
 from djpcms import Route
-from djpcms.html import EMPTY_VALUE
+from djpcms.html import CONSTS
+from djpcms.html.layout import htmldoc
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
-
-from .layout import htmldoc
 
 
 contentre = re.compile('{{ content\d }}')
@@ -161,7 +160,7 @@ with the wrapper callable.'''
         # html can be a string or whatever the plugin returns.
         if plugin_response or not self.position:
             if not plugin_response:
-                plugin_response = EMPTY_VALUE
+                plugin_response = CONSTS.NON_BREACKING_SPACE
             callback = lambda r : wrapper(request, self, r)
             return request.view.response(plugin_response, callback)
     

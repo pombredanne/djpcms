@@ -66,21 +66,22 @@ class Command(djpcms.Command):
                                 description='List all variables values')
                    )
     
-    def handle(self, sites_factory, options):
+    def handle(self, options):
+        site = self.website()
         theme = options.theme
         target = options.file
         mediaurl = options.mediaurl
         apps = options.apps
-        sites = sites_factory()
-        theme = theme or sites.settings.STYLING
+        self.theme = theme or site.settings.STYLING
         if not target:
             target = '{0}.css'.format(theme)
-            mdir = os.path.join(sites.settings.SITE_DIRECTORY,
+            mdir = os.path.join(site.settings.SITE_DIRECTORY,
                                 'media',
-                                sites.settings.SITE_MODULE)
+                                site.settings.SITE_MODULE)
             if os.path.isdir(mdir):
                 target = os.path.join(mdir, target)
-        render(sites,theme,target,apps,mediaurl,options.variables)
+        self.target = target
+        render(site, self.theme, self.target, apps, mediaurl, options.variables)
         
         
         

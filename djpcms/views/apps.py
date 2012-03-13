@@ -760,7 +760,22 @@ It uses the following algorithm:
             view = request.for_path(view.path,instance=instance)
         if view:
                 return view.url
+              
+    def meta_charset(self, request):
+        return self.settings.DEFAULT_CHARSET
             
+    def meta_description(self, request):
+        return self.settings.META_DESCRIPTION
+    
+    def meta_keywords(self, request):
+        return self.settings.META_KEYWORDS
+    
+    def meta_author(self, request):
+        return self.settings.META_AUTHOR
+    
+    def meta_viewport(self, request):
+        return self.settings.META_VIEWPORT
+    
     ############################################################################    
     #TODO
     #
@@ -770,5 +785,4 @@ It uses the following algorithm:
         '''Obtain an unique code for an instance.
 Can be overritten to include request dictionary.'''
         return '%s:%s' % (instance._meta,instance.id)
-    
-    
+  

@@ -5,7 +5,6 @@ from threading import Lock
 
 from djpcms.utils.py2py3 import UnicodeMixin, is_bytes_or_string, iteritems,\
                                 itervalues
-from djpcms.html import get_cssgrid
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.importer import import_modules
 

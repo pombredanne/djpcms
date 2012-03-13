@@ -17,13 +17,11 @@ A simple usage::
 from .context import *
 from .base import *
 from .widgets import *
-from .grid import *
 from .box import *
 from .nicerepr import *
 from .table import *
 from .tabs import *
 from .yui import *
-from .template import *
 
 
 def block(stream, id = None, cn = None, djp = None):

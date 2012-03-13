@@ -4,11 +4,11 @@ import logging
 from inspect import isclass
 from copy import deepcopy
 
-import djpcms
-from djpcms import html
 from djpcms.utils.py2py3 import iteritems, itervalues, native_str
 from djpcms.utils.importer import import_module, module_attribute
-from djpcms.utils import conf, lazyproperty
+from djpcms.utils import conf, lazyproperty, Path
+from djpcms.html.template import ContextTemplate
+from djpcms import html
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
                         ImproperlyConfigured, DjpcmsException,\
@@ -42,20 +42,20 @@ Default ``None``
 :parameter params: key-value pairs which override the values
                in the settings file.
 '''
-    name = name if name is not None else os.getcwd()
-    if os.path.isdir(name):
+    name = Path(name if name is not None else os.getcwd())
+    if name.isdir():
         appdir = name
-    elif os.path.isfile(name):
-        appdir = os.path.split(os.path.realpath(name))[0]
+    elif name.isfile():
+        appdir = name.realpath().parent
     else:
         try:
             mod = import_module(name)
-            appdir = mod.__path__[0]
+            appdir = Path(mod.__path__[0])
         except ImportError:
             raise ValueError(
                     'Could not find directory or file {0}'.format(name))
-    site_path = os.path.realpath(appdir)
-    base,name = os.path.split(site_path)
+    site_path = appdir.realpath()
+    base, name = site_path.split()
     if base not in sys.path:
         sys.path.insert(0, base)
     
@@ -154,9 +154,6 @@ Attributes available:
             path = os.path.join(settings.SITE_DIRECTORY,'templates')
             if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
                 settings.TEMPLATE_DIRS += path,
-            path = os.path.join(djpcms.__path__[0],'media','djpcms')
-            if path not in settings.TEMPLATE_DIRS:
-                settings.TEMPLATE_DIRS += path,
             self.internals['settings'] = settings
         self.internals.update(handlers)
         
@@ -178,7 +175,7 @@ Attributes available:
     
     def _load(self):
         self.setup_environment()
-        self.internals['template'] = html.ContextTemplate(self)
+        self.internals['template'] = ContextTemplate(self)
         return super(Site,self)._load()
     
     def _site(self):

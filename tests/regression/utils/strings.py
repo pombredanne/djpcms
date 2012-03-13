@@ -1,6 +1,5 @@
-import unittest as test
-from djpcms.utils import force_str, parentpath, closedurl, routejoin, openedurl,\
-                         slugify, URI_RESERVED
+from djpcms.utils import test, force_str, parentpath, closedurl, routejoin,\
+                         openedurl, slugify, URI_RESERVED
 from djpcms.utils.text import nicename
 
 

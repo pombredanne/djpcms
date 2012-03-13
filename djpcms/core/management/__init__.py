@@ -11,8 +11,8 @@ from djpcms.utils.importer import import_module
 
 from .base import Command, CommandError, CommandOption
                                         
-__all__ = ['Command','CommandError','CommandOption',
-           'call_command','execute']
+__all__ = ['Command', 'CommandError', 'CommandOption',
+           'fetch_command', 'execute']
 
 
 def find_commands(management_dir):
@@ -40,38 +40,17 @@ def load_command_class(app_name, name):
     return module.Command()
 
 
-def call_command(name, *args, **options):
-    """
-    Calls the given command, with the given options and args/kwargs.
+def fetch_command(sites, name, argv=None, **params):
+    """Fetch a command name"""
+    utility = ManagementUtility(sites, argv, **params)
+    return utility.fetch_command(name)
+    
 
-    This is the primary API you should use for calling specific commands.
+def execute(sites, argv=None, **params):
+    '''Execute a command against a sites instance'''
+    utility = ManagementUtility(sites, argv, **params)
+    return utility.execute()
 
-    Some examples:
-        call_command('syncdb')
-        call_command('shell', plain=True)
-        call_command('sqlall', 'myapp')
-    """
-    # Load the command object.
-    try:
-        app_name = get_commands()[name]
-        if isinstance(app_name, BaseCommand):
-            # If the command is already loaded, use it directly.
-            klass = app_name
-        else:
-            klass = load_command_class(app_name, name)
-    except KeyError:
-        raise CommandError("Unknown command: %r" % name)
-
-    # Grab out a list of defaults from the options. optparse does this for us
-    # when the script runs from the command line, but since call_command can
-    # be called programatically, we need to simulate the loading and handling
-    # of defaults (see #10080 for details).
-    defaults = dict([(o.dest, o.default)
-                     for o in klass.option_list
-                     if o.default is not NO_DEFAULT])
-    defaults.update(options)
-
-    return klass.execute(*args, **defaults)
 
 
 class ManagementUtility(object):
@@ -147,11 +126,5 @@ and runs it."""
         else:
             cmd = self.fetch_command(command)
             site_factory = pickle.loads(pickle.dumps(self.site_factory))
-            cmd.run_from_argv(site_factory, command, argv[1:])
+            return cmd.run_from_argv(site_factory, command, argv[1:])
 
-
-def execute(sites, argv=None, **params):
-    '''Execute a command against a sites instance'''
-    utility = ManagementUtility(sites, argv, **params)
-    utility.execute()
-    return utility.sites

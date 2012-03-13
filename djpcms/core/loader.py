@@ -61,13 +61,11 @@ for djpcms web sites.
     ENVIRON_NAME = None
     settings = None
     
-    def __init__(self, name = None, site = None, **params):
+    def __init__(self, name = None, **params):
         self.local = {}
         self.callbacks = []
-        self.name = name or 'DJPCMS' 
-        self.setup(**params)
-        
-    def setup(self, **params):
+        self.name = name or 'DJPCMS'
+        params.pop('site',None)
         self.params = params
         
     def __getstate__(self):
@@ -110,7 +108,7 @@ for djpcms web sites.
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
             name = 'load_{0}'.format(self.name.lower())
-            loader = getattr(self,name,self.load)
+            loader = getattr(self,name, self.load)
             self.local['site'] = loader()
             if self.site is not None:
                 try:

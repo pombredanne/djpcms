@@ -67,7 +67,7 @@ response.
         """Return the djpcms version, which should be correct for all
 built-in djpcms commands. User-supplied commands should override this method.
         """
-        return djpcms.get_version()
+        return djpcms.__version__
 
     def create_parser(self, command):
         """
@@ -92,12 +92,14 @@ built-in djpcms commands. User-supplied commands should override this method.
         parser = self.create_parser(prog_name, subcommand)
         parser.print_help()
 
-    def run_from_argv(self, sites, command, argv):
+    def run_from_argv(self, website, command, argv):
         parser = self.create_parser(command)
         options = parser.parse_args(argv)
-        self.execute(sites, options)
+        self.website = website
+        self.execute(options)
+        return self
 
-    def execute(self, site_factory, options):
+    def execute(self, options):
         """Try to execute this command. If the command raises a
         ``CommandError``, intercept it and print it sensibly to
         stderr.
@@ -105,7 +107,7 @@ built-in djpcms commands. User-supplied commands should override this method.
         try:
             self.stdout = sys.stdout
             self.stderr = sys.stderr
-            output = self.handle(site_factory, options)
+            output = self.handle(options)
             if output:
                 self.stdout.write(output)
         except CommandError as e:

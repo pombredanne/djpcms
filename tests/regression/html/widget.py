@@ -1,6 +1,5 @@
-import unittest as test
-
-from djpcms import forms, html, to_string
+from djpcms import html
+from djpcms.utils import test
 
 
 class testAttributes(test.TestCase):
@@ -15,6 +14,11 @@ class testAttributes(test.TestCase):
                               " class='pippo ciao'"))
         c = html.Widget().addClass('ciao pippo bla')
         self.assertTrue(c.hasClass('bla'))
+        
+    def testMakerClass(self):
+        template = html.WidgetMaker(cn = 'bla foo')
+        c = template().addClass('ciao').addClass('pippo')
+        self.assertEqual(c.classes,set(('bla','foo','ciao','pippo')))
     
     def testData(self):
         c = html.Widget()
@@ -48,9 +52,9 @@ class testAttributes(test.TestCase):
 class TestWidgets(test.TestCase):
     
     def testAncor(self):
-        a = html.Widget('a', cn = 'bla', href = '/abc/')
+        a = html.Widget('a', 'kaput', cn = 'bla', href = '/abc/')
         self.assertEqual(a.attrs['href'],'/abc/')
-        ht = a.render(inner = 'kaput')
+        ht = a.render()
         self.assertTrue('>kaput</a>' in ht)
         a = html.Widget('a', xxxx = 'ciao')
         self.assertFalse('xxxx' in a.attrs)
@@ -128,7 +132,5 @@ class TestInputs(test.TestCase):
         self.assertTrue("class='pippo another'" in ht or
                         "class='another pippo'" in ht)
         
-    def testFailTextInput(self):
-        self.assertRaises(TypeError,html.TextInput, fake='test')
         
 

@@ -2,6 +2,7 @@
 __pycache__
 djpcms.egg-info/*
 *.egg
+htmlcov
 dist/*
 docs/build/*
 MANIFEST

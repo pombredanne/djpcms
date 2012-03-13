@@ -46,10 +46,8 @@ class TestSimpleForm(test.TestCase):
         
     def testSearchForm(self):
         '''Test the search form in :mod:`djpcms.plugins.apps`'''
-        self.assertTrue(len(HtmlSearchForm.inputs),1)
-        s = HtmlSearchForm.inputs[0].render()
-        self.assertTrue('<input ' in s)
-        self.assertTrue(s.startswith("<div class='cx-submit'>"))
+        HtmlSearchForm = search_form()
+        self.assertEqual(len(HtmlSearchForm.inputs),0)
         w = HtmlSearchForm()
         form = w.form
         self.assertFalse(form.is_bound)

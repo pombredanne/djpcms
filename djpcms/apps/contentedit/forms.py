@@ -2,7 +2,8 @@ from copy import copy
 
 import djpcms
 from djpcms import forms, html, plugins
-from djpcms.core import layout, orms
+from djpcms.core import orms
+from djpcms.html import layout
 from djpcms.utils import markups
 
 

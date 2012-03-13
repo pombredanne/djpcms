@@ -8,10 +8,10 @@ import logging
 
 from djpcms.utils.py2py3 import iteritems
 from djpcms.html import ContextRenderer, Widget
+from djpcms.html.layout import Meta, htmldoc
 from djpcms.utils.ajax import jservererror, isajax
 
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
-from .layout import Meta, htmldoc
 
 
 logger = logging.getLogger('djpcms')

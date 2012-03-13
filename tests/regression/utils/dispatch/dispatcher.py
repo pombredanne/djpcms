@@ -1,8 +1,8 @@
 import gc
 import sys
 
-from djpcms.utils.dispatch import Signal
 from djpcms.utils import test
+from djpcms.utils.dispatch import Signal
 
 
 if sys.platform.startswith('java'):
@@ -33,7 +33,7 @@ a_signal = Signal(providing_args=["val"])
 class DispatcherTests(test.TestCase):
     """Test suite for dispatcher (barely started)"""
 
-    def _testIsClean(self, signal):
+    def _tIsClean(self, signal):
         """Assert that everything has been cleaned up automatically"""
         self.assertEqual(signal.receivers, [])
 
@@ -46,7 +46,7 @@ class DispatcherTests(test.TestCase):
         result = a_signal.send(sender=self, val="test")
         self.assertEqual(result, expected)
         a_signal.disconnect(receiver_1_arg, sender=self)
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testIgnoredSender(self):
         a_signal.connect(receiver_1_arg)
@@ -54,7 +54,7 @@ class DispatcherTests(test.TestCase):
         result = a_signal.send(sender=self, val="test")
         self.assertEqual(result, expected)
         a_signal.disconnect(receiver_1_arg)
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testGarbageCollected(self):
         a = Callable()
@@ -64,7 +64,7 @@ class DispatcherTests(test.TestCase):
         garbage_collect()
         result = a_signal.send(sender=self, val="test")
         self.assertEqual(result, expected)
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testMultipleRegistration(self):
         a = Callable()
@@ -80,7 +80,7 @@ class DispatcherTests(test.TestCase):
         del a
         del result
         garbage_collect()
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testUidRegistration(self):
         def uid_based_receiver_1(**kwargs):
@@ -93,7 +93,7 @@ class DispatcherTests(test.TestCase):
         a_signal.connect(uid_based_receiver_2, dispatch_uid = "uid")
         self.assertEqual(len(a_signal.receivers), 1)
         a_signal.disconnect(dispatch_uid = "uid")
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testRobust(self):
         """Test the sendRobust function"""
@@ -105,7 +105,7 @@ class DispatcherTests(test.TestCase):
         self.assertTrue(isinstance(err, ValueError))
         self.assertEqual(err.args, ('this',))
         a_signal.disconnect(fails)
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
     def testDisconnection(self):
         receiver_1 = Callable()
@@ -118,6 +118,6 @@ class DispatcherTests(test.TestCase):
         del receiver_2
         garbage_collect()
         a_signal.disconnect(receiver_3)
-        self._testIsClean(a_signal)
+        self._tIsClean(a_signal)
 
 

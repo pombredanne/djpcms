@@ -1,5 +1,5 @@
-from djpcms.utils import test, zip
-from djpcms import forms, html, to_string
+from djpcms import forms, html
+from djpcms.utils import test, zip, to_string
 
 
 class TableTests(test.TestCase):

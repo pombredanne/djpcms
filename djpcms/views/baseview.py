@@ -268,7 +268,6 @@ it is the base class of :class:`pageview` and :class:`View`.
         return ()
     
     def __call__(self, request):
-        is_xhr = request.is_xhr
         method = request.method
         if not request.is_xhr:
             return getattr(self,'%s_response' % method)(request)
@@ -278,7 +277,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         callable = getattr(self,'ajax_%s_response' % method)
         if ajax_action:
             ajax_view = 'ajax__' + ajax_action
-            if hasattr(self,ajax_view):
+            if hasattr(self, ajax_view):
                 callable = getattr(self, ajax_view)
             else:
                 callable = getattr(self.appmodel, ajax_view, callable)

@@ -1,6 +1,6 @@
 from djpcms.utils import force_str
 from djpcms.core.page import block_htmlid
-from djpcms.html import EMPTY_VALUE, Widget, blockelement, ContextRenderer
+from djpcms.html import Widget, blockelement, ContextRenderer
 
 
 __all__ = ['BlockContentGen','InnerContent']

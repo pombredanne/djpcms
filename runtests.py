@@ -6,19 +6,32 @@
 import sys
 import os
 
-from djpcms.utils.pathtool import AddToPath
+try:
+    import pulsar
+except ImportError:
+    pulsar = None
+    
+try:
+    import nose
+except:
+    nose = None
 
-# This is for development.
-pt = AddToPath(__file__)
-pulsar = pt.add(module='pulsar', up = 1, down = ('pulsar',))
-pt.add(module='stdnet', up = 1, down = ('python-stdnet',))
-pt.add(module='djpapps', up = 1, down = ('djpapps',))
-###############################################################
+import djpcms
 
 if pulsar:
     from pulsar.apps.test import TestSuite, TestOptionPlugin
     from pulsar.apps.test.plugins import bench, httpclient
 
+def noseoption(argv,*vals,**kwargs):
+    if vals:
+        for val in vals:
+            if val in argv:
+                return
+        argv.append(vals[0])
+        value = kwargs.get('value')
+        if value is not None:
+            argv.append(value)
+    
 def start():
     global pulsar
     argv = sys.argv
@@ -34,10 +47,16 @@ def start():
                                 httpclient.HttpClient())
                      )
         suite.start()
-    else:
+    elif nose:
         os.environ['djpcms_test_suite'] = 'nose'
-        import nose
-        nose.main()
+        argv = list(sys.argv)
+        noseoption(argv, '-w', value = 'tests/regression')
+        noseoption(argv, '--all-modules')
+        from tests import regression
+        nose.main(argv=argv)
+    else:
+        print('To run tests you need either pulsar or nose.')
+        exit(0)
 
 if __name__ == '__main__':
     start()

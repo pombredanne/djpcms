@@ -1,7 +1,8 @@
 import os
 import itertools
 
-from djpcms import SuspiciousOperation, to_string
+from djpcms import SuspiciousOperation
+from djpcms.utils import to_string
 
 
 __all__ = ['File','Filehandler']

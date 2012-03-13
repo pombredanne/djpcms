@@ -2,7 +2,7 @@ import datetime
 import json
 
 from djpcms import views
-from djpcms.utils.unipath import FSPath as Path
+from djpcms.utils.path import Path
 
     
 class DocView(views.View):

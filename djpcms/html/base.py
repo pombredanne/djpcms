@@ -2,7 +2,6 @@ import json
 from copy import copy, deepcopy
 from inspect import isgenerator
 
-import djpcms
 from djpcms.utils.py2py3 import UnicodeMixin, is_string, to_string,\
                                 is_bytes_or_string, iteritems
 from djpcms.utils import slugify, escape, mark_safe, lazymethod
@@ -17,9 +16,14 @@ __all__ = ['flatatt',
            'LazyHtml',
            'WidgetMaker',
            'Widget',
-           'Html']
+           'Html',
+           'CONSTS']
 
+class CONSTS:
+    NON_BREACKING_SPACE = mark_safe('&nbsp;')
+    
 default_widgets_makers = {}
+
 
 def attrsiter(attrs):
     for k,v in attrs.items():
@@ -67,7 +71,7 @@ It should be overritten by derived classes.'''
         return None
     
 
-class LazyHtml(djpcms.UnicodeMixin):
+class LazyHtml(UnicodeMixin):
     '''A lazy wrapper for html components
     '''
     def __init__(self, request, elem):
@@ -79,7 +83,56 @@ class LazyHtml(djpcms.UnicodeMixin):
         return mark_safe(self.elem.render(self.request))
     
 
-class Widget(object):
+class AttributeMixin(object):
+    
+    def __init__(self, cn = None, data = None):
+        self.classes = set()
+        self.data = {}
+        self.addData(data)
+        self.addClass(cn)
+    
+    def addClass(self, cn):
+        '''Add the specific class names to the class set and return ``self``.'''
+        if cn:
+            add = self.classes.add
+            for cn in cn.split():
+                cn = slugify(cn)
+                add(cn)
+        return self
+    
+    def hasClass(self, cn):
+        '''``True`` if ``cn`` is a class of self.'''
+        return cn in self.classes
+                
+    def removeClass(self, cn):
+        '''Remove classes
+        '''
+        if cn:
+            ks = self.classes
+            for cn in cn.split():
+                if cn in ks:
+                    ks.remove(cn)
+        return self
+    
+    def addData(self, name, val = None):
+        '''Add/updated the data attribute.'''
+        if val is not None:
+            if name in self.data:
+                val0 = self.data[name]
+                if isinstance(val0, dict) and isinstance(val, dict):
+                    val0.update(val)
+                    return self
+        elif isinstance(name, dict):
+            add = self.addData
+            for n,v in name.items():
+                add(n, v)
+            return self
+        if name:
+            self.data[name] = val
+        return self
+    
+    
+class Widget(AttributeMixin):
     '''A class which exposes jQuery-alike API for
 handling HTML classes, attributes and data on a html object::
 
@@ -120,19 +173,17 @@ is a factory of :class:`Widget`.
 :parameter maker: The :class:`WidgetMaker` creating this :class:`Widget`.
 :parameter data_stream: set the :attr:`data_stream` attribute.
 '''
+        super(Widget,self).__init__(cn = cn, data = data)
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
         self.maker = maker
-        self.classes = set()
         self._css = css or {}
-        self.data = data or {}
         self.attrs = attrs = maker.attrs.copy()
-        self.addClass(maker.default_style)\
-            .addClass(maker.default_class)\
-            .addClass(cn)
+        self.addClass(maker.default_style).addClass(maker.default_class)
+        self.classes.update(maker.classes)
         attributes = maker.attributes
         for att in list(params):
             if att in attributes:
@@ -197,23 +248,6 @@ is a factory of :class:`Widget`.
             return flatatt(attrs)
         else:
             return ''
-        
-    def addData(self, name, val = None):
-        '''Add/updated the data attribute.'''
-        if val:
-            if name in self.data:
-                val0 = self.data[name]
-                if isinstance(val0,dict) and isinstance(val,dict):
-                    val0.update(val)
-                    return self
-        elif isinstance(name,dict):
-            add = self.addData
-            for n,v in name.items():
-                add(n, v)
-            return self
-        if name:
-            self.data[name] = val
-        return self
     
     def css(self, mapping):
         '''Upsate the css dictionary if *mapping* is a dictionary, otherwise
@@ -223,15 +257,6 @@ is a factory of :class:`Widget`.
             return self
         else:
             return self._css.get(mapping)
-        
-    def addClass(self, cn):
-        '''Add the specific class names to the class set and return ``self``.'''
-        if cn:
-            add = self.classes.add
-            for cn in cn.split():
-                cn = slugify(cn)
-                add(cn)
-        return self
     
     def addAttr(self, name, val):
         '''Add the specific attribute to the attribute dictionary
@@ -246,20 +271,6 @@ with key ``name`` and value ``value`` and return ``self``.'''
     
     def attr(self, name):
         return self.attrs.get(name,None)
-    
-    def hasClass(self, cn):
-        '''``True`` if ``cn`` is a class of self.'''
-        return cn in self.classes
-                
-    def removeClass(self, cn):
-        '''Remove classes
-        '''
-        if cn:
-            ks = self.classes
-            for cn in cn.split():
-                if cn in ks:
-                    ks.remove(cn)
-        return self
     
     def add(self, *args, **kwargs):
         '''Add to the stream. This functions delegates the adding to the
@@ -293,7 +304,7 @@ for concatenation.'''
         return self._html
     
 
-class WidgetMaker(Renderer):
+class WidgetMaker(Renderer, AttributeMixin):
     '''A :class:`Renderer` used as factory for :class:`Widget` instances.
 It is general enough that it can be use for a vast array of HTML widgets. For
 corner cases, users can subclass it to customize behavior. 
@@ -422,7 +433,9 @@ corner cases, users can subclass it to customize behavior.
                  description = '', widget = None,
                  attributes = None, renderer = None,
                  data2html = None, media = None,
-                 data = None, **params):
+                 data = None, cn = None,
+                 **params):
+        AttributeMixin.__init__(self, cn = cn, data = data)
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
@@ -468,11 +481,6 @@ corner cases, users can subclass it to customize behavior.
     
     def __call__(self, data_stream = None, cn = None,
                  data = None, css = None, **params):
-        if self.data:
-            d = deepcopy(self.data)
-            if data:
-                d.update(data)
-            data = d
         return self._widget(self,
                             data_stream = data_stream,
                             cn = cn,

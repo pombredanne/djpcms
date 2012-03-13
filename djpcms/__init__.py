@@ -22,8 +22,7 @@ LIBRARY_NAME = os.path.basename(PACKAGE_DIR)
 
 
 def DEFAULT_JAVASCRIPT():
-    return ['djpcms/modernizr-1.7.min.js',
-            'djpcms/jquery.cookie.js',
+    return ['djpcms/jquery.cookie.js',
             'http://malsup.github.com/jquery.form.js',
             #'djpcms/form.js',
             'djpcms/showdown.js',

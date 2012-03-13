@@ -82,12 +82,23 @@ class LazyHtml(UnicodeMixin):
     def __unicode__(self):
         return mark_safe(self.elem.render(self.request))
     
+    
+def update(container, target):
+    if container:
+        container = deepcopy(container)
+        if target:
+            container.update(target)
+        return container
+    return target
+    
 
 class AttributeMixin(object):
+    classes = None
+    data = None
     
     def __init__(self, cn = None, data = None):
-        self.classes = set()
-        self.data = {}
+        self.classes = update(self.classes,set())
+        self.data = update(self.data,{})
         self.addData(data)
         self.addClass(cn)
     
@@ -173,12 +184,14 @@ is a factory of :class:`Widget`.
 :parameter maker: The :class:`WidgetMaker` creating this :class:`Widget`.
 :parameter data_stream: set the :attr:`data_stream` attribute.
 '''
-        super(Widget,self).__init__(cn = cn, data = data)
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
+        cn = update(maker.classes, cn)
+        data = update(maker.data, data)            
+        super(Widget,self).__init__(cn = cn, data = data)
         self.maker = maker
         self._css = css or {}
         self.attrs = attrs = maker.attrs.copy()
@@ -442,7 +455,6 @@ corner cases, users can subclass it to customize behavior.
         self.allchildren = []
         self.children = {}
         self.attrs = attrs = {}
-        self.data = data or {}
         self._media = media
         self.description = description or self.description
         self.renderer = renderer

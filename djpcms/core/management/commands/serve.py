@@ -6,14 +6,14 @@ import djpcms
 
 DEFAULT_PORT = 8060
 
-logger = logging.getLogger('djpcms.server')
+LOGGER = logging.getLogger('djpcms.server')
 
 
 def serve(site_factory, port = 0, use_reloader = False, dry = False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""
     server = WSGIServer(('', port), WSGIRequestHandler)
     server.set_app(site_factory.wsgi())
-    logger.info('Serving on port {0}'.format(port))
+    LOGGER.info('Serving on port {0}'.format(port))
     if not dry:     #pragma nocover
         server.serve_forever()
 

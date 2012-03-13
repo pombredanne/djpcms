@@ -36,9 +36,9 @@ SITEMAP_TIMEOUT = 60
 # To group applications admin together. Check the documentation
 ADMIN_GROUPING = None
 
-#MIDDLEWARE AND CONTEXT PROCESSORS
-AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
+###################################### MIDDLEWARE AND AUTHENTICATION
 REQUEST_CONTEXT_PROCESSORS = ()
+AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
 
 TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = 'default'
@@ -90,7 +90,3 @@ LOGGING = djpcms.LOGGING_SAMPLE
 #######################################    ANALYTICS
 GOOGLE_ANALYTICS_ID = None
 
-#######################################    JINJA2 Settings
-#TEMPLATE_ENGINE = 'jinja2'
-JINJA2_EXTENSIONS = []
-JINJA2_TEMPLATE_LOADERS = (('djpcms.apps.jinja2template.ApplicationLoader',),)

@@ -49,18 +49,9 @@ class Loader(djpcms.WebSite):
     
     def page_layout(self):
         # Page layout
-        page(
-             topbar(brand = 'Playground'),
-             container(
-             row(column(1,1,renderer = self.page_header_layout),
-                 id = 'page-header',
-                 role = 'header'),
-             row(column(1, 3, key = 'sitenav'),
-                 column(2, 3, key = 'inner')),
-             row(role =  'footer',
-                 renderer = self.page_footer_layout)),
-             role = 'page',
-             id = 'body-container').register('default')
+        page(container('header', topbar(brand = 'Playground')),
+             container('content'),
+             grid(row(column(1)))).register('default')
             
     def page_header_layout(self, request, widget, context):
         return '<h2>'+context['title']+'</h2>'

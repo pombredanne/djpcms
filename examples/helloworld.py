@@ -4,14 +4,20 @@ To run the server simply::
 
     python helloworld.py serve
 '''
-import djpcms
-from djpcms.views import Application,View
+try:
+    import djpcms
+except ImportError:
+    import sys
+    sys.path.insert(0,'../')
+    import djpcms
+from djpcms.views import Application, View
 
-
-class Loader(djpcms.SiteLoader):
+class HelloWorld(djpcms.WebSite):
     
     def load(self):
-        settings = djpcms.get_settings(__file__, APPLICATION_URLS = self.urls)
+        settings = djpcms.get_settings(__file__,
+                                       APPLICATION_URLS = self.urls,
+                                       DEBUG = True)
         return djpcms.Site(settings)
     
     def urls(self, site):
@@ -24,6 +30,6 @@ class Loader(djpcms.SiteLoader):
 
 
 if __name__ == '__main__':
-    djpcms.execute(Loader())
+    djpcms.execute(HelloWorld())
 
     

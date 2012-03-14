@@ -125,6 +125,9 @@ and runs it."""
             utility.execute()
         else:
             cmd = self.fetch_command(command)
-            site_factory = pickle.loads(pickle.dumps(self.site_factory))
+            if self.site_factory.can_pickle:
+                site_factory = pickle.loads(pickle.dumps(self.site_factory))
+            else:
+                site_factory = self.site_factory
             return cmd.run_from_argv(site_factory, command, argv[1:])
 

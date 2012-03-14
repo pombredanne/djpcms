@@ -2,7 +2,7 @@ from djpcms import html
 from djpcms.utils import test
 
 
-class testAttributes(test.TestCase):
+class TestAttributes(test.TestCase):
     
     def testClass(self):
         c = html.Widget()

@@ -20,7 +20,17 @@ class TestInitFile(test.TestCase):
     def test_meta(self):
         for m in ("__author__", "__contact__", "__homepage__", "__doc__"):
             self.assertTrue(getattr(package, m, None))
-            
+    
+    def test_client(self):
+        client = self.client()
+        self.assertTrue(client)
+        middleware = client.handler.middleware
+        self.assertTrue(middleware)
+        self.assertTrue(middleware[-1].site)
+
+
+class TestNoFile(test.TestCase):
+    
     def testNoSite(self):
         website = self.website()
         self.assertEqual(website.test, self)

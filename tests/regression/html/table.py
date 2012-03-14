@@ -2,7 +2,7 @@ from djpcms import forms, html
 from djpcms.utils import test, zip, to_string
 
 
-class TableTests(test.TestCase):
+class TestTable(test.TestCase):
     heads = ('first','second')
     
     def pagination(self, **kwargs):
@@ -18,7 +18,7 @@ class TableTests(test.TestCase):
     def testTablePagination(self):
         self.pagination()
         
-    def testSimple(self):
+    def testSimpletable(self):
         p = self.pagination()
         tbl = p.widget(())
         ht = tbl.render()

@@ -41,11 +41,11 @@ def start():
     
     if pulsar:
         os.environ['djpcms_test_suite'] = 'pulsar'
-        suite = TestSuite(description = 'Djpcms Asynchronous test suite',
-                     modules = ('tests',),
-                     plugins = (bench.BenchMark(),
-                                httpclient.HttpClient())
-                     )
+        suite = TestSuite(
+                    description = 'Djpcms Asynchronous test suite',
+                    modules = ('tests',),
+                    plugins = (bench.BenchMark(),
+                               httpclient.HttpClient()))
         suite.start()
     elif nose:
         os.environ['djpcms_test_suite'] = 'nose'

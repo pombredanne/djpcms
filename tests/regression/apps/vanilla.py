@@ -3,14 +3,14 @@ import djpcms
 from djpcms import views, Site, get_settings
 from djpcms.utils import test
 from djpcms.apps.vanilla import Application
-
-
-def site_for_app(app):
-    return Site(get_settings(INSTALLED_APPS = ('stdcms','examples'),
-                             APPLICATION_URLS = (app,)))
     
 
 class TestVanillaMeta(test.TestCase):
+    installed_apps = ('stdcms','examples')
+    
+    def urls(self, site):
+        from examples.models import Portfolio
+        return (Application('/portfolio/',Portfolio),)
     
     def testApplication(self):
         app = Application('/')
@@ -22,20 +22,17 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(app[3].name,'change')
         self.assertEqual(app[4].name,'delete')
         
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(test.djpapps, "Requires djpapps installed")
     def testParentViews(self):
         from examples.models import Portfolio
-        app = Application('/',Portfolio)
-        site = site_for_app(app)
-        self.assertEqual(app.model,Portfolio)
-        self.assertEqual(app.mapper,None)
+        site = self.website()()
+        app = site[0]
+        self.assertEqual(app.model, Portfolio)
+        self.assertEqual(app.mapper.model, Portfolio)
         self.assertEqual(len(app),5)
-        self.assertFalse(app.isbound)
+        self.assertTrue(app.isbound)
         self.assertEqual(len(site.urls()),1)
-        self.assertTrue(app.isbound)
-        self.assertEqual(app.mapper.model,Portfolio)
         self.assertEqual(len(app.urls()),5)
-        self.assertTrue(app.isbound)
         search = app[0]
         add = app[1]
         view = app[2]
@@ -49,11 +46,9 @@ class TestVanillaMeta(test.TestCase):
         
     @test.skipUnless(test.djpapps,"Requires djpapps installed")
     def testRoutes(self):
-        from examples.models import Portfolio
-        app = Application('/portfolio/',Portfolio)
-        site = Site(get_settings(APPLICATION_URLS = (app,)))
+        site = self.website()()
+        app = site[0]
         self.assertEqual(len(app),5)
-        self.assertFalse(app.isbound)
         self.assertEqual(len(site.urls()),1)
         self.assertEqual(len(app.urls()),5)
         self.assertTrue(app.isbound)
@@ -70,8 +65,8 @@ class TestVanillaMeta(test.TestCase):
     
     @test.skipUnless(test.djpapps,"Requires djpapps installed")    
     def testGetViews(self):
-        from examples.models import Portfolio
-        app = Application('/',Portfolio)
+        site = self.website()()
+        app = site[0]
         self.assertEqual(app.views.get('search').name,'search')
         self.assertEqual(app.views.get('view').name,'view')
         self.assertEqual(app.views.get('add').name,'add')
@@ -118,18 +113,9 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(view,port.views['search'])
         view, urlargs = site.resolve('bla/56/portfolio/myportfolio/')
         self.assertEqual(urlargs,{'id':'56','pid':'myportfolio'})
-
-
-@test.skipUnless(test.djpapps,"Requires djpapps installed")
-class VanillaSite(test.TestCase):
-    
-    def build_site(self):
-        from examples.models import Book
-        app = Application('/',Book)
-        settings = djpcms.get_settings(APPLICATION_URLS = (app,))
-        return djpcms.Site(settings)
     
     def testRequestHome(self):
-        response = self.client.get('/')
+        client = self.client()
+        response = client.get('/')
         self.assertEqual(response.status_code,200)
         

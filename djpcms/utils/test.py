@@ -34,36 +34,48 @@ skipUnless = test.skipUnless
 
 
 class TestWebSite(WebSite):
-    
+    can_pickle = False
     def __init__(self, test):
         self.test = test
         super(TestWebSite,self).__init__()
         
     def load(self):
         settings = get_settings(settings = self.settings,
-                                APPLICATION_URLS = self.test.urls)
+                                APPLICATION_URLS = self.test.urls,
+                                INSTALLED_APPS = self.test.installed_apps)
+        self.add_wsgi_middleware(self.test.wsgi_middleware())
+        self.add_response_middleware(self.test.response_middleware())
         return Site(settings)
 
 
 class TestCase(test.TestCase):
+    '''A :class:`TestCase` class which adds the :meth:`website` method for 
+easy testing web site applications.'''
+    installed_apps = ('djpcms',)
         
     def website(self):
+        '''Return a :class:`djpcms.WebSite` loader, a callable object
+returning a :class:`djpcms.Site`. Tipical usage::
+        
+    website = self.website()
+    
+    site = website()
+    wsgi = website.wsgi()
+'''
         return TestWebSite(self)
     
+    def wsgi_handler(self):
+        return self.website().wsgi()
+    
     def wsgi_middleware(self):
+        '''Override this method to add wsgi middleware to the test site
+WSGI handler.'''
         return []
     
     def response_middleware(self):
+        '''Override this method to add response middleware to the test site
+WSGI handler.'''
         return []
-    
-    def wsgi_handler(self):
-        '''Crete the WSGI handler for testing. This function invoke the
- :meth:`build_site` method which needs to be implemented by your test case.'''
-        site = self.website()
-        m = self.wsgi_middleware()
-        site.load()
-        m.append(http.WSGI(site))
-        return http.WSGIhandler(m,self.response_middleware())
     
     def __resolve_test(self, path):
         '''Utility function for testing url resolver'''

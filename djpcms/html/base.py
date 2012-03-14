@@ -104,7 +104,9 @@ class AttributeMixin(object):
     
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
-        if cn:
+        if isinstance(cn,(tuple,list,set,frozenset)):
+            self.classes.update(cn)
+        elif cn:
             add = self.classes.add
             for cn in cn.split():
                 cn = slugify(cn)

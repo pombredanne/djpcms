@@ -16,37 +16,34 @@ class UserAppMeta(test.TestCase):
         self.assertEqual(app[4].name,'change_password')
         
 
-@test.skipUnless(test.djpapps,"Requires djpapps installed")
+@test.skipUnless(test.djpapps, "Requires djpapps installed")
 class UserApp(test.TestCase):
+    installed_apps = ('djpcms','sessions')
     
-    def urls(self):
+    def urls(self, site):
         from djpcms.apps.user import UserApplication
         from sessions.models import User
         return (UserApplication('/accounts/', User),)
-    
-    def setUp(self):
-        settings = djpcms.get_settings(APPLICATION_URLS = self.urls,
-                                       INSTALLED_APPS = ('djpcms','sessions'))
-        self.site = djpcms.Site(settings)
         
     def testMeta(self):
         '''Check the application meta attributes'''
-        site = self.site
-        self.assertFalse(site.isbound)
-        self.assertEqual(len(site),0)
-        urls = self.site.urls()
-        self.assertEqual(len(urls),1)
+        from sessions.models import User
+        site = self.website()()
         self.assertTrue(site.isbound)
+        self.assertEqual(site.User.model, User)
+        self.assertEqual(len(site),1)
         
     def testLoginResolver(self):
-        view, urlargs = self.site.resolve('accounts/login')
-        app = self.site[0]
-        self.assertEqual(view,app.views['login'])
+        site = self.website()()
+        view, urlargs = site.resolve('accounts/login')
+        app = site[0]
+        self.assertEqual(view, app.views['login'])
         self.assertEqual(urlargs,{})
         
     def testLogoutResolver(self):
-        view, urlargs = self.site.resolve('accounts/logout')
-        app = self.site[0]
+        site = self.website()()
+        view, urlargs = site.resolve('accounts/logout')
+        app = site[0]
         self.assertEqual(view,app.views['logout'])
         self.assertEqual(urlargs,{})
         

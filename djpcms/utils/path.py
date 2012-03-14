@@ -21,7 +21,7 @@ class Path(string_type):
     isfile = lambda self: os.path.isfile(self)
     isdir = lambda self: os.path.isdir(self)
     exists = lambda self: os.path.exists(self)
-    realpath = lambda self: self.__class__(os.path.realpath(self))
+    realpath = lambda self: self.__class__(os.path.realpath(string_type(self)))
         
     def join(self, *path):
         return self.__class__(os.path.join(self, *path))

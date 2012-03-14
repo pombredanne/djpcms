@@ -1,3 +1,5 @@
+import os
+
 from djpcms import forms, html
 from djpcms.utils import test
 
@@ -15,12 +17,12 @@ by default are true and some which are false.'''
         self.assertTrue("type='checkbox'" in text)
         self.assertTrue("checked='checked" in text)
     
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
     def testUserChangeFormWidthModel(self):
         '''Test the UserChangeForm which provides boolean fields which
 by default are true and some which are false.'''
         from djpcms.apps.user import UserChangeForm
-        from sessions import User
+        from stdcms.sessions import User
         html_form = forms.HtmlForm(UserChangeForm, model = User)
         fw = html_form()
         text = fw.render()

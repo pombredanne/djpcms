@@ -97,7 +97,7 @@ class PageChangeView(views.ChangeView):
                                                           **kwargs)
     
     
-class SiteMapApplication(TabViewMixin,views.Application):
+class SiteMapApplication(TabViewMixin, views.Application):
     has_plugins = False
     '''Application to use for admin sitemaps'''
     pagination = Pagination(('url','view','template',

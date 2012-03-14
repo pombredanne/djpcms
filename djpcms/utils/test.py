@@ -19,7 +19,7 @@ except ImportError: # pragma nocover
     BeautifulSoup = None
     
 import djpcms
-from djpcms import Site, WebSite, get_settings, views, forms, http
+from djpcms import Site, WebSite, get_settings, views, forms, http, orms
 from djpcms.forms.utils import fill_form_data
 from djpcms.utils.py2py3 import BytesIO, ispy3k, native_str 
 
@@ -43,6 +43,12 @@ class TestWebSite(WebSite):
         
     def load(self):
         return self.test.load_site(self)
+    
+    def finish(self):
+        '''Once the site has loaded, we create new tables.'''
+        self.site.clear_model_tables()
+        self.site.create_model_tables()
+        self.test.add_initial_db_data()
 
 
 class DjpcmsTestMixin(object):
@@ -95,6 +101,9 @@ site interface. By default it return a simple view.'''
                     routes = (
                         views.View('/', renderer = lambda request: 'Hello!'),)
                 ),
+                
+    def add_initial_db_data(self):
+        pass
         
 
 class TestCase(test.TestCase, DjpcmsTestMixin):
@@ -107,7 +116,8 @@ class TestCaseWidthAdmin(TestCase):
         from djpcms.apps.admin import make_admin_urls
         site = super(TestCaseWidthAdmin,self).load_site(website)
         settings_admin = djpcms.get_settings(self.settings,
-                                APPLICATION_URLS  = make_admin_urls())
+                                APPLICATION_URLS  = make_admin_urls(),
+                                INSTALLED_APPS = self.installed_apps)
         site.addsite(settings_admin, route = '/admin/')
         return site
     

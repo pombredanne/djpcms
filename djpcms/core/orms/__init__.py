@@ -54,7 +54,7 @@ def getmodel(appmodel):
     '''Return an instance of a ORM djpcms wrapper'''
     if model is None:
         return
-    if not isinstance(model,type):
+    if not isinstance(model, type):
         instance = model
         model = instance.__class__
     wrapper = getattr(model,'_djpcms_orm_wrapper',None)    

@@ -339,6 +339,12 @@ which updates the input ``dictionary`` with library dependent information.
             for app in site.applications():
                 yield app
                 
+    def clear_model_tables(self):
+        pass
+    
+    def create_model_tables(self):
+        pass
+                
 
 class WebSite(object):
     '''A class for callable instances for loading and configuring sites.

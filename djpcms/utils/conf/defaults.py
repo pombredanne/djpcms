@@ -1,6 +1,5 @@
 import djpcms
 
-#######################################    GLOBAL FLAGS
 DEBUG = False
 SECRET_KEY = 'djpcms'   # Secret key, please change this to a unique value
 PROFILING_KEY = None

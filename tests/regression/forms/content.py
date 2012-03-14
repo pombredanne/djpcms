@@ -1,3 +1,5 @@
+import os
+
 from djpcms import forms, html
 from djpcms.utils import test
 from djpcms.apps.search import search_form
@@ -20,7 +22,7 @@ class TestSimpleForm(test.TestCase):
         self.assertEqual(initial['in_navigation'],0)
         self.assertEqual(d,initial)
         
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
     def testPageFormBound(self):
         from stdcms.models import Page
         from stdnet import orm

@@ -46,6 +46,7 @@ class OrmWrapper(UnicodeMixin):
 
 '''
     orm = None
+    hash = None
     DoesNotExist = None
     FieldValueError = None
     model = None
@@ -53,6 +54,7 @@ class OrmWrapper(UnicodeMixin):
     module_name = None
     
     def __init__(self, model):
+        self.orig_model = model
         self.model = model
         self.appmodel = None
         self.nicename = None

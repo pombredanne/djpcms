@@ -1,33 +1,20 @@
 '''Test Pages'''
-import djpcms
+import os
+
 from djpcms.utils import test
 
 
-def appurls():
-    from examples.models import Portfolio
-    from djpcms.apps import vanilla
-    return (vanilla.Application('portfolio/',Portfolio),)
-
-
-@test.skipUnless(test.djpapps,"Requires djpapps installed")
-class TestPage(test.TestCase):
-    INSTALLED_APPS = ('stdcms','examples')
+@test.skipUnless(os.environ['stdcms'],"Requires stdcms installed")
+class TestPage(test.TestCaseWidthAdmin):
+    INSTALLED_APPS = ('stdcms','tests')
     
-    def build_site(self):
-        from djpcms.apps import admin
-        settings = djpcms.get_settings(
-                INSTALLED_APPS = self.INSTALLED_APPS,
-                APPLICATION_URLS = appurls)
-        root = djpcms.Site(settings)
-        settings = djpcms.get_settings(
-                INSTALLED_APPS = self.INSTALLED_APPS,
-                APPLICATION_URLS = admin.make_admin_urls(self.INSTALLED_APPS))
-        root.addsite(settings,'admin/')
-        return root
+    def urls(self, site):
+        from tests.models import Portfolio
+        from djpcms.apps import vanilla
+        return (vanilla.Application('portfolio/',Portfolio),)
     
     def testRootSite(self):
-        root = self.build_site()
-        self.assertFalse(root.isbound)
+        root = self.website()()
         self.assertEqual(len(root.urls()),2)
         self.assertTrue(root.isbound)
         

@@ -20,15 +20,11 @@ def get_simpleapps():
     
 class TestApplication(test.TestCase):
 
-    def setUp(self):
-        settings = djpcms.get_settings(__file__,
-                                       APPLICATION_URLS = get_simpleapps)
-        self.site = site = djpcms.Site(settings = settings)
-        self.assertEqual(site.parent,None)
-        self.assertEqual(site.path,'/')
+    def urls(self, site):
+        return get_simpleapps()
         
     def testBindning(self):
-        site = self.site
+        site = self.website().load()
         self.assertFalse(site.isbound)
         urls = site.urls()
         self.assertEqual(len(urls),2)
@@ -44,7 +40,7 @@ class TestApplication(test.TestCase):
         self.assertEqual(len(app2),1)
             
     def testSimpleResolve(self):
-        site = self.site
+        site = self.website()()
         handle, urlargs = site.resolve('')
         self.assertEqual(urlargs,{})
         self.assertEqual(handle.path,'/')
@@ -52,7 +48,7 @@ class TestApplication(test.TestCase):
         self.assertEqual(handle.parent.parent,site)
         
     def testSimpleResolve2(self):
-        site = self.site
+        site = self.website().load()
         handle, urlargs = site.resolve('bla/')
         self.assertTrue(handle.isbound)
         self.assertEqual(urlargs,{})

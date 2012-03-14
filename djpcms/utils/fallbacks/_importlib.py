@@ -1,7 +1,7 @@
 # Taken from Python 2.7
 import sys
 
-def _resolve_name(name, package, level):
+def _resolve_name(name, package, level):    # pragma nocover
     """Return the absolute name of the module to be imported."""
     if not hasattr(package, 'rindex'):
         raise ValueError("'package' not set to a string")
@@ -14,7 +14,7 @@ def _resolve_name(name, package, level):
                               "package")
     return "%s.%s" % (package[:dot], name)
 
-def import_module(name, package=None):
+def import_module(name, package=None):    # pragma nocover
     """Import a module.
 
     The 'package' argument is required when performing a relative import. It

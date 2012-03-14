@@ -7,7 +7,7 @@ import types
 ispy3k = int(sys.version[0]) >= 3
 
 
-if ispy3k: # Python 3
+if ispy3k: # Python 3    # pragma nocover
     string_type = str
     itervalues = lambda d : d.values()
     iteritems = lambda d : d.items()
@@ -45,7 +45,7 @@ if ispy3k: # Python 3
     
     is_string = lambda x : isinstance(x,str)
     
-else: # Python 2
+else: # Python 2    # pragma nocover
     string_type = unicode
     itervalues = lambda d : d.itervalues()
     iteritems = lambda d : d.iteritems()

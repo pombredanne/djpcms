@@ -7,7 +7,6 @@ class ArchiveMeta(test.TestCase):
         from djpcms.apps import archive
         
         
-@test.skipUnless(test.djpapps,"Requires djpapps installed")
 class ArchiveApp(test.TestCase):
     
     def testApplication(self):

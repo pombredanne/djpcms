@@ -1,4 +1,5 @@
-from djpcms import forms, views, UnicodeMixin
+from djpcms import forms, views
+from djpcms.utils.py2py3 import UnicodeMixin
 from djpcms.apps import archive
 
 __all__ = ['cleaned_tags',

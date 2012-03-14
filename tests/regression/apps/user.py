@@ -1,3 +1,5 @@
+import os
+
 import djpcms
 from djpcms.utils import test
 
@@ -16,22 +18,22 @@ class UserAppMeta(test.TestCase):
         self.assertEqual(app[4].name,'change_password')
         
 
-@test.skipUnless(test.djpapps, "Requires djpapps installed")
+@test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
 class UserApp(test.TestCase):
-    installed_apps = ('djpcms','sessions')
+    installed_apps = ('djpcms','stdcms.sessions')
     
     def urls(self, site):
         from djpcms.apps.user import UserApplication
-        from sessions.models import User
+        from stdcms.sessions import User
         return (UserApplication('/accounts/', User),)
         
     def testMeta(self):
         '''Check the application meta attributes'''
-        from sessions.models import User
+        from stdcms.sessions import User
         site = self.website()()
         self.assertTrue(site.isbound)
         self.assertEqual(site.User.model, User)
-        self.assertEqual(len(site),1)
+        self.assertEqual(len(site), 1)
         
     def testLoginResolver(self):
         site = self.website()()

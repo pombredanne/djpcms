@@ -1,5 +1,5 @@
 '''Test Application construction'''
-from djpcms import views
+from djpcms import views, UrlException
 from djpcms.utils import test
 
 
@@ -97,11 +97,19 @@ class TestSimpleApplication(test.TestCase):
         self.assertEqual(view1.appmodel,None)
         self.assertEqual(view2.appmodel,None)
         self.assertFalse(app.isbound)
-        self.assertEqual(app.parent,None)
-        self.assertEqual(app.root,app)
+        self.assertEqual(app.parent, None)
+        self.assertEqual(app.root, app)
         self.assertEqual(app.count(),2)
         self.assertEqual(len(app),2)
         self.assertFalse(app.base_routes) # no base routes from metaclass
-        self.assertEqual(app.root_view,view1)
+        # views get copied so instances are not the same
+        self.assertNotEqual(app.root_view,view1)
+        self.assertEqual(app.root_view.path,view1.path)
+        
+    def testUrlException(self):
+        app = views.Application('/')
+        app2 = self.assertRaises(UrlException,
+                                 views.Application, 'foo/', parent_view = '/')
+        
         
         

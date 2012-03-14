@@ -1,18 +1,16 @@
 '''Blocks in pages'''
+import os
+
 import djpcms
 from djpcms.utils import test
 
 
-@test.skipUnless(test.djpapps,"Requires djpapps installed")
+@test.skipUnless(os.environ['stdcms'],"Requires stdcms installed")
 class TestPage(test.TestCase):
-    
-    def setUp(self):
-        self.makesite()
-        self.sites.load()
-        self.inners = self.makeInnerTemplates()
         
     def make_page(self, url = '/'):
-        self.get(url, status = 404)
+        client = self.client()
+        client.get(url, status = 404)
         self.assertEqual(self.makepage(url).url,url)
         tree = self.sites.tree
         self.assertTrue(url in tree)

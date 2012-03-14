@@ -1,4 +1,5 @@
 from djpcms import forms, html
+from djpcms.forms.layout.uniforms import Fieldset, Layout, blockLabels2
 
 
 class ContactForm(forms.Form):
@@ -91,4 +92,10 @@ class AkismetContactForm(ContactForm):
         return self.cleaned_data['body']
 
 
+HtmlContactForm = forms.HtmlForm(
+    ContactForm,
+    layout = Layout(Fieldset('name','email'),
+                    Fieldset('body',css_class = blockLabels2)),
+    submits = (('Send message','contact'),)
+)
 

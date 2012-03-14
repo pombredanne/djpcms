@@ -5,15 +5,17 @@ from djpcms.utils import test
 
 class TestStaticMeta(test.TestCase):
     
-    def testStaticApplication(self):
+    def urls(self, site):
         from djpcms.apps.static import Static
-        app = Static('media/')
+        return (Static('media/'),)
+    
+    def testStaticApplication(self):
+        site = self.website()()
+        app = site[0]
+        self.assertEqual(app.path,'/media/')
         self.assertEqual(len(app),2)
-        self.assertFalse(app.isbound)
         self.assertEqual(app[0].name,'root')
         self.assertEqual(app[1].name,'path')
-        site = djpcms.Site(djpcms.get_settings(APPLICATION_URLS = (app,)))
-        site.load()
         self.assertEqual(len(app.urls()),2)
         
     def testFavIcon(self):

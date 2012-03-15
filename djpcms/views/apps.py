@@ -691,8 +691,9 @@ This method is called by both :meth:`variables_from_instance` and
 It uses the :func:`instance_field_view_value` for the purpose.
 '''
         instance = instance or request.instance
-        view,value = instance_field_view_value(request, instance, field_name,
-                                               name = name, urlargs = urlargs)
+        view, value = instance_field_view_value(request, instance, field_name,
+                                                name = name, urlargs = urlargs)
+        value = self.instance_field_value(request, instance, field_name, value)
         if asbutton is not None:
             return application_link(view, value = value, asbutton = asbutton,
                                     icon = icon)

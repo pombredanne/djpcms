@@ -30,12 +30,14 @@ class CommandOption(object):
         if self.cli:
             args = tuple(self.cli)
             kwargs.update({
-                        "dest": self.name,
+                       "dest": self.name,
                        "action": self.action or "store",
                        "default": self.default,
                        "help": "%s [%s]" % (self.description, self.default)})
             if kwargs["action"] != "store":
                 kwargs.pop("type",None)
+            if self.nargs:
+                kwargs['nargs'] = self.nargs
         elif self.nargs and self.name:
             args = (self.name,)
             description = "%s [%s]" % (self.description, self.default) if\

@@ -33,6 +33,7 @@ else:   # pragma nocover
     from urllib import urlencode
 
 skipUnless = test.skipUnless
+main = test.main
 
 
 class TestWebSite(WebSite):

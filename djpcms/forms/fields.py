@@ -461,9 +461,9 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
             self._setmodel(query)
         if self.mapper:
             if not self.autocomplete:
-                query = query if query is not None else self.mapper.all()
+                query = query if query is not None else self.mapper.query()
                 for v in query:
-                    yield v.id,v
+                    yield v.id, v
         elif query:
             for v in query:
                 yield v

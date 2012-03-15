@@ -138,7 +138,7 @@ It is used by :meth:`Application.viewurl`.'''
         value = None
     return request.for_model(instance = instance,
                              name = name,
-                             urlargs = urlargs),value
+                             urlargs = urlargs), value
 
 
 def views_serializable(views):

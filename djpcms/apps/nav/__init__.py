@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from djpcms import views, html, UnicodeMixin, CHANGE, ADD, Route
+from djpcms import views, html, CHANGE, ADD, Route
 from djpcms.utils import iri_to_uri, escape
 from djpcms.html.layout import container, row, column
 from djpcms.core.messages import get_messages

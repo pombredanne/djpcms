@@ -24,7 +24,7 @@ class TestSimpleForm(test.TestCase):
         
     @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
     def testPageFormBound(self):
-        from stdcms.models import Page
+        from stdcms.cms.models import Page
         from stdnet import orm
         orm.register(Page)
         d = dict(HtmlPageForm.form_class.initials())

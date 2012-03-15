@@ -1,25 +1,70 @@
 #!/usr/bin/env python
-import os
-import sys
-try:
-    import djpcms
-except:
-    parent = lambda x : os.path.split(x)[0]
-    djpdir = parent(parent(parent(os.path.abspath(__file__))))
-    sys.path.insert(0,djpdir)
-    
-    
-from django.core.management import execute_manager
-try:
-    import settings # Assumed to be in the same directory.
-except ImportError:
-    try:
-        import example_settings as settings
-    except ImportError:
-        import sys
-        sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
-        sys.exit(1)
+'''
+Script for running djpcms web site. It requires the following libraries:
 
-if __name__ == "__main__":
-    djpcms.MakeSite(__file__)
-    execute_manager(settings)
+* style_
+* https://github.com/lsbardel/stdcms
+* https://github.com/lsbardel/social
+
+To run the server simply::
+
+    python manage.py serve
+    
+To create the style sheet::
+
+    python manage.py style
+
+'''
+import djpcms
+from djpcms.apps import static
+from djpcms.html.layout import page, row, column, container
+from djpcms.apps.nav import topbar
+    
+    
+class WebSite(djpcms.WebSite):
+    
+    def load(self):
+        settings = djpcms.get_settings(
+                __file__,
+                APPLICATION_URLS = self.urls,
+                INSTALLED_APPS = ('djpcms',
+                                  'style',
+                                  'stdcms',
+                                  'stdcms.cms',
+                                  'stdcms.monitor',
+                                  'stdcms.sessions'),
+                ENABLE_BREADCRUMBS = 1,
+                FAVICON_MODULE = 'djpcms',
+                DEFAULT_STYLE_SHEET = {'all':[
+'http://yui.yahooapis.com/2.9.0/build/reset-fonts-grids/reset-fonts-grids.css',
+"playground/smooth.css"]},
+                DEBUG = True
+            )
+        self.page_layout()
+        return djpcms.Site(settings)
+    
+    def urls(self, site):
+        from playground.application import PlayGround, Geonames
+        # we serve static files too in this case
+        return (
+                static.Static(site.settings.MEDIA_URL,
+                              show_indexes=True),
+                #Geonames('/geo/'),
+                #PlayGround('/')
+                )
+    
+    def page_layout(self):
+        # Page layout
+        page(container('header', topbar(brand = 'Playground')),
+             container('content'),
+             grid(row(column(1)))).register('default')
+            
+    def page_header_layout(self, request, widget, context):
+        return '<h2>'+context['title']+'</h2>'
+    
+    def page_footer_layout(self, request, widget, context):
+        return '<p>djpcms example</p>'
+    
+
+if __name__ == '__main__':
+    djpcms.execute(WebSite())

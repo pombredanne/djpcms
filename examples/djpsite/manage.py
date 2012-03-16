@@ -44,7 +44,7 @@ class WebSite(djpcms.WebSite):
         return djpcms.Site(settings)
     
     def urls(self, site):
-        from playground.application import PlayGround, Geonames
+        #from playground.application import PlayGround, Geonames
         # we serve static files too in this case
         return (
                 static.Static(site.settings.MEDIA_URL,
@@ -55,9 +55,10 @@ class WebSite(djpcms.WebSite):
     
     def page_layout(self):
         # Page layout
-        page(container('header', topbar(brand = 'Playground')),
-             container('content'),
-             grid(row(column(1)))).register('default')
+        #page(container('header', topbar(brand = 'Playground')),
+        #     container('content'),
+        #     grid(row(column(1)))).register('default')
+        pass
             
     def page_header_layout(self, request, widget, context):
         return '<h2>'+context['title']+'</h2>'

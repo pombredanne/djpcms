@@ -42,7 +42,7 @@ def page_links(request, asbuttons = False):
     ul = html.Widget('ul')
     view = request.view
     Page = view.Page
-    if Page:
+    if Page and isinstance(view, views.djpcmsview):
         # We are on a page application view
         if view.mapper == Page:
             page = request.instance

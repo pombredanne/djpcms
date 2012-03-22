@@ -1,7 +1,7 @@
 import logging
 
 import djpcms
-from djpcms.template import make_default_inners
+from djpcms.html.template import make_default_inners
 
 logger = logging.getLogger('djpcms.execute.inner_templates')
 

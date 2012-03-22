@@ -29,8 +29,8 @@ def make_default_inners(sites):
     Page = sites.Page
     if not Page:
         raise ValueError('No cms models defined. Cannot create iner templates')
-    template = sites.all()[0].template
-    template_model = Page.template_model
+    template = sites.template
+    template_model = Page.model.template_model
     mp = orms.mapper(template_model)
     inner_dirs = [(os.path.join(DJPCMS_DIR,'templates','djpcms','inner'),
                    'djpcms/inner/')]
@@ -38,7 +38,7 @@ def make_default_inners(sites):
         inner_dir = os.path.join(dir,'inner')
         if os.path.isdir(inner_dir):
             inner_dirs.append((inner_dir,'inner/'))
-    load = template.load_template_source
+    load = template.engine.load_template_source
     added = []
     for inner_dir, relpath in inner_dirs:
         for d in os.listdir(inner_dir):

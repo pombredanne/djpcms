@@ -7,7 +7,7 @@ from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
 from djpcms.apps.sitemap import underlying_response
 
-from .layout import ContentBlockHtmlForm,  BlockLayoutFormHtml
+from .layout import ContentBlockHtmlForm
 
 
 __all__ = ['ContentApplication']
@@ -60,11 +60,7 @@ class BlockChangeView(views.ChangeView):
     
     def block_from_edit_id(self, id):
         id = '-'.join(id.split('-')[1:])
-        return self.model.block_from_html_id(id)             
-
-
-class ChangeLayoutView(BlockChangeView):
-    pass
+        return self.model.block_from_html_id(id)
 
 
 class ChangeContentView(BlockChangeView):
@@ -291,7 +287,6 @@ content in a content block.'''
     search = views.SearchView()
     view = views.ViewView('<int:contentblock>/')
     change = ChangeContentView()
-    layout = ChangeLayoutView('layout/', form = BlockLayoutFormHtml)
     delete = DeleteContentView()
     
     def on_bound(self):

@@ -2,6 +2,7 @@ import re
 import logging
 import json
 import unicodedata
+from inspect import isgenerator
 from uuid import uuid4
 
 from .py2py3 import ispy3k, zip, map, range, is_string, to_string
@@ -24,6 +25,12 @@ else:
 def gen_unique_id():
     return str(uuid4())
 
+def iterable(value):
+    '''True if value is an iterable but not a string or bytes'''
+    if isgenerator(value) or isinstance(value,(tuple,list,set,frozenset)):
+        return True
+    else:
+        return False
 
 def merge_dict(d1,d2):
     d = d1.copy()

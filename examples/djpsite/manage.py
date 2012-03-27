@@ -32,12 +32,13 @@ class WebSite(djpcms.WebSite):
                                   'stdcms',
                                   'stdcms.cms',
                                   'stdcms.monitor',
-                                  'stdcms.sessions'),
+                                  'stdcms.sessions',
+                                  'djpsite'),
                 ENABLE_BREADCRUMBS = 1,
                 FAVICON_MODULE = 'djpcms',
                 DEFAULT_STYLE_SHEET = {'all':[
 'http://yui.yahooapis.com/2.9.0/build/reset-fonts-grids/reset-fonts-grids.css',
-"playground/smooth.css"]},
+"djpsite/smooth.css"]},
                 DEBUG = True
             )
         self.page_layout()

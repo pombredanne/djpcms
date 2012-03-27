@@ -5,22 +5,18 @@ from djpcms import forms, html, plugins
 from djpcms.core import orms
 from djpcms.html import layout
 from djpcms.utils import markups
+from djpcms.utils.text import nicename
 
 
 __all__ = ['TemplateForm',
            'PageForm',
            'ContentBlockForm',
-           'EditContentForm',
-           'BlockLayoutForm']
+           'EditContentForm']
 
 
 def get_templates(bfield):
-    view = bfield.form.view
-    if view and view.Page:
-        tm = orms.mapper(view.Page.model.template_model)
-        if tm:
-            return tm.query()
-    return ()
+    for name in layout.page_layouts(grid = True):
+        yield name, nicename(name)
     
 
 def initial_layout(f):
@@ -82,10 +78,6 @@ class PluginChoice(forms.ChoiceField):
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
 
-
-class BlockLayoutForm(forms.Form):
-    layout = forms.ChoiceField(choices = djpcms.inner_block_choices)
-    
     
 class ContentBlockForm(forms.Form):
     '''Form for editing a content block within a page.'''

@@ -6,8 +6,7 @@ from .forms import *
 __all__ = ['HtmlTemplateForm',
            'HtmlPageForm',
            'ContentBlockHtmlForm',
-           'HtmlEditContentForm',
-           'BlockLayoutFormHtml']
+           'HtmlEditContentForm']
 
 
 HtmlTemplateForm = forms.HtmlForm(TemplateForm)
@@ -24,11 +23,6 @@ HtmlPageForm = forms.HtmlForm(
               )
 )
 
-
-BlockLayoutFormHtml = forms.HtmlForm(
-    BlockLayoutForm,
-    inputs = (('change','change'),)
-    )
 
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,

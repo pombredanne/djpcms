@@ -6,13 +6,13 @@ from .base import WidgetMaker, Widget
 
 __all__ = ['TextInput',
            'SubmitInput',
-           'HiddenInput',
            'PasswordInput',
            'CheckboxInput',
            'TextArea',
            'Select',
            'FileInput',
-           'ListWidget',
+           'List',
+           'HiddenInput',
            'SelectWithAction',
            'DefinitionList']
 
@@ -146,7 +146,7 @@ CheckboxInput(default='input:checkbox')
 Select(default='select')
 
 
-class ListWidget(WidgetMaker):
+class List(WidgetMaker):
     tag='ul'
     def add_to_widget(self, widget, elem, cn = None):
         if not isinstance(elem,Widget) or elem.tag != 'li':
@@ -154,7 +154,7 @@ class ListWidget(WidgetMaker):
         widget.data_stream.append(elem)
     
 
-ListWidget(default = 'ul')
+List(default = 'ul')
 
 
 #___________________________________________________ LIST DEFINITION

@@ -1,7 +1,7 @@
 '''\
 Useful :class:`Application` for serving static files during development.
 
-It also provides several utilities for fetching external media.
+It also provides several utilities for handling external media.
 '''
 import os
 import re
@@ -9,13 +9,20 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views, Http404, http
+from djpcms import views, Http404, http, html
 from djpcms.utils.importer import import_module
 
 # Third party application list.
 third_party_applications = []
 
 _media = None
+
+
+w = html.Widget
+wm = html.WidgetMaker
+# Template for media index
+static_index = wm().add(wm(tag='h1', key='title'),
+                        html.List(key='nav'))
 
 
 class pathHandler(object):
@@ -83,6 +90,9 @@ It looks for the ``media`` directory in each installed application.'''
 
 class StaticMapMixin(views.View):
     
+    def title(self, request):
+        return 'Index of ' + request.path
+    
     @property
     def media_mapping(self):
         '''Load application media.'''
@@ -93,18 +103,18 @@ class StaticMapMixin(views.View):
     
 
 class StaticRootView(StaticMapMixin):
-    '''The root view for static files'''
-    def __call__(self, request):
-        directory = request.path
-        notroot = directory != '/'
+    '''The root view for static files'''    
+    def render(self, request):
         if self.appmodel.show_indexes:
-            html = self.template.render(request.template_file,
-                                {'names':sorted(self.media_mapping),
-                                 'files':[],
-                                 'directory':directory,
-                                 'notroot':notroot})
-            return http.Response(content = html.encode('latin-1','replace'),
-                                 content_type = 'text/html')
+            nav = (w('a', m, href=m+'/') for m in sorted(self.media_mapping))
+            return static_index().render(request,
+                            {'title': self.title(request),
+                             'nav': nav})
+            #html = self.template.render(request.template_file,
+            #                    {'names':sorted(self.media_mapping),
+            #                     'files':[],
+            #                     'directory':directory,
+            #                     'notroot':notroot})
         else:
             raise Http404()
 
@@ -130,24 +140,22 @@ class StaticFileView(StaticMapMixin):
                 raise Http404('No file "{0}" in application "{1}".\
  Could not render {1}'.format(paths,app))
         else:
-            raise Http404('Static application "{0}" not available.\
- Could not render "{1}"'.format(app,paths))
+            raise Http404()
         
     def directory_index(self, request, fullpath):
+        names = [w('a', '../', href = '../', cn = 'folder')]
         files = []
-        names = []
         for f in sorted(os.listdir(fullpath)):
             if not f.startswith('.'):
                 if os.path.isdir(os.path.join(fullpath, f)):
-                    names.append(f)
+                    names.append(w('a', f, href = f+'/', cn = 'folder'))
                 else:
-                    files.append(f)
-        html = self.template.render(request.template_file,
-                             {'names':names,
-                              'files':files,
-                              'directory':request.path,
-                              'notroot':True})
-        return http.Response(content = html.encode('latin-1','replace'),
+                    files.append(w('a', f, href = f))
+        names.extend(files)
+        text = static_index().render(request,
+                            {'title': self.title(request),
+                             'nav': names})
+        return http.Response(content = text.encode('latin-1','replace'),
                              content_type = 'text/html')
         
     def serve_file(self, request, fullpath):
@@ -222,7 +230,6 @@ class Static(views.Application):
     in_nav = 0
     has_plugins = False
     show_indexes = True
-    template_file = ('static_index.html','djpcms/static_index.html')
     root = StaticRootView()
     path = StaticFileView('<path:path>', parent_view = 'root')
     

@@ -336,12 +336,12 @@ it is the base class of :class:`pageview` and :class:`View`.
 
         # if status_code is an attribute we consider this as the response
         # object and we return it.
-        if hasattr(inner,'status_code'):
+        if hasattr(inner, 'status_code'):
             return inner
         
         return {'title': request.title,
                 'body_class': self.get_body_class(request),
-                'inner': inner}
+                'content': inner}
 
     def get_response(self, request):
         '''Get response handler.'''

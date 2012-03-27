@@ -1,7 +1,7 @@
 '''Utility module for creating a navigations and breadcrumbs
 '''
 import djpcms
-from djpcms.html import Widget, ListWidget
+from djpcms.html import Widget
 from djpcms.utils.const import EMPTY_VALUE
     
 

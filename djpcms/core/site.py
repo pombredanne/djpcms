@@ -97,7 +97,6 @@ def add_default_handlers(site):
             
 
 class ViewRenderer(html.Renderer):
-    
     template_file = None
     appmodel = None
     

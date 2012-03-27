@@ -55,6 +55,7 @@ class WebSite(djpcms.WebSite):
     
     def page_layout(self):
         # Page layout
+        #page(container('header', ))
         #page(container('header', topbar(brand = 'Playground')),
         #     container('content'),
         #     grid(row(column(1)))).register('default')

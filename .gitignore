@@ -11,5 +11,5 @@ MANIFEST
 .pydevproject
 .settings/*
 examples/runfab.py
-examples/djpsite/djpsite/settings.py
+examples/djpsite/settings.py
 examples/djpsite/logs

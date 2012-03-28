@@ -335,12 +335,12 @@ class ResolverMixin(RouteMixin):
 '''
     def __init__(self, route, parent = None):
         self.routes = []
-        if not isinstance(route,Route):
+        if not isinstance(route, Route):
             route = Route(route, append_slash = True)
         if route.is_leaf:
             raise ValueError('A resolver cannot have a leaf route {0}'\
                              .format(route))
-        super(ResolverMixin,self).__init__(route,parent)
+        super(ResolverMixin,self).__init__(route, parent)
     
     def __unicode__(self):
         return '{0} - {1}'.format(self.path,list(self))

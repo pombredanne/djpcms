@@ -16,33 +16,50 @@ To create the style sheet::
 
 '''
 import djpcms
-from djpcms.apps import static
-from djpcms.html.layout import page, row, column, container
+from djpcms import views
+from djpcms.apps import admin, static, user
+from djpcms.html.layout import page, container, get_grid
 from djpcms.apps.nav import topbar
+
+from stdcms.sessions.handler import PermissionHandler
+    
+    
+class MainApplication(views.Application):
+    home = views.View('/')
+    favicon = static.FavIconView()
     
     
 class WebSite(djpcms.WebSite):
-    
+    '''djpcms website'''
     def load(self):
+        import djpapps
+        config = self.params.get('config')
         settings = djpcms.get_settings(
                 __file__,
+                config,
                 APPLICATION_URLS = self.urls,
-                INSTALLED_APPS = ('djpcms',
-                                  'style',
-                                  'stdcms',
-                                  'stdcms.cms',
-                                  'stdcms.monitor',
-                                  'stdcms.sessions',
-                                  'djpsite'),
-                ENABLE_BREADCRUMBS = 1,
-                FAVICON_MODULE = 'djpcms',
-                DEFAULT_STYLE_SHEET = {'all':[
-'http://yui.yahooapis.com/2.9.0/build/reset-fonts-grids/reset-fonts-grids.css',
-"djpsite/smooth.css"]},
                 DEBUG = True
             )
         self.page_layout()
-        return djpcms.Site(settings)
+        permissions = PermissionHandler(settings)
+        backend = permissions.auth_backends[0]
+        # AUTHENTICATION MIDDLEWARE
+        self.add_wsgi_middleware(backend.request_middleware())        
+        # AUTHENTICATION RESPONSE MIDDLEWARE
+        self.add_response_middleware(backend.process_response)
+        
+        # The root site
+        site = djpcms.Site(settings, permissions = permissions)
+        # admin site
+        settings = djpcms.get_settings(
+            __file__,
+            config,
+            APPLICATION_URLS  = admin.make_admin_urls())
+        permissions = PermissionHandler(settings,
+                                        auth_backends = [backend],
+                                        requires_login = True)
+        site.addsite(settings, route = '/admin/', permissions = permissions)
+        return site
     
     def urls(self, site):
         #from playground.application import PlayGround, Geonames
@@ -50,17 +67,17 @@ class WebSite(djpcms.WebSite):
         return (
                 static.Static(site.settings.MEDIA_URL,
                               show_indexes=True),
-                #Geonames('/geo/'),
-                #PlayGround('/')
+                user.UserApplication('/accounts/', site.User),
+                MainApplication('/')
                 )
     
     def page_layout(self):
         # Page layout
-        #page(container('header', ))
-        #page(container('header', topbar(brand = 'Playground')),
-        #     container('content'),
-        #     grid(row(column(1)))).register('default')
-        pass
+        page(container('topbar'),
+             container('header', get_grid('grid 100'), role = 'header'),
+             container('content', role = 'content'),
+             container('footer', get_grid('grid 33-33-33'), role = 'footer'))\
+             .register('default')
             
     def page_header_layout(self, request, widget, context):
         return '<h2>'+context['title']+'</h2>'
@@ -70,4 +87,4 @@ class WebSite(djpcms.WebSite):
     
 
 if __name__ == '__main__':
-    djpcms.execute(WebSite())
+    djpcms.execute(WebSite(config = 'djpsite.settings'))

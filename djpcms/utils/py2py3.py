@@ -103,8 +103,9 @@ encoded as specified in 'encoding'."""
     return s.encode(encoding, errors)
 
 
-def to_string(s, encoding='utf-8', errors='strict'):
+def to_string(s, encoding=None, errors='strict'):
     """Inverse of to_bytestring"""
+    encoding = encoding or 'utf-8'
     if isinstance(s,bytes):
         return s.decode(encoding,errors)
     

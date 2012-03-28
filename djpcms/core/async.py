@@ -249,11 +249,12 @@ A typical usage::
     
     response = response_handler.get_response(request, context)
 
+:parameter request: an HTTP :class:`Request`.
 :parameter context: a context dictionary.
 :parameter body_renderer: optional callable used for rendering the
     context. If not provided, the :meth:`body_renderer` will be used.
 :rtype: a :class:`Response` object'''
-        if isinstance(context,dict):
+        if isinstance(context, dict):
             page = request.page
             context['htmldoc'] = doc = htmldoc(None if not page\
                                                else page.doctype)
@@ -269,6 +270,21 @@ A typical usage::
                             encoding = request.settings.DEFAULT_CHARSET)
         callback.response = response
         return response
+    
+    def error_to_response(self, request, status_code):
+        '''Equivalent to :meth:`render_to_response` methods, when an error
+occurs. It is equivalent to call :meth:`render_to_response` with the
+following parameter::
+
+    self.render_to_response(request, 
+                            {'status_code':status_code,
+                            'exc_info': sys.exc_info()},
+                            self.error_renderer)
+    '''
+        return self.render_to_response(request,
+                                       {'status_code':status_code,
+                                        'exc_info': sys.exc_info()},
+                                       self.error_renderer)
     
     def ajax_content(self, response, content):
         response.content_type = content.content_type()
@@ -316,19 +332,6 @@ The context is ready to be rendered.'''
         yield media.all_js
         yield self.page_script(request)
         yield '</body>\n</html>'
-        
-    def error_to_response(self, request, status):
-        '''A wrapper of :meth:`render_to_response` for errors. It is
-equivalent to call :meth:`render_to_response` with the following parameter::
-
-    self.render_to_response(request, 
-                            {'status_code':status,'exc_info': sys.exc_info()},
-                            self.error_renderer)
-    '''
-        context = {'status_code':status,
-                   'exc_info': sys.exc_info()}
-        return self.render_to_response(request, context,
-                                       self.error_renderer)
     
     def encode(self, request, text):
         charset = request.view.settings.DEFAULT_CHARSET
@@ -368,9 +371,7 @@ equivalent to call :meth:`render_to_response` with the following parameter::
         inner = error
         
         if not request.is_xhr:
-            grid = request.cssgrid()
-            if grid.column1:
-                inner = Widget('div', error, cn = grid.column1)
+            inner = Widget('div', error)
                 
         if settings.DEBUG:
             error.addClass('ui-state-error')

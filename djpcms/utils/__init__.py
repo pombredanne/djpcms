@@ -5,7 +5,7 @@ import unicodedata
 from inspect import isgenerator
 from uuid import uuid4
 
-from .py2py3 import ispy3k, zip, map, range, is_string, to_string
+from .py2py3 import ispy3k, zip, map, range, is_string, to_string, to_bytestring
 from .path import *
 from .strings import *
 from .jsontools import *

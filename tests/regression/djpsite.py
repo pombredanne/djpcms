@@ -12,4 +12,10 @@ class TestInitFile(test.TestCase):
         site = self.website()()
         self.assertTrue(site)
         
+    def test404(self):
+        client = self.client()
+        r = client.get('/jcsdcdscdscdscsdc/', status_code = 404)
+        
+        
+        
         

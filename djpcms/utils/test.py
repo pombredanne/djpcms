@@ -333,8 +333,7 @@ class HttpTestClientRequest(object):
         self.response_data = None
 
     def _base_environ(self, ajax = False, **request):
-        """
-        The base environment for a request.
+        """The base environment for a request.
         """
         environ = {
             'HTTP_COOKIE': self.cookies.output(header='', sep='; '),
@@ -359,14 +358,15 @@ class HttpTestClientRequest(object):
             environ['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
         return environ
 
-    def request(self, **request):
+    def request(self, status_code, **request):
         "Construct a generic wsgi environ object."
         environ = self._base_environ(**request)
         r = Response(environ)
-        r.response = self.handler(environ,r)
+        r.response = self.handler(environ, r)
+        self.assertEqual(r.response.status_code, status_code)
         return r
         
-    def get(self, path, data={}, ajax = False, **extra):
+    def get(self, path, data={}, ajax = False, status_code = 200, **extra):
         "Construct a GET request"
         parsed = urlparse(path)
         r = {
@@ -377,9 +377,10 @@ class HttpTestClientRequest(object):
             'wsgi.input':      fake_input()
         }
         r.update(extra)
-        return self.request(**r)
+        return self.request(status_code, **r)
     
-    def post(self, path, data={}, content_type=MULTIPART_CONTENT, **extra):
+    def post(self, path, data={}, content_type=MULTIPART_CONTENT,
+             status_code = 200, **extra):
         "Construct a POST request."
         if content_type is MULTIPART_CONTENT:
             post_data = encode_multipart(BOUNDARY, data)
@@ -402,7 +403,7 @@ class HttpTestClientRequest(object):
             'wsgi.input':     fake_input(post_data),
         }
         r.update(extra)
-        return self.request(**r)
+        return self.request(status_code, **r)
     
     def head(self, path, data={}, **extra):
         "Construct a HEAD request."

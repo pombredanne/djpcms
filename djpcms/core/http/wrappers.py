@@ -596,7 +596,7 @@ class Response_(object):
         self.encoding = encoding
         if not content:
             content = ()
-        elif isinstance(content,bytes):
+        elif isinstance(content, bytes):
             content = (content,)
         elif is_string(content):
             raise ValueError('Response cannot accept unicode.')

@@ -506,7 +506,15 @@ corner cases, users can subclass it to customize behavior.
         if isinstance(element,Widget):
             element.internal['parent'] = widget
         widget.data_stream.append(element)
-            
+
+    def keys(self):
+        '''generator of context keywords'''
+        for child in self.allchildren:
+            for key in child.keys():
+                yield key
+        if self.key:
+            yield self.key 
+                    
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method to build extra context.
 By default it return *context*.'''

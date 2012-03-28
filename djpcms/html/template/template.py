@@ -1,13 +1,13 @@
 import os
 from functools import partial
 
-from djpcms.html.layout import LayoutDoesNotExist, page, get_layout
+from djpcms.html.layout import LayoutDoesNotExist, page
 
 
 __all__ = ['template_handle', 'ContextTemplate', 'TemplateHandler']
 
 
-def template_handle(engine, settings = None):
+def template_handle(engine, site):
     '''Return an instance of a :class:`TemplateHandler`.'''
     engine = (engine or 'djpcms').lower()
     if engine not in _handlers and engine == 'jinja2':
@@ -19,7 +19,7 @@ def template_handle(engine, settings = None):
         raise KeyError('Template engine "{0}" not registered'\
                            .format(engine))
     else:
-        return handle(settings)
+        return handle(site)
 
 
 class ContextTemplate(object):
@@ -27,7 +27,7 @@ class ContextTemplate(object):
     def __init__(self, site):
         self.site = site
         engine = site.settings.TEMPLATE_ENGINE
-        self._engine = template_handle(engine, site.settings)
+        self._engine = template_handle(engine, site)
     
     @property
     def engine(self):
@@ -89,9 +89,13 @@ class TemplateHandler(TemplateHandlerBase):
     TemplateDoesNotExist = None
     template_class = None
     
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, site):
+        self.site = site
         self.setup()
+        
+    @property
+    def config(self):
+        self.site.config
 
     def setup(self):
         raise NotImplementedError
@@ -164,7 +168,7 @@ class djpcms_page_renderer(TemplateHandler):
     def select_layout(self, template_name_list):
         for template_name in template_name_list:
             try:
-                return get_layout(template_name)
+                return self.site.get_page_layout(template_name)
             except LayoutDoesNotExist:
                 continue
         # If we get here, none of the templates could be loaded

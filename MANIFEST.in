@@ -7,22 +7,11 @@ include runtests.py
 include docs/make.bat
 include docs/Makefile
 include docs/source/conf.py
-include examples/djpsite/README.rst
-include examples/djpsite/requirements.txt
-include djpcms/libs/jinja2_3/LICENSE
-include djpcms/libs/jinja2/LICENSE
-include djpcms/dispatch/LICENSE
+include examples/README.rst
+include examples/requirements.txt
 recursive-include docs/source/_ext *
 recursive-include docs/source *.txt
-recursive-include tests *
-recursive-include djpcms/templates *
-recursive-include djpcms/tests/templates *
-recursive-include djpcms/media *
-recursive-include djpcms/fixtures *
 recursive-include examples *.py
-recursive-include examples/djpsite/templates *
 recursive-include examples/djpsite/media *
-recursive-include examples/djpsite/examples/issuetraker/templates *
-recursive-include examples/djpsite/examples/issuetraker/media *
-recursive-include examples/djpsite/examples/vinoweb/templates *
-recursive-include examples/djpsite/examples/vinoweb/media *
+recursive-include tests *.py
+recursive-include djpcms/media *

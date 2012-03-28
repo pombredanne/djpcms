@@ -50,8 +50,7 @@ class PageForm(forms.Form):
     soft_root = forms.BooleanField()
     doctype = forms.ChoiceField(choices = layout.html_choices,
                                 initial = layout.htmldefaultdoc)
-    layout = forms.ChoiceField(choices = lambda r : copy(html.grid_systems),
-                               initial = initial_layout)
+    layout = forms.ChoiceField(choices = lambda r : copy(layout.grid_systems))
     
     def clean_url(self, value):
         if self.mapper:

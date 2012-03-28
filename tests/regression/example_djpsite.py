@@ -1,6 +1,6 @@
 from djpcms.utils import test
 
-from examples.djpsite.manage import WebSite
+from djpsite.manage import WebSite
 
 
 class TestInitFile(test.TestCase):

@@ -3,40 +3,39 @@
 from djpcms.html import WidgetMaker
 
 __all__ = ['LayoutDoesNotExist',
-           'get_layout',
-           'get_grid',
-           'page_layouts',
+           'grid_systems',
+           'grid',
+           'grids',
            'elem',
            'page',
            'container',
-           'grid',
+           'Grid',
            'row',
            'column']
 
 
-_page_layouts = {'page': {},
-                 'grid': {}}
+grid_systems = [
+                ('fixed_12','Fixed grid 12 columns'),
+                ('fixed_24','Fixed grid 24 columns'),
+                ('float_12','Float grid 12 columns'),
+                ('float_24','Float grid 24 columns'),
+                ]
+
+_grid_layouts = {}
 
 
 class LayoutDoesNotExist(Exception):
     pass
 
 
-def page_layouts(grid = False):
-    if grid:
-        return sorted(_page_layouts['grid'])
-    else:
-        return sorted(_page_layouts['page'])
+def grids():
+    return sorted(_grid_layouts)
 
-def get_layout(name, grid = False):
-    pages = _page_layouts['grid' if grid else 'page']
+def grid(name):
     try:
-        return pages[name.lower()]
+        return _grid_layouts[name.lower()]
     except KeyError:
         raise LayoutDoesNotExist(name)
-
-def get_grid(name):
-    return get_layout(name,True)
 
 
 class CssGrid(object):
@@ -122,29 +121,33 @@ class page(elem):
     columns = 12
     role = 'page'
     
-    def __init__(self, *rows, **kwargs):
-        self.columns = kwargs.pop('columns',self.columns)
-        super(page,self).__init__(*rows, **kwargs)
-        #for block in self.blocks():
-        #    block.on_layout_done()
-    
-    def register(self, name):
-        name = name.lower()
-        _page_layouts['page'][name] = self
-        return self
+    def __init__(self, *containers, **kwargs):
+        self.columns = kwargs.pop('columns', self.columns)
+        if not containers:
+            containers = (container('content'),)
+        super(page, self).__init__(*containers, **kwargs)
     
     
-class grid(elem):
+class Grid(elem):
     '''A grid element is the container of rows.'''
     default_class = 'grid-container'
     
+    def __init__(self, *rows, **kwargs):
+        cleaned_rows = []
+        for row in rows:
+            if isinstance(row,Grid):
+                cleaned_rows.extend(row.allchildren)
+            else:
+                cleaned_rows.append(row)
+        super(Grid, self).__init__(*cleaned_rows, **kwargs)
+        
     @classmethod
     def childtype(cls):
         return row
     
     def register(self, name):
         name = name.lower()
-        _page_layouts['grid'][name] = self
+        _grid_layouts[name] = self
         return self
     
     
@@ -152,13 +155,15 @@ class column(elem):
     '''A column is a special container. It is the container which holds djpcms
 plugins, unless it has children containers.'''
     default_class = None
-    def __init__(self, size = 1, over = 1, *rows, **kwargs):
+    def __init__(self, size = 1, over = 1, *grid, **kwargs):
         self.size = size
         self.over = over
         if self.span > 1:
             raise ValueError('Column span "{0}" is greater than one!'\
                              .format(self.span))
-        super(column, self).__init__(*rows, **kwargs)
+        if len(grid) > 1:
+            raise RunTimeError('Only one grid can be passed to column')
+        super(column, self).__init__(*grid, **kwargs)
         
     @property
     def span(self):
@@ -166,7 +171,7 @@ plugins, unless it has children containers.'''
     
     @classmethod
     def childtype(cls):
-        return grid
+        return Grid
     
     def is_block(self):
         return not bool(self.allchildren)
@@ -201,31 +206,35 @@ class tabs(row):
         super(row, self).__init__(*columns, **kwargs)
         
 
-# Simple one row with one column grid
-grid_50_50 = grid(
+# Simple grids registration
+Grid(
     row()
 ).register('grid 100')
 
-# Simple layout with single row with two elements of the same size
-grid_50_50 = grid(
+Grid(
     row(column(1,2), column(1,2))
 ).register('grid 50-50')
 
-grid_33_33_33 = grid(
-    row(column(1,2), column(1,2))
-).register('grid 50-50')
-
-grid_50_50_100 = grid(
-    row(column(1,2), column(1,2)),
-    row()
+Grid(
+    row(column(1,3), column(1,3), column(1,3))
 ).register('grid 33-33-33')
 
+Grid(
+    row(column(1,4), column(1,4), column(1,4), column(1,4))
+).register('grid 25-25-25-25')
 
-grid(
-    row(column(1,2), column(1,2, grid_50_50_100)),
-    row()
-).register('Grid 50 25-25-50 & 100')
+Grid(
+    row(column(1,3), column(2,3))
+).register('grid 33-66')
 
+Grid(
+    row(column(2,3), column(1,3))
+).register('grid 66-33')
 
-page(container('content')).register('default')
-     
+Grid(
+    row(column(1,4), column(3,4))
+).register('grid 25-75')
+
+Grid(
+    row(column(3,4), column(1,4))
+).register('grid 75-25')

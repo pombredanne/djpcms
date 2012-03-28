@@ -1,3 +1,6 @@
+'''Recursively remove *.pyc fields and __pycache__ directories
+from the current one.
+'''
 import os
 import shutil
     
@@ -9,8 +12,7 @@ def rmgeneric(path, __func__):
     except OSError as e:
         print('Could not remove {0}, {1}'.format(path,e))
         return 0
-        
- 
+         
 def rmfiles(path, ext = None, rmcache = True):    
     if not os.path.isdir(path):
         return 0
@@ -33,8 +35,6 @@ def rmfiles(path, ext = None, rmcache = True):
             trem += r
             tall += ra
     return trem, tall
-
-
 
 if __name__ == '__main__':
     path = os.curdir

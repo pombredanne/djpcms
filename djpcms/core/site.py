@@ -7,8 +7,9 @@ from copy import deepcopy, copy
 from djpcms.utils.py2py3 import iteritems, itervalues, native_str
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.utils import conf, lazyproperty, Path
-from djpcms.html.template import ContextTemplate
 from djpcms import html
+from djpcms.html.template import ContextTemplate
+from djpcms.html import layout
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
                         ImproperlyConfigured, DjpcmsException,\
@@ -57,7 +58,7 @@ Default ``None``
     site_path = appdir.realpath()
     base, name = site_path.split()
     if base not in sys.path:
-        sys.path.insert(0, base)
+        sys.path.insert(0, str(base))
     
     # Import settings
     if settings:
@@ -146,6 +147,7 @@ Attributes available:
                  **handlers):
         super(Site,self).__init__(route,parent)
         self._model_registry = {}
+        self._page_layout_registry = {}
         self.plugin_choices = [('','-----------------')]
         if self.parent is None:
             settings = settings or get_settings()
@@ -155,6 +157,7 @@ Attributes available:
                 settings.TEMPLATE_DIRS += path,
             self.internals['settings'] = settings
         self.internals.update(handlers)
+        self.register_page_layout('default', layout.page())
         
     def setup_environment(self):
         '''Set up the the site.'''
@@ -343,6 +346,19 @@ which updates the input ``dictionary`` with library dependent information.
     
     def create_model_tables(self):
         pass
+    
+    def register_page_layout(self, name, page):
+        '''Register a :class:`djpcms.html.layout.page` with the
+:class:`Site`. Return self for concatenating calls.'''
+        name = name.lower()
+        self._page_layout_registry[name] = page
+        return self
+    
+    def get_page_layout(self, name):
+        try:
+            return self._page_layout_registry[name.lower()]
+        except KeyError:
+            raise layout.LayoutDoesNotExist(name)
                 
 
 class WebSite(object):
@@ -445,7 +461,7 @@ for djpcms web sites.
             if self.ENVIRON_NAME:
                 os.environ[self.ENVIRON_NAME] = self.name
             name = 'load_{0}'.format(self.name.lower())
-            loader = getattr(self,name, self.load)
+            loader = getattr(self, name, self.load)
             self.local['site'] = loader()
             if self.site is not None:
                 try:

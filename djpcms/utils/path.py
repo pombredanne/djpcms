@@ -11,7 +11,7 @@ class Path(string_type):
     def __new__(cls, path = None):
         path = path or ''
         abspath = os.path.abspath(path)
-        return super(Path,cls).__new__(cls,abspath)
+        return super(Path,cls).__new__(cls, abspath)
 
     @classmethod
     def cwd(cls):
@@ -48,7 +48,8 @@ class Path(string_type):
             p = p.parent
         return p
         
-    def add2python(self, module = None, up = 0, down = None, front = False):
+    def add2python(self, module = None, up = 0, down = None, front = False,
+                   must_exist = True):
         '''Add a directory to the python path.
         
 :parameter module: Optional module name to try to import once we have found
@@ -58,7 +59,8 @@ class Path(string_type):
 :parameter down: Optional tuple of directory names to travel down once we have
     gone *up* levels.
 :parameter front: Boolean indicating if we want to insert the new path at the
-    front of ``sys.path`` using ``sys.path.insert(0,path)``.'''
+    front of ``sys.path`` using ``sys.path.insert(0,path)``.
+:parameter must_exist: Boolean indicating if the module must exists.'''
         if module:
             try:
                 __import__(module)
@@ -84,7 +86,8 @@ class Path(string_type):
                 __import__(module)
                 return module
             except ImportError:
-                pass
+                if must_exist:
+                    raise
         return added
 
     

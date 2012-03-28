@@ -3,11 +3,10 @@
 
 INSTALLED_APPS = ('djpcms',
                   'style',
-                  'stdcms',
                   'stdcms.cms',
                   'stdcms.monitor',
                   'stdcms.sessions',
-                  'pulsardjp',
+                  #'pulsardjp',
                   'djpsite')
 ENABLE_BREADCRUMBS = 1,
 FAVICON_MODULE = 'djpcms'
@@ -19,5 +18,5 @@ LANGUAGE_CODE = 'en-gb'
 DATASTORE = {'default':'redis://127.0.0.1:6379?db=5&prefix=djpcms:'}
 
 
-# RESERVED SETTINGS
-SECRET_KEY = None
+# RESERVED SETTINGS. CREATE A SETTINGS FILES AND OVERRIDE THESE VALUES
+SECRET_KEY = 'dummy'

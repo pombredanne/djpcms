@@ -15,3 +15,4 @@ recursive-include examples *.py
 recursive-include examples/djpsite/media *
 recursive-include tests *.py
 recursive-include djpcms/media *
+global-exclude examples/djpsite/settings.py

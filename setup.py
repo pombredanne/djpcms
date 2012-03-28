@@ -94,7 +94,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
 
 setup(
         name         = package_name,
-        version      = mod.get_version(),
+        version      = mod.__version__,
         author       = mod.__author__,
         author_email = mod.__contact__,
         url          = mod.__homepage__,
@@ -110,7 +110,6 @@ setup(
             'Intended Audience :: Developers',
             'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
-            'Framework :: Django',
             'Programming Language :: JavaScript',
             'Programming Language :: Python',
             'Programming Language :: Python :: 2.6',

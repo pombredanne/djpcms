@@ -268,17 +268,16 @@ class BadNode(DjpNode):
 class DjpcmsTree(MultiTree):
     
     def __init__(self, tree, pages = None):
-        self.tree_pages = p = {}
+        self.tree_pages = tree_pages = {}
         if pages:
-            ptrees = {}
             for page in pages:
                 node = tree.get(page.url)
                 if node:
-                    p[node.path] = page
+                    tree_pages[node.path] = page
                 else:
-                    ptrees[page.url] = page
-            ptree = NRT(itervalues(ptrees))
-            super(DjpcmsTree,self).__init__(ptree,tree)
+                    tree_pages[page.url] = page
+            ptree = NRT(itervalues(tree_pages))
+            super(DjpcmsTree,self).__init__(ptree, tree)
         else:
             super(DjpcmsTree,self).__init__(tree)
     

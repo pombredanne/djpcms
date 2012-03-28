@@ -260,7 +260,7 @@ A typical usage::
                                                else page.doctype)
             # get the site context
             context = request.view.site.context(context, request)
-        elif not isajax(context) and hasattr(context,'status_code'):
+        elif not isajax(context) and hasattr(context, 'status_code'):
             return context
         # build the callback
         callback = _ResponseCallback(self, request, body_renderer)
@@ -347,12 +347,7 @@ The context is ready to be rendered.'''
         
     def body_renderer(self, request, context):
         '''Render the HTML page using the *context* dictionary.'''
-        template_file = request.template_file
-        if template_file:
-            return request.view.template.render(template_file, context,
-                                                request = request)
-        else:
-            return context.get('inner','')
+        return context.get('body','')
         
     def error_renderer(self, request, context):
         '''The default error renderer. It handles both ajax and

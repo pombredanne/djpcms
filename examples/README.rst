@@ -4,7 +4,7 @@ djpcms examples
 
 It includes:
 
-* ``helloword``
+* ``helloworld``.
 * ``djpsite`` the web site running djpcms_.
 
 The ``requirements.txt`` file is for the ``djpsite`` example.

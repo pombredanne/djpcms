@@ -3,12 +3,14 @@
 import sys
 import os
 
-from djpcms.utils import test, Path
 # Check if stdcms is available. If so we enable several tests.
 try:
     import stdcms
 except:
     stdcms = None
+    
+from djpcms.utils import test, Path
+
         
 def add_nose_options(argv):
     test.addoption(argv, '-w', value = 'tests/regression')

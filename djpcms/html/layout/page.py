@@ -29,7 +29,7 @@ class LayoutDoesNotExist(Exception):
 
 
 def grids():
-    return sorted(_grid_layouts)
+    return list(_grid_layouts)
 
 def grid(name):
     try:
@@ -107,17 +107,9 @@ web page'''
         return super(elem,self).render_from_widget(
                                request, widget, context)
         
-
-class container(elem):
-    '''This act as a container for its children. It does not render
-to anything'''
-    def __init__(self, key, *children, **kwargs):
-        kwargs['key'] = key
-        super(container,self).__init__(*children, **kwargs)
         
-
 class page(elem):
-    '''layout for a page'''
+    '''layout for a page. A page contains a list of :class:`container`.'''
     columns = 12
     role = 'page'
     
@@ -125,8 +117,27 @@ class page(elem):
         self.columns = kwargs.pop('columns', self.columns)
         if not containers:
             containers = (container('content'),)
+        self.renderers = {}
         super(page, self).__init__(*containers, **kwargs)
+        
+    @classmethod
+    def childtype(cls):
+        return container 
     
+    def get_context(self, request, widget, context):
+        # Override get_context to fill up the keyword dictionary
+        renderers = self.renderers
+        for child in self.allchildren:
+            key = child.key
+            renderer = self.renderers.get(key)
+            if not renderer:
+                renderer = self.default_renderer
+            context[key] = renderer
+        return context
+    
+    def default_renderer(self, request, block, widget):
+        return ''
+        
     
 class Grid(elem):
     '''A grid element is the container of rows.'''
@@ -150,8 +161,60 @@ class Grid(elem):
         _grid_layouts[name] = self
         return self
     
+
+class grid_holder(elem):
+    '''A grid holder contains only one :class:`Grid`'''
+    def __init__(self, *grid, **kwargs):
+        if len(grid) > 1:
+            raise RunTimeError('Only one grid can be passed to a grid holder')
+        super(grid_holder, self).__init__(*grid, **kwargs)
     
-class column(elem):
+    @classmethod
+    def childtype(cls):
+        return Grid
+    
+    def default_inner_grid(self):
+        return None
+    
+    def get_context(self, request, widget, context):
+        # Override get_context so that we retrieve the context of
+        # underlying blocks if they exists
+        page = request.page
+        blocks = None
+        if not self.allchildren:
+            # No children, this could be because this is a block column or
+            # a container with key
+            if page and self.key == 'content':
+                # This is the content
+                inner_grid = page.inner_grid
+                blocks = page.get_blocks()
+            else:
+                inner_grid = self.default_inner_grid()
+        else:
+            inner_grid = self.allchildren[0]
+            
+        if inner_grid:
+            ctx = {}
+            # loop over blocks
+            for n, block in enumerate(inner_grid.blocks()):
+                ctx[block] = n
+            return ctx
+        else:
+            # no inner_grid return the context
+            return context
+    
+    
+class container(grid_holder):
+    '''A container of a grid system'''
+    def __init__(self, key, *grid, **kwargs):
+        kwargs['key'] = key
+        super(container, self).__init__(*grid, **kwargs)
+    
+    def default_inner_grid(self):
+        return grid('grid 100')
+    
+    
+class column(grid_holder):
     '''A column is a special container. It is the container which holds djpcms
 plugins, unless it has children containers.'''
     default_class = None
@@ -161,17 +224,11 @@ plugins, unless it has children containers.'''
         if self.span > 1:
             raise ValueError('Column span "{0}" is greater than one!'\
                              .format(self.span))
-        if len(grid) > 1:
-            raise RunTimeError('Only one grid can be passed to column')
         super(column, self).__init__(*grid, **kwargs)
         
     @property
     def span(self):
         return float(self.size)/self.over
-    
-    @classmethod
-    def childtype(cls):
-        return Grid
     
     def is_block(self):
         return not bool(self.allchildren)
@@ -184,8 +241,15 @@ no children, it return self as the only child.'''
         else:
             for child in super(column,self).blocks():
                 yield child
-        
-        
+    
+    def render_from_widget(self, request, widget, context):
+        elem = context.get(self)
+        if elem:
+            pass
+        else:
+            return super(column,self).render_from_widget(request, widget,
+                                                         context)
+    
 class row(elem):
     
     def __init__(self, *columns, **kwargs):

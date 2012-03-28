@@ -80,7 +80,7 @@ returning a :class:`djpcms.Site`. Tipical usage::
     
     def client(self, **defaults):
         wsgi = self.website().wsgi()
-        return HttpTestClientRequest(wsgi, **defaults)
+        return HttpTestClientRequest(self, wsgi, **defaults)
     
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site
@@ -313,23 +313,22 @@ class Response(object):
         
         
 class HttpTestClientRequest(object):
-    """
-    Class that lets you create mock HTTP environment objects for use in testing.
+    """Class that lets you create mock HTTP environment objects for use
+in testing. Typical usage, from within a test case function::
 
-    Usage:
+    def testMyTestFunction(self):
+        handler = ...
+        client = HttpTestRequest(self,handler)
+        get_request = client.get('/hello/')
+        post_request = client.post('/submit/', {'foo': 'bar'})
 
-    rf = HttpTestRequest()
-    get_request = rf.get('/hello/')
-    post_request = rf.post('/submit/', {'foo': 'bar'})
-
-    Once you have a request object you can pass it to any view function,
-    just as if that view had been hooked up using a URLconf.
-    """
-    def __init__(self, handler, **defaults):
+"""
+    def __init__(self, test, handler, **defaults):
+        self.test = test
+        self.handler = handler
         self.defaults = defaults
         self.cookies = SimpleCookie()
         self.errors = BytesIO()
-        self.handler = handler
         self.response_data = None
 
     def _base_environ(self, ajax = False, **request):
@@ -363,7 +362,7 @@ class HttpTestClientRequest(object):
         environ = self._base_environ(**request)
         r = Response(environ)
         r.response = self.handler(environ, r)
-        self.assertEqual(r.response.status_code, status_code)
+        self.test.assertEqual(r.response.status_code, status_code)
         return r
         
     def get(self, path, data={}, ajax = False, status_code = 200, **extra):
@@ -479,6 +478,11 @@ try:
     import pulsar
 except ImportError:
     pulsar = None
+    
+try:
+    from stdnet import test as stdnet_test
+except ImportError:
+    stdnet_test = None
 
 def addoption(argv, *vals, **kwargs):
     '''Add additional options to the *argv* list.'''
@@ -504,19 +508,21 @@ and add testing plugins.'''
     if pulsar:
         os.environ['djpcms_test_suite'] = 'pulsar'
         from pulsar.apps.test import TestSuite
-        from pulsar.apps.test.plugins import bench
-        
-        suite = TestSuite(
-                    description = 'Djpcms Asynchronous test suite',
-                    modules = ('tests',),
-                    plugins = (bench.BenchMark(),))
+        pulgins = None
+        if stdnet_test:
+            plugins = (stdnet_test.TestServer(),)
+        suite = TestSuite(description = 'Djpcms Asynchronous test suite',
+                          modules = ('tests',),
+                          plugins = pulgins)
         suite.start()
     elif nose:
         os.environ['djpcms_test_suite'] = 'nose'
+        if stdnet_test:
+            plugins = [stdnet_test.StdnetServer()]
         argv = list(argv)
         if nose_options:
             nose_options(argv)
-        nose.main(argv=argv)
+        nose.main(argv=argv, addplugins=plugins)
     else:
         raise NotImplementedError(
                     'To run tests you need either pulsar or nose.')

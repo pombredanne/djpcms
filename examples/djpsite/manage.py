@@ -78,7 +78,7 @@ class WebSite(djpcms.WebSite):
                 )
     
     def page_layouts(self, site):
-        # Page layout
+        # Page template
         page_template = page(
             container('edit'),
             container('topbar',
@@ -89,12 +89,18 @@ class WebSite(djpcms.WebSite):
             container('content', role = 'content'),
             container('footer', grid('grid 33-33-33'), role = 'footer'))
         site.register_page_layout('default', page_template)
+        page_template.renderers['topbar'] = self.render_topbar
+        page_template.renderers['header'] = self.render_header
+        page_template.renderers['footer'] = self.render_footer
             
-    def page_header_layout(self, request, widget, context):
-        return '<h2>'+context['title']+'</h2>'
+    def render_topbar(self, request):
+        return ''
     
-    def page_footer_layout(self, request, widget, context):
-        return '<p>djpcms example</p>'
+    def render_header(self, request):
+        return '<h2>Dynamic Content management system</h2>'
+    
+    def render_footer(self, request):
+        return '<p>djpcms</p>'
     
 
 if __name__ == '__main__':

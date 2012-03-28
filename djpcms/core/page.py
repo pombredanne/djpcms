@@ -10,7 +10,7 @@ import logging
 import djpcms
 from djpcms import Route
 from djpcms.html import CONSTS
-from djpcms.html.layout import htmldoc
+from djpcms.html.layout import htmldoc, grid
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
@@ -19,7 +19,7 @@ from djpcms.utils import markups, escape, force_str
 contentre = re.compile('{{ content\d }}')
 
 
-__all__ = ['Page','Block','Template','BlockContentMapper','MarkupMixin']
+__all__ = ['Page','Block','BlockContentMapper','MarkupMixin']
 
 
 
@@ -44,29 +44,33 @@ The following attributes must be implemented by subclasses.
 .. attribute:: layout
 '''
     layout = 0
-    template_model = None
+    inner_template = None
     
     @property
     def route(self):
         return Route(self.url)
     
     @property
+    def inner_grid(self):
+        try:
+            return grid(self.inner_template)
+        except:
+            return None
+    
+    @property
     def path(self):
         return self.url
     
     def numblocks(self):
-        raise NotImplementedError
+        grid = self.inner_grid
+        if grid:
+            return grid.numblocks
+        else:
+            return 1
     
     def blocks(self):
         '''Iterator over block contents'''
-        raise NotImplementedError
-    
-    def create_template(self, name, templ):
-        raise NotImplementedError
-    
-    def set_template(self, template):
-        self.inner_template = template
-        self.save()
+        raise NotImplementedError()
     
     def add_plugin(self, p, block = 0):
         '''Add a plugin to a block'''
@@ -113,23 +117,6 @@ The following attributes must be implemented by subclasses.
     @classmethod
     def register_tree_update(cls, tree_update):
         pass
-    
-    
-class Template(object):
-    
-    def render(self, loader, c):
-        '''Render the inner template given the context ``c``.
-        '''
-        return loader.render_from_string(self.template, c)
-    
-    def numblocks(self):
-        '''Number of ``blocks`` within template.'''
-        bs = self.blocks.split(',')
-        return len(bs)
-    
-    def blocks_from_content(self):
-        cs = contentre.findall(self.template)
-        self.blocks = ','.join((c[3:-3] for c in cs))
     
 
 class Block(object):

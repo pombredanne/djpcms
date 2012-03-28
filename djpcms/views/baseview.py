@@ -295,7 +295,9 @@ it is the base class of :class:`pageview` and :class:`View`.
         title = page.title if page else None
         if not title:
             title = self.default_title or \
-                    (self.appmodel.description if self.appmodel else 'view')
+                    self.appmodel.description if self.appmodel else ''
+            if not title:
+                title = self.settings.SITE_MODULE
         return title.format(request.urlargs,request.instance)
     
     def linkname(self, request):
@@ -326,22 +328,21 @@ it is the base class of :class:`pageview` and :class:`View`.
     def get_context(self, request, editing = False):
         '''View context as a dictionary.'''
         page = request.page
-        inner_template = page.inner_template if page else None
-        inner_template = None
-        if inner_template:
-            inner = InnerContent(request, inner_template, editing)
+        layout = page.layout if page else 'default'
+        try:
+            layout = self.root.get_page_layout(layout)
+        except:
+            # No layout
+            body = self.render(request)
         else:
-            # No page or no inner_template. Get the inner content directly
-            inner = self.render(request)
-
-        # if status_code is an attribute we consider this as the response
-        # object and we return it.
-        if hasattr(inner, 'status_code'):
-            return inner
-        
+            layout = layout()
+            body = layout.render(request)
+            
+        if hasattr(body, 'status_code'):
+            return body
         return {'title': request.title,
                 'body_class': self.get_body_class(request),
-                'content': inner}
+                'body': body}
 
     def get_response(self, request):
         '''Get response handler.'''

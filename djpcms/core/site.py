@@ -7,6 +7,7 @@ from copy import deepcopy, copy
 from djpcms.utils.py2py3 import iteritems, itervalues, native_str
 from djpcms.utils.importer import import_module, module_attribute
 from djpcms.utils import conf, lazyproperty, Path
+from djpcms.utils.structures import OrderedDict
 from djpcms import html
 from djpcms.html.template import ContextTemplate
 from djpcms.html import layout
@@ -147,7 +148,7 @@ Attributes available:
                  **handlers):
         super(Site,self).__init__(route,parent)
         self._model_registry = {}
-        self._page_layout_registry = {}
+        self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]
         if self.parent is None:
             settings = settings or get_settings()
@@ -362,7 +363,7 @@ which updates the input ``dictionary`` with library dependent information.
                 
 
 class WebSite(object):
-    '''A class for callable instances for loading and configuring sites.
+    '''A class for callable objects used to load and configure a web site.
 Users can subclass this class and override the :meth:`load` method or
 the ``load_{{ name }}`` where ``name`` is the value of the
 :attr:`name` attribute.

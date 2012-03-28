@@ -3,7 +3,7 @@ from copy import copy
 import djpcms
 from djpcms import forms, html, plugins
 from djpcms.core import orms
-from djpcms.html import layout
+from djpcms.html.layout import html_choices, htmldefaultdoc, grid_systems, grids
 from djpcms.utils import markups
 from djpcms.utils.text import nicename
 
@@ -14,10 +14,13 @@ __all__ = ['TemplateForm',
            'EditContentForm']
 
 
-def get_templates(bfield):
-    for name in layout.page_layouts(grid = True):
-        yield name, nicename(name)
+def get_layout_templates(bfield):
+    if bfield.request:
+        root = bfield.request.view.root
+        for name in root._page_layout_registry:
+            yield name, nicename(name)
     
+grid_choices = lambda bfield: ((name, nicename(name)) for name in grids())
 
 def initial_layout(f):
     request = f.request
@@ -40,17 +43,18 @@ class PageForm(forms.Form):
                             required = False)
     link = forms.CharField(label = 'Text to display in links',
                            required = False)
-    in_navigation = forms.IntegerField(help_text = 'An integer greater or equal\
- to 0 used for link ordering in menus.',
-                                       initial = 0,
-                                       required = False)
-    inner_template = forms.ChoiceField(choices = get_templates,
-                                       required = False)   
+    in_navigation = forms.IntegerField(
+                        initial=0,
+                        required=False,
+                        help_text = 'An integer greater or equal 0 used for'
+                                    ' link ordering in menus.')
+    layout = forms.ChoiceField(choices=get_layout_templates,
+                               label='Page layout')
+    inner_template = forms.ChoiceField(choices = grid_choices)
+    grid_system = forms.ChoiceField(choices = grid_systems)
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
-    doctype = forms.ChoiceField(choices = layout.html_choices,
-                                initial = layout.htmldefaultdoc)
-    layout = forms.ChoiceField(choices = lambda r : copy(layout.grid_systems))
+    doctype = forms.ChoiceField(choices=html_choices, initial=htmldefaultdoc)
     
     def clean_url(self, value):
         if self.mapper:

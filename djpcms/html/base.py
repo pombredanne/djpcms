@@ -578,7 +578,7 @@ widget are rendered.
                key_data = (key_data,) 
                
         # First we render the stream of data in the widget
-        for data in (widget.data_stream,key_data):
+        for data in (widget.data_stream, key_data):
             if data:
                 for chunk in data:
                     yield data2html(request, chunk)

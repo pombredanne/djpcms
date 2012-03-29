@@ -1,19 +1,19 @@
 '''Uniform Styling
 '''
-from djpcms.style import css, cssc, cssv
+from djpcms.style import *
 
-cssv.declare('popover_zindex',1000)
+cssv.popover.zindex = 1000
 
 
 css('.popover',
-    cssc('.top', margin_top = '-5px'),
-    cssc('.right', margin_left = '5px'),
-    cssc('.bottom', margin_top = '5px'),
-    cssc('.left', margin_left = '-5px'),
+    cssa('.top', margin_top = '-5px'),
+    cssa('.right', margin_left = '5px'),
+    cssa('.bottom', margin_top = '5px'),
+    cssa('.left', margin_left = '-5px'),
     position = 'absolute',
     top = 0,
     left = 0,
-    z_index = cssv.popover_zindex,
+    z_index = cssv.popover.zindex,
     padding = '5px',
     display = 'none'
 )

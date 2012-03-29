@@ -122,23 +122,33 @@ class page(elem):
         
     @classmethod
     def childtype(cls):
-        return container 
+        return container
     
     def get_context(self, request, widget, context):
         # Override get_context to fill up the keyword dictionary
+        page = request.page
+        block_dictionary = page.block_dictionary() if page is not None else {}
         renderers = self.renderers
+        context = {}
         for child in self.allchildren:
             key = child.key
             renderer = self.renderers.get(key)
             if not renderer:
                 renderer = self.default_renderer
-            context[key] = renderer
+            blocks = block_dictionary.get(key)
+            context[key] = {'renderer': renderer,
+                            'blocks': blocks if blocks is not None else {}}
         return context
     
-    def default_renderer(self, request, block, widget):
-        return ''
+    def default_renderer(self, request, block_number, blocks):
+        '''The default renderer check if plugins are specified'''
+        if blocks:
+            for position in sorted(blocks):
+                block = blocks[position]
+        else:
+            return request.render()
+                
         
-    
 class Grid(elem):
     '''A grid element is the container of rows.'''
     default_class = 'grid-container'
@@ -163,7 +173,7 @@ class Grid(elem):
     
 
 class grid_holder(elem):
-    '''A grid holder contains only one :class:`Grid`'''
+    '''A grid holder can contain only one :class:`Grid`'''
     def __init__(self, *grid, **kwargs):
         if len(grid) > 1:
             raise RunTimeError('Only one grid can be passed to a grid holder')
@@ -173,34 +183,34 @@ class grid_holder(elem):
     def childtype(cls):
         return Grid
     
-    def default_inner_grid(self):
+    def default_inner_grid(self, request):
         return None
     
     def get_context(self, request, widget, context):
         # Override get_context so that we retrieve the context of
         # underlying blocks if they exists
-        page = request.page
-        blocks = None
-        if not self.allchildren:
-            # No children, this could be because this is a block column or
-            # a container with key
-            if page and self.key == 'content':
-                # This is the content
-                inner_grid = page.inner_grid
-                blocks = page.get_blocks()
-            else:
-                inner_grid = self.default_inner_grid()
-        else:
-            inner_grid = self.allchildren[0]
-            
+        ctx = None
+        inner_grid = self.allchildren[0] if self.allchildren else None
+        if self.key:
+            ctx = context.get(self.key)
+            if self.key == 'content' and request.page:
+                inner_grid = request.page.inner_grid or inner_grid
+            if not inner_grid:
+                inner_grid = self.default_inner_grid(request)
+        
+        # if an inner_grid is available, than we need to render the inner blocks
         if inner_grid:
-            ctx = {}
-            # loop over blocks
-            for n, block in enumerate(inner_grid.blocks()):
-                ctx[block] = n
-            return ctx
+            context = {}
+            if not ctx:
+                raise RuntimeError('Cannot render inner grid.')
+            renderer = ctx['renderer']
+            all_blocks = ctx['blocks']
+            for n,wm in enumerate(inner_grid.blocks()):
+                blocks = all_blocks.get(n)
+                context[wm] = renderer(request, n, blocks)
+            return context
+        # No inner grid this is a column which needs has its context set
         else:
-            # no inner_grid return the context
             return context
     
     
@@ -210,7 +220,7 @@ class container(grid_holder):
         kwargs['key'] = key
         super(container, self).__init__(*grid, **kwargs)
     
-    def default_inner_grid(self):
+    def default_inner_grid(self, request):
         return grid('grid 100')
     
     
@@ -241,14 +251,7 @@ no children, it return self as the only child.'''
         else:
             for child in super(column,self).blocks():
                 yield child
-    
-    def render_from_widget(self, request, widget, context):
-        elem = context.get(self)
-        if elem:
-            pass
-        else:
-            return super(column,self).render_from_widget(request, widget,
-                                                         context)
+                
     
 class row(elem):
     

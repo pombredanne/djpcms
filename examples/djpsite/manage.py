@@ -22,11 +22,14 @@ To create the style sheet::
     python manage.py style
 
 '''
+import sys
+
 import djpcms
 from djpcms import views
 from djpcms.apps import admin, static, user
+from djpcms import html
 from djpcms.html.layout import page, container, grid
-from djpcms.apps.nav import topbar
+from djpcms.plugins.navigation import topbar
 
 from stdcms.sessions.handler import PermissionHandler
     
@@ -93,14 +96,25 @@ class WebSite(djpcms.WebSite):
         page_template.renderers['header'] = self.render_header
         page_template.renderers['footer'] = self.render_footer
             
-    def render_topbar(self, request):
+    def render_topbar(self, request, block_number, blocks):
+        '''Render the topbar container'''
         return ''
+        if block_number == 0:
+            return topbar(request)
     
-    def render_header(self, request):
-        return '<h2>Dynamic Content management system</h2>'
+    def render_header(self, request, block_number, blocks):
+        if block_number == 0:
+            return '<h2>Dynamic Content management system</h2>'
     
-    def render_footer(self, request):
-        return '<p>djpcms</p>'
+    def render_footer(self, request, block_number, blocks):
+        if block_number == 0:
+            return '<p>djpcms</p>'
+        elif block_number == 2:
+            return '<p>Powered by <a href="http://www.python.org">Python'\
+                   ' {0}.{1}.{2}</a></p>'.format(*sys.version_info[:3])
+        else:
+            return html.NON_BREACKING_SPACE
+        
     
 
 if __name__ == '__main__':

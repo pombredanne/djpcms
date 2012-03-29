@@ -1,26 +1,12 @@
 '''Top bar styling
 '''
-from djpcms.style import css, gradient, radius, shadow, cssv
-from . import defaults
-
-cssv.declare_from_module(defaults)
+from djpcms.style import *
 
 ############################################################
-#    START THEME
-start = cssv.theme_setter('start')
-start.table_odd_background_color = '#f2f2f2'
-start.table_even_background_color = 'transparent'
-start.table_even_sort_background = '#fcefa1'
-start.table_odd_sort_background = '#f7eeb5'
-
-
-############################################################
-#    SIRO THEME
-siro = cssv.theme_setter('siro')
-siro.table_odd_background_color = '#f2f2f2'
-siro.table_even_background_color = 'transparent'
-siro.table_even_sort_background = '#fbec88'
-siro.table_odd_sort_background = '#f0e7ad'
+cssv.table.odd_background_color = 'transparent'
+cssv.table.even_background_color = 'transparent'
+cssv.table.even_sort_background = None
+cssv.table.odd_sort_background = None
 
 
 ################################################################################

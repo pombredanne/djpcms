@@ -510,7 +510,7 @@ and add testing plugins.'''
         from pulsar.apps.test import TestSuite
         pulgins = None
         if stdnet_test:
-            plugins = (stdnet_test.TestServer(),)
+            plugins = (stdnet_test.PulsarStdnetServer(),)
         suite = TestSuite(description = 'Djpcms Asynchronous test suite',
                           modules = ('tests',),
                           plugins = pulgins)
@@ -518,7 +518,7 @@ and add testing plugins.'''
     elif nose:
         os.environ['djpcms_test_suite'] = 'nose'
         if stdnet_test:
-            plugins = [stdnet_test.StdnetServer()]
+            plugins = [stdnet_test.NoseStdnetServer()]
         argv = list(argv)
         if nose_options:
             nose_options(argv)

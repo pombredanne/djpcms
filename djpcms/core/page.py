@@ -9,7 +9,7 @@ import logging
 
 import djpcms
 from djpcms import Route
-from djpcms.html import CONSTS
+from djpcms.html import NON_BREACKING_SPACE
 from djpcms.html.layout import htmldoc, grid
 from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
@@ -22,6 +22,10 @@ contentre = re.compile('{{ content\d }}')
 __all__ = ['Page','Block','BlockContentMapper','MarkupMixin']
 
 
+def get_or_update_dict(d, key, val = None):
+    if key not in d:
+        d[key] = val if val is not None else {}
+    return d[key]
 
 def block_htmlid(pageid, block):
     '''HTML id for a block container. Used throughout the library.'''
@@ -72,6 +76,14 @@ The following attributes must be implemented by subclasses.
         '''Iterator over block contents'''
         raise NotImplementedError()
     
+    def block_dictionary(self):
+        blockcontent = {}
+        for b in self.blocks():
+            namespace = get_or_update_dict(blockcontent, b.namespace)
+            block = get_or_update_dict(namespace, b.block)
+            block[b.position] = b
+        return blockcontent
+    
     def add_plugin(self, p, block = 0):
         '''Add a plugin to a block'''
         b = self.get_block(block)
@@ -120,8 +132,9 @@ The following attributes must be implemented by subclasses.
     
 
 class Block(object):
-    '''Content Block Interface'''
+    '''Content Block Interface.'''
     logger  = logging.getLogger('BlockContent')
+    namespace = 'content'
     
     def render(self, request, plugin = None, wrapper = None):
         '''Render the plugin in the content block
@@ -147,7 +160,7 @@ with the wrapper callable.'''
         # html can be a string or whatever the plugin returns.
         if plugin_response or not self.position:
             if not plugin_response:
-                plugin_response = CONSTS.NON_BREACKING_SPACE
+                plugin_response = NON_BREACKING_SPACE
             callback = lambda r : wrapper(request, self, r)
             return request.view.response(plugin_response, callback)
     

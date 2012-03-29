@@ -1,8 +1,7 @@
 '''Utility module for creating a navigations and breadcrumbs
 '''
 import djpcms
-from djpcms.html import Widget
-from djpcms.utils.const import EMPTY_VALUE
+from djpcms.html import Widget, NON_BREACKING_SPACE
     
 
 __all__ = ['Navigator','Breadcrumbs']
@@ -188,7 +187,7 @@ with class name defaulted to ``"breadcrumbs"``.
             self.widget.add(ul)
             return self.widget.render(request)
         elif self.render_empty:
-            return Widget('div',EMPTY_VALUE).render(request)
+            return Widget('div',NON_BREACKING_SPACE).render(request)
         else:
             return ''
 

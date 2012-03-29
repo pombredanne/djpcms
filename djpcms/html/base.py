@@ -4,9 +4,9 @@ from inspect import isgenerator
 
 from djpcms.utils.py2py3 import UnicodeMixin, is_string, to_string,\
                                 is_bytes_or_string, iteritems
-from djpcms.utils import slugify, escape, mark_safe, lazymethod, iterable
+from djpcms.utils import slugify, escape, mark_safe, lazymethod, iterable,\
+                         NOTHING
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.const import NOTHING
 
 from .context import ContextRenderer, StreamContextRenderer
 
@@ -17,13 +17,12 @@ __all__ = ['flatatt',
            'WidgetMaker',
            'Widget',
            'Html',
-           'CONSTS']
+           'NON_BREACKING_SPACE']
 
-class CONSTS:
-    NON_BREACKING_SPACE = mark_safe('&nbsp;')
     
 default_widgets_makers = {}
 
+NON_BREACKING_SPACE = mark_safe('&nbsp;')
 
 def attrsiter(attrs):
     for k,v in attrs.items():
@@ -571,14 +570,19 @@ widget are rendered.
 :rtype: a generator of strings and :class:`ContextRenderer`.
 '''
         data2html = self.data2html
-        key_data = None
-        if self.key and self.key in context:
-            key_data = context[self.key]
-            if key_data is not None and not iterable(key_data):
-               key_data = (key_data,) 
+        if self in context:
+            context_data = context[self]
+        elif self.key and self.key in context:
+            context_data = context[self.key]
+        else:
+            context_data = None
+            
+        if context_data is not None and not iterable(context_data):
+            context_data = (context_data,) 
                
-        # First we render the stream of data in the widget
-        for data in (widget.data_stream, key_data):
+        # First we render the stream of data in the widget,
+        # second the context data
+        for data in (widget.data_stream, context_data):
             if data:
                 for chunk in data:
                     yield data2html(request, chunk)

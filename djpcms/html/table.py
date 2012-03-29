@@ -12,10 +12,9 @@ from collections import namedtuple
 from djpcms.utils import media
 from djpcms.utils.ajax import simplelem
 from djpcms.utils.text import nicename
-from djpcms.utils.const import EMPTY_VALUE
 
 from .nicerepr import *
-from .base import Widget, WidgetMaker 
+from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
 
 
 __all__ = ['TableMaker',
@@ -52,7 +51,7 @@ def table_header(code, name = None, description = None, function = None,
         return code
     if not name:
         if code == '__str__':
-            name = EMPTY_VALUE
+            name = NON_BREACKING_SPACE
         else:
             name = nicename(code)
     function = function or code

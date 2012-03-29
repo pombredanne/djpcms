@@ -4,8 +4,8 @@ import logging
 
 from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
-from djpcms.utils.const import EMPTY_VALUE, EMPTY_TUPLE, NOTHING
-from djpcms.utils import force_str, mark_safe, significant_format, escape
+from djpcms.utils import force_str, mark_safe, significant_format, escape,\
+                            NOTHING
 
 from .base import Widget
 

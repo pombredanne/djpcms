@@ -8,9 +8,8 @@ import djpcms
 from djpcms.utils.py2py3 import iteritems, UnicodeMixin
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
-from djpcms.utils import force_str, lazyproperty
+from djpcms.utils import force_str, lazyproperty, NOTHING
 from djpcms.utils.text import nicename
-from djpcms.utils.const import NOTHING
 from djpcms.html import SubmitInput
 
 from .globals import *

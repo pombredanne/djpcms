@@ -3,8 +3,7 @@ from datetime import datetime, date
 from copy import copy, deepcopy
 
 from djpcms import html
-from djpcms.utils import escape, slugify, to_string
-from djpcms.utils.const import NOTHING
+from djpcms.utils import escape, slugify, to_string, NOTHING
 from djpcms.utils.dates import parse as dateparser
 from djpcms.core.orms import mapper
 from djpcms.core.files import File

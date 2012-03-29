@@ -1,30 +1,24 @@
 import logging
 import sys
 
-
-
-# Make sure a NullHandler is available
-# This was added in Python 2.7/3.2
-try:
+# Make sure a NullHandler and dictConfig are available
+# They were added in Python 2.7/3.2
+try:     # pragma nocover
+    from logging.config import dictConfig
     from logging import NullHandler
-except ImportError:
+except ImportError:     # pragma nocover
+    from .fallbacks._dictconfig import dictConfig
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
         
-# Make sure that dictConfig is available
-# This was added in Python 2.7/3.2
-try:
-    from logging.config import dictConfig
-except ImportError:
-    from djpcms.utils.dictconfig import dictConfig
-    
+
 # We can't log memory info without psutil
-try:
+try:         # pragma nocover
     from psutil import Process
     from os import getpid
     _p = Process(getpid())
-except:
+except:      # pragma nocover
     _p = None
 
 def get_mem_rss():
@@ -49,6 +43,7 @@ logger = logging.getLogger('djpcms')
 
 if not logger.handlers:
     logger.addHandler(NullHandler())
+        
         
 class AdminEmailHandler(logging.Handler):
     """An exception log handler that emails log entries to site admins

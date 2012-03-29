@@ -8,6 +8,7 @@ from .py2py3 import string_type
 
 
 __all__ = ['nodata',
+           'NOTHING',
            'encode_str',
            'force_str',
            'escape',

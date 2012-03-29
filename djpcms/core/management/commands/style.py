@@ -1,10 +1,13 @@
+'''Requires style
+'''
 import os
 import logging
 from optparse import make_option
 
 import djpcms
 from djpcms.utils.importer import import_module
-from djpcms.style import css, cssv, dump_theme
+
+from style import css, cssv, dump_theme
 
 
 LOGGER = logging.getLogger('style')

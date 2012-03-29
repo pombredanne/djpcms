@@ -23,6 +23,7 @@ from .table import *
 from .tabs import *
 from .yui import *
 
+
 def block(stream, id = None, cn = None, djp = None):
     div = Widget('div', id = id, cn = 'djpcms-block').addClass(cn)
     return div.render(djp = djp, inner = '\n'.join(stream))

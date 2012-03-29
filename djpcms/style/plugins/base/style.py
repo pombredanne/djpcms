@@ -1,6 +1,26 @@
 '''Uniform Styling
 '''
-from djpcms.style import css, mixin, cssv, radius, shadow, clearfix
+from djpcms.style import *
+
+################################################################################
+##    VARIABLES
+cssv.widget.hd.font_size = cssv.body.font_size
+cssv.widget.hd.font_weight = 'normal'
+cssv.widget.padding = spacing(px(5))
+cssv.widget.hd.padding = cssv.widget.padding
+cssv.widget.bd.padding = cssv.widget.padding
+cssv.widget.ft.padding = cssv.widget.padding
+#
+cssv.input.radius = px(0)
+cssv.input.padding = px(3)
+cssv.input.focus_color = None
+cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
+cssv.input.required_font_weight = 'None'
+#
+cssv.uniform.padding = px(4)
+cssv.uniform.table_layout = 'auto'
+################################################################################
+
 
 ################################################# CLEARINPUT
 class clearinp(mixin):
@@ -10,15 +30,53 @@ class clearinp(mixin):
         elem['outline'] = 'none'
 
 
+################################################# DJPCMS BOX
+css('.djpcms-html-box',
+    css('.collapsed > .bd', display = 'none'))
+
+################################################# WIDGET
+css('.widget',
+    css('.hd',
+        css('h1,h2,h3,h4,h5',
+            font_size = cssv.widget.hd.font_size,
+            font_weight = cssv.widget.hd.font_weight,
+            float = 'left',
+            padding = 0,
+            margin = 0,
+            background = 'transparent'
+        ),
+        padding = cssv.widget.hd.padding,
+        overflow='hidden',
+    ),
+    css('.bd',
+        padding = cssv.widget.bd.padding,
+        overflow = 'hidden',
+        border = 'none'),
+    css('.ft',
+        padding = cssv.widget.ft.padding,
+        overflow = 'hidden',
+        border = 'none')
+)
+
+################################################# OBJECT DEFINITIONS
+css('.object-definition',
+    css('dl',
+        cssa(':first-child', margin_top = 0),
+        css('dt',
+            opacity = cssv.definition_list_opacity,
+            float = 'left', width = '40%', margin = 0),
+        css('dd', margin = 0)
+        ),
+    cssa('.w20 dl dt', width = '20%'),
+    cssa('.w40 dl dt', width = '40%'),
+    cssa('.w50 dl dt', width = '50%'),
+    overflow = 'hidden',
+    margin = '5px 0 0')
+
 ################################################################################
 # Uniform variables
 ################################################################################
-cssv.declare('input_radius',0)
-cssv.declare('input_focus_color', None)
-cssv.declare('input_focus_shadow', '0 3px 3px rgba(0,0,0,0.2)')
-cssv.declare('input_required_font_weight',None)
-cssv.declare('uniform_padding',4)
-cssv.declare('uniform_table_layout','auto')
+
 
 
 disabled_selector = '''\
@@ -96,7 +154,7 @@ css('form.uniForm',
         clearfix(),
         margin = 0,
         overflow = 'hidden',
-        padding = cssv.uniform_padding),
+        padding = cssv.uniform.padding),
     css('.layout-element',
         margin = lambda: '0 0 {0}px'.format(int(cssv.uniform_padding*1.5))))
 
@@ -115,12 +173,12 @@ css('table.uniFormTable',
     css('th,td',
         padding = lambda: '{0}px 0 {0}px {0}px'.format(cssv.uniform_padding)),
     css('th:last-child,td:last-child',
-        padding = cssv.uniform_padding),
+        padding = cssv.uniform.padding),
     clearfix(),
     #process_elems(css('td.error')),
     css('td.error:last-child',
-        padding = cssv.uniform_padding),
-    table_layout = cssv.uniform_table_layout,
+        padding = cssv.uniform.padding),
+    table_layout = cssv.uniform.table_layout,
     width = '100%'
 )
          

@@ -1,5 +1,4 @@
 from djpcms.utils import escape, js, media
-from djpcms.utils.const import *
 
 from .base import WidgetMaker, Widget
 

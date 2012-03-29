@@ -135,12 +135,12 @@ startColorstr='{0}', endColorstr='{1}', GradientType={2})".format(s,e,t)
         
 ################################################# BCD - BACKGROUND-COLOR-DECO
 class bcd(mixin):
-    '''Background-color-text decoration -text shadow mixin. It
+    '''Background-color-text decoration and text shadow mixin. It
 can be applied to any element. It forms the basis for the :class:`clickable`
 mixin.
     
-:parameter background: backgroudn or gradient
-:parameter color: color
+:parameter background: backgroud or css3 box-gradient
+:parameter colour: colour
 :parameter text_shadow: text shadow
 :parameter text_decoration: text decoration 
 '''
@@ -308,7 +308,7 @@ class fluidgrid(grid):
             raise ValueError('gutter must be positive')
         self.columns = columns
         self.gutter = gutter
-        self.span = round((100 - (columns-1)*gutter)/columns,4)
+        self.span = round((100 - columns*gutter)/columns, 4)
         if self.span <= 0:
             raise ValueError('gutter too large')
     

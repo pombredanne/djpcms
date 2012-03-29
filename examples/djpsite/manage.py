@@ -2,12 +2,13 @@
 '''
 Script for running djpcms web site. It requires the following libraries:
 
-* style_
+* https://github.com/lsbardel/python-stdnet
 * https://github.com/lsbardel/stdcms
 * https://github.com/lsbardel/social
 
-You need to create a settings.py file and assign the `RESERVED SETTINGS`
-parameters in `conf.py` module. The file should look like::
+You need to create a settings.py file in the same directory as this script
+and assign the `RESERVED SETTINGS` parameters in the `conf.py` module.
+The file should look like::
 
     from .conf import *
     SECRET_KEY = ...

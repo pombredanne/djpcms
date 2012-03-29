@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by style  2012-03-29 18:51:25.194000
+Created by style  2012-03-29 23:09:53.416862
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -127,51 +127,51 @@ a:link a:hover {
 }
 
 .row-fluid_12 > .span1 {
-    width: 5.9829%;
+    width: 5.7692%;
 }
 
 .row-fluid_12 > .span2 {
-    width: 14.5299%;
+    width: 14.1025%;
 }
 
 .row-fluid_12 > .span3 {
-    width: 23.0769%;
+    width: 22.4358%;
 }
 
 .row-fluid_12 > .span4 {
-    width: 31.6239%;
+    width: 30.769099999999998%;
 }
 
 .row-fluid_12 > .span5 {
-    width: 40.1709%;
+    width: 39.102399999999996%;
 }
 
 .row-fluid_12 > .span6 {
-    width: 48.7179%;
+    width: 47.4357%;
 }
 
 .row-fluid_12 > .span7 {
-    width: 57.2649%;
+    width: 55.769%;
 }
 
 .row-fluid_12 > .span8 {
-    width: 65.8119%;
+    width: 64.1023%;
 }
 
 .row-fluid_12 > .span9 {
-    width: 74.3589%;
+    width: 72.4356%;
 }
 
 .row-fluid_12 > .span10 {
-    width: 82.9059%;
+    width: 80.76889999999999%;
 }
 
 .row-fluid_12 > .span11 {
-    width: 91.4529%;
+    width: 89.1022%;
 }
 
 .row-fluid_12 > .span12 {
-    width: 99.9999%;
+    width: 97.4355%;
 }
 
 .row-fluid_12 > [class*="span"] {
@@ -415,6 +415,9 @@ table.uniFormTable td.error:last-child {
     padding: 4px;
 }
 
+#page-content {
+}
+
 #page-footer {
     min-height: 300px;
     color: #eeeeee;
@@ -590,51 +593,51 @@ table.uniFormTable td.error:last-child {
 }
 
 .row-fluid_12 > .span1 {
-    width: 5.9829%;
+    width: 5.7692%;
 }
 
 .row-fluid_12 > .span2 {
-    width: 14.5299%;
+    width: 14.1025%;
 }
 
 .row-fluid_12 > .span3 {
-    width: 23.0769%;
+    width: 22.4358%;
 }
 
 .row-fluid_12 > .span4 {
-    width: 31.6239%;
+    width: 30.769099999999998%;
 }
 
 .row-fluid_12 > .span5 {
-    width: 40.1709%;
+    width: 39.102399999999996%;
 }
 
 .row-fluid_12 > .span6 {
-    width: 48.7179%;
+    width: 47.4357%;
 }
 
 .row-fluid_12 > .span7 {
-    width: 57.2649%;
+    width: 55.769%;
 }
 
 .row-fluid_12 > .span8 {
-    width: 65.8119%;
+    width: 64.1023%;
 }
 
 .row-fluid_12 > .span9 {
-    width: 74.3589%;
+    width: 72.4356%;
 }
 
 .row-fluid_12 > .span10 {
-    width: 82.9059%;
+    width: 80.76889999999999%;
 }
 
 .row-fluid_12 > .span11 {
-    width: 91.4529%;
+    width: 89.1022%;
 }
 
 .row-fluid_12 > .span12 {
-    width: 99.9999%;
+    width: 97.4355%;
 }
 
 .row-fluid_12 > [class*="span"] {

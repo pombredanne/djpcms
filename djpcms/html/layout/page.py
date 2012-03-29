@@ -129,7 +129,7 @@ class page(elem):
         page = request.page
         block_dictionary = page.block_dictionary() if page is not None else {}
         renderers = self.renderers
-        context = {}
+        context = {'grid': None}
         for child in self.allchildren:
             key = child.key
             renderer = self.renderers.get(key)
@@ -197,12 +197,14 @@ class grid_holder(elem):
                 inner_grid = request.page.inner_grid or inner_grid
             if not inner_grid:
                 inner_grid = self.default_inner_grid(request)
+                if inner_grid and self.key == 'content':
+                    self.add(inner_grid)
         
         # if an inner_grid is available, than we need to render the inner blocks
         if inner_grid:
-            context = {}
             if not ctx:
                 raise RuntimeError('Cannot render inner grid.')
+            context = {}
             renderer = ctx['renderer']
             all_blocks = ctx['blocks']
             for n,wm in enumerate(inner_grid.blocks()):
@@ -213,7 +215,7 @@ class grid_holder(elem):
         else:
             return context
     
-    
+
 class container(grid_holder):
     '''A container of a grid system'''
     def __init__(self, key, *grid, **kwargs):

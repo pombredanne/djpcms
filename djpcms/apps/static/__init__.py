@@ -81,10 +81,12 @@ It looks for the ``media`` directory in each installed application.'''
             if not safe:
                 raise
             continue
-
-        h = handler(name,module.__path__[0],mediadir)
-        if h.exists:
-            map[name] = h
+        
+        path = getattr(module,'__path__',None)
+        if path:
+            h = handler(name, path[0], mediadir)
+            if h.exists:
+                map[name] = h
     return map
 
 

@@ -156,7 +156,7 @@ css('form.uniForm',
         overflow = 'hidden',
         padding = cssv.uniform.padding),
     css('.layout-element',
-        margin = lambda: '0 0 {0}px'.format(int(cssv.uniform_padding*1.5))))
+        margin = lambda: '0 0 {0}'.format(cssv.uniform.padding*1.5)))
 
 
 #                   'buttonholder_padding': "10px 0",
@@ -171,7 +171,7 @@ css('table.uniFormTable',
         float = 'none',
         margin = 0),
     css('th,td',
-        padding = lambda: '{0}px 0 {0}px {0}px'.format(cssv.uniform_padding)),
+        padding = lambda: '{0}px 0 {0}px {0}px'.format(cssv.uniform.padding)),
     css('th:last-child,td:last-child',
         padding = cssv.uniform.padding),
     clearfix(),

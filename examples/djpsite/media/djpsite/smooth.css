@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by style  2012-03-29 18:07:43.088000
+Created by style  2012-03-29 18:51:25.194000
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -206,6 +206,7 @@ a:link a:hover {
 }
 
 .widget .hd {
+    padding: 5px;
     overflow: hidden;
 }
 
@@ -221,11 +222,13 @@ a:link a:hover {
 }
 
 .widget .bd {
+    padding: 5px;
     overflow: hidden;
     border: none;
 }
 
 .widget .ft {
+    padding: 5px;
     overflow: hidden;
     border: none;
 }
@@ -262,6 +265,228 @@ a:link a:hover {
 
 .object-definition.w50 dl dt {
     width: 50%;
+}
+
+.field-widget {
+}
+
+.field-widget input[type="text"],
+.field-widget input[type="password"],
+.field-widget textarea,
+.field-widget select {
+    padding: 0;
+    width: 100%;
+    line-height: 1;
+    margin: 0;
+    background: transaprent;
+    border: none;
+    outline: none;
+}
+
+.field-widget input:focus,
+.field-widget textarea:focus,
+.field-widget select:focus {
+    border: none;
+    outline: none;
+}
+
+.field-widget.focus {
+}
+
+.field-widget.span1 {
+    width: 30px;
+}
+
+.field-widget.span2 {
+    width: 60px;
+}
+
+.field-widget.span3 {
+    width: 120px;
+}
+
+.field-widget.span4 {
+    width: 180px;
+}
+
+.field-widget.span5 {
+    width: 240px;
+}
+
+.field-widget.span6 {
+    width: 300px;
+}
+
+.field-widget.span7 {
+    width: 360px;
+}
+
+.field-widget.span8 {
+    width: 420px;
+}
+
+.field-widget.span9 {
+    width: 480px;
+}
+
+.required label {
+}
+
+.disabled .field-widget,
+ .readonly .field-widget,
+ 
+input[disabled],
+ select[disabled],
+ textarea[disabled],
+
+input[readonly],
+ select[readonly],
+ textarea[readonly]
+ {
+}
+
+form.uniForm {
+}
+
+form.uniForm .errorlist {
+    overflow: hidden;
+}
+
+form.uniForm .legend {
+}
+
+form.uniForm label {
+}
+
+form.uniForm .ctrlHolder,
+form.uniForm .buttonHolder {
+    padding: 4px;
+    overflow: hidden;
+    margin: 0;
+    *zoom: 1;
+}
+
+form.uniForm .ctrlHolder,.buttonHolder:before,
+form.uniForm .ctrlHolder,.buttonHolder:after {
+    content: "";
+    display: table;
+}
+
+form.uniForm .ctrlHolder,.buttonHolder:after {
+    clear: both;
+}
+
+form.uniForm .layout-element {
+    margin: 0 0 6px;
+}
+
+table.uniFormTable {
+    width: 100%;
+    table-layout: auto;
+    *zoom: 1;
+}
+
+table.uniFormTable:before,
+table.uniFormTable:after {
+    content: "";
+    display: table;
+}
+
+table.uniFormTable:after {
+    clear: both;
+}
+
+table.uniFormTable input[type="checkbox"] {
+    float: none;
+    margin: 0;
+}
+
+table.uniFormTable th,
+table.uniFormTable td {
+    padding: 4pxpx 0 4pxpx 4pxpx;
+}
+
+table.uniFormTable th:last-child,
+table.uniFormTable td:last-child {
+    padding: 4px;
+}
+
+table.uniFormTable td.error:last-child {
+    padding: 4px;
+}
+
+#page-footer {
+    min-height: 300px;
+    color: #eeeeee;
+    background-color: #444;
+    background-image: -moz-linear-gradient(top, #222, #444);
+    background-image: -ms-linear-gradient(top, #222, #444);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#222), to(#444));
+    background-image: -webkit-linear-gradient(top, #222, #444);
+    background-image: -o-linear-gradient(top, #222, #444);
+    background-image: linear-gradient(top, #222, #444);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#222', endColorstr='#444', GradientType=0);
+}
+
+.popover {
+    z-index: 1000;
+    top: 0;
+    padding: 5px;
+    position: absolute;
+    display: none;
+    left: 0;
+}
+
+.popover.top {
+    margin-top: -5px;
+}
+
+.popover.right {
+    margin-left: 5px;
+}
+
+.popover.bottom {
+    margin-top: 5px;
+}
+
+.popover.left {
+    margin-left: -5px;
+}
+
+.topbar {
+    height: 40px;
+    z-index: 10000;
+    overflow: visible;
+    min-width: 960px;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: none;
+    background-color: #222;
+    background-image: -moz-linear-gradient(top, #333, #222);
+    background-image: -ms-linear-gradient(top, #333, #222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333), to(#222));
+    background-image: -webkit-linear-gradient(top, #333, #222);
+    background-image: -o-linear-gradient(top, #333, #222);
+    background-image: linear-gradient(top, #333, #222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333', endColorstr='#222', GradientType=0);
+}
+
+.topbar a.brand {
+    font-size: 20px;
+    color: #ffffff;
+    display: block;
+    padding: 10px 20px 10px 20px;
+    line-height: 20px;
+}
+
+.topbar-fixed {
+    left: 0;
+    top: 0;
+    right: 0;
+    position: fixed;
+    z-index: 2000;
 }
 
 .row_12 {
@@ -431,4 +656,76 @@ a:link a:hover {
 
 .grid-container-fluid:after {
     clear: both;
+}
+
+.nav {
+    display: block;
+    float: left;
+    position: relative;
+    position: fixed;
+}
+
+.nav > li {
+    float: left;
+    display: block;
+}
+
+.nav > li .nav > li:hover {
+    background: #333333;
+}
+
+.nav > li .nav > li.active {
+    background: #000000;
+}
+
+.nav li {
+    position: relative;
+}
+
+.nav ul {
+    top: 40px;
+    position: absolute;
+    display: False;
+    background: #333333;
+}
+
+.nav a {
+    padding: 10px 10px;
+    float: none;
+    line-height: 20px;
+    display: inline-block;
+}
+
+.nav.secondary-nav {
+    display: block;
+    float: right;
+    position: relative;
+    position: fixed;
+}
+
+.nav.secondary-nav > li {
+    float: left;
+    display: block;
+}
+
+.nav.secondary-nav > li .nav.secondary-nav > li:hover {
+}
+
+.nav.secondary-nav > li .nav.secondary-nav > li.active {
+}
+
+.nav.secondary-nav li {
+    position: relative;
+}
+
+.nav.secondary-nav ul {
+    top: 40px;
+    position: absolute;
+    display: False;
+}
+
+.nav.secondary-nav a {
+    float: none;
+    line-height: 20px;
+    display: inline-block;
 }

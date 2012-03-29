@@ -3,7 +3,6 @@
 
 INSTALLED_APPS = ('djpcms',
                   'djpcms.style.plugins',
-                  'style',
                   'stdcms.cms',
                   'stdcms.monitor',
                   'stdcms.sessions',

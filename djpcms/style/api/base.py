@@ -781,7 +781,3 @@ def main(argparser = None, verbose = True, argv = None):
     dump_theme(opts.theme, opts.output, opts.variables, opts.minify,
                verbose = verbose)    
     
-
-conversions.update(((v,Size) for v in 
-                    ('height','width','font_size','line_height')))
-conversions.update(((v,Spacing) for v in ('padding','margin','border_size')))

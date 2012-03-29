@@ -90,7 +90,9 @@ class WebSite(djpcms.WebSite):
                       role = 'topbar'),
             container('header', grid('grid 100'), role = 'header'),
             container('content', role = 'content'),
-            container('footer', grid('grid 33-33-33'), role = 'footer'))
+            container('footer', grid('grid 33-33-33'),
+                      role='footer',
+                      id='page-footer'))
         site.register_page_layout('default', page_template)
         page_template.renderers['topbar'] = self.render_topbar
         page_template.renderers['header'] = self.render_header

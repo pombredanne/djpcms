@@ -43,6 +43,7 @@ class PasswordInput(InputWidget):
     
     
 class SubmitInput(InputWidget):
+    default_class = 'button'
     default_attrs = {'type': 'submit'}
     
     
@@ -59,9 +60,6 @@ class CheckboxInput(InputWidget):
     def set_value(self, value, widget):
         if value:
             widget.attrs['checked'] = 'checked'
-        
-    def ischeckbox(self):
-        return True
     
     
 class TextArea(InputWidget):

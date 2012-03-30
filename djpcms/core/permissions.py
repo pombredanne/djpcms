@@ -1,24 +1,17 @@
 '''\
 Permissions are controlled by the plugin the user provides.
 '''
+from .exceptions import PermissionDenied
 
-__all__ = ['PERMISSION_CODES',
-           'PERMISSION_LIST',
-           'VIEW',
+__all__ = ['VIEW',
            'ADD',
            'COPY',
            'CHANGE',
            'DELETE',
            'DELETEALL',
-           'addcode',
            'PermissionHandler',
            'SimpleRobots',
            'authenticated_view']
-
-
-from .exceptions import PermissionDenied
-
-
 
 # Main permission flags
 VIEW = 10
@@ -27,8 +20,6 @@ COPY = 25
 CHANGE = 30
 DELETE = 40
 DELETEALL = 50
-
-
 PERMISSION_LIST = [
                    (VIEW,'VIEW'),
                    (ADD,'ADD'),
@@ -37,19 +28,6 @@ PERMISSION_LIST = [
                    (DELETE,'DELETE'),
                    (DELETEALL,'DELETE ALL')
                   ]
-                    
-PERMISSION_CODES = dict(PERMISSION_LIST)
-
-
-def addcode(code,name):
-    global PERMISSION_CODES
-    try:
-        code = int(code)
-    except ValueError:
-        return
-    if code not in PERMISSION_CODES:
-         PERMISSION_CODES[code] = name
-         return code
      
 
 class AuthenticationError(Exception):
@@ -89,23 +67,54 @@ class PermissionHandler(object):
 '''
     AuthenticationError = AuthenticationError
     
-    def __init__(self, settings, auth_backends = None, requires_login = False):
+    def __init__(self, settings, auth_backends = None,
+                 requires_login = False):
         if auth_backends is None:
             auth_backends = self.default_backends(settings)
         self.auth_backends = auth_backends
         self.requires_login = requires_login
+        self.permission_codes = dict(PERMISSION_LIST)
     
     def default_backends(self, settings):
         '''Create the default authentication backends.'''
         return []
     
     def request_middleware(self):
-        return (self.process_request,)
+        middleware = [self.process_request]
+        for b in self.auth_backends:
+            try:
+                middleware.extend(b.request_middleware())
+            except:
+                pass
+        return middleware
+    
+    def response_middleware(self):
+        middleware = []
+        for b in self.auth_backends:
+            try:
+                middleware.extend(b.response_middleware())
+            except:
+                pass
+        return middleware
     
     def process_request(self, environ, start_response):
         '''Request middleware. Add self to the environment'''
         environ['permission_handler'] = self
     
+    def addcode(self, code, name):
+        '''Add a permission code to the list'''
+        try:
+            code = int(code)
+        except ValueError:
+            return
+        if code not in self.permission_codes:
+             self.permission_codes[code] = name
+             return code
+         
+    def permission_choices(self):
+        c = self.permission_codes
+        return ((k,c[k]) for k in sorted(c))
+     
     def authenticate(self, request, **params):
         for b in self.auth_backends:
             try:

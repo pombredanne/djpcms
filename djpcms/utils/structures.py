@@ -3,9 +3,11 @@ from copy import copy
 from inspect import isgenerator
 from collections import *
 
-if sys.version_info < (2,7):
+from .py2py3 import itervalues, iteritems
+
+if sys.version_info < (2,7):    # pragma nocover
     from djpcms.utils.fallbacks._collections import *
-    
+
     
 def aslist(value):
     if isinstance(value,list):
@@ -39,6 +41,12 @@ Raises KeyError if key is not found."""
             l.append(value)
         else:
             super(MultiValueDict, self).__setitem__(key, [value])
+            
+    def update(self, items):
+        if isinstance(items, dict):
+            items = iteritems(items)
+        for k,v in items:
+            self[k] = v
 
     def __copy__(self):
         return self.__class__(((k, v[:]) for k, v in self.lists()))
@@ -53,26 +61,14 @@ Raises KeyError if key is not found."""
         """Returns the list of values for the passed key."""
         return super(MultiValueDict, self).__getitem__(key)
 
-    def setlist(self, key, list_):
-        super(MultiValueDict, self).__setitem__(key, list_)
-
     def setdefault(self, key, default=None):
         if key not in self:
             self[key] = default
         return self[key]
 
-    def appendlist(self, key, value):
-        """Appends an item to the internal list associated with key."""
-        if key not in self:
-            li = []
-            self.setlist(key, li)
-        else:
-            li = self.getlist(key)
-        li.append(value)
-
     def items(self):
-        """Returns a generator ovr (key, value) pairs, where value is the last item in
-        the list associated with the key.
+        """Returns a generator ovr (key, value) pairs,
+where value is the last item in the list associated with the key.
         """
         return ((key, self[key]) for key in self)
 
@@ -84,3 +80,5 @@ Raises KeyError if key is not found."""
         """Returns a list of the last value on every key list."""
         return [self[key] for key in self.keys()]
 
+    def copy(self):
+        return copy(self)

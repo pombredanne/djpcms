@@ -384,7 +384,7 @@ The context is ready to be rendered.'''
             context.update({
                 'title':title,
                 'body_class': 'error',
-                'inner':inner.render(request)})
+                'content':inner.render(request)})
             return self.body_renderer(request,context)
     
     def page_script(self, request):

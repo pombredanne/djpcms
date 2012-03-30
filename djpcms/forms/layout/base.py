@@ -1,8 +1,17 @@
 from inspect import isclass
 
 from djpcms.utils.py2py3 import is_bytes_or_string
+from djpcms.utils import zip
 from djpcms import html, ajax
+from djpcms.html.layout import equally_spaced_grid
 from djpcms.utils.text import nicename
+
+inlineLabels   = 'inlineLabels'
+inlineLabels2  = 'inlineLabels fullwidth'
+inlineLabels3  = 'inlineLabels auto'
+blockLabels    = 'blockLabels'
+blockLabels2   = 'blockLabels2'
+inlineFormsets = 'blockLabels2'
 
 
 __all__ = ['FormWidget',
@@ -12,12 +21,20 @@ __all__ = ['FormWidget',
            'FormLayoutElement',
            'DivFormElement',
            'FormWidgetMaker',
-           'FieldWidget',
+           'FieldTemplate',
            'FormLayout',
-           'SimpleFormLayout',
            'SubmitElement',
+           'Fieldset',
+           'Row',
+           'Columns',
            'nolabel',
-           'SUBMITS']
+           'SUBMITS',
+           'inlineLabels',
+           'inlineLabels2',
+           'inlineLabels3',
+           'blockLabels',
+           'blockLabels2',
+           'inlineFormsets']
 
 nolabel = 'nolabel'
 SUBMITS = 'submits' # string indicating submits in forms
@@ -71,7 +88,7 @@ class FormWidgetMaker(html.WidgetMaker):
     _widget = FormWidget
 
 
-class FieldWidget(FormWidgetMaker):
+class FieldTemplate(FormWidgetMaker):
     
     def get_context(self, request, widget, context):
         bfield = widget.internal['field']
@@ -84,14 +101,20 @@ class FieldWidget(FormWidgetMaker):
         wrapper_class = wrapper_class + ' ' + bfield.name if wrapper_class else\
                         bfield.name
         hidden = w.attr('type')=='hidden' or  w.css('display') == 'none'
-        checkbox = w.maker.ischeckbox()
+        checkbox = w.attrs.get('type') == 'checkbox'
         
         if hidden or checkbox:
             wrapper = w
         else:
             wrapper = html.Widget('div', w, cn = wrapper_class)\
                                         .addClass(' '.join(w.classes))
-        context = context.copy() 
+        context = context.copy()
+        if w.attr('disabled') == 'disabled':
+            wrapper.addClass('disabled')
+        if w.attr('readonly') == 'readonly':
+            wrapper.addClass('readonly')
+        if bfield.field.required:
+            wrapper.addClass('required')
         context.update({'field':bfield,
                         'name':bfield.name,
                         'widget':wrapper,
@@ -101,66 +124,36 @@ class FieldWidget(FormWidgetMaker):
                         'ischeckbox':checkbox,
                         'hidden': hidden})
         return context
-        
-    def _stream(self, request, elem, context):
-        w = context['widget']
-        bfield =  context['field']
-        parent = context['parent']
-        if w.attr('disabled') == 'disabled':
-            elem.addClass('disabled')
-        if w.attr('readonly') == 'readonly':
-            elem.addClass('readonly')
-        error = context['error']
-        if bfield.field.required:
-            elem.addClass('required')
-        label = '' if parent.default_style == nolabel else bfield.label        
-        if error:
-            elem.addClass('error')
-            
-        yield "<div id='{0}'>{1}</div>".format(bfield.errors_id,error)
-
-        whtml = w.render(request)
-        if context['ischeckbox']:
-            yield "<p class='label'></p><div class='field-widget'>\
-<label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
-        else:
-            if label:
-                yield "<label for='{0}' class='label'>{1}</label>"\
-                        .format(bfield.id,label)
-            yield whtml
 
     def stream(self, request, widget, context):
+        w = context['widget']
         if context['hidden']:
-            yield context['widget'].render(request)
+            yield w.render(request)
         else:
-            if self.default_class:
-                elem = html.Widget('div', cn = self.default_class)
-                inner = '\n'.join(self._stream(request,elem,context))
-                elem.add(inner)
-                yield elem.render(request)
+            bfield =  context['field']
+            parent = context['parent']
+            error = context['error']
+            label = '' if parent.default_style == nolabel else bfield.label        
+            yield "<div id='{0}'>{1}</div>".format(bfield.errors_id,error)
+            whtml = w.render(request)
+            if context['ischeckbox']:
+                yield "<p class='label'></p><div class='field-widget'>\
+    <label for='{0}'>{1}{2}</label></div>".format(bfield.id,whtml,label)
             else:
-                yield '\n'.join(self._stream(request,None,context))
+                if label:
+                    yield "<label for='{0}' class='label'>{1}</label>"\
+                            .format(bfield.id,label)
+                yield whtml
 
 
 class BaseFormLayout(FormWidgetMaker):
     '''\
 A :class:`djpcms.html.WidgetMaker` for programmatic
-form layout design.
-    
-.. attribute:: field_widget_maker
-
-    A template name or tuple for rendering a bound field. If not provided
-    the field will render the widget only.
-    
-    Default: ``None``.
-'''
+form layout design.'''
     field_widget_class = None
-    field_widget_maker = FieldWidget 
     
-    def __init__(self, legend = None, field_widget_maker = None, **params):
-        field_widget_maker = field_widget_maker or self.field_widget_maker
-        self.field_widget_maker = field_widget_maker(
-                                default_class = self.field_widget_class)
+    def __init__(self, legend = None, **params):
+        self.field_template = self.get_field_template()
         self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout,self).__init__(**params)
         
@@ -174,6 +167,14 @@ form layout design.
         for text in super(BaseFormLayout,self).stream(request, widget, context):
             yield text
 
+    def get_field_template(self):
+        '''Create the template for a field.'''
+        if self.field_widget_class:
+            return FieldTemplate(tag='div',
+                                 default_class=self.field_widget_class)
+        else:
+             return FieldTemplate()
+
 
 class FormLayoutElement(BaseFormLayout):
     '''Base :class:`djpcms.html.WidgetMaker` class for :class:`FormLayout`
@@ -183,13 +184,6 @@ components. An instance of this class render one or several form
 :parameter children: collection of strings indicating
     :class:`djpcms.forms.Field` names and other :class:`FormLayoutElement`
     instances (allowing for nested specification).
-    
-.. attribute:: field_widget_maker
-
-    The :class:`WidgetMaker` for fields included in this layout element.
-    There shouldn't be any reason to override this attribute.
-    
-    Default: :class:`FieldWidget`
 '''
     default_class = 'layout-element'
     field_widget_class = 'ctrlHolder'
@@ -210,8 +204,7 @@ remove available fields from the missing set.'''
         form = form if form is not None else widget.internal.get('form')
         make = super(FormLayoutElement,self).child_widget
         if form and child in form.dfields:
-            w =  make(self.field_widget_maker,
-                      widget, field = form.dfields[child])
+            w = make(self.field_template, widget, field=form.dfields[child])
         else:
             w = make(child, widget)
         w.internal['form'] = form
@@ -240,12 +233,13 @@ class SubmitElement(FormLayoutElement):
 class FormLayout(BaseFormLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
  layout design.'''
+    default_style  = 'inlineLabels'
     submit_element = None
     '''Form template'''
     '''Template file for rendering form fields'''
-    form_class = None
+    form_class = 'uniForm'
     '''form css class'''
-    form_messages_container_class = 'form-messages'
+    form_messages_container_class = 'form-messages ctrlHolder'
     '''Class used to hold form-wide messages'''
     form_error_class = 'errorlist ui-state-error'
     '''Class for form errors'''
@@ -332,10 +326,64 @@ class SimpleLayoutElement(FormLayoutElement):
     default_class = 'layout-element'
     
     
-class SimpleFormLayout(FormLayout):
-    form_messages_container_class = None
-    form_error_class = None
-    form_message_class = None
-    from_input_class = None
-    default_element = SimpleLayoutElement
+class Fieldset(FormLayoutElement):
+    '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
+    tag = 'fieldset'
+    def __init__(self, *children, **kwargs):
+        super(Fieldset,self).__init__(**kwargs)
+        self.allchildren = children
+    
+    def check_fields(self, missings, layout):
+        self.allchildren = check_fields(self.allchildren,missings,layout)
+      
+
+class Row(Fieldset):
+    '''A :class:`FormLayoutElement` which renders to a <div>.'''
+    tag = 'div'
+    default_style = "formRow"
+    
+
+class Columns(FormLayoutElement):
+    '''A :class:`FormLayoutElement` which defines a set of columns using
+yui3_ grid layout.
+
+:parameter columns: tuple of columns
+:parameter grid: optional :class:`djpcms.html.layout.grid`. If not provided, an
+    equally spaced columns grid is used.
+'''
+    tag = 'div'
+    default_style = "formColumns"
+    
+    def __init__(self, *columns, **kwargs):
+        grid = kwargs.pop('grid',None) 
+        super(Columns,self).__init__(**kwargs)
+        self.allchildren = columns
+        ncols = len(columns)
+        if not grid:
+            grid = equally_spaced_grid(ncols)
+        if grid.numblocks != ncols:
+            raise ValueError('Number of column {0} does not match number of\
+ html elements {1}'.format(ncols,grid.numblocks))
+        self.grid = grid
+
+    def check_fields(self, missings, layout):
+        newcolumns = []
+        for column in self.allchildren:
+            if isinstance(column,(list,tuple)):
+                kwargs = {'default_style':self.default_style}
+                column = layout.default_element(*column, **kwargs)
+            elif not isinstance(column,html.WidgetMaker):
+                column = layout.default_element(column,
+                                        default_style = self.default_style)
+            column.check_fields(missings,layout)
+            newcolumns.append(column)
+        self.allchildren = newcolumns
+    
+    def layout_stream(self, request, widget, context):
+        children = [w.render(request, context) for w in\
+                         self.children_widgets(widget)]
+        grid = self.grid()
+        context = {'renderer': lambda request, n, block: children[n]}
+        yield grid.render(request, context)
+
     

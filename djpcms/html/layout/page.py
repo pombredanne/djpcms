@@ -1,9 +1,12 @@
 '''Page layout and grids
 '''
+from collections import deque
+
 from djpcms.html import WidgetMaker
 
 __all__ = ['LayoutDoesNotExist',
            'grid_systems',
+           'equally_spaced_grid',
            'grid',
            'grids',
            'elem',
@@ -195,27 +198,21 @@ class grid_holder(elem):
             ctx = context.get(self.key)
             if self.key == 'content' and request.page:
                 inner_grid = request.page.inner_grid or inner_grid
-            if not inner_grid:
+            if not inner_grid and self.key == 'content':
                 inner_grid = self.default_inner_grid(request)
-                if inner_grid and self.key == 'content':
-                    self.add(inner_grid)
-        
-        # if an inner_grid is available, than we need to render the inner blocks
         if inner_grid:
-            if not ctx:
-                raise RuntimeError('Cannot render inner grid.')
-            context = {}
-            renderer = ctx['renderer']
-            all_blocks = ctx['blocks']
-            for n,wm in enumerate(inner_grid.blocks()):
-                blocks = all_blocks.get(n)
-                context[wm] = renderer(request, n, blocks)
-            return context
-        # No inner grid this is a column which needs has its context set
-        else:
-            return context
+            context = {'inner_grid': inner_grid}
+            context.update(ctx) 
+        return context
     
-
+    def stream(self, request, widget, context):
+        if 'inner_grid' in context:
+            w = self.child_widget(context['inner_grid'], widget)
+            yield w.render(request, context)
+        elif 'blocks' in context:
+            yield context['blocks'].popleft()
+            
+    
 class container(grid_holder):
     '''A container of a grid system'''
     def __init__(self, key, *grid, **kwargs):
@@ -256,7 +253,8 @@ no children, it return self as the only child.'''
                 
     
 class row(elem):
-    
+    '''A row element contains columns. It is rendered as a div element
+with row or row-fluid class.'''
     def __init__(self, *columns, **kwargs):
         if not columns:
             columns = (column(),)
@@ -265,6 +263,17 @@ class row(elem):
     @classmethod
     def childtype(cls):
         return column
+    
+    def get_context(self, request, widget, context):
+        renderer = context.get('renderer')
+        all_blocks = context.get('blocks')
+        if all_blocks is None:
+            all_blocks = {}
+        queue = deque()
+        for n, wm in enumerate(self.blocks()):
+            blocks = all_blocks.get(n)
+            queue.append(renderer(request, n, blocks))
+        return {'blocks': queue}
     
     
 class tabs(row):
@@ -275,22 +284,22 @@ class tabs(row):
         super(row, self).__init__(*columns, **kwargs)
         
 
+def equally_spaced_grid(ncols):
+    pc = 100//ncols
+    pcs = str(pc)
+    name = 'grid ' + '-'.join([pcs]*ncols)
+    grid = _grid_layouts.get(name)
+    if not grid:
+        cols = [column(1,ncols)]*ncols
+        grid = Grid(row(*cols)).register(name)
+    return grid
+    
 # Simple grids registration
-Grid(
-    row()
-).register('grid 100')
-
-Grid(
-    row(column(1,2), column(1,2))
-).register('grid 50-50')
-
-Grid(
-    row(column(1,3), column(1,3), column(1,3))
-).register('grid 33-33-33')
-
-Grid(
-    row(column(1,4), column(1,4), column(1,4), column(1,4))
-).register('grid 25-25-25-25')
+equally_spaced_grid(1)
+equally_spaced_grid(2)
+equally_spaced_grid(3)
+equally_spaced_grid(4)
+equally_spaced_grid(6)
 
 Grid(
     row(column(1,3), column(2,3))

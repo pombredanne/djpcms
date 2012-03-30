@@ -87,7 +87,7 @@ Simple usage::
                  **params):
         super(HtmlForm,self).__init__(**params)
         self.form_class = form_class
-        self.layout = layout or DefaultLayout()
+        self.layout = layout or FormLayout()
         self.model = model
         self.ajax = ajax
         self.inputs = None

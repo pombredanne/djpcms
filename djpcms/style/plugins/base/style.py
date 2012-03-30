@@ -1,4 +1,4 @@
-'''Uniform Styling
+'''Style inputs, widgets and forms used by djpcms 
 '''
 from djpcms.style import *
 
@@ -11,13 +11,21 @@ cssv.widget.hd.padding = cssv.widget.padding
 cssv.widget.bd.padding = cssv.widget.padding
 cssv.widget.ft.padding = cssv.widget.padding
 #
+cssv.input.vertical_padding = px(4)
 cssv.input.border_width = px(1)
 cssv.input.border_color = cssv.color.grayLight
 cssv.input.radius = px(0)
-cssv.input.padding = px(3)
+cssv.input.padding = cssv.input.vertical_padding
 cssv.input.focus_color = None
 cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
+#
+cssv.button.padding = spacing(cssv.input.vertical_padding, 9)
+cssv.button.default.background = ('v',cssv.color.white,cssv.color.grayLighter)
+cssv.button.hover.background = cssv.color.grayLighter
+cssv.button.active.background = ('v',cssv.color.grayLighter,
+                                 cssv.color.grayLight)
+cssv.button.border_color = cssv.color.grayLight
 #
 cssv.uniform.padding = px(4)
 cssv.uniform.table_layout = 'auto'
@@ -130,12 +138,30 @@ css('.field-widget.focus',
     shadow(cssv.input.focus_shadow),
     border_color = cssv.input.focus_color)
 
-
-
 for n in range(1,10):
     css('.field-widget.span{0}'.format(n),
          width = '{0}px'.format(size(n)))
 
+################################################################################
+#    BUTTONS
+################################################################################
+#'button.button,a.button,input.button[type="submit"]'
+css('input.button[type="submit"]',
+    clickable(bcd(**cssv.button.default.params()),
+              bcd(**cssv.button.hover.params()),
+              bcd(**cssv.button.active.params())),
+    radius(cssv.input.radius),
+    padding = cssv.button.padding,
+    color=cssv.button.color,
+    border_style='solid',
+    border_width=cssv.input.border_width,
+    border_color=cssv.button.border_color,
+    cursor='pointer',
+    display='inline-block')
+
+css('button.button.large,a.button.large,input.button.large[type="submit"]',
+    radius(cssv.input.radius),
+    padding = 2*cssv.input.padding)
 
 css('.required label',
     font_weight = cssv.input_required_font_weight)

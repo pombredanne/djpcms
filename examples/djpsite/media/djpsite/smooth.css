@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by style  2012-03-30 07:45:29.647843
+Created by style  2012-03-30 17:51:42.038000
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -21,7 +21,7 @@ a:link {
     text-decoration: none;
 }
 
-a:link a:hover {
+a:link:hover {
     color: #005580;
     text-decoration: none;
 }
@@ -195,6 +195,10 @@ a:link a:hover {
     clear: both;
 }
 
+.row-fluid_12 > [class*="span"]:first-child {
+    margin-left: 0;
+}
+
 .djpcms-html-box {
 }
 
@@ -215,8 +219,10 @@ a:link a:hover {
 .widget .hd h3,
 .widget .hd h4,
 .widget .hd h5 {
+    font-size: 14px;
     float: left;
     padding: 0;
+    font-weight: normal;
     background: transparent;
     margin: 0;
 }
@@ -269,7 +275,7 @@ a:link a:hover {
 
 .field-widget {
     border-style: solid;
-    padding: 3px;
+    padding: 4px;
     border-color: #999999;
     border-width: 1px;
     -webkit-border-radius: 3px;
@@ -337,6 +343,64 @@ a:link a:hover {
 
 .field-widget.span9 {
     width: 480px;
+}
+
+input.button[type="submit"] {
+    border-style: solid;
+    padding: 4px 9px;
+    border-color: #999999;
+    cursor: pointer;
+    border-width: 1px;
+    display: inline-block;
+    background-color: #e6e6e6;
+    background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+    background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: linear-gradient(top, #ffffff, #e6e6e6);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+    -webkit-border-radius: 3px;
+       -moz-border-radius: 3px;
+            border-radius: 3px;
+}
+
+input.button[type="submit"]:hover {
+    background: #e6e6e6;
+}
+
+input.button[type="submit"]:active {
+    background-color: #999999;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#999999));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -o-linear-gradient(top, #e6e6e6, #999999);
+    background-image: linear-gradient(top, #e6e6e6, #999999);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e6e6e6', endColorstr='#999999', GradientType=0);
+}
+
+input.button[type="submit"].active {
+    background-color: #999999;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#999999));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -o-linear-gradient(top, #e6e6e6, #999999);
+    background-image: linear-gradient(top, #e6e6e6, #999999);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e6e6e6', endColorstr='#999999', GradientType=0);
+}
+
+button.button.large,
+a.button.large,
+input.button.large[type="submit"] {
+    padding: 8px;
+    -webkit-border-radius: 3px;
+       -moz-border-radius: 3px;
+            border-radius: 3px;
 }
 
 .required label {
@@ -430,7 +494,7 @@ table.uniFormTable td.error:last-child {
 
 #page-footer {
     min-height: 300px;
-    color: #eeeeee;
+    color: #e6e6e6;
     background-color: #444;
     background-image: -moz-linear-gradient(top, #222, #444);
     background-image: -ms-linear-gradient(top, #222, #444);
@@ -602,6 +666,10 @@ table.uniFormTable td.error:last-child {
     clear: both;
 }
 
+.row-fluid_12 > [class*="span"]:first-child {
+    margin-left: 0;
+}
+
 .row-fluid_12 > .span1 {
     width: 5.7692%;
 }
@@ -683,11 +751,15 @@ table.uniFormTable td.error:last-child {
     display: block;
 }
 
-.nav > li .nav > li:hover {
+.nav > li:hover {
     background: #333333;
 }
 
-.nav > li .nav > li.active {
+.nav > li:active {
+    background: #000000;
+}
+
+.nav > li.active {
     background: #000000;
 }
 
@@ -721,10 +793,13 @@ table.uniFormTable td.error:last-child {
     display: block;
 }
 
-.nav.secondary-nav > li .nav.secondary-nav > li:hover {
+.nav.secondary-nav > li:hover {
 }
 
-.nav.secondary-nav > li .nav.secondary-nav > li.active {
+.nav.secondary-nav > li:active {
+}
+
+.nav.secondary-nav > li.active {
 }
 
 .nav.secondary-nav li {

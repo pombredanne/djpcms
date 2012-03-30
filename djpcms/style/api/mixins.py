@@ -161,7 +161,7 @@ mixin.
         
 ################################################# CLICKABLE        
 class clickable(mixin):
-    
+    '''Defines the default, hover and active state.'''
     def __init__(self, default = None, hover = None, active = None, **kwargs):
         self.default = self.cleanup(default,'default',bcd)
         self.hover = self.cleanup(hover,'hover',bcd)
@@ -175,9 +175,10 @@ class clickable(mixin):
         if self.default:
             self.default(elem)
         if self.hover:
-            yield css(tag+':hover', self.hover, parent = elem)
+            yield cssa(':hover', self.hover, parent = elem)
         if self.active:
-            yield css(tag+'.active', self.active, parent = elem)
+            yield cssa(':active', self.active, parent = elem)
+            yield cssa('.active', self.active, parent = elem)
         
 ################################################# HORIZONTAL NAV
 class horizontal_navigation(clickable):
@@ -322,3 +323,12 @@ class fluidgrid(grid):
                    clearfix(),
                    padding_left = '20px',
                    padding_right = '20px')
+        
+    def __call__(self):
+        elems = list(super(fluidgrid,self).__call__())
+        row = elems[0]
+        for elem in elems:
+            yield elem
+        yield cssb('[class*="span"]:first-child',
+                   parent=row,
+                   margin_left=0)

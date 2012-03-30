@@ -1,5 +1,5 @@
 from djpcms import forms, html
-from djpcms.forms.layout import uniforms as uni
+from djpcms.forms import layout as uni
 
 from .forms import *
 
@@ -13,7 +13,7 @@ HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 HtmlPageForm = forms.HtmlForm(
     PageForm,
-    layout = uni.Layout(
+    layout = uni.FormLayout(
                 uni.Columns(
                     ('title','link','in_navigation'),
                     ('doctype','layout','inner_template','grid_system'),
@@ -28,7 +28,7 @@ HtmlPageForm = forms.HtmlForm(
 ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,
     inputs = (('save',forms.SAVE_KEY),),
-    layout = uni.Layout(
+    layout = uni.FormLayout(
                   uni.Fieldset('plugin_name','container_type',
                                     'title','view_permission'),
                   uni.Columns(('for_not_authenticated',),
@@ -41,7 +41,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
 
 HtmlEditContentForm = forms.HtmlForm(
     EditContentForm,
-    layout = uni.Layout(
+    layout = uni.FormLayout(
                           uni.Fieldset('title','markup'),
                           uni.Fieldset('body', default_style=uni.blockLabels)
         )

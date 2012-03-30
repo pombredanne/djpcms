@@ -201,10 +201,18 @@ class TestVariables(test.TestCase):
         self.assertEqual(bla, v.bla)
         self.assertEqual(bla._parent,v)
         
+    def testNestednamespace(self):
+        v = Variables()
+        v.bla.default.color = '#222'
+        bla = v.bla
+        self.assertTrue(isinstance(bla,Variables))
+        self.assertEqual(bla, v.bla)
+        self.assertEqual(bla._parent,v)
+        
     def testNotAssigned(self):
         v = Variables()
         bla = v.bla
-        self.assertTrue(isinstance(bla,Variables))
+        self.assertTrue(isinstance(bla, Variables))
         self.assertNotEqual(bla,v.bla)
         self.assertEqual(bla._parent,v)
     

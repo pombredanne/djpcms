@@ -468,7 +468,10 @@ in testing. Typical usage, from within a test case function::
         r.update(extra)
         return self.request(**r)
     
-            
+
+################################################################################
+##    PLUGINS FOR TESTING WITH NOSE OR PULSAR
+################################################################################
 try:
     import nose
 except ImportError:
@@ -505,15 +508,15 @@ and add testing plugins.'''
         pulsar = None
         sys.argv.pop(1)
     
+    plugins = None
     if pulsar:
         os.environ['djpcms_test_suite'] = 'pulsar'
         from pulsar.apps.test import TestSuite
-        pulgins = None
         if stdnet_test:
             plugins = (stdnet_test.PulsarStdnetServer(),)
         suite = TestSuite(description = 'Djpcms Asynchronous test suite',
                           modules = ('tests',),
-                          plugins = pulgins)
+                          plugins = plugins)
         suite.start()
     elif nose:
         os.environ['djpcms_test_suite'] = 'nose'

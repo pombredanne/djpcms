@@ -53,9 +53,8 @@ class WebSite(djpcms.WebSite):
         permissions = PermissionHandler(settings)
         backend = permissions.auth_backends[0]
         # AUTHENTICATION MIDDLEWARE
-        self.add_wsgi_middleware(backend.request_middleware())        
-        # AUTHENTICATION RESPONSE MIDDLEWARE
-        self.add_response_middleware(backend.process_response)
+        self.add_wsgi_middleware(permissions.request_middleware())
+        self.add_response_middleware(permissions.response_middleware())
         
         # The root site
         site = djpcms.Site(settings, permissions=permissions)
@@ -65,7 +64,7 @@ class WebSite(djpcms.WebSite):
             config,
             APPLICATION_URLS  = admin.make_admin_urls())
         permissions = PermissionHandler(settings,
-                                        auth_backends=[backend],
+                                        auth_backends=permissions.auth_backends,
                                         requires_login=True)
         site.addsite(settings, route='/admin/', permissions=permissions)
         self.page_layouts(site)

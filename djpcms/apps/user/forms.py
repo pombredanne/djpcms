@@ -1,5 +1,5 @@
 from djpcms import forms, html
-from djpcms.forms.layout import uniforms as uni
+from djpcms.forms import layout as uni
 
 
 class LoginForm(forms.Form):
@@ -124,7 +124,7 @@ HtmlLoginForm = forms.HtmlForm(
 
 HtmlRegisterForm = forms.HtmlForm(
     RegisterForm,
-    layout = uni.Layout(uni.Fieldset('username','password','re_type')),
+    layout = uni.FormLayout(uni.Fieldset('username','password','re_type')),
     success_message = lambda request, user, m :\
      'Successfully created user {0}.'.format(user),
     inputs = (('create','create'),)

@@ -10,7 +10,7 @@ cssv.color.grayDarker = color('222')
 cssv.color.grayDark = color('333')
 cssv.color.gray = color('555')
 cssv.color.grayLight = color('999')
-cssv.color.grayLighter = color('eee')
+cssv.color.grayLighter = color('e6e6e6')
 cssv.color.white = color('fff')
 
 # body
@@ -34,10 +34,6 @@ cssv.link.hover.color = lazy(color.darken, cssv.link.default.color, 15)
 cssv.link.hover.background = None
 cssv.link.hover.text_decoration = 'none'
 cssv.link.hover.text_shadow = None
-
-# Inputs
-cssv.input.border_size = px(1)
-cssv.input.padding = spacing(px(4))
 
 
 ################################################# BODY

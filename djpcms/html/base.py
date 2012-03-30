@@ -619,13 +619,7 @@ widget are rendered.
         w = child_maker(**widget.internal)
         w.internal.update(kwargs)
         w.internal['parent'] = widget
-        return w    
-    
-    def ischeckbox(self):
-        '''Returns ``True`` if this is a checkbox widget.
-Here because checkboxes have slighltly different way of rendering.
-        '''
-        return False
+        return w
     
     def media(self, request):
         return self._media

@@ -736,9 +736,9 @@
         id: "ajax_widgets",
         config: {
             blank_target: true,
-            submit: {jquery: true,
+            submit: {jquery: false,
                      selector: 'input[type="submit"]'},
-            link: {jquery: true,
+            link: {jquery: false,
                    selector: 'a, button',
                    ajax_selector: 'a.ajax, button'},
             selector_select: 'select.ajax',

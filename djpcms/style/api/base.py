@@ -450,7 +450,7 @@ class CSS(UnicodeMixin):
         self.parent_relationship = attributes.pop('parent_relationship',
                                                   self.parent_relationship)
         for name,value in iteritems(attributes):
-            if not isinstance(value,Variables):
+            if not isinstance(value, Variables):
                 self[name] = value
         self.parent = parent
         for c in components:
@@ -661,9 +661,10 @@ If the body namespace is not available is automatically created.
         if name not in self.reserved and value is not None:
             if isinstance(value, Variables):
                 self.__dict__[name] = value
+                return value
             elif isinstance(value,(str,float,int,list,tuple,dict,Variable)):
                 v = self.get(name)
-                if isinstance(v,NamedVariable):
+                if isinstance(v, NamedVariable):
                     v.value = value
                 else:
                     v = NamedVariable(self, name, value)

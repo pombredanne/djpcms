@@ -1,61 +1,57 @@
 import sys
 from copy import copy
+from inspect import isgenerator
 from collections import *
 
 if sys.version_info < (2,7):
     from djpcms.utils.fallbacks._collections import *
+    
+    
+def aslist(value):
+    if isinstance(value,list):
+        return value
+    if isgenerator(value) or isinstance(value,(tuple,set,frozenset)):
+        return list(value)
+    else:
+        return [value]
 
 
 class MultiValueDict(dict):
+    """A subclass of dictionary customized to handle multiple
+values for the same key.
     """
-    A subclass of dictionary customized to handle multiple values for the
-    same key.
-    This class exists to solve the irritating problem raised by cgi.parse_qs,
-    which returns a list for every key, even though most Web forms submit
-    single name-value pairs.
-    """
-    def __init__(self, key_to_list_mapping=()):
+    def __init__(self, data = ()):
+        if isinstance(data, dict):
+            data = data.items()
+        key_to_list_mapping = ((k,aslist(v)) for k,v in data)
         super(MultiValueDict, self).__init__(key_to_list_mapping)
 
     def __getitem__(self, key):
-        """
-        Returns the last data value for this key, or [] if it's an empty list;
-        raises KeyError if not found.
-        """
-        list_ = super(MultiValueDict, self).__getitem__(key)
-        try:
-            return list_[-1]
-        except IndexError:
-            return []
+        """Returns the data value for this key. If the value is a list with
+only one element, it returns that element, otherwise it returns the list.
+Raises KeyError if key is not found."""
+        l = super(MultiValueDict, self).__getitem__(key)
+        return l[0] if len(l) == 1 else l
 
     def __setitem__(self, key, value):
-        super(MultiValueDict, self).__setitem__(key, [value])
+        if key in self:
+            l = super(MultiValueDict, self).__getitem__(key)
+            l.append(value)
+        else:
+            super(MultiValueDict, self).__setitem__(key, [value])
 
     def __copy__(self):
         return self.__class__(((k, v[:]) for k, v in self.lists()))
 
     def get(self, key, default=None):
-        """
-        Returns the last data value for the passed key. If key doesn't exist
-        or value is an empty list, then default is returned.
-        """
         try:
-            val = self[key]
+            return self[key]
         except KeyError:
             return default
-        if val == []:
-            return default
-        return val
 
     def getlist(self, key):
-        """
-        Returns the list of values for the passed key. If key doesn't exist,
-        then an empty list is returned.
-        """
-        try:
-            return super(MultiValueDict, self).__getitem__(key)
-        except KeyError:
-            return []
+        """Returns the list of values for the passed key."""
+        return super(MultiValueDict, self).__getitem__(key)
 
     def setlist(self, key, list_):
         super(MultiValueDict, self).__setitem__(key, list_)
@@ -87,8 +83,4 @@ class MultiValueDict(dict):
     def values(self):
         """Returns a list of the last value on every key list."""
         return [self[key] for key in self.keys()]
-
-    def copy(self):
-        """Returns a shallow copy of this object."""
-        return copy(self)
 

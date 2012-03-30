@@ -266,7 +266,7 @@ class BadNode(DjpNode):
         
     
 class DjpcmsTree(MultiTree):
-    
+    '''The multitree used by djpcms'''
     def __init__(self, tree, pages = None):
         self.tree_pages = tree_pages = {}
         if pages:

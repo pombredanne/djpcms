@@ -3,9 +3,7 @@ from functools import partial
 
 from djpcms.html.layout import LayoutDoesNotExist, page
 
-
 __all__ = ['template_handle', 'ContextTemplate', 'TemplateHandler']
-
 
 def template_handle(engine, site):
     '''Return an instance of a :class:`TemplateHandler`.'''

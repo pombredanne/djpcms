@@ -290,20 +290,18 @@ class MultipartPart(object):
 
 
 def parse_form_data(environ, charset='utf-8', strict=False, **kw):
-    ''' Parse form data from an environ dict and return a (forms, files) tuple.
-        Both tuple values are dictionaries with the form-field name as a key
-        (unicode) and lists as values (multiple values per key are possible).
-        The forms-dictionary contains form-field values as unicode strings.
-        The files-dictionary contains :class:`MultipartPart` instances, either
-        because the form-field was a file-upload or the value is to big to fit
-        into memory limits.
-        
-        :param environ: An WSGI environment dict.
-        :param charset: The charset to use if unsure. (default: utf8)
-        :param strict: If True, raise :exc:`MultipartError` on any parsing
-                       errors. These are silently ignored by default.
-    '''
-        
+    '''Parse form data from an environ dict and return a (forms, files) tuple.
+Both tuple values are dictionaries with the form-field name as a key
+(unicode) and lists as values (multiple values per key are possible).
+The forms-dictionary contains form-field values as unicode strings.
+The files-dictionary contains :class:`MultipartPart` instances, either
+because the form-field was a file-upload or the value is to big to fit
+into memory limits.
+
+:parameter environ: A WSGI environment dict.
+:parameter charset: The charset to use if unsure. (default: utf8)
+:parameter strict: If True, raise :exc:`MultipartError` on any parsing
+    errors. These are silently ignored by default.'''
     forms, files = MultiValueDict(), MultiValueDict()
     try:
         if environ.get('REQUEST_METHOD','GET').upper() not in ('POST', 'PUT'):

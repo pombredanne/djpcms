@@ -11,6 +11,8 @@ cssv.widget.hd.padding = cssv.widget.padding
 cssv.widget.bd.padding = cssv.widget.padding
 cssv.widget.ft.padding = cssv.widget.padding
 #
+cssv.input.border_width = px(1)
+cssv.input.border_color = cssv.color.grayLight
 cssv.input.radius = px(0)
 cssv.input.padding = px(3)
 cssv.input.focus_color = None
@@ -118,15 +120,15 @@ css('.field-widget',
         width = '100%',
         background = 'transaprent'),
     css('input:focus,textarea:focus,select:focus', clearinp()),
-    radius(cssv.input_radius),
-    padding = cssv.input_padding,
-    border_size = cssv.input_border_size,
-    focus_border_color = cssv.input_focus_color,
-    input_focus_shadow = cssv.input_focus_shadow)
+    radius(cssv.input.radius),
+    padding = cssv.input.padding,
+    border_style='solid',
+    border_width=cssv.input.border_width,
+    border_color=cssv.input.border_color)
 
 css('.field-widget.focus',
-    shadow(cssv.input_focus_shadow),
-    border_color = cssv.input_focus_color)
+    shadow(cssv.input.focus_shadow),
+    border_color = cssv.input.focus_color)
 
 
 

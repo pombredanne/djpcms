@@ -117,7 +117,7 @@ class Select(FieldWidget):
             if not field.required:
                 yield option.format('','',choices.empty_label)
         for id,val in widget.data_stream:
-            sel = (id in selected_choices) and selected or EMPTY
+            sel = (id in selected_choices) and selected or ''
             yield option.format(id,sel,val)
 
     def media(self, request = None):

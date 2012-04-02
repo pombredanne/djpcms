@@ -39,7 +39,6 @@ class topbar(mixin):
         elem['height'] = height
         elem['z_index'] = 10000
         elem['overflow'] = 'visible'
-        elem['min_width'] = cssv.body.min_width
         elem['margin-top'] = 0
         elem['margin-bottom'] = 0
         elem['border'] = 'none'

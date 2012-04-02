@@ -4,7 +4,7 @@ import djpcms
 from djpcms.utils.py2py3 import iteritems, is_string, itervalues, to_string
 from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
                      UrlException, AlreadyRegistered
-from djpcms.html import table_header
+from djpcms.html import table_header, ContextRenderer
 from djpcms.core.orms import mapper
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application

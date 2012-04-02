@@ -1,24 +1,46 @@
 from djpcms import forms
 from djpcms.html.layout import grid
-from djpcms.forms import layout
-from djpcms.apps.contentedit import HtmlPageForm
+from djpcms.forms import layout as uni
+from djpcms.apps.contentedit import HtmlPageForm, PageForm
 from djpcms.utils import test
 
 
 class TestFormLayout(test.TestCase):
     
+    def testNotField(self):
+        htmlform = forms.HtmlForm(PageForm,
+                            layout = uni.FormLayout(
+                                uni.Fieldset('random')))
+        layout = htmlform['layout']
+        fs = layout[1]
+        self.assertTrue('random' in fs.children)
+        w = fs()
+        #self.assertEqual(w.inputs, [])
+        text = w.render(context = {'random': 'Hello'})
+        self.assertTrue('Hello' in text)
+        
+    def testLegend(self):
+        htmlform = forms.HtmlForm(PageForm,
+                            layout = uni.FormLayout(
+                                uni.Fieldset(legend = 'This is a legend')))
+        layout = htmlform['layout']
+        fs = layout[1]
+        self.assertEqual(fs.legend_html, 'This is a legend')
+        text = htmlform().render()
+        self.assertTrue('This is a legend</div>' in text)
+        
     def testColumns(self):
-        c = layout.Columns('field1','field2')
+        c = uni.Columns('field1','field2')
         self.assertEqual(c.grid, grid('grid 50-50'))
         # test error
-        self.assertRaises(ValueError, layout.Columns, 'field1',
+        self.assertRaises(ValueError, uni.Columns, 'field1',
                           grid = grid('grid 33-33-33'))
         
     def testHtmlPageForm(self):
-        l = HtmlPageForm.layout
+        l = HtmlPageForm['layout']
         self.assertTrue(l)
-        # the columns are the second child (firs is the message hoder)
-        columns = l.allchildren[1]
+        # the columns are the second child (first is the message holder)
+        columns = l.children[1]
         self.assertEqual(columns.grid, grid('grid 33-33-33'))
         w = HtmlPageForm()
         text = w.render()

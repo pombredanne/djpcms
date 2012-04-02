@@ -86,7 +86,7 @@ class FormType(type):
     'base_fields', taking into account parent class 'base_fields' as well.
     """
     def __new__(cls, name, bases, attrs):
-        fields,inlines = get_form_meta_data(bases, attrs)
+        fields, inlines = get_form_meta_data(bases, attrs)
         attrs['base_fields'] = fields
         attrs['base_inlines'] = inlines
         new_class = super(FormType,cls).__new__(cls, name, bases, attrs)

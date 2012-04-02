@@ -58,7 +58,7 @@ class DeferredRenderer(Renderer):
         return self._result
         
     def render(self, *args, **kwargs):
-        '''render ``self`` as html'''
+        '''render ``self`` as an html string.'''
         if self.called:
             return self._result
         else:
@@ -78,7 +78,7 @@ class DeferredDataRenderer(DeferredRenderer):
         setitem = self.setitem
         for key, value in iterdata(stream):
             if isinstance(value, Renderer):
-                value = value.done()
+                value = value.render()
                 if isinstance(value, Renderer):
                     deferred.append((key, value))
             setitem(key, value)
@@ -95,7 +95,7 @@ class DeferredDataRenderer(DeferredRenderer):
         if self.deferred:
             deferred = []
             for key, value in self.deferred:
-                new_value = value.done()
+                new_value = value.render()
                 if new_value != value:
                     self.setitem(key, new_value)
                 else:

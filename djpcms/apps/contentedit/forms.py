@@ -1,6 +1,5 @@
 from copy import copy
 
-import djpcms
 from djpcms import forms, html, plugins
 from djpcms.core import orms
 from djpcms.html.layout import html_choices, htmldefaultdoc, grid_systems, grids

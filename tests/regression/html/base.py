@@ -74,12 +74,15 @@ class TestAttributes(test.TestCase):
         
     def testEmptyAttr(self):
         c = html.Widget()
-        c.addAttr('value','')
-        self.assertEqual(c.flatatt(),'')
         c.addAttr('value',None)
+        self.assertEqual(c.attr('value'),None)
+        self.assertEqual(c.flatatt(),'')
+        c.addAttr('value','')
+        self.assertEqual(c.attr('value'),'')
         self.assertEqual(c.flatatt(),'')
         c.addAttr('value',0)
         self.assertEqual(c.flatatt()," value='0'")
+        self.assertEqual(c.attr('value'),0)
         
         
 class TestInputs(test.TestCase):

@@ -221,7 +221,7 @@ has been submitted, including possible asynchronous behavior.'''
                                 fhtml, force_redirect))
     else:
         if request.is_xhr:
-            return fhtml.layout.json_messages(f)
+            return fhtml['layout'].maker.json_messages(f)
         else:
             return view.get_response(request)
         

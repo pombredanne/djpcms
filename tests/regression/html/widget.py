@@ -3,6 +3,14 @@ from djpcms.utils import test
 
 w = html.Widget
 
+
+class TestInputs(test.TestCase):
+    
+    def testSubmit(self):
+        s = html.SubmitInput()
+        self.assertTrue(s.hasClass('button'))
+        self.assertEqual(s.attr('type'),'submit')
+
 class TestWidgets(test.TestCase):
     
     def testAncor(self):

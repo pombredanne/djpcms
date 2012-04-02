@@ -49,14 +49,19 @@ class CssGrid(object):
         
     def add_css_data(self, widget):
         maker = widget.maker
-        if isinstance(maker,row):
-            if isinstance(maker.parent, container) and self.fixed:
-                widget.addClass('row_{0}'.format(self.columns))
+        if isinstance(maker, row):
+            if isinstance(maker.parent.parent, container) and self.fixed:
+                widget.addClass('row-{0}'.format(self.columns))
             else:
-                widget.addClass('row-fluid_{0}'.format(self.columns))
+                widget.addClass('row-fluid-{0}'.format(self.columns))
         elif isinstance(maker, column):
             span = maker.size * self.columns // maker.over
             widget.addClass('span{0}'.format(span))
+        elif isinstance(maker, Grid):
+            if isinstance(maker.parent, container) and self.fixed:
+                widget.addClass('grid-container-{0}'.format(self.columns))
+            else:
+                widget.addClass('grid-container-fluid-{0}'.format(self.columns))
     
 
 class elem(WidgetMaker):
@@ -103,11 +108,11 @@ web page'''
     def childtype(cls):
         return WidgetMaker 
 
-    def render_from_widget(self, request, widget, context):
+    def stream_from_widget(self, request, widget, context):
         #grid = request.cssgrid()
         grid = CssGrid()
         grid.add_css_data(widget)
-        return super(elem,self).render_from_widget(
+        return super(elem,self).stream_from_widget(
                                request, widget, context)
         
         
@@ -158,7 +163,7 @@ the body tag. A page contains a list of :class:`container`.'''
         
 class Grid(elem):
     '''A grid element is the container of rows.'''
-    default_class = 'grid-container'
+    tag = 'div'
     
     def __init__(self, *rows, **kwargs):
         cleaned_rows = []
@@ -174,19 +179,22 @@ class Grid(elem):
         return row
     
     def get_context(self, request, widget, context):
+        renderer = None
         if context:
             renderer = context.get('renderer')
-            if not renderer:
-                return context
             all_blocks = context.get('blocks')
             if all_blocks is None:
                 all_blocks = {}
-            queue = deque()
+        queue = deque()
+        if not renderer:
+            queue.extend(widget._data_stream)
+            widget._data_stream = []
+        else:
             for n, wm in enumerate(self.blocks()):
                 blocks = all_blocks.get(n)
                 queue.append(renderer(request, n, blocks))
-            return {'blocks': queue}
-    
+        return {'blocks': queue}
+            
     def register(self, name):
         name = name.lower()
         _grid_layouts[name] = self
@@ -210,21 +218,20 @@ class grid_holder(elem):
     def get_context(self, request, widget, context):
         # Override get_context so that we retrieve the context of
         # underlying blocks if they exists
-        context = context if context is not None else {}
-        ctx = None
         children = list(self.allchildren())
         inner_grid = children[0] if children else None
         if self.key:
             page = request.page if request else None
-            ctx = context.get(self.key)
             if self.key == 'content' and page:
                 inner_grid = page.inner_grid or inner_grid
             if not inner_grid and self.key == 'content':
                 inner_grid = self.default_inner_grid(request)
         if inner_grid:
-            widget.allchildren = [inner_grid]
-            return ctx
-        elif 'blocks' in context:
+            key = inner_grid.key or 0
+            widget.children.clear()
+            widget.children[key] = self.child_widget(inner_grid, widget)
+            return context
+        elif context and 'blocks' in context:
             widget.add(context['blocks'].popleft())
             
     
@@ -244,7 +251,7 @@ class container(grid_holder):
 class column(grid_holder):
     '''A column is a special container. It is the container which holds djpcms
 plugins, unless it has children containers.'''
-    default_class = None
+    cn = None
     def __init__(self, size = 1, over = 1, *grid, **kwargs):
         self.size = size
         self.over = over
@@ -258,15 +265,15 @@ plugins, unless it has children containers.'''
         return float(self.size)/self.over
     
     def is_block(self):
-        return not bool(self.allchildren)
+        return not bool(self.children)
     
     def blocks(self):
         '''Override the blocks generator since column si special. If there are
 no children, it return self as the only child.'''
-        if not self.allchildren:
+        if self.is_block():
             yield self
         else:
-            for child in super(column,self).blocks():
+            for child in super(column, self).blocks():
                 yield child
                 
     

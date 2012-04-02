@@ -49,7 +49,7 @@ css('body',
     text_align = cssv.body.text_align)
 
 ################################################# DEFAULT CLICKABLE ANCHORS
-css('a:link',
+css('a',
     clickable(**cssv.link.params()),
     weight = cssv.link.weight
 )
@@ -57,6 +57,7 @@ css('a:link',
 ################################################# GRID GENERATORS
 grid(12, 60, 20)
 fluidgrid(12)
+fluidgrid(24)
 
 ################################################# EDIT PAGE PANEL
 css('.edit-panel',

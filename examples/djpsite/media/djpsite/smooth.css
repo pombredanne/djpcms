@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by style  2012-03-31 17:11:43.579618
+Created by style  2012-04-02 18:48:02.576000
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -15,188 +15,329 @@ body {
     font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
 }
 
-a:link {
+a {
     weight: normal;
     color: #0088cc;
+    text-shadow: None;
     text-decoration: none;
 }
 
-a:link:hover {
+a:hover {
     color: #005580;
+    text-shadow: None;
     text-decoration: none;
 }
 
-.row_12 {
-    margin-left: 20px;
+.row-12 {
     *zoom: 1;
 }
 
-.row_12:before,
-.row_12:after {
+.row-12:before,
+.row-12:after {
     content: "";
     display: table;
 }
 
-.row_12:after {
+.row-12:after {
     clear: both;
 }
 
-.row_12 > .span1 {
+.row-12 > .span1 {
     width: 60px;
 }
 
-.row_12 > .span2 {
+.row-12 > .span2 {
     width: 140px;
 }
 
-.row_12 > .span3 {
+.row-12 > .span3 {
     width: 220px;
 }
 
-.row_12 > .span4 {
+.row-12 > .span4 {
     width: 300px;
 }
 
-.row_12 > .span5 {
+.row-12 > .span5 {
     width: 380px;
 }
 
-.row_12 > .span6 {
+.row-12 > .span6 {
     width: 460px;
 }
 
-.row_12 > .span7 {
+.row-12 > .span7 {
     width: 540px;
 }
 
-.row_12 > .span8 {
+.row-12 > .span8 {
     width: 620px;
 }
 
-.row_12 > .span9 {
+.row-12 > .span9 {
     width: 700px;
 }
 
-.row_12 > .span10 {
+.row-12 > .span10 {
     width: 780px;
 }
 
-.row_12 > .span11 {
+.row-12 > .span11 {
     width: 860px;
 }
 
-.row_12 > .span12 {
+.row-12 > .span12 {
     width: 940px;
 }
 
-.row_12 > [class*="span"] {
+.row-12 > [class*="span"] {
     float: left;
     margin-left: 20px;
 }
 
-.grid-container {
+.row-12 > [class*="span"]:first-child {
+    margin-left: 0;
+}
+
+.grid-container-12 {
     margin-right: auto;
     margin-left: auto;
     width: 940px;
     *zoom: 1;
 }
 
-.grid-container:before,
-.grid-container:after {
+.grid-container-12:before,
+.grid-container-12:after {
     content: "";
     display: table;
 }
 
-.grid-container:after {
+.grid-container-12:after {
     clear: both;
 }
 
-.row-fluid_12 {
+.row-fluid-12 {
     width: 100%;
     *zoom: 1;
 }
 
-.row-fluid_12:before,
-.row-fluid_12:after {
+.row-fluid-12:before,
+.row-fluid-12:after {
     content: "";
     display: table;
 }
 
-.row-fluid_12:after {
+.row-fluid-12:after {
     clear: both;
 }
 
-.row-fluid_12 > .span1 {
+.row-fluid-12 > .span1 {
     width: 5.7692%;
 }
 
-.row-fluid_12 > .span2 {
+.row-fluid-12 > .span2 {
     width: 14.1025%;
 }
 
-.row-fluid_12 > .span3 {
+.row-fluid-12 > .span3 {
     width: 22.4358%;
 }
 
-.row-fluid_12 > .span4 {
+.row-fluid-12 > .span4 {
     width: 30.769099999999998%;
 }
 
-.row-fluid_12 > .span5 {
+.row-fluid-12 > .span5 {
     width: 39.102399999999996%;
 }
 
-.row-fluid_12 > .span6 {
+.row-fluid-12 > .span6 {
     width: 47.4357%;
 }
 
-.row-fluid_12 > .span7 {
+.row-fluid-12 > .span7 {
     width: 55.769%;
 }
 
-.row-fluid_12 > .span8 {
+.row-fluid-12 > .span8 {
     width: 64.1023%;
 }
 
-.row-fluid_12 > .span9 {
+.row-fluid-12 > .span9 {
     width: 72.4356%;
 }
 
-.row-fluid_12 > .span10 {
+.row-fluid-12 > .span10 {
     width: 80.76889999999999%;
 }
 
-.row-fluid_12 > .span11 {
+.row-fluid-12 > .span11 {
     width: 89.1022%;
 }
 
-.row-fluid_12 > .span12 {
+.row-fluid-12 > .span12 {
     width: 97.4355%;
 }
 
-.row-fluid_12 > [class*="span"] {
+.row-fluid-12 > [class*="span"] {
     float: left;
     margin-left: 2.5641%;
 }
 
-.grid-container-fluid {
+.row-fluid-12 > [class*="span"]:first-child {
+    margin-left: 0;
+}
+
+.grid-container-fluid-12 {
     padding-right: 20px;
     padding-left: 20px;
     *zoom: 1;
 }
 
-.grid-container-fluid:before,
-.grid-container-fluid:after {
+.grid-container-fluid-12:before,
+.grid-container-fluid-12:after {
     content: "";
     display: table;
 }
 
-.grid-container-fluid:after {
+.grid-container-fluid-12:after {
     clear: both;
 }
 
-.row-fluid_12 > [class*="span"]:first-child {
+.row-fluid-24 {
+    width: 100%;
+    *zoom: 1;
+}
+
+.row-fluid-24:before,
+.row-fluid-24:after {
+    content: "";
+    display: table;
+}
+
+.row-fluid-24:after {
+    clear: both;
+}
+
+.row-fluid-24 > .span1 {
+    width: 1.6026%;
+}
+
+.row-fluid-24 > .span2 {
+    width: 5.769299999999999%;
+}
+
+.row-fluid-24 > .span3 {
+    width: 9.936%;
+}
+
+.row-fluid-24 > .span4 {
+    width: 14.102699999999999%;
+}
+
+.row-fluid-24 > .span5 {
+    width: 18.269399999999997%;
+}
+
+.row-fluid-24 > .span6 {
+    width: 22.4361%;
+}
+
+.row-fluid-24 > .span7 {
+    width: 26.6028%;
+}
+
+.row-fluid-24 > .span8 {
+    width: 30.7695%;
+}
+
+.row-fluid-24 > .span9 {
+    width: 34.9362%;
+}
+
+.row-fluid-24 > .span10 {
+    width: 39.1029%;
+}
+
+.row-fluid-24 > .span11 {
+    width: 43.2696%;
+}
+
+.row-fluid-24 > .span12 {
+    width: 47.4363%;
+}
+
+.row-fluid-24 > .span13 {
+    width: 51.602999999999994%;
+}
+
+.row-fluid-24 > .span14 {
+    width: 55.76969999999999%;
+}
+
+.row-fluid-24 > .span15 {
+    width: 59.9364%;
+}
+
+.row-fluid-24 > .span16 {
+    width: 64.1031%;
+}
+
+.row-fluid-24 > .span17 {
+    width: 68.2698%;
+}
+
+.row-fluid-24 > .span18 {
+    width: 72.4365%;
+}
+
+.row-fluid-24 > .span19 {
+    width: 76.6032%;
+}
+
+.row-fluid-24 > .span20 {
+    width: 80.7699%;
+}
+
+.row-fluid-24 > .span21 {
+    width: 84.9366%;
+}
+
+.row-fluid-24 > .span22 {
+    width: 89.10329999999999%;
+}
+
+.row-fluid-24 > .span23 {
+    width: 93.27%;
+}
+
+.row-fluid-24 > .span24 {
+    width: 97.4367%;
+}
+
+.row-fluid-24 > [class*="span"] {
+    float: left;
+    margin-left: 2.5641%;
+}
+
+.row-fluid-24 > [class*="span"]:first-child {
     margin-left: 0;
+}
+
+.grid-container-fluid-24 {
+    padding-right: 20px;
+    padding-left: 20px;
+    *zoom: 1;
+}
+
+.grid-container-fluid-24:before,
+.grid-container-fluid-24:after {
+    content: "";
+    display: table;
+}
+
+.grid-container-fluid-24:after {
+    clear: both;
 }
 
 .edit-panel {
@@ -205,16 +346,6 @@ a:link:hover {
     right: 0;
     left: 0;
     background: #000000;
-}
-
-#page-header {
-}
-
-#page-header {
-}
-
-#page-header {
-    margin-top: 40px;
 }
 
 .djpcms-html-box {
@@ -322,6 +453,7 @@ a:link:hover {
 }
 
 .field-widget.focus {
+    border-color: None;
     -webkit-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
        -moz-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
             box-shadow: 0 3px 3px rgba(0,0,0,0.2);
@@ -368,6 +500,7 @@ input.button[type="submit"] {
     padding: 4px 9px;
     border-color: #999999;
     cursor: pointer;
+    margin-right: 4px;
     border-width: 1px;
     display: inline-block;
     background-color: #e6e6e6;
@@ -456,19 +589,9 @@ form.uniForm label {
 form.uniForm .ctrlHolder,
 form.uniForm .buttonHolder {
     padding: 4px;
-    overflow: hidden;
+    vertical-align: middle;
     margin: 0;
-    *zoom: 1;
-}
-
-form.uniForm .ctrlHolder,.buttonHolder:before,
-form.uniForm .ctrlHolder,.buttonHolder:after {
-    content: "";
-    display: table;
-}
-
-form.uniForm .ctrlHolder,.buttonHolder:after {
-    clear: both;
+    overflow: hidden;
 }
 
 form.uniForm .layout-element {
@@ -510,7 +633,16 @@ table.uniFormTable td.error:last-child {
     padding: 4px;
 }
 
+#page-header {
+}
+
+#page-header {
+    margin-top: 40px;
+}
+
 #page-content {
+    min-height: None;
+    color: None;
 }
 
 #page-footer {
@@ -556,7 +688,6 @@ table.uniFormTable td.error:last-child {
     height: 40px;
     z-index: 10000;
     overflow: visible;
-    min-width: 960px;
     margin-top: 0;
     margin-bottom: 0;
     border: none;
@@ -573,10 +704,13 @@ table.uniFormTable td.error:last-child {
 
 .topbar a.brand {
     font-size: 20px;
+    width: None;
     color: #ffffff;
     display: block;
     padding: 10px 20px 10px 20px;
+    font-weight: None;
     line-height: 20px;
+    font-family: None;
 }
 
 .topbar-fixed {
@@ -596,184 +730,22 @@ table.uniFormTable td.error:last-child {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333', endColorstr='#222', GradientType=0);
 }
 
-.row_12 {
-    margin-left: 20px;
-    *zoom: 1;
-}
 
-.row_12:before,
-.row_12:after {
-    content: "";
-    display: table;
-}
 
-.row_12:after {
-    clear: both;
-}
 
-.row_12 > .span1 {
-    width: 60px;
-}
 
-.row_12 > .span2 {
-    width: 140px;
-}
 
-.row_12 > .span3 {
-    width: 220px;
-}
 
-.row_12 > .span4 {
-    width: 300px;
-}
 
-.row_12 > .span5 {
-    width: 380px;
-}
 
-.row_12 > .span6 {
-    width: 460px;
-}
 
-.row_12 > .span7 {
-    width: 540px;
-}
 
-.row_12 > .span8 {
-    width: 620px;
-}
 
-.row_12 > .span9 {
-    width: 700px;
-}
-
-.row_12 > .span10 {
-    width: 780px;
-}
-
-.row_12 > .span11 {
-    width: 860px;
-}
-
-.row_12 > .span12 {
-    width: 940px;
-}
-
-.row_12 > [class*="span"] {
-    float: left;
-    margin-left: 20px;
-}
-
-.grid-container {
-    margin-right: auto;
-    margin-left: auto;
-    width: 940px;
-    *zoom: 1;
-}
-
-.grid-container:before,
-.grid-container:after {
-    content: "";
-    display: table;
-}
-
-.grid-container:after {
-    clear: both;
-}
-
-.row-fluid_12 {
-    width: 100%;
-    *zoom: 1;
-}
-
-.row-fluid_12:before,
-.row-fluid_12:after {
-    content: "";
-    display: table;
-}
-
-.row-fluid_12:after {
-    clear: both;
-}
-
-.row-fluid_12 > [class*="span"]:first-child {
-    margin-left: 0;
-}
-
-.row-fluid_12 > .span1 {
-    width: 5.7692%;
-}
-
-.row-fluid_12 > .span2 {
-    width: 14.1025%;
-}
-
-.row-fluid_12 > .span3 {
-    width: 22.4358%;
-}
-
-.row-fluid_12 > .span4 {
-    width: 30.769099999999998%;
-}
-
-.row-fluid_12 > .span5 {
-    width: 39.102399999999996%;
-}
-
-.row-fluid_12 > .span6 {
-    width: 47.4357%;
-}
-
-.row-fluid_12 > .span7 {
-    width: 55.769%;
-}
-
-.row-fluid_12 > .span8 {
-    width: 64.1023%;
-}
-
-.row-fluid_12 > .span9 {
-    width: 72.4356%;
-}
-
-.row-fluid_12 > .span10 {
-    width: 80.76889999999999%;
-}
-
-.row-fluid_12 > .span11 {
-    width: 89.1022%;
-}
-
-.row-fluid_12 > .span12 {
-    width: 97.4355%;
-}
-
-.row-fluid_12 > [class*="span"] {
-    float: left;
-    margin-left: 2.5641%;
-}
-
-.grid-container-fluid {
-    padding-right: 20px;
-    padding-left: 20px;
-    *zoom: 1;
-}
-
-.grid-container-fluid:before,
-.grid-container-fluid:after {
-    content: "";
-    display: table;
-}
-
-.grid-container-fluid:after {
-    clear: both;
-}
 
 .nav {
     display: block;
     float: left;
     position: relative;
-    position: fixed;
 }
 
 .nav > li {
@@ -815,7 +787,6 @@ table.uniFormTable td.error:last-child {
     display: block;
     float: right;
     position: relative;
-    position: fixed;
 }
 
 .nav.secondary-nav > li {

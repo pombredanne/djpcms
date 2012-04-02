@@ -446,9 +446,10 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     maxRows = 30
     
     def __init__(self, **kwargs):
-        for attname in dir(self.__class__):
-            if not attname.startswith('__') and attname in kwargs:
-                setattr(self,attname,kwargs[attname])
+        cls = self.__class__
+        for attname in kwargs:
+            if not attname.startswith('__') and hasattr(cls, attname):
+                setattr(self, attname, kwargs[attname])
         self.mapper = mapper(self.model) if self.model is not None else None
         self._setmodel(self.query)
                 
@@ -469,7 +470,7 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     
     def _setmodel(self, query):
         if not self.model and query is not None:
-            self.model = getattr(query,'model',None)
+            self.model = getattr(query, 'model', None)
             if self.model:
                 self.mapper = mapper(self.model)
     
@@ -497,6 +498,7 @@ clean its values.'''
             raise ValidationError('Critical error. {0} is not a list'\
                                   .format(values))
         for v in values:
+            v = str(v)
             if v not in ch:
                 raise ValidationError('{0} is not a valid choice'.format(v))
         return value

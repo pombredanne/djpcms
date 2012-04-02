@@ -11,6 +11,15 @@ from djpcms.apps.contentedit import HtmlPageForm,\
 class TestSimpleForm(test.TestCase):
     '''Test the form library using form in included applications'''
     
+    def page_data(self, layout='default', grid_system = 'fixed_12',
+                  inner_template = 'grid 100', **kwargs):
+        d = dict(HtmlPageForm.form_class.initials())
+        d['layout'] = layout
+        d['grid_system'] = grid_system
+        d['inner_template'] = inner_template
+        d.update(kwargs)
+        return d
+        
     def testPageForm(self):
         '''Test the Page Form'''
         d = dict(HtmlPageForm.form_class.initials())
@@ -27,11 +36,11 @@ class TestSimpleForm(test.TestCase):
         from stdcms.cms.models import Page
         from stdnet import orm
         orm.register(Page)
-        d = dict(HtmlPageForm.form_class.initials())
+        d = self.page_data()
         p = HtmlPageForm(data = d)
-        form = p.internal['form']
+        form = p.form
         self.assertFalse(form.is_valid())
-        p = HtmlPageForm(data = d, model = Page)
+        p = HtmlPageForm(data=d, model=Page)
         self.assertTrue(p.is_valid())
         page = p.form.save()
         page = Page.objects.get(id = page.id)
@@ -61,15 +70,15 @@ class TestSimpleForm(test.TestCase):
         fw = ContentBlockHtmlForm()
         form = fw.form
         self.assertFalse(form.is_bound)
-        self.assertTrue(fw.layout.children)
-        self.assertTrue(len(fw.layout.children),1)
-        plugin = fw.layout.children['plugin']
-        self.assertTrue(isinstance(plugin,html.WidgetMaker))
-        self.assertTrue(plugin.default_class)
-        self.assertEqual(plugin.tag,'div')
+        self.assertTrue(len(fw.children),1)
+        layout = fw['layout']
+        self.assertTrue(layout.children)
+        plugin = layout.children['plugin']
+        self.assertTrue(plugin.classes)
+        self.assertEqual(plugin.tag, 'div')
         text = fw.render()
         self.assertTrue(text)
-        self.assertTrue(plugin.default_class in text)
+        self.assertTrue(plugin.maker.default_style in text)
         
     def __testContentEditForm(self):
         fw = HtmlEditContentForm()

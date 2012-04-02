@@ -84,42 +84,48 @@ Simple usage::
                  inputs = None,
                  ajax = True,
                  success_message = None,
+                 internal = None,
                  **params):
-        super(HtmlForm,self).__init__(**params)
-        self.form_class = form_class
-        self.layout = layout or FormLayout()
-        self.model = model
-        self.ajax = ajax
-        self.inputs = None
-        if inputs is not None:
-            self.inputs = []
+        layout = layout if layout is not None else FormLayout()
+        layout.key = 'layout'
+        if inputs:
+            new_inputs = []
             for input in inputs:
-                if not hasattr(input,'render'):
+                if not hasattr(input, 'render'):
                     input = html.SubmitInput(value = input[0],
                                              name = input[1])
-                #if not isinstance(input,html.WidgetMaker):
-                #    raise TypeError('{0} is not a widgetmaker,
-                # cannot addt to form inputs'.format(input))
-                self.inputs.append(input)
-        missings = list(form_class.base_fields)
-        self.layout.check_fields(missings)
-        self.add(self.layout)
-        self.success_message = success_message or default_success_message
+                new_inputs.append(input)
+            inputs = new_inputs
+        internal = {
+            'success_message': success_message or default_success_message,
+            'form_class': form_class,
+            'model': model,
+            'success_message': success_message,
+            'inputs': inputs or []}
+        super(HtmlForm, self).__init__(internal = internal, **params)
+        if ajax:
+            self.addClass('ajax')
+        self.addClass(layout.form_class)
+        self.add(layout)
+        layout.check_fields(list(form_class.base_fields))
         
+    @property
+    def model(self):
+        return self.internal['model']
+    
+    @property
+    def form_class(self):
+        return self.internal['form_class']
+    
+    @property
+    def inputs(self):
+        return self.internal['inputs']
+    
     def __call__(self, model = None, inputs = None,
                  action = '.', **kwargs):
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
-        f = self.form_class(model=model or self.model,**kwargs)
-        w = super(HtmlForm,self).__call__(
-                form = f,
-                inputs = inputs or [],
-                layout = self.layout,
-                method = self.attrs['method'],
-                action = action,
-                success_message = self.success_message)\
-                    .addClass(self.layout.form_class)
-        if self.ajax:
-            w.addClass('ajax')
-        return w
+        f = self.form_class(model=model or self.model, **kwargs)
+        return super(HtmlForm,self).__call__(form=f, inputs=inputs or [],
+                                             action=action)
     

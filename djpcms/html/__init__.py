@@ -52,9 +52,8 @@ def anchor_or_button(text, href = None, icon = None, asbutton = False,
     return w.addData('icon',icon)
 
 
-def legend(text, styling = None):
-    styling = styling or 'ui-state-default'
-    return Widget('div', text, cn = 'legend ui-corner-all ' + styling)
+def legend(text, cn='legend', **kwargs):
+    return Widget('div', text, cn=cn, **kwargs)
 
         
     

@@ -217,7 +217,6 @@ class horizontal_navigation(clickable):
         elem['display'] = 'block'
         elem['float'] = self.float
         elem['position'] = 'relative'
-        elem['position'] = 'fixed'
         if self.margin:
             elem['margin-'+self.float] = self.margin
         self.box_shadow(elem)
@@ -287,26 +286,31 @@ size for one column and the *gutter* size between columns.'''
     def row(self, tag):
         m = '{0}{1}'.format(self.gutter,self.unit)
         return css(tag,
-                   clearfix(),
-                   margin_left = m)
+                   clearfix())
     
     def container(self, tag):
         return css(tag,
                    clearfix(),
-                   width = '{0}px'.format(self.width),
+                   width = px(self.width),
                    margin_left = 'auto',
                    margin_right = 'auto')
         
     def __call__(self):
-        row = '.{0}_{1}'.format('row'+self.grid_class,self.columns)
-        yield self.row(row)
+        scol = '-{0}'.format(self.columns)
+        row = self.row('.row' + self.grid_class + scol)
+        yield row
         for s in range(1,self.columns+1):
             w = '{0}{1}'.format(s*self.span + (s-1)*self.gutter,self.unit)
-            yield css('{0} > .span{1}'.format(row,s), width=w)
-        yield css('{0} > [class*="span"]'.format(row),
-                  float='left',
-                  margin_left='{0}{1}'.format(self.gutter,self.unit))
-        yield self.container('.grid-container'+self.grid_class)
+            yield cssb('.span{1}'.format(row,s), parent=row, width=w)
+        yield cssb('[class*="span"]'.format(row),
+                   parent = row,
+                   float='left',
+                   margin_left='{0}{1}'.format(self.gutter,self.unit))
+        yield cssb('[class*="span"]:first-child',
+                   parent=row,
+                   margin_left=0)
+        yield self.container('.grid-container'+self.grid_class+scol)
+        
         
 
 ################################################# FLUID GRID        
@@ -335,11 +339,11 @@ class fluidgrid(grid):
                    padding_left = '20px',
                    padding_right = '20px')
         
-    def __call__(self):
-        elems = list(super(fluidgrid,self).__call__())
-        row = elems[0]
-        for elem in elems:
-            yield elem
-        yield cssb('[class*="span"]:first-child',
-                   parent=row,
-                   margin_left=0)
+    #def __call__(self):
+    #    elems = list(super(fluidgrid,self).__call__())
+    #    row = elems[0]
+    #    for elem in elems:
+    #        yield elem
+    #    yield cssb('[class*="span"]:first-child',
+    #               parent=row,
+    #               margin_left=0)

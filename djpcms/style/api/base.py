@@ -433,6 +433,7 @@ class generator(UnicodeMixin):
             
 class CSS(UnicodeMixin):
     _body = None
+    rendered = False
     parent_relationship = 'child'
     parent_link = {'child': ' ',
                    'attribute': '',
@@ -550,8 +551,22 @@ class CSS(UnicodeMixin):
     def __unicode__(self):
         return '\n\n'.join(self.stream())
     
+    def remove(self, child):
+        ql = self._children.get(child._tag)
+        if ql:
+            try:
+                ql.remove(child)
+            except ValueError:
+                pass
+            
     def render(self, stream=None):
         '''Render the :class:`css` component and all its children'''
+        if self.rendered:
+            # Remove from parent
+            if self._parent:
+                self._parent.remove(self) 
+            return
+        self.rendered = True
         stream = stream if stream is not None else StringIO()
         stream.write(self.__unicode__())
         for mchild in itervalues(self._children):
@@ -560,6 +575,7 @@ class CSS(UnicodeMixin):
             for child in mchild:
                 stream.write('\n\n')
                 child.render(stream)
+                    
     
 
 class css:
@@ -658,8 +674,12 @@ If the body namespace is not available is automatically created.
         
     def declare(self, name, value):
         '''Declare or update a variable with *default* value.'''
-        if name not in self.reserved and value is not None:
-            if isinstance(value, Variables):
+        if name not in self.reserved:
+            if value is None:
+                v = NamedVariable(self, name, value)
+                self.__dict__[name] = v             
+                return v
+            elif isinstance(value, Variables):
                 self.__dict__[name] = value
                 return value
             elif isinstance(value,(str,float,int,list,tuple,dict,Variable)):

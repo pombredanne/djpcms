@@ -160,7 +160,8 @@ css('input.button[type="submit"]',
     border_width=cssv.input.border_width,
     border_color=cssv.button.border_color,
     cursor='pointer',
-    display='inline-block')
+    display='inline-block',
+    margin_right=px(4))
 
 css('button.button.large,a.button.large,input.button.large[type="submit"]',
     radius(cssv.input.radius),
@@ -182,10 +183,10 @@ css('form.uniForm',
     css('.legend', margin=cssv.uniform_padding),
     css('label'),
     css('.ctrlHolder,.buttonHolder',
-        clearfix(),
-        margin = 0,
-        overflow = 'hidden',
-        padding = cssv.uniform.padding),
+        margin=0,
+        overflow='hidden',
+        padding=cssv.uniform.padding,
+        vertical_align='middle'),
     css('.layout-element',
         margin = lambda: '0 0 {0}'.format(cssv.uniform.padding*1.5)))
 

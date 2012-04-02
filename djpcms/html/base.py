@@ -69,15 +69,18 @@ class AttributeMixin(object):
     _css = None
     
     def __init__(self, cn=None, data=None, attrs=None, css=None):
-        self.classes = update(self.classes,set())
+        classes = self.classes
+        self.classes = set()
         self.data = update(self.data,{})
         self.attrs = update(self.attrs,{})
         self._css = update(self._css,{})
         self.addData(data)
+        self.addClass(classes)
         self.addClass(cn)
         self.addAttrs(attrs)
         self.css(css)
         self.children = OrderedDict()
+        self.internal = {} 
     
     def __getitem__(self, key):
         return self.children[key]
@@ -98,7 +101,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def attr(self, name):
-        return self.attrs.get(name,None)
+        return self.attrs.get(name, None)
     
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
@@ -184,7 +187,6 @@ handling HTML classes, attributes and data on a html element::
     ' name="pippo" class="foo bla"'
 
 .. attribute:: data_stream
-
     A list data elements 
     
 .. attribute:: parent
@@ -223,12 +225,13 @@ is a factory of :class:`Widget`.
                                 attrs=maker.attrs, css=css)
         self.maker = maker
         self._data_stream = []
-        self.addClass(maker.default_style).addClass(maker.default_class)
+        self.addClass(maker.default_style)
         attributes = maker.attributes
         for att in list(params):
             if att in attributes:
                 self.addAttr(att, params.pop(att))
-        self.internal = params
+        self.internal.update(maker.internal)
+        self.internal.update(params)
         self.tag = self.maker.tag
         self.add(data_stream)
         self.children.update(((k,maker.child_widget(c,self))\
@@ -341,12 +344,6 @@ corner cases, users can subclass it to customize behavior.
     default css class style for the widget.
     
     Default ``None``.
-        
-.. attribute:: default_class
-
-    default css class for the widget.
-    
-    Default ``None``.
     
 .. attribute:: inline
 
@@ -386,7 +383,7 @@ corner cases, users can subclass it to customize behavior.
     
         >>> from djpcms import html
         >>> html.WidgetMaker('div', default='div')
-        >>> html.WidgetMaker('a', default_class='ajax', default='a.ajax')
+        >>> html.WidgetMaker('a', default='a.ajax')
         >>> html.Widget('a.ajax', cn='ciao').render(inner='bla bla')
         <a class='ciao ajax'>bla bla</a>
         
@@ -404,7 +401,6 @@ corner cases, users can subclass it to customize behavior.
     default_style = None
     inline = False
     attributes = ('id','title','dir','style')
-    default_class = None
     default_attrs = None
     _widget = None
     
@@ -413,7 +409,8 @@ corner cases, users can subclass it to customize behavior.
                  attributes = None, renderer = None,
                  media = None, data = None,
                  cn = None, key = None,
-                 css = None, **params):
+                 css = None, internal = None,
+                 **params):
         AttributeMixin.__init__(self, cn=cn, data=data, css=css)
         self.attributes = set(self.attributes)
         if attributes:
@@ -423,10 +420,11 @@ corner cases, users can subclass it to customize behavior.
         self.renderer = renderer
         self.inline = inline if inline is not None else self.inline
         self.is_hidden = params.pop('is_hidden',self.is_hidden)
-        self.tag = params.pop('tag',self.tag)
+        self.tag = params.pop('tag', self.tag)
+        if internal:
+            self.internal.update(internal)
         self.key = key
         self.default_style = params.pop('default_style',self.default_style)
-        self.default_class = params.pop('default_class',self.default_class)
         self._widget = widget or self._widget or Widget
         if self.default_attrs:
             p = self.default_attrs.copy()
@@ -478,11 +476,14 @@ corner cases, users can subclass it to customize behavior.
 *widgets* must be class:`WidgetMaker`.'''
         for widget in widgets:
             if isinstance(widget, WidgetMaker):
-                if not widget.default_style:
-                    widget.default_style = self.default_style
                 key = widget.key or len(self.children)
                 self.children[key] = widget
+                if not widget.default_style:
+                    widget.default_style = self.default_style
                 widget.parent = self
+                for k in self.internal:
+                    if k not in widget.internal:
+                        widget.internal[k] = self.internal[k]
         return self
   
     def add_to_widget(self, widget, element):
@@ -502,18 +503,17 @@ By default it return *context*.'''
     def stream_from_widget(self, request, widget, context):
         '''Render the *widget* using the *context* dictionary and
 information contained in this :class:`WidgetMaker`.'''
-        tag = widget.tag
         if self.inline:
-            if tag:
-                yield '<' + tag + widget.flatatt() + '/>'
+            if widget.tag:
+                yield '<' + widget.tag + widget.flatatt() + '/>'
         else:
             context = self.get_context(request, widget, context)
-            if tag:
-                yield '<' + tag + widget.flatatt() + '>'
+            if widget.tag:
+                yield '<' + widget.tag + widget.flatatt() + '>'
             for bit in self.stream(request, widget, context):
                 yield bit
-            if tag:
-                yield '</' + tag + '>'
+            if widget.tag:
+                yield '</' + widget.tag + '>'
         if request:
             request.media.add(self.media(request))
     
@@ -541,7 +541,7 @@ inner part of the widget.
             else:
                 yield data
             
-    def child_widget(self, child_maker, widget):
+    def child_widget(self, child_maker, widget, **params):
         '''Function invoked when there are children available. See the
 :attr:`children`` attribute for more information on children.
 
@@ -551,11 +551,9 @@ inner part of the widget.
     widget constructor.
 :rtype: An instance of :class:`Widget` for the child element.
 '''
-        w = child_maker(parent = widget)
-        params = widget.internal
-        for p in params:
-            if p not in w.internal:
-                w.internal[p] = params[p]
+        w = child_maker(**widget.internal)
+        w.internal['parent'] = widget
+        w.internal.update(params)
         return w
     
     def media(self, request):

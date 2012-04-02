@@ -32,14 +32,16 @@ class TestLayout(test.TestCase):
         pg = page_template()
         text = pg.render(context = {'content': lambda r,n,b: 'Hello World!'})
         self.assertTrue('Hello World!' in text)
-        keys = list(page_template.keys())
+        keys = list(page_template.children)
         self.assertEqual(len(keys), 4)
+        h = pg['header']
+        self.assertEqual(h.key,'header')
         
     def testSimpleColumn(self):
         col = column(1,4)
         self.assertEqual(col.numblocks, 1)
         d = col.block_dictionary()
-        self.assertEqual(d,{0:col})
+        self.assertEqual(d, {0: col})
         self.assertTrue(col.is_block())
         self.assertRaises(ValueError, column, 2)
         
@@ -55,5 +57,16 @@ class TestLayout(test.TestCase):
         self.assertTrue('grid 50-50' in all_grids)
         self.assertTrue('grid 33-33-33' in all_grids)
         self.assertTrue('grid 25-25-25-25' in all_grids)
+        
+    def testRenderGrd(self):
+        g = grid('grid 33-33-33')
+        self.assertEqual(g.numblocks, 3)
+        w = g(('one','two','three'))
+        self.assertEqual(w.data_stream,['one','two','three'])
+        text = w.render()
+        self.assertTrue("<div class='span4'>one</div>" in text)
+        self.assertTrue("<div class='span4'>two</div>" in text)
+        self.assertTrue("<div class='span4'>three</div>" in text)
+        
         
         

@@ -43,7 +43,7 @@ class PasswordInput(InputWidget):
     
     
 class SubmitInput(InputWidget):
-    default_class = 'button'
+    classes = 'button'
     default_attrs = {'type': 'submit'}
     
     
@@ -94,8 +94,9 @@ class Select(FieldWidget):
         bfield =  widget.internal.get('bfield',None)
         if bfield:
             choices = bfield.field.choices
-            for c in choices.all(bfield):
-                 widget.add(c)
+            if not bfield.field.required:
+                widget.add((('', choices.empty_label),))
+            widget.add(choices.all(bfield))
             val = choices.widget_value(val)
         if val:
             selected_choices = val if widget.attr('multiple') else (val,)
@@ -107,16 +108,10 @@ class Select(FieldWidget):
         selected_choices = widget.internal.get('selected_choices',())
         option = self._option
         selected = self._selected
-        if 'bfield' in widget.internal:
-            bfield = widget.internal['bfield']
-            field = bfield.field
-            choices =  field.choices
-            selected = self._selected
-            if not field.required:
-                yield option.format('','',choices.empty_label)
-        for id,val in widget.data_stream:
+        for idval in widget.data_stream:
+            id, val = idval
             sel = (id in selected_choices) and selected or ''
-            yield option.format(id,sel,val)
+            yield option.format(id, sel, val)
 
     def media(self, request = None):
         return self.select_media
@@ -149,7 +144,7 @@ class List(WidgetMaker):
         if elem is not None:
             if not isinstance(elem, Widget) or elem.tag != 'li':
                 elem = Widget('li', elem, cn = cn)
-            widget.data_stream.append(elem)
+            widget._data_stream.append(elem)
     
 
 List(default = 'ul')

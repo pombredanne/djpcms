@@ -20,3 +20,6 @@ class TestFormLayout(test.TestCase):
         # the columns are the second child (firs is the message hoder)
         columns = l.allchildren[1]
         self.assertEqual(columns.grid, grid('grid 33-33-33'))
+        w = HtmlPageForm()
+        text = w.render()
+        self.assertTrue(text)

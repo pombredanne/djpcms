@@ -13,7 +13,6 @@ from djpcms.utils.py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
 from djpcms.utils.urls import iri_to_uri
-from djpcms.html import ContextRenderer
 from djpcms.core import orms
 from djpcms.core.exceptions import *
 
@@ -490,11 +489,7 @@ is available, the name is set to ``view``.
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         self.media.add(self.view.media(self))
-        r = self.view.render(self, **kwargs)
-        if isinstance(r,ContextRenderer) and r.called:
-            return r.text
-        else:
-            return r
+        return self.view.render(self, **kwargs)
     
     def get_context(self, **kwargs):
         '''Proxy of :meth:`djpcms.views.djpcmsview.get_context`, it return

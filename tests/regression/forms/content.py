@@ -29,7 +29,8 @@ class TestSimpleForm(test.TestCase):
         orm.register(Page)
         d = dict(HtmlPageForm.form_class.initials())
         p = HtmlPageForm(data = d)
-        self.assertFalse(p.is_valid())
+        form = p.internal['form']
+        self.assertFalse(form.is_valid())
         p = HtmlPageForm(data = d, model = Page)
         self.assertTrue(p.is_valid())
         page = p.form.save()
@@ -51,7 +52,7 @@ class TestSimpleForm(test.TestCase):
         HtmlSearchForm = search_form()
         self.assertEqual(len(HtmlSearchForm.inputs),0)
         w = HtmlSearchForm()
-        form = w.form
+        form = w.internal['form']
         self.assertFalse(form.is_bound)
         html = w.render()
         self.assertTrue(html)

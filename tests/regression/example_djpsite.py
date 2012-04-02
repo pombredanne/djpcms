@@ -17,7 +17,7 @@ class TestDjpSite(test.TestCase):
         page = site.get_page_layout('default')
         self.assertTrue(page)
         keys = list(page.keys())
-        self.assertEqual(len(keys),5)
+        self.assertEqual(len(keys),4)
         content = page.children['content']
         self.assertEqual(content.numblocks,0)
         

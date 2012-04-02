@@ -280,7 +280,7 @@ optional parameter (attribute):
         try:
             value = to_string(value)
         except:
-            raise ValidationError
+            raise ValidationError()
         if self.toslug:
             value = slugify(value, self.toslug)
         if self.char_transform:

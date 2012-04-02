@@ -35,6 +35,8 @@ cssv.link.hover.background = None
 cssv.link.hover.text_decoration = 'none'
 cssv.link.hover.text_shadow = None
 
+cssv.edit.background = cssv.color.black
+cssv.edit.color = cssv.color.white
 
 ################################################# BODY
 css('body',
@@ -56,3 +58,10 @@ css('a:link',
 grid(12, 60, 20)
 fluidgrid(12)
 
+################################################# EDIT PAGE PANEL
+css('.edit-panel',
+    gradient(cssv.edit.background),
+    position='fixed',
+    top=0,
+    right=0,
+    left=0)

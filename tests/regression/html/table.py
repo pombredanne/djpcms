@@ -30,8 +30,8 @@ class TestTable(test.TestCase):
         self.assertTrue('</tbody>' in ht)
         self.assertFalse('<tfoot>' in ht)
         self.assertFalse('</tfoot>' in ht)
-        self.assertTrue('<tbody>\n</tbody>' in ht)
-        self.assertTrue('</tbody>\n</table>' in ht)
+        self.assertTrue('<tbody></tbody>' in ht)
+        self.assertTrue('</tbody></table>' in ht)
         
     def testSimpleFooter(self):
         p = self.pagination(footer = True)
@@ -45,10 +45,10 @@ class TestTable(test.TestCase):
         self.assertTrue('</tbody>' in ht)
         self.assertTrue('<tfoot>' in ht)
         self.assertTrue('</tfoot>' in ht)
-        self.assertTrue('<tbody>\n</tbody>' in ht)
-        self.assertFalse('</tbody>\n</table>' in ht)
-        self.assertTrue('</tbody>\n<tfoot>' in ht)
-        self.assertTrue('</tfoot>\n</table>' in ht)
+        self.assertTrue('<tbody></tbody>' in ht)
+        self.assertFalse('</tbody></table>' in ht)
+        self.assertTrue('</tbody><tfoot>' in ht)
+        self.assertTrue('</tfoot></table>' in ht)
         
     def testTableWithData(self):
         p = self.pagination(ajax = False)
@@ -56,8 +56,8 @@ class TestTable(test.TestCase):
         data = zip(('pippo','pluto','luna'),(3,4,1))
         tbl = p.widget(data)
         ht = tbl.render()
-        self.assertTrue('<td>pippo</td>\n<td>3</td>' in ht)
-        self.assertTrue('<td>pluto</td>\n<td>4</td>' in ht)
-        self.assertTrue('<td>luna</td>\n<td>1</td>' in ht)
+        self.assertTrue('<td>pippo</td><td>3</td>' in ht)
+        self.assertTrue('<td>pluto</td><td>4</td>' in ht)
+        self.assertTrue('<td>luna</td><td>1</td>' in ht)
         
     

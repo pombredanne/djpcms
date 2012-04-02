@@ -71,11 +71,11 @@ class WebSite(djpcms.WebSite):
         return site
     
     def urls(self, site):
-        #from playground.application import PlayGround, Geonames
-        # we serve static files too in this case
+        from djpsite.apps.design import DesignApplication
         return (
-                static.Static(site.settings.MEDIA_URL,
-                              show_indexes=True),
+                #Serve static files during development
+                static.Static(site.settings.MEDIA_URL),
+                DesignApplication('/design'),
                 user.UserApplication('/accounts/', site.User),
                 MainApplication('/')
                 )
@@ -83,26 +83,19 @@ class WebSite(djpcms.WebSite):
     def page_layouts(self, site):
         # Page template
         page_template = page(
-            container('edit'),
-            container('topbar',
-                      grid('grid 100'),
-                      cn = 'topbar-fixed',
-                      role = 'topbar'),
-            container('header', grid('grid 100'), role = 'header'),
-            container('content', role = 'content'),
-            container('footer', grid('grid 33-33-33'),
-                      role='footer',
-                      id='page-footer'))
+            container('topbar', grid('grid 100'), cn = 'topbar-fixed'),
+            container('header', grid('grid 100')),
+            container('content'),
+            container('footer', grid('grid 33-33-33')))
         site.register_page_layout('default', page_template)
         page_template.renderers['topbar'] = self.render_topbar
         page_template.renderers['header'] = self.render_header
         page_template.renderers['footer'] = self.render_footer
-            
+    
     def render_topbar(self, request, block_number, blocks):
         '''Render the topbar container'''
-        return ''
         if block_number == 0:
-            return topbar(request)
+            return topbar(request).render(request)
     
     def render_header(self, request, block_number, blocks):
         if block_number == 0:

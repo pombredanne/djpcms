@@ -94,4 +94,5 @@ class topbar(mixin):
 
 
 css('.topbar', topbar())
-css('.topbar-fixed', fixtop())
+css('.topbar-fixed', fixtop(),
+    gradient(cssv.topbar.default.background))

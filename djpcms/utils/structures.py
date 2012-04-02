@@ -60,6 +60,13 @@ Raises KeyError if key is not found."""
     def getlist(self, key):
         """Returns the list of values for the passed key."""
         return super(MultiValueDict, self).__getitem__(key)
+    
+    def setlist(self, key, _list):
+        if key in self:
+            self.getlist(key).extend(_list)
+        else:
+            _list = aslist(_list)
+            super(MultiValueDict, self).__setitem__(key, _list)
 
     def setdefault(self, key, default=None):
         if key not in self:

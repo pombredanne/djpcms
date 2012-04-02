@@ -3,13 +3,10 @@ import logging
 import djpcms
 from djpcms.utils.py2py3 import range, UnicodeMixin
 from djpcms import forms, http, html, ajax, Route, RouteMixin, Http404
-from djpcms.html import ContextRenderer
 from djpcms.forms.utils import get_redirect
 from djpcms.utils import parentpath, slugify, escape
 from djpcms.utils.urls import openedurl
 from djpcms.utils.text import nicename
-
-from .contentgenerator import InnerContent
 
     
 __all__ = ['RendererMixin',
@@ -174,11 +171,6 @@ other wise the ``render`` method of the :attr:`appmodel`.'''
             return self.appmodel.render(request, **kwargs)
         else:
             return ''
-        
-    def async_render(self, request, renderer, **context):
-        return ContextRenderer(request,
-                               renderer = renderer,
-                               context = context)
         
     def query(self, request, **kwargs):
         '''This function implements a query on the :attr:`RedererMixin.model`

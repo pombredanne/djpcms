@@ -6,7 +6,7 @@ from djpcms.utils.py2py3 import iteritems
 from djpcms.utils import slugify, escape
 
 from .globals import *
-from .layout import FormWidgetMaker, FormLayout
+from .layout import FormTemplate, FormLayout
 
 
 __all__ = ['HtmlForm']
@@ -23,7 +23,7 @@ def default_success_message(request, instance, mch):
         return '0[mch]'.format(c)
 
 
-class HtmlForm(FormWidgetMaker):
+class HtmlForm(FormTemplate):
     '''The :class:`Form` class is designed to be used for validation purposes.
 To render an instance of :class:`Form` on a web page we use this class.
 :class:`HtmlForm` is a specialized :class:`FormWidgetMaker`.

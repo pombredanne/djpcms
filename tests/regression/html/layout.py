@@ -13,27 +13,24 @@ class TestLayout(test.TestCase):
         self.assertEqual(page_template.numblocks, 0)
         self.assertFalse(page_template.is_block())
         self.assertRaises(ValueError, page_template.add, self)
+        self.assertEqual(len(page_template.children),1)
         #
         pg = page_template()
         text = pg.render()
-        self.assertEqual(text,"<div data-role='page'><div></div></div>")
-        html = pg.render(context = {'content': 'Hello World!'})
-        self.assertEqual(html,
-                "<div data-role='page'><div>Hello World!</div></div>")
+        self.assertTrue(text)
+        text = pg.render(context = {'content': lambda r,n,b: 'Hello World!'})
+        self.assertTrue('>Hello World!</div>' in text)
         
     def testPage(self):
         page_template = page(
-                container('topbar',
-                          grid('grid 100'), cn='topbar-fixed'),
-                container('header',
-                          grid('grid 100'), role = 'header'),
-                container('content', role = 'content'),
-                container('footer',
-                          grid('grid 33-33-33'), role = 'footer'))
+                container('topbar', grid('grid 100'), cn='topbar-fixed'),
+                container('header', grid('grid 100')),
+                container('content'),
+                container('footer', grid('grid 33-33-33')))
         self.assertEqual(page_template.numblocks, 5)
         self.assertEqual(len(page_template.children), 4)
         pg = page_template()
-        text = pg.render(context = {'content': 'Hello World!'})
+        text = pg.render(context = {'content': lambda r,n,b: 'Hello World!'})
         self.assertTrue('Hello World!' in text)
         keys = list(page_template.keys())
         self.assertEqual(len(keys), 4)

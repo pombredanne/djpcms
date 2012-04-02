@@ -1,5 +1,6 @@
-from djpcms import forms, views, html
+from djpcms import forms, views, html, Route
 from djpcms.plugins import DJPplugin
+from djpcms.utils import iri_to_uri
 
 layouts = (
            ('v','vertical'),
@@ -69,7 +70,7 @@ def page_links(request, asbuttons = False):
                                     asbuttons = asbuttons):
                     kwargs.update(request.urlargs)
                     href = link.attrs['href']
-                    link.attrs['href'] = iri_to_uri(href,kwargs)
+                    link.attrs['href'] = iri_to_uri(href, kwargs)
                     ul.add(link)
                     
     for link in userlinks(request, asbuttons):
@@ -122,8 +123,7 @@ There are several customizable parameters available.
     settings = request.view.settings
     return views.Navigator(secondary = page_links(request),
                            levels = settings.SITE_NAVIGATION_LEVELS,
-                           brand = settings.SITE_NAVIGATION_BRAND,
-                           fixed = True)
+                           brand = settings.SITE_NAVIGATION_BRAND)
     
     
 def breadcrumbs(request):

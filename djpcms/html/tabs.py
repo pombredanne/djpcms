@@ -2,62 +2,46 @@ from djpcms.utils import gen_unique_id
 
 from .base import Widget, WidgetMaker, iterable_for_widget
 
-__all__ = ['TabsMaker','tabs','Accordion','ajax_html_select']
+__all__ = ['tabs','accordion','ajax_html_select']
 
 
-class TabsMaker(WidgetMaker):
-    tag = 'div'
-    default_class = 'ui-tabs'
+class TabWidget(Widget):
     
-    def add_to_widget(self, widget, keyvalue, value = None):
+    def addtab(self, key, value):
         '''Override to allow for tuples and single values.'''
-        if value is None and iterable_for_widget(keyvalue):
-            key, value = tuple(keyvalue)
-        else:
-            key, value = keyvalue, value
-        widget.data_stream.append((key, value))
+        return self.add(((key,value),))
         
-    def stream(self, request, widget, context):
-        if widget.data_stream:
+    @property
+    def data_stream(self):
+        return tuple(self._unwind())
+    
+    def _unwind(self):
+        if self._data_stream:
             ul = Widget('ul')
             divs = []
-            for key,val in widget.data_stream:
+            for key, val in self._data_stream:
                 id = gen_unique_id()[:8]
-                ul.add(Widget('a',key,href='#{0}'.format(id)))
+                ul.add(Widget('a', key, href='#'+id))
                 divs.append(Widget('div', val, id=id))
-            yield ul.render(request)
+            yield ul
             for div in divs:
-                yield div.render(request)
-        
+                yield div        
 
-class Accordion(TabsMaker):
-    tag = 'div'
-    default_class = 'ui-accordion-container djph'
+
+class Accordion(TabWidget):
     
-    def stream(self, request, widget, context):
-        if widget.data_stream:
-            ul = Widget('ul')
-            di = []
-            for key,val in widget.data_stream:
-                yield Widget('h3',key).render(request)
-                yield Widget('div',val).render(request)
+    def _unwind(self):
+        for key, val in self._data_stream:
+            yield Widget('h3',key)
+            yield Widget('div',val)
         
-_tabs_maker = TabsMaker()
-_acc_maker = Accordion()
-
-
-
-def tabs(data_stream = None, **kwargs):
-    '''Create dynamic tabs or pills. The only input required is an iterable
-over two elements tuple containing the title and the data to display for
-each tab.'''
-    kwargs['maker'] = _tabs_maker
-    return Widget(data_stream = data_stream, **kwargs)
-
-
-def accordion(data_stream = None, **kwargs):
-    kwargs['maker'] = _acc_maker
-    return Widget(data_stream = data_stream, **kwargs)
+        
+tabs = WidgetMaker(tag='div',
+                   widget=TabWidget,
+                   default_class='ui-tabs')
+accordion = WidgetMaker(tag='div',
+                        widget=Accordion,
+                        default_class='ui-accordion-container djph')
 
 
 def ajax_html_select(name_title_html, **kwargs):

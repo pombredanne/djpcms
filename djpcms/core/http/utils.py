@@ -40,8 +40,8 @@ class QueryDict(MultiValueDict):
         super(QueryDict,self).__init__()
         self.encoding = encoding
         for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
-            self.appendlist(to_string(key, encoding, errors='replace'),
-                            to_string(value, encoding, errors='replace'))
+            self[to_string(key, encoding, errors='replace')] =\
+                to_string(value, encoding, errors='replace')
 
 
 def query_from_string(val):

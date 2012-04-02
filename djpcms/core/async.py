@@ -7,7 +7,7 @@ from functools import partial
 import logging
 
 from djpcms.utils.py2py3 import iteritems
-from djpcms.html import ContextRenderer, Widget
+from djpcms.html import Renderer, Widget
 from djpcms.html.layout import Meta, htmldoc
 from djpcms.utils.ajax import jservererror, isajax
 
@@ -101,8 +101,8 @@ class AsyncResponse(object):
                     new_value[k] = val
             return new_value
         #
-        elif isinstance(value, ContextRenderer):
-            is_async,val = async(value.context)
+        elif isinstance(value, Renderer):
+            is_async, val = async(value.render())
             if is_async:
                 return val
             else:
@@ -122,7 +122,7 @@ class AsyncResponse(object):
                     new_value.append(val)
             return new_value
         #
-        elif isinstance(value,AsyncResponse):
+        elif isinstance(value, AsyncResponse):
             return value.run()
 
         return value
@@ -220,16 +220,16 @@ To use djpcms in an asynchronous engine you need  to implement this function.
         
     def async(self, value):
         '''Check if *value* is an asynchronous element. It returns a two
- elements tuple containing a boolean flag and a result. If *value* is
- asynchronous and its result is not yet available, the function should return::
+elements tuple containing a boolean flag and a result. If *value* is
+asynchronous and its result is not yet available, the function should return::
+
+    (True,newvalue)
      
-     (True,newvalue)
+otherwise::
+
+    (False,newvalue)
      
- otherwise::
- 
-     (False,newvalue)
-     
- where *newvalue* can be *value* or a modified version.
+where *newvalue* can be *value* or a modified version.
  
 This function, like :meth:`not_done_yet` is engine dependent and
 therefore should be re-implemented for different asynchronous engines.'''

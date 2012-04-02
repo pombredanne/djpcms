@@ -14,14 +14,13 @@ A simple usage::
     >>> text.addClass('foo').render()
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
-from .context import *
+from .async import *
 from .base import *
 from .widgets import *
 from .box import *
 from .nicerepr import *
 from .table import *
 from .tabs import *
-from .yui import *
 
 
 def block(stream, id = None, cn = None, djp = None):

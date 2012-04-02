@@ -40,7 +40,7 @@ table row'''
     def get_context(self, request, widget, keys):
         children = []
         for child in self.children_widgets(widget):
-            if isinstance(child,FormWidget):
+            if isinstance(child, FormWidget):
                 ctx = child.get_context(request)
             else:
                 ctx = child.render(request)

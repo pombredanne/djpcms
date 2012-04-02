@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views, Http404
 from djpcms.core import messages
-from djpcms.html.layout import htmldoc
+from djpcms.html.layout import htmldoc, grid
 from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
 
@@ -63,24 +63,15 @@ class PageChangeView(views.ChangeView):
         return underlying_response(request, request.instance)
         
     def get_context(self, request):
-        ctx = super(PageChangeView,self).get_context(request)
+        text = self.render(request)
+        body = grid('grid 100')(self.render(request))
+        body = body.render(request)
         underlying = request.underlying()
-        if not underlying:
-            return ctx
-        page = request.instance
-        grid = request.cssgrid()
-        prop = box(bd = ctx['inner'], hd = 'Page properties', cn = 'edit-block')
-        sep = Widget('h2','Page layout',
-                     cn='ui-state-default ui-corner-all edit-block')\
-                    .css({'padding':'7px 14px'})
-        inner = Widget('div',(prop,sep))
-        container = Widget('div', inner)
-        if grid:
-            inner.addClass(grid.column1)
-            container.add(grid.clear)
-        container.add(underlying.get_context(editing = True)['inner'])
-        ctx['inner'] = container.render(underlying)
-        return ctx
+        edit = Widget('div', body, cn = 'edit-panel')
+        context = underlying.get_context(editing = True)
+        context['body'] = Widget('div',(edit,context['body'])).render(request)
+        context['title'] = 'Edit ' + context['title']
+        return context
     
     def cssgrid(self, request):
         underlying = request.underlying()

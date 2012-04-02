@@ -146,9 +146,10 @@ Select(default='select')
 class List(WidgetMaker):
     tag='ul'
     def add_to_widget(self, widget, elem, cn = None):
-        if not isinstance(elem,Widget) or elem.tag != 'li':
-            elem = Widget('li', elem, cn = cn)
-        widget.data_stream.append(elem)
+        if elem is not None:
+            if not isinstance(elem, Widget) or elem.tag != 'li':
+                elem = Widget('li', elem, cn = cn)
+            widget.data_stream.append(elem)
     
 
 List(default = 'ul')

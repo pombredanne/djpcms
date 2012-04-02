@@ -2,7 +2,8 @@
 from .base import *
 from .colorvar import *
 
-__all__ = ['clearfix',
+__all__ = ['opacity',
+           'clearfix',
            'fixtop',
            'shadow',
            'radius',
@@ -19,6 +20,16 @@ __all__ = ['clearfix',
 ################################################################################
 
 
+################################################# OPACITY
+class opacity(mixin):
+    def __init__(self, o):
+        self.o = o
+        
+    def __call__(self, elem):
+        elem['opacity'] = self.o
+        elem['filter'] = 'alpha(opacity={0})'.format(100*self.o)
+        
+        
 ################################################# CLEARFIX
 class clearfix(mixin):
     '''For clearing floats to all *elements*.'''    

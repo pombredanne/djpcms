@@ -14,13 +14,11 @@ blockLabels2   = 'blockLabels2'
 inlineFormsets = 'blockLabels2'
 
 
-__all__ = ['FormWidget',
-           'FormWidgetMaker',
-           'BaseFormLayout',
+__all__ = ['BaseFormLayout',
+           'FormTemplate',
            'FormLayout',
            'FormLayoutElement',
            'DivFormElement',
-           'FormWidgetMaker',
            'FieldTemplate',
            'FormLayout',
            'SubmitElement',
@@ -67,6 +65,10 @@ forms using the :mod:`djpcms.forms.layout` API.'''
         return self.internal['form']
     
     @property 
+    def field(self):
+        return self.internal.get('field')
+    
+    @property 
     def layout(self):
         return self.internal.get('layout',None)
     
@@ -82,16 +84,16 @@ forms using the :mod:`djpcms.forms.layout` API.'''
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         return self.form.is_valid()
-
-
-class FormWidgetMaker(html.WidgetMaker):
+    
+    
+class FormTemplate(html.WidgetMaker):
     _widget = FormWidget
-
-
-class FieldTemplate(FormWidgetMaker):
+    
+    
+class FieldTemplate(FormTemplate):
     
     def get_context(self, request, widget, context):
-        bfield = widget.internal['field']
+        bfield = widget.field
         parent = widget.parent.maker
         if bfield.request is not request:
             bfield.request = request
@@ -146,7 +148,7 @@ class FieldTemplate(FormWidgetMaker):
                 yield whtml
 
 
-class BaseFormLayout(FormWidgetMaker):
+class BaseFormLayout(FormTemplate):
     '''\
 A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.'''
@@ -197,18 +199,17 @@ components. An instance of this class render one or several form
 remove available fields from the missing set.'''
         self.allchildren = check_fields(self.allchildren,missings,layout)
     
-    def child_widget(self, child, widget, form = None):
+    def child_widget(self, child, widget, form = None, **kwargs):
         '''Override the :meth:`djpcms.html.WidgetMaker.child_widget` method
  in order to account for *child* which are form :class:`djpcms.forms.Fields`
  names.'''
         form = form if form is not None else widget.internal.get('form')
         make = super(FormLayoutElement,self).child_widget
         if form and child in form.dfields:
-            w = make(self.field_template, widget, field=form.dfields[child])
+            return make(self.field_template, widget, form = form,
+                        field=form.dfields[child], **kwargs)
         else:
-            w = make(child, widget)
-        w.internal['form'] = form
-        return w
+            return make(child, widget, form = form, **kwargs)
 
     def add_widget_classes(self, field, widget):
         pass
@@ -380,10 +381,7 @@ yui3_ grid layout.
         self.allchildren = newcolumns
     
     def layout_stream(self, request, widget, context):
-        children = [w.render(request, context) for w in\
-                         self.children_widgets(widget)]
-        grid = self.grid()
-        context = {'renderer': lambda request, n, block: children[n]}
-        yield grid.render(request, context)
+        children = (self.child_widget(c, widget) for c in self.allchildren)
+        return self.grid(children).render(request, context)
 
     

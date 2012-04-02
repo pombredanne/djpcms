@@ -1,30 +1,44 @@
 from djpcms import html
 from djpcms.utils import test
 
+w = html.Widget
 
-class TestAttributes(test.TestCase):
+class TestBaseClasses(test.TestCase):
     
     def testRenderer(self):
         r = html.Renderer()
         self.assertRaises(NotImplementedError, r.render)
         self.assertEqual(r.media(None), None)
         
+    def testWidgetClass(self):
+        t = html.WidgetMaker(tag = 'span', key = 'test')
+        self.assertEqual(t.tag, 'span')
+        self.assertEqual(t.widget_class, w)
+        self.assertEqual(t.key, 'test')
+        self.assertTrue('test' in str(t))
+        self.assertEqual(t.css(),{})
+        d = {'display':'none', 'overflow':'hidden'}
+        self.assertEqual(t.css(d),t)
+        self.assertEqual(t.css(),d)
+        
+        
+class TestAttributes(test.TestCase):
+        
     def testWidegtRepr(self):
-        c = html.Widget('div', cn='bla')
+        c = w('div', cn='bla')
         self.assertEqual(str(c), "<div class='bla'>")
-        c = html.Widget(cn='bla')
+        c = w(cn='bla')
         self.assertEqual(c.tag, None)
         self.assertEqual(str(c), 'Widget(WidgetMaker)')
         
     def testClass(self):
-        c = html.Widget()
-        c.addClass('ciao').addClass('pippo')
+        c = w().addClass('ciao').addClass('pippo')
         self.assertTrue('ciao' in c.classes)
         self.assertTrue('pippo' in c.classes)
         f = c.flatatt()
         self.assertTrue(f in (" class='ciao pippo'",
                               " class='pippo ciao'"))
-        c = html.Widget().addClass('ciao pippo bla')
+        c = w().addClass('ciao pippo bla')
         self.assertTrue(c.hasClass('bla'))
         
     def testMakerClass(self):
@@ -89,7 +103,7 @@ class TestInputs(test.TestCase):
         self.assertTrue("disabled='disabled'" in ht)
             
     def testReadonly(self):
-        ts = self.create('input:text', 'text', readonly = 'readonly')
+        ts = self.create('input:text', 'text', readonly='readonly')
         ht = ts.render()
         self.assertTrue("readonly='readonly'" in ht)
         

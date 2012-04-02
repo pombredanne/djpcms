@@ -11,6 +11,9 @@ cssv.widget.hd.padding = cssv.widget.padding
 cssv.widget.bd.padding = cssv.widget.padding
 cssv.widget.ft.padding = cssv.widget.padding
 #
+cssv.disabled.opacity = 0.7
+cssv.disabled.cursor = 'not-allowed'
+#
 cssv.input.vertical_padding = px(4)
 cssv.input.border_width = px(1)
 cssv.input.border_color = cssv.color.grayLight
@@ -167,8 +170,8 @@ css('.required label',
     font_weight = cssv.input_required_font_weight)
 
 css(disabled_selector,
-    opacity = cssv.disabled_opacity,
-    cursor =  cssv.disabled_cursor)
+    opacity(cssv.disabled.opacity),
+    cursor =  cssv.disabled.cursor)
 
 
 ################################################################################

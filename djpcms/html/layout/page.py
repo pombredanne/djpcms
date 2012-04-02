@@ -84,7 +84,7 @@ web page'''
     def blocks(self):
         '''Generator of blocks.'''
         # loop over children
-        for child in self.allchildren:
+        for child in self.allchildren():
             for block in child.blocks():
                 yield block
     
@@ -112,7 +112,8 @@ web page'''
         
         
 class page(elem):
-    '''layout for a page. A page contains a list of :class:`container`.'''
+    '''HTML layout for a page with is the first (and only) div element within
+the body tag. A page contains a list of :class:`container`.'''
     columns = 12
     role = 'page'
     
@@ -129,15 +130,18 @@ class page(elem):
     
     def get_context(self, request, widget, context):
         # Override get_context to fill up the keyword dictionary
-        page = request.page
+        page = request.page if request else None
+        context = context if context is not None else {}
         block_dictionary = page.block_dictionary() if page is not None else {}
         renderers = self.renderers
-        context = {'grid': None}
-        for child in self.allchildren:
+        for child in self.allchildren():
             key = child.key
-            renderer = self.renderers.get(key)
-            if not renderer:
-                renderer = self.default_renderer
+            if key not in context:
+                renderer = self.renderers.get(key)
+                if not renderer:
+                    renderer = self.default_renderer
+            else:
+                renderer = context[key]
             blocks = block_dictionary.get(key)
             context[key] = {'renderer': renderer,
                             'blocks': blocks if blocks is not None else {}}
@@ -148,7 +152,7 @@ class page(elem):
         if blocks:
             for position in sorted(blocks):
                 block = blocks[position]
-        else:
+        elif request:
             return request.render()
                 
         
@@ -159,8 +163,8 @@ class Grid(elem):
     def __init__(self, *rows, **kwargs):
         cleaned_rows = []
         for row in rows:
-            if isinstance(row,Grid):
-                cleaned_rows.extend(row.allchildren)
+            if isinstance(row, Grid):
+                cleaned_rows.extend(row.allchildren())
             else:
                 cleaned_rows.append(row)
         super(Grid, self).__init__(*cleaned_rows, **kwargs)
@@ -168,6 +172,20 @@ class Grid(elem):
     @classmethod
     def childtype(cls):
         return row
+    
+    def get_context(self, request, widget, context):
+        if context:
+            renderer = context.get('renderer')
+            if not renderer:
+                return context
+            all_blocks = context.get('blocks')
+            if all_blocks is None:
+                all_blocks = {}
+            queue = deque()
+            for n, wm in enumerate(self.blocks()):
+                blocks = all_blocks.get(n)
+                queue.append(renderer(request, n, blocks))
+            return {'blocks': queue}
     
     def register(self, name):
         name = name.lower()
@@ -192,31 +210,31 @@ class grid_holder(elem):
     def get_context(self, request, widget, context):
         # Override get_context so that we retrieve the context of
         # underlying blocks if they exists
+        context = context if context is not None else {}
         ctx = None
-        inner_grid = self.allchildren[0] if self.allchildren else None
+        children = list(self.allchildren())
+        inner_grid = children[0] if children else None
         if self.key:
+            page = request.page if request else None
             ctx = context.get(self.key)
-            if self.key == 'content' and request.page:
-                inner_grid = request.page.inner_grid or inner_grid
+            if self.key == 'content' and page:
+                inner_grid = page.inner_grid or inner_grid
             if not inner_grid and self.key == 'content':
                 inner_grid = self.default_inner_grid(request)
         if inner_grid:
-            context = {'inner_grid': inner_grid}
-            context.update(ctx) 
-        return context
-    
-    def stream(self, request, widget, context):
-        if 'inner_grid' in context:
-            w = self.child_widget(context['inner_grid'], widget)
-            yield w.render(request, context)
+            widget.allchildren = [inner_grid]
+            return ctx
         elif 'blocks' in context:
-            yield context['blocks'].popleft()
+            widget.add(context['blocks'].popleft())
             
     
 class container(grid_holder):
     '''A container of a grid system'''
     def __init__(self, key, *grid, **kwargs):
+        key = str(key)
         kwargs['key'] = key
+        kwargs['role'] = key
+        kwargs['id'] = 'page-'+key
         super(container, self).__init__(*grid, **kwargs)
     
     def default_inner_grid(self, request):
@@ -263,17 +281,6 @@ with row or row-fluid class.'''
     @classmethod
     def childtype(cls):
         return column
-    
-    def get_context(self, request, widget, context):
-        renderer = context.get('renderer')
-        all_blocks = context.get('blocks')
-        if all_blocks is None:
-            all_blocks = {}
-        queue = deque()
-        for n, wm in enumerate(self.blocks()):
-            blocks = all_blocks.get(n)
-            queue.append(renderer(request, n, blocks))
-        return {'blocks': queue}
     
     
 class tabs(row):

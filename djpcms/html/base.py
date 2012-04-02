@@ -1,22 +1,22 @@
 import json
 from copy import copy, deepcopy
-from inspect import isgenerator
 
-from djpcms.utils.py2py3 import UnicodeMixin, is_string, to_string,\
-                                is_bytes_or_string, iteritems
-from djpcms.utils import slugify, escape, mark_safe, lazymethod, iterable,\
-                         NOTHING
+from djpcms.utils.py2py3 import ispy3k, is_string, to_string,\
+                                is_bytes_or_string, iteritems, itervalues
+from djpcms.utils import slugify, escape, mark_safe, lazymethod, NOTHING
 from djpcms.utils.structures import OrderedDict
 
-from .context import ContextRenderer, StreamContextRenderer
+from .async import Renderer, DeferredRenderer, StreamRenderer
 
+if ispy3k:
+    from itertools import zip_longest
+else:   # pragma nocover
+    from itertools import izip_longest as zip_longest
 
 __all__ = ['flatatt',
-           'Renderer',
-           'LazyHtml',
+           'StreamRenderer',
            'WidgetMaker',
            'Widget',
-           'Html',
            'NON_BREACKING_SPACE']
 
     
@@ -44,41 +44,13 @@ def dump_data_value(v):
 
 
 def iterable_for_widget(data):
-    if not isinstance(data,Widget) and hasattr(data,'__iter__'):
-        return not is_bytes_or_string(data)
-
-
-class Renderer(object):
-    '''A mixin for all classes which render into html.
-
-.. attribute:: description
-
-    An optional description of the renderer.
-    
-    Default ``""``
-'''
-    description = None
-    
-    def render(self, *args, **kwargs):
-        '''render ``self`` as html'''
-        raise NotImplementedError()
-    
-    def media(self, request):
-        '''It returns an instance of :class:`Media`.
-It should be overritten by derived classes.'''
-        return None
-    
-
-class LazyHtml(UnicodeMixin):
-    '''A lazy wrapper for html components
-    '''
-    def __init__(self, request, elem):
-        self.request = request
-        self.elem = elem
-    
-    @lazymethod
-    def __unicode__(self):
-        return mark_safe(self.elem.render(self.request))
+    if isinstance(data, dict):
+        return iteritems(data)
+    elif not isinstance(data, Widget) and hasattr(data,'__iter__') and\
+         not is_bytes_or_string(data):
+        return data
+    else:
+        return (data,)
     
     
 def update(container, target):
@@ -93,12 +65,40 @@ def update(container, target):
 class AttributeMixin(object):
     classes = None
     data = None
+    attrs = None
+    _css = None
     
-    def __init__(self, cn = None, data = None):
+    def __init__(self, cn=None, data=None, attrs=None, css=None):
         self.classes = update(self.classes,set())
         self.data = update(self.data,{})
+        self.attrs = update(self.attrs,{})
+        self._css = update(self._css,{})
         self.addData(data)
         self.addClass(cn)
+        self.addAttrs(attrs)
+        self.css(css)
+        self.children = OrderedDict()
+    
+    def __getitem__(self, key):
+        return self.children[key]
+    
+    def allchildren(self):
+        return itervalues(self.children)
+    
+    def addAttr(self, name, val):
+        '''Add the specific attribute to the attribute dictionary
+with key ``name`` and value ``value`` and return ``self``.'''
+        if val is not None:
+            self.attrs[name] = val
+        return self
+    
+    def addAttrs(self, mapping):
+        if mapping:
+            self.attrs.update(mapping)
+        return self
+    
+    def attr(self, name):
+        return self.attrs.get(name,None)
     
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
@@ -142,10 +142,38 @@ class AttributeMixin(object):
             self.data[name] = val
         return self
     
+    def flatatt(self, **attrs):
+        '''Return a string with atributes to add to the tag'''
+        cs = ''
+        attrs = self.attrs.copy()
+        if self.classes:
+            cs = ' '.join(self.classes)
+            attrs['class'] = cs
+        if self._css:
+            attrs['style'] = ''.join(('{0}:{1};'.format(k,v)\
+                                       for k,v in self._css.items()))
+        for k,v in self.data.items():
+            attrs['data-{0}'.format(k)] = dump_data_value(v)
+        if attrs:
+            return flatatt(attrs)
+        else:
+            return ''
     
-class Widget(AttributeMixin):
+    def css(self, mapping=None):
+        '''Update the css dictionary if *mapping* is a dictionary, otherwise
+ return the css value at *mapping*.'''
+        if mapping is None:
+            return self._css
+        elif isinstance(mapping, dict):
+            self._css.update(mapping)
+            return self
+        else:
+            return self._css.get(mapping)
+    
+    
+class Widget(DeferredRenderer, AttributeMixin):
     '''A class which exposes jQuery-alike API for
-handling HTML classes, attributes and data on a html object::
+handling HTML classes, attributes and data on a html element::
 
     >>> a = Widget('div').addClass('bla foo').addAttr('name','pippo')
     >>> a.classes
@@ -157,7 +185,7 @@ handling HTML classes, attributes and data on a html object::
 
 .. attribute:: data_stream
 
-    A list of children for the widget.
+    A list data elements 
     
 .. attribute:: parent
 
@@ -188,31 +216,30 @@ is a factory of :class:`Widget`.
         if not isinstance(maker,WidgetMaker):
             maker = DefaultMaker
         cn = update(maker.classes, cn)
-        data = update(maker.data, data)            
-        super(Widget,self).__init__(cn = cn, data = data)
+        data = update(maker.data, data)
+        css = update(maker.css(), css)
+        DeferredRenderer.__init__(self)
+        AttributeMixin.__init__(self, cn=cn, data=data,
+                                attrs=maker.attrs, css=css)
         self.maker = maker
-        self._css = css or {}
-        self.attrs = attrs = maker.attrs.copy()
+        self._data_stream = []
         self.addClass(maker.default_style).addClass(maker.default_class)
-        self.classes.update(maker.classes)
         attributes = maker.attributes
         for att in list(params):
             if att in attributes:
-                attrs[att] = params.pop(att)
+                self.addAttr(att, params.pop(att))
         self.internal = params
         self.tag = self.maker.tag
-        if data_stream is not None:
-            if iterable_for_widget(data_stream):
-                for d in data_stream:
-                    self.add(d)
-            else:
-                self.add(data_stream)
+        self.add(data_stream)
+        self.children.update(((k,maker.child_widget(c,self))\
+                                for k, c in iteritems(maker.children)))
         
     def __repr__(self):
         if self.tag:
             return '<' + self.tag + self.flatatt() + '>'
         else:
             return '{0}({1})'.format(self.__class__.__name__,self.maker)
+    __str__ = __repr__
     
     def __len__(self):
         return len(self.data_stream)
@@ -225,6 +252,10 @@ is a factory of :class:`Widget`.
         return self.internal.get('parent')
     
     @property
+    def key(self):
+        return self.maker.key
+    
+    @property
     def root(self):
         p = self.parent
         if p is not None:
@@ -234,64 +265,35 @@ is a factory of :class:`Widget`.
     
     @property
     def data_stream(self):
-        if 'data_stream' not in self.internal:
-            self.internal['data_stream'] = []
-        return self.internal['data_stream']
+        return self._data_stream
     
-    def flatatt(self, **attrs):
-        '''Return a string with atributes to add to the tag'''
-        cs = ''
-        attrs = self.attrs.copy()
-        if self.classes:
-            cs = ' '.join(self.classes)
-            attrs['class'] = cs
-        if self._css:
-            attrs['style'] = ''.join(('{0}:{1};'.format(k,v)\
-                                       for k,v in self._css.items()))
-        for k,v in self.data.items():
-            attrs['data-{0}'.format(k)] = dump_data_value(v)
-        if attrs:
-            return flatatt(attrs)
-        else:
-            return ''
-    
-    def css(self, mapping):
-        '''Upsate the css dictionary if *mapping* is a dictionary, otherwise
- return the css value at *mapping*.'''
-        if isinstance(mapping,dict):
-            self._css.update(mapping)
-            return self
-        else:
-            return self._css.get(mapping)
-    
-    def addAttr(self, name, val):
-        '''Add the specific attribute to the attribute dictionary
-with key ``name`` and value ``value`` and return ``self``.'''
-        self.attrs[name] = val
-        return self
-    
-    def addAttrs(self, mapping):
-        if mapping:
-            self.attrs.update(mapping)
-        return self
-    
-    def attr(self, name):
-        return self.attrs.get(name,None)
-    
-    def add(self, *args, **kwargs):
+    def add(self, data_stream):
         '''Add to the stream. This functions delegates the adding to the
  :meth:`WidgetMaker.add_to_widget` method.'''
-        self.maker.add_to_widget(self,*args,**kwargs)
+        if not self.called and data_stream is not None:
+            data_stream = iterable_for_widget(data_stream)
+            for element in data_stream:
+                self.maker.add_to_widget(self, element)
     
-    def render(self, request = None, context = None):
+    def _render(self, request = None, context = None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
         
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
-        context = context if context is not None else {}
-        return self.maker.render_from_widget(request, self, context)
+        st = StreamRenderer(self.stream(request, context))
+        st.add_renderer(mark_safe)
+        return st.render()
+    
+    def stream(self, request = None, context = None):
+        '''Render the widget. It accept two optional parameters, a http
+request object and a dictionary for rendering children with a key.
+        
+:parameter request: Optional request object.
+:parameter request: Optional context dictionary.
+'''
+        return self.maker.stream_from_widget(request, self, context)
     
     def hide(self):
         '''Set the ``css`` ``display`` property to ``none`` and return self
@@ -302,12 +304,6 @@ for concatenation.'''
     def show(self):
         self.css.pop('display',None)
         return self
-        
-    @property
-    def html(self):
-        if not hasattr(self,'_html'):
-            self._html = self.render()
-        return self._html
     
 
 class WidgetMaker(Renderer, AttributeMixin):
@@ -364,14 +360,10 @@ corner cases, users can subclass it to customize behavior.
          ....
         </tag>
     
-.. attribute:: allchildren
-
-    A list containing all :class:`WidgetMaker` instances which are children
-    of the instance.
-    
 .. attribute:: children
 
-    A dictionary containing children with keys.
+    An ordered dictionary containing all :class:`WidgetMaker` instances
+    which are direct children of the instance.
     
 .. attribute:: parent
 
@@ -415,21 +407,17 @@ corner cases, users can subclass it to customize behavior.
     default_class = None
     default_attrs = None
     _widget = None
-    _template = to_string('<{0}{1}>{2}</{0}>')
     
     def __init__(self, inline = None, default = False,
                  description = '', widget = None,
                  attributes = None, renderer = None,
-                 data2html = None, media = None,
-                 data = None, cn = None, key = None,
-                 **params):
-        AttributeMixin.__init__(self, cn = cn, data = data)
+                 media = None, data = None,
+                 cn = None, key = None,
+                 css = None, **params):
+        AttributeMixin.__init__(self, cn=cn, data=data, css=css)
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
-        self.allchildren = []
-        self.children = {}
-        self.attrs = attrs = {}
         self._media = media
         self.description = description or self.description
         self.renderer = renderer
@@ -440,9 +428,6 @@ corner cases, users can subclass it to customize behavior.
         self.default_style = params.pop('default_style',self.default_style)
         self.default_class = params.pop('default_class',self.default_class)
         self._widget = widget or self._widget or Widget
-        if data2html:
-            self.data2html =\
-                     lambda request, data : data2html(self, request, data)
         if self.default_attrs:
             p = self.default_attrs.copy()
             p.update(params)
@@ -451,10 +436,9 @@ corner cases, users can subclass it to customize behavior.
             if attr in params:
                 value = params.pop(attr)
                 attrp = 'process_{0}'.format(attr)
-                if hasattr(self,attrp):
-                    value = getattr(self,attrp)(value)
-                if value is not None:
-                    attrs[attr] = value
+                if hasattr(self, attrp):
+                    value = getattr(self, attrp)(value)
+                self.addAttr(attr, value)
         # the remaining parameters are added to the data dictionary
         self.data.update(params)
         if not default and self.tag and self.tag not in default_widgets_makers:
@@ -482,8 +466,12 @@ corner cases, users can subclass it to customize behavior.
         return attr
     
     def __repr__(self):
-        return '{0}{1}'.format(self.__class__.__name__,'-'+\
-                               self.tag if self.tag else '')
+        n =  '{0}{1}'.format(self.__class__.__name__,'-'+\
+                             self.tag if self.tag else '')
+        if self.key:
+            n += '(' + self.key + ')'
+        return n
+    __str__ = __repr__
     
     def add(self, *widgets):
         '''Add children *widgets* to this class:`WidgetMaker`.
@@ -492,123 +480,70 @@ corner cases, users can subclass it to customize behavior.
             if isinstance(widget, WidgetMaker):
                 if not widget.default_style:
                     widget.default_style = self.default_style
-                self.allchildren.append(widget)
+                key = widget.key or len(self.children)
+                self.children[key] = widget
                 widget.parent = self
-                if widget.key:
-                    self.children[widget.key] = widget
         return self
   
     def add_to_widget(self, widget, element):
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
  attribute. It can be overwritten but call super for consistency.'''
-        if isinstance(element,Widget):
-            element.internal['parent'] = widget
-        widget.data_stream.append(element)
-
-    def keys(self):
-        '''generator of context keywords'''
-        for child in self.allchildren:
-            for key in child.keys():
-                yield key
-        if self.key:
-            yield self.key 
+        if element is not None:
+            if isinstance(element, Widget):
+                element.internal['parent'] = widget
+            widget._data_stream.append(element)
                     
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method to build extra context.
 By default it return *context*.'''
         return context
-    
-    def render_from_widget(self, request, widget, context):
+        
+    def stream_from_widget(self, request, widget, context):
         '''Render the *widget* using the *context* dictionary and
 information contained in this :class:`WidgetMaker`.'''
+        tag = widget.tag
         if self.inline:
-            if widget.tag:
-                fattr = widget.flatatt()
-                text = '<' + self.tag + fattr + '/>'
-            else:
-                text = ''
+            if tag:
+                yield '<' + tag + widget.flatatt() + '/>'
         else:
-            text = self.inner(request, widget, context)
-            if widget.tag:
-                fattr = widget.flatatt()
-                if isinstance(text, ContextRenderer):
-                    text.add_renderer(
-                        lambda c : self._template.format(widget.tag,fattr,c))
-                else:
-                    text = self._template.format(widget.tag, fattr, text)
+            context = self.get_context(request, widget, context)
+            if tag:
+                yield '<' + tag + widget.flatatt() + '>'
+            for bit in self.stream(request, widget, context):
+                yield bit
+            if tag:
+                yield '</' + tag + '>'
         if request:
             request.media.add(self.media(request))
-        if isinstance(text, ContextRenderer):
-            text.add_renderer(mark_safe)
-            return text.done()
-        else:
-            return mark_safe(text)
-    
-    def inner(self, request, widget, context):
-        '''Render the inner part of the widget (it exclude the outer tag). 
-
-:parameter widget: instance of :class:`Widget` to be rendered
-:parameter context: A dictionary of data for rendering.
-:rtype: A string representing the inner part of the widget or
-    a :class:`ContextRenderer` if asynchronous data is found.
-'''
-        context = self.get_context(request, widget, context)
-        return StreamContextRenderer(request,
-                        self.stream(request, widget, context))
     
     def stream(self, request, widget, context):
-        '''This method is called by :meth:`inner` method.
-It returns an iterable over chunks of html
-to be displayed in the inner part of the widget.
-This method can be overridden by subclasses if a specific behavior
-is required.
-
-First, data in :attr:`data_stream` is rendered. Second, children of the
-widget are rendered.
+        '''This method is called by :meth:`stream_from_widget` method.
+It returns an iterable over chunks of html to be displayed in the
+inner part of the widget.
 
 :rtype: a generator of strings and :class:`ContextRenderer`.
 '''
-        data2html = self.data2html
-        if self in context:
-            context_data = context[self]
-        elif self.key and self.key in context:
-            context_data = context[self.key]
-        else:
-            context_data = None
+        if self.key and context and self.key in context:
+            ctx = context.pop(self.key)
+            if isinstance(ctx, dict):
+                context = ctx
+            else:
+                widget.add(ctx)
+        for child, data in zip_longest(widget.allchildren(),
+                                       widget.data_stream):
+            if child is not None:
+                child.add(data)
+                data = child
+            if isinstance(data, Widget):
+                for bit in data.stream(request, context):
+                    yield bit
+            else:
+                yield data
             
-        if context_data is not None and not iterable(context_data):
-            context_data = (context_data,) 
-               
-        # First we render the stream of data in the widget,
-        # second the context data
-        for data in (widget.data_stream, context_data):
-            if data:
-                for chunk in data:
-                    yield data2html(request, chunk)
-                    
-        # Subsequently we render children
-        for w in self.children_widgets(widget):
-            chunk = w.render(request, context)
-            yield data2html(request, chunk)
-        
-    def data2html(self, request, data):
-        '''Process data from :meth:`stream`. By default it renders data if
- data is an instance of :class:`Widget` and returns it.'''
-        if isinstance(data, Widget):
-            data = data.render(request)
-        if isinstance(data, ContextRenderer):
-            data = data.done()
-        return data
-
-    def children_widgets(self, widget):
-        # Internal function for creating child widgets
-        for child in self.allchildren:
-            yield self.child_widget(child, widget)
-            
-    def child_widget(self, child_maker, widget, **kwargs):
+    def child_widget(self, child_maker, widget):
         '''Function invoked when there are children available. See the
-:attr:`allchildren`` attribute for more information on children.
+:attr:`children`` attribute for more information on children.
 
 :parameter child_maker: a :class:`WidgetMaker` child of self.
 :parameter widget: The :class:`Widget` instance used for rendering.
@@ -616,9 +551,11 @@ widget are rendered.
     widget constructor.
 :rtype: An instance of :class:`Widget` for the child element.
 '''
-        w = child_maker(**widget.internal)
-        w.internal.update(kwargs)
-        w.internal['parent'] = widget
+        w = child_maker(parent = widget)
+        params = widget.internal
+        for p in params:
+            if p not in w.internal:
+                w.internal[p] = params[p]
         return w
     
     def media(self, request):
@@ -627,15 +564,3 @@ widget are rendered.
         
 DefaultMaker = WidgetMaker()
 
-
-class Html(WidgetMaker):
-    '''A :class:`FormLayoutElement` which renders to `self`.'''
-    def __init__(self, inner = None, **kwargs):
-        self._inner = inner
-        super(Html,self).__init__(**kwargs)
-
-    def stream(self, request, widget, context):
-        if self._inner is not None:
-            yield self._inner
-        for v in super(Html,self).stream(request, widget, context):
-            yield v

@@ -60,8 +60,4 @@ Tabs
 
 .. autofunction:: tabs
 
-   
-Yui grid 3
-~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: yuigrid3

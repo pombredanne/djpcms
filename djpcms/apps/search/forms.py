@@ -29,5 +29,5 @@ def search_form(name = 'SearchForm', placeholder = 'search', input_name = None,
     submit = submit or []
     return forms.HtmlForm(form_cls,
                           inputs = submit,
-                          layout = layout.SimpleFormLayout(),
+                          layout = layout.FormLayout(),
                           **kwargs)

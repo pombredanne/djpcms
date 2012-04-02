@@ -1,11 +1,12 @@
 from djpcms import html
 from djpcms.utils import test
 
+w = html.Widget
 
 class TestWidgets(test.TestCase):
     
     def testAncor(self):
-        a = html.Widget('a', 'kaput', cn = 'bla', href = '/abc/')
+        a = w('a', 'kaput', cn = 'bla', href = '/abc/')
         self.assertEqual(a.attrs['href'],'/abc/')
         ht = a.render()
         self.assertTrue('>kaput</a>' in ht)
@@ -27,12 +28,33 @@ class TestWidgets(test.TestCase):
         
     def testTabs(self):
         tab = html.tabs()
-        self.assertEqual(tab.tag,'div')
-        tab.add('tab1','this is tab 1')
-        self.assertEqual(len(tab),1)
-        tab.add('tab2','this is tab 2')
+        self.assertEqual(len(tab),0)
+        self.assertEqual(tab.tag, 'div')
+        tab.addtab('tab1','this is tab 1')
         self.assertEqual(len(tab),2)
+        tab.addtab('tab2','this is tab 2')
+        self.assertEqual(len(tab),3)
         ht = tab.render()
         self.assertTrue('ui-tabs' in ht)
+        
+    def testAccordion(self):
+        acc = html.accordion()
+        self.assertEqual(len(acc),0)
+        self.assertEqual(acc.tag, 'div')
+        acc.addtab('tab1','this is tab 1')
+        self.assertEqual(len(acc),2)
+        acc.addtab('tab2','this is tab 2')
+        self.assertEqual(len(acc),4)
+        ht = acc.render()
+        self.assertTrue('ui-accordion-container' in ht)
 
+    def testBox(self):
+        box = html.box(hd='This is a box', bd='bla bla ...')
+        self.assertEqual(len(box), 2)
+        text = box.render()
+        box = html.box(hd='This is a box', bd='bla bla ...', ft='...')
+        self.assertEqual(len(box), 3)
 
+    def testBoxMenu(self):
+        box = html.box(hd='This is a box', bd='bla bla ...', collapsable=True)
+        self.assertEqual(len(box), 2)

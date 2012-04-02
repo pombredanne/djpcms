@@ -34,7 +34,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
                   uni.Columns(('for_not_authenticated',),
                                    ('requires_login',),
                                    default_style=uni.inlineLabels3),
-                  html.Html(key = 'plugin')
+                  html.WidgetMaker(key = 'plugin')
                 )
 )
 

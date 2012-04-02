@@ -4,6 +4,7 @@ from uuid import uuid4
 from djpcms import FormException, ValidationError
 
 __all__ = ['FormException',
+           'ValidationError',
            'generate_prefix',
            'get_ajax_action',
            'get_ajax_action_value',

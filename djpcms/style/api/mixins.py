@@ -2,7 +2,8 @@
 from .base import *
 from .colorvar import *
 
-__all__ = ['opacity',
+__all__ = ['include_css',
+           'opacity',
            'clearfix',
            'fixtop',
            'shadow',
@@ -13,7 +14,7 @@ __all__ = ['opacity',
            'horizontal_navigation',
            'grid',
            'fluidgrid']
-
+ 
     
 ################################################################################
 ##    BATTERY INCLUDED MIXINS
@@ -269,6 +270,19 @@ class horizontal_navigation(clickable):
 ##    BATTERY INCLUDED GENERATORS
 ################################################################################
         
+################################################# INCLUDE CSS
+
+class include_css(generator):
+    '''Include one or more css resources'''
+    def __init__(self, *paths):
+        self.paths = paths
+        
+    def __call__(self):
+        for path in self.paths:
+            if not path.startswith('http'):
+                path = cssv.MEDIAURL + path
+            
+   
 ################################################# FIXED GRID
 class grid(generator):
     '''Generate a grid layout given a number of *columns*, a *span*

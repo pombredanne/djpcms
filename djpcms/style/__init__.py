@@ -4,6 +4,8 @@ from .api import *
 ##    DEFINE THE BASE STYLE VARIABLES
 ################################################################################
 
+cssv.MEDIAURL = '/media/'
+
 # Grey scale
 cssv.color.black = color('000')
 cssv.color.grayDarker = color('222')

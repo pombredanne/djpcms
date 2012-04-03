@@ -88,9 +88,9 @@ class AdminSite(views.Application):
 administer models in groups.'''
     has_plugins = False
     in_nav = 1000
-    pagination = html.Pagination(layout = html.accordion,
-                                 ajax = False,
-                                 size = None)
+    pagination = html.Pagination(layout=html.accordion,
+                                 ajax=False,
+                                 size=None)
     
     home = views.View(in_nav = 1)
     

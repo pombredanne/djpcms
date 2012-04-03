@@ -1,9 +1,10 @@
 '''Useful mixins and generators'''
+import os
+
 from .base import *
 from .colorvar import *
 
-__all__ = ['include_css',
-           'opacity',
+__all__ = ['opacity',
            'clearfix',
            'fixtop',
            'shadow',
@@ -12,6 +13,8 @@ __all__ = ['include_css',
            'bcd',
            'clickable',
            'horizontal_navigation',
+           # generators
+           'css_include',
            'grid',
            'fluidgrid']
  
@@ -19,7 +22,6 @@ __all__ = ['include_css',
 ################################################################################
 ##    BATTERY INCLUDED MIXINS
 ################################################################################
-
 
 ################################################# OPACITY
 class opacity(mixin):
@@ -180,10 +182,6 @@ class clickable(mixin):
         self.active = self.cleanup(active,'active',bcd)
         
     def __call__(self, elem):
-        if elem.tag.endswith(':link'):
-            tag = elem.tag[:-5]
-        else:
-            tag = elem.tag
         if self.default:
             self.default(elem)
         if self.hover:
@@ -195,11 +193,16 @@ class clickable(mixin):
 ################################################# HORIZONTAL NAV
 class horizontal_navigation(clickable):
     '''Horizontal navigation with ul and li tags'''
-    def __init__(self, float = 'left', margin=0, height=None,
-                 padding=None, secondary_padding =None,
+    def __init__(self, 
+                 float='left',
+                 margin=0,
+                 height=None,
+                 padding=None,
+                 secondary_padding =None,
                  secondary_with=None,
-                 radius = None, box_shadow = None,
-                 display_all = False, **kwargs):
+                 radius=None, box_shadow = None,
+                 display_all=False,
+                 **kwargs):
         super(horizontal_navigation, self).__init__(**kwargs)
         if float not in ('left','right'):
             float = 'left'
@@ -219,7 +222,10 @@ class horizontal_navigation(clickable):
         elem['float'] = self.float
         elem['position'] = 'relative'
         if self.margin:
-            elem['margin-'+self.float] = self.margin
+            if self.float == 'left':
+                elem['margin'] = spacing(0,self.margin,0,0)
+            else:
+                elem['margin'] = spacing(0,0,0,self.margin)
         self.box_shadow(elem)
         padding = spacing(self.padding) if self.padding else\
                   spacing(px(10),px(10))
@@ -239,23 +245,31 @@ class horizontal_navigation(clickable):
                    display = 'block',
                    float = 'left')
         # The sub lists
-        yield css('ul',
+        ul = css('ul',
                   self.radius,
                   gradient(hover.background, 100),
-                  parent = elem,
+                  parent=elem,
+                  cursor='default',
                   position='absolute',
                   padding=self.secondary_padding,
-                  top = self.height,
-                  width = self.secondary_with,
-                  display = self.display_all)
+                  top=self.height,
+                  width=self.secondary_with,
+                  display=self.display_all)
+        if self.float == 'right':
+            ul['right'] = 0
+        yield ul
         # The anchors
-        yield css('a',
-                  default,
-                  parent = elem,
-                  display = 'inline-block',
-                  float = 'none',
-                  line_height = line_height,
-                  padding = self.padding)
+        a = css('a',
+                default,
+                parent=elem,
+                display='inline-block',
+                float='none',
+                line_height=line_height,
+                padding=self.padding)
+        res = tuple(super(horizontal_navigation,self).__call__(a))
+        yield a
+        for r in res:
+            yield r
         # The sub lists li
         yield css('li',
                   cssa(':hover',
@@ -272,7 +286,15 @@ class horizontal_navigation(clickable):
         
 ################################################# INCLUDE CSS
 
-class include_css(generator):
+class _cssstream(object):
+    __slots__ = ('stream',)
+    def __init__(self, stream):
+        self.stream = stream
+    def render(self, stream):
+        stream.write(self.stream)
+        
+        
+class css_include(generator):
     '''Include one or more css resources'''
     def __init__(self, *paths):
         self.paths = paths
@@ -280,7 +302,14 @@ class include_css(generator):
     def __call__(self):
         for path in self.paths:
             if not path.startswith('http'):
-                path = cssv.MEDIAURL + path
+                if os.path.isfile(path):
+                    with open(path,'r') as f:
+                        stream = f.read()
+                else:
+                    stream = path
+            else:
+                raise NotImplementedError('http fetching not yet implemented')
+            yield _cssstream(stream)
             
    
 ################################################# FIXED GRID

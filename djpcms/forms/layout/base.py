@@ -76,6 +76,10 @@ class FormWidget(html.Widget):
     def success_message(self):
         return self.internal['success_message']
     
+    @property
+    def success_message(self):
+        return self.internal['success_message']
+    
     def is_valid(self):
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
@@ -202,8 +206,9 @@ class SubmitElement(FormLayoutElement):
         del self._children
         if SUBMITS in missings:
             missings.remove(SUBMITS)
-        inputs = layout.parent.inputs
-        self.add(*inputs)
+            
+    def get_context(self, request, widget, context):
+        widget.add(widget.inputs)
 
 
 class SimpleLayoutElement(FormLayoutElement):

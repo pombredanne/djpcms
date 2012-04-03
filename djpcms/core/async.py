@@ -8,7 +8,8 @@ import logging
 
 from djpcms.utils.py2py3 import iteritems
 from djpcms.html import Renderer, Widget
-from djpcms.html.layout import Meta, htmldoc
+from djpcms.html.layout import html_stream
+from djpcms.utils.async import Deferred 
 from djpcms.utils.ajax import jservererror, isajax
 
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
@@ -20,7 +21,6 @@ logger = logging.getLogger('djpcms')
 __all__ = ['async_instance', 'ResponseHandler']
    
 
-meta_default = lambda r : None
 
 '''wait for an asynchronous instance'''
 class async_instance_callback(object):
@@ -49,13 +49,6 @@ def async_instance(mf):
             return request.view.response(instance, callback = cbk)
     
     return _
-
-
-class aList(list):
-    pass
-
-class aDict(dict):
-    pass
 
 
 class AsyncResponse(object):
@@ -88,8 +81,15 @@ class AsyncResponse(object):
             return result
     
     def _process(self, value):
-        '''Recursive function for handling asynchronous content
+        '''Recursive function for handling a potentially asynchronous *value*
         '''
+        if not value:
+            return value
+        if isinstance(value, Deferred):
+            if value.called:
+                value = value.result
+            return value
+        
         async = self.async
         if isinstance(value,dict) and not isinstance(value,aDict):
             new_value = aDict()
@@ -128,9 +128,9 @@ class AsyncResponse(object):
         return value
 
 
-class _ResponseCallback(object):
+class _ResponseCallback(Deferred):
     # Internal class for handling asyncronous rendering of an HTML page
-    def __init__(self, handler, request, body_renderer):
+    def __init__(self, handler, request):
         self.handler = handler
         self.request = request
         self.body_renderer = body_renderer
@@ -181,7 +181,6 @@ input *response*::
 
     A dictionary for mapping error status codes into html to display.
     '''
-    default_content_type = 'text/html'
     errorhtml = {
     404:
     "<p>Permission Denied</p>",
@@ -191,16 +190,19 @@ input *response*::
     "<p>Whoops! Server error. Something did not quite work right, sorry.</p>"}
     
     def __init__(self, body_renderer = None, error_renderer = None,
-                 errorhtml = None):
+                 errorhtml = None, html_streamer = None):
         if body_renderer:
             self.body_renderer = body_renderer
         if error_renderer:
             self.error_renderer = error_renderer
+        self.html_streamer = html_streamer or html_stream
         self.errorhtml = self.errorhtml.copy()
         self.errorhtml.update(errorhtml or {})
 
     def __call__(self, response, callback = None):
-        return AsyncResponse(self,response,callback).run()
+        if not response:
+            return response
+        return AsyncResponse(self, response, callback).run()
         
     def not_done_yet(self):
         '''This function should return an element recognized by the
@@ -237,7 +239,7 @@ therefore should be re-implemented for different asynchronous engines.'''
             value = value.query
         return False,value
     
-    def render_to_response(self, request, context, body_renderer = None):
+    def render_to_response(self, request, stream, status = 200):
         '''Handle a *request* *context* using a *body renderer*.
 A typical usage::
 
@@ -254,22 +256,28 @@ A typical usage::
 :parameter body_renderer: optional callable used for rendering the
     context. If not provided, the :meth:`body_renderer` will be used.
 :rtype: a :class:`Response` object'''
-        if isinstance(context, dict):
-            page = request.page
-            context['htmldoc'] = doc = htmldoc(None if not page\
-                                               else page.doctype)
-            # get the site context
-            context = request.view.site.context(context, request)
-        elif not isajax(context) and hasattr(context, 'status_code'):
-            return context
-        # build the callback
-        callback = _ResponseCallback(self, request, body_renderer)
-        content = request.view.response(context, callback)
-        response = Response(content = content,
+        if isinstance(stream, Deferred):
+            if not stream.called:
+                callback = partial(self._render_to_response, request)
+                content = request.view.response(stream, callback)
+                return Response(
+                            content = request.view.response(stream, callback),
                             content_type = self.default_content_type,
                             encoding = request.settings.DEFAULT_CHARSET)
-        callback.response = response
-        return response
+        return self._render_to_response(request, stream, status)
+    
+    def _render_to_response(self, request, content, status = 200):
+        encoding = request.settings.DEFAULT_CHARSET
+        content_type = request.settings.DEFAULT_CONTENT_TYPE
+        if isajax(content):
+            content_type = content.content_type()
+            content = content.dumps()
+        if content_type == 'text/html':
+            content = '\n'.join(self.html_streamer(request, content, status))
+        data = content.encode(encoding, 'replace')
+        return Response(content = data,
+                        content_type = content_type,
+                        encoding = encoding)
     
     def error_to_response(self, request, status_code):
         '''Equivalent to :meth:`render_to_response` methods, when an error
@@ -286,10 +294,6 @@ following parameter::
                                         'exc_info': sys.exc_info()},
                                        self.error_renderer)
     
-    def ajax_content(self, response, content):
-        response.content_type = content.content_type()
-        return content.dumps()
-            
     def body(self, request, response, context, body_renderer):
         '''This is the final piece of :meth:`render_to_response`.
 The context is ready to be rendered.'''
@@ -306,48 +310,10 @@ The context is ready to be rendered.'''
                 context['body'] = body
                 content = '\n'.join(self._stream(request, context))
         return self.encode(request, content)
-        
-    def _stream(self, request, context):
-        media = request.media
-        page = request.page
-        doc = htmldoc(None if not page else page.doctype)
-        yield doc.html+'\n<head>'
-        for meta in self.meta(request, doc):
-            yield meta.render()
-        title = context.get('title')
-        if title:
-            yield '<title>'+title+'</title>'
-        if page:
-            for h in page.additional_head:
-                yield h
-        for css in media.render_css:
-            yield css
-        yield '</head>'
-        body_class = context.get('body_class')
-        if body_class:
-            yield "<body class='{0}'>".format(body_class)
-        else:
-            yield '<body>'
-        yield context['body']
-        yield media.all_js
-        yield self.page_script(request)
-        yield '</body>\n</html>'
     
     def encode(self, request, text):
         charset = request.view.settings.DEFAULT_CHARSET
         return text.encode(charset, 'replace')
-    
-    def meta(self, request, doc):
-        view = request.view
-        for name in request.view.settings.META_TAGS:
-            value = getattr(view, 'meta_'+name, meta_default)(request)
-            meta = doc.meta(name, value)
-            if meta is not None:
-                yield meta
-        
-    def body_renderer(self, request, context):
-        '''Render the HTML page using the *context* dictionary.'''
-        return context.get('body','')
         
     def error_renderer(self, request, context):
         '''The default error renderer. It handles both ajax and
@@ -387,21 +353,5 @@ The context is ready to be rendered.'''
                 'content':inner.render(request)})
             return self.body_renderer(request,context)
     
-    def page_script(self, request):
-        settings = request.view.settings
-        html_options = settings.HTML.copy()
-        html_options.update({'debug':settings.DEBUG,
-                             'media_url': settings.MEDIA_URL})
-        on_document_ready = '\n'.join(request.on_document_ready)
-        return '''\
-<script type="text/javascript">
-(function($) {
-    $(document).ready(function() {
-        $.djpcms.set_options(%s);
-        $(document).djpcms().trigger('djpcms-loaded');
-        %s
-    });
-}(jQuery));
-</script>''' % (json.dumps(html_options),on_document_ready)
 
 

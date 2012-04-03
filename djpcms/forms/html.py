@@ -100,7 +100,6 @@ Simple usage::
             'success_message': success_message or default_success_message,
             'form_class': form_class,
             'model': model,
-            'success_message': success_message,
             'inputs': inputs or []}
         super(HtmlForm, self).__init__(internal = internal, **params)
         if ajax:

@@ -66,6 +66,8 @@ def application_views(request,
 :rtype: a generator of dictionaries containing :class:`View` information.
 '''
     appmodel = request.view.appmodel
+    if not appmodel:
+        raise StopIteration()
     exclude = set(exclude if exclude is not None else appmodel.exclude_links)
     if appmodel.model:
         instance = request.instance or instance
@@ -159,7 +161,7 @@ the view name and a rendered html tag (either an anchor or a button).
 :parameter asbuttons: optional flag for displaying links as button tags.
 '''
     for elem in views:
-        if not isinstance(elem,menu_link):
+        if not isinstance(elem, menu_link):
             elem = request_to_menu_link(elem)
         request = elem.view
         view = request.view

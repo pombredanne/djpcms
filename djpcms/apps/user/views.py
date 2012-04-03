@@ -37,7 +37,7 @@ class LoginView(views.ModelView):
     def __call__(self, request):
         if request.user.is_authenticated():
             return http.ResponseRedirect('/')
-        return super(LoginView,self).__call__(request)
+        return super(LoginView, self).__call__(request)
         
     def render(self, request):
         if request.user.is_authenticated():

@@ -16,8 +16,6 @@ class TestLayout(test.TestCase):
         self.assertEqual(len(page_template.children),1)
         #
         pg = page_template()
-        text = pg.render()
-        self.assertTrue(text)
         text = pg.render(context = {'content': lambda r,n,b: 'Hello World!'})
         self.assertTrue('>Hello World!</div>' in text)
         

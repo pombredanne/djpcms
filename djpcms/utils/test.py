@@ -69,7 +69,7 @@ returning a :class:`djpcms.Site`. Tipical usage::
     wsgi = website.wsgi()
 '''
         return TestWebSite(self)
-    
+        
     def load_site(self, website):
         settings = get_settings(settings = self.settings,
                                 APPLICATION_URLS = self.urls,

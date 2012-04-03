@@ -324,17 +324,9 @@ it is the base class of :class:`pageview` and :class:`View`.
         try:
             layout = self.root.get_page_layout(layout)
         except:
-            # No layout
-            body = self.render(request)
+            return self.render(request)
         else:
-            layout = layout()
-            body = layout.render(request)
-            
-        if hasattr(body, 'status_code'):
-            return body
-        return {'title': request.title,
-                'body_class': self.get_body_class(request),
-                'body': body}
+            return layout().render(request)
 
     def get_response(self, request):
         '''Get response handler.'''

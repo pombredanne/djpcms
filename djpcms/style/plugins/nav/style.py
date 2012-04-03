@@ -4,11 +4,12 @@ from djpcms.style import *
 cssv.topbar.height = px(40)
 cssv.topbar.padding = spacing(px(10),px(10))
 cssv.topbar.margin_horizontal = px(10)
+cssv.topbar.secondary_with = px(160)
 cssv.topbar.shadow = '0 4px 8px rgba(0, 0, 0, 0.2)'
 cssv.topbar.radius = 0
 
 # Color
-cssv.topbar.default.background = ('v', '#333', '#222')
+cssv.topbar.background = ('v', '#333', '#222')
 cssv.topbar.default.color = '#BFBFBF'
 cssv.topbar.default.text_decoration = 'none'
 cssv.topbar.default.text_shadow = '0 1px 0 rgba(0, 0, 0, 0.5)'
@@ -42,20 +43,21 @@ class topbar(mixin):
         elem['margin-top'] = 0
         elem['margin-bottom'] = 0
         elem['border'] = 'none'
-        gradient(tb.default.background)(elem)
+        gradient(tb.background)(elem)
         
         yield css('.nav',
                   horizontal_navigation(
-                        height = height,
-                        padding = tb.padding,
-                        margin = cssv.topbar__margin_horizontal,
-                        default = bcd(**tb.deafult.params()),
-                        hover = bcd(**tb.hover.params()),
-                        active = bcd(**tb.active.params())),
+                        default=bcd(**tb.default.params()),
+                        active=bcd(**tb.active.params()),
+                        hover=bcd(**tb.hover.params()),
+                        height=height,
+                        padding=tb.padding,
+                        margin=cssv.topbar.margin_horizontal,
+                        secondary_with=tb.secondary_with),
                   cssa('.secondary-nav',
                        horizontal_navigation(
-                            float = 'right',
-                            margin = cssv.topbar__margin_horizontal)))
+                            float='right',
+                            margin=cssv.topbar.margin_horizontal)))
         # branding
         brand = tb.brand
         padding = spacing(brand.padding)
@@ -94,4 +96,4 @@ class topbar(mixin):
 
 css('.topbar', topbar())
 css('.topbar-fixed', fixtop(),
-    gradient(cssv.topbar.default.background))
+    gradient(cssv.topbar.background))

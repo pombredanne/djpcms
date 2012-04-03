@@ -136,15 +136,15 @@ def get_form(request,
         inputs.append(Widget('input:hidden',name=PREFIX_KEY,value=prefix))
                 
     # Create the form instance
-    form  = form_factory(inputs = inputs,
-                         action = request.url,
-                         **form_kwargs(request = request,
-                                       initial = initial,
-                                       instance = instance,
-                                       model = model,
-                                       prefix = prefix,
-                                       withdata = withdata,
-                                       method = form_factory.attrs['method']))
+    form  = form_factory(inputs=inputs,
+                         action=request.url,
+                         **form_kwargs(request=request,
+                                       initial=initial,
+                                       instance=instance,
+                                       model=model,
+                                       prefix=prefix,
+                                       withdata=withdata,
+                                       method=form_factory.attrs['method']))
     
     if model:
         form.addClass(str(model._meta).replace('.','-'))

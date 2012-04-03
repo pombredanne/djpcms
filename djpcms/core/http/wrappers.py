@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from wsgiref.headers import Headers
 
 import djpcms
-from djpcms.utils.py2py3 import itervalues, ispy3k, native_str, to_bytestring,\
+from djpcms.utils.py2py3 import itervalues, ispy3k, native_str, to_bytes,\
                                 is_string, UnicodeMixin
 from djpcms.utils import lazyproperty, lazymethod, js, media
 from djpcms.utils.structures import MultiValueDict
@@ -155,8 +155,11 @@ def make_request(environ, node, instance = None, cache = True, safe = True):
                 try:
                     instance = view.instance_from_variables(environ,
                                                             node.urlargs)
-                    callback = partial(build_request,environ,node,cache)
-                    return view.response(instance,callback)
+                    callback = partial(build_request, environ, node,cache)
+                    if instance is not None:
+                        return view.response(instance, callback)
+                    else:
+                        return
                 except:
                     if not safe:
                         raise
@@ -422,7 +425,7 @@ is available, the name is set to ``view``.
         if not hasattr(self, '_cookies'):
             c = self.environ.get('HTTP_COOKIE', '')
             if not ispy3k:
-                c = to_bytestring(c)
+                c = to_bytes(c)
             self._cookies = parse_cookie(c)
         return self._cookies
 

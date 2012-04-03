@@ -32,6 +32,7 @@ from djpcms import html
 from djpcms.html.layout import page, container, grid
 from djpcms.plugins.navigation import topbar
 
+from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
     
     
@@ -76,7 +77,7 @@ class WebSite(djpcms.WebSite):
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
                 DesignApplication('/design'),
-                user.UserApplication('/accounts/', site.User),
+                user.UserApplication('/accounts/', User),
                 MainApplication('/')
                 )
     

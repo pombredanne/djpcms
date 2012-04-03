@@ -114,8 +114,8 @@ web page'''
         grid.add_css_data(widget)
         return super(elem,self).stream_from_widget(
                                request, widget, context)
-        
-        
+    
+    
 class page(elem):
     '''HTML layout for a page with is the first (and only) div element within
 the body tag. A page contains a list of :class:`container`.'''

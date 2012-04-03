@@ -1,8 +1,18 @@
-from djpcms.html import Widget, WidgetMaker
-from djpcms.utils.py2py3 import UnicodeMixin
+import json
 
-__all__ = ['Meta','html_choices',
-           'htmldoc','htmldefaultdoc']
+from djpcms.html import Widget, WidgetMaker
+from djpcms.utils.py2py3 import UnicodeMixin, ispy3k
+
+if ispy3k:
+    from http.client import responses
+else:
+    from httplib import responses
+
+__all__ = ['Meta',
+           'html_choices',
+           'htmldoc',
+           'htmldefaultdoc',
+           'html_stream']
 
 
 htmldefaultdoc = 5
@@ -84,3 +94,63 @@ def htmldoc(code = None):
     else:
         return _htmldict[htmldefaultdoc]
 
+
+meta_default = lambda r : None
+
+
+def html_stream(request, stream, status=200):
+    media = request.media
+    view = request.view
+    page = request.page
+    doc = htmldoc(None if not page else page.doctype)
+    #
+    # STARTS HEAD
+    yield doc.html+'\n<head>'
+    if view:
+        body_class = view.get_body_class(request)
+        for name in view.settings.META_TAGS:
+            value = getattr(view, 'meta_'+name, meta_default)(request)
+            meta = doc.meta(name, value)
+            if meta is not None:
+                yield meta.render()
+    else:
+        body_class = 'error'
+    if status == 200:
+        title = request.title
+    else:
+        title = responses.get(status,('Unknown error {0}'.format(status),0))[0]
+    if title:
+        yield '<title>'+title+'</title>'
+    if page:
+        for h in page.additional_head:
+            yield h
+    for css in media.render_css:
+        yield css
+    yield '</head>'
+    # ENDS HEAD
+    if body_class:
+        yield "<body class='{0}'>".format(body_class)
+    else:
+        yield '<body>'
+    yield stream
+    yield media.all_js
+    yield page_script(request)
+    yield '</body>\n</html>'
+    
+    
+def page_script(request):
+        settings = request.view.settings
+        html_options = settings.HTML.copy()
+        html_options.update({'debug':settings.DEBUG,
+                             'media_url': settings.MEDIA_URL})
+        on_document_ready = '\n'.join(request.on_document_ready)
+        return '''\
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+        $.djpcms.set_options(%s);
+        $(document).djpcms().trigger('djpcms-loaded');
+        %s
+    });
+}(jQuery));
+</script>''' % (json.dumps(html_options),on_document_ready)

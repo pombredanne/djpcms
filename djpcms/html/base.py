@@ -6,7 +6,7 @@ from djpcms.utils.py2py3 import ispy3k, is_string, to_string,\
 from djpcms.utils import slugify, escape, mark_safe, lazymethod, NOTHING
 from djpcms.utils.structures import OrderedDict
 
-from .async import Renderer, DeferredRenderer, StreamRenderer
+from .async import Renderer, StreamRenderer
 
 if ispy3k:
     from itertools import zip_longest
@@ -174,7 +174,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self._css.get(mapping)
     
     
-class Widget(DeferredRenderer, AttributeMixin):
+class Widget(Renderer, AttributeMixin):
     '''A class which exposes jQuery-alike API for
 handling HTML classes, attributes and data on a html element::
 
@@ -202,6 +202,7 @@ handling HTML classes, attributes and data on a html element::
     If the element has no :attr:`parent`, return ``self``.
 '''    
     maker = None
+    _streamed = False
     def __init__(self, maker = None, data_stream = None,
                  cn = None, data = None, options = None, 
                  css = None, **params):
@@ -220,7 +221,6 @@ is a factory of :class:`Widget`.
         cn = update(maker.classes, cn)
         data = update(maker.data, data)
         css = update(maker.css(), css)
-        DeferredRenderer.__init__(self)
         AttributeMixin.__init__(self, cn=cn, data=data,
                                 attrs=maker.attrs, css=css)
         self.maker = maker
@@ -273,12 +273,12 @@ is a factory of :class:`Widget`.
     def add(self, data_stream):
         '''Add to the stream. This functions delegates the adding to the
  :meth:`WidgetMaker.add_to_widget` method.'''
-        if not self.called and data_stream is not None:
+        if data_stream is not None:
             data_stream = iterable_for_widget(data_stream)
             for element in data_stream:
                 self.maker.add_to_widget(self, element)
     
-    def _render(self, request = None, context = None):
+    def render(self, request = None, context = None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
         
@@ -286,8 +286,7 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional context dictionary.
 '''
         st = StreamRenderer(self.stream(request, context))
-        st.add_renderer(mark_safe)
-        return st.render()
+        return st.result if st.called else st
     
     def stream(self, request = None, context = None):
         '''Render the widget. It accept two optional parameters, a http
@@ -296,6 +295,9 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
+        if self._streamed:
+            raise RuntimeError('Already streamed')
+        self._streamed = True
         return self.maker.stream_from_widget(request, self, context)
     
     def hide(self):

@@ -95,7 +95,7 @@ class TestInputs(test.TestCase):
         self.assertTrue("type='{0}'".format(ty) in ht)
         self.assertTrue("value='test'" in ht)
         self.assertTrue("name='pippo'" in ht)
-        return ts
+        return html.Widget(name, value='test', name='pippo', **kwargs)
     
     def testTextInput(self):
         self.create('input:text', 'text')
@@ -130,6 +130,7 @@ class TestInputs(test.TestCase):
         self.assertTrue(ts.hasClass('pippo'))
         self.assertTrue(ts.hasClass('another'))
         self.assertFalse(ts.hasClass('bravo'))
+        ts._streamed = False
         ht = ts.render()
         self.assertTrue("class='pippo another'" in ht or
                         "class='another pippo'" in ht)

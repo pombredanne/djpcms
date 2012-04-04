@@ -8,7 +8,7 @@ import logging
 
 from djpcms.utils.py2py3 import iteritems
 from djpcms.html import Renderer, Widget
-from djpcms.html.layout import html_stream
+from djpcms.html.layout import html_stream, error_title
 from djpcms.utils.async import Deferred 
 from djpcms.utils.ajax import jservererror, isajax
 
@@ -306,8 +306,8 @@ occurs.'''
             inner = Widget('div', error)
                 
         if settings.DEBUG:
-            error.addClass('ui-state-error')
-            error.add(Widget('h2','{0} {1}'.format(status,title)))
+            error.addClass(settings.HTML.get('error'))
+            error.add(Widget('h2','{0} {1}'.format(status,error_title(status))))
             error.add(Widget('h3',request.path))
             if exc_info:
                 for trace in traceback.format_exception(*exc_info):

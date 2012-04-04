@@ -38,13 +38,13 @@ class clearfix(mixin):
     '''For clearing floats to all *elements*.'''    
     def __call__(self, elem):
         elem['*zoom'] = 1
-        yield cssa(':before,:after',
-                   parent = elem,
-                   display = 'table',
-                   content = '""')
-        yield cssa(':after',
-                   parent = elem,
-                   clear = 'both')
+        cssa(':before,:after',
+             parent = elem,
+             display = 'table',
+             content = '""')
+        cssa(':after',
+             parent = elem,
+             clear = 'both')
             
 ################################################# FIXTOP
 class fixtop(mixin):
@@ -88,10 +88,15 @@ g_radius = radius
 ################################################# CSS3 GRADIENT
 class gradient(mixin):
     '''css3 gradient'''
-    def __init__(self, direction_start_end, pc_end = None):
-        self.direction_start_end = self.cleanup(direction_start_end,
-                                                'direction_start_end')
-        self.pc_end = self.cleanup(pc_end, 'pc_end')
+    def __new__(cls, direction_start_end, pc_end = None):
+        if isinstance(direction_start_end, gradient):
+            return direction_start_end
+        else:
+            o = super(gradient,cls).__new__(cls)
+            o.direction_start_end = o.cleanup(direction_start_end,
+                                              'direction_start_end')
+            o.pc_end = o.cleanup(pc_end, 'pc_end')
+            return o
         
     def __call__(self, elem):
         val = Variable.pyvalue(self.direction_start_end)
@@ -160,9 +165,7 @@ mixin.
 '''
     def __init__(self, background = None, color = None, text_shadow = None,
                  text_decoration = None):
-        if not isinstance(background, gradient):
-            background = gradient(background)
-        self.background = self.cleanup(background,'background')
+        self.background = gradient(background)
         self.color = self.cleanup(color,'color')
         self.text_shadow = self.cleanup(text_shadow,'text_shadow')
         self.text_decoration = self.cleanup(text_decoration,'text_decoration')
@@ -185,22 +188,26 @@ class clickable(mixin):
         if self.default:
             self.default(elem)
         if self.hover:
-            yield cssa(':hover', self.hover, parent = elem)
+            cssa(':hover', self.hover, parent=elem)
         if self.active:
-            yield cssa(':active', self.active, parent = elem)
-            yield cssa('.active', self.active, parent = elem)
+            cssa(':active', self.active, parent=elem)
+            cssa('.active', self.active, parent=elem)
         
 ################################################# HORIZONTAL NAV
 class horizontal_navigation(clickable):
     '''Horizontal navigation with ul and li tags'''
-    def __init__(self, 
+    def __init__(self,
                  float='left',
                  margin=0,
                  height=None,
                  padding=None,
-                 secondary_padding =None,
-                 secondary_with=None,
-                 radius=None, box_shadow = None,
+                 secondary_default=None,
+                 secondary_hover=None,
+                 secondary_active=None,
+                 secondary_padding=None,
+                 secondary_width=None,
+                 radius=None,
+                 box_shadow = None,
                  display_all=False,
                  **kwargs):
         super(horizontal_navigation, self).__init__(**kwargs)
@@ -208,14 +215,40 @@ class horizontal_navigation(clickable):
             float = 'left'
         self.float = float
         self.margin = margin
-        self.height = height or px(40)            
-        self.secondary_with = secondary_with
+        self.height = height or px(40)
+        self.secondary_default = secondary_default
+        self.secondary_hover = secondary_hover
+        self.secondary_active = secondary_active
+        self.secondary_width = secondary_width or px(120)
         self.radius = g_radius(radius)
         self.box_shadow = shadow(box_shadow)
         self.display_all = display_all
         # padding
         self.padding = padding or secondary_padding
         self.secondary_padding = secondary_padding
+        
+    def list(self, maker, parent, default, hover, active):
+        return maker('li',
+                  cssb('a',
+                       bcd(background='transparent',
+                           color=default.color,
+                           text_decoration=default.text_decoration,
+                           text_shadow=default.text_shadow)),
+                  cssa(':hover',
+                       cssb('a',
+                            bcd(color=hover.color,
+                                text_decoration=hover.text_decoration,
+                                text_shadow=hover.text_shadow)),
+                       cssb('ul', display='block'),
+                       background=hover.background),
+                  cssa(':active',
+                       cssb('a',
+                            bcd(color=active.color,
+                                text_decoration=active.text_decoration,
+                                text_shadow=active.text_shadow)),
+                       background=active.background),
+                  background=default.background,
+                  parent=parent)
         
     def __call__(self, elem):
         elem['display'] = 'block'
@@ -238,46 +271,53 @@ class horizontal_navigation(clickable):
         hover = self.hover or bcd() 
         active = self.active or bcd()
         # li elements in the main navigation ( > li)
-        yield cssb('li',
-                   clickable(hover=bcd(background=hover.background),
-                             active=bcd(background=active.background)),
-                   parent = elem,
-                   display = 'block',
-                   float = 'left')
-        # The sub lists
+        li = self.list(cssb, elem, default, hover, active)
+        li['display'] = 'block'
+        li['float'] ='left'
+        
+        # subnavigations
+        default = self.secondary_default or default
+        hover = self.secondary_hover or hover
+        active = self.secondary_active or active
         ul = css('ul',
                   self.radius,
-                  gradient(hover.background, 100),
+                  gradient(default.background, 100),
                   parent=elem,
                   cursor='default',
                   position='absolute',
                   padding=self.secondary_padding,
                   top=self.height,
-                  width=self.secondary_with,
-                  display=self.display_all)
+                  width=self.secondary_width)
+        if not self.display_all:
+            ul['display'] = 'none'
+        # The sub lists li
+        li = self.list(css, ul, default, hover, active)
+        li['padding'] = 0
+        li['margin'] = 0
+        li['position'] = 'relative'
+        li['border'] = 'none'
+        li['width'] = 'auto'
+        # the sub sub lists
+        ulul = css('ul',
+                   gradient(default.background, 100),
+                   parent=li,
+                   top=0,
+                   position='absolute')
         if self.float == 'right':
             ul['right'] = 0
-        yield ul
-        # The anchors
-        a = css('a',
-                default,
-                parent=elem,
-                display='inline-block',
-                float='none',
-                line_height=line_height,
-                padding=self.padding)
-        res = tuple(super(horizontal_navigation,self).__call__(a))
-        yield a
-        for r in res:
-            yield r
-        # The sub lists li
-        yield css('li',
-                  cssa(':hover',
-                       css('a', hover),
-                       cssb('ul', display = 'block')),
-                  cssa('.active a', active),
-                  parent = elem,
-                  position = 'relative')
+            ulul['left'] = 'auto'
+            ulul['right'] = self.secondary_width
+        else:
+            ulul['left'] = self.secondary_width
+            ulul['right'] = 'auto'
+        # The anchor
+        css('a',
+            parent=elem,
+            display='inline-block',
+            float='none',
+            line_height=line_height,
+            padding=self.padding)
+
                 
         
 ################################################################################
@@ -285,21 +325,13 @@ class horizontal_navigation(clickable):
 ################################################################################
         
 ################################################# INCLUDE CSS
-
-class _cssstream(object):
-    __slots__ = ('stream',)
-    def __init__(self, stream):
-        self.stream = stream
-    def render(self, stream):
-        stream.write(self.stream)
         
-        
-class css_include(generator):
+class css_include(mixin):
     '''Include one or more css resources'''
     def __init__(self, *paths):
         self.paths = paths
         
-    def __call__(self):
+    def __call__(self, elem):
         for path in self.paths:
             if not path.startswith('http'):
                 if os.path.isfile(path):
@@ -309,11 +341,11 @@ class css_include(generator):
                     stream = path
             else:
                 raise NotImplementedError('http fetching not yet implemented')
-            yield _cssstream(stream)
+            css_stream(stream, parent=elem)
             
    
 ################################################# FIXED GRID
-class grid(generator):
+class grid(mixin):
     '''Generate a grid layout given a number of *columns*, a *span*
 size for one column and the *gutter* size between columns.'''
     grid_class = ''
@@ -326,33 +358,35 @@ size for one column and the *gutter* size between columns.'''
         self.columns = columns
         self.width = columns*span + (columns-1)*gutter
     
-    def row(self, tag):
+    def row(self, tag, **kwargs):
         m = '{0}{1}'.format(self.gutter,self.unit)
         return css(tag,
-                   clearfix())
+                   clearfix(),
+                   **kwargs)
     
-    def container(self, tag):
+    def container(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
                    width = px(self.width),
                    margin_left = 'auto',
-                   margin_right = 'auto')
+                   margin_right = 'auto',
+                   **kwargs)
         
-    def __call__(self):
+    def __call__(self, elem):
         scol = '-{0}'.format(self.columns)
-        row = self.row('.row' + self.grid_class + scol)
-        yield row
+        row = self.row('.row'+self.grid_class+scol, parent=elem)
         for s in range(1,self.columns+1):
             w = '{0}{1}'.format(s*self.span + (s-1)*self.gutter,self.unit)
-            yield cssb('.span{1}'.format(row,s), parent=row, width=w)
-        yield cssb('[class*="span"]'.format(row),
-                   parent = row,
-                   float='left',
-                   margin_left='{0}{1}'.format(self.gutter,self.unit))
-        yield cssb('[class*="span"]:first-child',
-                   parent=row,
-                   margin_left=0)
-        yield self.container('.grid-container'+self.grid_class+scol)
+            cssb('.span{0}'.format(s), parent=row, width=w)
+        cssb('[class*="span"]',
+             parent=row,
+             float='left',
+             margin_left='{0}{1}'.format(self.gutter,self.unit))
+        cssb('[class*="span"]:first-child',
+             parent=row,
+             margin_left=0)
+        self.container('.grid-container'+self.grid_class+scol,
+                       parent=elem)
         
         
 
@@ -371,16 +405,18 @@ class fluidgrid(grid):
         if self.span <= 0:
             raise ValueError('gutter too large')
     
-    def row(self, tag):
+    def row(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
-                   width = '100%')
+                   width = '100%',
+                   **kwargs)
     
-    def container(self, tag):
+    def container(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
                    padding_left = '20px',
-                   padding_right = '20px')
+                   padding_right = '20px',
+                   **kwargs)
         
     #def __call__(self):
     #    elems = list(super(fluidgrid,self).__call__())

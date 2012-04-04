@@ -86,7 +86,7 @@ LOGGING_SAMPLE = {
     }
 }
 
-HTML_CLASSES = {
+HTML = {
     'ajax': 'ajax',
     'post_view_key': 'xhr',
     'errorlist': 'errorlist',
@@ -101,6 +101,7 @@ HTML_CLASSES = {
     'link_active': 'ui-state-active',
     'link_default': '',
     'secondary_in_list': 'secondary',
+    'error': 'status-error',
     'legend': 'legend ui-state-default ui-corner-all'
     }
 

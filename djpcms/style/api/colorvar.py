@@ -1,7 +1,7 @@
 import colorsys
 from collections import namedtuple
 
-from .base import ispy3k, Variable, clamp
+from .base import ispy3k, Variable, clamp, native_str
 
 if not ispy3k:  # pragma: no cover
     from itertools import izip
@@ -19,7 +19,8 @@ HSVA = namedtuple('HSVA','h s v alpha')
 
 
 def ascolor(col):
-    if col is None or isinstance(col, color):
+    col = native_str(col)
+    if col is None or isinstance(col, color) or isinstance(col,str):
         return col
     else:
         return color(Variable.pyvalue(col))

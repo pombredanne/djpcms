@@ -12,7 +12,8 @@ __all__ = ['Meta',
            'html_choices',
            'htmldoc',
            'htmldefaultdoc',
-           'html_stream']
+           'html_stream',
+           'error_title']
 
 
 htmldefaultdoc = 5
@@ -20,6 +21,9 @@ htmldefaultdoc = 5
 _Meta = WidgetMaker(tag='meta',
                     inline=True,
                     attributes=('content', 'http-equiv', 'name', 'charset'))
+
+error_title = lambda status : responses.get(\
+                                status,'Unknown error {0}'.format(status))
 
 def Meta(*args,**kwargs):
     return Widget(_Meta,*args,**kwargs)
@@ -101,24 +105,23 @@ meta_default = lambda r : None
 def html_stream(request, stream, status=200):
     media = request.media
     view = request.view
+    settings = view.settings
     page = request.page
     doc = htmldoc(None if not page else page.doctype)
     #
     # STARTS HEAD
     yield doc.html+'\n<head>'
-    if view:
-        body_class = view.get_body_class(request)
-        for name in view.settings.META_TAGS:
-            value = getattr(view, 'meta_'+name, meta_default)(request)
-            meta = doc.meta(name, value)
-            if meta is not None:
-                yield meta.render()
-    else:
-        body_class = 'error'
     if status == 200:
+        body_class = view.get_body_class(request)
         title = request.title
     else:
-        title = responses.get(status,'Unknown error {0}'.format(status))
+        body_class = settings.HTML.get('error')
+        title = error_title(status)
+    for name in settings.META_TAGS:
+        value = getattr(view, 'meta_'+name, meta_default)(request)
+        meta = doc.meta(name, value)
+        if meta is not None:
+            yield meta.render()
     if title:
         yield '<title>'+title+'</title>'
     if page:

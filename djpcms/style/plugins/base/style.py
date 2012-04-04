@@ -45,7 +45,7 @@ class clearinp(mixin):
 
 ################################################# DJPCMS BOX
 css('.djpcms-html-box',
-    css('.collapsed > .bd', display = 'none'))
+    css('.collapsed > .bd', display='none'))
 
 ################################################# WIDGET
 css('.widget',

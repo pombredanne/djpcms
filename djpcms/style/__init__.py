@@ -4,8 +4,6 @@ from .api import *
 ##    DEFINE THE BASE STYLE VARIABLES
 ################################################################################
 
-cssv.MEDIAURL = '/media/'
-
 # Grey scale
 cssv.color.black = color('000')
 cssv.color.grayDarker = color('222')
@@ -34,7 +32,7 @@ cssv.link.default.text_shadow = None
 # hover
 cssv.link.hover.color = lazy(color.darken, cssv.link.default.color, 15)
 cssv.link.hover.background = None
-cssv.link.hover.text_decoration = 'none'
+cssv.link.hover.text_decoration = 'underline'
 cssv.link.hover.text_shadow = None
 
 cssv.edit.background = cssv.color.black
@@ -42,6 +40,9 @@ cssv.edit.color = cssv.color.white
 
 ################################################# BODY
 css('body',
+    grid(12, 60, 20),
+    fluidgrid(12),
+    fluidgrid(24),
     background = cssv.body.background,
     color = cssv.body.color,
     font_family = cssv.body.font_family,
@@ -55,11 +56,6 @@ css('a',
     clickable(**cssv.link.params()),
     weight = cssv.link.weight
 )
-
-################################################# GRID GENERATORS
-grid(12, 60, 20)
-fluidgrid(12)
-fluidgrid(24)
 
 ################################################# EDIT PAGE PANEL
 css('.edit-panel',

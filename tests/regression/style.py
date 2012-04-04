@@ -3,7 +3,7 @@ import os
 import unittest as test
 
 from djpcms.style import *
-from djpcms.style.plugins.topbar.style import topbar
+from djpcms.style.plugins.nav.style import topbar
         
 
 class Tvariable(object):
@@ -576,15 +576,15 @@ class TestNavigation(test.TestCase):
         
     def testRender(self):
         nav = css('.nav', horizontal_navigation())
-        text = str(nav)
+        text = nav.render()
         self.assertTrue(text)
         
         
 class TestTopBar(test.TestCase):
     
     def test_meta(self):
-        tb = css('.topbar', topbar.topbar())
-        text = str(tb)
+        tb = css('.topbar', topbar())
+        text = tb.render()
         self.assertTrue(text)
         
         

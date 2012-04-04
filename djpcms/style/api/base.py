@@ -2,6 +2,8 @@ import sys
 import os
 import argparse
 import json
+import threading
+
 from itertools import chain
 from uuid import uuid4
 from copy import copy
@@ -9,74 +11,19 @@ from datetime import datetime
 from inspect import isgenerator
 
 from djpcms.utils.structures import OrderedDict
+from djpcms.utils.py2py3 import StringIO, itervalues, iteritems, UnicodeMixin,\
+                                native_str, to_string, ispy3k
 
 
-__all__ = ['css', 'cssa', 'cssb',
+__all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',
-           'generator', 'cssv', 'lazy', 'px', 'em', 'pc',
+           'cssv', 'lazy', 'px', 'em', 'pc',
            'spacing', 'dump_theme', 'main', 'Variables',
            'add_arguments']
 
 
 nan = float('nan')
 conversions = {}
-ispy3k = sys.version_info >= (3,)
-
-if ispy3k:    # pragma: no cover
-    from io import StringIO
-    itervalues = lambda d : d.values()
-    iteritems = lambda d : d.items()
-    
-    class UnicodeMixin(object):
-        
-        def __unicode__(self):
-            return '{0} object'.format(self.__class__.__name__)
-        
-        def __str__(self):
-            return self.__unicode__()
-        
-        def __repr__(self):
-            return '%s: %s' % (self.__class__.__name__,self)
-    
-    def native_str(s, encoding = 'utf-8'):
-        if isinstance(s,bytes):
-            return s.decode(encoding)
-        return s
-    
-    def force_unicode(s, encoding = 'utf-8'):
-        s = native_str(s,encoding)
-        if not isinstance(s,str):
-            s = str(s)
-        return s
-        
-else:   # pragma: no cover
-    from cStringIO import StringIO
-    range = xrange
-    itervalues = lambda d : d.itervalues()
-    iteritems = lambda d : d.iteritems()
-    
-    class UnicodeMixin(object):
-        
-        def __unicode__(self):
-            return unicode('{0} object'.format(self.__class__.__name__))
-        
-        def __str__(self):
-            return self.__unicode__().encode()
-        
-        def __repr__(self):
-            return '%s: %s' % (self.__class__.__name__,self)
-        
-    def native_str(s, encoding = 'utf-8'):
-        if isinstance(s,unicode):
-            return s.encode(encoding)
-        return s
-    
-    def force_unicode(s, encoding = 'utf-8'):
-        if not isinstance(s,unicode):
-            if not isinstance(s,bytes):
-                s = bytes(s)
-            s = s.decode(encoding)
-        return s
 
 def clamp(val, maxval = 1):
     return min(maxval, max(0, val))
@@ -109,7 +56,7 @@ class Variable(UnicodeMixin):
         return self._unit()
     
     def __unicode__(self):
-        return force_unicode(self.tocss())
+        return to_string(self.tocss())
     
     def tojson(self):
         return str(self)
@@ -419,49 +366,48 @@ callable method.'''
             else:
                 value = None
         return value
-    
-
-class generator(UnicodeMixin):
-    '''A generator is a factory of :class:`css` elements.'''
-
-    def __new__(cls, *args, **kwargs):
-        o = super(generator,cls).__new__(cls)
-        o.id = str(uuid4())[:8]
-        CSS._body._children[o.id] = o
-        return o
         
-            
-class CSS(UnicodeMixin):
-    _body = None
+
+class css(object):
+    # pointer to the global css body. The root of all css elements
+    lock = threading.Lock()
     rendered = False
     parent_relationship = 'child'
     parent_link = {'child': ' ',
                    'attribute': '',
                    'bigger': ' > '}
     
-    def __init__(self, tag):
-        self._tag = tag
-        self._children = OrderedDict()
-        self._parent = None
-        self._attributes = []
-        self.mixins = []
+    def __new__(cls, tag, *components, **attributes):
+        if tag == 'body':
+            elem = cls.body()
+        else:
+            elem = cls.make(tag)
+        return cls._setup(elem, *components, **attributes)
         
-    def _setup(self, *components, **attributes):
+    @classmethod
+    def _setup(cls, self, *components, **attributes):
         parent = attributes.pop('parent',None)
         self.parent_relationship = attributes.pop('parent_relationship',
                                                   self.parent_relationship)
-        for name,value in iteritems(attributes):
+        for name, value in iteritems(attributes):
             if not isinstance(value, Variables):
                 self[name] = value
-        self.parent = parent
+        self = self._set_parent(parent)
         for c in components:
-            if isinstance(c, CSS):
-                c.parent = self
+            if isinstance(c, css):
+                c._set_parent(self)
             elif isinstance(c, mixin):
-                # add mixin to the list of mixins
-                self.mixins.append(c)
+                if self._clone:
+                    c(self)
+                else:
+                    self._children[str(uuid4())[:8]] = c
             else:
                 raise TypeError('"{0}" is not a valid type'.format(c))
+        return self
+    
+    def __repr__(self):
+        return self.tag
+    __str__ = __repr__
     
     def __setitem__(self, name, value):
         if value is not None:
@@ -471,29 +417,21 @@ class CSS(UnicodeMixin):
     def __getitem__(self, name):
         raise NotImplementedError('cannot get item')
     
-    def __iter__(self):
-        elem = self.clone()
-        mixins = []
-        for mixin in self.mixins:
-            res = mixin(elem)
-            if res:
-                mixins.extend(res)
-        yield elem
-        for mchild in chain(itervalues(elem._children),
-                            itervalues(elem._body._children)):
-            for child in mchild:
-                for elem in child:
-                    yield elem
-    
     def clone(self):
-        cls = self.__class__
-        q = cls.__new__(cls)
-        d = self.__dict__.copy()
-        d['_attributes'] = copy(d['_attributes'])
-        d['_children'] = OrderedDict()
-        d['_body'] = CSS('body')
-        q.__dict__ = d
-        return q
+        if self._clone:
+            return self
+        elem = self.make(self._tag, clone = True)
+        elem.parent_relationship = self.parent_relationship
+        elem._attributes.extend(self._attributes)
+        children = elem._children
+        # clone children
+        for tag, child in iteritems(self._children):
+            if isinstance(child, mixin):
+                child(elem)
+            else:
+                child = child.clone()
+                child._set_parent(elem)
+        return elem
         
     @property
     def tag(self):
@@ -506,29 +444,42 @@ class CSS(UnicodeMixin):
         else:
             return tag
             
-    def _get_parent(self):
+    @property
+    def parent(self):
         return self._parent
+    
     def _set_parent(self, parent):
         # Get the element if available
         if self.tag == 'body':
-            if self.parent:
+            if parent:
                 raise ValueError('Body cannot have parent')
-            return
+            return self
         # Just in case we switch parent
         if self._parent:
-            q = self.parent._children.get(self._tag)
-            if q:
-                for i, c in enumerate(list(q)):
-                    if c is self:
-                        q.pop(i)
-        self._parent = parent or self._body
-        q = self._parent._children.get(self._tag)
-        if q is None:
-            q = []
-            self._parent._children[self._tag] = q
-        q.append(self)
-    parent = property(_get_parent,_set_parent)
+            self.parent._children.get(self._tag, None)
+        self._parent = parent = parent or self.body()
+        # If the parent is a clone, unwind mixins
+        if not self._clone and parent._clone:
+            self._clone = parent._clone
+            children = self._children
+            self._children = OrderedDict()
+            for tag,c in iteritems(children):
+                if isinstance(c, mixin):
+                    c(self)
+                else:
+                    self._children[tag] = c
+        q = parent._children.get(self._tag)
+        if q is not None and q is not self:
+            q.extend(self)
+        else:
+            parent._children[self._tag] = self
+        return parent._children[self._tag]
     
+    def extend(self, elem):
+        self._attributes.extend(elem._attributes)
+        for c in itervalues(elem._children):
+            c.parent = self 
+        
     def alltags(self):
         '''Generator of all tags in the css component.'''
         tags = self._tag.split(',')
@@ -537,19 +488,40 @@ class CSS(UnicodeMixin):
                 yield self._full_tag(tag)
                 
     def _stream(self):
-        yield ',\n'.join(self.alltags()) + ' {'
+        if self.rendered:
+            raise StopIteration()
+        self.rendered = True
+        data = []
         for k,v in self._attributes:
             v = Variable.cssvalue(v)
             if v is not None:
-                yield '    {0}: {1};'.format(k,v)
-        yield '}'
+                data.append('    {0}: {1};'.format(k,v))
+        if data:
+            # yield the element
+            yield ',\n'.join(self.alltags()) + ' {'
+            for s in data:
+                yield s
+            yield '}\n'
+        # yield mixins and children
+        for child_list in itervalues(self._children):
+            try:
+                for child in child_list:
+                    for s in child._stream():
+                        yield s
+            except:
+                pass
         
     def stream(self):
-        for elem in self:
-            yield '\n'.join(elem._stream())
-
-    def __unicode__(self):
-        return '\n\n'.join(self.stream())
+        '''This function convert the :class:`css` element into a string.'''
+        self.lock.acquire()
+        try:
+            elem = self.clone()
+            self.body(temporary=True)
+            for s in elem._stream():
+                yield s
+            self.body(temporary=False)
+        finally:
+            self.lock.release()
     
     def remove(self, child):
         ql = self._children.get(child._tag)
@@ -561,37 +533,50 @@ class CSS(UnicodeMixin):
             
     def render(self, stream=None):
         '''Render the :class:`css` component and all its children'''
-        if self.rendered:
-            # Remove from parent
-            if self._parent:
-                self._parent.remove(self) 
-            return
-        self.rendered = True
         stream = stream if stream is not None else StringIO()
-        stream.write(self.__unicode__())
-        for mchild in itervalues(self._children):
-            if isinstance(mchild, generator):
-                mchild = mchild()
-            for child in mchild:
-                stream.write('\n\n')
-                child.render(stream)
-                    
+        stream.write('\n'.join(self.stream()))
+        return stream.getvalue()
     
-
-class css:
+    ##    CLASS METHODS
     
-    def __call__(self, tag, *components, **attributes):
-        if tag == 'body':
-            elem = CSS._body
+    @classmethod
+    def body(cls, temporary = None):
+        thread = threading.current_thread()
+        data = getattr(thread,'_css_local',None)
+        if data is None:
+            data = threading.local()
+            thread._css_local = data
+            bd = cls.make('body')
+            data.real_body = None
+            data.body = bd
         else:
-            elem = CSS(tag)
-        elem._setup(*components, **attributes)
-        return elem
+            bd = data.body 
+        if temporary:
+            data.real_body = bd
+            data.body = bd = cls.make('body', clone=True)
+        elif temporary is False:
+            bd = data.real_body
+            data.body, data.real_body = bd, None
+        return bd
+    
+    @classmethod
+    def make(cls, tag, clone = False):
+        o = super(css,cls).__new__(cls)
+        o._tag = tag
+        o._children = OrderedDict()
+        o._parent = None
+        o._attributes = []
+        o._clone = clone
+        return o
 
-    def get(self, name):
-        return CSS._body._children.get(name)
+    @classmethod
+    def get(cls, tag):
+        return cls.body()._children.get(tag)
         
-    def render(self, media_url = None, charset = 'utf-8'):
+    @classmethod
+    def render_all(cls, media_url = None, charset = 'utf-8'):
+        if media_url:
+            cssv.MEDIAURL = media_url
         now = datetime.now()
         stream = StringIO()
         intro = '''\
@@ -604,21 +589,30 @@ Created by style  {0}
 
 '''.format(now)
         stream.write(intro)
-        CSS._body.render(stream)
-        return stream.getvalue()
+        return cls.body().render(stream)
 
-# global body
-CSS._body = CSS('body')
-
-css = css()
 def cssa(*args, **kwargs):
     kwargs['parent_relationship'] = 'attribute'
     return css(*args, **kwargs)
+
 def cssb(*args, **kwargs):
     kwargs['parent_relationship'] = 'bigger'
     return css(*args, **kwargs)
     
     
+class css_stream(css):
+
+    def __new__(cls, stream):
+        o = super(css_stream,cls).__new__(cls,'')
+        o._data = stream
+        
+    def _setup(self, *components, **attributes):
+        pass
+    
+    def _stream(self):
+        yield self._data
+        
+        
 class theme(object):
     
     def __init__(self, hnd, theme):
@@ -729,7 +723,8 @@ If the body namespace is not available is automatically created.
 ################################################################################
 ##    GLOBAL VARIABLES
 ################################################################################
-cssv = Variables()        
+cssv = Variables()
+cssv.MEDIAURL = '/media/'
 
 def csscompress(target):  # pragma: no cover
     os.system('yuicompressor.jar --type css -o {0} {0}'.format(target))
@@ -760,7 +755,7 @@ def dump_theme(theme, target, show_variables = False, minify = False,
         data = cssv.tojson()
         log(json.dumps(data, indent = 4))
     else:
-        data = css.render()
+        data = css.render_all()
         f = open(target,'w')
         f.write(data)
         f.close()

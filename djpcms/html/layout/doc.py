@@ -118,7 +118,7 @@ def html_stream(request, stream, status=200):
     if status == 200:
         title = request.title
     else:
-        title = responses.get(status,('Unknown error {0}'.format(status),0))[0]
+        title = responses.get(status,'Unknown error {0}'.format(status))
     if title:
         yield '<title>'+title+'</title>'
     if page:

@@ -184,6 +184,8 @@ input *response*::
     errorhtml = {
     404:
     "<p>Permission Denied</p>",
+    403:
+    "<p>Permission Denied</p>",
     404:
     "<p>Whoops! We can't find what you are looking for, sorry.</p>",
     500:
@@ -201,7 +203,7 @@ input *response*::
 
     def __call__(self, response, callback = None):
         if not response:
-            return response
+            return response if not callback else callback(response)
         return AsyncResponse(self, response, callback).run()
         
     def not_done_yet(self):
@@ -266,7 +268,7 @@ A typical usage::
                             encoding = request.settings.DEFAULT_CHARSET)
         return self._render_to_response(request, stream, status)
     
-    def _render_to_response(self, request, content, status = 200):
+    def _render_to_response(self, request, content, status=200):
         encoding = request.settings.DEFAULT_CHARSET
         content_type = request.settings.DEFAULT_CONTENT_TYPE
         if isajax(content):
@@ -275,52 +277,21 @@ A typical usage::
         if content_type == 'text/html':
             content = '\n'.join(self.html_streamer(request, content, status))
         data = content.encode(encoding, 'replace')
-        return Response(content = data,
-                        content_type = content_type,
-                        encoding = encoding)
+        return Response(content=data,
+                        status=status,
+                        content_type=content_type,
+                        encoding=encoding)
     
-    def error_to_response(self, request, status_code):
+    def error_to_response(self, request, status):
         '''Equivalent to :meth:`render_to_response` methods, when an error
-occurs. It is equivalent to call :meth:`render_to_response` with the
-following parameter::
-
-    self.render_to_response(request, 
-                            {'status_code':status_code,
-                            'exc_info': sys.exc_info()},
-                            self.error_renderer)
-    '''
-        return self.render_to_response(request,
-                                       {'status_code':status_code,
-                                        'exc_info': sys.exc_info()},
-                                       self.error_renderer)
-    
-    def body(self, request, response, context, body_renderer):
-        '''This is the final piece of :meth:`render_to_response`.
-The context is ready to be rendered.'''
-        if isajax(context):
-            content = self.ajax_content(response, context)
-        else:
-            body_renderer = body_renderer or self.body_renderer
-            response.status_code = context.get('status_code',200)
-            body = body_renderer(request, context)
-            if isajax(body):
-                response.status_code = 200
-                content = self.ajax_content(response, body)
-            else:
-                context['body'] = body
-                content = '\n'.join(self._stream(request, context))
-        return self.encode(request, content)
-    
-    def encode(self, request, text):
-        charset = request.view.settings.DEFAULT_CHARSET
-        return text.encode(charset, 'replace')
+occurs.'''
+        context = self.error_renderer(request, status)
+        return self.render_to_response(request, context, status)
         
-    def error_renderer(self, request, context):
+    def error_renderer(self, request, status, exc_info = None):
         '''The default error renderer. It handles both ajax and
  standard responses. Override if you need to.'''
-        status = context.get('status_code',500)
-        exc_info = context.get('exc_info')
-        title = STATUS_CODE_TEXT.get(status, UNKNOWN_STATUS_CODE)[0]
+        exc_info = exc_info or sys.exc_info()
         handler = request.view
         settings = request.settings
         if exc_info and exc_info[0] is not None:
@@ -347,11 +318,7 @@ The context is ready to be rendered.'''
         if request.is_xhr:
             return jservererror(request, inner.render(request))
         else:
-            context.update({
-                'title':title,
-                'body_class': 'error',
-                'content':inner.render(request)})
-            return self.body_renderer(request,context)
+            return inner.render(request)
     
 
 

@@ -48,14 +48,9 @@ class DeferredDataRenderer(Deferred):
         super(DeferredDataRenderer,self).__init__()
         typ = dict if isinstance(stream, dict) else list
         self.multi = multi = MultiDeferred(type=typ)
+        multi.update(stream)
         multi.add_callback(self._finish)
-        try:
-            multi.update(stream)
-        except:
-            self.callback(Failure())
-        else:
-            multi.add_callback(self._finish)
-            multi.lock()
+        multi.lock()
     
     def _finish(self, result):
         result = self.result_from_stream(result)

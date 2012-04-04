@@ -135,8 +135,9 @@ A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.'''
     field_widget_class = None
     
-    def __init__(self, *children, legend = None, **params):
+    def __init__(self, *children, **params):
         self._children = children
+        legend = params.pop('legend', None) 
         self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout, self).__init__(**params)
         if self.legend_html:

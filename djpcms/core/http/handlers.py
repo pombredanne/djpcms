@@ -101,7 +101,7 @@ delegate the handling to them.'''
         except Exception as e:
             if request is None:
                 request = make_request(environ, node)
-            status = getattr(e,'status',500)
+            status = getattr(e, 'status', 500)
             logtrace(logger, request, True, status)
             return self.error(request, status)
         

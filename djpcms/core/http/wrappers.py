@@ -151,15 +151,12 @@ def make_request(environ, node, instance = None, cache = True, safe = True):
         view = node.view
         model = view.model
         if isclass(model):
-            if not isinstance(instance,model):
+            if not isinstance(instance, model):
                 try:
                     instance = view.instance_from_variables(environ,
                                                             node.urlargs)
-                    callback = partial(build_request, environ, node,cache)
-                    if instance is not None:
-                        return view.response(instance, callback)
-                    else:
-                        return
+                    callback = partial(build_request, environ, node, cache)
+                    return view.response(instance, callback)
                 except:
                     if not safe:
                         raise

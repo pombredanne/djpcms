@@ -1,57 +1,29 @@
+'''A micro-asyncronous script derived from twisted.'''
 import sys
 import traceback
-import logging
 from collections import deque
-from inspect import istraceback
 
-from djpcms.utils import is_string
-from djpcms.utils.py2py3 import iteritems, ispy3k
 
 __all__ = ['Deferred', 'MultiDeferred']
 
-LOGGER = logging.getLogger('djpcms')
-
-
+    
 def iterdata(stream):
     if isinstance(stream, dict):
-        return iteritems(stream)
+        return stream.items()
     else:
         return enumerate(stream)
 
 def isgenerator(value):
     return hasattr(value, '__iter__') and not hasattr(value, '__len__')
 
-def is_stack_trace(trace):
-    if isinstance(trace,tuple) and len(trace) == 3:
-        return istraceback(trace[2]) or\
-                 (trace[2] is None and isinstance(trace[1],trace[0]))
-    return False
 
 pass_through = lambda result: result
 
-def update_failure(f):
-    '''If *f* is an instance of :class:`Failure` add the current
- ``sys.exc_info`` otherwuise return a new :class:`Failure` with current
- ``sys.exc_info``.'''
-    if not isinstance(f,Failure):
-        f = Failure()
-    return f.append(sys.exc_info())
-    
-    
-def is_failure(data):
-    if isinstance(data,Failure):
-        return True
-    else:
-        return is_stack_trace(data)
-    
 
 class Failure(object):
-    '''Aggregate failures during :class:`Deferred` callbacks.
+    '''An exception during :class:`Deferred` callbacks.
     
-.. attribute:: traces
-
-    List of (``errorType``, ``errvalue``, ``traceback``) occured during
-    the execution of a :class:`Deferred`.
+.. attribute:: exc_info
     
 '''
     def __init__(self):
@@ -66,10 +38,10 @@ class Failure(object):
         return '\n'.join(tb)
     
     def raise_error(self):
-        if ispy3k:
+        if sys.version_info > (3,1):
             _,err,traceback = self.exc_info
             raise err.with_traceback(traceback)
-        else:
+        else:   # pragma nocover
             raise
     
     
@@ -93,9 +65,9 @@ program execution. Instead, it should return a Deferred.
         self._callbacks = deque()
     
     def __repr__(self):
-        v = self._description or self.__class__.__name__
+        v = self.__class__.__name__
         if self.called:
-            v += ' (called)'
+            v += ' ({0})'.format(self.result)
         return v
     
     def __str__(self):
@@ -183,7 +155,7 @@ this point, :meth:`add_callback` will run the *callbacks* immediately.
             raise RuntimeError('Received a deferred instance from '
                                'callback function')
         if self.called:
-            raise AlreadyCalledError('already called')
+            raise RuntimeError('Deferred {0} already called'.format(self))
         self.result = result
         self._called = True
         self._run_callbacks()

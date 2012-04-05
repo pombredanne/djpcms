@@ -52,6 +52,8 @@ class DJPpluginMetaBase(type):
     '''
     def __new__(cls, name, bases, attrs):
         new_class = super(DJPpluginMetaBase, cls).__new__
+        if 'form' in attrs:
+            attrs['form'] = html_plugin_form(attrs['form'])
         if attrs.pop('virtual',None) or not attrs.pop('auto_register',True):
             return new_class(cls, name, bases, attrs)
         pname = attrs.get('name',None)
@@ -65,8 +67,6 @@ class DJPpluginMetaBase(type):
             descr = nicename(descr) 
         attrs['name'] = pname
         attrs['description'] = descr
-        if 'form' in attrs:
-            attrs['form'] = html_plugin_form(attrs['form'])
         pcls = new_class(cls, name, bases, attrs)
         pcls()._register()
         return pcls

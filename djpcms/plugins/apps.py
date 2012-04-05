@@ -1,4 +1,5 @@
-from djpcms import forms, html, views, VIEW
+from djpcms import forms, html, views, VIEW, to_string
+from djpcms.core import orms
 from djpcms.plugins import DJPplugin
 from djpcms.core.http import query_from_string
 from djpcms.utils.text import nicename
@@ -24,16 +25,14 @@ def registered_models(bfield, required = True):
 def get_contet_choices(bfield):
     model = bfield.form.model
     if not model:
-        raise StopIteration
+        return []
     else:
         request = bfield.form.request
         if request:
-            appmodel = request.view.site.for_model(model)
-            if appmodel:
-                sdjp = appmodel.getview('search')(request)
-                return appmodel.basequery(sdjp) 
-        
-        return mapper(model).all()
+            request = request.for_model(model)
+            if request:
+                return request.view.query(request)
+        return orms.mapper(model).query()
     
     
 class ForModelForm(forms.Form):
@@ -84,8 +83,9 @@ class ModelLinksForm(forms.Form):
 
 class ContentForm(forms.Form):
     content = forms.ChoiceField(choices = forms.ChoiceFieldOptions(\
-                                    query = get_contet_choices,
-                                    autocomplete = True))
+                                    query = get_contet_choices))
+#TODO, MAKE THIS AUTOCOMPLETE IF POSSIBLE
+                                    #autocomplete = True))
 #
 #______________________________________________ PLUGINS
 
@@ -93,22 +93,21 @@ class RenderObject(DJPplugin):
     '''Render an instance of a model using the
 :attr:`Application.instance_view`.'''
     virtual = True
-    description = 'Display your content'
+    for_model = None
     form = ContentForm
     
     def get_object(self, content):
         if content and self.for_model:
-            return mapper(self.for_model).get(id = content)
+            return orms.mapper(self.for_model).get(id = content)
         
     def render(self, request, wrapper, prefix, content = None, **kwargs):
-        obj = self.get_object(content)
-        if obj:
-            appmodel = request.view.site.for_model(self.for_model)
-            if appmodel:
-                view = appmodel.instance_view
-                if view:
-                    return request.for_view(view, instance = obj).render()
-            return str(obj)
+        instance = self.get_object(content)
+        if instance:
+            request = request.for_model(instance = instance)
+            if request:
+                return request.render()
+            else:
+                return to_string(instance)
         else:
             return ''
     

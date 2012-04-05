@@ -1,8 +1,10 @@
+'''A python CSS framework'''
 import sys
 import os
 import argparse
 import json
 import threading
+import logging
 
 from itertools import chain
 from uuid import uuid4
@@ -14,14 +16,13 @@ from djpcms.utils.structures import OrderedDict
 from djpcms.utils.py2py3 import StringIO, itervalues, iteritems, UnicodeMixin,\
                                 native_str, to_string, ispy3k
 
-
 __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',
            'cssv', 'lazy', 'px', 'em', 'pc',
            'spacing', 'dump_theme', 'main', 'Variables',
            'add_arguments']
 
-
+LOGGER = logging.getLogger('djpcms.style')
 nan = float('nan')
 conversions = {}
 
@@ -129,7 +130,7 @@ in a css file.'''
     def make(cls, val, unit = None):
         if isinstance(val,tuple) and len(val) == 1:
             val = val[0]
-        if isinstance(val,(NamedVariable,lazy)):
+        if isinstance(val,(NamedVariable, lazy)):
             val = val.tocss()
         if isinstance(val, cls):
             if not unit or val.unit == unit:
@@ -214,6 +215,10 @@ class NamedVariable(ProxyVariable):
 .. attribute:: name
 
     variable name
+    
+.. attribute:: theme
+
+    current theme
 '''
     def __init__(self, hnd, name, value):
         self.hnd = hnd
@@ -372,30 +377,24 @@ class css(object):
     # pointer to the global css body. The root of all css elements
     lock = threading.Lock()
     rendered = False
-    parent_relationship = 'child'
     parent_link = {'child': ' ',
                    'attribute': '',
                    'bigger': ' > '}
     
     def __new__(cls, tag, *components, **attributes):
         if tag == 'body':
-            elem = cls.body()
+            self = cls.body()
         else:
-            elem = cls.make(tag)
-        return cls._setup(elem, *components, **attributes)
-        
-    @classmethod
-    def _setup(cls, self, *components, **attributes):
+            self = cls.make(tag)
         parent = attributes.pop('parent',None)
-        self.parent_relationship = attributes.pop('parent_relationship',
-                                                  self.parent_relationship)
+        self.parent_relationship = attributes.pop('parent_relationship','child')
         for name, value in iteritems(attributes):
-            if not isinstance(value, Variables):
-                self[name] = value
-        self = self._set_parent(parent)
+            self[name] = value
+        self = self._from_parent(parent)
+        # Loop over components to add them to self
         for c in components:
             if isinstance(c, css):
-                c._set_parent(self)
+                c._from_parent(self)
             elif isinstance(c, mixin):
                 if self._clone:
                     c(self)
@@ -410,9 +409,12 @@ class css(object):
     __str__ = __repr__
     
     def __setitem__(self, name, value):
-        if value is not None:
-            name = name.replace('_','-')
-            self._attributes.append((name,value))
+        if value is None or isinstance(value, Variables):
+            return
+        if isinstance(value, mixin):
+            raise TypeError('Cannot assign a mixin to {0}'.format(name))
+        name = name.replace('_','-')
+        self._attributes.append((name,value))
     
     def __getitem__(self, name):
         raise NotImplementedError('cannot get item')
@@ -430,7 +432,8 @@ class css(object):
                 child(elem)
             else:
                 child = child.clone()
-                child._set_parent(elem)
+                child._from_parent(elem)
+        elem.restore(elem)
         return elem
         
     @property
@@ -443,23 +446,25 @@ class css(object):
             return self._parent.tag + c + tag
         else:
             return tag
-            
+    
     @property
     def parent(self):
         return self._parent
     
-    def _set_parent(self, parent):
+    def _from_parent(self, parent):
         # Get the element if available
         if self.tag == 'body':
             if parent:
                 raise ValueError('Body cannot have parent')
             return self
-        # Just in case we switch parent
+        # When switching parents, remove itself from current parent children
         if self._parent:
             self.parent._children.get(self._tag, None)
+        clone = self._clone
         self._parent = parent = parent or self.body()
-        # If the parent is a clone, unwind mixins
-        if not self._clone and parent._clone:
+        self._clone = parent._clone
+        # If the parent is a clone, unwind mixins        
+        if clone and self._clone and self._children:
             self._clone = parent._clone
             children = self._children
             self._children = OrderedDict()
@@ -503,23 +508,17 @@ class css(object):
                 yield s
             yield '}\n'
         # yield mixins and children
-        for child_list in itervalues(self._children):
-            try:
-                for child in child_list:
-                    for s in child._stream():
-                        yield s
-            except:
-                pass
+        for child in itervalues(self._children):
+            for s in child._stream():
+                yield s
         
     def stream(self):
         '''This function convert the :class:`css` element into a string.'''
         self.lock.acquire()
         try:
             elem = self.clone()
-            self.body(temporary=True)
             for s in elem._stream():
                 yield s
-            self.body(temporary=False)
         finally:
             self.lock.release()
     
@@ -538,36 +537,42 @@ class css(object):
         return stream.getvalue()
     
     ##    CLASS METHODS
-    
     @classmethod
-    def body(cls, temporary = None):
+    def local(cls):
         thread = threading.current_thread()
-        data = getattr(thread,'_css_local',None)
+        data = getattr(thread, '_css_local', None)
         if data is None:
             data = threading.local()
             thread._css_local = data
             bd = cls.make('body')
             data.real_body = None
             data.body = bd
-        else:
-            bd = data.body 
-        if temporary:
-            data.real_body = bd
-            data.body = bd = cls.make('body', clone=True)
-        elif temporary is False:
-            bd = data.real_body
-            data.body, data.real_body = bd, None
-        return bd
+        return thread._css_local
+    
+    @classmethod
+    def body(cls):
+        return cls.local().body
     
     @classmethod
     def make(cls, tag, clone = False):
         o = super(css,cls).__new__(cls)
+        if tag == 'body' and clone:
+            data = cls.local()
+            data.real_body = data.body
+            data.body = o
         o._tag = tag
         o._children = OrderedDict()
         o._parent = None
         o._attributes = []
         o._clone = clone
         return o
+    
+    @classmethod
+    def restore(cls, elem):
+        if elem.tag == 'body':
+            data = cls.local()
+            bd = data.real_body
+            data.body, data.real_body = bd, None
 
     @classmethod
     def get(cls, tag):
@@ -583,11 +588,11 @@ class css(object):
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by style  {0}
+Created by djpcms.style @ {0}
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
-'''.format(now)
+'''.format(datetime.now())
         stream.write(intro)
         return cls.body().render(stream)
 
@@ -605,9 +610,6 @@ class css_stream(css):
     def __new__(cls, stream):
         o = super(css_stream,cls).__new__(cls,'')
         o._data = stream
-        
-    def _setup(self, *components, **attributes):
-        pass
     
     def _stream(self):
         yield self._data
@@ -745,15 +747,13 @@ def convert_bytes(b):
             return '%.1f%sB' % (value, s)
     return "%sB" % b
 
-def dump_theme(theme, target, show_variables = False, minify = False,
-               verbose = True):
-    log = printf if verbose else lambda v: v
+def dump_theme(theme, target, show_variables = False, minify = False):
     cssv.set_theme(theme)
     if show_variables:
-        log('STYLE: {0}'.format(cssv.theme() or 'Default'))
+        LOGGER.info('STYLE: {0}'.format(cssv.theme() or 'Default'))
         section = None
         data = cssv.tojson()
-        log(json.dumps(data, indent = 4))
+        LOGGER.info(json.dumps(data, indent = 4))
     else:
         data = css.render_all()
         f = open(target,'w')
@@ -763,7 +763,7 @@ def dump_theme(theme, target, show_variables = False, minify = False,
             csscompress(target)
         with open(target) as f:
             b = convert_bytes(len(f.read()))
-        log('Saved style on file "{0}". Size {1}.'.format(target,b))
+        LOGGER.info('Saved style on file "{0}". Size {1}.'.format(target,b))
     
     
 def add_arguments(argparser = None):
@@ -788,12 +788,11 @@ def add_arguments(argparser = None):
     return argparser
     
     
-def main(argparser = None, verbose = True, argv = None):
+def main(argparser = None, argv = None):
     argparser = add_arguments(argparser)
     opts = argparser.parse_args(argv)
     for source in opts.source:
         mod = import_module(source)
     
-    dump_theme(opts.theme, opts.output, opts.variables, opts.minify,
-               verbose = verbose)    
+    dump_theme(opts.theme, opts.output, opts.variables, opts.minify)    
     

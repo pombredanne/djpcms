@@ -20,10 +20,15 @@ HSVA = namedtuple('HSVA','h s v alpha')
 
 def ascolor(col):
     col = native_str(col)
-    if col is None or isinstance(col, color) or isinstance(col,str):
+    if col is None or isinstance(col, color):
         return col
     else:
-        return color(Variable.pyvalue(col))
+        try:
+            return color(Variable.pyvalue(col))
+        except:
+            if isinstance(col,str):
+                return col
+            raise
     
 
 class RGBA(namedtuple('RGBA','r g b alpha')):

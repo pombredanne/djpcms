@@ -429,9 +429,20 @@ class TestCSS(test.TestCase):
     def testError(self):
         self.assertRaises(TypeError, css, '.foo', [])
         
+    def testClone(self):
+        c = css('body')
+        self.assertFalse(c._clone)
+        c2 = c.clone()
+        self.assertFalse(c._clone)
+        self.assertNotEqual(c, c2)
+        self.assertTrue(c2._clone)
+        c3 = c2.clone()
+        self.assertTrue(c3._clone)
+        self.assertEqual(c2, c3)
+        
     
 class TestMixins(test.TestCase):
-    
+    '''Test the simple mixins'''
     def testNotImplemented(self):
         m = mixin()
         self.assertRaises(NotImplementedError,lambda: m(None))
@@ -463,7 +474,8 @@ class TestMixins(test.TestCase):
     def testRadius(self):
         r = px(5)
         s = css('.bla', radius(r))
-        self.assertEqual(str(s),\
+        text = s.render()
+        self.assertEqual(text,\
 '''.bla {
     -webkit-border-radius: 5px;
        -moz-border-radius: 5px;
@@ -474,23 +486,24 @@ class TestMixins(test.TestCase):
         s = css('.bla',
                 shadow('10px 10px 5px #888'),
                 display = 'block')
+        text = s.render()
         r = '''
     -webkit-box-shadow: 10px 10px 5px #888;
        -moz-box-shadow: 10px 10px 5px #888;
             box-shadow: 10px 10px 5px #888;'''
-        self.assertTrue(r in str(s))
+        self.assertTrue(r in text)
     
     def test_fixtop(self):
         s = css('.foo',
                 fixtop(3000))
-        self.assertTrue(s.mixins)
+        text = s.render()
         r = '''
     left: 0;
     top: 0;
     right: 0;
     position: fixed;
     z-index: 3000;'''
-        self.assertTrue(r in str(s))
+        self.assertTrue(r in text)
         
     def test_clickable(self):
         s = css('.click',
@@ -520,7 +533,7 @@ class TestGradient(test.TestCase):
         s = css('.bla',
                 gradient(('v','#ffffff','#f5f5f5')),
                 display = 'block')
-        self.assertTrue(s.mixins)
+        text = s.render()
         r = '''
     background-color: #f5f5f5;
     background-image: -moz-linear-gradient(top, #ffffff, #f5f5f5);
@@ -531,7 +544,7 @@ class TestGradient(test.TestCase):
     background-image: linear-gradient(top, #ffffff, #f5f5f5);
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f5f5f5', GradientType=0);'''
-        self.assertTrue(r in str(s))
+        self.assertTrue(r in text)
     
     def testColor(self):
         d = {}
@@ -551,16 +564,16 @@ class TestGrid(test.TestCase):
     
     def test_grid940(self):
         g = grid(12,60,20)
-        self.assertTrue(g.id)
-        self.assertEqual(g.columns,12)
-        self.assertEqual(g.width,940)
-        elements = tuple(g())
-        self.assertEqual(len(elements),15)
+        elem = css.make('body')
+        self.assertEqual(g.columns, 12)
+        self.assertEqual(g.width, 940)
+        g(elem)
+        self.assertEqual(len(elem._children),2)
         
     def testTemplate(self):
         c = css('div.test', color = '#333')
         self.assertEqual(c.tag, 'div.test')
-        text = str(c)
+        text = c.render()
         self.assertTrue('color: #333;' in text)
         
     
@@ -596,9 +609,9 @@ class TestScript(test.TestCase):
         
     def testRender(self):
         # for coverage
-        main(argv = ['-v'], verbose = False)
+        main(argv = ['-v'])
         # dump css file
-        main(argv = ['-o','pytest.css'], verbose = False)
+        main(argv = ['-o','pytest.css'])
         f = open('pytest.css')
         data = f.read()
         f.close()

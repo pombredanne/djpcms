@@ -1,7 +1,9 @@
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by djpcms.style @ 2012-04-05 07:47:44.213392
+Theme "smooth"
+Created by djpcms.style 2012-04-05 12:07:41.054000
+Time taken 0.119 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -327,36 +329,14 @@ body {
     clear: both;
 }
 
-.topbar .nav ul li a {
-    weight: normal;
+a {
+    font-weight: normal;
     color: #0088cc;
     text-shadow: None;
     text-decoration: none;
-    background: transparent;
-    background: transparent;
-    background: transparent;
-    color: #bfbfbf;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
-    color: #ffffff;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
-    color: #ffffff;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
-    background: transparent;
-    color: #bfbfbf;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
-    color: #ffffff;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
-    color: #ffffff;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    text-decoration: none;
 }
 
-.topbar .nav ul li a:hover {
+a:hover {
     color: #005580;
     text-shadow: None;
     text-decoration: underline;
@@ -370,55 +350,8 @@ body {
     background: #000000;
 }
 
-.collapsed > .bd {
-    display: none;
-}
-
 .djpcms-html-box .collapsed > .bd {
     display: none;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5 {
-    font-size: 14px;
-    float: left;
-    padding: 0;
-    font-weight: normal;
-    background: transparent;
-    margin: 0;
-}
-
-.hd {
-    padding: 5px;
-    overflow: hidden;
-}
-
-.hd h1,
-.hd h2,
-.hd h3,
-.hd h4,
-.hd h5 {
-    font-size: 14px;
-    float: left;
-    padding: 0;
-    font-weight: normal;
-    background: transparent;
-    margin: 0;
-}
-
-.bd {
-    padding: 5px;
-    overflow: hidden;
-    border: none;
-}
-
-.ft {
-    padding: 5px;
-    overflow: hidden;
-    border: none;
 }
 
 .widget .hd {
@@ -451,46 +384,6 @@ h5 {
     border: none;
 }
 
-:first-child {
-    margin-top: 0;
-}
-
-dt {
-    width: 40%;
-    float: left;
-    margin: 0;
-}
-
-dd {
-    margin: 0;
-}
-
-dl:first-child {
-    margin-top: 0;
-}
-
-dl dt {
-    width: 40%;
-    float: left;
-    margin: 0;
-}
-
-dl dd {
-    margin: 0;
-}
-
-.w20 dl dt {
-    width: 20%;
-}
-
-.w40 dl dt {
-    width: 40%;
-}
-
-.w50 dl dt {
-    width: 50%;
-}
-
 .object-definition {
     overflow: hidden;
     margin: 5px 0 0;
@@ -520,26 +413,6 @@ dl dd {
 
 .object-definition.w50 dl dt {
     width: 50%;
-}
-
-input[type="text"],
-input[type="password"],
-textarea,
-select {
-    padding: 0;
-    width: 100%;
-    line-height: 1;
-    margin: 0;
-    background: transaprent;
-    border: none;
-    outline: none;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-    border: none;
-    outline: none;
 }
 
 .field-widget {
@@ -631,7 +504,8 @@ input.button[type="submit"] {
     background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
     background-image: linear-gradient(top, #ffffff, #e6e6e6);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffffff, endColorstr=#e6e6e6, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
     -webkit-border-radius: 3px;
        -moz-border-radius: 3px;
             border-radius: 3px;
@@ -650,7 +524,8 @@ input.button[type="submit"]:active {
     background-image: -o-linear-gradient(top, #e6e6e6, #999999);
     background-image: linear-gradient(top, #e6e6e6, #999999);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e6e6e6', endColorstr='#999999', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#999999, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
 input.button[type="submit"].active {
@@ -662,7 +537,8 @@ input.button[type="submit"].active {
     background-image: -o-linear-gradient(top, #e6e6e6, #999999);
     background-image: linear-gradient(top, #e6e6e6, #999999);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e6e6e6', endColorstr='#999999', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#999999, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
 button.button.large,
@@ -690,22 +566,6 @@ input[readonly],
     filter: alpha(opacity=70.0);
 }
 
-.errorlist {
-    overflow: hidden;
-}
-
-.ctrlHolder,
-.buttonHolder {
-    padding: 4px;
-    vertical-align: middle;
-    margin: 0;
-    overflow: hidden;
-}
-
-.layout-element {
-    margin: 0 0 6px;
-}
-
 form.uniForm .errorlist {
     overflow: hidden;
 }
@@ -720,25 +580,6 @@ form.uniForm .buttonHolder {
 
 form.uniForm .layout-element {
     margin: 0 0 6px;
-}
-
-input[type="checkbox"] {
-    float: none;
-    margin: 0;
-}
-
-th,
-td {
-    padding: 4pxpx 0 4pxpx 4pxpx;
-}
-
-th:last-child,
-td:last-child {
-    padding: 4px;
-}
-
-td.error:last-child {
-    padding: 4px;
 }
 
 table.uniFormTable {
@@ -784,55 +625,6 @@ table.uniFormTable td.error:last-child {
     src: url('/media/fontawesome/font/fontawesome-webfont.eot?#iefix') format=('embedded-opentype'), url('/media/fontawesome/font/fontawesome-webfont.woff') format('woff'), url('/media/fontawesome/font/fontawesome-webfont.ttf') format('truetype'), url('/media/fontawesome/font/fontawesome-webfont.svgz#FontAwesomeRegular') format('svg'), url('/media/fontawesome/font/fontawesome-webfont.svg#FontAwesomeRegular') format('svg');
 }
 
-.topbar .nav.secondary-nav {
-    display: block;
-    float: right;
-    position: relative;
-    margin: 0px 0px 0px 10px;
-}
-
-.topbar .nav.secondary-nav > li {
-    display: block;
-    float: left;
-}
-
-.topbar .nav ul li:hover > ul {
-    display: block;
-    display: block;
-    display: block;
-    display: block;
-}
-
-.topbar .nav.secondary-nav ul {
-    top: 40px;
-    cursor: default;
-    width: 120px;
-    position: absolute;
-    display: none;
-    right: 0;
-}
-
-.topbar .nav.secondary-nav ul li {
-    padding: 0;
-    margin: 0;
-    position: relative;
-    border: none;
-    width: auto;
-}
-
-.topbar .nav.secondary-nav ul li ul {
-    position: absolute;
-    top: 0;
-    left: auto;
-    right: 120px;
-}
-
-.topbar .nav.secondary-nav a {
-    float: none;
-    line-height: 20px;
-    display: inline-block;
-}
-
 .topbar {
     height: 40px;
     z-index: 10000;
@@ -848,7 +640,8 @@ table.uniFormTable td.error:last-child {
     background-image: -o-linear-gradient(top, #333, #222);
     background-image: linear-gradient(top, #333, #222);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333', endColorstr='#222', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#333, endColorstr=#222, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
 .topbar .nav {
@@ -859,8 +652,50 @@ table.uniFormTable td.error:last-child {
 }
 
 .topbar .nav > li {
+    cursor: pointer;
+    background-color: #222;
+    background-image: -moz-linear-gradient(top, #333, #222);
+    background-image: -ms-linear-gradient(top, #333, #222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333), to(#222));
+    background-image: -webkit-linear-gradient(top, #333, #222);
+    background-image: -o-linear-gradient(top, #333, #222);
+    background-image: linear-gradient(top, #333, #222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#333, endColorstr=#222, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
     display: block;
     float: left;
+}
+
+.topbar .nav > li > a {
+    background: transparent;
+    color: #bfbfbf;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav > li:hover {
+    background: #333333;
+}
+
+.topbar .nav > li:hover > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav > li:hover > ul {
+    display: block;
+}
+
+.topbar .nav > li:active {
+    background: #000000;
+}
+
+.topbar .nav > li:active > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
 }
 
 .topbar .nav ul {
@@ -873,11 +708,44 @@ table.uniFormTable td.error:last-child {
 }
 
 .topbar .nav ul li {
+    cursor: pointer;
+    background: #333333;
     padding: 0;
     margin: 0;
     position: relative;
     border: none;
     width: auto;
+}
+
+.topbar .nav ul li > a {
+    background: transparent;
+    color: #bfbfbf;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul li:hover {
+    background: #222222;
+}
+
+.topbar .nav ul li:hover > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul li:hover > ul {
+    display: block;
+}
+
+.topbar .nav ul li:active {
+    background: #000000;
+}
+
+.topbar .nav ul li:active > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
 }
 
 .topbar .nav ul li ul {
@@ -890,6 +758,66 @@ table.uniFormTable td.error:last-child {
 
 .topbar .nav a {
     padding: 10px 10px;
+    float: none;
+    line-height: 20px;
+    display: inline-block;
+}
+
+.topbar .nav.secondary-nav {
+    display: block;
+    float: right;
+    position: relative;
+    margin: 0px 0px 0px 10px;
+}
+
+.topbar .nav.secondary-nav > li {
+    cursor: pointer;
+    display: block;
+    float: left;
+}
+
+.topbar .nav.secondary-nav > li > a {
+    background: transparent;
+}
+
+.topbar .nav.secondary-nav > li:hover > ul {
+    display: block;
+}
+
+.topbar .nav.secondary-nav ul {
+    top: 40px;
+    cursor: default;
+    width: 120px;
+    position: absolute;
+    display: none;
+    right: 0;
+}
+
+.topbar .nav.secondary-nav ul li {
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    border: none;
+    width: auto;
+}
+
+.topbar .nav.secondary-nav ul li > a {
+    background: transparent;
+}
+
+.topbar .nav.secondary-nav ul li:hover > ul {
+    display: block;
+}
+
+.topbar .nav.secondary-nav ul li ul {
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 120px;
+}
+
+.topbar .nav.secondary-nav a {
     float: none;
     line-height: 20px;
     display: inline-block;
@@ -920,7 +848,8 @@ table.uniFormTable td.error:last-child {
     background-image: -o-linear-gradient(top, #333, #222);
     background-image: linear-gradient(top, #333, #222);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333', endColorstr='#222', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#333, endColorstr=#222, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
 #page-header {
@@ -943,5 +872,6 @@ table.uniFormTable td.error:last-child {
     background-image: -o-linear-gradient(top, #222, #444);
     background-image: linear-gradient(top, #222, #444);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#222', endColorstr='#444', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#222, endColorstr=#444, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }

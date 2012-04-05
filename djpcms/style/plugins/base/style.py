@@ -66,9 +66,9 @@ css('.widget',
         overflow = 'hidden',
         border = 'none'),
     css('.ft',
-        padding = cssv.widget.ft.padding,
-        overflow = 'hidden',
-        border = 'none')
+        padding=cssv.widget.ft.padding,
+        overflow='hidden',
+        border='none')
 )
 
 ################################################# OBJECT DEFINITIONS

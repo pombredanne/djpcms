@@ -5,9 +5,6 @@ import argparse
 import json
 import threading
 import logging
-
-from itertools import chain
-from uuid import uuid4
 from copy import copy
 from datetime import datetime
 from inspect import isgenerator
@@ -361,6 +358,9 @@ callable method.'''
     def __call__(self, elem):
         raise NotImplementedError()
     
+    def __unicode__(self):
+        return to_string(self.__class__.__name__)
+    
     @classmethod
     def cleanup(cls, value, attname, constructor = None):
         if isinstance(value, cls):
@@ -390,18 +390,10 @@ class css(object):
         self.parent_relationship = attributes.pop('parent_relationship','child')
         for name, value in iteritems(attributes):
             self[name] = value
-        self = self._from_parent(parent)
+        self._set_parent(parent)
         # Loop over components to add them to self
         for c in components:
-            if isinstance(c, css):
-                c._from_parent(self)
-            elif isinstance(c, mixin):
-                if self._clone:
-                    c(self)
-                else:
-                    self._children[str(uuid4())[:8]] = c
-            else:
-                raise TypeError('"{0}" is not a valid type'.format(c))
+            self.add(c)
         return self
     
     def __repr__(self):
@@ -412,46 +404,118 @@ class css(object):
         if value is None or isinstance(value, Variables):
             return
         if isinstance(value, mixin):
-            raise TypeError('Cannot assign a mixin to {0}'.format(name))
+            raise TypeError('Cannot assign a mixin to {0}. Use add instead.'\
+                            .format(name))
         name = name.replace('_','-')
         self._attributes.append((name,value))
     
     def __getitem__(self, name):
         raise NotImplementedError('cannot get item')
     
+    def add(self, c):
+        '''Add a child :class:`css` or a class:`mixin`.'''
+        if isinstance(c, css):
+            c._set_parent(self)
+        elif isinstance(c, mixin):
+            if self._clone:
+                c(self)
+            else:
+                self._children[str(c)] = c
+        else:
+            raise TypeError('"{0}" is not a valid type'.format(c))
+        
     def clone(self):
         if self._clone:
             return self
         elem = self.make(self._tag, clone = True)
         elem.parent_relationship = self.parent_relationship
         elem._attributes.extend(self._attributes)
+        # first unwind mixins
         children = elem._children
-        # clone children
         for tag, child in iteritems(self._children):
             if isinstance(child, mixin):
                 child(elem)
+            elif tag in children:
+                children[tag].extend(child)
             else:
+                children[tag] = list(child)
+        
+        # now aggregate
+        children = elem._children
+        elem._children = OrderedDict()
+        for tag, child_list in iteritems(children):
+            for child in child_list:
                 child = child.clone()
-                child._from_parent(elem)
+                child._set_parent(elem)
         elem.restore(elem)
         return elem
         
     @property
     def tag(self):
         return self._full_tag(self._tag)
-
+    
+    @property
+    def parent(self):
+        return self._parent
+    
+    @property
+    def is_body(self):
+        return self._tag == 'body'
+    
+    def remove(self, child):
+        '''Safely remove child *elem* form :class:`css`'''
+        if isinstance(child, css):
+            code = child._tag
+            c = self._children.get(code)
+            if c:
+                try:
+                    c.remove(child)
+                except ValueError:
+                    pass
+                if not c:
+                    self._children.pop(code)
+        elif isinstance(child, mixin):
+            self._children.pop(str(child),None)
+    
+    def alltags(self):
+        '''Generator of all tags in the css component.'''
+        tags = self._tag.split(',')
+        for tag in tags:
+            if tag:
+                yield self._full_tag(tag)
+                
+    def extend(self, elem):
+        '''Extend by adding *elem* attributes and children.'''
+        self._attributes.extend(elem._attributes)
+        for c in itervalues(elem._children):
+            c.parent = self 
+    
+    def stream(self):
+        '''This function convert the :class:`css` element into a string.'''
+        self.lock.acquire()
+        try:
+            elem = self.clone()
+            for s in elem._stream():
+                yield s
+        finally:
+            self.lock.release()
+    
+    def render(self):
+        '''Render the :class:`css` component and all its children'''
+        return '\n'.join(self.stream())
+    
+    ############################################################################
+    ##    PRIVATE METHODS
+    ############################################################################
+    
     def _full_tag(self, tag):
         if self._parent and self._parent.tag != 'body':
             c = self.parent_link[self.parent_relationship]
             return self._parent.tag + c + tag
         else:
             return tag
-    
-    @property
-    def parent(self):
-        return self._parent
-    
-    def _from_parent(self, parent):
+        
+    def _set_parent(self, parent):
         # Get the element if available
         if self.tag == 'body':
             if parent:
@@ -459,38 +523,24 @@ class css(object):
             return self
         # When switching parents, remove itself from current parent children
         if self._parent:
-            self.parent._children.get(self._tag, None)
+            self._parent.remove(self)
         clone = self._clone
         self._parent = parent = parent or self.body()
         self._clone = parent._clone
         # If the parent is a clone, unwind mixins        
-        if clone and self._clone and self._children:
-            self._clone = parent._clone
+        if not clone and self._clone and self._children:
             children = self._children
             self._children = OrderedDict()
-            for tag,c in iteritems(children):
+            for tag, c in iteritems(children):
                 if isinstance(c, mixin):
                     c(self)
                 else:
                     self._children[tag] = c
-        q = parent._children.get(self._tag)
-        if q is not None and q is not self:
-            q.extend(self)
+        c = parent._children.get(self._tag)
+        if isinstance(c,list) and self not in c:
+            c.append(self)
         else:
-            parent._children[self._tag] = self
-        return parent._children[self._tag]
-    
-    def extend(self, elem):
-        self._attributes.extend(elem._attributes)
-        for c in itervalues(elem._children):
-            c.parent = self 
-        
-    def alltags(self):
-        '''Generator of all tags in the css component.'''
-        tags = self._tag.split(',')
-        for tag in tags:
-            if tag:
-                yield self._full_tag(tag)
+            parent._children[self._tag] = [self]
                 
     def _stream(self):
         if self.rendered:
@@ -508,35 +558,17 @@ class css(object):
                 yield s
             yield '}\n'
         # yield mixins and children
-        for child in itervalues(self._children):
+        for child_list in itervalues(self._children):
+            child = child_list[0]
+            for c in child_list[1:]:
+                child.extend(c)
             for s in child._stream():
                 yield s
-        
-    def stream(self):
-        '''This function convert the :class:`css` element into a string.'''
-        self.lock.acquire()
-        try:
-            elem = self.clone()
-            for s in elem._stream():
-                yield s
-        finally:
-            self.lock.release()
     
-    def remove(self, child):
-        ql = self._children.get(child._tag)
-        if ql:
-            try:
-                ql.remove(child)
-            except ValueError:
-                pass
-            
-    def render(self, stream=None):
-        '''Render the :class:`css` component and all its children'''
-        stream = stream if stream is not None else StringIO()
-        stream.write('\n'.join(self.stream()))
-        return stream.getvalue()
-    
+    ############################################################################
     ##    CLASS METHODS
+    ############################################################################
+    
     @classmethod
     def local(cls):
         thread = threading.current_thread()
@@ -562,8 +594,8 @@ class css(object):
             data.body = o
         o._tag = tag
         o._children = OrderedDict()
-        o._parent = None
         o._attributes = []
+        o._parent = None
         o._clone = clone
         return o
     
@@ -583,18 +615,21 @@ class css(object):
         if media_url:
             cssv.MEDIAURL = media_url
         now = datetime.now()
-        stream = StringIO()
+        body = cls.body().render()
+        dt = datetime.now() - now
+        nice_dt = round(dt.seconds+0.000001*dt.microseconds,3)
         intro = '''\
 /*
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-Created by djpcms.style @ {0}
+Theme "{0}"
+Created by djpcms.style {1}
+Time taken {2} seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
-'''.format(datetime.now())
-        stream.write(intro)
-        return cls.body().render(stream)
+'''.format(cssv.theme(), now, nice_dt)
+        return intro + body
 
 def cssa(*args, **kwargs):
     kwargs['parent_relationship'] = 'attribute'
@@ -623,6 +658,7 @@ class theme(object):
     
     def __repr__(self):
         return self.theme
+    __str__ = __repr__
     
     def __setattr__(self, name, value):
         getattr(self.hnd, name).value = value

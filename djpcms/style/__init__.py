@@ -23,7 +23,7 @@ cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
 
 # Links
-cssv.link.weight = 'normal'
+cssv.link.font_weight = 'normal'
 # default
 cssv.link.default.color = '#08c'
 cssv.link.default.background = None
@@ -41,8 +41,8 @@ cssv.edit.color = cssv.color.white
 ################################################# BODY
 css('body',
     grid(12, 60, 20),
-    fluidgrid(12),
-    fluidgrid(24),
+    gridfluid(12),
+    gridfluid(24),
     background = cssv.body.background,
     color = cssv.body.color,
     font_family = cssv.body.font_family,
@@ -54,7 +54,7 @@ css('body',
 ################################################# DEFAULT CLICKABLE ANCHORS
 css('a',
     clickable(**cssv.link.params()),
-    weight = cssv.link.weight
+    font_weight=cssv.link.font_weight
 )
 
 ################################################# EDIT PAGE PANEL

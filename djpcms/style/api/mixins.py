@@ -1,5 +1,8 @@
 '''Useful mixins and generators'''
 import os
+from uuid import uuid4
+
+from djpcms.utils import to_string
 
 from .base import *
 from .colorvar import *
@@ -16,7 +19,7 @@ __all__ = ['opacity',
            # generators
            'css_include',
            'grid',
-           'fluidgrid']
+           'gridfluid']
  
     
 ################################################################################
@@ -120,6 +123,8 @@ class gradient(mixin):
         t = 1 if l == 'left' else 0
         #
         elem['background-color'] = e;
+        #
+        # FF 3.6+
         elem['background-image'] =\
         '-moz-linear-gradient({2}, {0}, {1})'.format(s,e,l)
         #
@@ -142,9 +147,14 @@ class gradient(mixin):
         elem['background-image'] =\
         'linear-gradient({2}, {0}, {1})'.format(s,e,l)
         elem['background-repeat'] = 'repeat-x'
+        #
         # IE9 and down
         elem['filter'] = "progid:DXImageTransform.Microsoft.gradient(\
-startColorstr='{0}', endColorstr='{1}', GradientType={2})".format(s,e,t)
+startColorstr={0}, endColorstr={1}, GradientType={2})".format(s,e,t)
+        #
+        # Reset filters for IE
+        elem['filter'] = 'progid:DXImageTransform.Microsoft.gradient'\
+                         '(enabled = false)'
         
     def hgradient(self, elem, d, s, e):
         self._gradient(elem, 'left', s, e)
@@ -229,25 +239,26 @@ class horizontal_navigation(clickable):
         
     def list(self, maker, parent, default, hover, active):
         return maker('li',
+                  default.background,
                   cssb('a',
                        bcd(background='transparent',
                            color=default.color,
                            text_decoration=default.text_decoration,
                            text_shadow=default.text_shadow)),
                   cssa(':hover',
+                       hover.background,
                        cssb('a',
                             bcd(color=hover.color,
                                 text_decoration=hover.text_decoration,
                                 text_shadow=hover.text_shadow)),
-                       cssb('ul', display='block'),
-                       background=hover.background),
+                       cssb('ul', display='block')),
                   cssa(':active',
+                       active.background,
                        cssb('a',
                             bcd(color=active.color,
                                 text_decoration=active.text_decoration,
-                                text_shadow=active.text_shadow)),
-                       background=active.background),
-                  background=default.background,
+                                text_shadow=active.text_shadow))),
+                  cursor='pointer',
                   parent=parent)
         
     def __call__(self, elem):
@@ -319,11 +330,6 @@ class horizontal_navigation(clickable):
             padding=self.padding)
 
                 
-        
-################################################################################
-##    BATTERY INCLUDED GENERATORS
-################################################################################
-        
 ################################################# INCLUDE CSS
         
 class css_include(mixin):
@@ -331,6 +337,9 @@ class css_include(mixin):
     def __init__(self, *paths):
         self.paths = paths
         
+    def __unicode__(self):
+        return to_string(uuid4()[:8])
+    
     def __call__(self, elem):
         for path in self.paths:
             if not path.startswith('http'):
@@ -358,6 +367,13 @@ size for one column and the *gutter* size between columns.'''
         self.columns = columns
         self.width = columns*span + (columns-1)*gutter
     
+    def __unicode__(self):
+        return to_string(self.__class__.__name__+'-{0}'.format(self.columns)+\
+                         self.extra_identity())
+        
+    def extra_identity(self):
+        return '-'+str(int(self.width))
+        
     def row(self, tag, **kwargs):
         m = '{0}{1}'.format(self.gutter,self.unit)
         return css(tag,
@@ -391,7 +407,7 @@ size for one column and the *gutter* size between columns.'''
         
 
 ################################################# FLUID GRID        
-class fluidgrid(grid):
+class gridfluid(grid):
     grid_class = '-fluid'
     unit = '%'
     def __init__(self, columns, gutter = 2.5641):
@@ -404,6 +420,9 @@ class fluidgrid(grid):
         self.span = round((100 - columns*gutter)/columns, 4)
         if self.span <= 0:
             raise ValueError('gutter too large')
+    
+    def extra_identity(self):
+        return ''
     
     def row(self, tag, **kwargs):
         return css(tag,

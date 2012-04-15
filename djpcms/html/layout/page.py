@@ -66,7 +66,7 @@ class CssGrid(object):
 
 class elem(WidgetMaker):
     '''A page layout contains all the information for rendering and styling a
-web page'''
+web page using a very flexible grid system.'''
     tag = 'div'
     role = None
     
@@ -117,7 +117,7 @@ web page'''
     
     
 class page(elem):
-    '''HTML layout for a page with is the first (and only) div element within
+    '''HTML layout for a page. It is the first (and only) div element within
 the body tag. A page contains a list of :class:`container`.'''
     columns = 12
     role = 'page'
@@ -225,6 +225,7 @@ class grid_holder(elem):
             if self.key == 'content' and page:
                 inner_grid = page.inner_grid or inner_grid
             if not inner_grid and self.key == 'content':
+                # No inner grid for content. Set the default inner grid
                 inner_grid = self.default_inner_grid(request)
         if inner_grid:
             key = inner_grid.key or 0

@@ -318,7 +318,7 @@ and handles the saving as default ``POST`` response.'''
     default_title = 'add'
     default_link = 'add'
     PERM = djpcms.ADD
-    ICON = 'ui-icon-circle-plus'
+    ICON = 'add'
     has_plugin = True
     in_nav = 1
     ajax_enabled = False
@@ -337,7 +337,7 @@ in a model. Quite drastic.'''
     default_route = '/deleteall'
     PERM = djpcms.DELETEALL
     DEFAULT_METHOD = 'post'
-    ICON = 'ui-icon-alert'
+    ICON = 'delete_all'
     default_title = 'delete all objects'
     default_link = 'delete all objects'
     ajax_enabled = True
@@ -391,7 +391,7 @@ class DeleteView(ObjectView):
     parent_view = 'view'
     PERM = djpcms.DELETE
     DEFAULT_METHOD = 'post'
-    ICON = 'ui-icon ui-icon-trash'
+    ICON = 'trash'
     force_redirect = True
     ajax_enabled = True
     link_class = 'minibutton ui-state-error-text'
@@ -429,7 +429,7 @@ class ChangeView(ObjectActionView):
 an instance of a model.'''
     default_route = '/change'
     PERM = djpcms.CHANGE
-    ICON = 'ui-icon-pencil'
+    ICON = 'pencil'
     default_title = 'edit {1}'
     default_link = 'edit'
     force_redirect = True 

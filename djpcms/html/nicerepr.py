@@ -8,6 +8,7 @@ from djpcms.utils import force_str, mark_safe, significant_format, escape,\
                             NOTHING
 
 from .base import Widget
+from .icons import with_icon
 
 
 __all__ = ['nicerepr',
@@ -22,7 +23,7 @@ NONE_VALUE = float('nan')
 #divchk = '<div class="action-check">{0}<span class="value">{1}</span></div>'
 divchk = '<div class="action-check">{0}{1}</div>'
 
-logger = logging.getLogger('djpcms.nicerepr') 
+logger = logging.getLogger('djpcms.nicerepr')
 
 
 def action_checkbox(val, id):
@@ -52,9 +53,9 @@ Prettify a value to be displayed in html.
         return smart_time(val,dateformat,timeformat,settings)
     elif isinstance(val,bool):
         if val:
-            return yes()
+            return icon('ok-sign')
         else:
-            return no()
+            return icon('remove-sign')
     else:
         try:
             return significant_format(val, n = nd, thousand_sep = None)
@@ -180,7 +181,7 @@ class get_app_result(object):
             first = False
             var = action_checkbox(var, mapper.id(result))
         
-        esc = kwargs.get('escape',escape)
+        esc = kwargs.get('escape', escape)
         var = esc(var)
         self.first = first
         return var

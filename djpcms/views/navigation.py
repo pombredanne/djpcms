@@ -120,12 +120,12 @@ class Navigator(object):
     
     
 def navstream(request, urlselects, secondary_after, link_active, level):
-    for request,nav in sorted(((c,c.in_navigation)\
+    for request, nav in sorted(((c,c.in_navigation)\
                 for c in request.auth_children()), key = lambda x : x[1]):
         if not nav:
             continue
         url = request.url
-        link = Widget('a',request.linkname,href=url)
+        link = Widget('a', request.linkname, href=url)
         li = Widget('li',link)
         secondary = secondary_after and nav > secondary_after
         if url in urlselects:

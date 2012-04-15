@@ -15,6 +15,7 @@ A simple usage::
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
 from .async import *
+from .icons import *
 from .base import *
 from .widgets import *
 from .box import *
@@ -45,13 +46,13 @@ class blockelement(Widget):
 def anchor_or_button(text, href = None, icon = None, asbutton = False,
                      **kwargs):
     if asbutton:
-        w = Widget('button', text, **kwargs)\
+        w = Widget('button', text, cn='button', **kwargs)\
                         .addData('href',href)
     else:
         w = Widget('a', text, href = href, **kwargs)
-    return w.addData('icon',icon)
-
-
+    return with_icon(name=icon, widget=w)
+    
+    
 def legend(text, cn='legend', **kwargs):
     return Widget('div', text, cn=cn, **kwargs)
 

@@ -27,11 +27,6 @@ def DEFAULT_JAVASCRIPT():
             #'djpcms/form.js',
             'djpcms/showdown.js',
             'djpcms/djpcms.js']
-    
-
-def DEFAULT_STYLE_SHEET():
-    return {'all':['http://yui.yahooapis.com/2.9.0/build/\
-reset-fonts-grids/reset-fonts-grids.css']}
 
 
 def init_logging(settings, clear_all = False):
@@ -88,6 +83,7 @@ LOGGING_SAMPLE = {
 
 HTML = {
     'ajax': 'ajax',
+    'button': 'btn',
     'post_view_key': 'xhr',
     'errorlist': 'errorlist',
     'formmessages': 'form-messages',

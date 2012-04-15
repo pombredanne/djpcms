@@ -216,7 +216,7 @@ is a factory of :class:`Widget`.
         maker = maker if maker else self.maker
         if maker in default_widgets_makers:
             maker = default_widgets_makers[maker]
-        if not isinstance(maker,WidgetMaker):
+        if not isinstance(maker, WidgetMaker):
             maker = DefaultMaker
         cn = update(maker.classes, cn)
         data = update(maker.data, data)
@@ -277,6 +277,9 @@ is a factory of :class:`Widget`.
             data_stream = iterable_for_widget(data_stream)
             for element in data_stream:
                 self.maker.add_to_widget(self, element)
+                
+    def insert(self, position, element):
+        self.maker.add_to_widget(self, element, position)
     
     def render(self, request = None, context = None):
         '''Render the widget. It accept two optional parameters, a http
@@ -488,14 +491,17 @@ corner cases, users can subclass it to customize behavior.
                         widget.internal[k] = self.internal[k]
         return self
   
-    def add_to_widget(self, widget, element):
+    def add_to_widget(self, widget, element, position=None):
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
  attribute. It can be overwritten but call super for consistency.'''
         if element is not None:
             if isinstance(element, Widget):
                 element.internal['parent'] = widget
-            widget._data_stream.append(element)
+            if position is not None:
+                widget._data_stream.insert(position, element)
+            else:
+                widget._data_stream.append(element)
                     
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method to build extra context.

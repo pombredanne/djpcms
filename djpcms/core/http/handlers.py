@@ -38,13 +38,25 @@ class WSGIhandler(object):
         
     def __call__(self, environ, start_response):
         '''The WSGI callable'''
-        for middleware in self.middleware:
-            response = middleware(environ, start_response)
+        for i,middleware in enumerate(self.middleware):
+            try:
+                response = middleware(environ, start_response)
+            except:
+                if i < len(self.middleware):
+                    logger.critical('Critical error while processing request '\
+                                    'middleware', exc_info=True)
+                else:
+                    raise
             if response is not None:
                 for rm in self.response_middleware:
-                    rm(environ, start_response, response)
+                    try:
+                        rm(environ, start_response, response)
+                    except:
+                        logger.critical('Critical error while processing '\
+                                        'response middleware', exc_info=True)
                 response(environ, start_response)
                 return response
+        #raise RuntimeError('Could not obtain response')
         return ()
 
     

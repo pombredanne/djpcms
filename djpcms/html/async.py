@@ -1,3 +1,5 @@
+import logging
+
 from djpcms.utils.py2py3 import iteritems
 from djpcms.utils.async import Deferred, MultiDeferred, Failure
 from djpcms.utils import mark_safe
@@ -7,6 +9,8 @@ __all__ = ['Renderer',
            'ContextRenderer',
            'StreamRenderer']
 
+
+LOGGER = logging.getLogger('djpcms')
 
 def iterdata(stream):
     if isinstance(stream, dict):
@@ -54,7 +58,12 @@ class DeferredDataRenderer(Deferred):
     
     def _finish(self, result):
         result = self.result_from_stream(result)
-        self.callback(result)
+        return self.callback(result)
+        
+    def _error(self, failure):
+        LOGGER.critical('Unhandled error while rendering',
+                        exc_info=failure.exc_info)
+        return failure
     
     def result_from_stream(self, stream):
         return stream
@@ -65,14 +74,20 @@ class ContextRenderer(DeferredDataRenderer):
     def __init__(self, request, context, renderer):
         super(ContextRenderer, self).__init__(context)
         self.add_callback(lambda r: renderer(request, r))\
-            .add_callback(mark_safe)
+            .add_callback(mark_safe, self._error)
     
     
+class FailureException(Exception):
+    
+    def __init__(self, failure):
+        self.failure = failure
+        
+        
 class StreamRenderer(DeferredDataRenderer):
     '''The stream is either a text of a ContextRenderer'''
     def __init__(self, stream):
         super(StreamRenderer, self).__init__(stream)
-        self.add_callback(mark_safe)
+        self.add_callback(mark_safe, self._error)
             
     def _result_from_stream(self, stream):
         for value in stream:
@@ -82,9 +97,14 @@ class StreamRenderer(DeferredDataRenderer):
                 yield value.decode('utf-8')
             elif isinstance(value, str):
                 yield value
+            elif isinstance(value, Failure):
+                raise FailureException(value)
             else:
                 yield str(value)
             
     def result_from_stream(self, stream):
-        return ''.join(self._result_from_stream(stream))
+        try:
+            return ''.join(self._result_from_stream(stream))
+        except FailureException as f:
+            return f.failure
     

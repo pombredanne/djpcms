@@ -497,7 +497,7 @@ the *request*.'''
         if 'query' not in context:
             context['query'] = self.query(request)
         return ContextRenderer(request, context = context,
-                               renderer = self.render_query)
+                               renderer = lambda r,c : self.render_query(r,**c))
     
     def render_query(self, request, query = None, **kwargs):
         '''Render a *query* as a table or a list of items.

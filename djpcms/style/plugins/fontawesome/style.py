@@ -26,5 +26,6 @@ css('@font-face',
     font_style='normal'
 )
 
-css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'media','fontawesome','font-awesome.css'))
+css('body',
+    css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'media','font-awesome.css')))

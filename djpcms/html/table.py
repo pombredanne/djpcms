@@ -63,7 +63,7 @@ def table_header(code, name = None, description = None, function = None,
 class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
     tag = 'div'
-    default_class = 'data-table'
+    classes = 'data-table'
     table_media = media.Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
@@ -133,7 +133,7 @@ javascript plugin'''
                 th.addClass('hint')
             yield th.render(request)
         yield '</tr>\n</thead>\n<tbody>'
-        for row in self.rows(request,widget):
+        for row in self.rows(request, widget):
             tr = Widget('tr', id = row.get('id'))
             for item in row['display']:
                 tr.add('<td>{0}</td>'.format(item))

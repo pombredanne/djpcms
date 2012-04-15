@@ -3,6 +3,9 @@
 from djpcms.style import *
 
 ############################################################
+cssv.table.padding = spacing(px(4))
+cssv.table.line_height = cssv.body.line_height
+
 cssv.table.odd_background_color = 'transparent'
 cssv.table.even_background_color = 'transparent'
 cssv.table.even_sort_background = None
@@ -26,7 +29,10 @@ css('.data-table',
         font_size = '110%'),
     css('table.main'),
     css('th.sortable', cursor = 'pointer'),
-    css('tbody td', vertical_align = 'center', padding = '4px'),
+    css('td,th',
+        vertical_align='center',
+        padding=cssv.table.padding,
+        line_height=cssv.table.line_height),
     width = '100%',
     display = 'none',
     text_align = 'left',

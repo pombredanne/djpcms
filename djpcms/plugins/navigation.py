@@ -108,14 +108,6 @@ def messages(request):
     return {'messages': lmsg}
 
 
-def navigator(request):
-    settings = request.view.settings
-    cn = settings.HTML.get('main_nav')
-    sitenav = views.Navigator(secondary = page_links(request),
-                              levels = settings.SITE_NAVIGATION_LEVELS)
-    return {'sitenav': html.LazyHtml(request,sitenav)}
-
-
 def topbar(request):
     '''Build a lazy topbar to be placed at the top of your web page.
 There are several customizable parameters available.

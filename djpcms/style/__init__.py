@@ -1,3 +1,7 @@
+import os
+
+import djpcms
+
 from .api import *
 
 ################################################################################
@@ -13,7 +17,7 @@ cssv.color.grayLight = color('999')
 cssv.color.grayLighter = color('e6e6e6')
 cssv.color.white = color('fff')
 
-# body
+# Global body variable
 cssv.body.background = cssv.color.white
 cssv.body.color = cssv.color.grayDarker
 cssv.body.font_family = "Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif"
@@ -21,6 +25,7 @@ cssv.body.font_size = px(14)
 cssv.body.line_height = px(18)
 cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
+cssv.body.radius = px(0)
 
 # Links
 cssv.link.font_weight = 'normal'
@@ -40,6 +45,7 @@ cssv.edit.color = cssv.color.white
 
 ################################################# BODY
 css('body',
+    css_include(os.path.join(djpcms.PACKAGE_DIR,'media','normalize.css')),
     grid(12, 60, 20),
     gridfluid(12),
     gridfluid(24),

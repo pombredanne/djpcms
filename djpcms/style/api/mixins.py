@@ -203,7 +203,7 @@ class clickable(mixin):
             cssa(':active', self.active, parent=elem)
             cssa('.active', self.active, parent=elem)
         
-################################################# HORIZONTAL NAV
+################################################# HORIZONTAL NAVIGATION
 class horizontal_navigation(clickable):
     '''Horizontal navigation with ul and li tags'''
     def __init__(self,
@@ -235,7 +235,7 @@ class horizontal_navigation(clickable):
         self.display_all = display_all
         # padding
         self.padding = padding or secondary_padding
-        self.secondary_padding = secondary_padding
+        self.secondary_padding = secondary_padding or px(0)
         
     def list(self, maker, parent, default, hover, active):
         return maker('li',
@@ -265,6 +265,7 @@ class horizontal_navigation(clickable):
         elem['display'] = 'block'
         elem['float'] = self.float
         elem['position'] = 'relative'
+        elem['padding'] = 0
         if self.margin:
             if self.float == 'left':
                 elem['margin'] = spacing(0,self.margin,0,0)
@@ -296,9 +297,12 @@ class horizontal_navigation(clickable):
                   parent=elem,
                   cursor='default',
                   position='absolute',
+                  margin=0,
                   padding=self.secondary_padding,
                   top=self.height,
-                  width=self.secondary_width)
+                  width=self.secondary_width,
+                  list_style='none',
+                  list_style_image='none')
         if not self.display_all:
             ul['display'] = 'none'
         # The sub lists li
@@ -336,9 +340,10 @@ class css_include(mixin):
     '''Include one or more css resources'''
     def __init__(self, *paths):
         self.paths = paths
+        self._code = to_string(uuid4())[:8]
         
     def __unicode__(self):
-        return to_string(uuid4()[:8])
+        return self._code
     
     def __call__(self, elem):
         for path in self.paths:
@@ -350,7 +355,7 @@ class css_include(mixin):
                     stream = path
             else:
                 raise NotImplementedError('http fetching not yet implemented')
-            css_stream(stream, parent=elem)
+            css_stream(self._code, stream)
             
    
 ################################################# FIXED GRID

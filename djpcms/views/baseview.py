@@ -261,6 +261,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def __call__(self, request):
         method = request.method
+        # Not AJAX
         if not request.is_xhr:
             return getattr(self,'%s_response' % method)(request)
         

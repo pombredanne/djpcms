@@ -6,20 +6,18 @@ INSTALLED_APPS = ('djpcms',
                   'stdcms.monitor',
                   'stdcms.sessions',
                   #
+                  # styling plugins
                   'djpcms.style.plugins.base',
                   'djpcms.style.plugins.fontawesome',
                   'djpcms.style.plugins.nav',
                   'djpcms.style.plugins.page',
-                  #'djpcms.style.plugins.table',
+                  'djpcms.style.plugins.table',
                   #
                   #'pulsardjp',
                   'djpsite')
 ENABLE_BREADCRUMBS = 1
-DEFAULT_STYLE_SHEET = {'all':[
-'http://yui.yahooapis.com/2.9.0/build/reset-fonts-grids/reset-fonts-grids.css',
-"djpsite/smooth.css"]}
+DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}
 LANGUAGE_CODE = 'en-gb'
-
 
 
 # RESERVED SETTINGS. CREATE A SETTINGS FILES AND OVERRIDE THESE VALUES

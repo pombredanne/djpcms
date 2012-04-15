@@ -7,9 +7,10 @@ from functools import partial
 import logging
 
 from djpcms.utils.py2py3 import iteritems
+from djpcms.utils import escape
 from djpcms.html import Renderer, Widget
 from djpcms.html.layout import html_stream, error_title
-from djpcms.utils.async import Deferred 
+from djpcms.utils.async import Deferred, Failure 
 from djpcms.utils.ajax import jservererror, isajax
 
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
@@ -266,6 +267,11 @@ A typical usage::
                             content = request.view.response(stream, callback),
                             content_type = self.default_content_type,
                             encoding = request.settings.DEFAULT_CHARSET)
+            else:
+                stream = stream.result
+        if isinstance(stream, Failure):
+            status = 500
+            stream = self.error_renderer(request, status, stream.exc_info)
         return self._render_to_response(request, stream, status)
     
     def _render_to_response(self, request, content, status=200):
@@ -310,8 +316,18 @@ occurs.'''
             error.add(Widget('h2','{0} {1}'.format(status,error_title(status))))
             error.add(Widget('h3',request.path))
             if exc_info:
-                for trace in traceback.format_exception(*exc_info):
-                    error.add(Widget('p',trace))
+                for traces in traceback.format_exception(*exc_info):
+                    counter = 0
+                    for trace in traces.split('\n'):
+                        if trace.startswith('  '):
+                            counter += 1
+                            trace = trace[2:]
+                        if not trace:
+                            continue
+                        w = Widget('p', escape(trace))
+                        if counter:
+                            w.css({'margin-left':'{0}px'.format(20*counter)})
+                        error.add(w)
         else:
             error.add(self.errorhtml.get(status,500))
             

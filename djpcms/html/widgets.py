@@ -123,7 +123,7 @@ class FileInput(InputWidget):
         
         
 for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
-            'li','tr','span','button'):
+            'li','tr','span','button','i'):
     WidgetMaker(tag = tag)
     
     

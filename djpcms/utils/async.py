@@ -98,7 +98,7 @@ The function takes at most one argument, the result passed to the
 :meth:`callback` method."""
         errback = errback if errback is not None else pass_through
         if hasattr(callback,'__call__') and hasattr(errback,'__call__'):
-            self._callbacks.append((callback,errback))
+            self._callbacks.append((callback, errback))
             self._run_callbacks()
         else:
             raise TypeError('callback must be callable')

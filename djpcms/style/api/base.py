@@ -374,6 +374,7 @@ callable method.'''
         
 
 class css(object):
+    '''A :class:`css` element in python.'''
     # pointer to the global css body. The root of all css elements
     lock = threading.Lock()
     rendered = False
@@ -455,6 +456,10 @@ class css(object):
         return self._full_tag(self._tag)
     
     @property
+    def code(self):
+        return self._tag
+    
+    @property
     def parent(self):
         return self._parent
     
@@ -465,7 +470,7 @@ class css(object):
     def remove(self, child):
         '''Safely remove child *elem* form :class:`css`'''
         if isinstance(child, css):
-            code = child._tag
+            code = child.code
             c = self._children.get(code)
             if c:
                 try:
@@ -536,11 +541,11 @@ class css(object):
                     c(self)
                 else:
                     self._children[tag] = c
-        c = parent._children.get(self._tag)
-        if isinstance(c,list) and self not in c:
+        c = parent._children.get(self.code)
+        if isinstance(c, list) and self not in c:
             c.append(self)
         else:
-            parent._children[self._tag] = [self]
+            parent._children[self.code] = [self]
                 
     def _stream(self):
         if self.rendered:
@@ -642,13 +647,18 @@ def cssb(*args, **kwargs):
     
 class css_stream(css):
 
-    def __new__(cls, stream):
-        o = super(css_stream,cls).__new__(cls,'')
+    def __new__(cls, code, stream):
+        o = super(css_stream,cls).__new__(cls, code)
         o._data = stream
+        return o
+    
+    @property
+    def tag(self):
+        return ''
     
     def _stream(self):
         yield self._data
-        
+            
         
 class theme(object):
     

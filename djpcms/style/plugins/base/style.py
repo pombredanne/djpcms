@@ -14,16 +14,15 @@ cssv.widget.ft.padding = cssv.widget.padding
 cssv.disabled.opacity = 0.7
 cssv.disabled.cursor = 'not-allowed'
 #
-cssv.input.vertical_padding = px(4)
+cssv.input.padding = px(4)
 cssv.input.border_width = px(1)
 cssv.input.border_color = cssv.color.grayLight
-cssv.input.radius = px(0)
-cssv.input.padding = cssv.input.vertical_padding
+cssv.input.radius = cssv.body.radius
 cssv.input.focus_color = None
 cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
 #
-cssv.button.padding = spacing(cssv.input.vertical_padding, 9)
+cssv.button.padding = spacing(cssv.input.padding, 9)
 cssv.button.default.background = ('v',cssv.color.white,cssv.color.grayLighter)
 cssv.button.hover.background = cssv.color.grayLighter
 cssv.button.active.background = ('v',cssv.color.grayLighter,
@@ -125,14 +124,14 @@ def process_elems(elem, data):
 css('.field-widget',
     css('input[type="text"],input[type="password"],textarea,select',
         clearinp(),
-        line_height = 1,
-        padding = 0,
-        margin = 0,
-        width = '100%',
-        background = 'transaprent'),
+        line_height=1,
+        padding=spacing(cssv.input.padding, 0),
+        margin=0,
+        width='100%',
+        background='transparent'),
     css('input:focus,textarea:focus,select:focus', clearinp()),
     radius(cssv.input.radius),
-    padding = cssv.input.padding,
+    padding=spacing(0, cssv.input.padding),
     border_style='solid',
     border_width=cssv.input.border_width,
     border_color=cssv.input.border_color)
@@ -149,7 +148,7 @@ for n in range(1,10):
 #    BUTTONS
 ################################################################################
 #'button.button,a.button,input.button[type="submit"]'
-css('input.button[type="submit"]',
+css('input.button[type="submit"], button.button',
     clickable(bcd(**cssv.button.default.params()),
               bcd(**cssv.button.hover.params()),
               bcd(**cssv.button.active.params())),
@@ -165,7 +164,7 @@ css('input.button[type="submit"]',
 
 css('button.button.large,a.button.large,input.button.large[type="submit"]',
     radius(cssv.input.radius),
-    padding = 2*cssv.input.padding)
+    padding=2*cssv.input.padding)
 
 css('.required label',
     font_weight = cssv.input_required_font_weight)

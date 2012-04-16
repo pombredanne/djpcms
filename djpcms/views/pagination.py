@@ -152,7 +152,7 @@ def views_serializable(views):
         yield elem
         
         
-def application_links(views, asbuttons = True, icon = True):
+def application_links(views, asbuttons=True, icon=True):
     '''A generator of two dimensional tuples containing
 the view name and a rendered html tag (either an anchor or a button).
 

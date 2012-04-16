@@ -1,14 +1,20 @@
-# ICONS NAME MAPPING
+'''Font icons from
+
+http://fortawesome.github.com/Font-Awesome/
+'''
 from djpcms.html import Widget
 from djpcms.html.icons import set_icon_handler
 
-
-mapping = {'edit': 'pencil',
+# ICONS NAME MAPPING
+mapping = {'admin': 'cog',
+           'edit': 'pencil',
            'delete': 'trash',
            'delete_all': 'trash',
            'add': 'plus',
            'true': 'ok',
-           'false': 'minus-sign'}
+           'false': 'minus-sign',
+           'logout': 'signout',
+           'login': 'signin'}
 
 
 def icon(name, size, widget):

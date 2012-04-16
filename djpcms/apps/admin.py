@@ -92,7 +92,7 @@ administer models in groups.'''
                                  ajax=False,
                                  size=None)
     
-    home = views.View(in_nav = 1)
+    home = views.View(in_nav=1, icon='admin')
     
     def groups(self, request):
         for child in request.auth_children():

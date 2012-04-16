@@ -2,6 +2,8 @@
 '''
 import djpcms
 from djpcms.html import Widget, NON_BREACKING_SPACE
+
+from .pagination import application_link
     
 
 __all__ = ['Navigator','Breadcrumbs']
@@ -124,11 +126,10 @@ def navstream(request, urlselects, secondary_after, link_active, level):
                 for c in request.auth_children()), key = lambda x : x[1]):
         if not nav:
             continue
-        url = request.url
-        link = Widget('a', request.linkname, href=url)
+        link = application_link(request, asbutton=False)
         li = Widget('li',link)
         secondary = secondary_after and nav > secondary_after
-        if url in urlselects:
+        if link.attrs['href'] in urlselects:
             li.addClass(link_active)
         if level:
             slis = list(navstream(request, urlselects, None, link_active,
@@ -138,7 +139,7 @@ def navstream(request, urlselects, secondary_after, link_active, level):
                 for sli,_ in slis:
                     ul.add(sli)
                 li.add(ul)
-        yield li,secondary
+        yield li, secondary
             
 
 class Breadcrumbs(object):

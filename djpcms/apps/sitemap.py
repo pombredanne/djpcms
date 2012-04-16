@@ -63,6 +63,11 @@ class PageChangeView(views.ChangeView):
         return underlying_response(request, request.instance)
         
     def get_context(self, request):
+        page = request.instance
+        layout = page.layout
+        layout = self.root.get_page_layout(layout)()
+        return layout.render(request)
+        
         text = self.render(request)
         body = grid('grid 100')(self.render(request))
         body = body.render(request)

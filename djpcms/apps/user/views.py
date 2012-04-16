@@ -8,6 +8,7 @@ __all__ = ['LogoutView','LoginView','UserView','UserDataView']
 class LogoutView(views.ModelView):
     '''Logs out a user, if there is an authenticated user :)
     '''
+    ICON = 'logout'
     default_route = 'logout'
     default_title = 'Log out'
     default_link = 'Log out'
@@ -25,6 +26,7 @@ class LoginView(views.ModelView):
     '''A Battery included Login view. You need to
     create a login.html file in your site template directory.
     '''
+    ICON = 'login'
     has_plugin = True
     redirect_to_view = 'home'
     force_redirect = True

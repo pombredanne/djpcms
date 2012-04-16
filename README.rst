@@ -24,18 +24,19 @@ The template engine is jinja2_ which is shipped with the distribution.
 Features
 ===============================
 
- * Dynamic pages based on database models.
- * Applications based on database model or not.
- * Extendible using ``plugins``.
- * Inline editing of ``plugins`` and ``pages``.
- * Move ``plugins`` in page using drag-and-drop functionalities.
- * ``Autocomplete`` for models.
- * DataTables_ integration.
- * Extendible AJAX decorators.
- * Tagging included in distribution.
- * Several battery included application classes.
- * Nice form layout with extendible ``uniforms``.
- * Sitemap design.
+* Dynamic pages based on database models.
+* Applications based on database model or not.
+* Extendible using ``plugins``.
+* Inline editing of ``plugins`` and ``pages``.
+* Move ``plugins`` in page using drag-and-drop functionalities.
+* Font icons from Fontawesome_.
+* ``Autocomplete`` for models.
+* DataTables_ integration.
+* Extendible AJAX decorators.
+* Tagging included in distribution.
+* Several battery included application classes.
+* Nice form layout with extendible ``uniforms``.
+* Sitemap design.
 
 
 .. _intro-installing:
@@ -107,9 +108,7 @@ by other authors and communities:
 
 Python
 ---------
-* jinja2_ for templating. Shipped with the library in the ``libs``
-  module but a library in its own.
-* django_ for ideas.
+* django_ for ideas and code snippets.
 
 .. _jquery-plugins:
 
@@ -122,6 +121,7 @@ JavaScript
 * jQuery bsmSelect_ plugin for multiple select.
 * Modernizr_, a small JavaScript library that detects the availability o
   native implementations for next-generation web technologies.
+* Fontawesome_ for font icons (`djpcms.style.plugins.fontawesome`).
 
 
 .. _pypi: http://pypi.python.org/pypi?:action=display&name=djpcms
@@ -139,3 +139,4 @@ JavaScript
 .. _coverage: http://nedbatchelder.com/code/coverage/
 .. _DataTables: http://www.datatables.net/
 .. _form: http://jquery.malsup.com/form/
+.. _Fontawesome: http://fortawesome.github.com/Font-Awesome/

@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-04-15 14:36:49.506077
-Time taken 0.167 seconds
+Created by djpcms.style 2012-04-16 18:35:33.105000
+Time taken 0.144 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1123,9 +1123,9 @@ table.uniFormTable td.error:last-child {
 @font-face {
     font-weight: normal;
     font-style: normal;
-    font-family: "FontAwesome";
-    src: url('/media/fontawesome/font/fontawesome-webfont.eot');
-    src: url('/media/fontawesome/font/fontawesome-webfont.eot?#iefix') format=('embedded-opentype'), url('/media/fontawesome/font/fontawesome-webfont.woff') format('woff'), url('/media/fontawesome/font/fontawesome-webfont.ttf') format('truetype'), url('/media/fontawesome/font/fontawesome-webfont.svgz#FontAwesomeRegular') format('svg'), url('/media/fontawesome/font/fontawesome-webfont.svg#FontAwesomeRegular') format('svg');
+    font-family: 'FontAwesome';
+    src: url('/media/fontawesome/fontawesome-webfont.eot');
+    src: url('/media/fontawesome/fontawesome-webfont.eot?#iefix') format('embedded-opentype'), url('/media/fontawesome/fontawesome-webfont.woff') format('woff'), url('/media/fontawesome/fontawesome-webfont.ttf') format('truetype'), url('/media/fontawesome/fontawesome-webfont.svgz#FontAwesomeRegular') format('svg'), url('/media/fontawesome/fontawesome-webfont.svg#FontAwesomeRegular') format('svg');
 }
 
 /*  Font Awesome
@@ -1184,7 +1184,7 @@ a [class^="icon-"], a [class*=" icon-"] {
     vertical-align: top;
     font-size: 1.3333333333333333em;
 }
-.btn [class^="icon-"], .btn [class*=" icon-"] {
+.button [class^="icon-"], .button [class*=" icon-"] {
     /* keeps button heights with and without icons the same */
     line-height: .9em;
 }

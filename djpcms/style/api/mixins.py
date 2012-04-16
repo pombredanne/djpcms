@@ -19,7 +19,8 @@ __all__ = ['opacity',
            # generators
            'css_include',
            'grid',
-           'gridfluid']
+           'gridfluid',
+           'fontface']
  
     
 ################################################################################
@@ -450,3 +451,23 @@ class gridfluid(grid):
     #    yield cssb('[class*="span"]:first-child',
     #               parent=row,
     #               margin_left=0)
+
+
+################################################# FONT-FACE 
+class fontface(mixin):
+    
+    def __init__(self, base, svg=None):
+        self.base = base
+        self.svg = '#'+svg if svg else ''
+        
+    def __call__(self, elem):
+        base = self.base
+        if not base.startswith('http'):
+            base = cssv.MEDIAURL.value + self.base
+        elem['src'] = "url('{0}.eot')".format(base)
+        elem['src'] = "url('{0}.eot?#iefix') format('embedded-opentype'), "\
+                      "url('{0}.woff') format('woff'), "\
+                      "url('{0}.ttf') format('truetype'), "\
+                      "url('{0}.svgz{1}') format('svg'), "\
+                      "url('{0}.svg{1}') format('svg')"\
+                      .format(base, self.svg)

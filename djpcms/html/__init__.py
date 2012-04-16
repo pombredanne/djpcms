@@ -43,14 +43,14 @@ class blockelement(Widget):
         return super(blockelement,self).render(djp,inner)
 
     
-def anchor_or_button(text, href = None, icon = None, asbutton = False,
+def anchor_or_button(text, href=None, icon=None, asbutton=False, size=None,
                      **kwargs):
     if asbutton:
         w = Widget('button', text, cn='button', **kwargs)\
                         .addData('href',href)
     else:
-        w = Widget('a', text, href = href, **kwargs)
-    return with_icon(name=icon, widget=w)
+        w = Widget('a', text, href=href, **kwargs)
+    return with_icon(name=icon, size=size, widget=w)
     
     
 def legend(text, cn='legend', **kwargs):

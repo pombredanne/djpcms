@@ -53,9 +53,9 @@ Prettify a value to be displayed in html.
         return smart_time(val,dateformat,timeformat,settings)
     elif isinstance(val,bool):
         if val:
-            return icon('ok-sign')
+            return with_icon('true')
         else:
-            return icon('remove-sign')
+            return with_icon('false')
     else:
         try:
             return significant_format(val, n = nd, thousand_sep = None)

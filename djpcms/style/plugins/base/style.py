@@ -29,6 +29,10 @@ cssv.button.active.background = ('v',cssv.color.grayLighter,
                                  cssv.color.grayLight)
 cssv.button.border_color = cssv.color.grayLight
 #
+cssv.alert.background = color('#FCF8E3')
+cssv.alert.color = color('#C09853')
+cssv.alert.radius = cssv.body.radius
+#
 cssv.uniform.padding = px(4)
 cssv.uniform.table_layout = 'auto'
 ################################################################################
@@ -69,6 +73,9 @@ css('.widget',
         overflow='hidden',
         border='none')
 )
+
+css('.edit-menu',
+    horizontal_navigation(float='right'))
 
 ################################################# OBJECT DEFINITIONS
 css('.object-definition',
@@ -128,6 +135,7 @@ css('.field-widget',
         padding=spacing(cssv.input.padding, 0),
         margin=0,
         width='100%',
+        color='inherit',
         background='transparent'),
     css('input:focus,textarea:focus,select:focus', clearinp()),
     radius(cssv.input.radius),
@@ -172,6 +180,16 @@ css('.required label',
 css(disabled_selector,
     opacity(cssv.disabled.opacity),
     cursor =  cssv.disabled.cursor)
+
+
+################################################################################
+#    ALERTS
+################################################################################
+css('.alert',
+    gradient(cssv.alert.background),
+    radius(cssv.alert.radius),
+    color=cssv.alert.color,
+    padding='8px 35px 8px 14px')
 
 
 ################################################################################

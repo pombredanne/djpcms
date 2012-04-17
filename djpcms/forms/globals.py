@@ -1,7 +1,7 @@
 # Uniforms Layout is the Default layout
 from uuid import uuid4
 
-from djpcms import FormException, ValidationError
+from djpcms.core.exceptions import FormException, ValidationError
 
 __all__ = ['FormException',
            'ValidationError',

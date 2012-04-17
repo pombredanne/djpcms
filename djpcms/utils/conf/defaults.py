@@ -65,7 +65,7 @@ TIME_FORMAT = 'H:i:s'
 
 #######################################    CSS AND JAVASCRIPT FILES
 STYLING = 'smooth'
-LAYOUT_GRID_SYSTEM = '960' # '960_16_float' for a 16 columns float layout
+LAYOUT_GRID_SYSTEM = 'fixed_12'
 MEDIA_URL = '/media/'
 FAVICON_MODULE = None
 JQUERY_VERSION = '1.7.1'

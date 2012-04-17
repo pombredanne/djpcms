@@ -122,3 +122,5 @@ class topbar(mixin):
 css('.topbar', topbar())
 css('.topbar-fixed', fixtop(),
     gradient(cssv.topbar.default.background))
+cssa('.editable',
+     css('.topbar-fixed', unfixtop()))

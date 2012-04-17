@@ -10,6 +10,7 @@ from .colorvar import *
 __all__ = ['opacity',
            'clearfix',
            'fixtop',
+           'unfixtop',
            'shadow',
            'radius',
            'gradient',
@@ -63,7 +64,15 @@ class fixtop(mixin):
         elem['position'] = 'fixed'
         elem['z_index'] = Variable.cssvalue(self.zindex)
         
-            
+
+class unfixtop(mixin):
+    def __call__(self, elem):
+        elem['left'] = 'auto'
+        elem['top'] = 'auto'
+        elem['right'] = 'auto'
+        elem['position'] = 'static'
+        elem['z_index'] = 'auto'
+        
 ################################################# CSS3 BOX SHADOW
 class shadow(mixin):
     def __init__(self, shadow):

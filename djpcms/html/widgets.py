@@ -69,16 +69,13 @@ class TextArea(InputWidget):
     default_attrs  = {'rows': 10, 'cols': 40}
     attributes = WidgetMaker.makeattr('name','rows','cols',
                                       'disabled','readonly')
-    area_media = media.Media(js = ['djpcms/taboverride.js'])
+    _media = media.Media(js = ['djpcms/taboverride.js'])
 
     def set_value(self, value, widget):
         widget.internal['value'] = escape(value)
         
     def inner(self, request, widget, keys):
         return widget.internal['value']
-    
-    def media(self, request = None):
-        return self.area_media
     
     
 class Select(FieldWidget):
@@ -88,7 +85,7 @@ class Select(FieldWidget):
     attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
-    select_media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
+    _media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
     
     def set_value(self, val, widget):
         bfield =  widget.internal.get('bfield',None)
@@ -112,10 +109,7 @@ class Select(FieldWidget):
             id, val = idval
             sel = (id in selected_choices) and selected or ''
             yield option.format(id, sel, val)
-
-    def media(self, request = None):
-        return self.select_media
-        
+    
         
 class FileInput(InputWidget):
     default_attrs = {'type': 'file'}

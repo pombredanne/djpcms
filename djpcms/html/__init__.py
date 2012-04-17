@@ -18,8 +18,8 @@ from .async import *
 from .icons import *
 from .base import *
 from .widgets import *
-from .box import *
 from .nicerepr import *
+from .box import *
 from .table import *
 from .tabs import *
 

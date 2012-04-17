@@ -9,10 +9,10 @@ import logging
 from djpcms.utils.py2py3 import iteritems
 from djpcms.utils import escape
 from djpcms.html import Renderer, Widget
-from djpcms.html.layout import html_stream, error_title
 from djpcms.utils.async import Deferred, Failure 
 from djpcms.utils.ajax import jservererror, isajax
 
+from .layout import html_stream, error_title
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
 
 

@@ -27,7 +27,7 @@ NON_BREACKING_SPACE = mark_safe('&nbsp;')
 def attrsiter(attrs):
     for k,v in attrs.items():
         if v not in NOTHING:
-            yield " {0}='{1}'".format(k, escape(v))
+            yield " {0}='{1}'".format(k, escape(v,force=True))
 
                 
 def flatatt(attrs):
@@ -366,15 +366,7 @@ corner cases, users can subclass it to customize behavior.
 
     An ordered dictionary containing all :class:`WidgetMaker` instances
     which are direct children of the instance.
-    
-.. attribute:: parent
-
-    The ancestor of this :class:`WidgetMaker`. This attribute is assigned by
-    the API when a :class:`WidgetMaker` is added to another :class:`WidgetMaker`
-    via the :meth:`WidgetMaker.add`.
-    
-    default: ``None``
-    
+        
 .. attribute:: widget_class
 
     The widget class used by the :meth:`widget` method when creating widgets.
@@ -401,28 +393,26 @@ corner cases, users can subclass it to customize behavior.
 
 '''
     tag = None
-    parent = None
     is_hidden = False
     default_style = None
     inline = False
     attributes = ('id','title','dir','style')
     default_attrs = None
     _widget = None
+    _media = None
     
     def __init__(self, inline = None, default = False,
                  description = '', widget = None,
-                 attributes = None, renderer = None,
-                 media = None, data = None,
-                 cn = None, key = None,
+                 attributes = None, media = None,
+                 data = None, cn = None, key = None,
                  css = None, internal = None,
                  **params):
         AttributeMixin.__init__(self, cn=cn, data=data, css=css)
         self.attributes = set(self.attributes)
         if attributes:
             self.attributes.update(attributes)
-        self._media = media
+        self._media = media if media is not None else self._media
         self.description = description or self.description
-        self.renderer = renderer
         self.inline = inline if inline is not None else self.inline
         self.is_hidden = params.pop('is_hidden',self.is_hidden)
         self.tag = params.pop('tag', self.tag)
@@ -451,6 +441,7 @@ corner cases, users can subclass it to customize behavior.
     
     def __call__(self, data_stream = None, cn = None,
                  data = None, css = None, **params):
+        # Create a Widget instance
         return self._widget(self,
                             data_stream = data_stream,
                             cn = cn,
@@ -485,7 +476,6 @@ corner cases, users can subclass it to customize behavior.
                 self.children[key] = widget
                 if not widget.default_style:
                     widget.default_style = self.default_style
-                widget.parent = self
                 for k in self.internal:
                     if k not in widget.internal:
                         widget.internal[k] = self.internal[k]
@@ -523,7 +513,7 @@ information contained in this :class:`WidgetMaker`.'''
             if widget.tag:
                 yield '</' + widget.tag + '>'
         if request:
-            request.media.add(self.media(request))
+            request.media.add(self.media(request, widget))
     
     def stream(self, request, widget, context):
         '''This method is called by :meth:`stream_from_widget` method.
@@ -535,7 +525,8 @@ inner part of the widget.
         if self.key and context and self.key in context:
             ctx = context.pop(self.key)
             if isinstance(ctx, dict):
-                context = ctx
+                context = context.copy()
+                context.update(ctx)
             else:
                 widget.add(ctx)
         for child, data in zip_longest(widget.allchildren(),
@@ -564,7 +555,7 @@ inner part of the widget.
         w.internal.update(params)
         return w
     
-    def media(self, request):
+    def media(self, request, widget):
         return self._media
         
         

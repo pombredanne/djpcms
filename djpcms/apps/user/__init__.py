@@ -18,7 +18,6 @@ from .forms import LoginForm, HtmlRegisterForm, \
 from .views import *
 
 from djpcms import views
-from djpcms.html.layout import page
 
 permission = lambda self, request, obj: False if not request \
                 else request.user.is_authenticated()

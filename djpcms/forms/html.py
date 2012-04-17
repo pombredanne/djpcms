@@ -127,4 +127,7 @@ input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model, **kwargs)
         return super(HtmlForm,self).__call__(form=f, inputs=inputs or [],
                                              action=action)
+        
+    def json_messages(self, f):
+        return self.children['layout'].json_messages(f)
     

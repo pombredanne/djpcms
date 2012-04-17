@@ -64,7 +64,7 @@ class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
     tag = 'div'
     classes = 'data-table'
-    table_media = media.Media(
+    _media = media.Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
                   'djpcms/datatables/ColVis/js/ColVis.js',
@@ -118,9 +118,6 @@ javascript plugin'''
                    'sTitle':head.name,
                    'sWidth':head.width,
                    'description':head.description}
-            
-    def media(self, request):
-        return self.table_media
     
     def stream(self, request, widget, context):
         title = context.get('title')

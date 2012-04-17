@@ -79,10 +79,10 @@ except:
     DEFAULT_LOCALE_ENCODING = 'ascii'
     
 
-def escape(html):
+def escape(html, force=False):
     """Returns the given HTML with ampersands,
 quotes and angle brackets encoded."""
-    if hasattr(html,'__html__'):
+    if hasattr(html,'__html__') and not force:
         return html
     if html in NOTHING:
         return ''

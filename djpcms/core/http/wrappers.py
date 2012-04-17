@@ -64,6 +64,7 @@ def save_on_request(f):
 
 class NodeEnvironMixin(UnicodeMixin):
     view = None
+    page_editing = False
     def __init__(self, environ, node, instance, url):
         self.environ = environ
         self.node = node
@@ -511,7 +512,11 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     
     @property
     def pagination(self):
-        return self.view.pagination or self.view.appmodel.pagination
+        view = self.view
+        if view:
+            return view.pagination
+        elif view.appmodel:
+            return view.appmodel.pagination
     
     def app_for_model(self, model, all = False, root = False):
         '''Fetch an :class:`djpcms.views.Application` for a given *model*.

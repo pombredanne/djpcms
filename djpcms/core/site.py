@@ -9,8 +9,6 @@ from djpcms.utils.importer import import_module, module_attribute
 from djpcms.utils import conf, lazyproperty, Path
 from djpcms.utils.structures import OrderedDict
 from djpcms import html
-from djpcms.html.template import ContextTemplate
-from djpcms.html import layout
 
 from .exceptions import AlreadyRegistered, PermissionDenied,\
                         ImproperlyConfigured, DjpcmsException,\
@@ -22,6 +20,7 @@ from .cache import CacheHandler
 from .async import ResponseHandler
 from . import http
 from . import orms
+from . import layout
 
 
 __all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite']
@@ -178,7 +177,6 @@ Attributes available:
     
     def _load(self):
         self.setup_environment()
-        self.internals['template'] = ContextTemplate(self)
         return super(Site,self)._load()
     
     def _site(self):

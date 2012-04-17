@@ -29,7 +29,7 @@ import djpcms
 from djpcms import views
 from djpcms.apps import admin, static, user
 from djpcms import html
-from djpcms.html.layout import page, container, grid
+from djpcms.core.layout import page, container, grid
 from djpcms.plugins.navigation import topbar
 
 from stdcms.sessions import User

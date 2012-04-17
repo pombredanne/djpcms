@@ -14,13 +14,13 @@ HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 HtmlPageForm = forms.HtmlForm(
     PageForm,
     layout = uni.FormLayout(
+                
                 uni.Columns(
-                    ('title','link','in_navigation'),
                     ('doctype','layout','inner_template','grid_system'),
-                    ('url','requires_login','soft_root'))
+                    ('title','link','in_navigation','url'),
+                    ('requires_login','soft_root',uni.SUBMITS))
                 ),
-    inputs = (('done',forms.SAVE_KEY),
-              ('save',forms.SAVE_AND_CONTINUE_KEY)
+    inputs = (('save',forms.SAVE_AND_CONTINUE_KEY),
               )
 )
 

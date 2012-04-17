@@ -6,9 +6,10 @@ following to your application urls tuple::
 '''
 from djpcms import views, Http404
 from djpcms.core import messages
-from djpcms.html.layout import htmldoc, grid, container
+from djpcms.core.layout import htmldoc, grid, container
 from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
+from djpcms.plugins.navigation import page_links
 
 from .admin import TabViewMixin
 
@@ -26,6 +27,7 @@ def underlying_response(request, page):
         if not underlying:
             messages.error(request,
                 'This page has problems. Could not find matching view')
+        underlying.page_editing = True
         return underlying
 
 
@@ -54,23 +56,13 @@ class SiteMapView(views.SearchView):
             r = request.for_path(view.path, cache = False)
             yield PageView(r)
     
-
-def reder_edit_form(request):
-    text = self.render(request)
-    body = grid('grid 100')(self.render(request))
-    body = body.render(request)
-    underlying = request.underlying()
-    edit = Widget('div', body, cn = 'edit-panel')
-    context = underlying.get_context(editing = True)
-    context['body'] = Widget('div',(edit,context['body'])).render(request)
-    context['title'] = 'Edit ' + context['title']
-    return context
-    
     
 class PageChangeView(views.ChangeView):
     name='change'
-    edit_container=container('edit-page', renderer=reder_edit_form)
-    '''Change page data'''
+    edit_container=container('edit-page',
+                             grid_fixed=False,
+                             context_request=lambda r: r,
+                             renderer=lambda r,n,b: r.render())
     
     def underlying(self, request):
         return underlying_response(request, request.instance)
@@ -79,14 +71,20 @@ class PageChangeView(views.ChangeView):
         page = request.instance
         layout = page.layout
         layout = self.root.get_page_layout(layout)()
-        # Insert edit container
+        # Insert edit page form container
         edit_container = layout.maker.child_widget(self.edit_container,layout)
-        children = OrderedDict({self.edit_container.key: edit_container})
+        cls = layout.children.__class__
+        children = cls({edit_container.key: edit_container})
         children.update(layout.children)
         layout.children = children
         return layout.render(request)
+    
+    def render(self, request):
+        text = super(PageChangeView,self).render(request)
+        links = page_links(request)
+        return box(bd=text, collapsable=True, edit_menu=links).render(request)
         
-    def reder_edit_form(self, request):
+    def render_page(self, request, block_number, blocks):
         text = self.render(request)
         body = grid('grid 100')(self.render(request))
         body = body.render(request)

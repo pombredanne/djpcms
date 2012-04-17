@@ -306,7 +306,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         return self.linkname(request)
     
     def underlying(self, request):
-        return None
+        return request
     
     def is_soft(self, request):
         page = request.page

@@ -8,3 +8,4 @@ A new layout is created using::
 '''
 from .doc import *
 from .page import *
+from .model import *

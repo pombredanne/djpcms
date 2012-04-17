@@ -101,9 +101,9 @@ HTML = {
     'legend': 'legend ui-state-default ui-corner-all'
     }
 
-from .core import *
 from .utils import ajax
 from .utils.decorators import *
+from .core import *
 
 def secret_key():
     '''Secret Key used as base key in encryption algorithm'''

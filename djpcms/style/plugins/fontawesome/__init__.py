@@ -14,7 +14,10 @@ mapping = {'admin': 'cog',
            'true': 'ok',
            'false': 'minus-sign',
            'logout': 'signout',
-           'login': 'signin'}
+           'login': 'signin',
+           'open-box': 'plus-sign',
+           'close-box': 'minus-sign',
+           'exit-page-edit': 'off'}
 
 
 def icon(name, size, widget):

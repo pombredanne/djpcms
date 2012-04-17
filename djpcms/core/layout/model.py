@@ -7,32 +7,28 @@ import sys
 import re
 import logging
 
-import djpcms
-from djpcms import Route
 from djpcms.html import NON_BREACKING_SPACE
-from djpcms.html.layout import htmldoc, grid
 from djpcms.core.exceptions import BlockOutOfBound
+from djpcms.core.routing import Route
+from djpcms.core.permissions import VIEW
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
 from djpcms.utils import markups, escape, force_str
 
-
-contentre = re.compile('{{ content\d }}')
-
-
-__all__ = ['Page','Block','BlockContentMapper','MarkupMixin']
+from .doc import htmldoc
+from .page import grid
 
 
-def get_or_update_dict(d, key, val = None):
-    if key not in d:
-        d[key] = val if val is not None else {}
-    return d[key]
+__all__ = ['PageModel',
+           'BlockModel',
+           'MarkupMixin']
+
 
 def block_htmlid(pageid, block):
     '''HTML id for a block container. Used throughout the library.'''
     return 'djpcms-block-{0}-{1}'.format(pageid,block)
-
-
-class Page(object):
+    
+    
+class PageModel(object):
     '''Page object interface.
     
 .. attribute:: route
@@ -49,6 +45,7 @@ The following attributes must be implemented by subclasses.
 '''
     layout = 0
     inner_template = None
+    grid_system = None
     
     @property
     def route(self):
@@ -71,18 +68,6 @@ The following attributes must be implemented by subclasses.
             return grid.numblocks
         else:
             return 1
-    
-    def blocks(self):
-        '''Iterator over block contents'''
-        raise NotImplementedError()
-    
-    def block_dictionary(self):
-        blockcontent = {}
-        for b in self.blocks():
-            namespace = get_or_update_dict(blockcontent, b.namespace)
-            block = get_or_update_dict(namespace, b.block)
-            block[b.position] = b
-        return blockcontent
     
     def add_plugin(self, p, block = 0):
         '''Add a plugin to a block'''
@@ -130,8 +115,17 @@ The following attributes must be implemented by subclasses.
     def register_tree_update(cls, tree_update):
         pass
     
+    @classmethod
+    def blocks(cls, pageobj):
+        '''Iterator over block contents'''
+        raise NotImplementedError()
+    
+    @classmethod
+    def make_block(cls, **kwargs):
+        raise NotImplementedError()
+    
 
-class Block(object):
+class BlockModel(object):
     '''Content Block Interface.'''
     logger  = logging.getLogger('BlockContent')
     namespace = 'content'
@@ -143,7 +137,7 @@ with the wrapper callable.'''
         plugin_response = None
         plugin = plugin or self.plugin
         wrapper = wrapper or self.wrapper
-        if plugin and request.has_permission(djpcms.VIEW, self):
+        if plugin and request.has_permission(VIEW, self):
             try:
                 request.media.add(plugin.media(request))
                 plugin_response = plugin(request, self.arguments, block = self)

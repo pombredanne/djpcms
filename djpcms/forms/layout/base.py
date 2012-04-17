@@ -3,7 +3,7 @@ from inspect import isclass
 from djpcms.utils.py2py3 import is_bytes_or_string
 from djpcms.utils import zip
 from djpcms import html, ajax
-from djpcms.html.layout import equally_spaced_grid
+from djpcms.core.layout import equally_spaced_grid
 from djpcms.utils.text import nicename
 
 inlineLabels   = 'inlineLabels'
@@ -249,6 +249,7 @@ yui3_ grid layout.
         if grid.numblocks != ncols:
             raise ValueError('Number of column {0} does not match number of\
  html elements {1}'.format(ncols,grid.numblocks))
+        self.internal['grid_fixed'] = False
         self.grid = grid
 
     def check_fields(self, missings, layout):
@@ -266,7 +267,9 @@ yui3_ grid layout.
             self.add(column)
     
     def stream(self, request, widget, context):
-        return self.grid(widget.allchildren()).stream(request, context)
+        grid = self.child_widget(self.grid, widget)
+        grid.add(widget.allchildren())
+        return grid.stream(request, context)
 
 
 class FormLayout(BaseFormLayout):
@@ -280,9 +283,9 @@ class FormLayout(BaseFormLayout):
     '''form css class'''
     form_messages_container_class = 'form-messages ctrlHolder'
     '''Class used to hold form-wide messages'''
-    form_error_class = 'errorlist ui-state-error'
+    form_error_class = 'alert alert-error'
     '''Class for form errors'''
-    form_message_class = 'messagelist ui-state-highlight'
+    form_message_class = 'alert alert-success'
     '''Class for form messages'''
     from_input_class = 'buttonHolder'
     default_element = Fieldset

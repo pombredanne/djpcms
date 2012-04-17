@@ -712,18 +712,6 @@
             $('.ui-tabs',$this).tabs(config.tabs).show(c.effect,{},c.fadetime);
         }
     });
-
-    $.djpcms.decorator({
-        id:'ui-state-hover',
-        decorate: function(obj, config) {
-            $('.edit-menu a',obj).addClass('ui-corner-all')
-                .mouseenter(function(){$(this).addClass('ui-state-hover');})
-                .mouseleave(function(){$(this).removeClass('ui-state-hover');});
-            $('a.ui-hoverable',obj).addClass('ui-corner-all')
-                .mouseenter(function(){$(this).addClass('ui-state-hover');})
-                .mouseleave(function(){$(this).removeClass('ui-state-hover');});
-        }
-    });
     
     
     /**
@@ -932,44 +920,6 @@
                 }).blur(function() {
                     $(this).addClass('idlefield');
                 });
-            });
-        }
-    });
-    
-    /**
-     * box decorator
-     * Collappsable boxes
-     */
-    $.djpcms.decorator({
-        id:"djpcms_box",
-        description:"Decorate a DJPCMS box element",
-        decorate: function($this,config) {
-            var pselector = '.djpcms-html-box.collapsable',
-                cname = pselector + ' a.collapse',
-                bname = '.hd',
-                elems;
-            $(cname,$this).mousedown(function (e) {
-                e.stopPropagation();    
-            }).click(function() {
-                var self = $(this),
-                    span = $('span',this),
-                    cp = self.parents(pselector).first(),
-                    be = config.box_effect,
-                    bd = $('.bd',cp).first();
-                if(cp.hasClass('collapsed')) {
-                    bd.show(be.type,{},be.duration,function(){
-                        cp.removeClass('collapsed');
-                        span.removeClass('ui-icon-circle-triangle-s')
-                            .addClass('ui-icon-circle-triangle-n');
-                    });
-                }
-                else {
-                    bd.hide(be.type,{},be.duration, function(){cp.addClass('collapsed');});
-                    span.removeClass('ui-icon-circle-triangle-n')
-                        .addClass('ui-icon-circle-triangle-s');
-                }
-                //cp.toggleClass('collapsed');
-                return false;
             });
         }
     });

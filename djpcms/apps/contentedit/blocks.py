@@ -1,6 +1,5 @@
 from djpcms import forms, html, views, ajax
 from djpcms.plugins import PLUGIN_DATA_FORM_CLASS
-from djpcms.core.page import block_htmlid
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.forms.utils import get_redirect
 from djpcms.plugins.extrawrappers import CollapsedWrapper

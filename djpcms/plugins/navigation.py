@@ -50,8 +50,10 @@ def page_links(request, asbuttons = False):
                     path = route.url(**urlargs)
                 except:
                     path = '/'
-                a = html.anchor_or_button('exit', href = path,
-                                          asbutton = asbuttons)
+                a = html.anchor_or_button('exit',
+                                          href=path,
+                                          icon='exit-page-edit',
+                                          asbutton=asbuttons)
                 ul.add(a)
         else:
             page = request.page
@@ -72,10 +74,13 @@ def page_links(request, asbuttons = False):
                     href = link.attrs['href']
                     link.attrs['href'] = iri_to_uri(href, kwargs)
                     ul.add(link)
-                    
+    return ul
+
+
+def page_user_links(request, asbuttons=False):
+    ul = page_links(request, asbuttons=asbuttons)
     for link in userlinks(request, asbuttons):
         ul.add(link)
-            
     return ul
 
 
@@ -113,7 +118,7 @@ def topbar(request):
 There are several customizable parameters available.
     '''
     settings = request.view.settings
-    return views.Navigator(secondary = page_links(request),
+    return views.Navigator(secondary = page_user_links(request),
                            levels = settings.SITE_NAVIGATION_LEVELS,
                            brand = settings.SITE_NAVIGATION_BRAND)
     

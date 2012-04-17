@@ -5,9 +5,9 @@ import logging
 from functools import partial
 from datetime import datetime
 
-from djpcms import forms, http, html
+from djpcms import forms, html
 from djpcms.utils.py2py3 import to_string
-from djpcms.core import messages
+from djpcms.core import messages, http
 from djpcms.core.orms import mapper
 from djpcms.utils import force_str, ajax
 from djpcms.utils.urls import urlsplit
@@ -153,7 +153,7 @@ def get_form(request,
 
 def return_form_errors(fhtml,request):
     if request.is_xhr:
-        return fhtml.layout.json_messages(fhtml.form)
+        return fhtml.maker.json_messages(fhtml.form)
     else:
         return request.view.handle_response(request)
     
@@ -221,7 +221,7 @@ has been submitted, including possible asynchronous behavior.'''
                                 fhtml, force_redirect))
     else:
         if request.is_xhr:
-            return fhtml['layout'].maker.json_messages(f)
+            return fhtml.maker.json_messages(f)
         else:
             return view.get_response(request)
         
@@ -232,7 +232,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
     if ajax.isajax(instance):
         return instance
     elif instance == f:
-        return fhtml.layout.json_messages(f)
+        return fhtml.maker.json_messages(f)
     data = request.REQUEST
     msg = fhtml.success_message(request, instance,
                                 'changed' if editing else 'added')
@@ -242,7 +242,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
     if SAVE_AND_CONTINUE_KEY in data:
         if editing:
             if request.is_xhr:
-                return fhtml.layout.json_messages(f)
+                return fhtml.maker.json_messages(f)
             else:
                 #editing and continuing to edit
                 curr = request.environ.get('HTTP_REFERER')
@@ -257,7 +257,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
     
     if not url:
         if request.is_xhr:
-            return fhtml.layout.json_messages(f)
+            return fhtml.maker.json_messages(f)
         else:
             set_request_message(f,request)
             return view.get_response(request)

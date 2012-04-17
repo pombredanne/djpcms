@@ -84,14 +84,14 @@ class WebSite(djpcms.WebSite):
     def page_layouts(self, site):
         # Page template
         page_template = page(
-            container('topbar', grid('grid 100'), cn = 'topbar-fixed'),
-            container('header', grid('grid 100')),
+            container('topbar', grid('grid 100'), cn='topbar-fixed',
+                      renderer=self.render_topbar),
+            container('header', grid('grid 100'),
+                      renderer=self.render_header),
             container('content'),
-            container('footer', grid('grid 33-33-33')))
+            container('footer', grid('grid 33-33-33'),
+                      renderer=self.render_footer))
         site.register_page_layout('default', page_template)
-        page_template.renderers['topbar'] = self.render_topbar
-        page_template.renderers['header'] = self.render_header
-        page_template.renderers['footer'] = self.render_footer
     
     def render_topbar(self, request, block_number, blocks):
         '''Render the topbar container'''

@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views, Http404
 from djpcms.core import messages
-from djpcms.html.layout import htmldoc, grid
+from djpcms.html.layout import htmldoc, grid, container
 from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
 
@@ -55,8 +55,21 @@ class SiteMapView(views.SearchView):
             yield PageView(r)
     
 
+def reder_edit_form(request):
+    text = self.render(request)
+    body = grid('grid 100')(self.render(request))
+    body = body.render(request)
+    underlying = request.underlying()
+    edit = Widget('div', body, cn = 'edit-panel')
+    context = underlying.get_context(editing = True)
+    context['body'] = Widget('div',(edit,context['body'])).render(request)
+    context['title'] = 'Edit ' + context['title']
+    return context
+    
+    
 class PageChangeView(views.ChangeView):
-    name = 'change'
+    name='change'
+    edit_container=container('edit-page', renderer=reder_edit_form)
     '''Change page data'''
     
     def underlying(self, request):
@@ -66,8 +79,14 @@ class PageChangeView(views.ChangeView):
         page = request.instance
         layout = page.layout
         layout = self.root.get_page_layout(layout)()
+        # Insert edit container
+        edit_container = layout.maker.child_widget(self.edit_container,layout)
+        children = OrderedDict({self.edit_container.key: edit_container})
+        children.update(layout.children)
+        layout.children = children
         return layout.render(request)
         
+    def reder_edit_form(self, request):
         text = self.render(request)
         body = grid('grid 100')(self.render(request))
         body = body.render(request)

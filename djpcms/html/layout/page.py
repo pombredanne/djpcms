@@ -126,7 +126,6 @@ the body tag. A page contains a list of :class:`container`.'''
         self.columns = kwargs.pop('columns', self.columns)
         if not containers:
             containers = (container('content'),)
-        self.renderers = {}
         super(page, self).__init__(*containers, **kwargs)
         
     @classmethod
@@ -138,15 +137,14 @@ the body tag. A page contains a list of :class:`container`.'''
         page = request.page if request else None
         context = context if context is not None else {}
         block_dictionary = page.block_dictionary() if page is not None else {}
-        renderers = self.renderers
         for child in self.allchildren():
             key = child.key
-            if key not in context:
-                renderer = self.renderers.get(key)
+            if key in context:
+                renderer = context[key]
+            else:
+                renderer = child.renderer
                 if not renderer:
                     renderer = self.default_renderer
-            else:
-                renderer = context[key]
             blocks = block_dictionary.get(key)
             context[key] = {'renderer': renderer,
                             'blocks': blocks if blocks is not None else {}}
@@ -243,6 +241,7 @@ class container(grid_holder):
         kwargs['key'] = key
         kwargs['role'] = key
         kwargs['id'] = 'page-'+key
+        self.renderer = kwargs.pop('renderer',None)
         super(container, self).__init__(*grid, **kwargs)
     
     def default_inner_grid(self, request):

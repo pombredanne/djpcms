@@ -66,7 +66,8 @@ def get_or_update_dict(d, key, val = None):
         d[key] = val if val is not None else {}
     return d[key]
 
-def update_blocks(model, content, numblocks, pageobj=None):
+def block_dictionary(all_blocks, grid):
+    numblocks = grid.numblocks
     for nb in range(numblocks):
         blocks = content.get(nb)
         if blocks is None:
@@ -89,9 +90,10 @@ def update_blocks(model, content, numblocks, pageobj=None):
         if build:
             block = model.make_block(page=pageobj, block=nb, position=np)
             block.save()
-            new_blocks.append(block)
-            
-def block_dictionary(request):
+            new_blocks.append(block)                
+    return blockcontent
+
+def all_blocks(request):
     mapper = request.view.Page
     if not mapper:
         return {}
@@ -100,16 +102,10 @@ def block_dictionary(request):
     blockcontent = {}
     for b in model.blocks(pageobj):
         namespace = get_or_update_dict(blockcontent, b.namespace)
-        block = get_or_update_dict(namespace, b.block)
-        block[b.position] = b
-    if request.page_editing:
-        numblocks = pageobj.numblocks()
-        content = blockcontent.get('content')
-        if content is None:
-            content = {}
-            blockcontent['content'] = content
-        update_blocks(model, content, numblocks, pageobj)                
-    return blockcontent
+        blocks = get_or_update_dict(namespace, b.block)
+        blocks[b.position] = b
+    return blocks
+    
 
 class elem(WidgetMaker):
     '''Base class for all page layout templates. These templates contain all
@@ -200,33 +196,11 @@ the body tag. A page contains a list of :class:`container`.'''
         return get_grid_system(request)
     
     def get_context(self, request, widget, context):
-        # Override get_context to fill up the keyword dictionary
-        context = super(page, self).get_context(request, widget, context)
+        context = super(Grid, self).get_context(request, widget, context)
         if request:
             request = self.context_request(request, widget)
-            bd = block_dictionary(request)
-        else:
-            bd = {}
-        for child in widget.allchildren():
-            key = child.key
-            if key in context:
-                renderer = context[key]
-            else:
-                renderer = child.maker.renderer
-                if not renderer:
-                    renderer = self.default_renderer
-            blocks = bd.get(key)
-            context[key] = {'renderer': renderer,
-                            'blocks': blocks if blocks is not None else {}}
+            context['all_blocks'] = all_blocks(request)
         return context
-    
-    def default_renderer(self, request, block_number, blocks):
-        '''The default renderer check if plugins are specified'''
-        if blocks:
-            for position in sorted(blocks):
-                block = blocks[position]
-        elif request:
-            return request.render()
                 
         
 class Grid(elem):
@@ -324,7 +298,9 @@ default :class:`Grid` element is created.'''
         if not inner_grid and 'blocks' in context:
             widget.add(context['blocks'].popleft())
         else:
+            blocks = context.get('all_blocks',{}).get(self.key)
             inner_grid = inner_grid or self.default_inner_grid(request)
+            blocks = block_dictionary(blocks, request, inner_grid)
             key = inner_grid.key or 0
             widget.children.clear()
             widget.children[key] = self.child_widget(inner_grid, widget)

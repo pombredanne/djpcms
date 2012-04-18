@@ -261,7 +261,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def __call__(self, request):
         method = request.method
-        # Not AJAX
+        # Not an AJAX request
         if not request.is_xhr:
             return getattr(self,'%s_response' % method)(request)
         
@@ -340,11 +340,15 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def ajax_get_response(self, request):
         html = self.render(request)
-        return ajax.dialog(hd = request.title,
-                           bd = html,
-                           width = self.dialog_width,
-                           height = self.dialog_height,
-                           modal = True)
+        content_type = request.REQUEST.get('content_type','json')
+        if content_type == 'json':
+            return ajax.dialog(hd = request.title,
+                               bd = html,
+                               width = self.dialog_width,
+                               height = self.dialog_height,
+                               modal = True)
+        else:
+            return ajax.simpledump(html, content_type=content_type)
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests'''

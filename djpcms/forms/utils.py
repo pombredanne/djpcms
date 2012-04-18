@@ -127,9 +127,13 @@ def get_form(request,
     if inputs is not None:
         inputs = [inp() for inp in inputs]
     elif addinputs:
-        inputs = form_inputs(instance,  request.path==request.url)
+        if not request.is_xhr:
+            own_view = request.path==request.url
+        else:
+            own_view = False
+        inputs = form_inputs(instance, own_view)
     
-    inputs = inputs or []
+    inputs = inputs if inputs is not None else []
     inputs.append(Widget('input:hidden',name=REFERER_KEY,value=referer))
     if not prefix and force_prefix:
         prefix = generate_prefix()

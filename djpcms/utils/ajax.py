@@ -12,6 +12,7 @@ def isajax(obj):
    
 class jsonbase(object):
     '''Base class for JSON AJAX utilities'''
+    _content_type = 'application/javascript'
     
     def dict(self):
         '''This is the only functions that needs to be implemented by derived
@@ -29,7 +30,7 @@ as JSON string.
         return self._dump(self.dict())
     
     def content_type(self):
-        return 'application/javascript'
+        return self._content_type
     
     def mark_safe(self, s):
         from djpcms.template import loader
@@ -65,9 +66,11 @@ class simplelem(jsonbase):
 
 
 class simpledump(jsonbase):
-    
-    def __init__(self, str):
+    _content_type = 'text/html'
+    def __init__(self, str, content_type=None):
         self.data = str
+        if content_type:
+            self._content_type = content_type
         
     def dumps(self):
         return self.data

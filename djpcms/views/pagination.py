@@ -228,7 +228,7 @@ an application based on model is available.
     bulk_actions = []
     toolbox = {}
     
-    for name,description,pcode in pagination.bulk_actions:
+    for name, description, pcode in pagination.bulk_actions:
         if has(request, pcode, None):
             bulk_actions.append((name,description))
     

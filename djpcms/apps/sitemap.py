@@ -11,8 +11,6 @@ from djpcms.forms.utils import request_get_data
 from djpcms.html import box, Pagination, table_header, Widget
 from djpcms.plugins.navigation import page_links
 
-from .admin import TabViewMixin
-
 
 def underlying_response(request, page):
     urlargs = dict(request_get_data(request).items())
@@ -62,7 +60,7 @@ class PageChangeView(views.ChangeView):
     edit_container=container('edit-page',
                              grid_fixed=False,
                              context_request=lambda r: r,
-                             renderer=lambda r,n,b: r.render())
+                             renderer=lambda r,namespace,col,b: r.render())
     
     def underlying(self, request):
         return underlying_response(request, request.instance)
@@ -82,26 +80,8 @@ class PageChangeView(views.ChangeView):
     def render(self, request):
         text = super(PageChangeView,self).render(request)
         links = page_links(request)
-        return box(bd=text, collapsable=True, edit_menu=links).render(request)
-        
-    def render_page(self, request, block_number, blocks):
-        text = self.render(request)
-        body = grid('grid 100')(self.render(request))
-        body = body.render(request)
-        underlying = request.underlying()
-        edit = Widget('div', body, cn = 'edit-panel')
-        context = underlying.get_context(editing = True)
-        context['body'] = Widget('div',(edit,context['body'])).render(request)
-        context['title'] = 'Edit ' + context['title']
-        return context
+        return box(bd=text, collapsed=True, edit_menu=links).render(request)
     
-    def cssgrid(self, request):
-        underlying = request.underlying()
-        if underlying is not None:
-            return underlying.cssgrid()
-        else:
-            return super(PageChangeView,self).cssgrid(request)
-        
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:
             return next
@@ -110,9 +90,9 @@ class PageChangeView(views.ChangeView):
                                                           **kwargs)
     
     
-class SiteMapApplication(TabViewMixin, views.Application):
-    has_plugins = False
+class SiteMapApplication(views.Application):
     '''Application to use for admin sitemaps'''
+    has_plugins = False
     pagination = Pagination(('url','view','template',
                              'inner_template', 'in_navigation',
                              table_header('doc_type',attrname='doctype'),

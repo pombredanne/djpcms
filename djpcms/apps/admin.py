@@ -14,7 +14,7 @@ registered in the same ApplicationSite::
                   
 '''
 from djpcms import views, html
-from djpcms.html import Widget, ContextRenderer
+from djpcms.html import Widget, WidgetMaker
 from djpcms.utils import force_str, routejoin
 from djpcms.utils.py2py3 import iteritems
 from djpcms.utils.urls import closedurl
@@ -27,41 +27,7 @@ __all__ = ['AdminSite',
            'AdminApplicationSimple',
            'AdminApplication',
            'TabView',
-           'TabViewMixin',
            'make_admin_urls']
-            
-
-class TabView(views.ObjectItem):
-    '''A function for rendering a model instance
-like in the admin interface. Using jQuery UI tabs.
-This is usually called in the view page of the object.
-    
-:parameter djp: instance of a :class:`djpcms.views.DjpResponse`'''
-    def view_generator(self, request, widget):
-        appmodel = widget.internal['appmodel']
-        instance = widget.internal['instance']
-        for view in appmodel.object_views:
-            req = request.for_path(view.path)
-            if 'get' not in req.methods():
-                continue
-            if isinstance(view,views.ViewView):
-                html = req.render(context='object')
-            else:
-                html = req.render()
-            order = appmodel.views_ordering.get(view.name,100)
-            yield order,(view.description,html)
-            
-    def inner(self, request, widget, keys):
-        views = (x[1] for x in sorted(self.view_generator(request,widget),
-                                      key = lambda x : x[0]))
-        return html.tabs(views).render(request)
-
-
-class TabViewMixin(object):
-    views_ordering = {'view':0,'change':1}
-    object_widgets = views.extend_widgets({'home':TabView(),
-                                           'object':views.ObjectDef()})
-    pagination = html.Pagination(('__str__',))
 
 
 class ApplicationGroup(views.Application):
@@ -73,7 +39,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
                                  footer = False,
                                  html_data = {'options':{'sDom':'t'}})
     
-    home = views.View(in_nav = 1)
+    home = views.View(in_nav=1)
     
     def table_generator(self, request, headers, qs):
         for child in qs:
@@ -107,21 +73,53 @@ administer models in groups.'''
                 a = Widget('a', g['title'], href = url)
             else:
                 a = g['title']
-            yield a,g['body']
+            yield a, g['body']
       
 
-class AdminApplicationSimple(TabViewMixin,views.Application):
+class AdminApplicationSimple(views.Application):
+    pagination = html.Pagination(('__str__',))
     has_plugins = False
     search = views.SearchView()
     delete_all = views.DeleteAllView()
-    view   = views.ViewView()
+    view = views.ViewView()
     delete = views.DeleteView()
     
     
-class AdminApplication(AdminApplicationSimple):
-    inherit = True
-    add    = views.AddView()
-    change = views.ChangeView()
+class TabView(views.ObjectView):
+    
+    def get_views(self, request):
+        appmodel = request.view.appmodel
+        for r in views.application_views(request, exclude=('delete',)):
+            order = appmodel.views_ordering.get(r.view.name,100)
+            yield order,r
+            
+    def render(self, request):
+        instance = request.instance
+        tabs = html.tabs().addData('ajax',True)
+        first = True
+        for order, elem in sorted(self.get_views(request), key=lambda v: v[0]):
+            # we render so that we add javascript if it is needed
+            text = elem.view.render()
+            link = views.application_link(elem, asbutton=False)
+            tabs.addtab(link, text)
+        return tabs
+     
+     
+class AdminApplication(views.Application):
+    has_plugins = False
+    views_ordering = {'view':0,'change':1}
+    pagination = html.Pagination(('__str__',))
+    
+    home = views.SearchView()
+    delete_all = views.DeleteAllView()
+    add = views.AddView()
+    tabview = TabView('/<id>/')
+    view = views.ViewView('/view', parent_view='tabview')
+    change = views.ChangeView(parent_view='tabview')
+    delete = views.DeleteView(parent_view='tabview')
+    
+    def view_for_instance(self, request, instance):
+        return self.views.get('tabview')
 
 
 def get_admins(INSTALLED_APPS):

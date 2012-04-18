@@ -1,7 +1,11 @@
-from djpcms.utils import escape, js, media
+from djpcms.utils import escape, js, media, ispy3k
 
 from .base import WidgetMaker, Widget
 
+if ispy3k:
+    from itertools import zip_longest
+else:
+    from itertools import izip_longest as zip_longest
 
 __all__ = ['TextInput',
            'SubmitInput',
@@ -72,11 +76,8 @@ class TextArea(InputWidget):
     _media = media.Media(js = ['djpcms/taboverride.js'])
 
     def set_value(self, value, widget):
-        widget.internal['value'] = escape(value)
+        widget.add(escape(value))
         
-    def inner(self, request, widget, keys):
-        return widget.internal['value']
-    
     
 class Select(FieldWidget):
     tag = 'select'
@@ -117,7 +118,7 @@ class FileInput(InputWidget):
         
         
 for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
-            'li','tr','span','button','i'):
+            'li','tr','span','button','i','dt', 'dd'):
     WidgetMaker(tag = tag)
     
     
@@ -145,16 +146,17 @@ List(default = 'ul')
 
 
 #___________________________________________________ LIST DEFINITION
-class DefinitionListMaker(WidgetMaker):
-    tag = 'div'
+class DefinitionList(WidgetMaker):
+    tag = 'dl'
     
-    def data2html(self, request, data):
-        return '<dl><dt>{0}</dt><dd>{1}</dd></dl>'.format(*data)
+    def add_to_widget(self, widget, elem, cn = None):
+        if hasattr(elem,'__iter__'):
+            tags = ('dt', 'dd')
+            for n,data in enumerate(zip_longest(tags, elem, fillvalue='')):
+                if n > 1:
+                    break
+                widget._data_stream.append(Widget(*data))
     
-
-class DefinitionList(Widget):
-    maker = DefinitionListMaker()
-
 
     
 def SelectWithAction(choices, action_url, **kwargs):

@@ -432,7 +432,7 @@ class gridfluid(grid):
             raise ValueError('gutter must be positive')
         self.columns = columns
         self.gutter = gutter
-        self.span = round((100 - columns*gutter)/columns, 4)
+        self.span = round((100 - (columns-1)*gutter)/columns, 4)
         if self.span <= 0:
             raise ValueError('gutter too large')
     

@@ -697,22 +697,6 @@
         }
     });
     
-    /**
-     * jQuery UI Tabs
-     */
-    $.djpcms.decorator({
-        id:"ui_tabs",
-        config:{
-            effect:'drop',
-            fadetime: 500,
-           //tabs: {cookie: {expiry: 7}},
-            },
-        decorate: function($this, config) {
-            var c = config.ui_tabs;
-            $('.ui-tabs',$this).tabs(config.tabs).show(c.effect,{},c.fadetime);
-        }
-    });
-    
     
     /**
      * Ajax links, buttons, select and forms
@@ -999,23 +983,7 @@
                           timeout: timeout_});
             });
         }
-    });
-
-    
-    $.djpcms.decorator({
-        id: 'taboverride',
-        description: "Override tab key to insert n spaces",
-        config: {
-         spaces: 4    
-        },
-        decorate: function($this,config) {
-            if($.fn.tabOverride) {
-                $.fn.tabOverride.setTabSize(config.taboverride.spaces);
-                $('textarea.taboverride',$this).tabOverride(true);
-            }
-        }
-    });
-    
+    });    
 
     $.djpcms.addJsonCallBack({
         id: "autocomplete",

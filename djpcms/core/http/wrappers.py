@@ -513,7 +513,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
     @property
     def pagination(self):
         view = self.view
-        if view:
+        if view.pagination:
             return view.pagination
         elif view.appmodel:
             return view.appmodel.pagination

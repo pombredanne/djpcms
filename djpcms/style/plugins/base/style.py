@@ -35,6 +35,9 @@ cssv.alert.radius = cssv.body.radius
 #
 cssv.uniform.padding = px(4)
 cssv.uniform.table_layout = 'auto'
+#
+cssv.definition_list.opacity = 0.8
+cssv.definition_list.font_weight = 'normal'
 ################################################################################
 
 
@@ -78,19 +81,21 @@ css('.edit-menu',
     horizontal_navigation(float='right'))
 
 ################################################# OBJECT DEFINITIONS
-css('.object-definition',
-    css('dl',
-        cssa(':first-child', margin_top = 0),
-        css('dt',
-            opacity = cssv.definition_list_opacity,
-            float = 'left', width = '40%', margin = 0),
-        css('dd', margin = 0)
-        ),
-    cssa('.w20 dl dt', width = '20%'),
-    cssa('.w40 dl dt', width = '40%'),
-    cssa('.w50 dl dt', width = '50%'),
-    overflow = 'hidden',
-    margin = '5px 0 0')
+css('dl.object-definition',
+    cssa(':first-child', margin_top = 0),
+    css('dt',
+        opacity(cssv.definition_list.opacity),
+        font_weight=cssv.definition_list.font_weight,
+        float = 'left',
+        clear='left',
+        width='40%',
+        margin = 0),
+    css('dd', margin = 0),
+    cssa('.w20 dt', width = '20%'),
+    cssa('.w40 dt', width = '40%'),
+    cssa('.w50 dt', width = '50%'),
+    overflow='hidden',
+    margin='5px 0 0')
 
 ################################################################################
 # Uniform variables

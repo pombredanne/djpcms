@@ -1,4 +1,5 @@
 from djpcms.utils import gen_unique_id
+from djpcms.utils.media import Media
 
 from .base import Widget, WidgetMaker, iterable_for_widget
 
@@ -17,12 +18,14 @@ class TabWidget(Widget):
     
     def _unwind(self):
         if self._data_stream:
-            ul = Widget('ul')
+            ul = Widget('ul').addClass(self.internal.get('type'))
             divs = []
             for key, val in self._data_stream:
-                id = gen_unique_id()[:8]
-                ul.add(Widget('a', key, href='#'+id))
-                divs.append(Widget('div', val, id=id))
+                if not isinstance(key,Widget) or key.tag!='a':
+                    id = gen_unique_id()[:8]
+                    key = Widget('a', key, href='#'+id)
+                    divs.append(Widget('div', val, id=id))
+                ul.add(key)
             yield ul
             for div in divs:
                 yield div        
@@ -35,13 +38,22 @@ class Accordion(TabWidget):
             yield Widget('h3',key)
             yield Widget('div',val)
         
-        
+
+tab_media = Media(js = ['djpcms/tabs.js'])
+
 tabs = WidgetMaker(tag='div',
                    widget=TabWidget,
-                   default_class='ui-tabs')
+                   cn='ui-tabs djph',
+                   internal={'type':'tabs'},
+                   media=tab_media)
+pills = WidgetMaker(tag='div',
+                    widget=TabWidget,
+                    cn='ui-tabs djph',
+                    internal={'type':'pills'},
+                    media=tab_media)
 accordion = WidgetMaker(tag='div',
                         widget=Accordion,
-                        default_class='ui-accordion-container djph')
+                        cn='ui-accordion-container djph')
 
 
 def ajax_html_select(name_title_html, **kwargs):

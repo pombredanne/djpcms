@@ -130,7 +130,7 @@ class BlockModel(object):
     logger  = logging.getLogger('BlockContent')
     namespace = 'content'
     
-    def render(self, request, plugin = None, wrapper = None):
+    def widget(self, request, plugin = None, wrapper = None):
         '''Render the plugin in the content block
 This function call the plugin render function and wrap the resulting HTML
 with the wrapper callable.'''

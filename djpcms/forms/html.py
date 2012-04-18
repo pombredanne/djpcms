@@ -100,7 +100,7 @@ Simple usage::
             'success_message': success_message or default_success_message,
             'form_class': form_class,
             'model': model,
-            'inputs': inputs or []}
+            'inputs': inputs}
         super(HtmlForm, self).__init__(internal = internal, **params)
         if ajax:
             self.addClass('ajax')
@@ -125,7 +125,7 @@ Simple usage::
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model, **kwargs)
-        return super(HtmlForm,self).__call__(form=f, inputs=inputs or [],
+        return super(HtmlForm,self).__call__(form=f, inputs=inputs,
                                              action=action)
         
     def json_messages(self, f):

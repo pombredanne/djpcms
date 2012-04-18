@@ -38,6 +38,7 @@ def box(hd='', bd='', ft=None, minimize=False,
     if collapsed:
         b.addClass('collapsed')
         collapsable = True
+        b['bd'].hide()
     # If the box is collapsable add collapsable class to it
     if collapsable:
         open = with_icon('open-box')

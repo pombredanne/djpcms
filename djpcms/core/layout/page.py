@@ -2,7 +2,7 @@
 '''
 from collections import deque, namedtuple
 
-from djpcms.html import WidgetMaker
+from djpcms.html import WidgetMaker, Widget
 
 __all__ = ['LayoutDoesNotExist',
            'grid_systems',
@@ -28,6 +28,7 @@ _grid_layouts = {}
 
 
 grid_system = namedtuple('grid_system','fixed columns')
+namespace_columns = namedtuple('namespace_columns','namespace columns')
 
 def get_grid_system(request=None):
     if request: 
@@ -66,13 +67,17 @@ def get_or_update_dict(d, key, val = None):
         d[key] = val if val is not None else {}
     return d[key]
 
-def block_dictionary(all_blocks, grid):
-    numblocks = grid.numblocks
-    for nb in range(numblocks):
-        blocks = content.get(nb)
+def columns_deque(request, namespace, all_columns, grid):
+    '''Return a `deque` containing all columns for a given namespace'''
+    num_columns = grid.numcolumns
+    new_columns = deque()
+    columns = all_columns.get(namespace,{})
+    for column in range(num_columns):
+        blocks = columns.get(column)
         if blocks is None:
             blocks = {}
-        content[nb] = new_blocks = []
+        new_blocks = []
+        new_columns.append((column,new_blocks))
         np = 0
         build = True
         for p in sorted(blocks):
@@ -87,32 +92,71 @@ def block_dictionary(all_blocks, grid):
                 build = False
             new_blocks.append(block)
             np += 1
-        if build:
-            block = model.make_block(page=pageobj, block=nb, position=np)
+        if build and request.view.Page:
+            model = request.view.Page.model
+            pageobj = request.page
+            if namespace=='content':
+                if not pageobj:
+                    continue
+            else:
+                pageobj = None
+            block = model.make_block(page=pageobj, column=column, position=np,
+                                     namespace=namespace)
             block.save()
-            new_blocks.append(block)                
-    return blockcontent
+            new_blocks.append(block)
+    return namespace_columns(namespace, new_columns)
 
-def all_blocks(request):
+def all_columns(request):
     mapper = request.view.Page
     if not mapper:
         return {}
     model = mapper.model
     pageobj = request.page
-    blockcontent = {}
+    namespaces = {}
     for b in model.blocks(pageobj):
-        namespace = get_or_update_dict(blockcontent, b.namespace)
-        blocks = get_or_update_dict(namespace, b.block)
-        blocks[b.position] = b
-    return blocks
+        namespace = get_or_update_dict(namespaces, b.namespace)
+        column = get_or_update_dict(namespace, b.column)
+        column[b.position] = b
+    return namespaces
+
+
+def edit_blocks(request, blocks):
+    '''Renders blocks in editing mode.'''
+    for block in blocks:
+        edit_block = request.for_model(instance=block, name='change')
+        if edit_block:
+            yield edit_block.render()
+                
+def default_renderer(request, namespace, column, blocks):
+    '''The default renderer check if plugins are specified'''
+    if blocks:
+        col_id = 'cms-column-{0}-{1}'.format(namespace, column)
+        column = Widget('div', id=col_id, cn='cms-column')
+        if request.page_editing:
+            column.addClass('sortable-block')
+            blocks = edit_blocks(request, blocks)
+        else:
+            blocks = (block.widget(request) for block in blocks)
+        column.add(blocks)
+        return column
+    elif request:
+        return request.render()
     
 
+class PageElemWidget(Widget):
+    
+    @property
+    def numcolumns(self):
+        return self.maker.numcolumns
+    
+    
 class elem(WidgetMaker):
     '''Base class for all page layout templates. These templates contain all
 the information for rendering and styling a web page using a very flexible
 grid system.'''
     tag = 'div'
     role = None
+    _widget = PageElemWidget
     
     def __init__(self, *children, **kwargs):
         role = kwargs.pop('role',self.role)
@@ -144,22 +188,19 @@ grid system.'''
         pass
     
     @property
-    def numblocks(self):
-        return len(tuple(self.blocks()))
+    def numcolumns(self):
+        return len(tuple(self.columns()))
     
-    def is_block(self):
+    def is_column(self):
         return False
     
-    def blocks(self):
-        '''Generator of blocks.'''
+    def columns(self):
+        '''Generator of columns.'''
         # loop over children
         for child in self.allchildren():
-            for block in child.blocks():
-                yield block
+            for column in child.columns():
+                yield column
     
-    def block_dictionary(self):
-        return dict(((n,block) for n,block in enumerate(self.blocks())))
-                
     def add(self, *widgets):
         child_type = self.childtype()
         for w in widgets:
@@ -196,10 +237,10 @@ the body tag. A page contains a list of :class:`container`.'''
         return get_grid_system(request)
     
     def get_context(self, request, widget, context):
-        context = super(Grid, self).get_context(request, widget, context)
+        context = super(page, self).get_context(request, widget, context)
         if request:
             request = self.context_request(request, widget)
-            context['all_blocks'] = all_blocks(request)
+            context['all_columns'] = all_columns(request)
         return context
                 
         
@@ -225,21 +266,12 @@ class Grid(elem):
         
     def get_context(self, request, widget, context):
         context = super(Grid, self).get_context(request, widget, context)
-        if request:
-            request = self.context_request(request, widget)
-        renderer = context.get('renderer')
-        all_blocks = context.get('blocks')
-        if all_blocks is None:
-            all_blocks = {}
-        queue = deque()
-        if not renderer:
-            queue.extend(widget._data_stream)
+        columns = context.get('columns')
+        # If columns are not available, it means we are using a Grid on its own
+        if columns is None:
+            cols = deque(((n,[d]) for n,d in enumerate(widget._data_stream)))
+            context['columns'] = namespace_columns(None, cols)
             widget._data_stream = []
-        else:
-            for n, wm in enumerate(self.blocks()):
-                blocks = all_blocks.get(n)
-                queue.append(renderer(request, n, blocks))
-        context['blocks'] = queue
         return context
             
     def register(self, name):
@@ -264,6 +296,7 @@ default :class:`Grid` element is created.'''
         if len(grid) > 1:
             raise RunTimeError('Only one grid can be passed to a grid holder')
         self.grid_fixed = kwargs.pop('grid_fixed', self.grid_fixed)
+        self.renderer = kwargs.pop('renderer', default_renderer)
         super(grid_holder, self).__init__(*grid, **kwargs)
     
     @classmethod
@@ -275,7 +308,7 @@ default :class:`Grid` element is created.'''
     
     def get_context(self, request, widget, context):
         # Override get_context so that we retrieve the context of
-        # underlying blocks if they exists
+        # underlying columns if they exists
         context = super(grid_holder, self).get_context(request, widget, context)
         if self.grid_fixed is not None:
             gs = context['grid_system']
@@ -289,22 +322,32 @@ default :class:`Grid` element is created.'''
             pageobj = None
         if self.key:
             # if this is the content, get the inner_grid from the pageobj
-            if self.key == 'content' and pageobj:
-                inner_grid = pageobj.inner_grid or inner_grid
-            if not inner_grid and self.key == 'content':
-                # No inner grid for content. Set the default inner grid
-                inner_grid = self.default_inner_grid(request)
-        # No inner grid and blocks in context, this is a column
-        if not inner_grid and 'blocks' in context:
-            widget.add(context['blocks'].popleft())
+            if self.key == 'content' and pageobj and\
+                pageobj.inner_grid is not None:
+                inner_grid = pageobj.inner_grid
+        if inner_grid is None:
+            inner_grid = self.default_inner_grid(request)
+        # this must be a column
+        if inner_grid is None:
+            renderer = context.get('renderer')
+            named_columns = context.get('columns')
+            col, blocks = named_columns.columns.popleft()
+            if renderer:
+                data = renderer(request, named_columns.namespace, col, blocks)
+            else:
+                data = blocks
+            widget.add(data)
         else:
-            blocks = context.get('all_blocks',{}).get(self.key)
-            inner_grid = inner_grid or self.default_inner_grid(request)
-            blocks = block_dictionary(blocks, request, inner_grid)
+            all_columns = context.pop('all_columns',{})
+            context['columns'] = columns_deque(request, self.key,
+                                               all_columns, inner_grid)
+            context['renderer'] = self.renderer
             key = inner_grid.key or 0
             widget.children.clear()
-            widget.children[key] = self.child_widget(inner_grid, widget)
-        return context
+            if isinstance(inner_grid, WidgetMaker):
+                inner_grid = self.child_widget(inner_grid, widget)
+            widget.children[key] = inner_grid
+            return context
             
     
 class container(grid_holder):
@@ -314,7 +357,6 @@ class container(grid_holder):
         kwargs['key'] = key
         kwargs['role'] = key
         kwargs['id'] = 'page-'+key
-        self.renderer = kwargs.pop('renderer', None)
         super(container, self).__init__(*grid, **kwargs)
     
     def default_inner_grid(self, request):
@@ -338,16 +380,16 @@ plugins, unless it has children containers.'''
     def span(self):
         return float(self.size)/self.over
     
-    def is_block(self):
+    def is_column(self):
         return not bool(self.children)
     
-    def blocks(self):
-        '''Override the blocks generator since column si special. If there are
+    def columns(self):
+        '''Override the columns generator since column si special. If there are
 no children, it return self as the only child.'''
-        if self.is_block():
+        if self.is_column():
             yield self
         else:
-            for child in super(column, self).blocks():
+            for child in super(column, self).columns():
                 yield child
                 
     def add_css_data(self, widget, grid):
@@ -371,7 +413,6 @@ with row or row-fluid class.'''
         suffix = ('{0}' if grid.fixed else 'fluid-{0}').format(grid.columns)
         widget.addClass('row-'+suffix)
         
-    
     
 class tabs(row):
     

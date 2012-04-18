@@ -30,8 +30,9 @@ class ObjectItem(html.WidgetMaker):
         return html.DefinitionList(data_stream = items, cn = 'object-definition')\
                     .addClass(mapper.module_name)
          
-    def get_context(self, request, widget, keys):
-        ctx = super(ObjectItem,self).get_context(request, widget, keys)
+    def get_context(self, request, widget, context):
+        instance = widget.internal.get('instance') or request.instance
+        context['instance']
         instance = ctx['instance']
         ctx['links'] = list(application_views(request, instance = instance))
         return ctx
@@ -48,13 +49,25 @@ class ObjectItem(html.WidgetMaker):
         yield self.code_or_url(context)
     
     
-class ObjectDef(ObjectItem):
+class ObjectDef(html.DefinitionList):
     '''Simply display a definition list for the object.'''
-    tag = None
-        
-    def stream(self, request, widget, context):
-        dl = self.definition_list(request, context)
-        yield dl.render(request)
+    classes = 'object-definition'
+    
+    def get_context(self, request, widget, context):
+        appmodel = widget.internal.get('appmodel',request.view.appmodel)
+        instance = widget.internal.get('instance',request.instance)
+        if instance is None:
+            return
+        headers = appmodel.object_display
+        mapper = appmodel.mapper
+        widget.addClass(mapper.module_name)
+        ctx = html.results_for_item(request,
+                                    headers,
+                                    instance,
+                                    appmodel)
+        display = ctx.pop('display')
+        items = ((head.name,value) for head,value in zip(headers,display))
+        widget.add(items)
 
     
 class ObjectPagination(ObjectItem):

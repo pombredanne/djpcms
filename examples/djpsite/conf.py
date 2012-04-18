@@ -2,6 +2,7 @@
 #imports this file and specify the reserved settings below
 
 INSTALLED_APPS = ('djpcms',
+                  'stdcms',
                   'stdcms.cms',
                   'stdcms.monitor',
                   'stdcms.sessions',
@@ -12,12 +13,15 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.style.plugins.nav',
                   'djpcms.style.plugins.page',
                   'djpcms.style.plugins.table',
+                  'djpcms.style.plugins.ui',
                   #
                   #'pulsardjp',
                   'djpsite')
 ENABLE_BREADCRUMBS = 1
 DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}
 LANGUAGE_CODE = 'en-gb'
+SITE_NAVIGATION_BRAND =\
+"<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>"
 
 
 # RESERVED SETTINGS. CREATE A SETTINGS FILES AND OVERRIDE THESE VALUES

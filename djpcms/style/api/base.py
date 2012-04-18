@@ -138,8 +138,7 @@ in a css file.'''
     
     @classmethod
     def _make(cls, val, unit):
-        raise ValueError('Could not convert "{0}" to "{1}".'\
-                        .format(val,cls.__name__))
+        return val
 
     ##    INTERNALS
     
@@ -250,10 +249,6 @@ class NamedVariable(ProxyVariable):
             self._values[theme] = value
         else:
             self._value = value
-    
-    @classmethod
-    def _make(cls, val, unit):
-        return val
     
     
 class Size(Variable):
@@ -492,8 +487,9 @@ class css(object):
     def extend(self, elem):
         '''Extend by adding *elem* attributes and children.'''
         self._attributes.extend(elem._attributes)
-        for c in itervalues(elem._children):
-            c.parent = self 
+        for child_list in itervalues(elem._children):
+            for child in child_list: 
+                child._set_parent(self) 
     
     def stream(self):
         '''This function convert the :class:`css` element into a string.'''

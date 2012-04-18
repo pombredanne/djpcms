@@ -20,6 +20,7 @@ cssv.color.white = color('fff')
 # Global body variable
 cssv.body.background = cssv.color.white
 cssv.body.color = cssv.color.grayDarker
+cssv.body.border_color = cssv.color.grayLighter
 cssv.body.font_family = "Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif"
 cssv.body.font_size = px(14)
 cssv.body.line_height = px(18)

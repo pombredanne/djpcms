@@ -280,7 +280,7 @@ A typical usage::
         if isajax(content):
             content_type = content.content_type()
             content = content.dumps()
-        if content_type == 'text/html':
+        elif content_type == 'text/html':
             content = '\n'.join(self.html_streamer(request, content, status))
         data = content.encode(encoding, 'replace')
         return Response(content=data,

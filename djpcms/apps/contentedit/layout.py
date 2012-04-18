@@ -42,7 +42,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
 HtmlEditContentForm = forms.HtmlForm(
     EditContentForm,
     layout = uni.FormLayout(
-                          uni.Fieldset('title','markup'),
+                          uni.Columns('title','markup',uni.SUBMITS),
                           uni.Fieldset('body', default_style=uni.blockLabels)
         )
 )

@@ -625,9 +625,9 @@ has been requested.
         if not maker:
             maker = self.object_widgets.get('home',None)
         if maker:
-            return maker.widget(instance = instance,
-                                appmodel = self,
-                                cn = cn)\
+            return maker(instance = instance,
+                         appmodel = self,
+                         cn = cn)\
                       .addClass(self.mapper.class_name(instance))\
                       .addClass(self.mapper.unique_id(instance))\
                       .render(request)

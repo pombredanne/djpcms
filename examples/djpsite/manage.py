@@ -93,19 +93,19 @@ class WebSite(djpcms.WebSite):
                       renderer=self.render_footer))
         site.register_page_layout('default', page_template)
     
-    def render_topbar(self, request, block_number, blocks):
+    def render_topbar(self, request, namespace, column, blocks):
         '''Render the topbar container'''
-        if block_number == 0:
+        if column == 0:
             return topbar(request).render(request)
     
-    def render_header(self, request, block_number, blocks):
-        if block_number == 0:
+    def render_header(self, request, namespace, column, blocks):
+        if column == 0:
             return '<h2>Dynamic Content management system</h2>'
     
-    def render_footer(self, request, block_number, blocks):
-        if block_number == 0:
+    def render_footer(self, request, namespace, column, blocks):
+        if column == 0:
             return '<p>djpcms</p>'
-        elif block_number == 2:
+        elif column == 2:
             return '<p>Powered by <a href="http://www.python.org">Python'\
                    ' {0}.{1}.{2}</a></p>'.format(*sys.version_info[:3])
         else:

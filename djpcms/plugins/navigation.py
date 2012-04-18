@@ -84,19 +84,6 @@ def page_user_links(request, asbuttons=False):
     return ul
 
 
-def djpcms(request):
-    '''The main template context processor. It must be always included.'''
-    settings = request.view.settings            
-    return {'request': request,
-            'page': request.page,
-            'user': request.user,
-            'now': datetime.now(),
-            'settings': settings,
-            'MEDIA_URL': settings.MEDIA_URL,
-            'grid': request.cssgrid()}
-    return ctx
-
-
 def messages(request):
     """Returns a lazy 'messages' context variable.
     """

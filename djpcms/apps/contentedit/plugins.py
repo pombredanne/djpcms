@@ -19,11 +19,10 @@ class Text(RenderObject):
     '''The text plugin allows to write content in a straightforward manner.
 You can use several different markup languages or simply raw HTML.'''
     name = "text"
-    description = "Text Editor"
-    long_description = "Write text or raw HTML"
+    description = "Text/Html Content"
     
     def for_model(elf, request):
-        return request.view.SiteContent
+        return request.root.internal.get('SiteContent')
     
     def html(self):
         if self.site_content:

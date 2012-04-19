@@ -264,7 +264,6 @@ it is the base class of :class:`pageview` and :class:`View`.
         # Not an AJAX request
         if not request.is_xhr:
             return getattr(self,'%s_response' % method)(request)
-        
         data = request.REQUEST
         ajax_action = forms.get_ajax_action(data)
         callable = getattr(self,'ajax_%s_response' % method)

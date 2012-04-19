@@ -70,7 +70,7 @@ class PageForm(forms.Form):
     
 
 class PluginChoice(forms.ChoiceField):
-    widget = html.Select(default_class = 'ajax')
+    widget = html.Select(cn='ajax')
     
     def _clean(self, value, bfield):
         '''Overried default value to return a Content Type object
@@ -89,7 +89,7 @@ class ContentBlockForm(forms.Form):
                                choices = plugins.plugingenerator)
     container_type = forms.ChoiceField(
                             label = 'Container',
-                            widget = html.Select(default_class = 'ajax'),
+                            widget = html.Select(cn='ajax'),
                             choices = plugins.wrappergenerator,
                             help_text = 'A HTML element which wraps the plugin\
  before it is rendered in the page.')

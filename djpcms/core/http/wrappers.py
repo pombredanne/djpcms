@@ -303,11 +303,7 @@ is available, the name is set to ``view``.
     def REQUEST(self):
         if 'REQUEST' not in self.cache:
             res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
-            for k,gl in self.GET.lists():
-                if k in res:
-                    res.getlist(k).extend(gl)
-                else:
-                    res.setlist(k,gl[:])
+            res.update(self.GET)
             self.cache['REQUEST'] = res
         return self.cache['REQUEST']
 

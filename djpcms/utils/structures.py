@@ -38,7 +38,10 @@ Raises KeyError if key is not found."""
     def __setitem__(self, key, value):
         if key in self:
             l = super(MultiValueDict, self).__getitem__(key)
-            l.append(value)
+            # if value already there don't had it.
+            # I'm not sure this is the correct way of doing.
+            if value not in l:
+                l.append(value)
         else:
             super(MultiValueDict, self).__setitem__(key, [value])
             
@@ -73,6 +76,11 @@ Raises KeyError if key is not found."""
             self[key] = default
         return self[key]
 
+    def extend(self, key, values):
+        """Appends an item to the internal list associated with key."""
+        for value in values:
+            self[key] = value
+
     def items(self):
         """Returns a generator ovr (key, value) pairs,
 where value is the last item in the list associated with the key.
@@ -89,3 +97,13 @@ where value is the last item in the list associated with the key.
 
     def copy(self):
         return copy(self)
+                    
+    def update(self, elem):
+        if isinstance(elem, MultiValueDict):
+            for key, values in elem.lists():
+                self.extend(key, values)
+        else:
+            if isinstance(elem,dict):
+                elem = elem.items()
+            for k,v in elem:
+                self[k] = v

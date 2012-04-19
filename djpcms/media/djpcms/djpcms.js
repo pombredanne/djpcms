@@ -790,7 +790,8 @@
                 }
             });
             
-            // AJAX Select
+            // AJAX Select widget.
+            // Send an ajax request when it change context
             $(cfg.selector_select,$this).change(function(event) {
                 var elem = $(this),
                     data = elem.data(),
@@ -811,9 +812,11 @@
                     $.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
                 }
                 else {
+                	// we are going to use the form submit so we send
+                	// all form's inputs too.
                     var opts = {
                             'url': url,
-                            type: 'get',
+                            'type': method,
                             success: callback,
                             dataType: "json",
                             data: {xhr: name},

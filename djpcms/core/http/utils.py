@@ -39,9 +39,10 @@ class QueryDict(MultiValueDict):
     def __init__(self, query_string, encoding = 'utf-8'):
         super(QueryDict,self).__init__()
         self.encoding = encoding
-        for key, value in parse_qsl((query_string or ''), True): # keep_blank_values=True
+        # keep_blank_values=True
+        for key, value in parse_qsl((query_string or ''), True):
             self[to_string(key, encoding, errors='replace')] =\
-                to_string(value, encoding, errors='replace')
+                            to_string(value, encoding, errors='replace')
 
 
 def query_from_string(val):

@@ -4,8 +4,8 @@ from djpcms.core.exceptions import PermissionDenied
 from djpcms.forms.utils import get_redirect
 from djpcms.plugins.extrawrappers import CollapsedWrapper
 from djpcms.utils import mark_safe
-from djpcms.apps.sitemap import underlying_response
 
+from .sitemap import underlying_response
 from .layout import ContentBlockHtmlForm
 
 

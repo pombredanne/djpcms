@@ -8,8 +8,12 @@ from djpcms import views, Http404
 from djpcms.core import messages
 from djpcms.core.layout import htmldoc, grid, container
 from djpcms.forms.utils import request_get_data
+from djpcms.utils import markups, mark_safe
 from djpcms.html import box, Pagination, table_header, Widget
 from djpcms.plugins.navigation import page_links
+from djpcms.apps.admin import AdminApplication
+
+__all__ = ['SiteMapApplication','SiteContentApp']
 
 
 def underlying_response(request, page):
@@ -127,3 +131,18 @@ class SiteMapApplication(views.Application):
         else:
             return val
     
+    
+class SiteContentApp(AdminApplication):
+    inherit = True
+    
+    def on_bound(self):
+        self.root.internals['SiteContent'] = self.mapper
+        
+    def render_instance(self, request):
+        instance = request.instance
+        if instance:
+            mkp = markups.get(instance.markup)
+            text = instance.body
+            if mkp:
+                text = mkp(request, text)
+            return mark_safe(text)

@@ -96,12 +96,16 @@ class RenderObject(DJPplugin):
     description = 'Display your content'
     form = ContentForm
     
-    def get_object(self, content):
-        if content and self.for_model:
-            return mapper(self.for_model).get(id = content)
+    def for_model(elf, request):
+        pass
+    
+    def get_object(self, request, content):
+        model = self.for_model(request)
+        if content and model:
+            return mapper(model).get(id = content)
         
     def render(self, request, wrapper, prefix, content = None, **kwargs):
-        obj = self.get_object(content)
+        obj = self.get_object(request, content)
         if obj:
             appmodel = request.view.site.for_model(self.for_model)
             if appmodel:

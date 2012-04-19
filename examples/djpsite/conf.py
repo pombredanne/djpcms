@@ -22,6 +22,8 @@ DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}
 LANGUAGE_CODE = 'en-gb'
 SITE_NAVIGATION_BRAND =\
 "<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>"
+DJPCMS_PLUGINS = ['djpcms.plugins.*',
+                  'djpcms.apps.contentedit.plugins']
 
 
 # RESERVED SETTINGS. CREATE A SETTINGS FILES AND OVERRIDE THESE VALUES

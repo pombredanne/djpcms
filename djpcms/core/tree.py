@@ -266,18 +266,24 @@ class BadNode(DjpNode):
         
     
 class DjpcmsTree(MultiTree):
-    '''The multitree used by djpcms'''
+    '''The multitree used by djpcms. It contains two trees, one
+for the application views and one for flat pages.'''
     def __init__(self, tree, pages = None):
+        # create the tree for flat pages
         self.tree_pages = tree_pages = {}
         if pages:
+            flat_pages_trees = {}
             for page in pages:
                 node = tree.get(page.url)
                 if node:
                     tree_pages[node.path] = page
                 else:
-                    tree_pages[page.url] = page
-            ptree = NRT(itervalues(tree_pages))
-            super(DjpcmsTree,self).__init__(ptree, tree)
+                    flat_pages_trees[page.url] = page
+            if flat_pages_trees:
+                flat_pages_trees = NRT(itervalues(flat_pages_trees))
+                super(DjpcmsTree,self).__init__(flat_pages_trees, tree)
+            else:
+                super(DjpcmsTree,self).__init__(tree)
         else:
             super(DjpcmsTree,self).__init__(tree)
     

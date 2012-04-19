@@ -90,11 +90,8 @@ must raise a ValueError.
     def is_query(self, query):
         return True
     
-    def __call__(self, query):
-        if self.is_query(query):
-            return query
-        elif query is not None:
-            return OrmQuery(query,self)
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
                 
     @classmethod
     def clear(cls):

@@ -65,10 +65,6 @@ class FormWidget(html.Widget):
         return self.internal.get('field')
     
     @property 
-    def layout(self):
-        return self.internal.get('layout',None)
-    
-    @property 
     def inputs(self):
         return self.internal['inputs']
     

@@ -44,6 +44,7 @@ The following attributes must be implemented by subclasses.
 .. attribute:: layout
 '''
     layout = 0
+    layout = None
     inner_template = None
     grid_system = None
     
@@ -130,7 +131,7 @@ class BlockModel(object):
     logger  = logging.getLogger('BlockContent')
     namespace = 'content'
     
-    def widget(self, request, plugin = None, wrapper = None):
+    def widget(self, request, plugin=None, wrapper=None):
         '''Render the plugin in the content block
 This function call the plugin render function and wrap the resulting HTML
 with the wrapper callable.'''
@@ -140,7 +141,7 @@ with the wrapper callable.'''
         if plugin and request.has_permission(VIEW, self):
             try:
                 request.media.add(plugin.media(request))
-                plugin_response = plugin(request, self.arguments, block = self)
+                plugin_response = plugin(request, self.arguments, block=self)
             except Exception as e:
                 exc_info = sys.exc_info()
                 request.cache['traces'].append(exc_info)
@@ -155,8 +156,7 @@ with the wrapper callable.'''
         if plugin_response or not self.position:
             if not plugin_response:
                 plugin_response = NON_BREACKING_SPACE
-            callback = lambda r : wrapper(request, self, r)
-            return request.view.response(plugin_response, callback)
+            return wrapper(request, self, plugin_response)
     
     def pluginid(self, extra = ''):
         p = 'plugin-{0}'.format(self)
@@ -184,7 +184,7 @@ with the wrapper callable.'''
     plugin = property(__get_plugin)
         
     def _get_wrapper(self):
-        return get_wrapper(self.container_type,default_content_wrapper)
+        return get_wrapper(self.container_type, default_content_wrapper)
     wrapper = property(_get_wrapper)
     
     def plugin_class(self):

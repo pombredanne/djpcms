@@ -1,8 +1,8 @@
-from djpcms import forms, html, views, VIEW, to_string
+from djpcms import forms, html, views, VIEW
+from djpcms.utils import to_string
 from djpcms.core import orms
-from djpcms.plugins import DJPplugin
 from djpcms.core.http import query_from_string
-from djpcms.utils.text import nicename
+from djpcms.plugins import DJPplugin
 
 
 def registered_models(bfield, required = True):
@@ -93,21 +93,17 @@ class RenderObject(DJPplugin):
     '''Render an instance of a model using the
 :attr:`Application.instance_view`.'''
     virtual = True
-    for_model = None
     form = ContentForm
-    
-    def for_model(elf, request):
-        pass
     
     def get_object(self, request, content):
         model = self.for_model(request)
         if content and model:
-            return mapper(model).get(id = content)
+            return orms.mapper(model).get(id = content)
         
     def render(self, request, wrapper, prefix, content = None, **kwargs):
         instance = self.get_object(request, content)
         if instance:
-            request = request.for_model(instance=instance)
+            request = request.for_model(instance=instance, name='view')
             if request:
                 return request.render()
             else:

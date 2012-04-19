@@ -4,9 +4,17 @@ from djpcms.style import *
 
 ################################################################################
 ##    VARIABLES
-cssv.widget.hd.font_size = cssv.body.font_size
-cssv.widget.hd.font_weight = 'normal'
-cssv.widget.padding = spacing(px(5))
+cssv.panel.background = cssv.color.grayLighter
+cssv.panel.border_color = color(RGBA(0,0,0,0.05))
+cssv.panel.border_width = px(1)
+cssv.panel.padding = spacing(px(6))
+
+cssv.widget.hd.background = cssv.panel.background
+cssv.widget.hd.font_size = cssv.heading.h3.font_size
+cssv.widget.hd.line_height = cssv.heading.h3.line_height
+cssv.widget.hd.font_weight = cssv.header.font_weight
+cssv.widget.hd.text_transform = 'none'
+cssv.widget.padding = cssv.panel.padding
 cssv.widget.hd.padding = cssv.widget.padding
 cssv.widget.bd.padding = cssv.widget.padding
 cssv.widget.ft.padding = cssv.widget.padding
@@ -32,6 +40,10 @@ cssv.button.border_color = cssv.color.grayLight
 cssv.alert.background = color('#FCF8E3')
 cssv.alert.color = color('#C09853')
 cssv.alert.radius = cssv.body.radius
+cssv.alert.border_color = lazy(color.darken, cssv.alert.background, 5)
+cssv.alert_error.background = color('#F2DEDE')
+cssv.alert_error.border_color = lazy(color.darken, cssv.alert_error.background, 5)
+cssv.alert_error.color = color('#B94A48')
 #
 cssv.uniform.padding = px(4)
 cssv.uniform.table_layout = 'auto'
@@ -49,36 +61,57 @@ class clearinp(mixin):
         elem['outline'] = 'none'
 
 
-################################################# DJPCMS BOX
-css('.djpcms-html-box',
-    css('.collapsed > .bd', display='none'))
-
 ################################################# WIDGET
+css('.edit-menu',
+    horizontal_navigation(float='right',
+                          hover=bcd(text_decoration='none'),
+                          padding=spacing(0,px(2))))
+
 css('.widget',
-    css('.hd',
-        css('h1,h2,h3,h4,h5',
-            font_size = cssv.widget.hd.font_size,
-            font_weight = cssv.widget.hd.font_weight,
-            float = 'left',
-            padding = 0,
-            margin = 0,
-            background = 'transparent'
-        ),
-        padding = cssv.widget.hd.padding,
-        overflow='hidden',
+    radius(cssv.body.radius),
+    cssb('.hd',
+         gradient(cssv.widget.hd.background),
+         css('h1,h2,h3,h4,h5',
+             font_size=cssv.widget.hd.font_size,
+             font_weight=cssv.widget.hd.font_weight,
+             text_transform=cssv.widget.hd.text_transform,
+             line_height=cssv.widget.hd.line_height,
+             float = 'left',
+             padding = 0,
+             margin = 0,
+             background = 'transparent'
+         ),
+         css('.edit-menu',
+             line_height=cssv.widget.hd.line_height),
+         padding=cssv.widget.hd.padding,
+         overflow='hidden',
     ),
-    css('.bd',
-        padding = cssv.widget.bd.padding,
-        overflow = 'hidden',
-        border = 'none'),
-    css('.ft',
-        padding=cssv.widget.ft.padding,
-        overflow='hidden',
-        border='none')
+    # we do this so that the attributes are after previous attributes
+    cssb('.hd',
+         padding_top=0,
+         padding_bottom=0),
+    cssb('.bd',
+         padding=cssv.widget.bd.padding,
+         overflow='hidden',
+         border='none',
+         display='block'),
+    cssb('.ft',
+         padding=cssv.widget.ft.padding,
+         overflow='hidden',
+         border='none')
 )
 
-css('.edit-menu',
-    horizontal_navigation(float='right'))
+################################################# BOX and PANEL
+css('.panel,.box',
+    radius(cssv.body.radius),
+    border_style='solid',
+    border_width=cssv.panel.border_width,
+    border_color=cssv.panel.border_color)
+
+css('.panel',
+    gradient(cssv.panel.background),
+    padding=cssv.panel.padding)
+
 
 ################################################# OBJECT DEFINITIONS
 css('dl.object-definition',
@@ -143,6 +176,9 @@ css('.field-widget',
         color='inherit',
         background='transparent'),
     css('input:focus,textarea:focus,select:focus', clearinp()),
+    #css('select',
+    #    css('option',_webkit_appearance='none'),
+    #    _webkit_appearance='none'),
     radius(cssv.input.radius),
     padding=spacing(0, cssv.input.padding),
     border_style='solid',
@@ -187,12 +223,17 @@ css(disabled_selector,
     cursor =  cssv.disabled.cursor)
 
 
-################################################################################
-#    ALERTS
-################################################################################
+################################################# ALERTS
 css('.alert',
     gradient(cssv.alert.background),
     radius(cssv.alert.radius),
+    cssa('.alert-error',
+         gradient(cssv.alert_error.background),
+         color=cssv.alert_error.color,
+         border_color=cssv.alert_error.border_color),
+    border_style='solid',
+    border_width=px(1),
+    border_color=cssv.alert.border_color,
     color=cssv.alert.color,
     padding='8px 35px 8px 14px')
 

@@ -26,11 +26,12 @@ def default_success_message(request, instance, mch):
 class HtmlForm(FormTemplate):
     '''The :class:`Form` class is designed to be used for validation purposes.
 To render an instance of :class:`Form` on a web page we use this class.
-:class:`HtmlForm` is a specialized :class:`FormWidgetMaker`.
+:class:`HtmlForm` is a specialized :class:`FormTemplate`.
     
-:parameter form_class: A form class setting the :attr:`form_class` attribute.
-:parameter layout: An optional layout instance which sets the :attr:`layout`
-    attribute.    
+:parameter form_class: A :class:`Form` class setting the :attr:`form_class`
+    attribute.
+:parameter layout: An optional :class:`Formlayout` instance which sets
+    the :attr:`layout` attribute.    
 :parameter ajax: Set the :attr:`ajax` attribute.
 :parameter success_message: optional function which overrides the
     :attr:`success_message` attribute

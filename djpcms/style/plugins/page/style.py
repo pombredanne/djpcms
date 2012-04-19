@@ -4,10 +4,10 @@ from djpcms.style import *
 
 ################################################################################
 ##    VARIABLES
-cssv.content.min_height = None
 cssv.header.background = None
-cssv.content.color = None
+cssv.header.min_height = None
 
+cssv.content.color = None
 cssv.content.min_height = None
 cssv.content.background = None
 cssv.content.color = None
@@ -20,8 +20,8 @@ cssv.footer.color = None
 
 css('#page-header',
     gradient(cssv.header.background),
-    color = cssv.header.color,
-    min_height = cssv.header.min_height)
+    color=cssv.header.color,
+    min_height=cssv.header.min_height)
 
 css('#page-content',
     gradient(cssv.content.background),

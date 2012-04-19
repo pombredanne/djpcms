@@ -84,7 +84,8 @@ class PageChangeView(views.ChangeView):
     def render(self, request):
         text = super(PageChangeView,self).render(request)
         links = page_links(request)
-        return box(bd=text, collapsed=True, edit_menu=links).render(request)
+        return box(bd=text, collapsed=True, edit_menu=links)\
+                .addClass('edit-block')
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:
@@ -97,15 +98,16 @@ class PageChangeView(views.ChangeView):
 class SiteMapApplication(views.Application):
     '''Application to use for admin sitemaps'''
     has_plugins = False
-    pagination = Pagination(('url','view','template',
+    pagination = Pagination(('id', 'url', 'view', 'layout',
                              'inner_template', 'in_navigation',
                              table_header('doc_type',attrname='doctype'),
                              'soft_root'),
                             bulk_actions = [views.bulk_delete])
-    list_display_links = ('url','page','inner_template')
+    list_display_links = ('id', 'url', 'page')
     
     home = SiteMapView()
     pages = views.SearchView('pages/',
+                             icon = 'th-list',
                              title = lambda r : 'Pages',
                              linkname = lambda r : 'pages')
     add = views.AddView(force_redirect = True,

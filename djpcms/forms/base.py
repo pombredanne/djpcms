@@ -177,7 +177,6 @@ it remains unbounded.
         else:
             self.initial = {}
         self.prefix = prefix or ''
-        self.model = model
         self.instance = instance
         self.messages = {}
         self.request = request
@@ -185,11 +184,10 @@ it remains unbounded.
         self.user = getattr(request,'user',None) if request else None 
         if self.instance:
             model = self.instance.__class__
-        self.model = model
         if model:
             self.mapper = mapper(model)
-            if not self.instance:
-                self.instance = model()
+            if self.mapper is not None and not self.instance:
+                    self.instance = self.mapper()
         else:
             self.mapper = None
         self.form_sets = {}
@@ -199,6 +197,10 @@ it remains unbounded.
         if not self.is_bound:
             self._fill_initial()
 
+    @property
+    def model(self):
+        return self.mapper.model if self.mapper is not None else None
+    
     @property
     def data(self):
         self._unwind()

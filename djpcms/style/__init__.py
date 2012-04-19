@@ -28,6 +28,12 @@ cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
 cssv.body.radius = px(0)
 
+# Headings
+cssv.heading.font_weight = 'bold'
+cssv.heading.h3.font_size = lazy(lambda: 1.3*cssv.body.font_size)
+cssv.heading.h3.line_height = lazy(lambda: 1.5*cssv.body.line_height)
+cssv.paragraph.margin = spacing(0,0,px(9))
+
 # Links
 cssv.link.font_weight = 'normal'
 # default
@@ -41,8 +47,12 @@ cssv.link.hover.background = None
 cssv.link.hover.text_decoration = 'underline'
 cssv.link.hover.text_shadow = None
 
+# Margins
+cssv.block.margin_bottom = px(20)
+
 # edit page panel
-cssv.edit.background = cssv.color.black
+cssv.edit.background = cssv.color.grayDarker
+cssv.edit.border_color = cssv.edit.background 
 cssv.edit.color = cssv.color.white
 cssv.edit.font_size = pc(90)
 cssv.edit.link.hover.text_decoration = 'none'
@@ -64,11 +74,53 @@ css('body',
     line_height = cssv.body.line_height,
     text_align = cssv.body.text_align)
 
+################################################# TOPOGRAPHY
+css('h1,h2,h3,h4,h5,h6',
+    font_weight=cssv.heading.font_weight,
+    text_rendering='optimizelegibility',
+    margin=0)
+css('h1',
+    font_size=lazy(lambda: 2*cssv.body.font_size),
+    line_height=lazy(lambda: 2*cssv.body.line_height))
+css('h2',
+    font_size=lazy(lambda: 1.6*cssv.body.font_size),
+    line_height=lazy(lambda: 1.8*cssv.body.line_height))
+css('h3',
+    font_size=cssv.heading.h3.font_size,
+    line_height=cssv.heading.h3.line_height)
+css('h4',
+    font_size=lazy(lambda: 1.2*cssv.body.font_size),
+    line_height=lazy(lambda: 1.4*cssv.body.line_height))
+css('h5',
+    font_size=lazy(lambda: cssv.body.font_size),
+    line_height=lazy(lambda: cssv.body.line_height))
+css('h6',
+    font_size=lazy(lambda: 0.9*cssv.body.font_size),
+    line_height=lazy(lambda: cssv.body.line_height),
+    text_transform='uppercase')
+css('p',
+    cssa(':last-child',
+         margin=0),
+    margin=cssv.paragraph.margin)
+
 ################################################# DEFAULT CLICKABLE ANCHORS
 css('a',
     clickable(**cssv.link.params()),
     font_weight=cssv.link.font_weight
 )
+
+css('.cms-block',
+    clearfix(),
+    margin_bottom=cssv.block.margin_bottom)
+
+css('.widget.box',
+    cssa('.edit-block',
+         cssb('.hd,.bd',
+              gradient(cssv.edit.background),
+              color=cssv.edit.color),
+         css('.cms-block',
+             margin_bottom=0),
+         border_color=cssv.edit.border_color))
 
 ################################################# EDIT PAGE PANEL
 css('#page-edit-page',

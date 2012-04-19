@@ -152,7 +152,7 @@ def views_serializable(views):
         yield elem
         
         
-def application_links(views, asbuttons=True, icon=True):
+def application_links(views, asbuttons=True, icon=True, text=True):
     '''A generator of two dimensional tuples containing
 the view name and a rendered html tag (either an anchor or a button).
 
@@ -166,7 +166,7 @@ the view name and a rendered html tag (either an anchor or a button).
         request = elem.view
         view = request.view
         icon = elem.icon if icon else None
-        a = anchor_or_button(elem.display,
+        a = anchor_or_button(elem.display if text else '',
                              href = elem.url,
                              icon = icon,
                              title = elem.title,
@@ -184,18 +184,20 @@ the view name and a rendered html tag (either an anchor or a button).
         yield view.name, a 
     
 
-def application_views_links(request, asbuttons = True, icon = True, **kwargs):
+def application_views_links(request, asbuttons=True, icon=True, text=True,
+                            **kwargs):
     '''Shurtcut function which combines :func:`application_views`
 and :func:`application_links` generators. It returns a generator over
 anchor or button :class:`djpcms.html.Widget`.'''
     views = application_views(request, **kwargs)
     for _,w in application_links(views,
-                                 asbuttons = asbuttons,
-                                 icon = icon):
+                                 asbuttons=asbuttons,
+                                 icon=icon,
+                                 text=text):
         yield w
 
 
-def application_link(view, value = None, asbutton = True, icon = True):
+def application_link(view, value=None, asbutton=True, icon=True, text=True):
     if view is not None:
         for _,link in application_links((view,),asbutton,icon = icon):
             if value is not None:

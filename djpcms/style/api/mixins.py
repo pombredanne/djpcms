@@ -215,7 +215,9 @@ class clickable(mixin):
         
 ################################################# HORIZONTAL NAVIGATION
 class horizontal_navigation(clickable):
-    '''Horizontal navigation with ul and li tags'''
+    '''Horizontal navigation with ul and li tags.
+    
+:parameter padding: the padding for the navigation anchors.'''
     def __init__(self,
                  float='left',
                  margin=0,
@@ -235,7 +237,7 @@ class horizontal_navigation(clickable):
             float = 'left'
         self.float = float
         self.margin = margin
-        self.height = height or px(40)
+        self.height = height
         self.secondary_default = secondary_default
         self.secondary_hover = secondary_hover
         self.secondary_active = secondary_active
@@ -285,9 +287,6 @@ class horizontal_navigation(clickable):
         padding = spacing(self.padding) if self.padding else\
                   spacing(px(10),px(10))
         secondary_padding = self.secondary_padding or padding
-        line_height = self.height - padding.top - padding.bottom
-        if line_height.value <= 0:
-            raise ValueError('Nav has height to low compared to paddings')
         #
         default = self.default or bcd()
         hover = self.hover or bcd() 
@@ -297,6 +296,13 @@ class horizontal_navigation(clickable):
         li['display'] = 'block'
         li['float'] ='left'
         
+        if self.height:
+            line_height = self.height - padding.top - padding.bottom
+            if line_height.value <= 0:
+                raise ValueError('Nav has height to low compared to paddings')
+        else:
+            line_height = None
+            
         # subnavigations
         default = self.secondary_default or default
         hover = self.secondary_hover or hover

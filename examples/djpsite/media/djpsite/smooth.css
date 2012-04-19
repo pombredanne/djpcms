@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-04-19 07:02:31.116612
-Time taken 0.258 seconds
+Created by djpcms.style 2012-04-19 18:19:06.505000
+Time taken 0.212 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -452,6 +452,56 @@ legend {
     clear: both;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
+}
+
+h1 {
+    line-height: 36px;
+    font-size: 28px;
+}
+
+h2 {
+    line-height: 32px;
+    font-size: 22px;
+}
+
+h3 {
+    line-height: 27px;
+    font-size: 18px;
+}
+
+h4 {
+    line-height: 25px;
+    font-size: 16px;
+}
+
+h5 {
+    line-height: 18px;
+    font-size: 14px;
+}
+
+h6 {
+    text-transform: uppercase;
+    line-height: 18px;
+    font-size: 12px;
+}
+
+p {
+    margin: 0px 0px 9px;
+}
+
+p:last-child {
+    margin: 0;
+}
+
 a {
     font-weight: normal;
     color: #0088cc;
@@ -465,10 +515,39 @@ a:hover {
     text-decoration: underline;
 }
 
+.cms-block {
+    margin-bottom: 20px;
+    *zoom: 1;
+}
+
+.cms-block:before,
+.cms-block:after {
+    content: "";
+    display: table;
+}
+
+.cms-block:after {
+    clear: both;
+}
+
+.widget.box.edit-block {
+    border-color: #222222;
+}
+
+.widget.box.edit-block > .hd,
+.widget.box.edit-block > .bd {
+    color: #ffffff;
+    background: #222222;
+}
+
+.widget.box.edit-block .cms-block {
+    margin-bottom: 0;
+}
+
 #page-edit-page {
     color: #ffffff;
     font-size: 90%;
-    background: #000000;
+    background: #222222;
 }
 
 #page-edit-page a {
@@ -478,40 +557,6 @@ a:hover {
 #page-edit-page a:hover {
     color: #c0c0c0;
     text-decoration: none;
-}
-
-.djpcms-html-box .collapsed > .bd {
-    display: none;
-}
-
-.widget .hd {
-    padding: 5px;
-    overflow: hidden;
-}
-
-.widget .hd h1,
-.widget .hd h2,
-.widget .hd h3,
-.widget .hd h4,
-.widget .hd h5 {
-    font-size: 14px;
-    float: left;
-    padding: 0;
-    font-weight: normal;
-    background: transparent;
-    margin: 0;
-}
-
-.widget .bd {
-    padding: 5px;
-    overflow: hidden;
-    border: none;
-}
-
-.widget .ft {
-    padding: 5px;
-    overflow: hidden;
-    border: none;
 }
 
 .edit-menu {
@@ -531,6 +576,10 @@ a:hover {
     background: transparent;
 }
 
+.edit-menu > li:hover > a {
+    text-decoration: none;
+}
+
 .edit-menu > li:hover > ul {
     display: block;
 }
@@ -539,7 +588,6 @@ a:hover {
     list-style-image: none;
     padding: 0px;
     list-style: none;
-    top: 40px;
     cursor: default;
     width: 120px;
     position: absolute;
@@ -561,6 +609,10 @@ a:hover {
     background: transparent;
 }
 
+.edit-menu ul li:hover > a {
+    text-decoration: none;
+}
+
 .edit-menu ul li:hover > ul {
     display: block;
 }
@@ -573,9 +625,69 @@ a:hover {
 }
 
 .edit-menu a {
+    padding: 0px 2px;
     float: none;
-    line-height: 20px;
     display: inline-block;
+}
+
+.widget {
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+.widget > .hd {
+    padding: 6px;
+    overflow: hidden;
+    background: #e6e6e6;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.widget > .hd h1,
+.widget > .hd h2,
+.widget > .hd h3,
+.widget > .hd h4,
+.widget > .hd h5 {
+    font-size: 18px;
+    float: left;
+    padding: 0;
+    text-transform: none;
+    background: transparent;
+    line-height: 27px;
+    margin: 0;
+}
+
+.widget > .hd .edit-menu {
+    line-height: 27px;
+}
+
+.widget > .bd {
+    padding: 6px;
+    overflow: hidden;
+    border: none;
+    display: block;
+}
+
+.widget > .ft {
+    padding: 6px;
+    overflow: hidden;
+    border: none;
+}
+
+.panel,
+.box {
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.05);
+    border-width: 1px;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+.panel {
+    padding: 6px;
+    background: #e6e6e6;
 }
 
 dl.object-definition {
@@ -769,10 +881,19 @@ input[readonly],
 .alert {
     padding: 8px 35px 8px 14px;
     color: #c09853;
+    border-color: #faf2cc;
+    border-width: 1px;
+    border-style: solid;
     background: #fcf8e3;
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
+}
+
+.alert.alert-error {
+    color: #b94a48;
+    border-color: #ebcccc;
+    background: #f2dede;
 }
 
 form.uniForm .errorlist {
@@ -1215,7 +1336,6 @@ a [class^="icon-"], a [class*=" icon-"] {
     list-style-image: none;
     padding: 0px;
     list-style: none;
-    top: 40px;
     cursor: default;
     width: 120px;
     position: absolute;
@@ -1250,7 +1370,6 @@ a [class^="icon-"], a [class*=" icon-"] {
 
 .topbar .nav.secondary-nav a {
     float: none;
-    line-height: 20px;
     display: inline-block;
 }
 
@@ -1294,6 +1413,8 @@ a [class^="icon-"], a [class*=" icon-"] {
 }
 
 #page-header {
+    min-height: 70px;
+    padding-top: 20px;
     margin-top: 40px;
 }
 

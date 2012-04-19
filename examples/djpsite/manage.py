@@ -26,9 +26,9 @@ To create the style sheet::
 import sys
 
 import djpcms
-from djpcms import views
+from djpcms import views, html
 from djpcms.apps import admin, static, user
-from djpcms import html
+from djpcms.html import Widget
 from djpcms.core.layout import page, container, grid
 from djpcms.plugins.navigation import topbar
 
@@ -100,11 +100,14 @@ class WebSite(djpcms.WebSite):
     
     def render_header(self, request, namespace, column, blocks):
         if column == 0:
-            return '<h2>Dynamic Content management system</h2>'
+            return '<h2>Dynamic content management system for Python</h2>'
     
     def render_footer(self, request, namespace, column, blocks):
         if column == 0:
-            return '<p>djpcms</p>'
+            link = Widget('a','BSD license',
+                    href='http://www.opensource.org/licenses/bsd-license.php')\
+                    .addAttr('target','_blank')
+            return Widget('p', ('djpcms code is licensed under ',link,'.'))
         elif column == 2:
             return '<p>Powered by <a href="http://www.python.org">Python'\
                    ' {0}.{1}.{2}</a></p>'.format(*sys.version_info[:3])

@@ -2,7 +2,7 @@ import os
 import logging
 import json
 
-from djpcms import forms
+from djpcms import forms, html
 from djpcms.forms.utils import form_kwargs
 from djpcms.utils import force_str, to_string
 from djpcms.utils.text import capfirst, nicename
@@ -62,9 +62,7 @@ class DJPpluginMetaBase(type):
         pname = pname.lower()
         descr = attrs.get('description')
         if not descr:
-            descr = pname
-        if pname != '':
-            descr = nicename(descr) 
+            descr = nicename(pname)
         attrs['name'] = pname
         attrs['description'] = descr
         pcls = new_class(cls, name, bases, attrs)
@@ -79,35 +77,28 @@ DJPwrapperBase = DJPpluginMetaBase('DJPwrapperBase',(object,),{'virtual':True})
 class DJPwrapper(DJPwrapperBase):
     '''Class responsible for wrapping :ref:`djpcms plugins <plugins-index>`.
     '''
-    virtual       = True
-    
-    name          = None
-    '''Unique name. If not provided the class name will be used.
-    
-    Default ``None``.'''
-    form_layout   = None
-    
-    _head_template = to_string('<div id="{0}"\
- class="djpcms-block-element plugin-{1}">\n')
-    _wrap_template = to_string('{0}{1}\n</div>')
+    virtual = True
+    always_render = False
+    template = html.WidgetMaker(tag='div')
+    name = None
 
-    def wrap(self, request, cblock, html):
+    def wrap(self, request, block, html):
         '''Wrap content for block and return safe HTML.
 This function should be implemented by derived classes.
         
 :parameter cblock: instance of :class:'djpcms.core.page.Block`.
 :parameter html: safe unicode string of inner HTML.'''
-        return html if html else ''
+        return html
     
-    def __call__(self, request, cblock, html):
-        if html:
-            name  = cblock.plugin_name
-            id    = cblock.htmlid()
-            head  = self._head_template.format(id,name)
-            inner = self.wrap(request, cblock, html)
-            return self._wrap_template.format(head,inner)
-        else:
-            return ''
+    def __call__(self, request, block, html):
+        if html or self.always_render:
+            name = block.plugin_name
+            id = block.htmlid()
+            inner = self.wrap(request, block, html)
+            if inner not in (None,''):
+                w = self.template(id=id,cn='cms-block plugin-'+name)
+                return w.add(inner)
+        return ''
     
     def _register(self):
         global _wrapper_dictionary
@@ -139,16 +130,13 @@ on a ``djpcms`` powered web site. The basics:
     '''Unique name. If not provided the class name will be used. Default ``None``.'''
     description   = None
     '''A short description to display in forms when editing content.'''
-    form          = None
+    form = None
     '''A :class:`djpcms.forms.Form` class or :class:`djpcms.forms.HtmlForm`
 instance for editing the plugin parameters.
     
 Default: ``None``, the plugin has no arguments.'''
-    permission      = 'authenticated'
+    permission = 'authenticated'
     css_name = None
-    #storage       = _plugin_dictionary
-    #URL           = None
-    for_model = None
     
     def js(self, **kwargs):
         '''Function which can be used to inject javascript dynamically.'''
@@ -157,6 +145,9 @@ Default: ``None``, the plugin has no arguments.'''
     def css(self):
         '''Function which can be used to inject css dynamically.'''
         return None
+    
+    def for_model(self, request):
+        pass
     
     def arguments(self, args):
         try:
@@ -201,7 +192,7 @@ By default do nothing.
         else:
             return json.dumps({})
     
-    def get_form(self, request, args = None, prefix = None, **kwargs):
+    def get_form(self, request, args=None, prefix=None, **kwargs):
         '''Return an instance of a :attr:`form` or `None`.
 Used to edit the plugin when in editing mode.
 Usually, there is no need to override this function.
@@ -210,11 +201,11 @@ If your plugin needs input parameters when editing, simple set the
         form_factory = self.form
         if form_factory is not None:
             initial = self.arguments(args) or None
-            form =  form_factory(**form_kwargs(request = request,
-                                               initial = initial,
-                                               prefix = prefix,
-                                               model = self.for_model,
-                                               **kwargs))
+            form = form_factory(**form_kwargs(request=request,
+                                              initial=initial,
+                                              prefix=prefix,
+                                              model=self.for_model(request),
+                                              **kwargs))
             return form
     
     def _register(self):
@@ -285,7 +276,9 @@ class JavascriptLogger(DJPplugin):
         return '<div class="djp-logging-panel"></div>'
     
     
-class SimpleWrap(DJPwrapper):
-    name         = 'simple no-tags'
+class NoWrapper(DJPwrapper):
+    name = '             nothing'
+    description  = '--------------------'
+    
 
-default_content_wrapper = SimpleWrap()
+default_content_wrapper = NoWrapper()

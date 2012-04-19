@@ -3,7 +3,6 @@ from djpcms.plugins import PLUGIN_DATA_FORM_CLASS
 from djpcms.core.exceptions import PermissionDenied
 from djpcms.forms.utils import get_redirect
 from djpcms.plugins.extrawrappers import CollapsedWrapper
-from djpcms.utils import mark_safe
 
 from .sitemap import underlying_response
 from .layout import ContentBlockHtmlForm
@@ -22,13 +21,10 @@ edit_movable = edit_class + ' ' + movable_class
 class EditWrapperHandler(CollapsedWrapper):
     '''a :class:`djpcms.plugins.DJPwrapper` for
 editing content.'''
+    always_render = True
     auto_register = False
-    header_classes = CollapsedWrapper.header_classes + ' ui-state-active'
-    body_classes = CollapsedWrapper.body_classes + ' plugin-form'
+    detachable = True
 
-    def __call__(self, request, cblock, html):
-        return self.wrap(request, cblock, html)
-    
     def title(self, cblock):
         if cblock.plugin:
             return cblock.plugin.description
@@ -38,18 +34,18 @@ editing content.'''
     def id(self, cblock):
         return 'edit-{0}'.format(cblock.htmlid())
     
-    def extra_class(self, request, cblock, html):
-        if cblock.plugin_name:
+    def extra_class(self, request, block, html):
+        if block.plugin_name:
             return edit_movable
         else:
             return edit_class
         
-    def actions(self, request, cblock):
-        delete = request.for_model(name = 'delete')
-        if delete:
-            return (delete.url,)
-        else:
-            return ()
+    def edit_menu(self, request, block):
+        ul = html.Widget('ul')
+        return ul.add(views.application_views_links(request,
+                                                    asbuttons=False,
+                                                    text=False,
+                                                    include=('delete',)))
     
     def footer(self, request, cblock, html):
         return request.view.get_preview(request, request.instance)
@@ -68,21 +64,20 @@ class ChangeContentView(BlockChangeView):
     def underlying(self, request):
         return underlying_response(request, request.instance.page)
     
-    def get_preview(self, request, instance, plugin = None):
+    def get_preview(self, request, instance, plugin=None):
         '''Render a plugin and its wrapper for preview within a div element'''
         underlying = request.underlying()
         if underlying:
             try:
-                preview_html = instance.render(underlying, plugin = plugin)
+                preview_html = instance.widget(underlying, plugin=plugin)
             except Exception as e:
                 preview_html = str(e)
         else:
             return 'Could not get preview'
         
-        cb = lambda phtml : mark_safe('<div id="%s" class="preview">%s</div>' %\
-                                      (instance.pluginid('preview'),phtml))
         if preview_html:
-            return request.view.response(preview_html, callback = cb)
+            id = instance.pluginid('preview')
+            return html.Widget('div', preview_html, id=id, cn='preview')
         else:
             return ''
         
@@ -94,10 +89,10 @@ class ChangeContentView(BlockChangeView):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''
         if plugin:
             instance = request.instance
-            args     = None
+            args = None
             if instance.plugin == plugin:
                 args = instance.arguments
-            return plugin.get_form(request, args, prefix = prefix, **kwargs)
+            return plugin.get_form(request, args, prefix=prefix, **kwargs)
             
     def edit_block(self, request):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
@@ -109,7 +104,7 @@ class ChangeContentView(BlockChangeView):
     
     def ajax__plugin_name(self, request):
         '''Change plugin'''
-        return self.post_response(request, commit = False)
+        return self.post_response(request, commit=False)
         
     def ajax__edit_content(self, request):
         pluginview = self.appmodel.views.get('plugin')
@@ -139,35 +134,36 @@ class ChangeContentView(BlockChangeView):
                              .addAttr('title','Edit plugin')\
                              .addData('method','get')
             formhtml.inputs.append(edit_url)
+        wrapper = EditWrapperHandler()
+        return wrapper(request, instance, formhtml)
         return formhtml.render(request,
                 {'plugin': self.plugin_form_container(instance, plugin_form)})
     
     def post_response(self, request, commit = True, plugin_form = True):
         '''View called when changing the content plugin values.
 The instance.plugin object is maintained but its fields may change.'''       
-        fhtml = self.get_form(request, withdata = True, force_prefix = True)
+        fhtml = self.get_form(request, withdata=True)
         form = fhtml.form
         
         if plugin_form:
             instance = request.instance
             prefix = form.prefix
-            layout = fhtml.layout
             if not form.is_valid():
                 if commit:
-                    return layout.json_messages(form)
+                    return fhtml.maker.json_messages(form)
                 else:
                     return ajax.jhtmls() 
             data = form.cleaned_data
             pform = self.get_plugin_form(request,
                                          data['plugin_name'],
                                          prefix,
-                                         withdata = commit)
+                                         withdata=commit)
             
             #plugin editing form is available
             if pform is not None:
                 # if plugin form is bound and has error, returns the errors
                 if pform.form.is_bound and not pform.is_valid():
-                    return layout.json_messages(pform.form)
+                    return fhtml.maker.json_messages(pform.form)
                 # Check what action to perform.
                 action = forms.get_ajax_action(request.REQUEST)
                 instance = form.save(commit = commit)
@@ -192,7 +188,7 @@ The instance.plugin object is maintained but its fields may change.'''
                                  type = 'replacewith')
         else:
             # we are just rerendering the plugin with a different wrapper
-            instance = form.save(commit = commit)
+            instance = form.save(commit=commit)
             jquery = ajax.jhtmls()
             
         preview = self.get_preview(request, instance)
@@ -203,7 +199,7 @@ The instance.plugin object is maintained but its fields may change.'''
                 form.add_message("Plugin changed to %s"\
                                  % instance.plugin.description)
             
-            jquery.update(layout.json_messages(form))
+            jquery.update(fhtml.maker.json_messages(form))
             
         return jquery
 

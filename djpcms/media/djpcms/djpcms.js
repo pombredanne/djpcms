@@ -162,7 +162,6 @@
                 ajax_server_error: "ajax-server-error",
                 errorlist: "errorlist",
                 formmessages: "form-messages",
-                box_effect: {type:"blind",duration:500},
                 remove_effect: {type:"drop",duration:500},
                 bitly_key: null,
                 twitter_user: null,

@@ -1,7 +1,7 @@
 import colorsys
 from collections import namedtuple
 
-from .base import ispy3k, Variable, clamp, native_str
+from .base import ispy3k, Variable, clamp, native_str, to_string
 
 if not ispy3k:  # pragma: no cover
     from itertools import izip
@@ -56,6 +56,13 @@ to and from HSL_ and HSV representations.
     def __new__(cls, r, g, b, alpha = 1):
         return super(RGBA,cls).__new__(cls,clamprgb(r),clamprgb(g),clamprgb(b),
                                        clamp(alpha))
+    
+    def __unicode__(self):
+        return to_string(self.tocss())
+    
+    def __str__(self):
+        return native_str(self.tocss())
+    __repr__ = __str__
     
     def __add__(self, other):
         if isinstance(other, self.__class__):

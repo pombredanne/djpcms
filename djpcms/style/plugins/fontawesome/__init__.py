@@ -17,7 +17,9 @@ mapping = {'admin': 'cog',
            'login': 'signin',
            'open-box': 'plus-sign',
            'close-box': 'minus-sign',
-           'exit-page-edit': 'off'}
+           'exit-page-edit': 'off',
+           'detach-box': 'external-link',
+           'attach-box': 'icon-pushpin '}
 
 
 def icon(name, size, widget):

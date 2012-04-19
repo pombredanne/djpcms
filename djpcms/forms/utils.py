@@ -102,13 +102,13 @@ def form_inputs(instance, own_view = False):
 
 def get_form(request,
              form_factory,
-             initial = None,
-             prefix = None,
-             addinputs = None,
-             withdata = None,
-             instance = None,
-             model = None,
-             force_prefix = True):
+             initial=None,
+             prefix=None,
+             addinputs=None,
+             withdata=None,
+             instance=None,
+             model=None,
+             force_prefix=True):
     '''Comprehensive method for building a
 :class:`djpcms.forms.HtmlForm` instance:
 

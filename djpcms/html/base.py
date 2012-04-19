@@ -277,6 +277,7 @@ is a factory of :class:`Widget`.
             data_stream = iterable_for_widget(data_stream)
             for element in data_stream:
                 self.maker.add_to_widget(self, element)
+        return self
                 
     def insert(self, position, element):
         self.maker.add_to_widget(self, element, position)

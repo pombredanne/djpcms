@@ -5,6 +5,7 @@
         description:"Decorate box elements",
         config: {
             selector: '.widget.collapsable',
+            effect: {type:"blind",duration:10},
         },
         decorate: function($this, config) {
             var opts = config.djpcms_widget,
@@ -17,17 +18,17 @@
                     cp = self.parents(opts.selector).first(),
                     data = cp.data(),
                     icons = data.icons,
-                    be = config.box_effect,
+                    be = opts.effect,
                     bd = $('.bd',cp).first();
                 if(cp.hasClass('collapsed')) {
+                    cp.removeClass('collapsed');
                     bd.show(be.type,{},be.duration,function(){
-                        cp.removeClass('collapsed');
                         self.html(icons.close);
                     });
                 }
                 else {
+                    cp.addClass('collapsed');
                     bd.hide(be.type,{},be.duration, function(){
-                        cp.addClass('collapsed');
                         self.html(icons.open);
                     });
                 }

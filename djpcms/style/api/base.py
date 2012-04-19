@@ -269,9 +269,12 @@ class Size(Variable):
                 value = value[:-1]
             else:
                 ValueError('"{0}" is not a valid space'.format(value))
-        value = float(value)
+        value = round(value,4)
         ivalue = int(value)
-        return ivalue if ivalue == value else value
+        if self.unit == 'px':
+            return ivalue
+        else:
+            return ivalue if ivalue == value else value
     
     def _unit(self):
         return self._fix_unit
@@ -488,7 +491,7 @@ class css(object):
         '''Extend by adding *elem* attributes and children.'''
         self._attributes.extend(elem._attributes)
         for child_list in itervalues(elem._children):
-            for child in child_list: 
+            for child in tuple(child_list): 
                 child._set_parent(self) 
     
     def stream(self):

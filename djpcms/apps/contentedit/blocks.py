@@ -135,6 +135,7 @@ class ChangeContentView(BlockChangeView):
                              .addData('method','get')
             formhtml.inputs.append(edit_url)
         wrapper = EditWrapperHandler()(request, instance, formhtml)
+        # GET THE PLUGIN FORM IF NEEDED
         plugin = self.plugin_form_container(instance, plugin_form)
         return wrapper.render(request, {'plugin': plugin})
     

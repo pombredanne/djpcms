@@ -14,8 +14,10 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.style.plugins.page',
                   'djpcms.style.plugins.table',
                   'djpcms.style.plugins.ui',
+                  'djpcms.style.plugins.color',
                   #
                   #'pulsardjp',
+                  'djpsite.apps.design',
                   'djpsite')
 ENABLE_BREADCRUMBS = 1
 DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}

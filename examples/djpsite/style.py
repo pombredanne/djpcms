@@ -2,6 +2,7 @@ from djpcms.style import *
 
 
 cssv.body.radius = px(4)
+cssv.input.border_width = px(1)
 
 cssv.header.min_height = px(70)
 

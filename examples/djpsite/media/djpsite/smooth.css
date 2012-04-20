@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-04-19 22:04:40.787911
-Time taken 0.214 seconds
+Created by djpcms.style 2012-04-20 18:20:49.932000
+Time taken 0.262 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -144,13 +144,14 @@ legend {
     *zoom: 1;
 }
 
-.row-12:before,
-.row-12:after {
+.row-12:before {
     content: "";
     display: table;
 }
 
 .row-12:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -218,13 +219,14 @@ legend {
     *zoom: 1;
 }
 
-.grid-container-12:before,
-.grid-container-12:after {
+.grid-container-12:before {
     content: "";
     display: table;
 }
 
 .grid-container-12:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -233,13 +235,14 @@ legend {
     *zoom: 1;
 }
 
-.row-fluid-12:before,
-.row-fluid-12:after {
+.row-fluid-12:before {
     content: "";
     display: table;
 }
 
 .row-fluid-12:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -306,13 +309,14 @@ legend {
     *zoom: 1;
 }
 
-.grid-container-fluid-12:before,
-.grid-container-fluid-12:after {
+.grid-container-fluid-12:before {
     content: "";
     display: table;
 }
 
 .grid-container-fluid-12:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -321,13 +325,14 @@ legend {
     *zoom: 1;
 }
 
-.row-fluid-24:before,
-.row-fluid-24:after {
+.row-fluid-24:before {
     content: "";
     display: table;
 }
 
 .row-fluid-24:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -442,53 +447,61 @@ legend {
     *zoom: 1;
 }
 
-.grid-container-fluid-24:before,
-.grid-container-fluid-24:after {
+.grid-container-fluid-24:before {
     content: "";
     display: table;
 }
 
 .grid-container-fluid-24:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1 {
     font-weight: bold;
     margin: 0;
     text-rendering: optimizelegibility;
-}
-
-h1 {
     line-height: 36px;
     font-size: 28px;
 }
 
 h2 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
     line-height: 32px;
     font-size: 22px;
 }
 
 h3 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
     line-height: 27px;
     font-size: 18px;
 }
 
 h4 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
     line-height: 25px;
     font-size: 16px;
 }
 
 h5 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
     line-height: 18px;
     font-size: 14px;
 }
 
 h6 {
+    font-weight: bold;
+    margin: 0;
+    text-rendering: optimizelegibility;
     text-transform: uppercase;
     line-height: 18px;
     font-size: 12px;
@@ -515,18 +528,31 @@ a:hover {
     text-decoration: underline;
 }
 
+input::-webkit-input-placeholder {
+    color: #999999;
+}
+
+input:-moz-placeholder {
+    color: #999999;
+}
+
+input:-ms-input-placeholder {
+    color: #999999;
+}
+
 .cms-block {
     margin-bottom: 20px;
     *zoom: 1;
 }
 
-.cms-block:before,
-.cms-block:after {
+.cms-block:before {
     content: "";
     display: table;
 }
 
 .cms-block:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -534,7 +560,11 @@ a:hover {
     border-color: #222222;
 }
 
-.widget.box.edit-block > .hd,
+.widget.box.edit-block > .hd {
+    color: #ffffff;
+    background: #222222;
+}
+
 .widget.box.edit-block > .bd {
     color: #ffffff;
     background: #222222;
@@ -644,10 +674,46 @@ a:hover {
     padding-bottom: 0;
 }
 
-.widget > .hd h1,
-.widget > .hd h2,
-.widget > .hd h3,
-.widget > .hd h4,
+.widget > .hd h1 {
+    font-size: 18px;
+    float: left;
+    padding: 0;
+    text-transform: none;
+    background: transparent;
+    line-height: 27px;
+    margin: 0;
+}
+
+.widget > .hd h2 {
+    font-size: 18px;
+    float: left;
+    padding: 0;
+    text-transform: none;
+    background: transparent;
+    line-height: 27px;
+    margin: 0;
+}
+
+.widget > .hd h3 {
+    font-size: 18px;
+    float: left;
+    padding: 0;
+    text-transform: none;
+    background: transparent;
+    line-height: 27px;
+    margin: 0;
+}
+
+.widget > .hd h4 {
+    font-size: 18px;
+    float: left;
+    padding: 0;
+    text-transform: none;
+    background: transparent;
+    line-height: 27px;
+    margin: 0;
+}
+
 .widget > .hd h5 {
     font-size: 18px;
     float: left;
@@ -675,7 +741,17 @@ a:hover {
     border: none;
 }
 
-.panel,
+.panel {
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.05);
+    border-width: 1px;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+    padding: 6px;
+    background: #e6e6e6;
+}
+
 .box {
     border-style: solid;
     border-color: rgba(0, 0, 0, 0.05);
@@ -683,11 +759,6 @@ a:hover {
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
-}
-
-.panel {
-    padding: 6px;
-    background: #e6e6e6;
 }
 
 dl.object-definition {
@@ -735,24 +806,116 @@ dl.object-definition.w50 dt {
             border-radius: 4px;
 }
 
-.field-widget input[type="text"],
-.field-widget input[type="password"],
-.field-widget textarea,
-.field-widget select {
+.field-widget input[type="text"] {
+    border-style: solid;
+    line-height: 1;
     color: inherit;
+    border-color: transparent;
     padding: 4px 0px;
     width: 100%;
     background: transparent;
-    line-height: 1;
+    border-width: 0;
     margin: 0;
-    border: none;
     outline: none;
 }
 
-.field-widget input:focus,
-.field-widget textarea:focus,
+.field-widget input[type="text"]::-webkit-input-placeholder {
+    color: #999999;
+}
+
+.field-widget input[type="text"]:-moz-placeholder {
+    color: #999999;
+}
+
+.field-widget input[type="text"]:-ms-input-placeholder {
+    color: #999999;
+}
+
+.field-widget input[type="password"] {
+    border-style: solid;
+    line-height: 1;
+    color: inherit;
+    border-color: transparent;
+    padding: 4px 0px;
+    width: 100%;
+    background: transparent;
+    border-width: 0;
+    margin: 0;
+    outline: none;
+}
+
+.field-widget input[type="password"]::-webkit-input-placeholder {
+    color: #999999;
+}
+
+.field-widget input[type="password"]:-moz-placeholder {
+    color: #999999;
+}
+
+.field-widget input[type="password"]:-ms-input-placeholder {
+    color: #999999;
+}
+
+.field-widget textarea {
+    border-style: solid;
+    line-height: 1;
+    color: inherit;
+    border-color: transparent;
+    padding: 4px 0px;
+    width: 100%;
+    background: transparent;
+    border-width: 0;
+    margin: 0;
+    outline: none;
+}
+
+.field-widget textarea::-webkit-input-placeholder {
+    color: #999999;
+}
+
+.field-widget textarea:-moz-placeholder {
+    color: #999999;
+}
+
+.field-widget textarea:-ms-input-placeholder {
+    color: #999999;
+}
+
+.field-widget select {
+    border-style: solid;
+    line-height: 1;
+    color: inherit;
+    border-color: transparent;
+    padding: 4px 0px;
+    width: 100%;
+    background: transparent;
+    border-width: 0;
+    margin: 0;
+    outline: none;
+    padding: 3px 0px;
+}
+
+.field-widget select::-webkit-input-placeholder {
+    color: #999999;
+}
+
+.field-widget select:-moz-placeholder {
+    color: #999999;
+}
+
+.field-widget select:-ms-input-placeholder {
+    color: #999999;
+}
+
+.field-widget input:focus {
+    outline: none;
+}
+
+.field-widget textarea:focus {
+    outline: none;
+}
+
 .field-widget select:focus {
-    border: none;
     outline: none;
 }
 
@@ -799,8 +962,7 @@ dl.object-definition.w50 dt {
     width: 480px;
 }
 
-input.button[type="submit"],
- button.button {
+input.button[type="submit"] {
     border-style: solid;
     cursor: pointer;
     border-color: #999999;
@@ -823,11 +985,11 @@ input.button[type="submit"],
             border-radius: 4px;
 }
 
-input.button[type="submit"], button.button:hover {
+input.button[type="submit"]:hover {
     background: #e6e6e6;
 }
 
-input.button[type="submit"], button.button:active {
+input.button[type="submit"]:active {
     background-color: #999999;
     background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
     background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
@@ -840,7 +1002,7 @@ input.button[type="submit"], button.button:active {
     filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
-input.button[type="submit"], button.button.active {
+input.button[type="submit"].active {
     background-color: #999999;
     background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
     background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
@@ -853,8 +1015,73 @@ input.button[type="submit"], button.button.active {
     filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
-button.button.large,
-a.button.large,
+button.button {
+    border-style: solid;
+    cursor: pointer;
+    border-color: #999999;
+    padding: 4px 9px;
+    margin-right: 4px;
+    border-width: 1px;
+    display: inline-block;
+    background-color: #e6e6e6;
+    background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+    background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+    background-image: linear-gradient(top, #ffffff, #e6e6e6);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffffff, endColorstr=#e6e6e6, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+button.button:hover {
+    background: #e6e6e6;
+}
+
+button.button:active {
+    background-color: #999999;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#999999));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -o-linear-gradient(top, #e6e6e6, #999999);
+    background-image: linear-gradient(top, #e6e6e6, #999999);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#999999, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+
+button.button.active {
+    background-color: #999999;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#999999));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #999999);
+    background-image: -o-linear-gradient(top, #e6e6e6, #999999);
+    background-image: linear-gradient(top, #e6e6e6, #999999);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#999999, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+
+button.button.large {
+    padding: 8px;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+a.button.large {
+    padding: 8px;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
 input.button.large[type="submit"] {
     padding: 8px;
     -webkit-border-radius: 4px;
@@ -862,16 +1089,51 @@ input.button.large[type="submit"] {
             border-radius: 4px;
 }
 
-.disabled .field-widget,
- .readonly .field-widget,
- 
-input[disabled],
- select[disabled],
- textarea[disabled],
+.disabled .field-widget {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
 
-input[readonly],
- select[readonly],
- textarea[readonly]
+.readonly .field-widget {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+
+input[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+select[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+textarea[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+
+input[readonly] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+select[readonly] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+textarea[readonly]
  {
     cursor: not-allowed;
     opacity: 0.7;
@@ -898,18 +1160,135 @@ input[readonly],
 
 form.uniForm .errorlist {
     overflow: hidden;
+    display: none;
 }
 
-form.uniForm .ctrlHolder,
+form.uniForm .form-messages {
+    overflow: hidden;
+    display: none;
+}
+
+form.uniForm .legend {
+    margin: 4px;
+}
+
+form.uniForm .inlineLabels .label {
+    width: 32%;
+    float: left;
+    margin: 4px 2% 4px 0px;
+}
+
+form.uniForm .inlineLabels .field-widget {
+    width: auto;
+    margin-left: 34%;
+}
+
+form.uniForm .ctrlHolder {
+    padding: 0px 0px 4px;
+    vertical-align: middle;
+    margin: 0;
+    overflow: hidden;
+}
+
 form.uniForm .buttonHolder {
-    padding: 4px;
+    padding: 0px 0px 4px;
     vertical-align: middle;
     margin: 0;
     overflow: hidden;
 }
 
 form.uniForm .layout-element {
-    margin: 0 0 6px;
+    margin: 0px 0px 6px;
+}
+
+form.uniForm .formRow {
+    padding: 0;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+    margin: 0;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+form.uniForm .formRow table {
+    table-layout: auto;
+    width: 100%;
+}
+
+form.uniForm .formRow table td {
+    border-style: solid;
+    border-color: #999999;
+    border-width: 0px 1px 0px 0px;
+}
+
+form.uniForm .formRow table td input.button[type="submit"] {
+    width: 100%;
+}
+
+form.uniForm .formRow table td button.button {
+    width: 100%;
+}
+
+form.uniForm .formRow table td:last-child {
+    border: none;
+}
+
+form.uniForm .formRow table td:last-child input.button[type="submit"] {
+    -webkit-border-radius: 0px 4px 4px 0px;
+       -moz-border-radius: 0px 4px 4px 0px;
+            border-radius: 0px 4px 4px 0px;
+}
+
+form.uniForm .formRow table td:last-child button.button {
+    -webkit-border-radius: 0px 4px 4px 0px;
+       -moz-border-radius: 0px 4px 4px 0px;
+            border-radius: 0px 4px 4px 0px;
+}
+
+form.uniForm .formRow table td:last-child .field-widget {
+    -webkit-border-radius: 0px 4px 4px 0px;
+       -moz-border-radius: 0px 4px 4px 0px;
+            border-radius: 0px 4px 4px 0px;
+}
+
+form.uniForm .formRow table td:first-child input.button[type="submit"] {
+    -webkit-border-radius: 4px 0px 0px 4px;
+       -moz-border-radius: 4px 0px 0px 4px;
+            border-radius: 4px 0px 0px 4px;
+}
+
+form.uniForm .formRow table td:first-child button.button {
+    -webkit-border-radius: 4px 0px 0px 4px;
+       -moz-border-radius: 4px 0px 0px 4px;
+            border-radius: 4px 0px 0px 4px;
+}
+
+form.uniForm .formRow table td:first-child .field-widget {
+    -webkit-border-radius: 4px 0px 0px 4px;
+       -moz-border-radius: 4px 0px 0px 4px;
+            border-radius: 4px 0px 0px 4px;
+}
+
+form.uniForm .formRow .field-widget {
+    border: none;
+}
+
+form.uniForm .formRow input.button[type="submit"] {
+    border: none;
+    margin: 0;
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+            border-radius: 0;
+}
+
+form.uniForm .formRow button.button {
+    border: none;
+    margin: 0;
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+            border-radius: 0;
 }
 
 table.uniFormTable {
@@ -923,23 +1302,30 @@ table.uniFormTable input[type="checkbox"] {
     margin: 0;
 }
 
-table.uniFormTable th,
+table.uniFormTable th {
+    padding: 4pxpx 0 4pxpx 4pxpx;
+}
+
 table.uniFormTable td {
     padding: 4pxpx 0 4pxpx 4pxpx;
 }
 
-table.uniFormTable th:last-child,
+table.uniFormTable th:last-child {
+    padding: 4px;
+}
+
 table.uniFormTable td:last-child {
     padding: 4px;
 }
 
-table.uniFormTable:before,
-table.uniFormTable:after {
+table.uniFormTable:before {
     content: "";
     display: table;
 }
 
 table.uniFormTable:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -1235,7 +1621,11 @@ a [class^="icon-"], a [class*=" icon-"] {
     background: #000000;
 }
 
-.topbar .nav > li:active > a {
+.topbar .nav > li.active {
+    background: #000000;
+}
+
+.topbar .nav > li.active > a {
     color: #ffffff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
     text-decoration: none;
@@ -1289,7 +1679,11 @@ a [class^="icon-"], a [class*=" icon-"] {
     background: #000000;
 }
 
-.topbar .nav ul li:active > a {
+.topbar .nav ul li.active {
+    background: #000000;
+}
+
+.topbar .nav ul li.active > a {
     color: #ffffff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
     text-decoration: none;
@@ -1483,7 +1877,12 @@ td.one-line {
     cursor: pointer;
 }
 
-.data-table td,
+.data-table td {
+    padding: 4px;
+    vertical-align: center;
+    line-height: 18px;
+}
+
 .data-table th {
     padding: 4px;
     vertical-align: center;
@@ -1499,13 +1898,14 @@ td.one-line {
     *zoom: 1;
 }
 
-.ui-tabs ul:before,
-.ui-tabs ul:after {
+.ui-tabs ul:before {
     content: "";
     display: table;
 }
 
 .ui-tabs ul:after {
+    content: "";
+    display: table;
     clear: both;
 }
 
@@ -1542,8 +1942,14 @@ td.one-line {
     background: #f3f3f3;
 }
 
-.ui-tabs ul.tabs > li.ui-state-active > a,
-.ui-tabs ul.tabs > li.ui-state-active >  a:hover {
+.ui-tabs ul.tabs > li.ui-state-active > a {
+    color: #222222;
+    border-color: #e6e6e6 #e6e6e6 transparent;
+    text-decoration: none;
+    background: #ffffff;
+}
+
+.ui-tabs ul.tabs > li.ui-state-active > a:hover {
     color: #222222;
     border-color: #e6e6e6 #e6e6e6 transparent;
     text-decoration: none;
@@ -1556,4 +1962,9 @@ td.one-line {
 
 .ui-tabs-hide {
     display: none;
+}
+
+.color-picker.wheel {
+    position: absolute;
+    background: #e6e6e6;
 }

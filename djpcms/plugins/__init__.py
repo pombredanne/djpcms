@@ -91,7 +91,7 @@ This function should be implemented by derived classes.
         return html
     
     def __call__(self, request, block, html):
-        if html or self.always_render:
+        if html not in (None,'') or self.always_render:
             name = block.plugin_name
             id = block.htmlid()
             inner = self.wrap(request, block, html)

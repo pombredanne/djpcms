@@ -92,7 +92,15 @@ class NodeEnvironMixin(UnicodeMixin):
     
     @property
     def page(self):
-        return self.node.page
+        if self.view.inherit_page:
+            node = self.node
+            page = None
+            while not page and node:
+                page = node.page
+                node = node.parent
+            return page
+        else:
+            return self.node.page
     
     @property
     def name(self):

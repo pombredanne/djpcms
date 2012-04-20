@@ -188,7 +188,7 @@ views::
                  table_generator = None,
                  success_message = None,
                  redirect_to_view = None,
-                 inherit_page = True,
+                 inherit_page = None,
                  is_soft = False,
                  query = None,
                  **kwargs):
@@ -196,7 +196,8 @@ views::
                                   **kwargs)
         self.func = None
         self.code = None
-        self.inherit_page = inherit_page
+        if inherit_page is not None:
+            self.inherit_page = inherit_page
         self.redirect_to_view = redirect_to_view if redirect_to_view\
                                      is not None else self.redirect_to_view
         if title:

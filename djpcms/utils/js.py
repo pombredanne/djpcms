@@ -6,6 +6,7 @@ SWFOBJECT_PATH = 'https://ajax.googleapis.com/ajax/libs/swfobject/\
 JQUERY_TEMPLATE = 'http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/\
 jquery.tmpl.min.js'
 HIGHLIGHTS = 'http://yandex.st/highlightjs/6.1/highlight.min.js'
+RAPHAEL = 'http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js'
 
 
 BOOSTRAP_TWIPSY = 'http://twitter.github.com/bootstrap/1.4.0/bootstrap-twipsy.js'

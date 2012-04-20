@@ -37,14 +37,16 @@ class FieldList(list):
                                        ('description',forms.CharField()))
 '''
     def fields(self, prefix = None):
-        for name,field in self:
-            if isinstance(field,self.__class__):
+        for name, field in self:
+            if isinstance(field, self.__class__):
                 for name2,field2 in field.fields(name):
                     yield name2,field2
             else:
                 if prefix:
                     name = '{0}{1}'.format(prefix,name)
-                yield name,field
+                if isinstance(field, type):
+                    field = field()
+                yield name, field
                 
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
@@ -57,7 +59,7 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
             fields.append((obj.name, attrs.pop(name)))
         elif isinstance(obj, FieldList):
             obj = attrs.pop(name)
-            fields.extend(obj.fields())
+            fields.extend(obj.fields(name+'__'))
         elif isinstance(obj, FormSet):
             obj.name = name
             inlines.append((name, attrs.pop(name)))

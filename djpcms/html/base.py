@@ -306,7 +306,7 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional context dictionary.
 '''
         if self._streamed:
-            raise RuntimeError('Already streamed')
+            raise RuntimeError('{0} Already streamed'.format(self))
         self._streamed = True
         return self.maker.stream_from_widget(request, self, context)
     

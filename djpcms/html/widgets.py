@@ -1,4 +1,4 @@
-from djpcms.utils import escape, js, media, ispy3k
+from djpcms.utils import escape, js, media, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
 
@@ -89,27 +89,27 @@ class Select(FieldWidget):
     _media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
     
     def set_value(self, val, widget):
-        bfield =  widget.internal.get('bfield',None)
-        if bfield:
-            choices = bfield.field.choices
-            if not bfield.field.required:
-                widget.add((('', choices.empty_label),))
-            widget.add(choices.all(bfield))
-            val = choices.widget_value(val)
         if val:
-            selected_choices = val if widget.attr('multiple') else (val,)
+            selected = tuple((to_string(val) for v in\
+                               (val if widget.attr('multiple') else (val,))))
         else:
-            selected_choices = ()
-        widget.internal['selected_choices'] = selected_choices
-
-    def stream(self, request, widget, context):
-        selected_choices = widget.internal.get('selected_choices',())
+            selected = ()
+        widget.add(self._all_choices(widget, selected))
+        
+    def _all_choices(self, widget, selected):
+        bfield =  widget.internal.get('bfield',None)
+        if not bfield:
+            return
+        choices = bfield.field.choices
         option = self._option
-        selected = self._selected
-        for idval in widget.data_stream:
-            id, val = idval
-            sel = (id in selected_choices) and selected or ''
-            yield option.format(id, sel, val)
+        if not bfield.field.required:
+            yield option.format('','',choices.empty_label)
+        for id,val in choices.all(bfield):
+            id = to_string(id)
+            if id in selected:
+                yield option.format(id,self._selected,val)
+            else:
+                yield option.format(id,'',val)
     
         
 class FileInput(InputWidget):

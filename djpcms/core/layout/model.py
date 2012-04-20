@@ -154,7 +154,7 @@ with the wrapper callable.'''
         
         # html can be a string or whatever the plugin returns.
         if plugin_response or not self.position:
-            if not plugin_response:
+            if plugin_response in (None,''):
                 plugin_response = NON_BREACKING_SPACE
             return wrapper(request, self, plugin_response)
     

@@ -30,6 +30,15 @@ def div(self,other):
     return self._op(other, lambda a,b: a/float(b),
                     supported_types = (int,float))
     
+def alltags(tags):
+    '''Generator of all tags from a string.'''
+    tags = tags.split(',')
+    for tag in tags:
+        # we trim front spaces
+        while tag and tag.startswith(' '):
+            tag = tag[1:]
+        if tag:
+            yield tag
     
 class Variable(UnicodeMixin):
     '''A general variable.
@@ -382,18 +391,25 @@ class css(object):
     
     def __new__(cls, tag, *components, **attributes):
         if tag == 'body':
-            self = cls.body()
+            elems = [cls.body()]
+        elif tag:
+            elems = [cls.make(tag) for tag in alltags(tag)]
         else:
-            self = cls.make(tag)
+            elems = [cls.make(tag)]
         parent = attributes.pop('parent',None)
-        self.parent_relationship = attributes.pop('parent_relationship','child')
-        for name, value in iteritems(attributes):
-            self[name] = value
-        self._set_parent(parent)
-        # Loop over components to add them to self
-        for c in components:
-            self.add(c)
-        return self
+        parent_relationship = attributes.pop('parent_relationship','child')
+        for self in elems:
+            self.parent_relationship = parent_relationship
+            for name, value in iteritems(attributes):
+                self[name] = value
+            self._set_parent(parent)
+            # Loop over components to add them to self
+            for cl in components:
+                if not isinstance(cl, list):
+                    cl = (cl,)
+                for c in cl: 
+                    self.add(c)
+        return elems[0] if len(elems) == 1 else elems
     
     def __repr__(self):
         return self.tag
@@ -479,13 +495,6 @@ class css(object):
                     self._children.pop(code)
         elif isinstance(child, mixin):
             self._children.pop(str(child),None)
-    
-    def alltags(self):
-        '''Generator of all tags in the css component.'''
-        tags = self._tag.split(',')
-        for tag in tags:
-            if tag:
-                yield self._full_tag(tag)
                 
     def extend(self, elem):
         '''Extend by adding *elem* attributes and children.'''
@@ -557,7 +566,7 @@ class css(object):
                 data.append('    {0}: {1};'.format(k,v))
         if data:
             # yield the element
-            yield ',\n'.join(self.alltags()) + ' {'
+            yield self.tag + ' {'
             for s in data:
                 yield s
             yield '}\n'

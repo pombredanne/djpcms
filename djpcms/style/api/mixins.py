@@ -14,6 +14,7 @@ __all__ = ['opacity',
            'shadow',
            'radius',
            'gradient',
+           'placeholder',
            'bcd',
            'clickable',
            'horizontal_navigation',
@@ -172,6 +173,20 @@ startColorstr={0}, endColorstr={1}, GradientType={2})".format(s,e,t)
     def vgradient(self, elem, d, s, e):
         self._gradient(elem, 'top', s, e)
         
+
+################################################# PLACEHOLDER
+class placeholder(mixin):
+    
+    def __init__(self, color):
+        self.color = color
+    
+    def __call__(self, elem):
+        cssa('::-webkit-input-placeholder,'\
+             ':-moz-placeholder,'\
+             ':-ms-input-placeholder',
+             parent=elem,
+             color=self.color)
+        
 ################################################# BCD - BACKGROUND-COLOR-DECO
 class bcd(mixin):
     '''Background-color-text decoration and text shadow mixin. It
@@ -210,8 +225,7 @@ class clickable(mixin):
         if self.hover:
             cssa(':hover', self.hover, parent=elem)
         if self.active:
-            cssa(':active', self.active, parent=elem)
-            cssa('.active', self.active, parent=elem)
+            cssa(':active,.active', self.active, parent=elem)
         
 ################################################# HORIZONTAL NAVIGATION
 class horizontal_navigation(clickable):
@@ -264,7 +278,7 @@ class horizontal_navigation(clickable):
                                 text_decoration=hover.text_decoration,
                                 text_shadow=hover.text_shadow)),
                        cssb('ul', display='block')),
-                  cssa(':active',
+                  cssa(':active, .active',
                        active.background,
                        cssb('a',
                             bcd(color=active.color,

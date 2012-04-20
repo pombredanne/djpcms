@@ -72,11 +72,11 @@ class WebSite(djpcms.WebSite):
         return site
     
     def urls(self, site):
-        from djpsite.apps.design import DesignApplication
+        from djpsite.apps import design
         return (
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
-                DesignApplication('/design'),
+                design.DesignApplication('/design', design.Theme),
                 user.UserApplication('/accounts/', User),
                 MainApplication('/')
                 )

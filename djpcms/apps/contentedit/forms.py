@@ -40,16 +40,19 @@ class PageForm(forms.Form):
                           widget = html.TextInput(readonly='readonly'))
     title = forms.CharField(label = 'Page title',
                             required = False)
-    link = forms.CharField(label = 'Text to display in links',
-                           required = False)
+    link = forms.CharField(help_text='Text to display in links',
+                           required=False)
     in_navigation = forms.IntegerField(
                         initial=0,
                         required=False,
-                        help_text = 'An integer greater or equal 0 used for'
-                                    ' link ordering in menus.')
+                        label='position',
+                        help_text="An integer greater or equal 0 used for "\
+                                  " link ordering in menus. If zero the page "\
+                                  "won't appear in naviagtions")
     layout = forms.ChoiceField(choices=get_layout_templates,
                                label='Page layout')
-    inner_template = forms.ChoiceField(choices = grid_choices)
+    inner_template = forms.ChoiceField(label='content grid',
+                                       choices = grid_choices)
     grid_system = forms.ChoiceField(choices = grid_systems)
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()

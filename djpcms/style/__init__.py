@@ -28,6 +28,9 @@ cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
 cssv.body.radius = px(0)
 
+# Inputs
+cssv.input.placeholder_color = cssv.color.grayLight
+
 # Headings
 cssv.heading.font_weight = 'bold'
 cssv.heading.h3.font_size = lazy(lambda: 1.3*cssv.body.font_size)
@@ -108,6 +111,9 @@ css('a',
     clickable(**cssv.link.params()),
     font_weight=cssv.link.font_weight
 )
+
+css('input',
+    placeholder(cssv.input.placeholder_color))
 
 css('.cms-block',
     clearfix(),

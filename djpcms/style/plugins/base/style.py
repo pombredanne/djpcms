@@ -47,6 +47,7 @@ cssv.alert_error.color = color('#B94A48')
 #
 cssv.uniform.padding = px(4)
 cssv.uniform.table_layout = 'auto'
+cssv.uniform.inlinelabels_width = pc(32)
 #
 cssv.definition_list.opacity = 0.8
 cssv.definition_list.font_weight = 'normal'
@@ -57,7 +58,6 @@ cssv.definition_list.font_weight = 'normal'
 class clearinp(mixin):
     '''For clearing floats to all *elements*.'''    
     def __call__(self, elem):
-        elem['border'] = 'none'
         elem['outline'] = 'none'
 
 
@@ -169,16 +169,20 @@ def process_elems(elem, data):
 css('.field-widget',
     css('input[type="text"],input[type="password"],textarea,select',
         clearinp(),
+        placeholder(cssv.input.placeholder_color),
+        border_style='solid',
+        border_width=0,
+        border_color='transparent',
         line_height=1,
         padding=spacing(cssv.input.padding, 0),
         margin=0,
         width='100%',
         color='inherit',
         background='transparent'),
+    css('select',
+        #_webkit_appearance='button',
+        padding=lazy(lambda: spacing(cssv.input.padding-px(1), 0))),
     css('input:focus,textarea:focus,select:focus', clearinp()),
-    #css('select',
-    #    css('option',_webkit_appearance='none'),
-    #    _webkit_appearance='none'),
     radius(cssv.input.radius),
     padding=spacing(0, cssv.input.padding),
     border_style='solid',
@@ -197,7 +201,8 @@ for n in range(1,10):
 #    BUTTONS
 ################################################################################
 #'button.button,a.button,input.button[type="submit"]'
-css('input.button[type="submit"], button.button',
+buttons = 'input.button[type="submit"], button.button'
+css(buttons,
     clickable(bcd(**cssv.button.default.params()),
               bcd(**cssv.button.hover.params()),
               bcd(**cssv.button.active.params())),
@@ -242,16 +247,52 @@ css('.alert',
 #    UNIFORM
 ################################################################################
 css('form.uniForm',
-    css('.errorlist', overflow='hidden'),
-    css('.legend', margin=cssv.uniform_padding),
+    css('.errorlist,.form-messages', overflow='hidden', display='none'),
+    css('.legend', margin=cssv.uniform.padding),
     css('label'),
+    # Inline labels
+    css('.inlineLabels',
+        css('.label',
+            float='left',
+            width=cssv.uniform.inlinelabels_width,
+            margin=spacing(cssv.uniform.padding,pc(2),cssv.uniform.padding,0)),
+        css('.field-widget',
+            margin_left=lazy(lambda: cssv.uniform.inlinelabels_width+pc(2)),
+            width='auto')),
     css('.ctrlHolder,.buttonHolder',
         margin=0,
         overflow='hidden',
-        padding=cssv.uniform.padding,
+        padding=spacing(0, 0, cssv.uniform.padding),
         vertical_align='middle'),
     css('.layout-element',
-        margin = lambda: '0 0 {0}'.format(cssv.uniform.padding*1.5)))
+        margin=lazy(lambda: spacing(0,0,cssv.uniform.padding*1.5))),
+    css('.formRow',
+        radius(cssv.alert.radius),
+        css('table',
+            css('td',
+                css(buttons, width='100%'),
+                cssa(':last-child',
+                     css(buttons+',.field-widget',
+                         radius(lambda: spacing(0,cssv.body.radius,cssv.body.radius,0))),
+                     border='none'),
+                cssa(':first-child',
+                     css(buttons+',.field-widget',
+                         radius(lambda: spacing(cssv.body.radius,0,0,cssv.body.radius)))),
+                border_width=spacing(0,cssv.input.border_width,0,0),
+                border_style='solid',
+                border_color=cssv.button.border_color),
+            table_layout='auto'),
+        css('.field-widget',
+            border='none'),
+        css('table',
+            width='100%'),
+        css(buttons, radius(0), margin=0, border='none'),
+        
+        border_style='solid',
+        border_width=cssv.input.border_width,
+        border_color=cssv.button.border_color,
+        padding=0,
+        margin=0))
 
 
 #                   'buttonholder_padding': "10px 0",

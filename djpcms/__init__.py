@@ -101,8 +101,8 @@ HTML = {
     'legend': 'legend ui-state-default ui-corner-all'
     }
 
-from .utils import ajax
 from .utils.decorators import *
+from .html import ajax
 from .core import *
 
 def secret_key():

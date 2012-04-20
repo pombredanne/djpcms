@@ -10,11 +10,11 @@ from copy import deepcopy
 from collections import namedtuple
 
 from djpcms.utils import media
-from djpcms.utils.ajax import simplelem
 from djpcms.utils.text import nicename
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
+from .ajax import simplelem
 
 
 __all__ = ['TableMaker',

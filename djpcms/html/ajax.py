@@ -2,24 +2,31 @@
 interaction with ``djpcms.js``
 '''
 import json
+
+from djpcms.utils.async import Deferred
 from djpcms.utils import force_str
 from djpcms.utils.structures import OrderedDict
 
+from .base import Widget
+
 
 def isajax(obj):
-    return isinstance(obj,jsonbase)
+    return isinstance(obj, Ajax)
    
    
-class jsonbase(object):
+class Ajax(object):
     '''Base class for JSON AJAX utilities'''
     _content_type = 'application/javascript'
+    
+    def content_type(self):
+        return self._content_type
     
     def dict(self):
         '''This is the only functions that needs to be implemented by derived
 classes. It converts ``self`` into a dictionary ready to be serialised
 as JSON string.
         '''
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def _dump(self, elem):
         # Internal function which uses json to serialise elem
@@ -28,13 +35,6 @@ as JSON string.
     def dumps(self):
         '''Serialize ``self`` as a ``JSON`` string'''
         return self._dump(self.dict())
-    
-    def content_type(self):
-        return self._content_type
-    
-    def mark_safe(self, s):
-        from djpcms.template import loader
-        return loader.mark_safe(s)
     
     def tojson(self, autoescape = False):
         '''Convert the object to a json string autoescaping context if required.'''
@@ -56,7 +56,19 @@ as JSON string.
         return False
     
     
-class simplelem(jsonbase):
+class simpledump(Ajax):
+    _content_type = 'text/html'
+    
+    def __init__(self, str, content_type=None):
+        self.data = str
+        if content_type:
+            self._content_type = content_type
+        
+    def dumps(self):
+        return self.data
+    
+    
+class simplelem(Ajax):
     
     def __init__(self, elem):
         self.elem = elem
@@ -65,18 +77,7 @@ class simplelem(jsonbase):
         return self.elem
 
 
-class simpledump(jsonbase):
-    _content_type = 'text/html'
-    def __init__(self, str, content_type=None):
-        self.data = str
-        if content_type:
-            self._content_type = content_type
-        
-    def dumps(self):
-        return self.data
-
-
-class HeaderBody(jsonbase):
+class HeaderBody(Ajax):
     '''Base class for interacting with ``$.djpcms.jsonCallBack`` in
 ``djpcms.js``. 
     '''

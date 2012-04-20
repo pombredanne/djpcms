@@ -14,6 +14,7 @@ else:   # pragma nocover
     from itertools import izip_longest as zip_longest
 
 __all__ = ['flatatt',
+           'render',
            'StreamRenderer',
            'WidgetMaker',
            'Widget',
@@ -33,7 +34,12 @@ def attrsiter(attrs):
 def flatatt(attrs):
     return ''.join(attrsiter(attrs))
 
-
+def render(request, data):
+    if isinstance(data, Widget):
+        return data.render(request)
+    else:
+        return data
+    
 def dump_data_value(v):
     if not is_string(v):
         if isinstance(v,bytes):

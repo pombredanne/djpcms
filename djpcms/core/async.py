@@ -8,9 +8,8 @@ import logging
 
 from djpcms.utils.py2py3 import iteritems
 from djpcms.utils import escape
-from djpcms.html import Renderer, Widget
-from djpcms.utils.async import Deferred, Failure 
-from djpcms.utils.ajax import jservererror, isajax
+from djpcms.html import Renderer, Widget, ajax
+from djpcms.utils.async import Deferred, Failure
 
 from .layout import html_stream, error_title
 from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
@@ -277,7 +276,7 @@ A typical usage::
     def _render_to_response(self, request, content, status=200):
         encoding = request.settings.DEFAULT_CHARSET
         content_type = request.settings.DEFAULT_CONTENT_TYPE
-        if isajax(content):
+        if ajax.isajax(content):
             content_type = content.content_type()
             content = content.dumps()
         elif content_type == 'text/html':
@@ -332,7 +331,7 @@ occurs.'''
             error.add(self.errorhtml.get(status,500))
             
         if request.is_xhr:
-            return jservererror(request, inner.render(request))
+            return ajax.jservererror(request, inner.render(request))
         else:
             return inner.render(request)
     

@@ -5,11 +5,10 @@ import logging
 from functools import partial
 from datetime import datetime
 
-from djpcms import forms, html
+from djpcms import forms, html, ajax
 from djpcms.utils.py2py3 import to_string
 from djpcms.core import messages, http
 from djpcms.core.orms import mapper
-from djpcms.utils import force_str, ajax
 from djpcms.utils.urls import urlsplit
 from djpcms.utils.dates import format
 

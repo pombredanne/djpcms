@@ -83,7 +83,7 @@ class ChangeContentView(BlockChangeView):
         
     def plugin_form_container(self, instance, pform):
         pid = 'edit-plugin-data-{0}'.format(instance.id)
-        return html.Widget('div', pform, id = pid, cn = PLUGIN_DATA_FORM_CLASS)
+        return html.Widget('div', pform, id=pid, cn=PLUGIN_DATA_FORM_CLASS)
     
     def get_plugin_form(self, request, plugin, prefix, **kwargs):
         '''Retrieve the plugin editing form if ``plugin`` is not ``None``.'''
@@ -134,10 +134,9 @@ class ChangeContentView(BlockChangeView):
                              .addAttr('title','Edit plugin')\
                              .addData('method','get')
             formhtml.inputs.append(edit_url)
-        wrapper = EditWrapperHandler()
-        return wrapper(request, instance, formhtml)
-        return formhtml.render(request,
-                {'plugin': self.plugin_form_container(instance, plugin_form)})
+        wrapper = EditWrapperHandler()(request, instance, formhtml)
+        plugin = self.plugin_form_container(instance, plugin_form)
+        return wrapper.render(request, {'plugin': plugin})
     
     def post_response(self, request, commit = True, plugin_form = True):
         '''View called when changing the content plugin values.
@@ -192,7 +191,8 @@ The instance.plugin object is maintained but its fields may change.'''
             jquery = ajax.jhtmls()
             
         preview = self.get_preview(request, instance)
-        jquery.add('#%s' % instance.pluginid('preview'), preview)
+        jquery.add('#%s' % instance.pluginid('preview'),
+                   html.render(request, preview))
         
         if plugin_form:
             if commit:

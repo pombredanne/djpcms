@@ -171,7 +171,7 @@ grid system.'''
         self.add(*children)
         
     def context_request(self, request, widget):
-        cr = widget.internal.get('context_request',context_request)
+        cr = widget.internal.get('context_request', context_request)
         return cr(request)
     
     def get_context(self, request, widget, context):

@@ -13,7 +13,10 @@ from djpcms.html import box, Pagination, table_header, Widget
 from djpcms.plugins.navigation import page_links
 from djpcms.apps.admin import AdminApplication
 
-__all__ = ['SiteMapApplication','SiteContentApp']
+from .layout import HtmlPageForm
+
+__all__ = ['SiteMapApplication',
+           'SiteContentApp']
 
 
 def underlying_response(request, page):
@@ -22,15 +25,13 @@ def underlying_response(request, page):
     try:
         url = route.url(**urlargs)
     except KeyError as e:
+        url = route.path
+    underlying = request.for_path(url, urlargs={})
+    if not underlying:
         messages.error(request,
-            'Could not build for page. The url is probably wrong')
-    else:
-        underlying = request.for_path(url)
-        if not underlying:
-            messages.error(request,
-                'This page has problems. Could not find matching view')
-        underlying.page_editing = True
-        return underlying
+            'This page has problems. Could not find matching view')
+    underlying.page_editing = True
+    return underlying
 
 
 class PageView(object):
@@ -98,7 +99,9 @@ class PageChangeView(views.ChangeView):
 class SiteMapApplication(views.Application):
     '''Application to use for admin sitemaps'''
     has_plugins = False
-    pagination = Pagination(('id', 'url', 'view', 'layout',
+    form = HtmlPageForm
+    description = 'Site-map'
+    pagination = Pagination(('url', 'view', 'layout',
                              'inner_template', 'in_navigation',
                              table_header('doc_type',attrname='doctype'),
                              'soft_root'),
@@ -107,20 +110,22 @@ class SiteMapApplication(views.Application):
     
     home = SiteMapView()
     pages = views.SearchView('pages/',
-                             icon = 'th-list',
-                             title = lambda r : 'Pages',
-                             linkname = lambda r : 'pages')
-    add = views.AddView(force_redirect = True,
-                        linkname = lambda r : 'add page')
+                             icon='th-list',
+                             title=lambda r: 'Pages',
+                             linkname=lambda r: 'pages')
+    add = views.AddView(force_redirect=True, linkname=lambda r: 'add page')
     view = views.ViewView()
-    change = PageChangeView(force_redirect = True,
-                            title = lambda djp: 'editing',
-                            linkname = lambda djp : 'edit page',
-                            body_class = 'editable')
+    change = PageChangeView(force_redirect=True,
+                            title=lambda djp: 'editing',
+                            linkname=lambda djp : 'edit page',
+                            body_class='editable')
     delete = views.DeleteView()
         
     def on_bound(self):
         self.root.internals['Page'] = self.mapper
+        
+    def view_for_instance(self, request, instance):
+        return self.views['change'] 
         
     def instance_field_value(self, request, page, field_name, val = ''):
         if field_name == 'view':

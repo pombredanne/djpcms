@@ -227,7 +227,6 @@ it is the base class of :class:`pageview` and :class:`View`.
     default_link = None
     link_text = True
     redirect_to_view = None
-    inherit_page = False
     logger = logging.getLogger('djpcmsview')
     
     _methods      = ('get','post')

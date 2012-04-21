@@ -695,8 +695,8 @@ It uses the :func:`instance_field_view_value` for the purpose.
                                                 name = name, urlargs = urlargs)
         value = self.instance_field_value(request, instance, field_name, value)
         if asbutton is not None:
-            return application_link(view, value = value, asbutton = asbutton,
-                                    icon = icon)
+            return application_link(view, value=value, asbutton=asbutton,
+                                    icon=icon)
         else:
             return view
     

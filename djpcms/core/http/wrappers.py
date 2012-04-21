@@ -155,7 +155,7 @@ managing settings.'''
         return self.environ['on_document_ready']
     
 
-def make_request(environ, node, instance = None, cache = True, safe = True):
+def make_request(environ, node, instance=None, cache=True, safe=True):
     if not node.error:
         view = node.view
         model = view.model
@@ -177,7 +177,7 @@ def make_request(environ, node, instance = None, cache = True, safe = True):
         else:
             instance = None
     
-    return build_request(environ,node,cache,instance)
+    return build_request(environ, node, cache, instance)
 
 
 def build_request(environ, node, cache, instance):
@@ -188,16 +188,15 @@ def build_request(environ, node, cache, instance):
     if 'DJPCMS' not in environ:
         if url is None:
             raise ValueError('Critical error in request')
-        environ['DJPCMS'] = RequestNode(node,instance,url)
+        environ['DJPCMS'] = RequestNode(node, instance, url)
     
-    if cache:
-        if url is not None:
-            rn = environ['DJPCMS']
-            request = rn.requests.get(url)
-            if request is None:
-                request = Request(environ, node, instance, url)
-                rn.requests[url] = request
-            return request
+    if cache and url is not None:
+        rn = environ['DJPCMS']
+        request = rn.requests.get(url)
+        if request is None:
+            request = Request(environ, node, instance, url)
+            rn.requests[url] = request
+        return request
     else:
         # if we are not caching, return a request regarthless it has
         # a valid url or not
@@ -239,13 +238,13 @@ arguments.
             return request
         instance = instance if instance is not None else self.instance
         urlargs = urlargs if urlargs is not None else self.urlargs
-        node = self.tree.get(path,urlargs)
+        node = self.tree.get(path, urlargs)
         if not node:
             try:
                 node = self.tree.resolve(path)
             except Http404:
                 return None
-        return make_request(self.environ, node, instance, cache = cache)
+        return make_request(self.environ, node, instance, cache=cache)
     
     def for_model(self, model = None, all = False, root = False, name = None,
                   urlargs = None, instance = None):
@@ -284,7 +283,12 @@ is available, the name is set to ``view``.
             return view
             
     def __unicode__(self):
-        return self.url + ' (' + self.path + ')'
+        if self.url is not None:
+            return self.url + ' (' + self.path + ')'
+        elif self.node:
+            return self.node.path + ' (' + self.path + ')'
+        else:
+            return self.path
     
     ############################################################################
     #    environment shortcuts

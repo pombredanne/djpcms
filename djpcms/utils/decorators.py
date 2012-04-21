@@ -80,7 +80,7 @@ to store the result for futures uses.'''
                         return None
                     else:
                         raise
-                setattr(obj,name,v)
+                setattr(obj, name, v)
             return getattr(obj, name)
             
         _.__doc__ = f.__doc__

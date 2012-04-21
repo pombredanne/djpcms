@@ -6,6 +6,7 @@ INSTALLED_APPS = ('djpcms',
                   'stdcms.cms',
                   'stdcms.monitor',
                   'stdcms.sessions',
+                  'social',
                   #
                   # styling plugins
                   'djpcms.style.plugins.base',

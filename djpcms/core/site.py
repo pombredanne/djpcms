@@ -99,6 +99,7 @@ def add_default_handlers(site):
 
 class ViewRenderer(html.Renderer):
     appmodel = None
+    inherit_page = False
     
     def parent_instance(self, instance):
         '''Return the parent instance for *instance*. This is the instance

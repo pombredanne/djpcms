@@ -36,10 +36,8 @@ class TemplateForm(forms.Form):
 
 class PageForm(forms.Form):
     '''Inline Editing Page form'''
-    url = forms.CharField(initial = '/',
-                          widget = html.TextInput(readonly='readonly'))
-    title = forms.CharField(label = 'Page title',
-                            required = False)
+    url = forms.CharField(initial='/')
+    title = forms.CharField(label='Page title', required=False)
     link = forms.CharField(help_text='Text to display in links',
                            required=False)
     in_navigation = forms.IntegerField(
@@ -52,8 +50,8 @@ class PageForm(forms.Form):
     layout = forms.ChoiceField(choices=get_layout_templates,
                                label='Page layout')
     inner_template = forms.ChoiceField(label='content grid',
-                                       choices = grid_choices)
-    grid_system = forms.ChoiceField(choices = grid_systems)
+                                       choices=grid_choices)
+    grid_system = forms.ChoiceField(choices=grid_systems)
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
     doctype = forms.ChoiceField(choices=html_choices, initial=htmldefaultdoc)

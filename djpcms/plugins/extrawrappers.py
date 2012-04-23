@@ -6,11 +6,12 @@ class FlatPanel(DJPwrapper):
     name = 'panel'
     description = 'Panel'
     def wrap(self, request, block, html):
-        return Widget('div', html, cn=self.name)
+        return Widget('div', html, cn=self.name).addClass('ui-corner-all')
 
 
 class FlatBox(DJPwrapper):
-    name = 'flat-box'
+    name = 'flat'
+    description = 'Panel with title'
     
     def wrap(self, request, block, html):
         return box(hd=block.title, bd=html).addClass(self.name)

@@ -7,7 +7,7 @@ __all__ = ['box']
 
 class BoxTemplate(WidgetMaker):
     tag = 'div'
-    classes = 'widget box'
+    classes = 'ui-widget ui-corner-all box'
     _media = Media(js = ['djpcms/collapse.js'])
     
     def media(self, request, widget):
@@ -15,11 +15,12 @@ class BoxTemplate(WidgetMaker):
             return self._media
     
 
-BoxHeader = WidgetMaker(tag='div', cn='hd', key='hd')
+BoxHeader = WidgetMaker(tag='div', cn='hd ui-widget-head', key='hd')
 
-Box = BoxTemplate().add(BoxHeader,
-                        WidgetMaker(tag='div', cn='bd', key='bd'),
-                        WidgetMaker(tag='div', cn='ft', key='ft'))
+Box = BoxTemplate().add(
+                    BoxHeader,
+                    WidgetMaker(tag='div', cn='bd ui-widget-body', key='bd'),
+                    WidgetMaker(tag='div', cn='ft ui-widget-foot', key='ft'))
 
 BoxNoFooter = BoxTemplate().add(BoxHeader,
                                 WidgetMaker(tag='div', cn='bd', key='bd'))

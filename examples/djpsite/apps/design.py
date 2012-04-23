@@ -42,6 +42,6 @@ class DesignApplication(views.Application):
     view = views.ViewView()
     forms_view = views.View('/forms')
     
-    def render_instance(self, request, **kwargs):
+    def render_instance_default(self, request, instance, **kwargs):
         return get_form(request, ThemeInputsHtml)
     

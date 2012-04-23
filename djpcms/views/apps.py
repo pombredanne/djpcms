@@ -4,7 +4,7 @@ import djpcms
 from djpcms.utils.py2py3 import iteritems, is_string, itervalues, to_string
 from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
                      UrlException, AlreadyRegistered
-from djpcms.html import table_header, ContextRenderer
+from djpcms.html import table_header, ContextRenderer, Widget
 from djpcms.core.orms import mapper
 from djpcms.forms.utils import get_form
 from djpcms.plugins import register_application
@@ -265,12 +265,7 @@ overwritten to customize its behavior.
     list_display_links = ()
     nice_headers_handler = None
     url_bits_mapping = None
-    in_nav = 1
-    object_widgets = {
-          'home': ObjectDef(),
-          'list': ObjectItem(),
-          'pagination': ObjectPagination()
-          }    
+    in_nav = 1  
 
     def __init__(self, route, model = None, editavailable = None,
                  list_display_links = None, object_display = None,
@@ -607,8 +602,7 @@ has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
             bits.update(self.urlbits(instance = instance, bits = bits))
         return bits
     
-    def render_instance(self, request, instance = None,
-                        context = None, cn = None, **kwargs):
+    def render_instance(self, request, instance=None, context=None, **kwargs):
         '''Render an instance of :attr:`model`.
 This is used when an :ref:`instance view <instance-views>`
 has been requested.
@@ -620,19 +614,26 @@ has been requested.
     linked with the :attr:`Application.object_widgets`` dictionary
     of widgets.
 '''
-        instance = instance or request.instance
-        maker = self.object_widgets.get(context,None)
-        if not maker:
-            maker = self.object_widgets.get('home',None)
-        if maker:
-            return maker(instance = instance,
-                         appmodel = self,
-                         cn = cn)\
-                      .addClass(self.mapper.class_name(instance))\
-                      .addClass(self.mapper.unique_id(instance))\
-                      .render(request)
+        instance = instance if instance is not None else request.instance
+        if instance is not None:
+            context = context or 'default'
+            attr = getattr(self,'render_instance_{0}'.format(context),
+                           self.render_instance_default)
+            result = attr(request, instance, **kwargs)
+            if isinstance(result, Widget):
+                result.addClass(self.mapper.class_name(instance))\
+                      .addClass(self.mapper.unique_id(instance))
+            return result
         else:
             return ''
+        
+    def render_instance_default(self, request, instance, **kwargs):
+        maker = ObjectDef()
+        return maker(instance=instance, appmodel=self)
+        
+    def render_instance_list(self, request, instance, **kwargs):
+        maker = ObjectItem()
+        return maker(instance=instance, appmodel=self)
     
     def instance_field_value(self, request, instance, field_name, val = None):
         '''Return the value associated with *field_name* for the
@@ -677,9 +678,9 @@ This method is called by both :meth:`variables_from_instance` and
                 else:
                     yield attrname,data[name]
 
-    def instance_field_view(self, request, instance = None, field_name = None,
-                            name = None, urlargs = None, asbutton = None,
-                            icon = True):
+    def instance_field_view(self, request, instance=None, field_name=None,
+                            name=None, urlargs=None, asbutton=None,
+                            icon=True):
         '''Obtain a link for instance field if possible.
         
 :parameter instance: an instance of :attr`model`

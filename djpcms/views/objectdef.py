@@ -14,39 +14,11 @@ __all__ = ['ObjectItem',
 
 class ObjectItem(html.WidgetMaker):
     tag = 'div'
-    default_class='item-view'
-         
-    def definition_list(self, request, context):
-        appmodel = context['appmodel']
-        headers = appmodel.object_display
-        mapper = appmodel.mapper
-        ctx = html.results_for_item(request,
-                                    headers,
-                                    context['instance'],
-                                    appmodel,
-                                    escape = smart_escape)
-        display = ctx.pop('display')
-        items = ((head.name,value) for head,value in zip(headers,display))
-        return html.DefinitionList(data_stream = items, cn = 'object-definition')\
-                    .addClass(mapper.module_name)
-         
-    def get_context(self, request, widget, context):
-        instance = widget.internal.get('instance') or request.instance
-        context['instance']
-        instance = ctx['instance']
-        ctx['links'] = list(application_views(request, instance = instance))
-        return ctx
-    
-    def code_or_url(self, context):
-        view = context.get('view',None)
-        if view:
-            item = list(application_links([view],asbuttons=False))[0][1]
-        else:
-            item = str(context['instance'])
-        return item
-    
+    classes = 'item-view'
+
     def stream(self, request, widget, context):
-        yield self.code_or_url(context)
+        instance = widget.internal.get('instance') or request.instance
+        yield str(instance)
     
     
 class ObjectDef(html.DefinitionList):

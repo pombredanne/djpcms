@@ -167,8 +167,9 @@ class get_app_result(object):
            head.code in appmodel.list_display_links:
             first = False
             link = appmodel.instance_field_view(request, result,
-                                                field_name = head.code,
-                                                asbutton = False)
+                                                field_name=head.code,
+                                                asbutton=False,
+                                                icon=False)
             
         if link and link.attr('href') != request.path:
             var = link.render()

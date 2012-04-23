@@ -75,7 +75,7 @@ class ChangeContentView(BlockChangeView):
         else:
             return 'Could not get preview'
         
-        if preview_html:
+        if preview_html not in (None,''):
             id = instance.pluginid('preview')
             return html.Widget('div', preview_html, id=id, cn='preview')
         else:

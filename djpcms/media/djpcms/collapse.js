@@ -4,7 +4,7 @@
         id:"djpcms_widget",
         description:"Decorate box elements",
         config: {
-            selector: '.widget.collapsable',
+            selector: '.ui-widget.collapsable',
             effect: {type:"blind",duration:10},
         },
         decorate: function($this, config) {

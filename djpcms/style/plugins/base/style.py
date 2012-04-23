@@ -4,20 +4,6 @@ from djpcms.style import *
 
 ################################################################################
 ##    VARIABLES
-cssv.panel.background = cssv.color.grayLighter
-cssv.panel.border_color = color(RGBA(0,0,0,0.05))
-cssv.panel.border_width = px(1)
-cssv.panel.padding = spacing(px(6))
-
-cssv.widget.hd.background = cssv.panel.background
-cssv.widget.hd.font_size = cssv.heading.h3.font_size
-cssv.widget.hd.line_height = cssv.heading.h3.line_height
-cssv.widget.hd.font_weight = cssv.header.font_weight
-cssv.widget.hd.text_transform = 'none'
-cssv.widget.padding = cssv.panel.padding
-cssv.widget.hd.padding = cssv.widget.padding
-cssv.widget.bd.padding = cssv.widget.padding
-cssv.widget.ft.padding = cssv.widget.padding
 #
 cssv.disabled.opacity = 0.7
 cssv.disabled.cursor = 'not-allowed'
@@ -66,51 +52,6 @@ css('.edit-menu',
     horizontal_navigation(float='right',
                           hover=bcd(text_decoration='none'),
                           padding=spacing(0,px(2))))
-
-css('.widget',
-    radius(cssv.body.radius),
-    cssb('.hd',
-         gradient(cssv.widget.hd.background),
-         css('h1,h2,h3,h4,h5',
-             font_size=cssv.widget.hd.font_size,
-             font_weight=cssv.widget.hd.font_weight,
-             text_transform=cssv.widget.hd.text_transform,
-             line_height=cssv.widget.hd.line_height,
-             float = 'left',
-             padding = 0,
-             margin = 0,
-             background = 'transparent'
-         ),
-         css('.edit-menu',
-             line_height=cssv.widget.hd.line_height),
-         padding=cssv.widget.hd.padding,
-         overflow='hidden',
-    ),
-    # we do this so that the attributes are after previous attributes
-    cssb('.hd',
-         padding_top=0,
-         padding_bottom=0),
-    cssb('.bd',
-         padding=cssv.widget.bd.padding,
-         overflow='hidden',
-         border='none',
-         display='block'),
-    cssb('.ft',
-         padding=cssv.widget.ft.padding,
-         overflow='hidden',
-         border='none')
-)
-
-################################################# BOX and PANEL
-css('.panel,.box',
-    radius(cssv.body.radius),
-    border_style='solid',
-    border_width=cssv.panel.border_width,
-    border_color=cssv.panel.border_color)
-
-css('.panel',
-    gradient(cssv.panel.background),
-    padding=cssv.panel.padding)
 
 
 ################################################# OBJECT DEFINITIONS

@@ -8,7 +8,7 @@ from djpcms import views, Http404
 from djpcms.core import messages
 from djpcms.core.layout import htmldoc, grid, container
 from djpcms.forms.utils import request_get_data
-from djpcms.utils import markups, mark_safe
+from djpcms.utils import markups, mark_safe, escape
 from djpcms.html import box, Pagination, table_header, Widget
 from djpcms.plugins.navigation import page_links
 from djpcms.apps.admin import AdminApplication
@@ -85,7 +85,8 @@ class PageChangeView(views.ChangeView):
     def render(self, request):
         text = super(PageChangeView,self).render(request)
         links = page_links(request)
-        return box(bd=text, collapsed=True, edit_menu=links)\
+        return box(hd='Editing page {0}'.format(request.instance),
+                   bd=text, collapsed=True, edit_menu=links)\
                 .addClass('edit-block')
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
@@ -136,7 +137,7 @@ class SiteMapApplication(views.Application):
             else:
                 return ''
         else:
-            return val
+            return escape(val)
     
     
 class SiteContentApp(AdminApplication):
@@ -145,11 +146,9 @@ class SiteContentApp(AdminApplication):
     def on_bound(self):
         self.root.internals['SiteContent'] = self.mapper
         
-    def render_instance(self, request):
-        instance = request.instance
-        if instance:
-            mkp = markups.get(instance.markup)
-            text = instance.body
-            if mkp:
-                text = mkp(request, text)
-            return mark_safe(text)
+    def render_instance_default(self, request, instance, **kwargs):
+        mkp = markups.get(instance.markup)
+        text = instance.body
+        if mkp:
+            text = mkp(request, text)
+        return mark_safe(text)

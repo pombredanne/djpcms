@@ -35,8 +35,8 @@ class Accordion(TabWidget):
     
     def _unwind(self):
         for key, val in self._data_stream:
-            yield Widget('h3',key)
-            yield Widget('div',val)
+            yield Widget('div', Widget('h3', key)).addClass('ui-widget-head')
+            yield Widget('div', val).addClass('ui-widget-body')
         
 
 tab_media = Media(js = ['djpcms/tabs.js'])

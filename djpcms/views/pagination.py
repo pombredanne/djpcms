@@ -23,6 +23,10 @@ application_action = namedtuple('application_action',
 menu_link = namedtuple('menu_link',
                        'view display title permission icon method ajax url')
 
+def valid_request(request):
+    if request is None or request.url is None or not request.has_permission():
+        return False
+    return True
 
 bulk_delete = application_action('bulk_delete','delete',DELETE)
 
@@ -49,11 +53,11 @@ def request_to_menu_link(request):
                      request.url)
     
 def application_views(request,
-                      exclude = None,
-                      include = None,
-                      instance = None,
-                      ajax_enabled = None,
-                      urlargs = None):
+                      exclude=None,
+                      include=None,
+                      instance=None,
+                      ajax_enabled=None,
+                      urlargs=None):
     '''A generator of :class:`Application` views available to the user.
 
 :parameter exclude: optional iterable of :class:`View` names to exclude. It
@@ -87,20 +91,22 @@ def application_views(request,
     for elem in include:
         if elem in exclude:
             continue
-        if not isinstance(elem,application_action):
+        if not isinstance(elem, application_action):
             view = appmodel.views.get(elem)
             if hasattr(view,'root_view'):
                 view = view.root_view
             # if this is the current view skip
             if not view or view is request.view:
                 continue
+            # If an instance is available include only object views
             elif instance is not None and not view.object_view and weak_include:
                 continue
             elif ajax_enabled and not view.ajax_enabled:
                 continue
             descr = view.description or view.name
-            req = request.for_path(view.path, instance = instance)
-            if req is None or not req.has_permission():
+            req = request.for_path(view.path, instance=instance,
+                                   urlargs=urlargs)
+            if not valid_request(req):
                 continue
             elem = request_to_menu_link(req)
             yield elem
@@ -138,9 +144,9 @@ It is used by :meth:`Application.viewurl`.'''
             return None,None
     else:
         value = None
-    return request.for_model(instance = instance,
-                             name = name,
-                             urlargs = urlargs), value
+    return request.for_model(instance=instance,
+                             name=name,
+                             urlargs=urlargs), value
 
 
 def views_serializable(views):
@@ -199,9 +205,9 @@ anchor or button :class:`djpcms.html.Widget`.'''
 
 def application_link(view, value=None, asbutton=True, icon=True, text=True):
     if view is not None:
-        for _,link in application_links((view,),asbutton,icon = icon):
+        for _,link in application_links((view,), asbutton, icon=icon):
             if value is not None:
-                link.data_stream[0] = value
+                link.data_stream[-1] = value
             return link
     
 

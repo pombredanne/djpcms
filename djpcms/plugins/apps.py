@@ -226,9 +226,8 @@ certain number of items as specified in the max display input.'''
         else:
             w = html.Widget('div', cn = 'filtered-list')\
                     .addClass(appmodel.mapper.class_name())
-            render_instance = appmodel.render_instance
-            inner = '\n'.join(render_instance(request, item, 'list')\
-                              for item in items)
-            return w.render(request,inner)
+            render_instance = appmodel.render_instance_list
+            w.add((render_instance(request, item) for item in items))
+            return w
 
     

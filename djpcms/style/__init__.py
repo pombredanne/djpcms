@@ -28,6 +28,7 @@ cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
 cssv.body.radius = px(0)
 
+cssv.header.background = cssv.color.grayLight
 # Inputs
 cssv.input.placeholder_color = cssv.color.grayLight
 
@@ -119,9 +120,9 @@ css('.cms-block',
     clearfix(),
     margin_bottom=cssv.block.margin_bottom)
 
-css('.widget.box',
+css('.ui-widget.box',
     cssa('.edit-block',
-         cssb('.hd,.bd',
+         cssb('.ui-widget-head,.ui-widget-body',
               gradient(cssv.edit.background),
               color=cssv.edit.color),
          css('.cms-block',

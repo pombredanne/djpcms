@@ -121,8 +121,10 @@ javascript plugin'''
     
     def stream(self, request, widget, context):
         title = context.get('title')
+        head_class = 'ui-corner-top ui-widget-head'
         if title:
-            yield "<h3 class='table-title ui-widget-header'>" + title + "</h3>"
+            yield "<div class='"+head_class+"'>"\
+                  "<h3 class='table-title'>"+title+"</h3></div>"
         yield '<table>\n<thead>\n<tr>'
         for head in context['headers']:
             th = Widget('th',head['sTitle'],title=head['description'])

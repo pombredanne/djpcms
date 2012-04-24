@@ -34,6 +34,12 @@ from djpcms.plugins.navigation import topbar
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
+
+from social.applications import SocialUserApplication
+    
+    
+class UserApplication(SocialUserApplication):
+    login = user.LoginView()
     
     
 class MainApplication(views.Application):
@@ -77,7 +83,7 @@ class WebSite(djpcms.WebSite):
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
                 design.DesignApplication('/design', design.Theme),
-                user.UserApplication('/accounts/', User),
+                UserApplication('/accounts/', User),
                 MainApplication('/')
                 )
     

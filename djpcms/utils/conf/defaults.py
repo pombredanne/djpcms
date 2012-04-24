@@ -90,3 +90,7 @@ LOGGING = djpcms.LOGGING_SAMPLE
 #######################################    ANALYTICS
 GOOGLE_ANALYTICS_ID = None
 
+
+#######################################    CONNECTIONS
+HTTP_PROXY = None
+HTTPS_PROXY = None

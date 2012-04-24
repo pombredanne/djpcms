@@ -19,6 +19,7 @@ import sys
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 LIBRARY_NAME = os.path.basename(PACKAGE_DIR)
+SOFTWARE_NAME = LIBRARY_NAME + ' ' +  __version__
 
 
 def DEFAULT_JAVASCRIPT():

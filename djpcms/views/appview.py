@@ -216,7 +216,8 @@ views::
             self.query = query
         # Overrides
         self.PERM = permission if permission is not None else self.PERM
-        self.ICON = icon if icon is not None else self.ICON
+        if icon is not None:
+            self.ICON = icon
         self._methods = methods if methods else self._methods
         plugin_form = plugin_form if plugin_form is not None\
                              else self.plugin_form

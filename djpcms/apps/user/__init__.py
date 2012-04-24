@@ -31,9 +31,7 @@ utility methods for dealing with users and user data.'''
     exclude_links = ('login','logout')
     
     home = views.SearchView()
-    login = LoginView(template_file = ('login.html','djpcms/login.html'),
-                      inherit_page = False,
-                      form = HtmlLoginForm)
+    login = LoginView()
     logout = LogoutView()
     add = views.AddView(in_nav = 0,
                         form = HtmlRegisterForm,

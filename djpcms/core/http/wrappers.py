@@ -388,7 +388,7 @@ is available, the name is set to ``view``.
     @lazyproperty
     def icon(self):
         icon = self.view.ICON
-        if hasattr(icon,'__call__'):
+        if hasattr(icon, '__call__'):
             icon = icon(self)
         return icon
     

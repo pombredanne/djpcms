@@ -25,7 +25,7 @@ __all__ = ['Application',
 def get_declared_application_routes(bases, attrs):
     """Create a list of Application views instances from the passed
 in 'attrs', plus any similar fields on the base classes (in 'bases')."""
-    inherit = attrs.pop('inherit',False)
+    inherit = attrs.pop('inherit', True)
     routes = []
     for app_name,obj in list(attrs.items()):
         if hasattr(obj,'__class__'):

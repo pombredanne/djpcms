@@ -1,6 +1,8 @@
 from djpcms import views, http
 from djpcms.forms.utils import saveform
 
+from .forms import HtmlLoginForm
+
 __all__ = ['LogoutView','LoginView','UserView','UserDataView']
 
 
@@ -23,10 +25,10 @@ class LogoutView(views.ModelView):
 
 
 class LoginView(views.ModelView):
-    '''A Battery included Login view. You need to
-    create a login.html file in your site template directory.
+    '''A Battery included Login view.
     '''
     ICON = 'login'
+    form = HtmlLoginForm
     has_plugin = True
     redirect_to_view = 'home'
     force_redirect = True
@@ -34,7 +36,6 @@ class LoginView(views.ModelView):
     default_title = 'Sign in'
     default_link = 'Sign in'
     body_class = 'tiny'
-    template_name = ('login.html','djpcms/tiny.html')
     
     def __call__(self, request):
         if request.user.is_authenticated():

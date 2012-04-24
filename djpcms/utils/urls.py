@@ -7,6 +7,7 @@ __all__ = ['urlparse',
            'urlencode',
            'urlbits',
            'urlfrombits',
+           'quote',
            'urlquote',
            'urlunquote',
            'parentpath',
@@ -26,10 +27,12 @@ else:
     from urlparse import urlparse, unquote, urlsplit, urlunparse
     from urllib import urlencode, quote, unquote
     
-urlquote = quote
 urlunquote = unquote
 
 URI_RESERVED = frozenset((';','/','?',':','@','&','=','+','$',','))
+URI_RESERVED_CHARS = ''.join(URI_RESERVED)
+
+urlquote = lambda iri: quote(iri, safe=URI_RESERVED_CHARS)
 
 def urlbits(url):
     if url.endswith('/'):
@@ -133,7 +136,7 @@ Returns an ASCII string containing the encoded result.
     if kwargs:
         iri = '{0}?{1}'.format(iri,'&'.join(('{0}={1}'.format(k,v)\
                                               for k,v in kwargs.items())))
-    return urlquote(iri, safe=''.join(URI_RESERVED))
+    return urlquote(iri)
 
 
 def uri_to_iri(uri):

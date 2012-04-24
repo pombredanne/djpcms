@@ -158,13 +158,15 @@ def views_serializable(views):
         yield elem
         
         
-def application_links(views, asbuttons=True, icon=True, text=True):
+def application_links(views, asbuttons=True, icon=True, text=True,
+                      icon_size=None):
     '''A generator of two dimensional tuples containing
 the view name and a rendered html tag (either an anchor or a button).
 
 :parameter views: iterator over views obtained from
                     :func:`application_views`
 :parameter asbuttons: optional flag for displaying links as button tags.
+:parameter icon_size: optional size for icon.
 '''
     for elem in views:
         if not isinstance(elem, menu_link):
@@ -173,10 +175,11 @@ the view name and a rendered html tag (either an anchor or a button).
         view = request.view
         icon = elem.icon if icon else None
         a = anchor_or_button(elem.display if text else '',
-                             href = elem.url,
-                             icon = icon,
-                             title = elem.title,
-                             asbutton = asbuttons)
+                             href=elem.url,
+                             icon=icon,
+                             title=elem.title,
+                             asbutton=asbuttons,
+                             size=icon_size)
         a.addClass(view.name).addData({'view':view.name,
                                        'method':elem.method,
                                        'warning':view.warning_message(request),
@@ -203,9 +206,11 @@ anchor or button :class:`djpcms.html.Widget`.'''
         yield w
 
 
-def application_link(view, value=None, asbutton=True, icon=True, text=True):
+def application_link(view, value=None, asbutton=True, icon=True, text=True,
+                     icon_size=None):
     if view is not None:
-        for _,link in application_links((view,), asbutton, icon=icon):
+        for _, link in application_links((view,), asbutton, icon=icon,
+                                         icon_size=icon_size):
             if value is not None:
                 link.data_stream[-1] = value
             return link

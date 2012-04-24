@@ -62,7 +62,8 @@ class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
     '''
     def underlying(self, request):
-        return underlying_response(request, request.instance.page)
+        request = request.DJPCMS.request
+        return underlying_response(request, request.instance)
     
     def get_preview(self, request, instance, plugin=None):
         '''Render a plugin and its wrapper for preview within a div element'''

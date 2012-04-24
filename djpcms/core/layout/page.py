@@ -294,7 +294,7 @@ default :class:`Grid` element is created.'''
     grid_fixed = None
     def __init__(self, *grid, **kwargs):
         if len(grid) > 1:
-            raise RunTimeError('Only one grid can be passed to a grid holder')
+            raise RuntimeError('Only one grid can be passed to a grid holder')
         self.grid_fixed = kwargs.pop('grid_fixed', self.grid_fixed)
         self.renderer = kwargs.pop('renderer', default_renderer)
         super(grid_holder, self).__init__(*grid, **kwargs)

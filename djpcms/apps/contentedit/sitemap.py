@@ -21,17 +21,18 @@ __all__ = ['SiteMapApplication',
 
 def underlying_response(request, page):
     urlargs = dict(request_get_data(request).items())
-    route = page.route
-    try:
-        url = route.url(**urlargs)
-    except KeyError as e:
-        url = route.path
-    underlying = request.for_path(url, urlargs={})
-    if not underlying:
-        messages.error(request,
-            'This page has problems. Could not find matching view')
-    underlying.page_editing = True
-    return underlying
+    if page:
+        route = page.route
+        try:
+            url = route.url(**urlargs)
+        except KeyError as e:
+            url = route.path
+        underlying = request.for_path(url, urlargs={})
+        if not underlying:
+            messages.error(request,
+                'This page has problems. Could not find matching view')
+        underlying.page_editing = True
+        return underlying
 
 
 class PageView(object):

@@ -97,7 +97,11 @@ class WebSite(djpcms.WebSite):
             container('content'),
             container('footer', grid('grid 33-33-33'),
                       renderer=self.render_footer))
+        tiny_template = page(container('header', grid('grid 100')),
+                             container('content'),
+                             container('footer', grid('grid 100')))
         site.register_page_layout('default', page_template)
+        site.register_page_layout('tiny', tiny_template)
     
     def render_topbar(self, request, namespace, column, blocks):
         '''Render the topbar container'''

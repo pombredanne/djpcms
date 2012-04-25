@@ -18,7 +18,6 @@ from .pagination import *
 
 __all__ = ['Application',
            'application_action',
-           'extend_widgets',
            'store_on_instance']
 
 
@@ -52,27 +51,6 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     
     return routes
 
-
-class ApplicationMetaClass(type):
-    
-    def __new__(cls, name, bases, attrs):
-        attrs['base_routes'] = get_declared_application_routes(bases, attrs)
-        new_class = super(ApplicationMetaClass, cls).__new__(cls, name,
-                                                             bases, attrs)
-        return new_class
-    
-
-# Needed for Python 2 and python 3 compatibility
-ApplicationBase = ApplicationMetaClass('ApplicationBase', (object,), {})
-
-
-def extend_widgets(d, target = None):
-    target = target if target is not None else Application.object_widgets
-    target = target.copy()
-    target.update(d)
-    return target
-
-
 def store_on_instance(f):
     name = '_djpcms_' + f.__name__
     
@@ -89,7 +67,17 @@ def store_on_instance(f):
     return _
 
 
-class Application(ApplicationBase,ResolverMixin,RendererMixin):
+class ApplicationMetaClass(type):
+    
+    def __new__(cls, name, bases, attrs):
+        attrs['base_routes'] = get_declared_application_routes(bases, attrs)
+        new_class = super(ApplicationMetaClass, cls).__new__(cls, name,
+                                                             bases, attrs)
+        return new_class
+
+
+class Application(ApplicationMetaClass('ApplicationBase', (object,), {}),
+                  ResolverMixin,RendererMixin):
     '''Application class which implements :class:`djpcms.ResolverMixin` and
 :class:`RendererMixin` and defines a set of :class:`View` instances
 which are somehow related

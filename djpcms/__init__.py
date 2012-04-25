@@ -1,6 +1,6 @@
 '''A dynamic content management system using jQuery and Python'''
 
-VERSION = (0, 9, 0)
+VERSION = (0, 8, 9)
 
 def get_version():
     return '.'.join(map(str,VERSION))

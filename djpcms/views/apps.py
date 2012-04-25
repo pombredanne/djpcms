@@ -718,7 +718,8 @@ the instance.'''
         objs = self.get_instances(request)
         mapper = self.mapper
         c = ajax.jcollection()
-        objs = objs.delete()
+        if objs is not None:
+            objs = objs.delete()
         if objs:
             for id in objs:
                 id = mapper.unique_id(id)

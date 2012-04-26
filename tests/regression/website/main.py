@@ -21,11 +21,11 @@ class TestDjpSite(base.TestCase):
         keys = list(page.children)
         self.assertEqual(len(keys),4)
         content = page.children['content']
-        self.assertEqual(content.numblocks,0)
+        self.assertEqual(content.numcolumns,0)
         
     def test404(self):
         client = self.client()
-        r = client.get('/jcsdcdscdscdscsdc/', status_code = 404)
+        r = client.get('/jcsdcdscdscdscsdc/', status_code=404)
         
     def testAdmin(self):
         user = self.create_user(login = True)

@@ -498,29 +498,34 @@ def addoption(argv, *vals, **kwargs):
         if value is not None:
             argv.append(value)
 
-def start(argv = None, nose_options = None):
+
+def start(argv=None, modules=None, nose_options=None, description=None,
+          version=None, plugins=None):
     '''Start djpcms tests. Use this function to start tests for
 djpcms aor djpcms applications. It check for pulsar and nose
 and add testing plugins.'''
     global pulsar
     argv = argv or sys.argv
+    description = description or 'Djpcms Asynchronous test suite'
+    version = version or djpcms.__version__
     if len(argv) > 1 and argv[1] == 'nose':
         pulsar = None
         sys.argv.pop(1)
-    
-    plugins = None
     if pulsar:
         os.environ['djpcms_test_suite'] = 'pulsar'
         from pulsar.apps.test import TestSuite
-        if stdnet_test:
-            plugins = (stdnet_test.PulsarStdnetServer(),)
-        suite = TestSuite(description = 'Djpcms Asynchronous test suite',
-                          modules = ('tests',),
-                          plugins = plugins)
+        from pulsar.apps.test.plugins import profile
+        if stdnet_test and plugins is None:
+            plugins = (stdnet_test.PulsarStdnetServer(),
+                       profile.Profile())
+        suite = TestSuite(modules=modules,
+                          plugins=plugins,
+                          description=description,
+                          version=version)
         suite.start()
     elif nose:
         os.environ['djpcms_test_suite'] = 'nose'
-        if stdnet_test:
+        if stdnet_test and plugins is None:
             plugins = [stdnet_test.NoseStdnetServer()]
         argv = list(argv)
         if nose_options:

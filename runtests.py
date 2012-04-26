@@ -21,7 +21,7 @@ def start():
     # Add the example directory to the python path
     path = Path(__file__)
     path.add2python(down=('examples',))
-    test.start(nose_options=add_nose_options)
+    test.start(nose_options=add_nose_options,modules=('tests',))
 
 if __name__ == '__main__':
     start()

@@ -20,7 +20,7 @@ def expand_star(mod_name):
     return expanded
 
 
-def import_modules(modules, safe = False):
+def import_modules(modules, safe=False):
     '''Safely import a list of *modules*
     '''
     for mname in modules:

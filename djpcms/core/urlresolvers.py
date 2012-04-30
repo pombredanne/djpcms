@@ -1,12 +1,11 @@
 import re
 from inspect import isclass
-from copy import copy, deepcopy
+from copy import copy
 from threading import Lock
 
 from djpcms.utils.py2py3 import UnicodeMixin, is_bytes_or_string, iteritems,\
                                 itervalues
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.importer import import_modules
 
 from .exceptions import *
 from .routing import Route
@@ -109,76 +108,55 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
 '''
     PERM = VIEW
     
-    def __new__(cls, *args, **kwargs):
-        o = super(RouteMixin,cls).__new__(cls)
-        o._local = {}
-        return o
-    
-    def __init__(self, route, parent = None):
-        if not isinstance(route,Route):
+    def __init__(self, route):
+        if not isinstance(route, Route):
             route = Route(route)
-        self.__rel_route = route
-        self.parent = parent
+        self._rel_route = route
+        self.local = {}
         self.internals = {}
+        self.parent = None
         
     def __unicode__(self):
         return self.route.rule
     
-    def __deepcopy__(self, memo):
-        o = self.__class__.__new__(self.__class__)
-        memo[id(self)] = o
+    def __copy__(self):
         d = self.__dict__.copy()
-        d.pop('_local',None)
-        o._local = {}
-        d = self._oncopy(d)
-        for attr,value in d.items():
-            if not isclass(value):
-                try:
-                    value = deepcopy(value, memo)
-                except TypeError:
-                    pass
-            setattr(o, attr, value)
+        o = self.__class__.__new__(self.__class__)
+        d['_rel_route'] = copy(self._rel_route)
+        d['local'] = {}
+        o.__dict__ = d
+        o.parent = None
         return o
     
-    def __getstate__(self):
-        '''Remove the local dictionary.'''
-        d = self.__dict__.copy()
-        d.pop('_local')
-        return d
-    
-    @property
-    def local(self):
-        return self._local
+    def __deepcopy__(self, memo):
+        return copy(self)
     
     @property
     def lock(self):
-        if 'lock' not in self.local:
+        if not 'lock' in self.local:
             self.local['lock'] = Lock()
         return self.local['lock']
     
     @property
     def route(self):
-        if 'route' not in self._local:
-            self._local['route'] = self.rel_route 
-        return self._local['route']
+        return self.local['route']
     
     def _get_parent(self):
-        return self._local.get('parent')
+        return self.local['parent']
     def _set_parent(self, parent):
-        if parent is not self.parent:
-            self._local['parent'] = self._make_parent(parent)
+        self.local['parent'] = self._make_parent(parent)
     parent = property(_get_parent,_set_parent)
     
     def __get_rel_route(self):
-        return self.__rel_route
+        return self._rel_route
     def __set_rel_route(self, r):
-        if self.route == self.__rel_route:
-            self.__rel_route = r
-            self._local['route'] = r
+        if self.route == self._rel_route:
+            self._rel_route = r
+            self.local['route'] = r
         else:
-            br = self.route - self.rel_route
-            self.__rel_route = r
-            self._local['route'] = br + r
+            br = self.route - self._rel_route
+            self._rel_route = r
+            self.local['route'] = br + r
     rel_route = property(__get_rel_route,__set_rel_route)
     
     @property
@@ -203,9 +181,9 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     @property
     def tree(self):
         if self.is_root:
-            return self.local.get('tree')
+            return self.local['tree']
         else:
-            self.root.tree
+            return self.root.tree
     
     @property
     def isbound(self):
@@ -301,18 +279,14 @@ from the variable part of the url.'''
     ############################################################################
     #    INTERNALS
     ############################################################################
-    
-    def _oncopy(self, d):
-        return d
-    
     def _make_parent(self, parent):
         if parent is not None:
             if not isinstance(parent, RouteMixin):
                 raise ValueError('parent must be an instance of RouteMixin.\
  Got "{0}"'.format(parent))
-            self.local['route'] = parent.route + self.__rel_route
+            self.local['route'] = parent.route + self._rel_route
         else:
-            self.local['route'] = self.__rel_route
+            self.local['route'] = self._rel_route
         return parent
     
     def _site(self):
@@ -333,14 +307,14 @@ class ResolverMixin(RouteMixin):
     for this instance.
     
 '''
-    def __init__(self, route, parent = None):
+    def __init__(self, route):
         self.routes = []
         if not isinstance(route, Route):
             route = Route(route, append_slash = True)
         if route.is_leaf:
             raise ValueError('A resolver cannot have a leaf route {0}'\
                              .format(route))
-        super(ResolverMixin,self).__init__(route, parent)
+        super(ResolverMixin, self).__init__(route)
     
     def __unicode__(self):
         return '{0} - {1}'.format(self.path,list(self))
@@ -376,15 +350,14 @@ class ResolverMixin(RouteMixin):
     
     def _load(self):
         if not self.routes:
-            raise ImproperlyConfigured('No sites registered.')
+            raise ImproperlyConfigured('No sites registered with {0}.'\
+                                       .format(self))
         for route in self:
             if route.isbound:
                 raise ImproperlyConfigured('Route {0} already bound.'\
                                            .format(route))
             route.parent = self
             route.load()
-        import_modules(self.settings.DJPCMS_PLUGINS)
-        import_modules(self.settings.DJPCMS_WRAPPERS)
         return tuple(self)
     
     def make_url(self, route, handler, name=None):
@@ -441,7 +414,7 @@ If the application is not available, it returns ``None``. It never fails.'''
         return None
     
     def _make_parent(self, parent):
-        parent = super(ResolverMixin,self)._make_parent(parent)
+        parent = super(ResolverMixin, self)._make_parent(parent)
         #loop over routes and set the new parent
         for route in self:
             route.parent = self

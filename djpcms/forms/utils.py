@@ -134,7 +134,7 @@ def get_form(request,
     
     inputs = inputs if inputs is not None else []
     inputs.append(Widget('input:hidden',name=REFERER_KEY,value=referer))
-    if not prefix and force_prefix:
+    if prefix is None and force_prefix:
         prefix = generate_prefix()
         inputs.append(Widget('input:hidden',name=PREFIX_KEY,value=prefix))
                 

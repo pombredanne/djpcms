@@ -3,7 +3,6 @@
 #
 import os
 import sys
-import pickle
 import argparse
 
 import djpcms
@@ -126,8 +125,7 @@ and runs it."""
         if args.command:
             # Command is available. delegate the arg parsing to it
             cmd = self.fetch_command(args.command)
-            website = pickle.loads(pickle.dumps(self.website))
-            return cmd.run_from_argv(website, args.command, argv,
+            return cmd.run_from_argv(self.website, args.command, argv,
                                      stdout=stdout, stderr=stderr)
         else:
             # this should fail unless we pass -h

@@ -334,8 +334,11 @@ in testing. Typical usage, from within a test case function::
     def _base_environ(self, ajax = False, **request):
         """The base environment for a request.
         """
+        cookie = self.cookies
+        if isinstance(cookie, SimpleCookie):
+            cookie = self.cookies.output(header='', sep='; ')
         environ = {
-            'HTTP_COOKIE': self.cookies.output(header='', sep='; '),
+            'HTTP_COOKIE': cookie,
             'PATH_INFO': '/',
             'QUERY_STRING': '',
             'REMOTE_ADDR': '127.0.0.1',
@@ -362,6 +365,9 @@ in testing. Typical usage, from within a test case function::
         environ = self._base_environ(**request)
         r = Response(environ)
         r.response = self.handler(environ, r)
+        for head, value in r.response_headers:
+            if head.lower() == 'set-cookie':
+                self.cookies = value
         self.test.assertEqual(r.response.status_code, status_code)
         return r
         

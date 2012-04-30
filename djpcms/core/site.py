@@ -6,7 +6,8 @@ from inspect import isclass
 from copy import deepcopy, copy
 
 from djpcms.utils.py2py3 import iteritems, itervalues, native_str
-from djpcms.utils.importer import import_module, module_attribute
+from djpcms.utils.importer import import_module, module_attribute,\
+                                  import_modules
 from djpcms.utils import conf, lazyproperty, Path
 from djpcms.utils.structures import OrderedDict
 from djpcms import html
@@ -146,12 +147,14 @@ Attributes available:
                  route = '/',
                  parent = None,
                  **handlers):
-        super(Site,self).__init__(route,parent)
+        super(Site, self).__init__(route)
         self._model_registry = {}
         self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]
-        if self.parent is None:
+        if parent is None:
             settings = settings or get_settings()
+        else:
+            self.parent = parent
         if settings:
             path = os.path.join(settings.SITE_DIRECTORY,'templates')
             if path not in settings.TEMPLATE_DIRS and os.path.isdir(path):
@@ -178,7 +181,10 @@ Attributes available:
     
     def _load(self):
         self.setup_environment()
-        return super(Site,self)._load()
+        urls = super(Site, self)._load()
+        import_modules(self.settings.DJPCMS_PLUGINS)
+        import_modules(self.settings.DJPCMS_WRAPPERS)
+        return urls
     
     def _site(self):
         return self
@@ -413,19 +419,20 @@ for djpcms web sites.
     version = None
     _settings_file = None
     
-    def __init__(self, **params):
+    def __init__(self, name = None, **params):
+        self.name = name
         self.local = {}
         self._settings_file = params.pop('settings_file', self._settings_file)
         self.callbacks = []
         params.pop('site',None)
         self.params = params
         
-    def _set_settings_file(elf, settings):
+    def _set_settings_file(self, settings):
         self._settings_file = settings
         self.local.pop('site',None)
     def _get_settings_file(self):
         return self._settings_file
-    settings_file = property(_set_settings_file,_get_settings_file)
+    settings_file = property(_get_settings_file,_set_settings_file)
     
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -464,13 +471,12 @@ for djpcms web sites.
     
     def __call__(self):
         if self.site is None:
-            self.local['site'] = self.load()
+            load = self.load
+            if self.name:
+                load = getattr(self,'load_{0}'.format(self.name))
+            self.local['site'] = load()
             if self.site is not None:
-                try:
-                    self.site.load()
-                except ImproperlyConfigured:
-                    if getattr(loader,'web_site',True):
-                        raise
+                self.load_site()
                 for callback in self.callbacks:
                     callback(self)
                 self.finish()
@@ -498,7 +504,7 @@ for djpcms web sites.
         return Site(settings)
         
     def finish(self):
-        '''Callback once the site are loaded.'''
+        '''Callback once the site is loaded.'''
         pass
     
     def on_server_ready(self, server):
@@ -510,3 +516,5 @@ for djpcms web sites.
         return http.WSGIhandler(self.wsgi_middleware(),
                                 self.response_middleware())
     
+    def load_site(self):
+        self.site.load()

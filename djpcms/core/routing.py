@@ -250,8 +250,8 @@ the root route and ``None``. '''
         
     def __add__(self, other):
         if self.is_leaf:
-            raise ValueError('Cannot prepend {0} to another route.\
- It is a leaf.'.format(self))
+            raise ValueError('Cannot prepend {0} to {1}. '\
+                             'It is a leaf.'.format(self, other))
         cls = self.__class__
         defaults = self.defaults.copy()
         if isinstance(other,cls):
@@ -262,6 +262,9 @@ the root route and ``None``. '''
         return cls(self.rule + rule, defaults)
     
     def __deepcopy__(self, memo):
+        return self.__copy__()
+    
+    def __copy__(self):
         return self.__class__(self.rule, self.defaults.copy())
         
         

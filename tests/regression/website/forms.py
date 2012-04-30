@@ -22,9 +22,8 @@ class TestSimpleForm(base.TestCase):
         d.update(kwargs)
         return d
         
-    @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
     def testAddPage(self):
-        client = self.create_and_login()
+        client = self.create_user_and_login()
         d = self.page_data()
         client.post('/admin/cms/')
         p = HtmlPageForm(data = d)

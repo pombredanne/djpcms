@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 
 import djpcms
 from djpcms.utils.py2py3 import iteritems, is_string, itervalues, to_string
@@ -260,15 +260,11 @@ overwritten to customize its behavior.
                  related_field = None, url_bits_mapping = None,
                  routes = None, always_load_fields = None, **kwargs):
         self.model = model
-        self.mapper = None
-        self.root_view = None
-        self.instance_view = None
-        self.views = OrderedDict()
-        views = deepcopy(self.base_routes)
-        if routes:
-            views.extend(deepcopy(routes))
         ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
+        self.base_routes = copy(self.base_routes)
+        if routes:
+            self.base_routes.extend(routes)
         if not self.pagination:
             self.pagination = html.Pagination()
         self.object_views = []
@@ -291,60 +287,25 @@ overwritten to customize its behavior.
                 d.append(self.pagination.headers.get(head.code,head))
             self.object_display = tuple(d)   
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
-        #
-        self.addroutes(views)
+        self.clear()
+    
+    def __copy__(self):
+        o = ResolverMixin.__copy__(self)
+        o.clear()
+        return o
+    
+    def clear(self):
+        self.mapper = None
+        self.root_view = None
+        self.instance_view = None
+        self.routes = []
+        self.views = OrderedDict()
         
     def _site(self):
         if self.appmodel:
             return self.appmodel.site
         else:
             return self.parent
-        
-    def addroutes(self, routes):
-        if routes:
-            self.__dict__.pop('_urls',None)
-            
-            # add routes to the views dictionary and check for duplicates
-            for route in routes:
-                if not isinstance(route,RendererMixin):
-                    raise UrlException('Route "{0}" is not a view instance.\
- Error in constructing application "{2}".'.format(route,self))
-                route.code = self.name + SPLITTER + route.name                    
-                self.views[route.name] = route
-            
-            #and now set the routes
-            processed = {}
-            routes = list(itervalues(self.views))
-            proutes = list(routes)
-            while proutes:
-                N = len(proutes)
-                for idx,route in enumerate(proutes):
-                    if route.parent_view:
-                        if route.parent_view in processed:
-                            p = processed[route.parent_view]
-                            route.rel_route = p.rel_route + route.rel_route
-                        else:
-                            continue
-                    processed[route.name] = route
-                    proutes.pop(idx)
-                    break
-                if len(proutes) == N:
-                    raise UrlException('Cannot find parent views in "{0}"'\
-                                        .format(self))
-                    
-            proutes = dict(((p.route.path,p) for p in routes\
-                             if isinstance(p,View)))
-    
-            # Refresh routes dictionary with updated routes paths
-            for route in routes:
-                if route.path == '/':
-                    self.root_view = route
-                #else:
-                #    p,c = route.route.split()
-                #    route.parent_view = proutes.get(p.path)
-                if isinstance(route,View) and route.object_view:
-                    self.object_views.append(route)
-                self.routes.append(route)
                 
     def applications(self):
         for app in self:
@@ -361,42 +322,6 @@ overwritten to customize its behavior.
     
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
-    
-    def _load(self):        
-        if not self.routes:
-            raise UrlException("There are no views in {0}\
- application. Try setting inherit equal to True.".format(self))
-        if not self.site:
-            raise UrlException("There is no site for {0}\
- application.".format(self))
-        # Set the in_nav if required
-        if self.in_nav and self.root_view:
-            self.root_view.in_nav = self.in_nav
-        
-        self.mapper = None if not self.model else mapper(self.model)
-        self.site.register_app(self)
-        for view in self:
-            view.parent = self
-            view.appmodel = self
-            if isinstance(view,View):
-                if isinstance(view,ViewView):
-                    if self.instance_view is not None:
-                        raise UrlException('Application {0} has more\
- than one ViewView instance. Not possible.'.format(self))
-                    self.instance_view = view
-                    # url bit mapping
-                    vars = view.route.ordered_variables()
-                    if not vars:
-                        raise UrlException('Application {0} has no\
- parameters to initialize objects.'.format(self.name))
-                    self.model_url_bits = vars
-                    if not self.url_bits_mapping:
-                        self.url_bits_mapping = dict(((v,v) for v in vars))   
-                if self.has_plugins and view.has_plugins:
-                    register_application(view)
-            else:
-                view.load()
-        return tuple(self)
     
     def get_form(self, request, form_class, addinputs = True, instance  = None,
                  block = None, **kwargs):
@@ -777,3 +702,90 @@ It uses the following algorithm:
 Can be overritten to include request dictionary.'''
         return '%s:%s' % (instance._meta,instance.id)
   
+    ############################################################################
+    ##  INTERNALS
+    
+    def _addroutes(self):
+        # add routes to the views dictionary and check for duplicates
+        for route in self.base_routes:
+            if not isinstance(route, RendererMixin):
+                raise UrlException('Route "{0}" is not a view instance. '\
+                'Error in constructing application "{2}".'.format(route,self))
+            route = deepcopy(route)
+            route.code = self.name + SPLITTER + route.name                    
+            self.views[route.name] = route
+        
+        #and now set the routes
+        processed = {}
+        routes = list(itervalues(self.views))
+        proutes = list(routes)
+        while proutes:
+            N = len(proutes)
+            for idx,route in enumerate(proutes):
+                if route.parent_view:
+                    if route.parent_view in processed:
+                        p = processed[route.parent_view]
+                        try:
+                            route.rel_route = p.rel_route + route.rel_route
+                        except Exception as e:
+                            raise UrlException('Error while constructing '\
+                                        'application {0}. {1}'.format(self,e))
+                    else:
+                        continue
+                processed[route.name] = route
+                proutes.pop(idx)
+                break
+            if len(proutes) == N:
+                raise UrlException('Cannot find parent views in "{0}"'\
+                                    .format(self))
+                
+        proutes = dict(((p.route.path,p) for p in routes\
+                         if isinstance(p,View)))
+
+        # Refresh routes dictionary with updated routes paths
+        for route in routes:
+            if route.path == '/':
+                self.root_view = route
+            #else:
+            #    p,c = route.route.split()
+            #    route.parent_view = proutes.get(p.path)
+            if isinstance(route, View) and route.object_view:
+                self.object_views.append(route)
+            self.routes.append(route)
+            
+    def _load(self):   
+        if not self.site:
+            raise UrlException("There is no site for {0}\
+ application.".format(self))
+        self._addroutes()
+        if not self.routes:
+            raise UrlException("There are no views in {0}\
+ application. Try setting inherit equal to True.".format(self))
+        # Set the in_nav if required
+        if self.in_nav and self.root_view:
+            self.root_view.in_nav = self.in_nav
+        
+        self.mapper = None if not self.model else mapper(self.model)
+        self.site.register_app(self)
+        for view in self:
+            view.parent = self
+            view.appmodel = self
+            if isinstance(view, View):
+                if isinstance(view, ViewView):
+                    if self.instance_view is not None:
+                        raise UrlException('Application {0} has more\
+ than one ViewView instance. Not possible.'.format(self))
+                    self.instance_view = view
+                    # url bit mapping
+                    vars = view.route.ordered_variables()
+                    if not vars:
+                        raise UrlException('Application {0} has no\
+ parameters to initialize objects.'.format(self.name))
+                    self.model_url_bits = vars
+                    if not self.url_bits_mapping:
+                        self.url_bits_mapping = dict(((v,v) for v in vars))   
+                if self.has_plugins and view.has_plugins:
+                    register_application(view)
+            else:
+                view.load()
+        return tuple(self)

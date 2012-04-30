@@ -232,8 +232,10 @@ it is the base class of :class:`pageview` and :class:`View`.
     _methods      = ('get','post')
     
     def __init__(self, route = '', parent = None, **kwargs):
-        RouteMixin.__init__(self, route, parent)
+        RouteMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
+        if parent is not None:
+            self.parent = parent
         
     def __unicode__(self):
         return '%s: %s' % (self.name,self.path)

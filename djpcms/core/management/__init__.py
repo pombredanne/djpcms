@@ -11,7 +11,8 @@ from djpcms.utils.importer import import_module
 
 from .base import Command, CommandError, CommandOption
                                         
-__all__ = ['Command', 'CommandError', 'CommandOption', 'execute']
+__all__ = ['Command', 'CommandError', 'CommandOption', 'execute',
+           'fetch_command']
 
 def find_commands(management_dir):
     """
@@ -36,10 +37,17 @@ def load_command_class(app_name, name):
     module = import_module('%s.management.commands.%s' % (app_name, name))
     return module.Command()
 
-def execute(website, argv=None):
+def execute(website, argv=None, stdout=None, stderr=None):
     '''Execute a command against a sites instance'''
     utility = ManagementUtility(website, argv)
-    return utility.execute()
+    return utility.execute(stdout=stdout, stderr=stderr)
+
+def fetch_command(website, command, argv=None, stdout=None, stderr=None):
+    utility = ManagementUtility(website, argv)
+    cmd = utility.fetch_command(command)
+    return lambda: cmd.run_from_argv(website, command, argv,
+                                     stdout=stdout, stderr=stderr)
+    
 
 
 class ManagementUtility(object):
@@ -96,9 +104,8 @@ appropriate command called from the command line (usually
         try:
             app_name = site.get_commands()[subcommand]
         except KeyError:
-            sys.stderr.write("Unknown command: %r\nType '%s help'\
+            raise ValueError("Unknown command: %r\nType '%s help'\
  for usage.\n" % (subcommand, self.prog_name))
-            sys.exit(1)
         if isinstance(app_name, Command):
             # If the command is already loaded, use it directly.
             klass = app_name
@@ -106,7 +113,7 @@ appropriate command called from the command line (usually
             klass = load_command_class(app_name, subcommand)
         return klass
 
-    def execute(self):
+    def execute(self, stdout=None, stderr=None):
         """Given the command-line arguments, this figures out which
 subcommand is being run, creates a parser appropriate to that command,
 and runs it."""
@@ -120,9 +127,11 @@ and runs it."""
             # Command is available. delegate the arg parsing to it
             cmd = self.fetch_command(args.command)
             website = pickle.loads(pickle.dumps(self.website))
-            return cmd.run_from_argv(website, args.command, argv)
+            return cmd.run_from_argv(website, args.command, argv,
+                                     stdout=stdout, stderr=stderr)
         else:
             # this should fail unless we pass -h
             parser = self.get_parser(nargs=1)
             parser.parse_args()
+        
 

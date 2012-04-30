@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import argparse
 from inspect import isclass
 from copy import deepcopy, copy
 
@@ -409,17 +410,23 @@ for djpcms web sites.
     application.
 
 '''
-    ENVIRON_NAME = None
-    settings = None
-    can_pickle = True
+    version = None
+    _settings_file = None
     
-    def __init__(self, name = None, **params):
+    def __init__(self, **params):
         self.local = {}
+        self._settings_file = params.pop('settings_file', self._settings_file)
         self.callbacks = []
-        self.name = name or 'DJPCMS'
         params.pop('site',None)
         self.params = params
         
+    def _set_settings_file(elf, settings):
+        self._settings_file = settings
+        self.local.pop('site',None)
+    def _get_settings_file(self):
+        return self._settings_file
+    settings_file = property(_set_settings_file,_get_settings_file)
+    
     def __getstate__(self):
         d = self.__dict__.copy()
         d['local'] = {}
@@ -457,11 +464,7 @@ for djpcms web sites.
     
     def __call__(self):
         if self.site is None:
-            if self.ENVIRON_NAME:
-                os.environ[self.ENVIRON_NAME] = self.name
-            name = 'load_{0}'.format(self.name.lower())
-            loader = getattr(self, name, self.load)
-            self.local['site'] = loader()
+            self.local['site'] = self.load()
             if self.site is not None:
                 try:
                     self.site.load()
@@ -506,3 +509,4 @@ for djpcms web sites.
         '''Return the WSGI handeler for your application.'''
         return http.WSGIhandler(self.wsgi_middleware(),
                                 self.response_middleware())
+    

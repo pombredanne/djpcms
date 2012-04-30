@@ -48,12 +48,11 @@ class MainApplication(views.Application):
     
     
 class WebSite(djpcms.WebSite):
-    '''djpcms website'''
+    settings_file = 'djpsite.settings'
     def load(self):
-        config = self.params.get('config', 'djpsite.conf')
         settings = djpcms.get_settings(
                 __file__,
-                config,
+                self.settings_file,
                 APPLICATION_URLS = self.urls,
                 DEBUG = True
             )
@@ -68,7 +67,7 @@ class WebSite(djpcms.WebSite):
         # admin site
         settings = djpcms.get_settings(
             __file__,
-            config,
+            self.settings_file,
             APPLICATION_URLS  = admin.make_admin_urls())
         permissions = PermissionHandler(settings,
                                         auth_backends=permissions.auth_backends,
@@ -127,4 +126,4 @@ class WebSite(djpcms.WebSite):
     
 
 if __name__ == '__main__':
-    djpcms.execute(WebSite(config = 'djpsite.settings'))
+    djpcms.execute(WebSite())

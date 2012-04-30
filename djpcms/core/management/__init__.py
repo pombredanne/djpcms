@@ -11,9 +11,7 @@ from djpcms.utils.importer import import_module
 
 from .base import Command, CommandError, CommandOption
                                         
-__all__ = ['Command', 'CommandError', 'CommandOption',
-           'fetch_command', 'execute']
-
+__all__ = ['Command', 'CommandError', 'CommandOption', 'execute']
 
 def find_commands(management_dir):
     """
@@ -29,7 +27,6 @@ def find_commands(management_dir):
     except OSError:
         return ()
 
-
 def load_command_class(app_name, name):
     """
     Given a command name and an application name, returns the Command
@@ -39,18 +36,10 @@ def load_command_class(app_name, name):
     module = import_module('%s.management.commands.%s' % (app_name, name))
     return module.Command()
 
-
-def fetch_command(sites, name, argv=None, **params):
-    """Fetch a command name"""
-    utility = ManagementUtility(sites, argv, **params)
-    return utility.fetch_command(name)
-    
-
-def execute(sites, argv=None, **params):
+def execute(website, argv=None):
     '''Execute a command against a sites instance'''
-    utility = ManagementUtility(sites, argv, **params)
+    utility = ManagementUtility(website, argv)
     return utility.execute()
-
 
 
 class ManagementUtility(object):
@@ -60,40 +49,52 @@ class ManagementUtility(object):
     A ManagementUtility has a number of commands, which can be manipulated
     by editing the self.commands dictionary.
     """
-    def __init__(self, site_factory, argv = None):
+    def __init__(self, website, argv = None):
         if argv is None:
             argv = sys.argv[:]
         self.prog_name = os.path.basename(argv[0])
         self.argv = argv[1:]
-        self.site_factory = site_factory
-        self.sites = site_factory()
+        self.website = website
 
-    def get_parser(self):
-        return argparse.ArgumentParser(usage = self.get_usage())
+    def get_parser(self, with_commands=True, nargs='?', **params):
+        '''Get the argument parser'''
+        if with_commands:
+            params['usage'] = self.get_usage()
+        p = argparse.ArgumentParser(**params)
+        p.add_argument('command', nargs=nargs, help='command to run')
+        p.add_argument('-c','--config',
+                       default=self.website.settings_file,
+                       help='The path to the config file.')
+        p.add_argument('-v','--version',
+                       action='version',
+                       version=self.website.version or djpcms.__version__,
+                       help='Print the version.')
+        return p
         
     def get_usage(self):
         """
         Returns the script's main help text, as a string.
         """
-        settings = self.sites.settings
-        commands = self.sites.get_commands()
-        usage = "\nType '{0} <subcommand> --help' for help on a specific\
- subcommand.\n\nAvailable subcommands:\n".format(self.prog_name)
+        site = self.website()
+        commands = site.get_commands()
+        usage = "\nType '{0} <command> --help' for help on a specific\
+ command.\n\nAvailable commands:\n".format(self.prog_name)
         cmds = '\n'.join(('  %s' % cmd for cmd in sorted(commands)))
         text = '{0}\n{1}'.format(usage,cmds)
-        if settings.DESCRIPTION:
-            text = '{0}\n{1}'.format(settings.DESCRIPTION,text)
-        if settings.EPILOG:
-            text = '{0}\n{1}'.format(text,settings.EPILOG)
-        return text
+        if site.settings.DESCRIPTION:
+            text = '{0}\n{1}'.format(site.settings.DESCRIPTION, text)
+        if site.settings.EPILOG:
+            text = '{0}\n{1}'.format(text, site.settings.EPILOG)
+        return '\n'+text
 
     def fetch_command(self, subcommand):
         """Tries to fetch the given *subcommand*, printing a message with the
 appropriate command called from the command line (usually
         "django-admin.py" or "manage.py") if it can't be found.
         """
+        site = self.website()
         try:
-            app_name = self.sites.get_commands()[subcommand]
+            app_name = site.get_commands()[subcommand]
         except KeyError:
             sys.stderr.write("Unknown command: %r\nType '%s help'\
  for usage.\n" % (subcommand, self.prog_name))
@@ -110,24 +111,18 @@ appropriate command called from the command line (usually
 subcommand is being run, creates a parser appropriate to that command,
 and runs it."""
         argv = self.argv
-        command = argv[0] if argv else 'help'
-        
-        # Allow for django commands, for example
-        # python manage.py django syncdb
-        if command == 'help':
-            parser = self.get_parser()
-            parser.parse_args(argv)
-            sys.exit(1)
-        elif command == 'django':
-            from django.core.management import ManagementUtility
-            argv = [sys.prog_name] + argv[1:]
-            utility = ManagementUtility(argv)
-            utility.execute()
+        parser = self.get_parser(with_commands=False, add_help=False)
+        args, _ = parser.parse_known_args(argv)
+        self.website.settings_file = args.config
+        parser = self.get_parser(add_help=False)
+        args, argv = parser.parse_known_args(argv)
+        if args.command:
+            # Command is available. delegate the arg parsing to it
+            cmd = self.fetch_command(args.command)
+            website = pickle.loads(pickle.dumps(self.website))
+            return cmd.run_from_argv(website, args.command, argv)
         else:
-            cmd = self.fetch_command(command)
-            if self.site_factory.can_pickle:
-                site_factory = pickle.loads(pickle.dumps(self.site_factory))
-            else:
-                site_factory = self.site_factory
-            return cmd.run_from_argv(site_factory, command, argv[1:])
+            # this should fail unless we pass -h
+            parser = self.get_parser(nargs=1)
+            parser.parse_args()
 

@@ -17,7 +17,6 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.style.plugins.ui',
                   'djpcms.style.plugins.color',
                   #
-                  #'pulsardjp',
                   'djpsite.apps.design',
                   'djpsite')
 ENABLE_BREADCRUMBS = 1
@@ -27,6 +26,8 @@ SITE_NAVIGATION_BRAND =\
 "<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>"
 DJPCMS_PLUGINS = ['djpcms.plugins.*',
                   'djpcms.apps.contentedit.plugins']
+
+DOMAIN_NAME = 'http://djpcms.com'
 
 
 # RESERVED SETTINGS. CREATE A SETTINGS FILES AND OVERRIDE THESE VALUES

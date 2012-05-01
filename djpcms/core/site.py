@@ -506,10 +506,6 @@ for djpcms web sites.
     def finish(self):
         '''Callback once the site is loaded.'''
         pass
-    
-    def on_server_ready(self, server):
-        '''Optional callback by a server just before start serving.'''
-        pass
 
     def wsgi(self):
         '''Return the WSGI handeler for your application.'''

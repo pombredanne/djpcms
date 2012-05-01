@@ -103,7 +103,7 @@ appropriate command called from the command line (usually
         try:
             app_name = site.get_commands()[subcommand]
         except KeyError:
-            raise ValueError("Unknown command: %r\nType '%s help'\
+            raise ValueError("Unknown command: %r\nType '%s --help'\
  for usage.\n" % (subcommand, self.prog_name))
         if isinstance(app_name, Command):
             # If the command is already loaded, use it directly.

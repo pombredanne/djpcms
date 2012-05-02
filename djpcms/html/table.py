@@ -37,15 +37,21 @@ def attrname_from_header(header, code):
     return code
 
 
-def table_header(code, name = None, description = None, function = None,
-                 attrname = None, sortable = True, width = None,
-                 extraclass = None, hidden = False):
+def table_header(code, name=None, description=None, function=None,
+                 attrname=None, sortable=True, width=None,
+                 extraclass=None, hidden=False):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
     
 :param code: unique code for the header
-:param attrname: optional attribute name, if not supplied the *code* will be
-    used. The attrname is the actual attribute name in the object, and
-    therefore the actual field in the database. 
+:param name: Optional name to display in table headers.
+    If not provided  it is evaluated from code.
+:param description: Optional description of  the field.
+:param function: the attribute of function in the object used to obtain the
+    field value. If not provided, code will be used.
+:param attrnames: optional attribute name, or list of attribute names,
+    which is needed to evaluate the field. if not supplied the *code* will be
+    used. These attrnames are the actual sdata in the object which is loaded
+    the data source (database). 
 '''
     if isinstance(code,table_header_):
         return code

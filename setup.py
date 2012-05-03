@@ -4,9 +4,10 @@ from distutils.command.install import INSTALL_SCHEMES
 import os
 import sys
 
-package_name  = 'djpcms'
-root_dir      = os.path.split(os.path.abspath(__file__))[0]
-package_dir   = os.path.join(root_dir, package_name) 
+package_name = 'djpcms'
+package_fullname = package_name 
+root_dir = os.path.split(os.path.abspath(__file__))[0]
+package_dir = os.path.join(root_dir, package_name) 
 
 def get_module():
     if root_dir not in sys.path:
@@ -77,15 +78,12 @@ if pieces[-1] == '':
 else:
     len_root_dir = len(pieces)
 
-for dirpath, dirnames, filenames in os.walk(package_dir):
-    # Ignore dirnames that start with '.'
-    for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
+for dirpath, _, filenames in os.walk(package_dir):
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)[len_root_dir:]))
-    elif filenames:
-        rel_dir = get_rel_dir(dirpath,root_dir)
-        data_files.append([rel_dir, [os.path.join(dirpath, f) for f in filenames]])
+    elif filenames and not dirpath.endswith('__pycache__'):
+        rel_dir = get_rel_dir(dirpath, package_dir)
+        data_files.extend((os.path.join(rel_dir, f) for f in filenames))
 
 if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
     for file_info in data_files:
@@ -93,7 +91,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
 
 
 setup(
-        name         = package_name,
+        name=package_fullname,
         version      = mod.get_version(),
         author       = mod.__author__,
         author_email = mod.__contact__,
@@ -103,7 +101,7 @@ setup(
         long_description = read('README.rst'),
         packages     = packages,
         cmdclass     = cmdclasses,
-        data_files   = data_files,
+        package_data={package_name: data_files},
         classifiers = [
             'Development Status :: 4 - Beta',
             'Environment :: Web Environment',

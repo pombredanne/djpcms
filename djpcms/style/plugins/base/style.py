@@ -1,5 +1,4 @@
-'''Style inputs, widgets and forms used by djpcms 
-'''
+'''Style inputs, widgets and forms used by djpcms.'''
 from djpcms.style import *
 
 ################################################################################

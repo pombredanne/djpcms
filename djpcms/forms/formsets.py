@@ -153,11 +153,11 @@ of this class are declared in the body of a :class:`Form`.
                 instance = self.mapper.get(id = id)
             else:
                 instance = self.model(**{self.related_name:related})
-        f = self.form_class(prefix = prefix,
-                            model = self.model,
-                            data = form.rawdata,
-                            request = form.request,
-                            instance = instance)
+        f = self.form_class(prefix=prefix,
+                            model=self.model,
+                            data=form.rawdata,
+                            request=form.request,
+                            instance=instance)
         f._index = idx
         if not f.is_valid():
             if not f.changed:

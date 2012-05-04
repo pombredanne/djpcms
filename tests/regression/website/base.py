@@ -23,9 +23,9 @@ class TestCase(test.TestCase):
     
     def setUp(self):
         self.site = self.website()()
-        self.assertTrue(self.orm.flush_models())
+        self.assertTrue(self.odm.flush_models())
         
     def tearDown(self):
-        self.orm.flush_models()
+        self.odm.flush_models()
     
     

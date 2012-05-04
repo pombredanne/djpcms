@@ -6,20 +6,20 @@ if os.environ['stdcms']:
     from stdnet import orm
             
     
-    class Portfolio(orm.StdModel):
-        user = orm.ForeignKey(User)
-        name = orm.CharField(max_length = 200)
-        description = orm.CharField()
+    class Portfolio(odm.StdModel):
+        user = odm.ForeignKey(User)
+        name = odm.CharField(max_length = 200)
+        description = odm.CharField()
         
         def __unicode__(self):
             return self.name
         
         
-    class Book(orm.StdModel):
-        title = orm.CharField()
-        author = orm.CharField()
-        year = orm.IntegerField()
-        description = orm.CharField()
+    class Book(odm.StdModel):
+        title = odm.CharField()
+        author = odm.CharField()
+        year = odm.IntegerField()
+        description = odm.CharField()
         
         def __unicode__(self):
             return self.title

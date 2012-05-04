@@ -3,7 +3,6 @@
 #
 import os
 import sys
-import argparse
 
 import djpcms
 from djpcms.utils.importer import import_module
@@ -65,6 +64,7 @@ class ManagementUtility(object):
 
     def get_parser(self, with_commands=True, nargs='?', **params):
         '''Get the argument parser'''
+        import argparse
         if with_commands:
             params['usage'] = self.get_usage()
         p = argparse.ArgumentParser(**params)

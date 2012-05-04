@@ -181,7 +181,7 @@ The instance.plugin object is maintained but its fields may change.'''
                     instance.save()
                 plugin_form = pform.render(request)
             else:
-                instance = form.save(commit = commit)
+                instance = form.save(commit=commit)
                 plugin_form = ''
             plugin_form = self.plugin_form_container(instance, plugin_form)
             jquery = ajax.jhtmls(identifier = '#' + plugin_form.attr('id'),

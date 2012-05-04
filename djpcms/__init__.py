@@ -24,8 +24,7 @@ SOFTWARE_NAME = LIBRARY_NAME + ' ' +  __version__
 
 def DEFAULT_JAVASCRIPT():
     return ['djpcms/jquery.cookie.js',
-            'http://malsup.github.com/jquery.form.js',
-            #'djpcms/form.js',
+            'djpcms/jquery.form.js',
             'djpcms/showdown.js',
             'djpcms/djpcms.js']
 

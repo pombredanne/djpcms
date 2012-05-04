@@ -5,12 +5,12 @@ from djpcms.forms.utils import get_form
 from djpcms.forms import layout as uni
 from djpcms.style.plugins.color import ColorField
 
-from stdnet import orm
+from stdnet import odm
 
 
-class Theme(orm.StdModel):
-    timestamp = orm.DateTimeField(default=  datetime.now)
-    data = orm.JSONField()
+class Theme(odm.StdModel):
+    timestamp = odm.DateTimeField(default=  datetime.now)
+    data = odm.JSONField()
     
     class Meta:
         ordering = '-timestamp'

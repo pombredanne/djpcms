@@ -2,8 +2,9 @@
 __pycache__
 djpcms.egg-info/*
 *.egg
-dist/*
-docs/build/*
+dist/
+build/
+docs/build/
 MANIFEST
 .project
 .coverage

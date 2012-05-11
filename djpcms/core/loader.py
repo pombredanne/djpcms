@@ -6,10 +6,10 @@ from .site import get_settings, Site
 from .exceptions import ImproperlyConfigured
 
 
-__all__ = ['SiteLoader']
+__all__ = ['WebSite']
 
 
-class SiteLoader(object):
+class WebSite(object):
     '''A class for callable instances for loading and configuring sites.
 Users can subclass this class and override the :meth:`load` method or
 the ``load_{{ name }}`` where ``name`` is the value of the
@@ -60,6 +60,7 @@ for djpcms web sites.
 '''
     ENVIRON_NAME = None
     settings = None
+    WSGIhandler = http.WSGIhandler
     
     def __init__(self, name = None, site = None, **params):
         self.local = {}
@@ -154,5 +155,8 @@ for djpcms web sites.
 
     def wsgi(self):
         '''Return the WSGI handeler for your application.'''
-        return http.WSGIhandler(self.wsgi_middleware(),
-                                self.response_middleware())
+        hnd = self.WSGIhandler(self.wsgi_middleware())
+        response_middleware = self.response_middleware()
+        if response_middleware:
+            hnd.response_middleware.extend(response_middleware)
+        return hnd

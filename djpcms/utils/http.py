@@ -6,22 +6,18 @@ import string
 
 ispy3k = sys.version_info >= (3,0)
 
-if ispy3k:
-    # Python 3
-    from urllib.request import Request, build_opener, install_opener
-    from urllib.request import HTTPCookieProcessor, HTTPPasswordMgrWithDefaultRealm
-    from urllib.request import HTTPBasicAuthHandler, ProxyHandler
-    from urllib.request import getproxies_environment, URLError, HTTPError
+if ispy3k: # Python 3
+    from urllib import request as urllibr
     from urllib.parse import quote, unquote, urlencode, urlparse, urlsplit
     from http.client import responses
     from http.cookiejar import CookieJar
     from http.cookies import SimpleCookie
     
+    getproxies_environment = urllibr.getproxies_environment
     ascii_letters = string.ascii_letters
-    
     iteritems = lambda d : d.items()
 
-    def to_bytes(value, encoding=None, errors='strict'):
+    def to_bytes(s, encoding=None, errors='strict'):
         encoding = encoding or 'utf-8'
         if isinstance(s, bytes):
             if encoding != 'utf-8':
@@ -29,7 +25,7 @@ if ispy3k:
             else:
                 return s
         else:
-            return ('%s'%value).encode(encoding, errors)
+            return ('%s'%s).encode(encoding, errors)
         
     def native_str(s):
         if isinstance(s, bytes):
@@ -44,10 +40,7 @@ if ispy3k:
             return '%s' % s
         
 else:   # pragma : no cover
-    # Python 2.*
-    from urllib2 import Request, build_opener, install_opener, HTTPCookieProcessor
-    from urllib2 import HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler
-    from urllib2 import ProxyHandler, URLError, HTTPError
+    import urllib2 as urllibr
     from urllib import quote, unquote, urlencode, getproxies_environment
     from urlparse import urlparse, urlsplit
     from httplib import responses
@@ -125,6 +118,8 @@ Returns an ASCII native string containing the encoded result.'''
     return urlquote(unquote_unreserved(uri))
 
 
+####################################################    HTTP CLIENT
+
 class HttpClientResponse(object):
     '''Instances of this class are returned from the
 :meth:`HttpClientHandler.request` method.
@@ -158,8 +153,8 @@ class HttpClientResponse(object):
     _resp = None
     status_code = None
     url = None
-    HTTPError = HTTPError
-    URLError = URLError 
+    HTTPError = urllibr.HTTPError
+    URLError = urllibr.URLError 
     
     def __str__(self):
         if self.status_code:
@@ -213,8 +208,8 @@ class Response(HttpClientResponse):
 
 class HttpClientHandler(object):
     '''Http client handler.'''
-    HTTPError = HTTPError
-    URLError = URLError
+    HTTPError = urllibr.HTTPError
+    URLError = urllibr.URLError
     DEFAULT_HEADERS = [('Connection', 'Keep-Alive')]
     
     def __init__(self, headers=None):

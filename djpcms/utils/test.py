@@ -34,7 +34,6 @@ CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
 
 
 class TestWebSite(WebSite):
-    can_pickle = False
     def __init__(self, test):
         self.test = test
         super(TestWebSite,self).__init__()
@@ -49,12 +48,13 @@ class TestWebSite(WebSite):
         self.test.add_initial_db_data()
 
 
-class DjpcmsTestMixin(object):
+class TestCase(test.TestCase):
     '''A :class:`TestCase` class which adds the :meth:`website` method for 
 easy testing web site applications. To use the Http client you need
 to derive from this class.'''
     installed_apps = ('djpcms',)
     settings = None
+    web_site_callbacks = []
         
     def website(self):
         '''Return a :class:`djpcms.WebSite` loader, a callable object
@@ -65,7 +65,9 @@ returning a :class:`djpcms.Site`. Tipical usage::
     site = website()
     wsgi = website.wsgi()
 '''
-        return TestWebSite(self)
+        website = TestWebSite(self)
+        website.callbacks.extend(self.web_site_callbacks)
+        return website
         
     def load_site(self, website):
         settings = get_settings(settings = self.settings,
@@ -104,10 +106,6 @@ site interface. By default it return a simple view.'''
                 
     def add_initial_db_data(self):
         pass
-        
-
-class TestCase(test.TestCase, DjpcmsTestMixin):
-    pass
 
         
 class TestCaseWidthAdmin(TestCase):

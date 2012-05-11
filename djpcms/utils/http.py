@@ -1,16 +1,10 @@
-'''Small HTTP client library'''
-'''\
-The Standard Library Http Client
-
-This is a thin layer on top of urllib2 in python2 / urllib in Python 3
-It exposes the httplib1 class from the standard library.
+'''HTTP utilities and client library.
+This is a thin layer on top of urllib2 in python2 / urllib in Python 3.
 '''
-import io
-from copy import copy
+import sys
+import string
 
-from djpcms import SOFTWARE_NAME
-from djpcms.utils import ispy3k, to_bytes, iri_to_uri
-from djpcms.utils.py2py3 import iteritems
+ispy3k = sys.version_info >= (3,0)
 
 if ispy3k:
     # Python 3
@@ -18,20 +12,117 @@ if ispy3k:
     from urllib.request import HTTPCookieProcessor, HTTPPasswordMgrWithDefaultRealm
     from urllib.request import HTTPBasicAuthHandler, ProxyHandler
     from urllib.request import getproxies_environment, URLError, HTTPError
-    from urllib.parse import quote
+    from urllib.parse import quote, unquote, urlencode, urlparse, urlsplit
     from http.client import responses
     from http.cookiejar import CookieJar
-else:
+    from http.cookies import SimpleCookie
+    
+    ascii_letters = string.ascii_letters
+    
+    iteritems = lambda d : d.items()
+
+    def to_bytes(value, encoding=None, errors='strict'):
+        encoding = encoding or 'utf-8'
+        if isinstance(s, bytes):
+            if encoding != 'utf-8':
+                return s.decode('utf-8', errors).encode(encoding, errors)
+            else:
+                return s
+        else:
+            return ('%s'%value).encode(encoding, errors)
+        
+    def native_str(s):
+        if isinstance(s, bytes):
+            return s.decode('utf-8')
+        else:
+            return s
+        
+    def force_native_str(s):
+        if isinstance(s, bytes):
+            return s.decode('utf-8')
+        else:
+            return '%s' % s
+        
+else:   # pragma : no cover
     # Python 2.*
     from urllib2 import Request, build_opener, install_opener, HTTPCookieProcessor
     from urllib2 import HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler
     from urllib2 import ProxyHandler, URLError, HTTPError
-    from urllib import quote, getproxies_environment
+    from urllib import quote, unquote, urlencode, getproxies_environment
+    from urlparse import urlparse, urlsplit
     from httplib import responses
     from cookielib import CookieJar
+    from Cookie import SimpleCookie
     
-
+    ascii_letters = string.letters
+    
+    range = xrange
+    
+    iteritems = lambda d : d.iteritems()
+    
+    def to_bytes(s, encoding=None, errors='strict'):
+        encoding = encoding or 'utf-8'
+        if isinstance(s, bytes):
+            if encoding != 'utf-8':
+                return s.decode('utf-8', errors).encode(encoding, errors)
+            else:
+                return s
+        else:
+            return unicode(value).encode(encoding, errors)
+    
+    def native_str(s):
+        if isinstance(s, unicode):
+            return s.encode('utf-8')
+        else:
+            return s
+        
+    def force_native_str(s):
+        if isinstance(s, unicode):
+            return s.encode('utf-8')
+        else:
+            return '%s' % s
+    
+    
 escape = lambda s: quote(s, safe='~')
+
+# The reserved URI characters (RFC 3986 - section 2.2)
+URI_GEN_DELIMS = frozenset(':/?#[]@')
+URI_SUB_DELIMS = frozenset("!$&'()*+,;=")
+URI_RESERVED_SET = URI_GEN_DELIMS.union(URI_SUB_DELIMS)
+URI_RESERVED_CHARS = ''.join(URI_RESERVED_SET)
+# The unreserved URI characters (RFC 3986 - section 2.3)
+URI_UNRESERVED_SET = frozenset(ascii_letters + string.digits + '-._~')
+
+urlquote = lambda iri: quote(iri, safe=URI_RESERVED_CHARS)
+
+def unquote_unreserved(uri):
+    """Un-escape any percent-escape sequences in a URI that are unreserved
+characters. This leaves all reserved, illegal and non-ASCII bytes encoded."""
+    unreserved_set = UNRESERVED_SET
+    parts = uri.split('%')
+    for i in range(1, len(parts)):
+        h = parts[i][0:2]
+        if len(h) == 2:
+            c = chr(int(h, 16))
+            if c in unreserved_set:
+                parts[i] = c + parts[i][2:]
+            else:
+                parts[i] = '%' + parts[i]
+        else:
+            parts[i] = '%' + parts[i]
+    return ''.join(parts)
+
+def iri_to_uri(iri, kwargs=None):
+    '''Convert an Internationalized Resource Identifier (IRI) portion to a URI
+portion that is suitable for inclusion in a URL.
+This is the algorithm from section 3.1 of RFC 3987.
+Returns an ASCII native string containing the encoded result.'''
+    if iri is None:
+        return iri
+    iri = force_native_str(iri)
+    if kwargs:
+        iri = '%s?%s'%(iri,'&'.join(('%s=%s' % kv for kv in iteritems(kwargs))))
+    return urlquote(unquote_unreserved(uri))
 
 
 class HttpClientResponse(object):
@@ -124,16 +215,21 @@ class HttpClientHandler(object):
     '''Http client handler.'''
     HTTPError = HTTPError
     URLError = URLError
-    DEFAULT_HEADERS = [('User-agent', SOFTWARE_NAME),
-                       ('Connection', 'Keep-Alive')]
+    DEFAULT_HEADERS = [('Connection', 'Keep-Alive')]
     
+    def __init__(self, headers=None):
+        dheaders = dict(self.DEFAULT_HEADERS)
+        if headers:
+            dheaders.update(headers)
+        self.DEFAULT_HEADERS = dheaders
+        
     def get_headers(self, headers):
-        d = copy(self.DEFAULT_HEADERS)
+        d = self.DEFAULT_HEADERS.copy()
         if headers:
             d.extend(headers)
         return d
     
-    def request(self, url, **kwargs):
+    def request(self, url, method=None, **kwargs):
         '''Constructs and sends a request.
 
 :param url: URL for the request.
@@ -180,16 +276,16 @@ class HttpClient(HttpClientHandler):
         return self._opener.addheaders
     
     def request(self, url, body=None, method=None, **kwargs):
-        if body:
-            method = method or 'POST'
-            if isinstance(body, dict):
-                body = '&'.join(('{0}={1}'.format(escape(k),escape(v))\
-                                    for k,v in iteritems(body)))
-            if method.upper() == 'GET':
-                url = url + '?' + body
-                body = None
+        if isinstance(body, dict):
+            method = method.upper() if method else 'POST'
+            if method == 'POST':
+                body = '&'.join(('%s=%s' % (escape(k),escape(v))\
+                                        for k,v in iteritems(body)))
             else:
-                body = to_bytes(body)
+                url = iri_to_uri(url, **body)
+                body = None
+        else:
+            body = to_bytes(body)
         try:
             req = Request(url, body, dict(self.headers))
             response = self._opener.open(req,timeout=self.timeout)
@@ -206,8 +302,3 @@ class HttpClient(HttpClientHandler):
             password_mgr = HTTPPasswordMgr()
         password_mgr.add_password(realm, uri, user, passwd)
         self._opener.add_handler(HTTPBasicAuthHandler(password_mgr))
-        
-        
-
-    
-    

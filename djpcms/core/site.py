@@ -418,6 +418,7 @@ for djpcms web sites.
 '''
     version = None
     _settings_file = None
+    WSGIhandler = http.WSGIhandler
     
     def __init__(self, name = None, **params):
         self.name = name
@@ -509,8 +510,11 @@ for djpcms web sites.
 
     def wsgi(self):
         '''Return the WSGI handeler for your application.'''
-        return http.WSGIhandler(self.wsgi_middleware(),
-                                self.response_middleware())
+        hnd = self.WSGIhandler(self.wsgi_middleware())
+        response_middleware = self.response_middleware()
+        if response_middleware:
+            hnd.response_middleware.extend(response_middleware)
+        return hnd
     
     def load_site(self):
         self.site.load()

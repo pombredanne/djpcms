@@ -1,5 +1,3 @@
-from stdnet import orm
-
 from . import base
 
 class TestDjpSite(base.TestCase):

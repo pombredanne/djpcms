@@ -2,6 +2,7 @@
 '''
 import json
 import os
+import re
 import sys
 if sys.version_info >= (2,7):   # pragma nocover
     import unittest as test
@@ -10,7 +11,7 @@ else:   # pragma nocover
         import unittest2 as test
     except ImportError:
         print('To run tests in python 2.6 you need to install\
- the unitest2 package')
+ the unittest2 package')
         exit(0)
 
 try:
@@ -21,19 +22,15 @@ except ImportError: # pragma nocover
 import djpcms
 from djpcms import Site, WebSite, get_settings, views, forms, http, orms
 from djpcms.forms.utils import fill_form_data
-from djpcms.utils.py2py3 import BytesIO, ispy3k, native_str 
+from djpcms.utils.py2py3 import BytesIO
 
-if ispy3k:  # pragma nocover
-    from urllib.parse import urlparse, urlunparse, urlsplit, unquote,\
-                             urlencode
-    from http.cookies import SimpleCookie
-else:   # pragma nocover
-    from Cookie import SimpleCookie
-    from urlparse import urlparse, urlunparse, urlsplit, unquote
-    from urllib import urlencode
+from .http import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
+                  urlparse
 
 skipUnless = test.skipUnless
 main = test.main
+
+CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
 
 
 class TestWebSite(WebSite):
@@ -79,8 +76,10 @@ returning a :class:`djpcms.Site`. Tipical usage::
         return Site(settings)
     
     def client(self, **defaults):
-        wsgi = self.website().wsgi()
-        return HttpTestClientRequest(self, wsgi, **defaults)
+        website = self.website()
+        settings = website().settings
+        wsgi = website.wsgi()
+        return HttpTestClientRequest(self, wsgi, settings, **defaults)
     
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site
@@ -282,13 +281,6 @@ def encode_file(boundary, key, file):
         '',
         file.read()
     ]
-    
-
-def fake_input(data = None):
-    data = data or ''
-    if not isinstance(data,bytes):
-        data = data.encode('utf-8')
-    return BytesIO(data)
 
 
 class Response(object):
@@ -323,8 +315,9 @@ in testing. Typical usage, from within a test case function::
         post_request = client.post('/submit/', {'foo': 'bar'})
 
 """
-    def __init__(self, test, handler, **defaults):
+    def __init__(self, test, handler, settings, **defaults):
         self.test = test
+        self.settings = settings
         self.handler = handler
         self.defaults = defaults
         self.cookies = SimpleCookie()
@@ -379,7 +372,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'GET',
-            'wsgi.input':      fake_input()
+            'wsgi.input':      BytesIO()
         }
         r.update(extra)
         return self.request(status_code, **r)
@@ -390,13 +383,9 @@ in testing. Typical usage, from within a test case function::
         if content_type is MULTIPART_CONTENT:
             post_data = encode_multipart(BOUNDARY, data)
         else:
-            # Encode the content so that the byte representation is correct.
             match = CONTENT_TYPE_RE.match(content_type)
-            if match:
-                charset = match.group(1)
-            else:
-                charset = settings.DEFAULT_CHARSET
-            post_data = smart_str(data, encoding=charset)
+            charset = match.group(1) if match else self.settings.DEFAULT_CHARSET
+            post_data = to_bytes(data, encoding=charset)
 
         parsed = urlparse(path)
         r = {
@@ -405,7 +394,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':      unquote(parsed[2]),
             'QUERY_STRING':   parsed[4],
             'REQUEST_METHOD': 'POST',
-            'wsgi.input':     fake_input(post_data),
+            'wsgi.input':     BytesIO(post_data),
         }
         r.update(extra)
         return self.request(status_code, **r)
@@ -419,7 +408,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'HEAD',
-            'wsgi.input':      fake_input()
+            'wsgi.input':      BytesIO()
         }
         r.update(extra)
         return self.request(**r)
@@ -432,7 +421,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'OPTIONS',
-            'wsgi.input':      fake_input()
+            'wsgi.input':      BytesIO()
         }
         r.update(extra)
         return self.request(**r)
@@ -457,7 +446,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':      unquote(parsed[2]),
             'QUERY_STRING':   query_string or parsed[4],
             'REQUEST_METHOD': 'PUT',
-            'wsgi.input':     fake_input(post_data),
+            'wsgi.input':     BytesIO(post_data),
         }
         r.update(extra)
         return self.request(**r)
@@ -469,7 +458,7 @@ in testing. Typical usage, from within a test case function::
             'PATH_INFO':       unquote(parsed[2]),
             'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'DELETE',
-            'wsgi.input':      fake_input()
+            'wsgi.input':      BytesIO()
         }
         r.update(extra)
         return self.request(**r)

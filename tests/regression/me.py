@@ -27,6 +27,10 @@ class TestInitFile(test.TestCase):
         middleware = client.handler.middleware
         self.assertTrue(middleware)
         self.assertTrue(middleware[-1].site)
+        
+    def test_client_post_json(self):
+        client = self.client()
+        result = client.post('/', body='bla', content_type='application/json')
 
 
 class TestNoFile(test.TestCase):

@@ -86,8 +86,6 @@ else: # Python 2    # pragma nocover
 is_int = lambda x : isinstance(x,int_type)
 is_bytes_or_string = lambda x : isinstance(x,string_type) or isinstance(x,bytes)
 
-
-
 def to_bytes(s, encoding=None, errors='strict'):
     """Returns a bytestring version of 's',
 encoded as specified in 'encoding'."""
@@ -100,7 +98,6 @@ encoded as specified in 'encoding'."""
     if not is_string(s):
         s = string_type(s)
     return s.encode(encoding, errors)
-
 
 def to_string(s, encoding=None, errors='strict'):
     """Inverse of to_bytes"""

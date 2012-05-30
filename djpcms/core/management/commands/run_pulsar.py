@@ -4,6 +4,7 @@ from djpcms.core.http import setResponseClass
 try:
     from pulsar.apps import wsgi, test
     from pulsar import NOT_DONE, is_async, is_failure
+    from djpcms.core.orms import OrmQuery
 
     class WSGIApplication(wsgi.WSGIApplication):
         

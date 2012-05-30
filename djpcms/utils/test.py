@@ -22,7 +22,7 @@ import djpcms
 from djpcms import Site, WebSite, get_settings, views, forms, http
 from djpcms.forms.utils import fill_form_data
 
-from py2py3 import BytesIO
+from py2py3 import BytesIO, iteritems
 
 from .http import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                   urlparse
@@ -309,16 +309,20 @@ in testing."""
     def __init__(self, test, handler, settings, **defaults):
         self.test = test
         self.settings = settings
+        self.headers = {}
         self.handler = handler
         self.defaults = defaults
         self.cookies = SimpleCookie()
         self.errors = BytesIO()
         self.response_data = None
 
-    def _base_environ(self, ajax = False, **request):
+    def _base_environ(self, headers, ajax = False, **request):
         """The base environment for a request.
         """
         cookie = self.cookies
+        heads = self.headers.copy()
+        if headers:
+            heads.update(headers)
         if isinstance(cookie, SimpleCookie):
             cookie = self.cookies.output(header='', sep='; ')
         environ = {
@@ -342,11 +346,13 @@ in testing."""
         environ.update(request)
         if ajax:
             environ['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        environ.update((('HTTP_%s' % key.upper().replace('-','_'), value)\
+                            for key, value in iteritems(heads)))
         return environ
 
-    def request(self, status_code, **request):
+    def request(self, status_code, headers, **request):
         "Build a fake HTTP request."
-        environ = self._base_environ(**request)
+        environ = self._base_environ(headers, **request)
         r = Response(environ)
         r.response = self.handler(environ, r)
         if r.response_headers is not None:
@@ -356,8 +362,9 @@ in testing."""
                     self.cookies = value
             self.test.assertEqual(r.response.status_code, status_code)
         return r
-        
-    def get(self, path, data={}, ajax = False, status_code = 200, **extra):
+    
+    def get(self, path, data={}, ajax=False, status_code=200,
+            headers=None, **extra):
         "Construct a GET request"
         parsed = urlparse(path)
         r = {
@@ -368,10 +375,10 @@ in testing."""
             'wsgi.input':      BytesIO()
         }
         r.update(extra)
-        return self.request(status_code, **r)
+        return self.request(status_code, headers, **r)
     
     def post(self, path, data={}, content_type=MULTIPART_CONTENT,
-             status_code = 200, **extra):
+             status_code=200, headers=None, **extra):
         "Construct a POST request."
         if content_type is MULTIPART_CONTENT:
             post_data = encode_multipart(BOUNDARY, data)
@@ -390,9 +397,9 @@ in testing."""
             'wsgi.input':     BytesIO(post_data),
         }
         r.update(extra)
-        return self.request(status_code, **r)
+        return self.request(status_code, headers, **r)
     
-    def head(self, path, data={}, **extra):
+    def head(self, path, data={}, status_code=200, headers=None, **extra):
         "Construct a HEAD request."
 
         parsed = urlparse(path)
@@ -404,7 +411,7 @@ in testing."""
             'wsgi.input':      BytesIO()
         }
         r.update(extra)
-        return self.request(**r)
+        return self.request(status_code, headers, **r)
 
     def options(self, path, data={}, **extra):
         "Constrict an OPTIONS request"

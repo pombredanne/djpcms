@@ -1,9 +1,10 @@
 from collections import namedtuple
 from inspect import isgenerator
 
-from djpcms import ajax, DELETE
+from djpcms import ajax
+from djpcms.utils.httpurl import query_from_querydict
+from djpcms.core import permissions
 from djpcms.core.orms import mapper
-from djpcms.core.http import query_from_querydict
 from djpcms.html import anchor_or_button
 
 
@@ -28,7 +29,7 @@ def valid_request(request):
         return False
     return True
 
-bulk_delete = application_action('bulk_delete','delete',DELETE)
+bulk_delete = application_action('bulk_delete', 'delete', permissions.DELETE)
 
 
 def application_action_to_menu_link(action, url):

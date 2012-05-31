@@ -4,13 +4,11 @@ interaction with ``djpcms.js``
 import json
 
 from djpcms.utils.async import Deferred
-from djpcms.utils import force_str
+from djpcms.utils.text import to_string
 from djpcms.utils.structures import OrderedDict
 
-from .base import Widget
 
-
-def isajax(obj):
+def is_ajax(obj):
     return isinstance(obj, Ajax)
    
    

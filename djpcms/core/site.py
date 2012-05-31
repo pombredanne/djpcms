@@ -5,22 +5,24 @@ import argparse
 from inspect import isclass
 from copy import deepcopy, copy
 
-from djpcms.utils.py2py3 import iteritems, itervalues, native_str
+from djpcms.utils import conf
+from djpcms import html
+from djpcms.utils.decorators import lazyproperty
+from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri
 from djpcms.utils.importer import import_module, module_attribute,\
                                   import_modules
-from djpcms.utils import conf, lazyproperty, Path
+from djpcms.utils.path import Path
 from djpcms.utils.structures import OrderedDict
-from djpcms import html
 
-from .exceptions import AlreadyRegistered, PermissionDenied,\
-                        ImproperlyConfigured, DjpcmsException,\
-                        Http404
+from .tree import DjpcmsTree, BadNode
+from .profiler import profile_response
+from .request import make_request, Response, is_xhr, WsgiHandler
+from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 from .async import ResponseHandler
-from . import http
 from . import orms
 from . import layout
 
@@ -108,6 +110,76 @@ class ViewRenderer(html.Renderer):
 for the parent view. By default it returns *instance*. This function
 is used by the :attr:`djpcms.Request.parent` attribute.'''
         return instance
+        
+
+class WSGI(object):
+    '''WSGI handler. It looks for application site and
+delegate the handling to them.'''
+    def __init__(self, site):
+        self.site = site
+        self.error = site.response.error_to_response
+        
+    @property
+    def route(self):
+        return self.site.route
+    
+    def __str__(self):
+        return self.site.path
+    
+    def __repr__(self):
+        return '{0}({1})'.format(self.__class__.__name__,self)
+        
+    def __call__(self, environ, start_response):
+        query = environ.get('QUERY_STRING','')
+        PK = self.site.settings.PROFILING_KEY
+        if PK and PK in query:
+            return profile_response(environ, start_response, self._handle)
+        else:
+            return self._handle(environ, start_response)
+        return response
+        
+    def _handle(self, environ, start_response):
+        tree = None
+        request = None
+        node = None
+        try:
+            tree = self.page_tree()
+            node = tree.resolve(environ['PATH_INFO'])
+            request = make_request(environ, node, safe=False)
+            if request.method not in request.methods():
+                raise HttpException(status=405)
+            elif not request.has_permission():
+                raise PermissionDenied()
+            return request.view(request)
+        except HttpRedirect as e:
+            return self.handler_redirect(environ, e.location)
+        except Exception as e:
+            return self.handle_error(environ, tree, request, node, e)
+        
+    def handle_redirect(self, environ, location):
+        if is_xhr(environ):
+            return ajax.jredirect(location)
+        else:
+            return Response(status=302,
+                            response_headers=[('Location',
+                                               iri_to_uri(e.location))])
+                    
+    def handle_error(self, environ, tree, request, node, e):
+        if node is None:
+            handler = getattr(e, 'handler', self.site)
+            node = BadNode(tree, handler)
+        if request is None:
+            request = make_request(environ, node)
+        status = getattr(e, 'status', 500)
+        return self.error(request, status)
+        
+    def page_tree(self):
+        Page = self.site.Page
+        tree = self.site.tree
+        if Page:
+            return DjpcmsTree(tree, Page.query())
+        else:
+            return DjpcmsTree(tree)
         
         
 class Site(ResolverMixin, ViewRenderer):
@@ -418,12 +490,13 @@ for djpcms web sites.
 '''
     version = None
     _settings_file = None
-    WSGIhandler = http.WSGIhandler
+    wsgihandler = WsgiHandler
     
-    def __init__(self, name = None, **params):
+    def __init__(self, name=None, settings_file=None, **params):
         self.name = name
         self.local = {}
-        self._settings_file = params.pop('settings_file', self._settings_file)
+        if settings_file is not None:
+            self._settings_file = settings_file
         self.callbacks = []
         params.pop('site',None)
         self.params = params
@@ -488,7 +561,7 @@ for djpcms web sites.
         site = self()
         m = self._wsgi_middleware or []
         m = copy(m)
-        m.append(http.WSGI(site))
+        m.append(WSGI(site))
         return m
     
     def response_middleware(self):
@@ -510,7 +583,7 @@ for djpcms web sites.
 
     def wsgi(self):
         '''Return the WSGI handeler for your application.'''
-        hnd = self.WSGIhandler(self.wsgi_middleware())
+        hnd = self.wsgihandler(self.wsgi_middleware())
         response_middleware = self.response_middleware()
         if response_middleware:
             hnd.response_middleware.extend(response_middleware)

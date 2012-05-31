@@ -1,7 +1,7 @@
 import json
 
 from djpcms.html import Widget, WidgetMaker
-from djpcms.utils.py2py3 import UnicodeMixin, ispy3k
+from djpcms.utils.text import UnicodeMixin, ispy3k
 
 if ispy3k:
     from http.client import responses

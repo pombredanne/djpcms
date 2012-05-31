@@ -1,8 +1,9 @@
 from functools import partial
 
 import djpcms
-from djpcms.utils.py2py3 import zip
-from djpcms import http, forms, ajax, Route, async_instance, Http404
+from djpcms.utils.httpurl import zip
+from djpcms import forms, ajax
+from djpcms.core import Route, async_instance, Http404, permissions
 from djpcms.forms.utils import saveform, deleteinstance, get_redirect
 from djpcms.plugins import html_plugin_form
 from djpcms.utils.text import nicename
@@ -319,7 +320,7 @@ and handles the saving as default ``POST`` response.'''
     default_route = '/add'
     default_title = 'add'
     default_link = 'add'
-    PERM = djpcms.ADD
+    PERM = permissions.ADD
     ICON = 'add'
     has_plugin = True
     in_nav = 1
@@ -337,7 +338,7 @@ class DeleteAllView(ModelView):
     '''An POST only :class:`ModelView` which deletes all objects
 in a model. Quite drastic.'''
     default_route = '/deleteall'
-    PERM = djpcms.DELETEALL
+    PERM = permissions.DELETEALL
     DEFAULT_METHOD = 'post'
     ICON = 'delete_all'
     default_title = 'delete all objects'
@@ -391,7 +392,7 @@ class DeleteView(ObjectView):
     '''
     default_route = '/delete'
     parent_view = 'view'
-    PERM = djpcms.DELETE
+    PERM = permissions.DELETE
     DEFAULT_METHOD = 'post'
     ICON = 'trash'
     force_redirect = True
@@ -430,7 +431,7 @@ class ChangeView(ObjectActionView):
     '''An :class:`ObjectActionView` class specialised for changing
 an instance of a model.'''
     default_route = '/change'
-    PERM = djpcms.CHANGE
+    PERM = permissions.CHANGE
     ICON = 'pencil'
     default_title = 'edit {1}'
     default_link = 'edit'

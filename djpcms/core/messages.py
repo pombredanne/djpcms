@@ -1,8 +1,6 @@
 import sys
 import logging
 
-from djpcms.utils import logtrace
-
 logger = logging.getLogger('djpcms.core.messanges')
 
 MESSAGE_KEY = 'request-messages'
@@ -47,8 +45,9 @@ def get_messages(request):
                 return msg
             except:
                 request.session.delete()
-                logtrace(logger, request, exc_info = sys.exc_info(),
-                         status = -1)
+                logger.error('Failed while getting session message',
+                             exc_info=True,
+                             extra={'request': request})
     
 
 def get_level(request,level):

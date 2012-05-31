@@ -15,7 +15,7 @@ import re
 import time
 import calendar
 
-from djpcms.utils.strings import force_str
+from djpcms.utils.text import to_string
 
 from .dates import MONTHS, MONTHS_3, MONTHS_AP, WEEKDAYS, WEEKDAYS_ABBR
 from .tzinfo import LocalTimezone
@@ -29,9 +29,9 @@ re_escaped = re.compile(r'\\(.)')
 class Formatter(object):
     
     def pieces(self, formatstr):
-        for i, piece in enumerate(re_formatchars.split(force_str(formatstr))):
+        for i, piece in enumerate(re_formatchars.split(to_string(formatstr))):
             if i % 2:
-                yield force_str(getattr(self, piece)())
+                yield to_string(getattr(self, piece)())
             elif piece:
                 yield re_escaped.sub(r'\1', piece)
                 
@@ -286,7 +286,7 @@ class DateFormat(TimeFormat):
 def format(value, format_string):
     "Convenience function"
     df = DateFormat(value)
-    return force_str(df.format(format_string))
+    return to_string(df.format(format_string))
 
 
 def time_format(value, format_string):

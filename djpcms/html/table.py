@@ -11,10 +11,10 @@ from collections import namedtuple
 
 from djpcms.utils import media
 from djpcms.utils.text import nicename
+from djpcms.ajax import simplelem
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
-from .ajax import simplelem
 
 
 __all__ = ['TableMaker',

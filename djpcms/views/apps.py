@@ -1,9 +1,10 @@
 from copy import copy, deepcopy
 
 import djpcms
-from djpcms.utils.py2py3 import iteritems, is_string, itervalues, to_string
-from djpcms import html, forms, ajax, ResolverMixin, PermissionDenied,\
-                     UrlException, AlreadyRegistered
+from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string
+from djpcms import html, forms, ajax
+from djpcms.core import ResolverMixin, PermissionDenied,\
+                        UrlException, AlreadyRegistered
 from djpcms.html import table_header, ContextRenderer, Widget
 from djpcms.core.orms import mapper
 from djpcms.forms.utils import get_form

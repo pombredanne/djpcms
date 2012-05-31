@@ -3,18 +3,17 @@ from inspect import isclass
 from copy import copy
 from threading import Lock
 
-from djpcms.utils.py2py3 import UnicodeMixin, is_bytes_or_string, iteritems,\
-                                itervalues
+from djpcms.utils.text import UnicodeMixin
+from djpcms.utils.httpurl import iteritems, itervalues
 from djpcms.utils.structures import OrderedDict
 
 from .exceptions import *
 from .routing import Route
 from .tree import NRT
 from .permissions import VIEW
-from . import http
 
 
-__all__ = ['RouteMixin','ResolverMixin']
+__all__ = ['RouteMixin', 'ResolverMixin']
 
 
 class resolver_manager(object):

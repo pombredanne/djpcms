@@ -1,4 +1,5 @@
-
+from pulsar.utils.exceptions import HttpException, Http404, HttpRedirect,\
+                                    PermissionDenied
 
 class DjpcmsException(Exception):
     '''Base class for ``djpcms`` related exceptions.'''
@@ -12,7 +13,8 @@ class SuspiciousOperation(DjpcmsException):
 
 
 class ImproperlyConfigured(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when djpcms has inconsistent configuration.'''
+    '''A :class:`DjpcmsException` raised when djpcms has inconsistent
+configuration.'''
     pass
 
 
@@ -27,7 +29,8 @@ class CommandError(ImproperlyConfigured):
 
 
 class AlreadyRegistered(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when trying to register the same application twice.'''
+    '''A :class:`DjpcmsException` raised when trying to register the same
+application twice.'''
     pass
 
 
@@ -46,6 +49,7 @@ class HtmlWidgetError(DjpcmsException):
     '''A :class:`HtmlWidgetError` raised by :class:`djpcms.html.HtmlWidget` instances
  when they are not setup properly.'''
     pass
+
     
 class UsernameAlreadyAvailable(Exception):
     pass
@@ -60,6 +64,7 @@ related to urls configuration'''
 class ApplicationNotAvailable(DjpcmsException):
     '''A :class:`DjpcmsException` raised when a requested application is not available.'''
     pass
+
 
 class PageException(DjpcmsException):
     '''A :class:`DjpcmsException` for pages.'''
@@ -76,30 +81,6 @@ class BlockOutOfBound(PageException):
     pass
     
 
-class PathException(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when a path is not available.'''
-    status = 404
-
-    
-class PermissionDenied(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when permission is not met.'''
-    status = 403
-
-
-class HttpException(Exception):
-    status = 500
-    def __init__(self, msg = '', status = None, handler = None, strict = False):
-        self.status = status or self.status
-        self.handler = handler
-        self.strict = strict
-        super(HttpException,self).__init__(msg)
-
-
-class Http404(HttpException):
-    trypath = None
-    status = 404
-    
-    
 class FormException(DjpcmsException):
     '''A :class:`DjpcmsException` raised when something goes wrong in
 :mod:`djpcms.forms`.'''

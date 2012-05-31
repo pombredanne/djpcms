@@ -1,16 +1,7 @@
 import logging
 import sys
 
-# Make sure a NullHandler and dictConfig are available
-# They were added in Python 2.7/3.2
-try:     # pragma nocover
-    from logging.config import dictConfig
-    from logging import NullHandler
-except ImportError:     # pragma nocover
-    from .fallbacks._dictconfig import dictConfig
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
+from pulsar.utils.log import dictConfig, NullHandler
         
 
 # We can't log memory info without psutil

@@ -1,7 +1,6 @@
 from inspect import isclass
 
-from djpcms.utils.py2py3 import is_bytes_or_string
-from djpcms.utils import zip
+from djpcms.utils.httpurl import zip
 from djpcms import html, ajax
 from djpcms.core.layout import equally_spaced_grid
 from djpcms.utils.text import nicename

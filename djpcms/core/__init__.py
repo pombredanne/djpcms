@@ -1,5 +1,4 @@
 from .exceptions import *
-from .permissions import *
 from .management import *
 from .routing import *
 from .urlresolvers import *

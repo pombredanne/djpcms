@@ -1,4 +1,5 @@
-from djpcms.utils import escape, js, media, ispy3k, to_string
+from djpcms.utils import js, media
+from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
 

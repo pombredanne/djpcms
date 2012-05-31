@@ -6,13 +6,14 @@ import logging
 from functools import partial
 import logging
 
-from djpcms.utils.py2py3 import iteritems
-from djpcms.utils import escape
-from djpcms.html import Renderer, Widget, ajax
+from djpcms import ajax
+from djpcms.utils.text import escape
+from djpcms.utils.httpurl import iteritems
 from djpcms.utils.async import Deferred, Failure
+from djpcms.html import Renderer, Widget
 
 from .layout import html_stream, error_title
-from .http import Response, STATUS_CODE_TEXT, UNKNOWN_STATUS_CODE
+from .request import Response
 
 
 logger = logging.getLogger('djpcms')
@@ -276,7 +277,7 @@ A typical usage::
     def _render_to_response(self, request, content, status=200):
         encoding = request.settings.DEFAULT_CHARSET
         content_type = request.settings.DEFAULT_CONTENT_TYPE
-        if ajax.isajax(content):
+        if ajax.is_ajax(content):
             content_type = content.content_type()
             content = content.dumps()
         elif content_type == 'text/html':

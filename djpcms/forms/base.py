@@ -5,11 +5,11 @@ Several parts are originally from django
 import json
 
 import djpcms
-from djpcms.utils.py2py3 import iteritems, UnicodeMixin
+from djpcms.utils.httpurl import iteritems
 from djpcms.utils.structures import OrderedDict
 from djpcms.core.orms import mapper
-from djpcms.utils import force_str, lazyproperty, NOTHING
-from djpcms.utils.text import nicename
+from djpcms.utils.decorators import lazyproperty
+from djpcms.utils.text import nicename, UnicodeMixin, to_string
 from djpcms.html import SubmitInput
 
 from .globals import *
@@ -23,6 +23,8 @@ __all__ = ['FormType',
            'FieldList',
            'MakeForm']
 
+
+NOTHING = ('', None)
 
 class FieldList(list):
     '''A list of :class:`Field` and :class:`FieldList`.
@@ -331,7 +333,7 @@ if it is bound.'''
                         value = getattr(self,func_name)(value)
                     cleaned[name] = value
                 except ValidationError as e:
-                    form_message(errors, name, force_str(e))
+                    form_message(errors, name, to_string(e))
             
             elif name in initial:
                 data[name] = field_value = initial[name]
@@ -346,7 +348,7 @@ if it is bound.'''
             try:
                 self.clean()
             except ValidationError as e:
-                form_message(errors, '__all__', force_str(e))
+                form_message(errors, '__all__', to_string(e))
                 del self._cleaned_data                
                 
     def form_message(self, container, key, msg):

@@ -2,10 +2,9 @@ from datetime import date
 from inspect import isclass
 import logging
 
-from djpcms.utils.text import nicename
 from djpcms.utils.dates import smart_time
-from djpcms.utils import force_str, mark_safe, significant_format, escape,\
-                            NOTHING
+from djpcms.utils.numbers import significant_format
+from djpcms.utils.text import to_string, mark_safe, escape, nicename
 
 from .base import Widget
 from .icons import with_icon

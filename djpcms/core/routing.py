@@ -12,8 +12,8 @@ Original License
 '''
 import re
 
-from djpcms.utils.py2py3 import UnicodeMixin, to_string, iteritems
-from djpcms.utils import remove_double_slash, iri_to_uri
+from djpcms.utils.text import UnicodeMixin, to_string
+from djpcms.utils.httpurl import iteritems, iri_to_uri, remove_double_slash
 
 from .exceptions import UrlException
 

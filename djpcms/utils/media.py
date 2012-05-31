@@ -4,11 +4,8 @@ Originally from django
 '''
 from copy import deepcopy
 
-from djpcms.utils import mark_safe
-
-from .py2py3 import urlparse
-
-urljoin = urlparse.urljoin
+from .text import mark_safe
+from .httpurl import urljoin
 
 __all__ = ['MEDIA_TYPES', 'Media']
 

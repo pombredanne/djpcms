@@ -2,8 +2,8 @@ from copy import copy
 from inspect import isclass
 
 from djpcms import html
-from djpcms.utils.py2py3 import iteritems
-from djpcms.utils import slugify, escape
+from djpcms.utils.httpurl import iteritems
+from djpcms.utils.text import slugify, escape
 
 from .globals import *
 from .layout import FormTemplate, FormLayout

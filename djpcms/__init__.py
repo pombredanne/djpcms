@@ -99,11 +99,7 @@ HTML = {
     'secondary_in_list': 'secondary',
     'error': 'status-error',
     'legend': 'legend ui-state-default ui-corner-all'
-    }
-
-from .utils.decorators import *
-from .html import ajax
-from .core import *
+    }
 
 def secret_key():
     '''Secret Key used as base key in encryption algorithm'''

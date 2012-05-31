@@ -5,8 +5,8 @@ import tempfile
 import cProfile as profiler
 import pstats
 
+from djpcms.utils.httpurl import StringIO
 from djpcms.html import Pagination, Widget, tabs
-from djpcms.utils.py2py3 import StringIO
 
 words_re = re.compile( r'\s+' )
 line_func = re.compile(r'(?P<line>\d+)\((?P<func>\w+)\)')

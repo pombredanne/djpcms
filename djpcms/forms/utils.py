@@ -6,10 +6,9 @@ from functools import partial
 from datetime import datetime
 
 from djpcms import forms, html, ajax
-from djpcms.utils.py2py3 import to_string
-from djpcms.core import messages, http
-from djpcms.core.orms import mapper
-from djpcms.utils.urls import urlsplit
+from djpcms.utils.text import to_string
+from djpcms.core import messages
+from djpcms.utils.httpurl import urlsplit
 from djpcms.utils.dates import format
 
 from .globals import *
@@ -250,7 +249,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
                 #editing and continuing to edit
                 curr = request.environ.get('HTTP_REFERER')
                 set_request_message(f,request)
-                return http.ResponseRedirect(curr)
+                raise HttpRedirect(curr)
         else:
             url = view.redirect_url(request, instance, 'change')
     else:
@@ -269,7 +268,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
         return view.redirect(request, url)
 
 
-def deleteinstance(request, force_redirect = True):
+def deleteinstance(request, force_redirect=True):
     '''Delete an instance from database'''
     instance = request.instance
     view = request.view
@@ -280,10 +279,7 @@ def deleteinstance(request, force_redirect = True):
         return ajax.jremove('#%s' % bid)
     if next:
         messages.info(request,msg)
-        if request.is_xhr:
-            return ajax.jredirect(next)
-        else:
-            return http.ResponseRedirect(next)
+        raise HttpRedirect(next)
     
 
 def fill_form_data(f):

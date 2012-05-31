@@ -1,8 +1,8 @@
 import logging
 
-from djpcms.utils.py2py3 import iteritems
+from djpcms.utils.httpurl import iteritems
 from djpcms.utils.async import Deferred, MultiDeferred, Failure
-from djpcms.utils import mark_safe
+from djpcms.utils.text import mark_safe
 
 __all__ = ['Renderer',
            'DeferredDataRenderer',
@@ -12,19 +12,7 @@ __all__ = ['Renderer',
 
 LOGGER = logging.getLogger('djpcms')
 
-def iterdata(stream):
-    if isinstance(stream, dict):
-        return iteritems(stream)
-    else:
-        return enumerate(stream)
 
-def guess_stream(stream):
-    if isinstance(stream, dict):
-        return {}
-    else:
-        return []
-    
-    
 class Renderer(object):
     '''A mixin for all classes which render into html.
 

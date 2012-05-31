@@ -4,15 +4,8 @@ import json
 import os
 import re
 import sys
-if sys.version_info >= (2,7):   # pragma nocover
-    import unittest as test
-else:   # pragma nocover
-    try:
-        import unittest2 as test
-    except ImportError:
-        print('To run tests in python 2.6 you need to install\
- the unittest2 package')
-        exit(0)
+
+from pulsar.apps.test import unittest
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -20,15 +13,14 @@ except ImportError: # pragma nocover
     BeautifulSoup = None
     
 import djpcms
-from djpcms import Site, WebSite, get_settings, views, forms, http, orms
+from djpcms import views, forms
+from djpcms.core import Site, WebSite, get_settings, orms
 from djpcms.forms.utils import fill_form_data
-from djpcms.utils.py2py3 import BytesIO
 
-from .http import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
-                  urlparse
+from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
+                     urlparse, BytesIO
 
-skipUnless = test.skipUnless
-main = test.main
+skipUnless = unittest.skipUnless
 
 CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
 
@@ -48,7 +40,7 @@ class TestWebSite(WebSite):
         self.test.add_initial_db_data()
 
 
-class TestCase(test.TestCase):
+class TestCase(unittest.TestCase):
     '''A :class:`TestCase` class which adds the :meth:`website` method for 
 easy testing web site applications. To use the Http client you need
 to derive from this class.'''

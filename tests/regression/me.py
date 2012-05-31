@@ -1,6 +1,6 @@
 '''Test the test suite and the package information'''
 import djpcms as package
-from djpcms import ImproperlyConfigured
+from djpcms.core import ImproperlyConfigured
 from djpcms.utils import test
 
 

@@ -1,12 +1,10 @@
 import logging
 
 import djpcms
-from djpcms.utils.py2py3 import range, UnicodeMixin
-from djpcms import forms, http, html, ajax, Route, RouteMixin, Http404
-from djpcms.forms.utils import get_redirect
-from djpcms.utils import parentpath, slugify, escape
-from djpcms.utils.urls import openedurl
-from djpcms.utils.text import nicename
+from djpcms.utils.httpurl import range
+from djpcms import forms, html, ajax
+from djpcms.core import RouteMixin, ViewRenderer
+from djpcms.utils.text import nicename, UnicodeMixin, slugify, escape
 
     
 __all__ = ['RendererMixin',
@@ -31,7 +29,7 @@ def makename(self, name, description):
     self.name = str(slugify(name,rtx='_'))
     
     
-class RendererMixin(djpcms.ViewRenderer):
+class RendererMixin(ViewRenderer):
     '''\
 A :class:`djpcms.html.Renderer` used as mixin class for :class:`Application`
 and :class:`djpcmsview`.
@@ -186,18 +184,11 @@ if available. By defaults it invoke the ``query`` method in the
         '''Return an instance of a user model if the current renderer
 belongs to a user, otherwise returns ``None``.'''
         return None
-    
-    def redirect(self, request, url):
-        '''An utility which return a redirect response'''
-        if request.is_xhr:
-            return ajax.jredirect(url)
-        else:
-            return http.ResponseRedirect(url)            
 
 
 class djpcmsview(RouteMixin, RendererMixin):
     '''A virtual class inheriting from :class:`RendererMixin`
-and :class:`djpcms.RouteMixin` for handling http requests on a given
+and :class:`djpcms.core.RouteMixin` for handling http requests on a given
 :class:`djpcms.Route`. This class should not be used directly,
 it is the base class of :class:`pageview` and :class:`View`.
     

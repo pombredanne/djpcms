@@ -2,7 +2,9 @@ import os
 
 import djpcms
 
-from .api import *
+from .base import *
+from .colorvar import *
+from .mixins import *
 
 ################################################################################
 ##    DEFINE THE BASE STYLE VARIABLES

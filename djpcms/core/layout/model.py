@@ -12,7 +12,8 @@ from djpcms.core.exceptions import BlockOutOfBound
 from djpcms.core.routing import Route
 from djpcms.core.permissions import VIEW
 from djpcms.plugins import get_wrapper, default_content_wrapper, get_plugin
-from djpcms.utils import markups, escape, force_str
+from djpcms.utils import markups
+from djpcms.utils.text import escape, to_string
 
 from .doc import htmldoc
 from .page import grid
@@ -237,7 +238,7 @@ class MarkupMixin(object):
         if mkp:
             handler = mkp.get('handler')
             text = handler(text)
-            text = loader.mark_safe(force_str(text))
+            text = loader.mark_safe(to_string(text))
         return text
     
     

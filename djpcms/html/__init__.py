@@ -14,8 +14,8 @@ A simple usage::
     >>> text.addClass('foo').render()
     '<input type="text" name="plugin" value="Random" class="plg foo"/>'
 '''
-from .async import *
 from .icons import *
+from .async import *
 from .base import *
 from .widgets import *
 from .nicerepr import *

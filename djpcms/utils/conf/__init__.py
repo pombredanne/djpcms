@@ -1,6 +1,6 @@
 import os
 
-from djpcms.utils.py2py3 import is_bytes_or_string
+from djpcms.utils.httpurl import is_string_or_native_string
 from djpcms.utils.importer import import_module
 
 from . import defaults
@@ -23,7 +23,7 @@ class Config(object):
         self.update(kwargs)
         de = self.DEFAULT_TEMPLATE_NAME
         if de:
-            if is_bytes_or_string(de):
+            if is_string_or_native_string(de):
                 de = (de,)
             else:
                 de = tuple(de)

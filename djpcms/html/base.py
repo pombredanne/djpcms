@@ -1,10 +1,11 @@
 import json
 from copy import copy, deepcopy
 
-from djpcms.utils.py2py3 import ispy3k, is_string, to_string,\
-                                is_bytes_or_string, iteritems, itervalues
-from djpcms.utils import slugify, escape, mark_safe, lazymethod, NOTHING
+from djpcms.utils.text import slugify, escape, mark_safe
+from djpcms.utils.decorators import lazymethod
 from djpcms.utils.structures import OrderedDict
+from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
+                                 is_string_or_native_string, itervalues
 
 from .async import Renderer, StreamRenderer
 
@@ -26,6 +27,7 @@ default_widgets_makers = {}
 NON_BREACKING_SPACE = mark_safe('&nbsp;')
 
 def attrsiter(attrs):
+    NOTHING = ('', None)
     for k,v in attrs.items():
         if v not in NOTHING:
             yield " {0}='{1}'".format(k, escape(v,force=True))
@@ -53,7 +55,7 @@ def iterable_for_widget(data):
     if isinstance(data, dict):
         return iteritems(data)
     elif not isinstance(data, Widget) and hasattr(data,'__iter__') and\
-         not is_bytes_or_string(data):
+         not is_string_or_native_string(data):
         return data
     else:
         return (data,)

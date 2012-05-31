@@ -1,7 +1,8 @@
 from copy import copy
 
-from djpcms.utils import lazyproperty, lazymethod, uri_to_iri
-from djpcms.utils.py2py3 import itervalues, UnicodeMixin
+from djpcms.utils.httpurl import unquote_unreserved, itervalues
+from djpcms.utils.decorators import lazyproperty, lazymethod
+from djpcms.utils.text import UnicodeMixin
 
 
 class Node(UnicodeMixin):
@@ -109,7 +110,8 @@ class MultiNode(UnicodeMixin):
         self.tree = tree
         self.__route = route
         if urlargs:
-            urlargs = dict(((k,uri_to_iri(v)) for k,v in urlargs.items()))
+            urlargs = dict(((k,unquote_unreserved(v))\
+                             for k,v in urlargs.items()))
         else:
             urlargs = {}
         self.__urlargs = urlargs
@@ -209,7 +211,7 @@ class MultiTree(object):
                  # we got a node. If this node has variables raise Http404
                  if node.route.arguments:
                      # raise 404 without any further checking
-                     raise Http404(strict = True)
+                     raise Http404(strict=True)
                  return node,{}
         # second loop resolve urls
         for tree in self.trees:

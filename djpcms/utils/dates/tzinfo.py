@@ -1,8 +1,15 @@
 "Implementation of tzinfo classes for use with datetime.datetime."
 import time
+import locale
 from datetime import timedelta, tzinfo
 
-from djpcms.utils.strings import force_str, DEFAULT_LOCALE_ENCODING
+from djpcms.utils.text import to_string
+
+try:
+    DEFAULT_LOCALE_ENCODING = locale.getdefaultlocale()[1] or 'ascii'
+    codecs.lookup(DEFAULT_LOCALE_ENCODING)
+except:
+    DEFAULT_LOCALE_ENCODING = 'ascii'
 
 
 class FixedOffset(tzinfo):
@@ -15,7 +22,7 @@ class FixedOffset(tzinfo):
             self.__offset = timedelta(minutes=offset)
 
         sign = offset < 0 and '-' or '+'
-        self.__name = force_str("%s%02d%02d" % (sign, abs(offset) / 60., abs(offset) % 60))
+        self.__name = to_string("%s%02d%02d" % (sign, abs(offset) / 60., abs(offset) % 60))
 
     def __repr__(self):
         return self.__name
@@ -37,7 +44,7 @@ class LocalTimezone(tzinfo):
         self._tzname = self.tzname(dt)
 
     def __repr__(self):
-        return force_str(self._tzname)
+        return to_string(self._tzname)
 
     def utcoffset(self, dt):
         if self._isdst(dt):
@@ -53,7 +60,7 @@ class LocalTimezone(tzinfo):
 
     def tzname(self, dt):
         try:
-            return force_str(time.tzname[self._isdst(dt)], DEFAULT_LOCALE_ENCODING)
+            return to_string(time.tzname[self._isdst(dt)], DEFAULT_LOCALE_ENCODING)
         except UnicodeDecodeError:
             return None
 

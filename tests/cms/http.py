@@ -29,9 +29,6 @@ class Http(test.TestCase):
         self.assertEqual(request.environ['PATH_INFO'], 'bogus')
         self.assertEqual(request.environ['REQUEST_METHOD'], 'bogus')
 
-    def test_parse_cookie(self):
-        self.assertEqual(http.parse_cookie('invalid:key=true'), {})
-
     def test_httprequest_location(self):
         request = self.makeRequest()
         self.assertEqual(\
@@ -45,7 +42,7 @@ class Http(test.TestCase):
 
     def test_near_expiration(self):
         "Cookie will expire when an near expiration time is provided"
-        response = http.Response(self.environ())
+        response = Response(self.environ())
         # There is a timing weakness in this test; The
         # expected result for max-age requires that there be
         # a very slight difference between the evaluated expiration
@@ -58,30 +55,6 @@ class Http(test.TestCase):
         response.set_cookie('datetime', expires=expires)
         datetime_cookie = response.cookies['datetime']
         self.assertEqual(datetime_cookie['max-age'], 10)
-
-    def test_far_expiration(self):
-        "Cookie will expire when an distant expiration time is provided"
-        response = Response(self.environ())
-        response.set_cookie('datetime', expires=datetime(2028, 1, 1, 4, 5, 6))
-        datetime_cookie = response.cookies['datetime']
-        self.assertEqual(datetime_cookie['expires'], 'Sat, 01-Jan-2028 04:05:06 GMT')
-
-    def test_max_age_expiration(self):
-        "Cookie will expire if max_age is provided"
-        response = Response(self.environ())
-        response.set_cookie('max_age', max_age=10)
-        max_age_cookie = response.cookies['max_age']
-        self.assertEqual(max_age_cookie['max-age'], 10)
-        self.assertEqual(max_age_cookie['expires'], http.cookie_date(time.time()+10))
-
-    def test_httponly_cookie(self):
-        response = Response(self.environ())
-        response.set_cookie('example', httponly=True)
-        example_cookie = response.cookies['example']
-        # A compat cookie may be in use -- check that it has worked
-        # both as an output string, and using the cookie attributes
-        self.assertTrue('; httponly' in str(example_cookie))
-        self.assertTrue(example_cookie['httponly'])
 
     def test_stream(self):
         request = self.makeRequest(input = b'name=value')

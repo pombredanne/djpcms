@@ -1,3 +1,3 @@
 from djpcms.utils import test
 
-from helloword import WebSite
+from helloworld import HelloWorld

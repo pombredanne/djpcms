@@ -1,15 +1,15 @@
-import djpcms
-from djpcms import PermissionHandler
+from djpcms.cms import permissions
 from djpcms.utils import test
 
 
 class useless_backend(object):
     pass
     
+    
 class TestSites(test.TestCase):
     
     def testSimple(self):
-        p = PermissionHandler({})
+        p = permissions.PermissionHandler({})
         self.assertEqual(p.auth_backends, [])
         self.assertEqual(p.requires_login , False)
         middleware = p.request_middleware()
@@ -19,8 +19,8 @@ class TestSites(test.TestCase):
         self.assertEqual(r['permission_handler'],p)
         
     def testUseless(self):
-        p = PermissionHandler({},
-                              auth_backends=[useless_backend()])
+        p = permissions.PermissionHandler({},
+                                          auth_backends=[useless_backend()])
         self.assertEqual(len(p.auth_backends), 1)
         middleware = p.request_middleware()
         self.assertEqual(len(middleware),1)

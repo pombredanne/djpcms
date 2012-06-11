@@ -362,11 +362,9 @@ consequently its children.'''
             self._commands = gc = {}
             # Find and load the management module for each installed app.
             for app_name in self.settings.INSTALLED_APPS:
-                if app_name.startswith('django.'):
-                    continue
                 command_module = app_name
                 if app_name == 'djpcms':
-                    command_module = 'djpcms.core'
+                    command_module = 'djpcms.cms'
                 try:
                     mod = import_module(command_module+'.management')
                     if hasattr(mod,'__path__'):

@@ -9,7 +9,7 @@ class UserForms(test.TestCase):
         '''Test the UserChangeForm which provides boolean fields which
 by default are true and some which are false.'''
         from djpcms.apps.user import UserChangeForm
-        initials = dict(UserChangeFodm.initials())
+        initials = dict(UserChangeForm.initials())
         self.assertEqual(initials,{'is_active':True})
         html_form = forms.HtmlForm(UserChangeForm)
         fw = html_form()

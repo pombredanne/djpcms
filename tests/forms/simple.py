@@ -8,19 +8,19 @@ class TestSimpleForm(test.TestCase):
     '''Test the form library using form in included applications'''
     
     def testSimpleFactory(self):
-        self.assertEqual(len(SimpleFodm.base_fields),3)
+        self.assertEqual(len(SimpleForm.base_fields),3)
         form = SimpleForm()
-        self.assertFalse(fodm.is_bound)
-        self.assertFalse(fodm.is_valid())
+        self.assertFalse(form.is_bound)
+        self.assertFalse(form.is_valid())
         
     def testValidSimpleBound(self):
         prefix = 'sjkdcbksdjcbdf-'
         form = SimpleForm(data = {prefix+'name':'pinco'},
                           prefix = prefix)
-        self.assertTrue(fodm.is_bound)
-        self.assertTrue(fodm.is_valid())
-        self.assertEqual(fodm.cleaned_data['name'],'pinco')
-        self.assertTrue(fodm.cleaned_data['age'])
+        self.assertTrue(form.is_bound)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['name'],'pinco')
+        self.assertTrue(form.cleaned_data['age'])
         
     def testSimpleHtml(self):
         hf = forms.HtmlForm(SimpleForm)

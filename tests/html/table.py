@@ -1,5 +1,6 @@
 from djpcms import forms, html
-from djpcms.utils import test, zip, to_string
+from djpcms.utils import test
+from djpcms.utils.httpurl import zip, to_string
 
 
 class TestTable(test.TestCase):

@@ -22,7 +22,7 @@ class TestSimpleForm(test.TestCase):
         
     def testPageForm(self):
         '''Test the Page Form'''
-        d = dict(HtmlPageFodm.form_class.initials())
+        d = dict(HtmlPageForm.form_class.initials())
         self.assertTrue(d)
         ph = HtmlPageForm()
         p = ph.form
@@ -34,7 +34,7 @@ class TestSimpleForm(test.TestCase):
     @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
     def testPageFormBound(self):
         from stdcms.cms.models import Page
-        from stdnet import orm
+        from stdnet import odm
         odm.register(Page)
         d = self.page_data()
         p = HtmlPageForm(data = d)
@@ -59,17 +59,17 @@ class TestSimpleForm(test.TestCase):
     def testSearchForm(self):
         '''Test the search form in :mod:`djpcms.plugins.apps`'''
         HtmlSearchForm = search_form()
-        self.assertEqual(len(HtmlSearchFodm.inputs),0)
+        self.assertEqual(len(HtmlSearchForm.inputs),0)
         w = HtmlSearchForm()
         form = w.internal['form']
-        self.assertFalse(fodm.is_bound)
+        self.assertFalse(form.is_bound)
         html = w.render()
         self.assertTrue(html)
         
     def testBlockForm(self):
         fw = ContentBlockHtmlForm()
         form = fw.form
-        self.assertFalse(fodm.is_bound)
+        self.assertFalse(form.is_bound)
         self.assertTrue(len(fw.children),1)
         layout = fw['layout']
         self.assertTrue(layout.children)

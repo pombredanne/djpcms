@@ -259,7 +259,7 @@ yui3_ grid layout.
             grid = equally_spaced_grid(ncols)
         if grid.numcolumns != ncols:
             raise ValueError('Number of column {0} does not match number of\
- html elements {1}'.format(ncols,grid.numblocks))
+ html elements {1}'.format(ncols, grid.numblocks))
         self.internal['grid_fixed'] = False
         self.grid = grid
 

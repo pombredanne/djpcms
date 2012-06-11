@@ -1,4 +1,4 @@
-from djpcms.utils import js, media
+from djpcms.media import js, Media
 from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
@@ -74,7 +74,7 @@ class TextArea(InputWidget):
     default_attrs  = {'rows': 10, 'cols': 40}
     attributes = WidgetMaker.makeattr('name','rows','cols',
                                       'disabled','readonly')
-    _media = media.Media(js = ['djpcms/taboverride.js'])
+    _media = Media(js=['djpcms/taboverride.js'])
 
     def set_value(self, value, widget):
         widget.add(escape(value))
@@ -87,7 +87,7 @@ class Select(FieldWidget):
     attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
-    _media = media.Media(js = ['djpcms/jquery.bsmselect.js'])
+    _media = Media(js=['djpcms/jquery.bsmselect.js'])
     
     def set_value(self, val, widget):
         if val:

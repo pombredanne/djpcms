@@ -1,5 +1,5 @@
 from djpcms.utils.text import gen_unique_id
-from djpcms.utils.media import Media
+from djpcms.media import Media
 
 from .base import Widget, WidgetMaker, iterable_for_widget
 

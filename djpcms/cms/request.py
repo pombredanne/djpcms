@@ -11,7 +11,8 @@ from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 
 import djpcms
 from djpcms.utils.decorators import lazyproperty, lazymethod
-from djpcms.utils import js, media, orms
+from djpcms.utils import orms
+from djpcms.media import js, Media
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -128,7 +129,7 @@ managing settings.'''
     def media(self):
         if not hasattr(self,'_media'):
             settings = self.view.settings
-            m = media.Media(settings = settings)
+            m = Media(settings=settings)
             m.add_js(js.jquery_paths(settings))
             m.add_js(js.bootstrap(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)

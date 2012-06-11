@@ -1,26 +1,21 @@
-import djpcms
-from djpcms.core.http import setResponseClass
+from pulsar.apps import wsgi, test
+from pulsar import NOT_DONE, is_async, is_failure
 
-try:
-    from pulsar.apps import wsgi, test
-    from pulsar import NOT_DONE, is_async, is_failure
+from djpcms import cms
 
-    class WSGIApplication(wsgi.WSGIApplication):
-        
-        def handler(self):
-            website = self.callable
-            middleware = website.wsgi_middleware()
-            resp_middleware = website.response_middleware()
-            return self.wsgi_handler(middleware, resp_middleware)
+class WSGIApplication(wsgi.WSGIApplication):
+    
+    def handler(self):
+        website = self.callable
+        middleware = website.wsgi_middleware()
+        resp_middleware = website.response_middleware()
+        return self.wsgi_handler(middleware, resp_middleware)
 
 
-    class AsyncTestPlugin(test.Plugin):
-        '''Plugin for testing djpcms with pulsar'''
-        def startTest(self, test):
-            test.web_site_callbacks.append(site_loader_callback)
-            
-except ImportError:
-    WSGIApplication = None
+class AsyncTestPlugin(test.Plugin):
+    '''Plugin for testing djpcms with pulsar'''
+    def startTest(self, test):
+        test.web_site_callbacks.append(site_loader_callback)
 
 
 class ResponseHandler(djpcms.ResponseHandler):
@@ -54,7 +49,7 @@ def site_loader_callback(website):
     setResponseClass(wsgi.WsgiResponse)
     
 
-class Command(djpcms.Command):
+class Command(cms.Command):
     help = "Starts a fully-functional Web server using pulsar."
     
     def run_from_argv(self, website, command, argv, **kwargs):
@@ -64,9 +59,6 @@ class Command(djpcms.Command):
         return self
         
     def handle(self, argv):
-        if WSGIApplication is None:
-            print('To run this command you need to have pulsar installed')
-            exit(0)
         self.website.callbacks.append(site_loader_callback)
         site = self.website()
         # get the full path of the setting file

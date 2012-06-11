@@ -13,7 +13,7 @@ from djpcms.utils import test, path
 
         
 def add_nose_options(argv):
-    test.addoption(argv, '-w', value='tests/regression')
+    test.addoption(argv, '-w', value='tests')
     test.addoption(argv, '--all-modules')
     
 def start():
@@ -21,7 +21,8 @@ def start():
     # Add the example directory to the python path
     p = path.Path(__file__)
     p.add2python(down=('examples',))
-    test.start(nose_options=add_nose_options,modules=('tests',))
+    test.start(nose_options=add_nose_options,
+               modules=('tests',))
 
 if __name__ == '__main__':
     start()

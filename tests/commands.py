@@ -2,7 +2,7 @@ import sys
 import os
 
 from djpcms.utils import test
-from djpcms.core import fetch_command, execute, Command
+from djpcms.cms import fetch_command, execute, Command
 
 
 class CommandTests(test.TestCase):

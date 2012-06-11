@@ -4,7 +4,7 @@ import copy
 
 from djpcms import views
 from djpcms.utils.dates import MONTHS_3, MONTHS_3_REV, WEEKDAYS_ABBR, MONTHS
-from djpcms.utils import force_str
+from djpcms.utils.text import to_string
 
 
 __all__ = ['ArchiveApplication',
@@ -74,7 +74,7 @@ class MonthArchiveView(ArchiveView):
     def title(self, request):
         m = request.urlargs['month']
         m = self.appmodel.get_month_number(m)
-        return force_str(MONTHS[m])
+        return to_string(MONTHS[m])
                                           
     
 class YearArchiveView(ArchiveView):
@@ -116,7 +116,7 @@ class attribute:
         return qs.order_by('-'+self.date_code)
         
     def get_month_value(self, month):
-        return force_str(MONTHS_3.get(month))
+        return to_string(MONTHS_3.get(month))
 
     def get_month_number(self, month):
         try:
@@ -164,10 +164,10 @@ to date archive are generated'''
                 content['year']  = {'url': self.yearurl(request,dt.year,**urlargs),
                                     'value': dt.year}
                 content['month'] = {'url': self.monthurl(request,dt.year,dt.month,**urlargs),
-                                    'value': force_str(MONTHS[dt.month])}
+                                    'value': to_string(MONTHS[dt.month])}
                 content['day']   = {'url': self.dayurl(request,dt.year,dt.month,dt.day,**urlargs),
                                     'value': dt.day}
-                content['wday']  = force_str(WEEKDAYS_ABBR[dt.weekday()])
+                content['wday']  = to_string(WEEKDAYS_ABBR[dt.weekday()])
                 date = ddate
             yield render(self.get_item_template(obj, wrapper),
                          Context(content))

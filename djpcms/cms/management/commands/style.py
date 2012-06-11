@@ -4,9 +4,9 @@ import os
 import logging
 from optparse import make_option
 
-import djpcms
+from djpcms import cms, init_logging
 from djpcms.utils.importer import import_module
-from djpcms.style import css, cssv, dump_theme
+from djpcms.media.style import css, cssv, dump_theme
 
 
 LOGGER = logging.getLogger('style')
@@ -36,27 +36,27 @@ def render(site, theme, target, apps, mediaurl = None,
     dump_theme(theme, target, show_variables = show_variables)
 
 
-class Command(djpcms.Command):
+class Command(cms.Command):
     help = "Creates a css file from a template css."
     option_list = (
-                   djpcms.CommandOption('apps',nargs='*',
+                   cms.CommandOption('apps',nargs='*',
                         description='appname appname.ModelName ...'),
                    
-                   djpcms.CommandOption('theme',('-t','--theme'),
+                   cms.CommandOption('theme',('-t','--theme'),
                                 default='',
                                 description='Theme to use. For example smooth'),
-                   djpcms.CommandOption('file',('-f','--file'),
+                   cms.CommandOption('file',('-f','--file'),
                                 default='',
                                 description='Target path of css file.\
  For example "media/site/site.css". If not provided, a file called\
  {{ STYLE }}.css will\
  be created and put in "media/<sitename>" directory, if available,\
  otherwise in the local directory.'),
-                   djpcms.CommandOption('mediaurl',('-m','--media'),
+                   cms.CommandOption('mediaurl',('-m','--media'),
                                 default='',
                                 description='Specify the media url.\
  Override settings value.'),
-                   djpcms.CommandOption('variables',('-v','--variables'),
+                   cms.CommandOption('variables',('-v','--variables'),
                                 action = 'store_true',
                                 default = False,
                                 description='List all variables values')
@@ -76,7 +76,7 @@ class Command(djpcms.Command):
             if os.path.isdir(mdir):
                 target = os.path.join(mdir, target)
         self.target = target
-        djpcms.init_logging(site.settings)
+        init_logging(site.settings)
         render(site, self.theme, self.target, apps, mediaurl, options.variables)
         
         

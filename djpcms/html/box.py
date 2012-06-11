@@ -1,4 +1,4 @@
-from djpcms.utils.media import Media
+from djpcms.media import Media
 from .base import Widget, WidgetMaker
 from .icons import with_icon
 

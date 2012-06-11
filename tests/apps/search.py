@@ -1,5 +1,5 @@
 '''Application for searching models.'''
-import djpcms
+from djpcms import cms
 from djpcms.utils import test
 
 
@@ -17,7 +17,7 @@ class TestSearchMeta(test.TestCase):
         app = search.Application('search/', engine = engine)
         self.assertTrue(app.forallsites)
         self.assertEqual(app.engine,engine)
-        site = djpcms.Site()
+        site = cms.Site()
         site.routes.append(app)
         self.assertFalse(site.isbound)
         self.assertEqual(site.search_engine,None)

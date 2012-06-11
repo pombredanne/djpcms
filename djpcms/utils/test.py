@@ -14,8 +14,8 @@ except ImportError: # pragma nocover
     
 import djpcms
 from djpcms import views, forms
-from djpcms.core import Site, WebSite, get_settings, orms
-from djpcms.forms.utils import fill_form_data
+from djpcms.cms import Site, WebSite, get_settings
+from djpcms.cms.formutils import fill_form_data
 
 from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                      urlparse, BytesIO

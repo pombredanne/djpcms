@@ -1,11 +1,8 @@
-'''Media Class
-
-Originally from django
-'''
+'''Media Class'''
 from copy import deepcopy
 
-from .text import mark_safe
-from .httpurl import urljoin
+from djpcms.utils.text import mark_safe
+from djpcms.utils.httpurl import urljoin
 
 __all__ = ['MEDIA_TYPES', 'Media']
 
@@ -15,11 +12,10 @@ MEDIA_TYPES = ('css','js')
 
 class Media(object):
     '''Originally from django, it is used for manipulating media
-files such as style sheet and javascript.
-'''
+files such as style sheet and javascript.'''
     __slots__ = ('_css','_js','_settings')
     
-    def __init__(self, media=None, settings = None, **kwargs):
+    def __init__(self, media=None, settings=None, **kwargs):
         if media:
             media_attrs = {'_css':media._css,'_js':media_js}
         else:

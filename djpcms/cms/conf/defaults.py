@@ -52,8 +52,8 @@ ENABLE_BREADCRUMBS = 2
 
 
 #######################################    PLUGINS
-DJPCMS_PLUGINS = ['djpcms.plugins.*']
-DJPCMS_WRAPPERS = ['djpcms.plugins.extrawrappers']
+DJPCMS_PLUGINS = ['djpcms.cms.plugins.*']
+DJPCMS_WRAPPERS = ['djpcms.cms.plugins.extrawrappers']
 
 
 DJPCMS_SITE_MAP = True

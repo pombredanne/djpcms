@@ -1,5 +1,5 @@
 from djpcms.utils import test
-from djpcms import Route, UrlException
+from djpcms.cms import Route, UrlException
 
     
 class Routes(test.TestCase):

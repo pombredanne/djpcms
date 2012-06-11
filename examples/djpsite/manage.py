@@ -25,11 +25,11 @@ To create the style sheet::
 '''
 import sys
 
-from djpcms import core, views, html
+from djpcms import cms, views, html
 from djpcms.apps import admin, static, user
 from djpcms.html import Widget
-from djpcms.core.layout import page, container, grid
-from djpcms.plugins.navigation import topbar
+from djpcms.html.layout import page, container, grid
+from djpcms.cms.plugins.navigation import topbar
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
@@ -46,10 +46,10 @@ class MainApplication(views.Application):
     favicon = static.FavIconView()
     
     
-class WebSite(core.WebSite):
+class WebSite(cms.WebSite):
     settings_file = 'djpsite.settings'
     def load(self):
-        settings = core.get_settings(
+        settings = cms.get_settings(
                 __file__,
                 self.settings_file,
                 APPLICATION_URLS = self.urls,
@@ -62,9 +62,9 @@ class WebSite(core.WebSite):
         self.add_response_middleware(permissions.response_middleware())
         
         # The root site
-        site = core.Site(settings, permissions=permissions)
+        site = cms.Site(settings, permissions=permissions)
         # admin site
-        settings = core.get_settings(
+        settings = cms.get_settings(
             __file__,
             self.settings_file,
             APPLICATION_URLS  = admin.make_admin_urls())
@@ -125,4 +125,4 @@ class WebSite(core.WebSite):
     
 
 if __name__ == '__main__':
-    core.execute(WebSite())
+    cms.execute(WebSite())

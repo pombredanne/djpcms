@@ -1,11 +1,11 @@
 import os
 
-import djpcms
+from djpcms import cms
 
 
-class Command(djpcms.Command):
+class Command(cms.Command):
     option_list = (
-            djpcms.CommandOption('plain',('-p','--plain'),
+            cms.CommandOption('plain',('-p','--plain'),
                 action='store_true',
                 default=False,
                 description='Tells djpcms to use plain Python, not IPython.'),

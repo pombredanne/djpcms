@@ -1,6 +1,7 @@
 '''Vanilla Application'''
-import djpcms
-from djpcms import views, Site, get_settings
+import os
+
+from djpcms import views, cms
 from djpcms.utils import test
 from djpcms.apps.vanilla import Application
     
@@ -9,8 +10,8 @@ class TestVanillaMeta(test.TestCase):
     installed_apps = ('stdcms','examples')
     
     def urls(self, site):
-        from examples.models import Portfolio
-        return (Application('/portfolio/',Portfolio),)
+        from tests.models import Portfolio
+        return (Application('/portfolio/', Portfolio),)
     
     def testApplication(self):
         app = Application('/')
@@ -22,9 +23,9 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(app[3].name,'change')
         self.assertEqual(app[4].name,'delete')
         
-    @test.skipUnless(test.djpapps, "Requires djpapps installed")
+    @test.skipUnless(os.environ.get('stdcms'), "Requires stdcms installed")
     def testParentViews(self):
-        from examples.models import Portfolio
+        from tests.models import Portfolio
         site = self.website()()
         app = site[0]
         self.assertEqual(app.model, Portfolio)
@@ -44,7 +45,7 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(change.parent,app)
         self.assertEqual(delete.parent,app)
         
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(os.environ.get('stdcms'), "Requires stdcms installed")
     def testRoutes(self):
         site = self.website()()
         app = site[0]
@@ -63,7 +64,7 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(change.path,'/portfolio/<id>/change')
         self.assertEqual(delete.path,'/portfolio/<id>/delete')
     
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")    
+    @test.skipUnless(os.environ.get('stdcms'), "Requires stdcms installed")    
     def testGetViews(self):
         site = self.website()()
         app = site[0]
@@ -74,10 +75,10 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(app.views.get('delete').name,'delete')
         self.assertRaises(KeyError,lambda : app.views['bla'])
     
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(os.environ.get('stdcms'), "Requires stdcms installed")
     def testSubApplicationMeta(self):
-        from examples.models import Portfolio, User
-        self.assertRaises(djpcms.UrlException, lambda : Application('/',\
+        from tests.models import Portfolio, User
+        self.assertRaises(cms.UrlException, lambda : Application('/',\
                            Portfolio, parent_view = 'view'))
         port = Application('portfolio/',
                            Portfolio,
@@ -94,9 +95,9 @@ class TestVanillaMeta(test.TestCase):
         self.assertEqual(app.views['portfolio'],port)
         self.assertEqual(port.path,'/<id>/portfolio/')
         
-    @test.skipUnless(test.djpapps,"Requires djpapps installed")
+    @test.skipUnless(os.environ.get('stdcms'), "Requires stdcms installed")
     def testSubApplicationMeta2(self):
-        from examples.models import Portfolio, User
+        from tests.models import Portfolio, User
         port = Application('portfolio/',
                            Portfolio,
                            parent_view = 'view',
@@ -105,7 +106,7 @@ class TestVanillaMeta(test.TestCase):
         app = Application('bla/',
                           User,
                           routes = (port,))
-        site = djpcms.Site(djpcms.get_settings(APPLICATION_URLS = (app,)))
+        site = cms.Site(cms.get_settings(APPLICATION_URLS = (app,)))
         view, urlargs = site.resolve('bla/56/portfolio/')
         urls = app.urls()
         self.assertEqual(len(urls),6)

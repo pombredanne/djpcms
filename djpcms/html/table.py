@@ -9,7 +9,7 @@ from functools import partial
 from copy import deepcopy
 from collections import namedtuple
 
-from djpcms.utils import media
+from djpcms.media import Media
 from djpcms.utils.text import nicename
 from djpcms.ajax import simplelem
 
@@ -64,7 +64,7 @@ class TableMaker(WidgetMaker):
     '''A widget maker which render a dataTable.'''
     tag = 'div'
     classes = 'data-table'
-    _media = media.Media(
+    _media = Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
                   'djpcms/datatables/ColVis/js/ColVis.js',

@@ -1,10 +1,10 @@
 from djpcms import html, forms
-from djpcms.utils import media, js
+from djpcms.media import Media, js
 
 
 class ColorInput(html.TextInput):
     classes = 'color-picker'
-    _media = media.Media(js = [js.RAPHAEL, 'color/color.js'])
+    _media = Media(js=[js.RAPHAEL, 'color/color.js'])
     
     def set_value(self, value, widget):
         if value and value.startswith('#'):

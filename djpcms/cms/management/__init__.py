@@ -47,7 +47,6 @@ def fetch_command(website, command, argv=None, stdout=None, stderr=None):
                                      stdout=stdout, stderr=stderr)
     
 
-
 class ManagementUtility(object):
     """
     Encapsulates the logic of the django-admin.py and manage.py utilities.

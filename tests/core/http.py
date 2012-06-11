@@ -2,8 +2,8 @@ import time
 from datetime import datetime, timedelta
 
 from djpcms.utils import test
-from djpcms.core import http
-from djpcms.core.http.wrappers import RequestNode, BytesIO
+from djpcms.cms import Response
+from djpcms.cms.request import RequestNode, Request, BytesIO
 
 
 class Http(test.TestCase):
@@ -12,7 +12,7 @@ class Http(test.TestCase):
         environ = self.environ(**kwargs)
         path = environ['PATH_INFO']
         environ['DJPCMS'] = RequestNode(None,None,path)
-        return http.Request(environ,None,None,path)
+        return Request(environ, None, None, path)
     
     def environ(self, method = 'POST', input = b'', path = None):
         return {'PATH_INFO': path or '/',
@@ -61,21 +61,21 @@ class Http(test.TestCase):
 
     def test_far_expiration(self):
         "Cookie will expire when an distant expiration time is provided"
-        response = http.Response(self.environ())
+        response = Response(self.environ())
         response.set_cookie('datetime', expires=datetime(2028, 1, 1, 4, 5, 6))
         datetime_cookie = response.cookies['datetime']
         self.assertEqual(datetime_cookie['expires'], 'Sat, 01-Jan-2028 04:05:06 GMT')
 
     def test_max_age_expiration(self):
         "Cookie will expire if max_age is provided"
-        response = http.Response(self.environ())
+        response = Response(self.environ())
         response.set_cookie('max_age', max_age=10)
         max_age_cookie = response.cookies['max_age']
         self.assertEqual(max_age_cookie['max-age'], 10)
         self.assertEqual(max_age_cookie['expires'], http.cookie_date(time.time()+10))
 
     def test_httponly_cookie(self):
-        response = http.Response(self.environ())
+        response = Response(self.environ())
         response.set_cookie('example', httponly=True)
         example_cookie = response.cookies['example']
         # A compat cookie may be in use -- check that it has worked

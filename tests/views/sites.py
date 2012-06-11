@@ -1,6 +1,7 @@
-import djpcms
-from djpcms import views, http, Route, ImproperlyConfigured, AlreadyRegistered
-from djpcms.utils import test, zip
+from djpcms import views
+from djpcms.cms import Route, ImproperlyConfigured, AlreadyRegistered
+from djpcms.utils.httpurl import zip
+from djpcms.utils import test
 
 
 def get_simpleapps():

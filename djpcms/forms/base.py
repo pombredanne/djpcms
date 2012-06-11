@@ -4,7 +4,7 @@ Several parts are originally from django
 '''
 import json
 
-import djpcms
+from djpcms.utils import orms
 from djpcms.utils.httpurl import iteritems
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.decorators import lazyproperty
@@ -188,7 +188,7 @@ it remains unbounded.
         if self.instance:
             model = self.instance.__class__
         if model:
-            self.mapper = mapper(model)
+            self.mapper = orms.mapper(model)
             if self.mapper is not None and not self.instance:
                     self.instance = self.mapper()
         else:

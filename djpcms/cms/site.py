@@ -4,7 +4,7 @@ import logging
 from inspect import isclass
 from copy import deepcopy, copy
 
-from djpcms.utils import conf, orms
+from djpcms.utils import orms
 from djpcms import html
 from djpcms.html import layout
 from djpcms.utils.decorators import lazyproperty
@@ -14,6 +14,7 @@ from djpcms.utils.importer import import_module, module_attribute,\
 from djpcms.utils.path import Path
 from djpcms.utils.structures import OrderedDict
 
+from .conf import Config
 from .tree import DjpcmsTree, BadNode
 from .profiler import profile_response
 from .request import make_request, Response, is_xhr, WsgiHandler
@@ -75,10 +76,10 @@ Default ``None``
     else:
         settings_module_name = None
     
-    return conf.Config(settings_module_name,
-                       SITE_DIRECTORY = site_path,
-                       SITE_MODULE = name,
-                       **params)
+    return Config(settings_module_name,
+                  SITE_DIRECTORY = site_path,
+                  SITE_MODULE = name,
+                  **params)
 
 
 DEFAULT_SITE_HANDLERS = {

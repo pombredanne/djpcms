@@ -100,16 +100,16 @@ class TestVanillaMeta(test.TestCase):
         from tests.models import Portfolio, User
         port = Application('portfolio/',
                            Portfolio,
-                           parent_view = 'view',
-                           related_field = 'user',
-                           routes = (views.ViewView('<pid>/', name = 'view'),))
+                           parent_view='view',
+                           related_field='user',
+                           routes=(views.ViewView('<pid>/', name='view'),))
         app = Application('bla/', User, routes=(port,))
         site = cms.Site(cms.get_settings(APPLICATION_URLS=(app,)))
         view, urlargs = site.resolve('bla/56/portfolio/')
-        urls = app.urls()
-        self.assertEqual(len(urls),6)
         self.assertEqual(urlargs,{'id':'56'})
-        self.assertEqual(view,port.views['search'])
+        # Check urls
+        urls = app.urls()
+        self.assertEqual(len(urls), 6)
         view, urlargs = site.resolve('bla/56/portfolio/myportfolio/')
         self.assertEqual(urlargs,{'id':'56','pid':'myportfolio'})
     

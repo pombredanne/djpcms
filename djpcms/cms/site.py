@@ -162,7 +162,7 @@ delegate the handling to them.'''
             return Response(status=302,
                             response_headers=[('Location',
                                                iri_to_uri(e.location))])
-                    
+    
     def handle_error(self, environ, tree, request, node, e):
         if node is None:
             handler = getattr(e, 'handler', self.site)
@@ -213,8 +213,9 @@ Attributes available:
 '''
     profilig_key = None
     
-    def __init__(self, settings=None, route='/', parent=None, **handlers):
-        super(Site, self).__init__(route)
+    def __init__(self, settings=None, route='/', parent=None,
+                 routes=None, **handlers):
+        super(Site, self).__init__(route, routes=routes)
         self._model_registry = {}
         self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]

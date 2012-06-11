@@ -177,24 +177,23 @@ views::
     default_route = '/'
     
     def __init__(self,
-                 route = None,
-                 methods = None,
-                 plugin_form = None,
-                 renderer = None,
-                 title = None,
-                 linkname = None,
-                 permission = None,
-                 force_redirect = None,
-                 icon = None,
-                 table_generator = None,
-                 success_message = None,
-                 redirect_to_view = None,
-                 inherit_page = None,
-                 is_soft = False,
-                 query = None,
+                 route=None,
+                 methods=None,
+                 plugin_form=None,
+                 renderer=None,
+                 title=None,
+                 linkname=None,
+                 permission=None,
+                 force_redirect=None,
+                 icon=None,
+                 table_generator=None,
+                 success_message=None,
+                 redirect_to_view=None,
+                 inherit_page=None,
+                 is_soft=False,
+                 query=None,
                  **kwargs):
-        super(View,self).__init__(route = route or self.default_route,
-                                  **kwargs)
+        super(View,self).__init__(route=route or self.default_route, **kwargs)
         self.func = None
         self.code = None
         if inherit_page is not None:

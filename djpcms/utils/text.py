@@ -1,5 +1,5 @@
 import re
-import unicodedata
+from unicodedata import normalize
 from uuid import uuid4
 
 from .httpurl import to_string, string_type, ispy3k
@@ -23,8 +23,7 @@ def nicename(name):
 def slugify(value, rtx = '-'):
     '''Normalizes string, removes non-alpha characters,
 and converts spaces to hyphens *rtx* character'''
-    value = unicodedata.normalize('NFKD', to_string(value))\
-                .encode('ascii', 'ignore')
+    value = normalize('NFKD', to_string(value)).encode('ascii', 'ignore')
     value = to_string(re.sub('[^\w\s-]', '', value.decode()).strip())
     return re.sub('[-\s]+', rtx, value)
     

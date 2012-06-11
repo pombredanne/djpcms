@@ -79,28 +79,34 @@ class TestSimpleApplication(test.TestCase):
         '''Construct an Application with 1 view'''
         app = views.Application('/',
                     name = 'luca',
-                    routes = (views.View(renderer = lambda djp : 'ciao'),))
+                    routes = (views.View(renderer=lambda request: 'ciao'),))
         self.assertFalse(app.isbound)
-        self.assertEqual(app.parent,None)
+        self.assertEqual(app.parent, None)
+        app.load()
         self.assertEqual(app.count(),1)
         self.assertEqual(len(app),1)
+        self.assertTrue(app.isbound)
         
     def testContruction2(self):
         '''Construct an Application with 2 views'''
-        view1 = views.View(renderer = lambda djp : 'ciao')
-        view2 = views.View('foo/', renderer = lambda djp : 'foo')
+        view1 = views.View(renderer=lambda request: 'ciao')
+        view2 = views.View('foo/', renderer=lambda request: 'foo')
         self.assertEqual(view1.appmodel,None)
         self.assertEqual(view2.appmodel,None)
         self.assertEqual(view1.path,'/')
         self.assertEqual(view2.path,'/foo/')
-        app = views.Application('/', routes = (view2,view1))
+        app = views.Application('/', routes=(view2,view1))
         self.assertEqual(view1.appmodel,None)
         self.assertEqual(view2.appmodel,None)
         self.assertFalse(app.isbound)
         self.assertEqual(app.parent, None)
         self.assertEqual(app.root, app)
-        self.assertEqual(app.count(),2)
-        self.assertEqual(len(app),2)
+        self.assertEqual(app.count(), 0)
+        self.assertEqual(len(app), 0)
+        site = cms.Site(routes=(app,))
+        site.load()
+        self.assertEqual(app.count(), 2)
+        self.assertEqual(len(app), 2)
         self.assertFalse(app.base_routes) # no base routes from metaclass
         # views get copied so instances are not the same
         self.assertNotEqual(app.root_view,view1)

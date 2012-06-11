@@ -27,10 +27,10 @@ def get_declared_application_routes(bases, attrs):
 in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit', True)
     routes = []
-    for app_name,obj in list(attrs.items()):
-        if hasattr(obj,'__class__'):
+    for app_name, obj in list(attrs.items()):
+        if hasattr(obj, '__class__'):
             if isinstance(obj, View) or\
-                 isinstance(obj.__class__,ApplicationMetaClass):
+                 isinstance(obj.__class__, ApplicationMetaClass):
                 r = attrs.pop(app_name)
                 r.name = app_name
                 routes.append(r)    
@@ -69,7 +69,7 @@ def store_on_instance(f):
 
 
 class ApplicationMetaClass(type):
-    
+    '''Collect :class:`View` defined as class attributes.'''
     def __new__(cls, name, bases, attrs):
         attrs['base_routes'] = get_declared_application_routes(bases, attrs)
         new_class = super(ApplicationMetaClass, cls).__new__(cls, name,
@@ -263,9 +263,12 @@ overwritten to customize its behavior.
         self.model = model
         ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
-        self.base_routes = copy(self.base_routes)
         if routes:
-            self.base_routes.extend(routes)
+            base_routes = OrderedDict(((r.name,r) for r in self.base_routes))
+            base_routes.update(((r.name,r) for r in routes))
+            self.base_routes = list(itervalues(base_routes))
+        else:
+            self.base_routes = list(self.base_routes)
         if not self.pagination:
             self.pagination = html.Pagination()
         self.object_views = []

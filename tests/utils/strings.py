@@ -1,4 +1,5 @@
 from djpcms.utils import test
+from djpcms.utils.httpurl import URI_RESERVED_CHARS
 from djpcms.utils.text import to_string, nicename, slugify
 
 
@@ -18,10 +19,10 @@ class TestUtilsStrings(test.TestCase):
         self.assertEqual(nicename('ciao bla-foo'),'Ciao bla foo')
     
     def testSlugify(self):
-        self.assertEqual(slugify(s),'')
-        self.assertEqual(slugify('ciao pippo'),'ciao-pippo')
-        self.assertEqual(slugify('ciao "pippo"'),'ciao-pippo')
-        self.assertEqual(slugify("ciao 'bla' 'go';;;pippo"),'ciao-bla-gopippo')
+        self.assertEqual(slugify(URI_RESERVED_CHARS), '')
+        self.assertEqual(slugify('ciao pippo'), 'ciao-pippo')
+        self.assertEqual(slugify('ciao "pippo"'), 'ciao-pippo')
+        self.assertEqual(slugify("ciao 'bla' 'go';;;pippo"), 'ciao-bla-gopippo')
         
         
         

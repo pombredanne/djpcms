@@ -217,8 +217,8 @@ To use djpcms in an asynchronous engine you need  to implement this function.
         raise NotImplementedError('Cannot handle Asynchronous responses')
     
     def check_async(self, value):
-        if isinstance(value,AsyncResponse):
-            return True,value
+        if isinstance(value, AsyncResponse):
+            return True, value
         else:
             return self.async(value)
         

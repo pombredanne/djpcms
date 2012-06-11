@@ -455,7 +455,6 @@ class css(object):
                 children[tag].extend(child)
             else:
                 children[tag] = list(child)
-        
         # now aggregate
         children = elem._children
         elem._children = OrderedDict()

@@ -5,7 +5,7 @@ from djpcms.utils import test
 from djpcms.utils.dispatch import Signal
 
 
-if sys.platfodm.startswith('java'):
+if sys.platform.startswith('java'):
     def garbage_collect():
         """Run the garbage collector and wait a bit to let it do his work"""
         import time

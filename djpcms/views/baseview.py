@@ -31,7 +31,7 @@ def makename(self, name, description):
     
 class RendererMixin(ViewRenderer):
     '''\
-A :class:`djpcms.html.Renderer` used as mixin class for :class:`Application`
+A :class:`djpcms.cms.ViewRenderer` used as mixin class for :class:`Application`
 and :class:`djpcmsview`.
 
 .. attribute:: appmodel
@@ -126,10 +126,10 @@ and :class:`djpcmsview`.
     parent_view = None
     body_class = None
     
-    def __init__(self, name = None, parent_view = None, pagination = None,
-                 ajax_enabled = None, form = None, template_file = None,
-                 description = None, in_nav = None, has_plugins = None,
-                 insitemap = None, body_class = None, view_ordering = None):
+    def __init__(self, name=None, parent_view=None, pagination=None,
+                 ajax_enabled=None, form=None, template_file=None,
+                 description=None, in_nav=None, has_plugins=None,
+                 insitemap=None, body_class=None, view_ordering=None):
         self.creation_counter = RendererMixin.creation_counter
         self.view_ordering = view_ordering if view_ordering is not None else\
                                 self.creation_counter

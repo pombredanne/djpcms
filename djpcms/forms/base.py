@@ -7,7 +7,6 @@ import json
 import djpcms
 from djpcms.utils.httpurl import iteritems
 from djpcms.utils.structures import OrderedDict
-from djpcms.core.orms import mapper
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.text import nicename, UnicodeMixin, to_string
 from djpcms.html import SubmitInput

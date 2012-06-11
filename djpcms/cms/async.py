@@ -10,9 +10,8 @@ from djpcms import ajax
 from djpcms.utils.text import escape
 from djpcms.utils.httpurl import iteritems
 from djpcms.utils.async import Deferred, Failure
-from djpcms.html import Renderer, Widget
+from djpcms.html import Renderer, Widget, html_doc_stream, error_title
 
-from .layout import html_stream, error_title
 from .request import Response
 
 
@@ -198,7 +197,7 @@ input *response*::
             self.body_renderer = body_renderer
         if error_renderer:
             self.error_renderer = error_renderer
-        self.html_streamer = html_streamer or html_stream
+        self.html_streamer = html_streamer or html_doc_stream
         self.errorhtml = self.errorhtml.copy()
         self.errorhtml.update(errorhtml or {})
 

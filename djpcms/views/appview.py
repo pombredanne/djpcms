@@ -3,10 +3,10 @@ from functools import partial
 import djpcms
 from djpcms.utils.httpurl import zip
 from djpcms import forms, ajax
-from djpcms.core import Route, async_instance, Http404, permissions
-from djpcms.forms.utils import saveform, deleteinstance, get_redirect
-from djpcms.plugins import html_plugin_form
 from djpcms.utils.text import nicename
+from djpcms.cms import Route, async_instance, Http404, permissions
+from djpcms.cms.plugins import html_plugin_form
+from djpcms.cms.formutils import saveform, deleteinstance, get_redirect
 
 from .pagination import paginationResponse
 from .baseview import djpcmsview 

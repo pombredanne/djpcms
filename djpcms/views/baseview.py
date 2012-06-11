@@ -3,8 +3,8 @@ import logging
 import djpcms
 from djpcms.utils.httpurl import range
 from djpcms import forms, html, ajax
-from djpcms.core import RouteMixin, ViewRenderer
 from djpcms.utils.text import nicename, UnicodeMixin, slugify, escape
+from djpcms.cms import RouteMixin, ViewRenderer
 
     
 __all__ = ['RendererMixin',

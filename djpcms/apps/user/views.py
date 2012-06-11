@@ -1,6 +1,6 @@
 from djpcms import views
-from djpcms.core import HttpRedirect
-from djpcms.forms.utils import saveform
+from djpcms.cms import HttpRedirect
+from djpcms.cms.formutils import saveform
 
 from .forms import HtmlLoginForm
 

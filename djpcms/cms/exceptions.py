@@ -80,13 +80,3 @@ class BlockOutOfBound(PageException):
     '''A :class:`PageException` raised when requesting a block not available in page.'''
     pass
     
-
-class FormException(DjpcmsException):
-    '''A :class:`DjpcmsException` raised when something goes wrong in
-:mod:`djpcms.forms`.'''
-    pass
-
-
-class ValidationError(Exception):
-    '''Raised when a :class:`djpcms.forms.Form` instance does not validate.'''
-    pass

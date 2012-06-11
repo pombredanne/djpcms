@@ -1,19 +1,18 @@
 """\
 Command management. Originally from django. Modified and reduced.
 """
-
 import os
 import sys
 import argparse
 
 import djpcms
-from djpcms.core.exceptions import ImproperlyConfigured, CommandError
+from djpcms.cms.exceptions import CommandError
         
         
 class CommandOption(object):
     
-    def __init__(self, name = None, cli = None, type = None, nargs = None,
-                 action = None, description = None, default = None):
+    def __init__(self, name=None, cli=None, type=None, nargs=None,
+                 action=None, description=None, default=None):
         self.name = name
         self.cli = cli
         self.type = type

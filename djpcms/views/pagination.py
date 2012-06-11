@@ -2,10 +2,10 @@ from collections import namedtuple
 from inspect import isgenerator
 
 from djpcms import ajax
+from djpcms.utils import orms
 from djpcms.utils.httpurl import query_from_querydict
-from djpcms.core import permissions
-from djpcms.core.orms import mapper
 from djpcms.html import anchor_or_button
+from djpcms.cms import permissions
 
 
 __all__ = ['application_action',
@@ -138,7 +138,7 @@ It is used by :meth:`Application.viewurl`.'''
         value = getattr(instance,field_name,None)
         if hasattr(value,'__call__'):
             value = value()
-        if mapper(value):
+        if orms.mapper(value):
             instance = value
             value = None
         elif value is None:

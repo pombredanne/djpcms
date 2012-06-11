@@ -2,7 +2,7 @@ from inspect import isclass
 
 from djpcms.utils.httpurl import zip
 from djpcms import html, ajax
-from djpcms.core.layout import equally_spaced_grid
+from djpcms.html.layout import equally_spaced_grid
 from djpcms.utils.text import nicename
 
 inlineLabels   = 'inlineLabels'

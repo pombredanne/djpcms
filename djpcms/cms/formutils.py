@@ -7,11 +7,10 @@ from datetime import datetime
 
 from djpcms import forms, html, ajax
 from djpcms.utils.text import to_string
-from djpcms.core import messages
 from djpcms.utils.httpurl import urlsplit
 from djpcms.utils.dates import format
 
-from .globals import *
+from . import messages
 
 logger = logging.getLogger('djpcms.forms')
 Widget = html.Widget
@@ -20,10 +19,10 @@ Widget = html.Widget
 def set_request_message(f, request):
     if '__all__' in f.errors:
         for msg in f.errors['__all__']:
-            messages.error(request,msg)
+            messages.error(request, msg)
     if '__all__' in f.messages:
         for msg in f.messages['__all__']:
-            messages.info(request,msg)
+            messages.info(request, msg)
 
 
 def form_kwargs(request,

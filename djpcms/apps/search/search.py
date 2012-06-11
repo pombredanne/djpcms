@@ -1,4 +1,5 @@
-from djpcms import views, forms, html, ajax, ImproperlyConfigured
+from djpcms import views, forms, html, ajax
+from djpcms.cms import ImproperlyConfigured
 
 
 def get_search_url(request, for_model = None):

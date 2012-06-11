@@ -18,7 +18,7 @@ from djpcms.html import Widget, WidgetMaker
 from djpcms.utils.httpurl import iteritems
 from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename
-from djpcms.core.exceptions import ImproperlyConfigured
+from djpcms.cms import ImproperlyConfigured
 
 __all__ = ['AdminSite',
            'ApplicationGroup',

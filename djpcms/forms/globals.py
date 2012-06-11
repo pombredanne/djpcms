@@ -1,8 +1,6 @@
 # Uniforms Layout is the Default layout
 from uuid import uuid4
 
-from djpcms.core.exceptions import FormException, ValidationError
-
 __all__ = ['FormException',
            'ValidationError',
            'generate_prefix',
@@ -36,6 +34,16 @@ NOBUTTON = 'nobutton'
 
 def generate_prefix():
     return str(uuid4())[:8]
+
+
+class FormException(Exception):
+    '''An Exception raised when something goes wrong in :mod:`djpcms.forms`.'''
+    pass
+
+
+class ValidationError(ValueError):
+    '''Raised when a :class:`djpcms.Form` instance does not validate.'''
+    pass
 
 
 class NoData(object):

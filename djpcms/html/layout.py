@@ -1,8 +1,7 @@
-'''Page layout and grids
-'''
+'''Page layout and grids'''
 from collections import deque, namedtuple
 
-from djpcms.html import WidgetMaker, Widget
+from .base import WidgetMaker, Widget
 
 __all__ = ['LayoutDoesNotExist',
            'grid_systems',

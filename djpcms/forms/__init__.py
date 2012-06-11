@@ -1,6 +1,6 @@
 '''\
 A lightweight form library crucial not only for browser driven
-applications, but also for validating remote procedure calls
+applications, but also for validating remote procedure calls (RPC)
 and command line inputs.
 
 The main class in this module is :class:`Form`.
@@ -30,13 +30,15 @@ And this could be its :class:`HtmlForm` representation::
         method = 'post'
     )
 
-As you can see, no much has been specyfied in this declaration. Sensible
+As you can see, no much has been specified in this declaration. Sensible
 defaults are used.
+
+This module dependos on :mod:`djpcms.html`.
 
 .. _django: http://www.djangoproject.com/
 '''
-from .html import *
 from .globals import *
+from .html import *
 from .fields import *
 from .base import *
 from .formsets import *

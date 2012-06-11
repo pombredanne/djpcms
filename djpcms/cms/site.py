@@ -1,12 +1,12 @@
 import os
 import sys
 import logging
-import argparse
 from inspect import isclass
 from copy import deepcopy, copy
 
-from djpcms.utils import conf
+from djpcms.utils import conf, orms
 from djpcms import html
+from djpcms.html import layout
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri
 from djpcms.utils.importer import import_module, module_attribute,\
@@ -23,8 +23,6 @@ from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 from .async import ResponseHandler
-from . import orms
-from . import layout
 
 
 __all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite']
@@ -233,7 +231,7 @@ Attributes available:
                 settings.TEMPLATE_DIRS += path,
             self.internals['settings'] = settings
         self.internals.update(handlers)
-        self.register_page_layout('default', layout.page())
+        self.register_page_layout('default')
         
     def setup_environment(self):
         '''Set up the the site.'''
@@ -425,10 +423,12 @@ which updates the input ``dictionary`` with library dependent information.
     def create_model_tables(self):
         pass
     
-    def register_page_layout(self, name, page):
+    def register_page_layout(self, name, page=None):
         '''Register a :class:`djpcms.html.layout.page` with the
 :class:`Site`. Return self for concatenating calls.'''
         name = name.lower()
+        if page is None:
+            page = layout.page()
         self._page_layout_registry[name] = page
         return self
     

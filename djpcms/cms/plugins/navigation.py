@@ -1,6 +1,6 @@
 from djpcms import forms, views, html
-from djpcms.core import Route
-from djpcms.plugins import DJPplugin
+from djpcms.cms import Route
+from djpcms.cms.plugins import DJPplugin
 from djpcms.utils.httpurl import iri_to_uri
 
 layouts = (
@@ -10,7 +10,7 @@ layouts = (
 dlayouts = dict(layouts)
 
 
-def userlinks(request, asbuttons = False):
+def userlinks(request, asbuttons=False):
     request = request.for_model(request.view.User, root = True)
     if request:
         if request.user.is_authenticated():

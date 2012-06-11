@@ -10,9 +10,9 @@ import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
 from djpcms import views, html
-from djpcms.core import Http404, Response
 from djpcms.utils.httpurl import http_date
 from djpcms.utils.importer import import_module
+from djpcms.cms import Http404, Response
 
 # Third party application list.
 third_party_applications = []

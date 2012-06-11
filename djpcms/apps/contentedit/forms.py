@@ -1,10 +1,11 @@
 from copy import copy
 
-from djpcms import forms, html, plugins
-from djpcms.core import orms
-from djpcms.core.layout import html_choices, htmldefaultdoc, grid_systems, grids
-from djpcms.utils import markups
+from djpcms import forms, html
+from djpcms.utils import orms, markups
 from djpcms.utils.text import nicename
+from djpcms.html import html_choices, htmldefaultdoc
+from djpcms.html.layout import grid_systems, grids
+from djpcms.cms import plugins 
 
 
 __all__ = ['TemplateForm',

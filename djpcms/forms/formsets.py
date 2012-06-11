@@ -1,8 +1,8 @@
 from copy import copy
 
 from djpcms.utils.text import UnicodeMixin, ispy3k, to_string
+from djpcms.utils import orms
 from djpcms.html import HiddenInput
-from djpcms.core.orms import mapper
 
 if ispy3k:
     from itertools import zip_longest
@@ -57,7 +57,7 @@ of this class are declared in the body of a :class:`Form`.
                  instances_from_related = None):
         self.form_class = form_class
         self.model = model
-        self.mapper = mapper(model)
+        self.mapper = orms.mapper(model)
         self.related_name = related_name
         self.clean = clean
         self.instances_from_related = instances_from_related

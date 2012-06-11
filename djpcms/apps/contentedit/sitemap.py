@@ -4,13 +4,14 @@ following to your application urls tuple::
     SiteMapApplication('/sitemap/',
                         name = 'sitemap')
 '''
-from djpcms import views, Http404
-from djpcms.core import messages
-from djpcms.core.layout import htmldoc, grid, container
-from djpcms.forms.utils import request_get_data
-from djpcms.utils import markups, mark_safe, escape
-from djpcms.html import box, Pagination, table_header, Widget
-from djpcms.plugins.navigation import page_links
+from djpcms import views
+from djpcms.utils import markups
+from djpcms.utils.text import mark_safe, escape
+from djpcms.html import box, Pagination, table_header, Widget, htmldoc
+from djpcms.html.layout import grid, container
+from djpcms.cms import Http404, messages
+from djpcms.cms.formutils import request_get_data
+from djpcms.cms.plugins.navigation import page_links
 from djpcms.apps.admin import AdminApplication
 
 from .layout import HtmlPageForm

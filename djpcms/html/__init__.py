@@ -22,6 +22,7 @@ from .nicerepr import *
 from .box import *
 from .table import *
 from .tabs import *
+from .doc import *
 
 
 def block(stream, id = None, cn = None, djp = None):

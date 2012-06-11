@@ -1,9 +1,8 @@
 import os
 import itertools
 
-from djpcms.utils import locks
-from djpcms.core.exceptions import SuspiciousOperation
-from djpcms.utils.httpurl import urlbits, urlfrombits, to_string
+from . import locks
+from .httpurl import urlbits, urlfrombits, to_string
 
 
 __all__ = ['File', 'Filehandler', 'Disk', 'Disksite']
@@ -12,7 +11,7 @@ __all__ = ['File', 'Filehandler', 'Disk', 'Disksite']
 class File(object):
     DEFAULT_CHUNK_SIZE = 64 * 2**10
 
-    def __init__(self, file, name=None, content_type = None, size = None):
+    def __init__(self, file, name=None, content_type=None, size=None):
         self.file = file
         if name is None:
             name = getattr(file, 'name', None)

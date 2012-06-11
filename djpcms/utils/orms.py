@@ -1,18 +1,19 @@
 from inspect import isclass
-from datetime import date, datetime
 
-import djpcms
-from djpcms.utils.httpurl import itervalues
-from djpcms.html import nicerepr
-from djpcms.core.exceptions import ModelException
-from djpcms.utils.structures import OrderedDict
-from djpcms.utils.importer import import_module
-from djpcms.utils.text import nicename, UnicodeMixin, to_string
+from .httpurl import itervalues, to_string
+from .structures import OrderedDict
+from .importer import import_module
+from .text import nicename, UnicodeMixin
 
 model_wrappers = OrderedDict()
 model_from_hash = {}
 
 ORMS = lambda : model_wrappers.values()
+
+
+__all__ = ['OrmWrapper',
+           'RegisterORM',
+           'mapper']
 
 
 class OrmWrapper(UnicodeMixin):
@@ -122,19 +123,6 @@ must raise a ValueError.
             if hasattr(fun,self.short_description):
                 return fun.short_description
         return nicename(field)
-    
-    def getrepr(self, name, instance, nd = 3):
-        '''representation of field *name* for *instance*.'''
-        return nicerepr(self._getrepr(name,instance),nd)
-    
-    def _getrepr(self, name, instance):
-        attr = getattr(instance,name,None)
-        if hasattr(attr,'__call__'):
-            attr = attr()
-        if attr is not None:
-            return force_str(attr, strings_only = True)
-        else:
-            return sites.settings.DJPCMS_EMPTY_VALUE
         
     def id(self, obj):
         return obj.id
@@ -225,7 +213,7 @@ def getmodel(appmodel):
             return wrapper(appmodel)
         except:
             continue
-    raise ModelException('Model {0} not recognised'.format(appmodel))
+    raise ValueError('Model {0} not recognised'.format(appmodel))
 
 def mapper(model):
     '''Return an instance of a ORM djpcms wrapper'''

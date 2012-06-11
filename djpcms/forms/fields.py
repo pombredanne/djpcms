@@ -5,8 +5,8 @@ from copy import copy, deepcopy
 from djpcms import html
 from djpcms.utils.text import escape, slugify, to_string
 from djpcms.utils.dates import parse as dateparser
-from djpcms.core.orms import mapper
-from djpcms.core.files import File
+from djpcms.utils.files import File
+from djpcms.utils import orms
 
 from .globals import *
 
@@ -451,7 +451,8 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
         for attname in kwargs:
             if not attname.startswith('__') and hasattr(cls, attname):
                 setattr(self, attname, kwargs[attname])
-        self.mapper = mapper(self.model) if self.model is not None else None
+        self.mapper = orms.mapper(self.model) if self.model is not None\
+                         else None
         self._setmodel(self.query)
                 
     def all(self, bfield):
@@ -473,7 +474,7 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
         if not self.model and query is not None:
             self.model = getattr(query, 'model', None)
             if self.model:
-                self.mapper = mapper(self.model)
+                self.mapper = orms.mapper(self.model)
     
     def url(self, request):
         '''Retrieve a url for search.'''
@@ -641,7 +642,8 @@ class FileField(MultipleMixin, Field):
     def value_from_datadict(self, data, files, key):
         res = self._value_from_datadict(files,key)
         if self.multiple:
-            return [File(d.file,d.filename,d.content_type,d.size) for d in res]
+            return [File(d.file,d.filename,d.content_type,d.size)\
+                    for d in res]
         elif res:
             d = res
             return File(d.file,d.filename,d.content_type,d.size)

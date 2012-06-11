@@ -14,10 +14,6 @@ __all__ = (
 )
 
 
-class MessageFailure(Exception):
-    pass
-
-
 def add_message(request, level, message, extra_tags=''):
     """Add a message to the request using the 'messages' app."""
     if hasattr(request,'session'):

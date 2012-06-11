@@ -3,14 +3,17 @@ import logging
 import json
 
 from djpcms import forms, html
-from djpcms.forms.utils import form_kwargs
 from djpcms.utils.text import capfirst, nicename
+from djpcms.cms.formutils import form_kwargs
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
 
 CLOSE_DIV = '\n</div>'
 PLUGIN_DATA_FORM_CLASS = 'plugin-data-form'
+
+
+__all__ = ['DJPwrapper', 'DJPplugin']
 
 
 def ordered_generator(di):
@@ -38,7 +41,7 @@ def register_application(app, name = None, description = None):
 
 
 def html_plugin_form(form):
-    if isinstance(form,forms.FormType):
+    if isinstance(form, forms.FormType):
         form = forms.HtmlForm(form)
     if isinstance(form,forms.HtmlForm):
         form.tag = None

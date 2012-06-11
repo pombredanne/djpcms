@@ -1,4 +1,4 @@
-from djpcms.plugins import DJPwrapper
+from djpcms.cms.plugins import DJPwrapper
 from djpcms.html import box, Widget
 
 

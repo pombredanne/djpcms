@@ -1,8 +1,7 @@
 from djpcms import forms, html, views, ajax
-from djpcms.plugins import PLUGIN_DATA_FORM_CLASS
-from djpcms.core.exceptions import PermissionDenied
-from djpcms.forms.utils import get_redirect
-from djpcms.plugins.extrawrappers import CollapsedWrapper
+from djpcms.cms.plugins import PLUGIN_DATA_FORM_CLASS
+from djpcms.cms.formutils import get_redirect
+from djpcms.cms.plugins.extrawrappers import CollapsedWrapper
 
 from .sitemap import underlying_response
 from .layout import ContentBlockHtmlForm

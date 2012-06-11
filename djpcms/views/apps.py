@@ -3,13 +3,13 @@ from copy import copy, deepcopy
 import djpcms
 from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string
 from djpcms import html, forms, ajax
-from djpcms.core import ResolverMixin, PermissionDenied,\
-                        UrlException, AlreadyRegistered
 from djpcms.html import table_header, ContextRenderer, Widget
-from djpcms.core.orms import mapper
-from djpcms.forms.utils import get_form
-from djpcms.plugins import register_application
+from djpcms.utils import orms
 from djpcms.utils.structures import OrderedDict
+from djpcms.cms import ResolverMixin, PermissionDenied,\
+                       UrlException, AlreadyRegistered
+from djpcms.cms.formutils import get_form
+from djpcms.cms.plugins import register_application
 
 from .baseview import RendererMixin, SPLITTER
 from .appview import View, ViewView
@@ -766,7 +766,7 @@ Can be overritten to include request dictionary.'''
         if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
         
-        self.mapper = None if not self.model else mapper(self.model)
+        self.mapper = None if not self.model else orms.mapper(self.model)
         self.site.register_app(self)
         for view in self:
             view.parent = self

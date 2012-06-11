@@ -10,8 +10,9 @@ from datetime import datetime
 from inspect import isgenerator
 
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.py2py3 import StringIO, itervalues, iteritems, UnicodeMixin,\
-                                native_str, to_string, ispy3k
+from djpcms.utils.text import UnicodeMixin
+from djpcms.utils.httpurl import StringIO, itervalues, iteritems,\
+                                 native_str, to_string, ispy3k
 
 __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',

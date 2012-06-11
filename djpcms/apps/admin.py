@@ -15,9 +15,7 @@ registered in the same ApplicationSite::
 '''
 from djpcms import views, html
 from djpcms.html import Widget, WidgetMaker
-from djpcms.utils import force_str, routejoin
-from djpcms.utils.py2py3 import iteritems
-from djpcms.utils.urls import closedurl
+from djpcms.utils.httpurl import iteritems
 from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename
 from djpcms.core.exceptions import ImproperlyConfigured
@@ -133,8 +131,8 @@ def get_admins(INSTALLED_APPS):
             if not urls:
                 continue
             name = getattr(admin,'NAME',mname)
-            route  = closedurl(getattr(admin,'ROUTE',mname))
-            yield (name,route,urls)
+            route  = getattr(admin,'ROUTE',mname)
+            yield (name, route, urls)
         except ImportError:
             continue
         

@@ -23,6 +23,10 @@ from . import orms
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
+__all__ = ['Response',
+           'is_xhr']
+
+
 def is_xhr(environ):
     return environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 

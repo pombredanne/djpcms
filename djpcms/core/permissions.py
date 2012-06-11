@@ -218,7 +218,7 @@ if needed.
 
 
 def authenticated_view(f):
-    
+    '''Decorator which check if a request is authenticated'''
     def _(self, request, *args, **kwargs):
         user = request.user
         if user.is_authenticated() and user.is_active:

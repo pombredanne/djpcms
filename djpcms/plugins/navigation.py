@@ -1,6 +1,7 @@
-from djpcms import forms, views, html, Route
+from djpcms import forms, views, html
+from djpcms.core import Route
 from djpcms.plugins import DJPplugin
-from djpcms.utils import iri_to_uri
+from djpcms.utils.httpurl import iri_to_uri
 
 layouts = (
            ('v','vertical'),

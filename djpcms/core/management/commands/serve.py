@@ -2,7 +2,7 @@ import os
 import logging
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
-import djpcms
+from djpcms import core, init_logging
 
 DEFAULT_PORT = 8060
 
@@ -18,16 +18,16 @@ def serve(site_factory, port = 0, use_reloader = False, dry = False):
         server.serve_forever()
 
 
-class Command(djpcms.Command):
+class Command(core.Command):
     help = "Serve the application using WSGIserver from the standard library."
     option_list = (
-       djpcms.CommandOption(
+       core.CommandOption(
             'port',
             nargs='?',
             type=int,
             default=DEFAULT_PORT,
             description='Optional port number'),
-       djpcms.CommandOption(
+       core.CommandOption(
             'dryrun',
             ('--dryrun',),
             action = 'store_true',
@@ -37,5 +37,5 @@ class Command(djpcms.Command):
     
     def handle(self, options):
         site = self.website()
-        djpcms.init_logging(site.settings)
+        init_logging(site.settings)
         serve(self.website, port=options.port, dry=options.dryrun)

@@ -1,4 +1,5 @@
-from djpcms import views, http
+from djpcms import views
+from djpcms.core import HttpRedirect
 from djpcms.forms.utils import saveform
 
 from .forms import HtmlLoginForm
@@ -19,7 +20,7 @@ class LogoutView(views.ModelView):
         params  = dict(request.GET.items())
         url     = params.get('next',None) or '/'
         if request.view.permissions.logout(request.environ):
-            return http.ResponseRedirect(url)
+            raise HttpRedirect(url)
         raise ValueError('Could not logout')
 
 
@@ -39,7 +40,7 @@ class LoginView(views.ModelView):
     
     def __call__(self, request):
         if request.user.is_authenticated():
-            return http.ResponseRedirect('/')
+            raise HttpRedirect('/')
         return super(LoginView, self).__call__(request)
         
     def render(self, request):

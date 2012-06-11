@@ -2,7 +2,7 @@
 import os
 from uuid import uuid4
 
-from djpcms.utils import to_string
+from djpcms.utils.httpurl import to_string
 
 from .base import *
 from .colorvar import *

@@ -9,7 +9,9 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
-from djpcms import views, Http404, http, html
+from djpcms import views, html
+from djpcms.core import Http404, Response
+from djpcms.utils.httpurl import http_date
 from djpcms.utils.importer import import_module
 
 # Third party application list.
@@ -157,8 +159,8 @@ class StaticFileView(StaticMapMixin):
         text = static_index().render(request,
                             {'title': self.title(request),
                              'nav': names})
-        return http.Response(content = text.encode('latin-1','replace'),
-                             content_type = 'text/html')
+        return Response(content=text.encode('latin-1','replace'),
+                        content_type='text/html')
         
     def serve_file(self, request, fullpath):
         # Respect the If-Modified-Since header.
@@ -169,15 +171,14 @@ class StaticFileView(StaticMapMixin):
                                             'HTTP_IF_MODIFIED_SINCE',None),
                                        statobj[stat.ST_MTIME],
                                        statobj[stat.ST_SIZE]):
-            return http.Response(status = 304,
-                                 content_type = mimetype,
-                                 encoding = encoding)
+            return Response(status=304,
+                            content_type=mimetype,
+                            encoding=encoding)
         contents = open(fullpath, 'rb').read()
-        response = http.Response(content = contents,
-                                 content_type=mimetype,
-                                 encoding = encoding)
-        response.headers["Last-Modified"] =\
-                         http.http_date(statobj[stat.ST_MTIME])
+        response = Response(content=contents,
+                            content_type=mimetype,
+                            encoding=encoding)
+        response.headers["Last-Modified"] = http_date(statobj[stat.ST_MTIME])
         return response
     
     def was_modified_since(self, header=None, mtime=0, size=0):

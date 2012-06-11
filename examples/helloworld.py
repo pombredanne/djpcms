@@ -10,26 +10,29 @@ except ImportError:
     import sys
     sys.path.insert(0,'../')
     import djpcms
+    
+from djpcms.core import execute, WebSite, Site, get_settings
 from djpcms.views import Application, View
 
-class HelloWorld(djpcms.WebSite):
+
+class HelloWorld(WebSite):
     
     def load(self):
-        settings = djpcms.get_settings(__file__,
-                                       APPLICATION_URLS = self.urls,
-                                       DEBUG = True)
-        return djpcms.Site(settings)
+        settings = get_settings(__file__,
+                                       APPLICATION_URLS=self.urls,
+                                       DEBUG=True)
+        return Site(settings)
     
     def urls(self, site):
         '''Create a tuple with one application containing one view'''
         return (
             Application('/',
                 name = 'Hello world example',
-                routes = (View(renderer = lambda request : 'Hello world!'),)
+                routes = (View(renderer=lambda request : 'Hello world!'),)
             ),)
 
 
 if __name__ == '__main__':
-    djpcms.execute(HelloWorld())
+    execute(HelloWorld())
 
     

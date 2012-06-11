@@ -1,39 +1,41 @@
-import json
-from datetime import datetime
+from djpcms import forms, views, html
+from djpcms.html.layout import container
+from djpcms.cms import Route
+from djpcms.cms.plugins import DJPplugin
+from djpcms.utils.httpurl import iri_to_uri
 
-from djpcms import views, html, CHANGE, ADD, Route
-from djpcms.utils import iri_to_uri, escape
-from djpcms.html.layout import container, row, column
-from djpcms.core.messages import get_messages
+layouts = (
+           ('v','vertical'),
+           ('o','orizontal')
+           )
+dlayouts = dict(layouts)
 
 topbar_class = 'topbar'
 topbar_fixed = 'topbar-fixed'
 
-def userlinks(request, asbuttons = False):
-    User = request.view.User
-    if User is not None:
-        request = request.for_model(User, root = True)
-        if request:
-            if request.user.is_authenticated():
-                for a in views.application_views_links(request,
-                                            asbuttons = asbuttons,
-                                            include = ('userhome',),
-                                            instance = request.user):
-                    yield a
-                for a in views.application_views_links(request,
-                                            asbuttons = asbuttons,
-                                            include = ('logout',)):
-                    yield a
-                pk = request.view.settings.PROFILING_KEY
-                if request.user.is_superuser and pk:
-                    if request.view.settings.PROFILING_KEY not in request.REQUEST:
-                        yield html.Widget('a','profile',href='{0}?{1}'\
-                                          .format(request.path,pk))
-            else:
-                for a in views.application_views_links(request,
-                                                       asbuttons = asbuttons,
-                                                       include = ('login',)):
-                    yield a
+def userlinks(request, asbuttons=False):
+    request = request.for_model(request.view.User, root = True)
+    if request:
+        if request.user.is_authenticated():
+            for a in views.application_views_links(request,
+                                        asbuttons = asbuttons,
+                                        include = ('userhome',),
+                                        instance = request.user):
+                yield a
+            for a in views.application_views_links(request,
+                                        asbuttons = asbuttons,
+                                        include = ('logout',)):
+                yield a
+            pk = request.view.settings.PROFILING_KEY
+            if request.user.is_superuser and pk:
+                if request.view.settings.PROFILING_KEY not in request.REQUEST:
+                    yield html.Widget('a','profile',href='{0}?{1}'\
+                                      .format(request.path,pk))
+        else:
+            for a in views.application_views_links(request,
+                                                   asbuttons = asbuttons,
+                                                   include = ('login',)):
+                yield a
                 
                 
 def page_links(request, asbuttons = False):
@@ -52,8 +54,10 @@ def page_links(request, asbuttons = False):
                     path = route.url(**urlargs)
                 except:
                     path = '/'
-                a = html.anchor_or_button('exit', href = path,
-                                          asbutton = asbuttons)
+                a = html.anchor_or_button('exit',
+                                          href=path,
+                                          icon='exit-page-edit',
+                                          asbutton=asbuttons)
                 ul.add(a)
         else:
             page = request.page
@@ -72,26 +76,16 @@ def page_links(request, asbuttons = False):
                                     asbuttons = asbuttons):
                     kwargs.update(request.urlargs)
                     href = link.attrs['href']
-                    link.attrs['href'] = iri_to_uri(href,kwargs)
+                    link.attrs['href'] = iri_to_uri(href, kwargs)
                     ul.add(link)
-                    
-    for link in userlinks(request, asbuttons):
-        ul.add(link)
-            
     return ul
 
 
-def djpcms(request):
-    '''The main template context processor. It must be always included.'''
-    settings = request.view.settings            
-    return {'request': request,
-            'page': request.page,
-            'user': request.user,
-            'now': datetime.now(),
-            'settings': settings,
-            'MEDIA_URL': settings.MEDIA_URL,
-            'grid': request.cssgrid()}
-    return ctx
+def page_user_links(request, asbuttons=False):
+    ul = page_links(request, asbuttons=asbuttons)
+    for link in userlinks(request, asbuttons):
+        ul.add(link)
+    return ul
 
 
 def messages(request):
@@ -109,14 +103,12 @@ def messages(request):
             lmsg.append(msg.render())
     return {'messages': lmsg}
 
-
 def navigator(request):
     settings = request.view.settings
     cn = settings.HTML.get('main_nav')
     sitenav = views.Navigator(secondary = page_links(request),
                               levels = settings.SITE_NAVIGATION_LEVELS)
     return {'sitenav': html.LazyHtml(request,sitenav)}
-
 
 def _topbar(request):
     '''Build a lazy topbar to be placed at the top of your web page.
@@ -149,6 +141,7 @@ def breadcrumbs(request):
 
 
 class topbar(container):
+    '''A container for a topbar navigation'''
     default_class = topbar_class
     def __init__(self, brand = None, levels = 2, fixed = True):
         self.brand = brand
@@ -167,3 +160,26 @@ class topbar(container):
                             levels = self.levels,
                             brand = self.brand)
         return topbar.render(request)
+    
+    
+##################################################################### PLUGIN
+
+class navigationForm(forms.Form):
+    levels = forms.ChoiceField(choices = ((1,1),(2,2)))
+    layout = forms.ChoiceField(choices = (('v','vertical'),
+                                          ('o','orizontal')))
+
+
+class SoftNavigation(DJPplugin):
+    '''Display the site navigation from the closest "soft" root
+ for a given number of levels.'''
+    name = 'soft-nav'
+    description = 'Navigation'
+    form = navigationForm
+    
+    def render(self, request, wrapper, prefix, levels = 1,
+               layout = 'v', **kwargs):
+        nav_element = html.Widget('div', cn = dlayouts[layout])
+        nav = views.Navigator(soft = True, levels = int(levels),
+                              nav_element = nav_element)
+        return nav.render(request)

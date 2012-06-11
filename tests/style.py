@@ -2,8 +2,8 @@ import sys
 import os
 import unittest as test
 
-from djpcms.style import *
-from djpcms.style.plugins.nav.style import topbar
+from djpcms.media.style import *
+from djpcms.apps.nav.style import topbar
         
 
 class Tvariable(object):

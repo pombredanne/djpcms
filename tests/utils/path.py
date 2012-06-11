@@ -1,4 +1,5 @@
-from djpcms.utils import test, Path
+from djpcms.utils import test
+from djpcms.utils.path import Path
 
 class TestPath(test.TestCase):
     

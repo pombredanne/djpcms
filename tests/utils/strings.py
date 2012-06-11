@@ -1,6 +1,5 @@
-from djpcms.utils import test, force_str, parentpath, closedurl, routejoin,\
-                         openedurl, slugify, URI_RESERVED
-from djpcms.utils.text import nicename
+from djpcms.utils import test
+from djpcms.utils.text import to_string, nicename, slugify
 
 
 __all__ = ['TestUtilsStrings',
@@ -11,7 +10,7 @@ class TestUtilsStrings(test.TestCase):
 
     def test_force_str(self):
         ts = b'test string'
-        self.assertEqual(force_str(ts),'test string')
+        self.assertEqual(to_string(ts), 'test string')
         
     def testNiceName(self):
         self.assertEqual(nicename('ciao_bla'),'Ciao bla')
@@ -19,7 +18,6 @@ class TestUtilsStrings(test.TestCase):
         self.assertEqual(nicename('ciao bla-foo'),'Ciao bla foo')
     
     def testSlugify(self):
-        s = ''.join(URI_RESERVED)
         self.assertEqual(slugify(s),'')
         self.assertEqual(slugify('ciao pippo'),'ciao-pippo')
         self.assertEqual(slugify('ciao "pippo"'),'ciao-pippo')
@@ -27,7 +25,7 @@ class TestUtilsStrings(test.TestCase):
         
         
         
-class TestUrls(test.TestCase):
+class _TestUrls(object):
     
     def testParentpath(self):
         '''Test the parent path'''

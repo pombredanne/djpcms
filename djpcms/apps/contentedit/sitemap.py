@@ -11,7 +11,7 @@ from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
 from djpcms.cms import Http404, messages
 from djpcms.cms.formutils import request_get_data
-from djpcms.cms.plugins.navigation import page_links
+from djpcms.apps.nav import page_links
 from djpcms.apps.admin import AdminApplication
 
 from .layout import HtmlPageForm

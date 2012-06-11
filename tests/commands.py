@@ -9,7 +9,7 @@ class CommandTests(test.TestCase):
     
     def testServe(self):
         c = fetch_command(self.website(), 'serve')
-        self.assertTrue(isinstance(c,Command))
+        self.assertTrue(isinstance(c, Command))
         self.assertEqual(c.help,\
 "Serve the application using WSGIserver from the standard library.")
         self.assertEqual(len(c.option_list),2)
@@ -30,4 +30,4 @@ class CommandTests(test.TestCase):
         
     def testShell(self):
         c = fetch_command(self.website(), 'shell')
-        self.assertTrue(isinstance(c,Command))
+        self.assertTrue(isinstance(c,Command)), m

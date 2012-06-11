@@ -61,7 +61,7 @@ Prettify a value to be displayed in html.
         except TypeError:
             if hasattr(val,'_meta'):
                 val = val._meta
-            val = force_str(val)
+            val = to_string(val)
             if val.startswith('http://') or val.startswith('https://'):
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
             return val

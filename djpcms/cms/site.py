@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from inspect import isclass
-from copy import deepcopy, copy
+from copy import copy
 
 from djpcms.utils import orms
 from djpcms import html
@@ -213,11 +213,7 @@ Attributes available:
 '''
     profilig_key = None
     
-    def __init__(self,
-                 settings = None,
-                 route = '/',
-                 parent = None,
-                 **handlers):
+    def __init__(self, settings=None, route='/', parent=None, **handlers):
         super(Site, self).__init__(route)
         self._model_registry = {}
         self._page_layout_registry = OrderedDict()
@@ -242,12 +238,12 @@ Attributes available:
             add_default_handlers(self)
         appurls = self.settings.APPLICATION_URLS
         if appurls:
-            if not hasattr(appurls,'__call__'):
-                if isinstance(appurls,str):
+            if not hasattr(appurls, '__call__'):
+                if isinstance(appurls, str):
                     appurls = module_attribute(appurls,safe=False)
             if hasattr(appurls,'__call__'):
                 appurls = appurls(self)
-            self.routes.extend(deepcopy(appurls))
+            self.routes.extend(copy(appurls))
         return len(self)
     
     def _load(self):

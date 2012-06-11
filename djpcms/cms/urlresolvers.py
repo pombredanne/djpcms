@@ -371,9 +371,9 @@ class ResolverMixin(RouteMixin):
             else:
                 yield child
                     
-    def resolve(self, path, urlargs = None):
+    def resolve(self, path, urlargs=None):
         '''Resolve a path'''            
-        with resolver_manager(self,path) as rm:
+        with resolver_manager(self, path) as rm:
             urlargs = urlargs if urlargs is not None else {}
             for handler in self.urls():
                 match = handler.rel_route.match(path)

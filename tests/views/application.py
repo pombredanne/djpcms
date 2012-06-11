@@ -1,5 +1,5 @@
 '''Test Application construction'''
-from djpcms import views, UrlException
+from djpcms import views, cms
 from djpcms.utils import test
 
 
@@ -108,8 +108,8 @@ class TestSimpleApplication(test.TestCase):
         
     def testUrlException(self):
         app = views.Application('/')
-        app2 = self.assertRaises(UrlException,
-                                 views.Application, 'foo/', parent_view = '/')
+        app2 = self.assertRaises(cms.UrlException,
+                                 views.Application, 'foo/', parent_view='/')
         
         
         

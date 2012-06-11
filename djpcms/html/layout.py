@@ -191,6 +191,7 @@ grid system.'''
         return len(tuple(self.columns()))
     
     def is_column(self):
+        '''``True`` if this :class:`elem` is a :class:`column` element'''
         return False
     
     def columns(self):

@@ -1,9 +1,11 @@
+import sys
 import weakref
 import threading
 
-from djpcms.utils.py2py3 import range
-
 from . import saferef
+
+if sys.version_info < (3,0):
+    range = xrange
 
 
 WEAKREF_TYPES = (weakref.ReferenceType, saferef.BoundMethodWeakref)

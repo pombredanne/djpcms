@@ -2,7 +2,7 @@
 '''
 from djpcms.apps.nav import topbar_class, topbar_fixed
 
-from djpcms.style import *
+from djpcms.media.style import *
 
 # Control the size
 cssv.topbar.height = px(40)

@@ -256,10 +256,10 @@ overwritten to customize its behavior.
     url_bits_mapping = None
     in_nav = 1  
 
-    def __init__(self, route, model = None, editavailable = None,
-                 list_display_links = None, object_display = None,
-                 related_field = None, url_bits_mapping = None,
-                 routes = None, always_load_fields = None, **kwargs):
+    def __init__(self, route, model=None, editavailable=None,
+                 list_display_links=None, object_display=None,
+                 related_field=None, url_bits_mapping=None,
+                 routes=None, always_load_fields=None, **kwargs):
         self.model = model
         ResolverMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
@@ -300,7 +300,7 @@ overwritten to customize its behavior.
         self.root_view = None
         self.instance_view = None
         self.routes = []
-        self.views = OrderedDict()
+        self.views = {}
         
     def _site(self):
         if self.appmodel:
@@ -707,22 +707,20 @@ Can be overritten to include request dictionary.'''
     ##  INTERNALS
     
     def _addroutes(self):
-        # add routes to the views dictionary and check for duplicates
+        # Clone base_routes
+        routes = []
         for route in self.base_routes:
             if not isinstance(route, RendererMixin):
                 raise UrlException('Route "{0}" is not a view instance. '\
                 'Error in constructing application "{2}".'.format(route,self))
             route = deepcopy(route)
-            route.code = self.name + SPLITTER + route.name                    
-            self.views[route.name] = route
-        
+            route.code = self.name + SPLITTER + route.name
+            routes.append(route)
         #and now set the routes
-        processed = {}
-        routes = list(itervalues(self.views))
-        proutes = list(routes)
-        while proutes:
-            N = len(proutes)
-            for idx,route in enumerate(proutes):
+        processed = self.views
+        while routes:
+            N = len(routes)
+            for idx, route in enumerate(routes):
                 if route.parent_view:
                     if route.parent_view in processed:
                         p = processed[route.parent_view]
@@ -734,22 +732,15 @@ Can be overritten to include request dictionary.'''
                     else:
                         continue
                 processed[route.name] = route
-                proutes.pop(idx)
+                routes.pop(idx)
                 break
-            if len(proutes) == N:
+            if len(routes) == N:
                 raise UrlException('Cannot find parent views in "{0}"'\
                                     .format(self))
-                
-        proutes = dict(((p.route.path,p) for p in routes\
-                         if isinstance(p,View)))
-
-        # Refresh routes dictionary with updated routes paths
-        for route in routes:
+        # Add routes
+        for route in itervalues(processed):
             if route.path == '/':
                 self.root_view = route
-            #else:
-            #    p,c = route.route.split()
-            #    route.parent_view = proutes.get(p.path)
             if isinstance(route, View) and route.object_view:
                 self.object_views.append(route)
             self.routes.append(route)

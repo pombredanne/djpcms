@@ -105,10 +105,10 @@ class TestCaseWidthAdmin(TestCase):
     def load_site(self, website):
         from djpcms.apps.admin import make_admin_urls
         site = super(TestCaseWidthAdmin,self).load_site(website)
-        settings_admin = djpcms.get_settings(self.settings,
-                                APPLICATION_URLS  = make_admin_urls(),
-                                INSTALLED_APPS = self.installed_apps)
-        site.addsite(settings_admin, route = '/admin/')
+        settings_admin = get_settings(self.settings,
+                                      APPLICATION_URLS=make_admin_urls(),
+                                      INSTALLED_APPS=self.installed_apps)
+        site.addsite(settings_admin, route='/admin/')
         return site
     
     

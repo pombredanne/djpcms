@@ -103,10 +103,8 @@ class TestVanillaMeta(test.TestCase):
                            parent_view = 'view',
                            related_field = 'user',
                            routes = (views.ViewView('<pid>/', name = 'view'),))
-        app = Application('bla/',
-                          User,
-                          routes = (port,))
-        site = cms.Site(cms.get_settings(APPLICATION_URLS = (app,)))
+        app = Application('bla/', User, routes=(port,))
+        site = cms.Site(cms.get_settings(APPLICATION_URLS=(app,)))
         view, urlargs = site.resolve('bla/56/portfolio/')
         urls = app.urls()
         self.assertEqual(len(urls),6)

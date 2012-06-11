@@ -13,7 +13,7 @@ class TestSimpleForm(test.TestCase):
     
     def page_data(self, layout='default', grid_system = 'fixed_12',
                   inner_template = 'grid 100', **kwargs):
-        d = dict(HtmlPageFodm.form_class.initials())
+        d = dict(HtmlPageForm.form_class.initials())
         d['layout'] = layout
         d['grid_system'] = grid_system
         d['inner_template'] = inner_template
@@ -39,7 +39,7 @@ class TestSimpleForm(test.TestCase):
         d = self.page_data()
         p = HtmlPageForm(data = d)
         form = p.form
-        self.assertFalse(fodm.is_valid())
+        self.assertFalse(form.is_valid())
         p = HtmlPageForm(data=d, model=Page)
         self.assertTrue(p.is_valid())
         page = p.fodm.save()

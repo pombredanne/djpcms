@@ -41,7 +41,7 @@ class Command(cms.Command):
                          version=self.website.version or djpcms.__version__,
                          config=config)
         #app.cfg.djpcms_settings = site.settings
-        callback = getattr(self.website,'on_pulsar_app_ready',None)
+        callback = getattr(self.website, 'on_pulsar_app_ready', None)
         if callback:
             callback(app)
         app.start()

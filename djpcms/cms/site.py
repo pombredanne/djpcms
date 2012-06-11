@@ -170,6 +170,8 @@ delegate the handling to them.'''
         if request is None:
             request = make_request(environ, node)
         status = getattr(e, 'status', 500)
+        if status == 500:
+            logger.critical('Interval server error', exc_info=True)
         return self.error(request, status)
         
     def page_tree(self):

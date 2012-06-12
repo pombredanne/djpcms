@@ -28,15 +28,15 @@ class TestSimpleForm(base.TestCase):
         client.post('/admin/cms/')
         p = HtmlPageForm(data = d)
         form = p.form
-        self.assertFalse(fodm.is_valid())
+        self.assertFalse(form.is_valid())
         p = HtmlPageForm(data=d, model=Page)
         self.assertTrue(p.is_valid())
-        page = p.fodm.save()
+        page = p.form.save()
         page = Page.objects.get(id = page.id)
         for k,v in d.items():
             self.assertEqual(getattr(page,k),v)
         p = HtmlPageForm(instance = page)
-        dp = p.fodm.initial
+        dp = p.form.initial
         for k,v in d.items():
             self.assertEqual(dp[k],v)
             

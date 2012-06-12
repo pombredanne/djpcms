@@ -1,17 +1,5 @@
-'''\
-Permissions are controlled by the plugin the user provides.
-'''
+'''Permissions are controlled by the plugin the user provides.'''
 from .exceptions import PermissionDenied
-
-__all__ = ['VIEW',
-           'ADD',
-           'COPY',
-           'CHANGE',
-           'DELETE',
-           'DELETEALL',
-           'PermissionHandler',
-           'SimpleRobots',
-           'authenticated_view']
 
 # Main permission flags
 VIEW = 10
@@ -46,6 +34,21 @@ class SimpleRobots(object):
         return 'NONE,NOARCHIVE'
      
      
+class AuthBackend(object):
+    '''Signature for :class:`AuthBackend` classes.'''
+    def authenticate(self, environ, **params):
+        pass
+    
+    def login(self, environ, user):
+        pass
+    
+    def logout(self, environ, user):
+        pass
+    
+    def create_user(self, *args, **kwargs):
+        pass
+    
+    
 class PermissionHandler(object):
     '''Base class for permissions handlers.
     
@@ -62,13 +65,18 @@ class PermissionHandler(object):
 
 .. attribute:: requires_login
 
-    boolean indicating if login is required.
+    boolean indicating if login is required to access resources.
     
+    Default: ``False``.
+    
+.. attribute:: auth_backends
+
+    A list of authentication backends. An authentication backend must
+    implement the :class:`AuthBackend` signature.
 '''
     AuthenticationError = AuthenticationError
     
-    def __init__(self, settings, auth_backends = None,
-                 requires_login = False):
+    def __init__(self, settings, auth_backends=None, requires_login=False):
         if auth_backends is None:
             auth_backends = self.default_backends(settings)
         self.auth_backends = auth_backends
@@ -114,15 +122,6 @@ class PermissionHandler(object):
     def permission_choices(self):
         c = self.permission_codes
         return ((k,c[k]) for k in sorted(c))
-     
-    def authenticate(self, request, **params):
-        for b in self.auth_backends:
-            try:
-                user = b.authenticate(request, **params)
-                if user is not None:
-                    return user
-            except:
-                continue
             
     def authenticate_and_login(self, environ, **params):
         '''authenticate and login user. If it fails raises
@@ -137,6 +136,15 @@ a AuthenticationError exception.'''
             msg = 'username or password not recognized'
         raise ValueError(msg)
     
+    def authenticate(self, request, **params):
+        for b in self.auth_backends:
+            try:
+                user = b.authenticate(request, **params)
+                if user is not None:
+                    return user
+            except:
+                continue
+            
     def login(self, environ, user):
         for b in self.auth_backends:
             try:

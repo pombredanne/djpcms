@@ -17,8 +17,8 @@ class LogoutView(views.ModelView):
     default_link = 'Log out'
     
     def __call__(self, request):
-        params  = dict(request.GET.items())
-        url     = params.get('next',None) or '/'
+        params = dict(request.GET.items())
+        url = params.get('next',None) or '/'
         if request.view.permissions.logout(request.environ):
             raise HttpRedirect(url)
         raise ValueError('Could not logout')

@@ -4,9 +4,9 @@ import logging
 from inspect import isclass
 from copy import copy
 
+from djpcms import ajax
 from djpcms.utils import orms
-from djpcms import html
-from djpcms.html import layout
+from djpcms.html import Renderer, layout
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri
 from djpcms.utils.importer import import_module, module_attribute,\
@@ -100,7 +100,7 @@ def add_default_handlers(site):
             internals[key] = value
             
 
-class ViewRenderer(html.Renderer):
+class ViewRenderer(Renderer):
     appmodel = None
     inherit_page = False
     
@@ -112,8 +112,7 @@ is used by the :attr:`djpcms.Request.parent` attribute.'''
         
 
 class WSGI(object):
-    '''WSGI handler. It looks for application site and
-delegate the handling to them.'''
+    '''Djpcms WSGI handler.'''
     def __init__(self, site):
         self.site = site
         self.error = site.response.error_to_response
@@ -151,17 +150,25 @@ delegate the handling to them.'''
                 raise PermissionDenied()
             return request.view(request)
         except HttpRedirect as e:
-            return self.handler_redirect(environ, e.location)
+            # Redirecting
+            return self.handle_redirect(environ, e.location)
         except Exception as e:
             return self.handle_error(environ, tree, request, node, e)
         
+    def handle_content(self, content, status=200):
+        if ajax.is_ajax(content):
+            content_type = content.content_type()
+            content = content.dumps()
+        return Response(content=content,
+                        status=status,
+                        content_type=content_type)
+        
     def handle_redirect(self, environ, location):
         if is_xhr(environ):
-            return ajax.jredirect(location)
+            return self.handle_content(ajax.jredirect(location))
         else:
-            return Response(status=302,
-                            response_headers=[('Location',
-                                               iri_to_uri(e.location))])
+            h = [('Location', iri_to_uri(location))]
+            return Response(status=302, response_headers=h)
     
     def handle_error(self, environ, tree, request, node, e):
         if node is None:

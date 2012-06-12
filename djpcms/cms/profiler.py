@@ -4,8 +4,8 @@ import re
 import tempfile
 import cProfile as profiler
 import pstats
-
-from djpcms.utils.httpurl import StringIO
+from io import StringIO
+ 
 from djpcms.html import Pagination, Widget, tabs
 
 words_re = re.compile( r'\s+' )

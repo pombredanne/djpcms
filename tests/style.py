@@ -543,7 +543,7 @@ class TestGradient(test.TestCase):
     background-image: -o-linear-gradient(top, #ffffff, #f5f5f5);
     background-image: linear-gradient(top, #ffffff, #f5f5f5);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransfodm.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f5f5f5', GradientType=0);'''
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f5f5f5', GradientType=0);'''
         self.assertTrue(r in text)
     
     def testColor(self):

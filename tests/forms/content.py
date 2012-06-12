@@ -42,12 +42,12 @@ class TestSimpleForm(test.TestCase):
         self.assertFalse(form.is_valid())
         p = HtmlPageForm(data=d, model=Page)
         self.assertTrue(p.is_valid())
-        page = p.fodm.save()
+        page = p.form.save()
         page = Page.objects.get(id = page.id)
         for k,v in d.items():
             self.assertEqual(getattr(page,k),v)
         p = HtmlPageForm(instance = page)
-        dp = p.fodm.initial
+        dp = p.form.initial
         for k,v in d.items():
             self.assertEqual(dp[k],v)
             
@@ -83,10 +83,10 @@ class TestSimpleForm(test.TestCase):
     def __testContentEditForm(self):
         fw = HtmlEditContentForm()
         form = fw.form
-        self.assertFalse(fodm.is_bound)
+        self.assertFalse(form.is_bound)
         #
         # Test the markup field
-        bmarkup = fodm.dfields['markup'] # markup bound field
+        bmarkup = form.dfields['markup'] # markup bound field
         markup = bmarkup.field
         self.assertTrue(markup.choices)
         self.assertEqual(markup.empty_label,None)

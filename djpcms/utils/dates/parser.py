@@ -14,8 +14,9 @@ __license__ = "PSF License"
 import datetime
 import string
 import time
+from io import StringIO
 
-from djpcms.utils.httpurl import StringIO, is_string
+from djpcms.utils.httpurl import is_string
 
 from .relativedelta import relativedelta
 

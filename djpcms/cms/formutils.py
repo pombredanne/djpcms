@@ -7,9 +7,10 @@ from datetime import datetime
 
 from djpcms import forms, html, ajax
 from djpcms.utils.text import to_string
-from djpcms.utils.httpurl import urlsplit
+from djpcms.utils.httpurl import urlsplit, QueryDict
 from djpcms.utils.dates import format
 
+from .exceptions import HttpRedirect
 from . import messages
 
 logger = logging.getLogger('djpcms.forms')
@@ -117,9 +118,9 @@ def get_form(request,
                       available form class as no inputs associated with it.
                       Default ``None``.
 '''
-    referer = request.environ.get('HTTP_REFERER')
+    referrer = request.environ.get('HTTP_REFERER')
     data = request.REQUEST
-    prefix = data.get(PREFIX_KEY, None)
+    prefix = data.get(forms.PREFIX_KEY, None)
     inputs = form_factory.inputs
     if inputs is not None:
         inputs = [inp() for inp in inputs]
@@ -131,10 +132,13 @@ def get_form(request,
         inputs = form_inputs(instance, own_view)
     
     inputs = inputs if inputs is not None else []
-    inputs.append(Widget('input:hidden',name=REFERER_KEY,value=referer))
+    inputs.append(Widget('input:hidden', name=forms.REFERER_KEY,
+                         value=referrer))
     if prefix is None and force_prefix:
-        prefix = generate_prefix()
-        inputs.append(Widget('input:hidden',name=PREFIX_KEY,value=prefix))
+        prefix = forms.generate_prefix()
+        inputs.append(Widget('input:hidden',
+                             name=forms.PREFIX_KEY,
+                             value=prefix))
                 
     # Create the form instance
     form  = form_factory(inputs=inputs,
@@ -164,7 +168,7 @@ def request_get_data(request):
     if request.is_xhr or request.POST:
         ref = request.environ.get('HTTP_REFERER')
         parts = urlsplit(ref)
-        extra_data = http.QueryDict(parts.query,request.encoding)
+        extra_data = QueryDict(parts.query, request.encoding)
         extra_data.update(data)
         data = extra_data
     return data
@@ -175,7 +179,7 @@ def get_redirect(request, instance = None, force_redirect = False):
 according to the following algorithm:
  
 * Check for ``next`` in the request environment query string
-* Check for ``next`` in the environment referer query string
+* Check for ``next`` in the environment referrer query string
 * If *force_redirect* is ``True``, calculate next from the
   :meth:`djpcms.views.djpcmsview.redirect_url` passing both *request*
   and the optional *instance* parameter.
@@ -201,15 +205,15 @@ has been submitted, including possible asynchronous behavior.'''
     view = request.view
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
-    referer = request.REQUEST.get(REFERER_KEY)
+    referrer = data.get(forms.REFERER_KEY)
     fhtml = view.get_form(request)
     f = fhtml.form
     
-    if CANCEL_KEY in data:
+    if forms.CANCEL_KEY in data:
         url = get_redirect(request, f.instance, True)
         return view.redirect(request, url)
         
-    if SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
+    if forms.SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
         f.instance = view.mapper.save_as_new(f.instance, commit = False)
         
     # The form is valid. Invoke the save method in the view
@@ -230,7 +234,7 @@ has been submitted, including possible asynchronous behavior.'''
 def _saveinstance(request, editing, fhtml, force_redirect, instance):
     view = request.view
     f = fhtml.form
-    if ajax.isajax(instance):
+    if ajax.is_ajax(instance):
         return instance
     elif instance == f:
         return fhtml.maker.json_messages(f)
@@ -239,8 +243,8 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
                                 'changed' if editing else 'added')
     f.add_message(msg)
     
-    # Save and continue. Redirect to referer if not AJAX or send messages 
-    if SAVE_AND_CONTINUE_KEY in data:
+    # Save and continue. Redirect to referrer if not AJAX or send messages 
+    if forms.SAVE_AND_CONTINUE_KEY in data:
         if editing:
             if request.is_xhr:
                 return fhtml.maker.json_messages(f)
@@ -264,7 +268,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
             return view.get_response(request)
     else:
         set_request_message(f,request)
-        return view.redirect(request, url)
+        raise HttpRedirect(url)
 
 
 def deleteinstance(request, force_redirect=True):

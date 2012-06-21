@@ -2,6 +2,7 @@
 '''
 Script for running djpcms web site. It requires the following libraries:
 
+* https://github.com/lsbardel/pulsar
 * https://github.com/lsbardel/python-stdnet
 * https://github.com/lsbardel/stdcms
 * https://github.com/lsbardel/social

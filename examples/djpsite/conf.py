@@ -8,14 +8,13 @@ INSTALLED_APPS = ('djpcms',
                   'stdcms.sessions',
                   'social',
                   #
-                  # styling plugins
-                  'djpcms.style.plugins.base',
-                  'djpcms.style.plugins.fontawesome',
-                  'djpcms.style.plugins.nav',
-                  'djpcms.style.plugins.page',
-                  'djpcms.style.plugins.table',
-                  'djpcms.style.plugins.ui',
-                  'djpcms.style.plugins.color',
+                  'djpcms.apps.base',
+                  'djpcms.apps.fontawesome',
+                  'djpcms.apps.nav',
+                  'djpcms.apps.page',
+                  'djpcms.apps.table',
+                  'djpcms.apps.ui',
+                  'djpcms.apps.color',
                   #
                   'djpsite.apps.design',
                   'djpsite')

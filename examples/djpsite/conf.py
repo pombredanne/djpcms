@@ -23,7 +23,7 @@ DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}
 LANGUAGE_CODE = 'en-gb'
 SITE_NAVIGATION_BRAND =\
 "<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>"
-DJPCMS_PLUGINS = ['djpcms.plugins.*',
+DJPCMS_PLUGINS = ['djpcms.cms.plugins.*',
                   'djpcms.apps.contentedit.plugins']
 
 DOMAIN_NAME = 'http://djpcms.com'

@@ -30,7 +30,7 @@ from djpcms import cms, views, html
 from djpcms.apps import admin, static, user
 from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
-from djpcms.apps.nav import topbar
+from djpcms.apps.nav import Navigator
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
@@ -105,7 +105,7 @@ class WebSite(cms.WebSite):
     def render_topbar(self, request, namespace, column, blocks):
         '''Render the topbar container'''
         if column == 0:
-            return topbar(request).render(request)
+            return Navigator().render(request)
     
     def render_header(self, request, namespace, column, blocks):
         if column == 0:

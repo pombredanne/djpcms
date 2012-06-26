@@ -2,7 +2,7 @@ import os
 import logging
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
-from djpcms import cms, init_logging
+from djpcms import cms
 
 DEFAULT_PORT = 8060
 
@@ -36,6 +36,5 @@ class Command(cms.Command):
     )
     
     def handle(self, options):
-        site = self.website()
-        init_logging(site.settings)
-        serve(self.website, port=options.port, dry=options.dryrun)
+        site = self.website(options)
+        serve(self._website, port=options.port, dry=options.dryrun)

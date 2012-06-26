@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from djpcms import forms, views, html
-from djpcms.forms.utils import get_form
+from djpcms.cms.formutils import get_form
 from djpcms.forms import layout as uni
-from djpcms.style.plugins.color import ColorField
+from djpcms.apps.color import ColorField
 
 from stdnet import odm
 

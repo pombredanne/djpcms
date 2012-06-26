@@ -4,6 +4,7 @@ from inspect import isclass
 from djpcms import html
 from djpcms.utils.httpurl import iteritems
 from djpcms.utils.text import slugify, escape
+from djpcms.utils.orms import mapper
 
 from .globals import *
 from .layout import FormTemplate, FormLayout
@@ -12,15 +13,13 @@ from .layout import FormTemplate, FormLayout
 __all__ = ['HtmlForm']
 
 
-def default_success_message(request, instance, mch):
-    from djpcms.core.orms import mapper
+def default_success_message(request, instance, modified_or_added):
     '''Very basic success message. Write your own for a better one.'''
-    c = {'mch': mch}
     if instance:
-        c['name'] = mapper(instance).pretty_repr(instance)
-        return '{0[name]} successfully {0[mch]}'.format(c)
+        name = mapper(instance).pretty_repr(instance)
+        return '%s successfully %s' % (name,modified_or_added)
     else:
-        return '0[mch]'.format(c)
+        return '%s' % modified_or_added
 
 
 class HtmlForm(FormTemplate):

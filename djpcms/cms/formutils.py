@@ -1,5 +1,4 @@
-'''Utility functions for forms
-'''
+'''Utility functions for forms'''
 import sys
 import logging
 from functools import partial
@@ -24,7 +23,6 @@ def set_request_message(f, request):
     if '__all__' in f.messages:
         for msg in f.messages['__all__']:
             messages.info(request, msg)
-
 
 def form_kwargs(request,
                 withdata = None,
@@ -61,7 +59,6 @@ Usage::
     kwargs['request'] = request
     return kwargs
 
-
 def add_extra_fields(form, name, field):
     '''form must be a form class, not an object
     '''
@@ -75,28 +72,25 @@ def add_extra_fields(form, name, field):
             fields.append(name)
     return form
 
-
 def add_hidden_field(form, name, required = False):
     return add_extra_fields(form,name,forms.CharField(\
                         widget=forms.HiddenInput, required = required))
-    
-    
+        
 def form_inputs(instance, own_view = False):
     '''Generate the submits elements to be added to the model form.
     '''
     if instance:
-        sb = [Widget('input:submit', value = 'save', name = SAVE_KEY),
-              Widget('input:submit', value = 'save as new', name = SAVE_AS_NEW_KEY)]
+        sb = [Widget('input:submit', value='save', name=forms.SAVE_KEY),
+              Widget('input:submit', value='save as new',
+                     name=forms.SAVE_AS_NEW_KEY)]
     else:
-        sb = [Widget('input:submit', value = 'add', name = SAVE_KEY)]
+        sb = [Widget('input:submit', value='add', name=forms.SAVE_KEY)]
         
     if own_view:
         sb.append(Widget('input:submit', value = 'save & continue',
-                         name = SAVE_AND_CONTINUE_KEY))
-        sb.append(Widget('input:submit', value = 'cancel',
-                         name = CANCEL_KEY))
+                         name=forms.SAVE_AND_CONTINUE_KEY))
+        sb.append(Widget('input:submit', value='cancel', name=forms.CANCEL_KEY))
     return sb
-
 
 def get_form(request,
              form_factory,
@@ -155,14 +149,12 @@ def get_form(request,
         form.addClass(str(model._meta).replace('.','-'))
     return form
 
-
 def return_form_errors(fhtml,request):
     if request.is_xhr:
         return fhtml.maker.json_messages(fhtml.form)
     else:
         return request.view.handle_response(request)
     
-
 def request_get_data(request):
     data = request.GET
     if request.is_xhr or request.POST:
@@ -172,7 +164,6 @@ def request_get_data(request):
         extra_data.update(data)
         data = extra_data
     return data
-    
     
 def get_redirect(request, instance = None, force_redirect = False):
     '''Obtain the most suitable url to redirect the request to
@@ -196,7 +187,6 @@ absolute url.
             return request.view.redirect_url(request,instance=instance)
     n = _next()
     return request.build_absolute_uri(n) if n else None
-    
     
 def saveform(request, force_redirect = False):
     '''Comprehensive save method for forms.
@@ -230,7 +220,6 @@ has been submitted, including possible asynchronous behavior.'''
         else:
             return view.get_response(request)
         
-
 def _saveinstance(request, editing, fhtml, force_redirect, instance):
     view = request.view
     f = fhtml.form
@@ -270,7 +259,6 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
         set_request_message(f,request)
         raise HttpRedirect(url)
 
-
 def deleteinstance(request, force_redirect=True):
     '''Delete an instance from database'''
     instance = request.instance
@@ -284,7 +272,6 @@ def deleteinstance(request, force_redirect=True):
         messages.info(request,msg)
         raise HttpRedirect(next)
     
-
 def fill_form_data(f):
     '''Utility for filling a dictionary with data contained in a form'''
     data = {}

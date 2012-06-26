@@ -97,7 +97,7 @@ must raise a ValueError.
     
     def pretty_repr(self, instance):
         '''Return a string with a pretty representation of instance'''
-        return force_str(instance)
+        return to_string(instance)
     
     def model_attribute(self, name):
         pass

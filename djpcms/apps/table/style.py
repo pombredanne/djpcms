@@ -1,5 +1,4 @@
-'''Top bar styling
-'''
+'''Table'''
 from djpcms.media.style import *
 
 ############################################################

@@ -19,6 +19,7 @@ __all__ = ['flatatt',
            'StreamRenderer',
            'WidgetMaker',
            'Widget',
+           'Anchor',
            'Img',
            'NON_BREACKING_SPACE']
 
@@ -406,7 +407,7 @@ corner cases, users can subclass it to customize behavior.
     is_hidden = False
     default_style = None
     inline = False
-    attributes = ('id','title','dir','style')
+    attributes = ('id', 'title', 'dir', 'style')
     default_attrs = None
     _widget = None
     _media = None
@@ -560,11 +561,20 @@ inner part of the widget.
     
     def media(self, request, widget):
         return self._media
-        
-        
-DefaultMaker = WidgetMaker()
+
 
 class Img(WidgetMaker):
     tag = 'img'
     attributes = WidgetMaker.makeattr('src', 'alt')
 
+
+class Anchor(WidgetMaker):
+    tag = 'a'
+    attributes = WidgetMaker.makeattr('href', 'charset', 'name', 'rel', 'rev',
+                                      'shape', 'target')
+    
+    
+# set defaults
+DefaultMaker = WidgetMaker()
+Img()
+Anchor()

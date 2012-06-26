@@ -123,8 +123,7 @@ for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
     WidgetMaker(tag = tag)
     
     
-WidgetMaker(tag = 'a', default = 'a', attributes = ('href','title'))
-WidgetMaker(tag = 'table', default = 'table')
+WidgetMaker(tag = 'table', default='table')
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')

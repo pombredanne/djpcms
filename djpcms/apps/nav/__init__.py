@@ -1,17 +1,23 @@
+'''Utility module for creating a navigations and bread-crumbs.
+
+Dependency: ``None``
+'''
 from djpcms import forms, views, html
-from djpcms.html.layout import container
+from djpcms.html.layout import container, row
 from djpcms.cms import Route
 from djpcms.cms.plugins import DJPplugin
 from djpcms.utils.httpurl import iri_to_uri
+
+from .html import *
 
 layouts = (
            ('v','vertical'),
            ('o','orizontal')
            )
 dlayouts = dict(layouts)
-
 topbar_class = 'topbar'
 topbar_fixed = 'topbar-fixed'
+
 
 def userlinks(request, asbuttons=False):
     request = request.for_model(request.view.User, root = True)
@@ -129,37 +135,6 @@ There are several customizable parameters available.
                              fixed = True,
                              container = container)
     return {'topbar': html.LazyHtml(request, topbar)}
-    
-    
-def breadcrumbs(request):
-    settings = request.view.settings
-    if settings.ENABLE_BREADCRUMBS:
-        b = views.Breadcrumbs(min_length = settings.ENABLE_BREADCRUMBS)
-        return {'breadcrumbs': html.LazyHtml(request,b)}
-    else:
-        return {}
-
-
-class topbar(container):
-    '''A container for a topbar navigation'''
-    default_class = topbar_class
-    def __init__(self, brand = None, levels = 2, fixed = True):
-        self.brand = brand
-        self.levels = levels
-        self.fixed = fixed
-        inner = container(row(column(1, 1, renderer = self.navigator)))
-        super(topbar,self).__init__(inner)
-        
-    def add_css_data(self, widget):
-        if self.fixed:
-            widget.addClass(topbar_fixed)
-            
-    def navigator(self, request, widget, context):
-        topbar = views.Navigator(
-                            secondary = page_links(request),
-                            levels = self.levels,
-                            brand = self.brand)
-        return topbar.render(request)
     
     
 ##################################################################### PLUGIN

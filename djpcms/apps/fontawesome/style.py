@@ -1,5 +1,8 @@
+'''Icons by Font-Awesome
+
+https://github.com/FortAwesome/Font-Awesome'''
 import os
-from djpcms.style import *
+from djpcms.media.style import *
 
 css('@font-face',
     fontface('fontawesome/fontawesome-webfont', 'FontAwesomeRegular'),

@@ -25,23 +25,27 @@ class Command(cms.Command):
     
     def run_from_argv(self, website, command, argv, **kwargs):
         #Override so that we use pulsar parser
-        self.website = website
+        self._website = website
         self.execute(argv, **kwargs)
         return self
         
     def handle(self, argv):
-        site = self.website()
+        website = self._website
+        site = self.website(argv)
         # get the full path of the setting file
         config = site.settings.path
         #website = pickle.loads(pickle.dumps(self.website))
-        app = WSGIServer(callable=self.website,
+        app = WSGIServer(callable=website,
                          description=site.settings.DESCRIPTION,
                          epilog=site.settings.EPILOG,
                          argv=argv,
-                         version=self.website.version or djpcms.__version__,
+                         version=website.version or djpcms.__version__,
                          config=config)
         #app.cfg.djpcms_settings = site.settings
-        callback = getattr(self.website, 'on_pulsar_app_ready', None)
+        callback = getattr(website, 'on_pulsar_app_ready', None)
         if callback:
             callback(app)
         app.start()
+        
+    def setup_logging(self, settings, options):
+        pass

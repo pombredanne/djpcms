@@ -1,5 +1,5 @@
 '''Style inputs, widgets and forms used by djpcms.'''
-from djpcms.style import *
+from djpcms.media.style import *
 
 ################################################################################
 ##    VARIABLES

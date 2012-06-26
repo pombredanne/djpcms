@@ -1,6 +1,6 @@
 '''Uniform Styling
 '''
-from djpcms.style import *
+from djpcms.media.style import *
 
 ################################################################################
 ##    VARIABLES

@@ -5,14 +5,14 @@ import argparse
 import json
 import threading
 import logging
+from io import StringIO
 from copy import copy
 from datetime import datetime
 from inspect import isgenerator
 
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.text import UnicodeMixin
-from djpcms.utils.httpurl import StringIO, itervalues, iteritems,\
-                                 native_str, to_string, ispy3k
+from djpcms.utils.text import UnicodeMixin, to_string
+from djpcms.utils.httpurl import itervalues, iteritems, native_str, ispy3k
 
 __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',
@@ -20,7 +20,7 @@ __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'spacing', 'dump_theme', 'main', 'Variables',
            'add_arguments']
 
-LOGGER = logging.getLogger('djpcms.style')
+LOGGER = logging.getLogger('djpcms.media.style')
 nan = float('nan')
 conversions = {}
 
@@ -143,7 +143,7 @@ in a css file.'''
             if not unit or val.unit == unit:
                 return val
         elif not isinstance(val, Variable):
-            return cls(val, unit = unit)
+            return cls(val, unit=unit)
         return cls._make(val, unit)
     
     @classmethod
@@ -263,7 +263,7 @@ class NamedVariable(ProxyVariable):
     
 class Size(Variable):
       
-    def __init__(self, value, unit = None):
+    def __init__(self, value, unit=None):
         self._fix_unit = unit or 'px'
         super(Size, self).__init__(value)
     
@@ -277,8 +277,7 @@ class Size(Variable):
                 value = value[:-2]
             elif value[-1:] == self.unit:
                 value = value[:-1]
-            else:
-                ValueError('"{0}" is not a valid space'.format(value))
+            value = float(value)
         value = round(value,4)
         ivalue = int(value)
         if self.unit == 'px':
@@ -352,9 +351,9 @@ class Spacing(Variable):
     
 ################################################################################
 ##    factory functions
-px = lambda v: Size.make(v, unit = 'px')  
-pc = lambda v: Size.make(v, unit = '%')
-em = lambda v: Size.make(v, unit = 'em')
+px = lambda v: Size.make(v, unit='px')  
+pc = lambda v: Size.make(v, unit='%')
+em = lambda v: Size.make(v, unit='em')
 spacing = lambda *vals : Spacing.make(vals)
     
     

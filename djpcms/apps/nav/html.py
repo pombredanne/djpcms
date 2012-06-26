@@ -1,12 +1,9 @@
-'''Utility module for creating a navigations and breadcrumbs
-'''
 import djpcms
 from djpcms.html import Widget, NON_BREACKING_SPACE
-
-from .pagination import application_link
+from djpcms.views import application_link
     
 
-__all__ = ['Navigator','Breadcrumbs']
+__all__ = ['Navigator', 'Breadcrumbs']
 
 
 class Navigator(object):
@@ -147,13 +144,13 @@ class Breadcrumbs(object):
 of current request location. It renders as a ``ul`` element
 with class name defaulted to ``"breadcrumbs"``.
     '''
-    def __init__(self, min_length = 1, divider = None, cn = None,
-                 render_empty = True, tag = 'div'):
+    def __init__(self, min_length = 1, divider=None, cn=None,
+                 render_empty=True, tag='div'):
         divider = divider or '&rsaquo;'
         self.divider = "<span class='divider'>"+divider+"</span>"
         self.min_length = min_length
         self.render_empty = render_empty 
-        self.widget = Widget(tag, cn = cn or 'breadcrumbs')
+        self.widget = Widget(tag, cn=cn or 'breadcrumbs')
         
     def items(self, request):
         crumbs = []

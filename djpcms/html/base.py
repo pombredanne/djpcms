@@ -19,6 +19,7 @@ __all__ = ['flatatt',
            'StreamRenderer',
            'WidgetMaker',
            'Widget',
+           'Img',
            'NON_BREACKING_SPACE']
 
     
@@ -410,12 +411,9 @@ corner cases, users can subclass it to customize behavior.
     _widget = None
     _media = None
     
-    def __init__(self, inline = None, default = False,
-                 description = '', widget = None,
-                 attributes = None, media = None,
-                 data = None, cn = None, key = None,
-                 css = None, internal = None,
-                 **params):
+    def __init__(self, inline=None, default=False, description='', widget=None,
+                 attributes=None, media=None, data=None, cn=None, key=None,
+                 css=None, internal=None, **params):
         AttributeMixin.__init__(self, cn=cn, data=data, css=css)
         self.attributes = set(self.attributes)
         if attributes:
@@ -448,15 +446,11 @@ corner cases, users can subclass it to customize behavior.
         if default:
             default_widgets_makers[default] = self
     
-    def __call__(self, data_stream = None, cn = None,
-                 data = None, css = None, **params):
+    def __call__(self, data_stream=None, cn=None,
+                 data=None, css=None, **params):
         # Create a Widget instance
-        return self._widget(self,
-                            data_stream = data_stream,
-                            cn = cn,
-                            data = data,
-                            css = css,
-                            **params)
+        return self._widget(self, data_stream=data_stream, cn=cn, data=data,
+                            css=css, **params)
         
     @property
     def widget_class(self):
@@ -478,7 +472,7 @@ corner cases, users can subclass it to customize behavior.
     
     def add(self, *widgets):
         '''Add children *widgets* to this class:`WidgetMaker`.
-*widgets* must be class:`WidgetMaker`.'''
+*widgets* must be class:`WidgetMaker`. It returns ``self`` for concatenation.'''
         for widget in widgets:
             if isinstance(widget, WidgetMaker):
                 key = widget.key or len(self.children)
@@ -569,4 +563,8 @@ inner part of the widget.
         
         
 DefaultMaker = WidgetMaker()
+
+class Img(WidgetMaker):
+    tag = 'img'
+    attributes = WidgetMaker.makeattr('src', 'alt')
 

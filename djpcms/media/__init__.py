@@ -1,4 +1,4 @@
-'''Media Class'''
+'''Sylesheet generator and Javascript assets aggregator for djpcms.'''
 from copy import deepcopy
 
 from djpcms.utils.text import mark_safe

@@ -7,6 +7,7 @@ import argparse
 
 import djpcms
 from djpcms.cms.exceptions import CommandError
+from djpcms.utils.log import dictConfig
         
         
 class CommandOption(object):
@@ -93,13 +94,6 @@ built-in djpcms commands. User-supplied commands should override this method.
         parser = self.create_parser(prog_name, subcommand)
         parser.print_help()
 
-    def run_from_argv(self, website, command, argv, stdout=None, stderr=None):
-        parser = self.create_parser(command)
-        options = parser.parse_args(argv)
-        self.website = website
-        self.execute(options, stdout=stdout, stderr=stderr)
-        return self
-
     def execute(self, options, stdout=None, stderr=None):
         """Try to execute this command. If the command raises a
         ``CommandError``, intercept it and print it sensibly to
@@ -115,8 +109,44 @@ built-in djpcms commands. User-supplied commands should override this method.
             self.stderr.write(self.style.ERROR('Error: %s\n' % e))
             sys.exit(1)
 
+    def run_from_argv(self, website, command, argv, stdout=None, stderr=None):
+        parser = self.create_parser(command)
+        options = parser.parse_args(argv)
+        self._website = website
+        self.execute(options, stdout=stdout, stderr=stderr)
+        return self
+    
     def handle(self, site_factory, options):
         """The actual logic of the command. Subclasses must implement
         this method.
         """
         raise NotImplementedError()
+
+    def website(self, options):
+        site = self._website()
+        self.setup_logging(site.settings, options)
+        return site
+        
+    def setup_logging(self, settings, options):
+        '''Setup logging for :class:`Command`. Override if you need to.'''
+        LOGGING = {
+              'version': 1,
+              'formatters': {
+                    'simple': {
+                        'format': '%(asctime)s %(levelname)s %(message)s',
+                        'datefmt': '%Y-%m-%d %H:%M:%S'
+                        },
+                    },
+            'handlers': {
+                    'simple': {
+                        'level': 'DEBUG',
+                        'class': 'logging.StreamHandler',
+                        'formatter': 'simple'
+                    },
+            },
+            'root': {
+                    'handlers': ['simple'],
+                    'level': 'DEBUG',
+            }
+        }
+        dictConfig(LOGGING)

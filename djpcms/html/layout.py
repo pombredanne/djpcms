@@ -351,7 +351,8 @@ default :class:`Grid` element is created.'''
             
     
 class container(grid_holder):
-    '''A container of a grid system'''
+    '''A container of a grid system. It contains a :class:`grid` element
+only. It is associated with a :attr:`WidgetMaker.key` attribute.'''
     def __init__(self, key, *grid, **kwargs):
         key = str(key)
         kwargs['key'] = key
@@ -454,3 +455,11 @@ Grid(
 Grid(
     row(column(3,4), column(1,4))
 ).register('grid 75-25')
+
+Grid(
+    row(column(1,5), column(4,5))
+).register('grid 20-80')
+
+Grid(
+    row(column(4,5), column(1,5))
+).register('grid 80-20')

@@ -3,7 +3,6 @@ import djpcms
 DEBUG = False
 SECRET_KEY = 'djpcms'   # Secret key, please change this to a unique value
 PROFILING_KEY = None
-TEMPLATE_ENGINE = None
 DESCRIPTION = 'DYNAMIC CONTENT MANAGEMENT SYSTEM FOR PYTHON AND JQUERY'
 EPILOG = 'HAVE FUN!'
 
@@ -43,13 +42,6 @@ AUTHENTICATION_BACKENDS = ('sessions.backends.ModelBackend',)
 TEMPLATE_DIRS = ()  # Additional template location directories
 DEFAULT_TEMPLATE_NAME = 'default'
 JS_START_END_PAGE = 101
-
-
-#######################################    NAVIGATION
-SITE_NAVIGATION_LEVELS = 4
-SITE_NAVIGATION_BRAND = None
-ENABLE_BREADCRUMBS = 2
-
 
 #######################################    PLUGINS
 DJPCMS_PLUGINS = ['djpcms.cms.plugins.*']

@@ -1,6 +1,6 @@
 '''Top bar styling
 '''
-from djpcms.style import *
+from djpcms.media.style import *
 
 ############################################################
 cssv.table.padding = spacing(px(4))

@@ -29,30 +29,6 @@ def DEFAULT_JAVASCRIPT():
             'djpcms/djpcms.js']
 
 
-def init_logging(settings, clear_all = False):
-    '''Initialise logging'''
-    from djpcms.utils.log import dictConfig
-    
-    if clear_all:
-        import logging
-        logging.Logger.manager.loggerDict.clear()
-
-    if settings:
-        LOGGING = settings.LOGGING
-        if LOGGING:
-            if settings.DEBUG:
-                handlers = ['console']
-                if hasattr(settings, 'LOG_TO_FILE') and settings.LOG_TO_FILE:
-                    if LOGGING['handlers'].has_key('file'):
-                        handlers.append('file')
-                LOGGING['handlers']['console']['level'] = 'DEBUG' 
-                LOGGING['root'] = {
-                                'handlers': handlers,
-                                'level': 'DEBUG',
-                                }
-            dictConfig(settings.LOGGING)
-        
-
 LOGGING_SAMPLE = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -67,6 +43,11 @@ LOGGING_SAMPLE = {
         },
     },
     'handlers': {
+        'simple_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',

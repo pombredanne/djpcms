@@ -131,11 +131,9 @@ built-in djpcms commands. User-supplied commands should override this method.
         '''Setup logging for :class:`Command`. Override if you need to.'''
         LOGGING = {
               'version': 1,
+              'disable_existing_loggers': False,
               'formatters': {
-                    'simple': {
-                        'format': '%(asctime)s %(levelname)s %(message)s',
-                        'datefmt': '%Y-%m-%d %H:%M:%S'
-                        },
+                    'simple': {'format': '%(message)s'},
                     },
             'handlers': {
                     'simple': {

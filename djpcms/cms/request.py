@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 # IMPORT PULSAR STUFF
 from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 
-import djpcms
+from djpcms.cms import permissions
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
 from djpcms.media import js, Media
@@ -207,7 +207,7 @@ arguments.
 .. attribute:: urlargs
 
     Dictionary of arguments from the variable part of the :attr:`view`
-    route attribute (check :class:`djpcms.Route` for more information).
+    route attribute (check :class:`djpcms.cms.Route` for more information).
     
 .. attribute:: instance
 
@@ -408,7 +408,7 @@ is available, the name is set to ``view``.
         # if code is not provided we check if the page can be viewed
         if code is None:
             page = self.page
-            if page and not perm.has(self, djpcms.VIEW, page, user = user):
+            if page and not perm.has(self, permissions.VIEW, page, user = user):
                 return False
             return perm.has(self, view.PERM, self.instance, user = user)
         else:

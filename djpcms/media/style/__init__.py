@@ -1,6 +1,7 @@
 import os
 
 import djpcms
+from djpcms.html import classes
 
 from .base import *
 from .colorvar import *
@@ -65,6 +66,11 @@ cssv.edit.link.hover.text_decoration = 'none'
 cssv.edit.link.default.color = cssv.color.grayLighter
 cssv.edit.link.hover.color = lazy(color.darken,
                                   cssv.edit.link.default.color, 15)
+
+# Widget head
+cssv.widget.head.background = cssv.color.grayLighter
+cssv.widget.head.color = cssv.color.grayDarker
+cssv.widget.head.border.color = cssv.color.grayLight
 
 ################################################# BODY
 css('body',
@@ -138,3 +144,17 @@ css('#page-edit-page',
     gradient(cssv.edit.background),
     color=cssv.edit.color,
     font_size=cssv.edit.font_size)
+
+################################################# SPECIAL CLASSES
+css('.'+classes.widget_head,
+    bcd(**cssv.widget.head.params()),
+    border(**cssv.widget.head.border.params()))
+
+css('.'+classes.corner_all,
+    radius(cssv.body.radius))
+
+css('.'+classes.corner_top,
+    radius(spacing(cssv.body.radius, cssv.body.radius, 0, 0)))
+
+css('.'+classes.corner_bottom,
+    radius(spacing(0, 0, cssv.body.radius, cssv.body.radius)))

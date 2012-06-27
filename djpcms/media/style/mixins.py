@@ -11,6 +11,7 @@ __all__ = ['opacity',
            'clearfix',
            'fixtop',
            'unfixtop',
+           'border',
            'shadow',
            'radius',
            'gradient',
@@ -74,6 +75,20 @@ class unfixtop(mixin):
         elem['position'] = 'static'
         elem['z_index'] = 'auto'
         
+################################################# CSS BORDER
+class border(mixin):
+    def __init__(self, color=None, style=None, width=None):
+        self.color = color
+        self.style = style
+        self.width = width
+    
+    def __call__(self, elem):
+        color = self.color
+        if color:
+            style = self.style or 'solid'
+            width = self.width or px(1)
+            elem['border'] = '%s %s %s' % (width,style,color)
+        
 ################################################# CSS3 BOX SHADOW
 class shadow(mixin):
     def __init__(self, shadow):
@@ -88,8 +103,9 @@ class shadow(mixin):
         
 ################################################# CSS3 RADIUS        
 class radius(mixin):
+    '''css3 border radius.'''
     def __init__(self, radius):
-        self.radius = self.cleanup(radius,'radius')
+        self.radius = self.cleanup(radius, 'radius')
         
     def __call__(self, elem):
         r = Variable.cssvalue(self.radius)
@@ -198,8 +214,8 @@ mixin.
 :parameter text_shadow: text shadow
 :parameter text_decoration: text decoration 
 '''
-    def __init__(self, background = None, color = None, text_shadow = None,
-                 text_decoration = None):
+    def __init__(self, background=None, color=None, text_shadow=None,
+                 text_decoration=None, **kwargs):
         self.background = gradient(background)
         self.color = self.cleanup(color,'color')
         self.text_shadow = self.cleanup(text_shadow,'text_shadow')
@@ -492,7 +508,7 @@ class fontface(mixin):
     def __call__(self, elem):
         base = self.base
         if not base.startswith('http'):
-            base = cssv.MEDIAURL.value + self.base
+            base = cssv.MEDIAURL + self.base
         elem['src'] = "url('{0}.eot')".format(base)
         elem['src'] = "url('{0}.eot?#iefix') format('embedded-opentype'), "\
                       "url('{0}.woff') format('woff'), "\

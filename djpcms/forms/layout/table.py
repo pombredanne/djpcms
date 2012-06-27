@@ -1,65 +1,58 @@
-from djpcms.html import Widget, table_header 
+from djpcms.html import Widget, WidgetMaker, table_header 
 from djpcms.utils.text import nicename
 
-from .base import FormWidget, FormLayoutElement
+from .base import FormWidget, FieldTemplate, FormLayoutElement
 
 
 __all__ = ['TableFormElement','TableRow']
 
 
 class TableRow(FormLayoutElement):
-    '''A row in a form table layout'''
+    '''A row in a table rendering a form.'''
+    field_widget_tag = 'td'
+    field_widget_class = None
+    
     def stream_errors(self, request, children):
         '''Create the error ``td`` elements.
 They all have the class ``error``.'''
         for w in children:
-            if isinstance(w,dict):
-                yield '<td id="{0[error_id]}" class="error">{0[error]}</td>'\
-                                        .format(w)
+            b = w.bfield
+            if b:
+                yield '<td id="%s" class="error">%s</td>'%(b.errors_id,b.error)
             else:
                 yield '<td class="error"></td>'
     
     def stream_fields(self, request, children):
         for w in children:
-            if isinstance(w,dict):
-                wi = Widget('td',w['widget'])
-                if w['ischeckbox']:
-                    wi.addClass('checkbox')
-                yield wi.render(request)
-            else:
-                yield "<td class='one-line'>{0}</td>".format(w)
+            b = w.bfield
+            if not b:
+                w = Widget('td', w.maker.key).addClass('one-line')
+            elif b.widget.attrs.get('type') == 'checkbox':
+                w.addClass('checkbox')
+            yield w.render(request)
     
-    def stream(self, request, widget, ctx):
+    def stream(self, request, widget, context):
         '''We override stream since we don't care about a legend in a
 table row'''
-        children = ctx['children']
+        children = list(widget.allchildren())
         yield '<tr class="error-row">'+\
                 ''.join(self.stream_errors(request, children))+'</tr>'
         yield '<tr>'+''.join(self.stream_fields(request, children))+'</tr>'
-        
-    def get_context(self, request, widget, keys):
-        children = []
-        for child in self.children_widgets(widget):
-            if isinstance(child, FormWidget):
-                ctx = child.get_context(request)
-            else:
-                ctx = child.render(request)
-            children.append(ctx)
-        return {'children': children}
         
 
 class TableFormElement(FormLayoutElement):
     '''A :class:`FormLayoutElement` for rendering a group of :class:`Field`
 in a table.
 
-:parameter headers: The headers to display in table.
+:parameter headers: The headers to display in the table.
 '''
     tag = 'div'
     default_style = 'tablefield'
     elem_css = "uniFormTable"
         
     def __init__(self, headers, *rows, **kwargs):
-        self.headers = list(self.field_heads(headers))
+        # each row must have the same number of columns as the number of headers
+        self.headers = [table_header(name) for name in headers]
         self.fields = tuple(h.code for h in self.headers)
         trows = []
         for row in rows:
@@ -68,10 +61,6 @@ in a table.
             trows.append(row)
         super(TableFormElement,self).__init__(*trows, **kwargs)
 
-    def field_heads(self, headers):
-        for name in headers:
-            yield table_header(name)
-            
     def render_heads(self, request, widget, context):
         '''Generator of rendered table heads'''
         for head in self.headers:
@@ -82,27 +71,23 @@ in a table.
             else:
                 label = Widget('span', head.name,
                                title = head.name,
-                               cn = head.extraclass)\
-                                .addClass('label')
+                               cn = head.extraclass).addClass('label')
                 th.add(label)
                 if head.description:
                     label.addData('content',head.description);
             yield th.render(request)
             
     def row_generator(self, request, widget, context):
-        for child in self.allchildren:
-            if isinstance(child,TableRow):
-                w = self.child_widget(child, widget)
-                yield w.render(request)
+        for row in widget.allchildren():
+            yield row.render(request)
             
-    def layout_stream(self, request, widget, context):
+    def stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
-        rows = '\n'.join(self.row_generator(request, widget, context))
+        rows = list(self.row_generator(request, widget, context))
         if rows:
             head = ''.join(self.render_heads(request, widget, context))
-            table = Widget('table',('<thead><tr>',head,'</tr></thead>',\
-                                     '<tbody>',rows,'</tbody>'))\
-                                        .addClass(self.elem_css)
-            yield table.render(request)
+            body = Widget('body', rows)
+            table = Widget('table',('<thead><tr>',head,'</tr></thead>',body))
+            yield table.addClass(self.elem_css).render(request)
         

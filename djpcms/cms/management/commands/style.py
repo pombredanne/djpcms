@@ -8,9 +8,10 @@ from djpcms import cms
 from djpcms.utils.importer import import_module
 from djpcms.media.style import css, cssv, dump_theme
 
+LOGGER = logging.getLogger('djpcms.command.style')
 
-def render(site, theme, target, apps, mediaurl=None, show_variables=False):
-    LOGGER = logging.getLogger('djpcms.command.style')
+def render(site, theme, target, apps, mediaurl, dump_variables):
+    LOGGER.info('Building theme "%s"' % theme)
     module = None
     applications = list(apps or site.settings.INSTALLED_APPS) 
     imported = {}
@@ -44,17 +45,22 @@ def render(site, theme, target, apps, mediaurl=None, show_variables=False):
                 LOGGER.error('Cannot import application {0}: "{1}"'\
                             .format(app,e))
     #mediaurl = mediaurl
-    dump_theme(theme, target, show_variables=show_variables)
+    dump_theme(theme, target, dump_variables=dump_variables)
 
 
 class Command(cms.Command):
-    help = "Creates a css file from a template css."
+    help = "Manage style-sheet files from installed applications."
     option_list = (
                    cms.CommandOption('apps',nargs='*',
                         description='appname appname.ModelName ...'),
                    cms.CommandOption('theme',('-t','--theme'),
                                 default='',
                                 description='Theme to use. For example smooth'),
+                   cms.CommandOption('variables',('--variables',),
+                                action='store_true',
+                                default=False,
+                                description='Dump the theme variables  as json'
+                                            ' file for the theme specified'),
                    cms.CommandOption('file',('-f','--file'),
                                 default='',
                                 description='Target path of css file.\
@@ -65,11 +71,7 @@ class Command(cms.Command):
                    cms.CommandOption('mediaurl',('-m','--media'),
                                 default='',
                                 description='Specify the media url.\
- Override settings value.'),
-                   cms.CommandOption('variables',('-v','--variables'),
-                                action = 'store_true',
-                                default = False,
-                                description='List all variables values')
+ Override settings value.')
                    )
     
     def handle(self, options):
@@ -85,6 +87,8 @@ class Command(cms.Command):
                                 site.settings.SITE_MODULE)
             if os.path.isdir(mdir):
                 target = os.path.join(mdir, target)
+        if options.variables:
+            target = '%s.json' % self.theme
         self.target = target
         render(site, self.theme, self.target, apps, mediaurl, options.variables)
         

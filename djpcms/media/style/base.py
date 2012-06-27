@@ -52,7 +52,7 @@ class Variable(UnicodeMixin):
 
     The unit associated with the value (px, em, %, color or ``nan``)
 '''
-    def __init__(self, value, unit = None):
+    def __init__(self, value=None, unit=None):
         self._value = self.convert(value)
     
     @property
@@ -177,8 +177,8 @@ in a css file.'''
     
 class ProxyVariable(Variable):
 
-    def __init__(self, value, unit = None):
-        self.value = value
+    def __init__(self, value):
+        self._value = value
         
     def _get_value(self):
         return self._get()
@@ -216,7 +216,12 @@ class lazy(ProxyVariable):
     
     
 class NamedVariable(ProxyVariable):
-    '''A variable holds several values for different styles.
+    '''A :class;`ProxyVariable` which holds several values for
+different themes. Themes override the default value.
+    
+.. attribute:: hnd
+
+    dictionary to witch this :class:`NamedVariable` belongs to
     
 .. attribute:: name
 
@@ -229,8 +234,11 @@ class NamedVariable(ProxyVariable):
     def __init__(self, hnd, name, value):
         self.hnd = hnd
         self._name = name
-        self._values = {}
-        super(NamedVariable, self).__init__(value)
+        theme = self.theme
+        super(NamedVariable, self).__init__({})
+        self.value = value
+        if None not in self._value:
+            self._value[None] = Variable()
         
     @property
     def name(self):
@@ -238,10 +246,18 @@ class NamedVariable(ProxyVariable):
     
     @property
     def theme(self):
-        return self.hnd.theme
+        return self.hnd.current_theme
+    
+    @property
+    def default(self):
+        return self._value.get(None)
     
     def tocss(self):
-        return self._values.get(self.theme, self._value)
+        theme = self.theme
+        if theme in self._value:
+            return self._value[theme]
+        else:
+            return self.default
     
     def convert(self, value):
         if not isinstance(value, NamedVariable):
@@ -254,11 +270,8 @@ class NamedVariable(ProxyVariable):
     def _set(self, value):
         theme = self.theme
         if not isinstance(value, Variable):
-            value = Variable(value)           
-        if theme in self._values:
-            self._values[theme] = value
-        else:
-            self._value = value
+            value = Variable(value)
+        self._value[theme] = value
     
     
 class Size(Variable):
@@ -268,7 +281,10 @@ class Size(Variable):
         super(Size, self).__init__(value)
     
     def tocss(self):
-        return '{0}{1}'.format(self._value, self.unit)
+        if self._value:
+            return '%s%s' % (self._value, self.unit)
+        else:
+            return '%s' % self._value
     
     def convert(self, value):
         value = native_str(value)
@@ -640,7 +656,7 @@ Time taken {2} seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
-'''.format(cssv.theme(), now, nice_dt)
+'''.format(cssv.current_theme, now, nice_dt)
         return intro + body
 
 def cssa(*args, **kwargs):
@@ -669,16 +685,18 @@ class css_stream(css):
         
 class theme(object):
     
-    def __init__(self, hnd, theme):
-        self.__dict__['hnd'] = hnd
-        self.__dict__['theme'] = theme
+    def __init__(self, vars, theme):
+        self.vars = vars
+        self.theme = theme
     
-    def __repr__(self):
-        return self.theme
-    __str__ = __repr__
+    def __enter__(self):
+        self._p = self.vars.parent or self.vars
+        self._c = self._p.current_theme
+        self._p._reserved['current_theme'] = self.theme
+        return self.vars
     
-    def __setattr__(self, name, value):
-        getattr(self.hnd, name).value = value
+    def __exit__(self, type, value, traceback):
+        self._p._reserved['current_theme'] = self._c
         
     
 class Variables(UnicodeMixin):
@@ -690,55 +708,58 @@ using the double underscores separator ``__``::
     
 If the body namespace is not available is automatically created.
 '''
-    reserved = (None, '_parent', '_name', '_theme')
+    reserved = (None, '_reserved', 'reserved', 'name', 'parent')
+    MEDIAURL = '/media/'
     
-    def __init__(self, parent = None, name = None):
-        self.__dict__['_parent'] = parent
-        self.__dict__['_name'] = name
+    def __init__(self, parent=None, name=None):
+        d = self.__dict__
+        d['_reserved'] = {'parent': parent,
+                          'name': name}
         
     def __unicode__(self):
-        if self._name:
-            return self._name
-        else:
+        return self.name
+   
+    @property 
+    def name(self):
+        if self.parent is None:
             return 'root'
-        
+        else:
+            return self._reserved['name']
+    
+    @property
+    def parent(self):
+        return self._reserved['parent']
+    
+    @property
+    def current_theme(self):
+        parent = self.parent
+        if parent is None:
+            return self._reserved.get('current_theme')
+        else:
+            return parent.current_theme
+    
     def valid(self):
         '''``True`` if the :class:`Variables` are part of a root dictionary.'''
-        return self._name == 'root' or self._parent
-        
-    def set_theme(self, theme):
-        if self._parent:
-            self._parent.set_theme(theme)
-        else:
-            self.__dict__['_theme'] = theme
+        return self.name == 'root' or self.parent
             
-    def theme(self):
-        if self._parent:
-            return self._parent.theme()
-        else:
-            return self.__dict__.get('_theme')
-    
-    def theme_setter(self, theme_name):
+    def theme(self, theme_name):
         return theme(self, theme_name)
         
     def declare(self, name, value):
         '''Declare or update a variable with *default* value.'''
         if name not in self.reserved:
-            if value is None:
+            if isinstance(value, Variables):
+                v = value
+            elif value is None:
                 v = NamedVariable(self, name, value)
-                self.__dict__[name] = v             
-                return v
-            elif isinstance(value, Variables):
-                self.__dict__[name] = value
-                return value
             elif isinstance(value,(str,float,int,list,tuple,dict,Variable)):
                 v = self.get(name)
                 if isinstance(v, NamedVariable):
                     v.value = value
                 else:
                     v = NamedVariable(self, name, value)
-                    self.__dict__[name] = v                
-                return v
+            self.__dict__[name] = v
+            return v
     
     def get(self, name):
         if name not in self.__dict__:
@@ -753,7 +774,7 @@ If the body namespace is not available is automatically created.
                 yield d[name]
     
     def tojson(self):
-        return OrderedDict(((v._name, v.tojson()) for v in self))
+        return OrderedDict(((v.name, v.tojson()) for v in self))
         
     def params(self):
         d = self.__dict__
@@ -768,8 +789,8 @@ If the body namespace is not available is automatically created.
     
     def __setattr__(self, name, value):
         d = self.declare(name, value)
-        if d and self._parent and self._name not in self._parent:
-            setattr(self._parent, self._name, self) 
+        if d and self.parent and self.name not in self.parent:
+            setattr(self.parent, self.name, self) 
     
     def __getattr__(self, name):
         return self.get(name)
@@ -779,7 +800,6 @@ If the body namespace is not available is automatically created.
 ##    GLOBAL VARIABLES
 ################################################################################
 cssv = Variables()
-cssv.MEDIAURL = '/media/'
 
 def csscompress(target):  # pragma: no cover
     os.system('yuicompressor.jar --type css -o {0} {0}'.format(target))
@@ -800,23 +820,23 @@ def convert_bytes(b):
             return '%.1f%sB' % (value, s)
     return "%sB" % b
 
-def dump_theme(theme, target, show_variables = False, minify = False):
-    cssv.set_theme(theme)
-    if show_variables:
-        LOGGER.info('STYLE: {0}'.format(cssv.theme() or 'Default'))
-        section = None
-        data = cssv.tojson()
-        LOGGER.info(json.dumps(data, indent = 4))
-    else:
-        data = css.render_all()
-        f = open(target,'w')
-        f.write(data)
-        f.close()
-        if minify:
-            csscompress(target)
-        with open(target) as f:
-            b = convert_bytes(len(f.read()))
-        LOGGER.info('Saved style on file "{0}". Size {1}.'.format(target,b))
+def dump_theme(theme, target, dump_variables=False, minify=False):
+    with cssv.theme(theme) as t:
+        if dump_variables:
+            LOGGER.info('Dump styling variables on %s' % target)
+            data = cssv.tojson()
+            with open(target,'w') as f:
+                f.write(json.dumps(data, indent=4))
+        else:
+            data = css.render_all()
+            f = open(target,'w')
+            f.write(data)
+            f.close()
+            if minify:
+                csscompress(target)
+            with open(target) as f:
+                b = convert_bytes(len(f.read()))
+            LOGGER.info('Saved style on file "{0}". Size {1}.'.format(target,b))
     
     
 def add_arguments(argparser = None):

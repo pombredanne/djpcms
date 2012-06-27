@@ -1,6 +1,7 @@
 import sys
+import os
 
-from djpcms.utils import zip, test
+from djpcms.utils import test
 from djpcms.utils.structures import OrderedDict
 
 if sys.version_info < (2,7):
@@ -19,7 +20,7 @@ if sys.version_info < (2,7):
             for n,kv in enumerate(d.iteritems(), start = 1):
                 self.assertEqual(n,kv[1]) 
         
-        @test.skipUnless(test.djpapps,"Requires djpapps installed")
+        @test.skipUnless(os.environ['stdcms'], "Requires stdcms installed")
         def testOrderList(self):
             from stdnet.utils.populate import populate
             x = populate('string',300, min = 5, max = 15)

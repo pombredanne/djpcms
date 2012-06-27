@@ -106,7 +106,7 @@ class NRT(dict):
 
 class MultiNode(UnicodeMixin):
     '''A node for the multi tree class'''
-    def __init__(self, tree, route, parent = None, urlargs = None):
+    def __init__(self, tree, route, parent=None, urlargs=None):
         self.tree = tree
         self.__route = route
         if urlargs:
@@ -244,7 +244,7 @@ class DjpNode(MultiNode):
         self.page = page
         self._view = view
         route = view.route if view is not None else page.route
-        super(DjpNode,self).__init__(tree,route,**kwargs)
+        super(DjpNode,self).__init__(tree, route, **kwargs)
     
     @property
     def view(self):
@@ -297,6 +297,6 @@ for the application views and one for flat pages.'''
             page = view
             view = None
         
-        return DjpNode(self, view, page, urlargs = urlargs,
-                       parent = node.parent)
+        return DjpNode(self, view, page, urlargs=urlargs,
+                       parent=node.parent)
         

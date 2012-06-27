@@ -481,6 +481,29 @@ class TestMixins(test.TestCase):
        -moz-border-radius: 5px;
             border-radius: 5px;
 }''')
+    
+    def testRadiusSpacing(self):
+        ra = radius(spacing(px(5),0))
+        s = css('.bla', ra)
+        text = s.render()
+        self.assertEqual(text,\
+'''.bla {
+    -webkit-border-radius: 5px 0;
+       -moz-border-radius: 5px 0;
+            border-radius: 5px 0;
+}''')
+    
+    def testRadiusVariable(self):
+        r = Variable(spacing(px(5),0))
+        ra = radius(r)
+        s = css('.bla', ra)
+        text = s.render()
+        self.assertEqual(text,\
+'''.bla {
+    -webkit-border-radius: 5px 0;
+       -moz-border-radius: 5px 0;
+            border-radius: 5px 0;
+}''')
         
     def testBoxShadow(self):
         s = css('.bla',

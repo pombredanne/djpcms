@@ -1,5 +1,5 @@
 from djpcms.utils.dispatch.saferef import *
-from djpcms.utils import test, range
+from djpcms.utils import test
 
 
 class Test1(object):

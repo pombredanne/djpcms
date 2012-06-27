@@ -20,8 +20,7 @@ logger = logging.getLogger('djpcms')
 
 __all__ = ['async_instance', 'ResponseHandler']
    
-
-
+   
 '''wait for an asynchronous instance'''
 class async_instance_callback(object):
     __slots__ = ('callable','obj','request','args','kwargs')

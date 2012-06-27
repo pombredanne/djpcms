@@ -1,5 +1,6 @@
 '''Table'''
 from djpcms.media.style import *
+from djpcms.html.table import table_container_class
 
 ############################################################
 cssv.table.padding = spacing(px(4))
@@ -9,6 +10,11 @@ cssv.table.odd_background_color = 'transparent'
 cssv.table.even_background_color = 'transparent'
 cssv.table.even_sort_background = None
 cssv.table.odd_sort_background = None
+cssv.table.border_color = None
+
+cssv.table.head.font_size = None
+cssv.table.head.font_weight = None
+cssv.table.head.padding = cssv.table.padding
 
 
 ################################################################################
@@ -21,27 +27,27 @@ css('td.one-line', white_space='nowrap')
 ################################################################################
 # DATATABLE
 ################################################################################
-css('.data-table',
+css('.'+table_container_class,
     css('.dataTables_filter input',
         width = '200px',
         padding = '5px 5px',
         font_size = '110%'),
-    css('table.main'),
-    css('th.sortable', cursor = 'pointer'),
-    css('td,th',
-        vertical_align='center',
-        padding=cssv.table.padding,
-        line_height=cssv.table.line_height),
-    width = '100%',
-    display = 'none',
-    text_align = 'left',
-    margin = '0',
+    css('table',
+        css('th.sortable', cursor = 'pointer'),
+        css('td,th',
+            vertical_align='center',
+            padding=cssv.table.padding,
+            line_height=cssv.table.line_height),
+        css('thead tr th, tfoot tr th',
+            border=cssv.table.border_color,
+            font_size=cssv.table.head.font_size,
+            font_weight=cssv.table.head.font_weight,
+            padding=cssv.table.head.padding)),
+    width='100%',
+    display='none',
+    text_align='left',
+    margin=0,
     background='transparent',
-    # head/tail
-    head_border_color = '#fff',
-    #'toolbox_background_color':'#fff',
-    body_border_color = '#a6c9e2',
-    head_padding = '4px',
     #
     toolbox_min_height = '40px',
     #

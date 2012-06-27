@@ -1,5 +1,4 @@
-'''\
-Utilities for displaying interactive table with pagination and actions.
+'''Utilities for displaying interactive table with pagination and actions.
 
 It uses the Datatable jQuery plugin on the client side.
 
@@ -15,6 +14,7 @@ from djpcms.ajax import simplelem
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
+from . import classes
 
 
 __all__ = ['TableMaker',
@@ -25,6 +25,7 @@ __all__ = ['TableMaker',
            'simple_table_dom']
 
 
+table_container_class = 'data-table'
 table_header_ = namedtuple('table_header_',
 'code name description function sortable width extraclass attrname hidden')
 
@@ -61,9 +62,9 @@ def table_header(code, name = None, description = None, function = None,
     
 
 class TableMaker(WidgetMaker):
-    '''A widget maker which render a dataTable.'''
+    '''A :class:`WidgetMaker` for rendering data tables.'''
     tag = 'div'
-    classes = 'data-table'
+    classes = table_container_class
     _media = Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
@@ -75,10 +76,12 @@ class TableMaker(WidgetMaker):
                     }
         )
     
-    def get_context(self, request, widget, key):
+    def get_context(self, request, widget, context):
+        # Get the title of the widget (if it has one
         title = widget.attrs.get('title')
-        ctx = widget.internal.copy()
-        pagination = ctx.pop('pagination',None)
+        context = context if context is not None else {}
+        context.update(widget.internal)
+        pagination = context.pop('pagination', None)
         options = widget.data.get('options')
         if options is None:
             options = {}
@@ -89,10 +92,10 @@ class TableMaker(WidgetMaker):
                             'aLengthMenu':pagination['page_menu']})
         else:
             options['bPaginate'] = False
-        headers = list(self.aoColumns(ctx['headers']))
+        headers = list(self.aoColumns(context['headers']))
         widget.data['options']['aoColumns'] = headers
-        ctx.update({'headers': headers, 'title':title})
-        return ctx
+        context.update({'headers': headers, 'title':title})
+        return context
     
     def make_headers(self, headers):
         '''Generator of html headers tags'''
@@ -121,8 +124,9 @@ javascript plugin'''
     
     def stream(self, request, widget, context):
         title = context.get('title')
-        head_class = 'ui-corner-top ui-widget-head'
+        head_class = '%s %s' % (classes.widget_head, classes.corner_top)
         if title:
+            # if title is available insert a div containing it
             yield "<div class='"+head_class+"'>"\
                   "<h3 class='table-title'>"+title+"</h3></div>"
         yield '<table>\n<thead>\n<tr>'
@@ -250,15 +254,14 @@ class Pagination(object):
 **Methods**
 '''
     table_defaults = {
-          'bJQueryUI':True,
           'sPaginationType': 'full_numbers',
           'sDom': '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>'}
     flat_defaults = {}
     
-    def __init__(self, headers = None, actions = None, bulk_actions = None,
-                 sortable = False, footer = False, ajax = True,
-                 size = 25, size_choices = (10,25,50,100,-1), ordering = None,
-                 html_data = None, sizetolerance = 1, layout = None):
+    def __init__(self, headers=None, actions=None, bulk_actions=None,
+                 sortable=False, footer=False, ajax=True,
+                 size=25, size_choices=(10,25,50,100,-1), ordering=None,
+                 html_data=None, sizetolerance=1, layout=None):
         self.actions = tuple(actions or ())
         self.bulk_actions = tuple(bulk_actions or ())
         self.footer = footer

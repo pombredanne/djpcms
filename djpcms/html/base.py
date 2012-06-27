@@ -554,10 +554,11 @@ inner part of the widget.
     widget constructor.
 :rtype: An instance of :class:`Widget` for the child element.
 '''
-        w = child_maker(**widget.internal)
-        w.internal['parent'] = widget
-        w.internal.update(params)
-        return w
+        p = {}
+        p.update(widget.internal)
+        p.update(params)
+        p['parent'] = widget
+        return child_maker(**p)
     
     def media(self, request, widget):
         return self._media

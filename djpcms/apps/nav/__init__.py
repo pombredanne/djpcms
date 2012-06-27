@@ -8,7 +8,7 @@ from djpcms.cms import Route
 from djpcms.cms.plugins import DJPplugin
 from djpcms.utils.httpurl import iri_to_uri
 
-from .html import *
+from .builders import *
 
 layouts = (
            ('v','vertical'),
@@ -116,26 +116,6 @@ def navigator(request):
                               levels = settings.SITE_NAVIGATION_LEVELS)
     return {'sitenav': html.LazyHtml(request,sitenav)}
 
-def _topbar(request):
-    '''Build a lazy topbar to be placed at the top of your web page.
-There are several customizable parameters available.
-    '''
-    settings = request.view.settings
-    grid = request.cssgrid()
-    # If we use a grid create the container
-    if grid:
-        container = html.Widget('div', cn = grid.column1)
-        outer = html.Widget('div', container, cn = grid.container_class)
-        outer.add(grid.clear)
-    else:
-        container = None
-    topbar = views.Navigator(secondary = page_links(request),
-                             levels = settings.SITE_NAVIGATION_LEVELS,
-                             brand = settings.SITE_NAVIGATION_BRAND,
-                             fixed = True,
-                             container = container)
-    return {'topbar': html.LazyHtml(request, topbar)}
-    
     
 ##################################################################### PLUGIN
 

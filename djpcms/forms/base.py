@@ -477,6 +477,7 @@ and shouldn't be used otherwise.
             self.label = nicename(name)
         else:
             self.label = field.label
+        self.required = field.required
         self.help_text = field.help_text
         self.id = self.auto_id.format(self.__dict__)
         self.errors_id = self.id + '-errors'
@@ -487,6 +488,10 @@ and shouldn't be used otherwise.
     @property
     def is_hidden(self):
         return self.field.is_hidden
+    
+    @property
+    def error(self):
+        return self.form.errors.get(self.name,'')
     
     def clean(self, value):
         '''Return a cleaned value for ``value`` by running the validation

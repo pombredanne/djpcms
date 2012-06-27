@@ -33,11 +33,11 @@ class Navigator(object):
     main_layout = ('brand','nav')
     secondary_layout = ('search','nav')
     
-    def __init__(self, levels = 2, secondary_after = 100,
-                 nav_element = None, primary = None, secondary = None,
-                 container = None, fixed = False,
-                 brand = None, search = None, soft = False,
-                 main_layout = None, secondary_layout = None):
+    def __init__(self, levels=4, secondary_after=100,
+                 nav_element=None, primary=None, secondary=None,
+                 container=None, fixed=False,
+                 brand=None, search=None, soft=False,
+                 main_layout=None, secondary_layout=None):
         self.main_layout = main_layout if main_layout\
                             is not None else self.main_layout
         self.secondary_layout = secondary_layout if secondary_layout\
@@ -144,7 +144,7 @@ class Breadcrumbs(object):
 of current request location. It renders as a ``ul`` element
 with class name defaulted to ``"breadcrumbs"``.
     '''
-    def __init__(self, min_length = 1, divider=None, cn=None,
+    def __init__(self, min_length=1, divider=None, cn=None,
                  render_empty=True, tag='div'):
         divider = divider or '&rsaquo;'
         self.divider = "<span class='divider'>"+divider+"</span>"

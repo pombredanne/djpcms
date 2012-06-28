@@ -37,11 +37,15 @@ def query_from_querydict(q):
         r[k] = v
     return r
 
-def urlbits(url):
+def remove_end_slashes(url):
     if url.endswith('/'):
         url = url[:-1]
     if url.startswith('/'):
         url = url[1:]
+    return url
+
+def urlbits(url):
+    url = remove_end_slashes(url)
     return url.split('/')
 
 def urlfrombits(bits):

@@ -385,7 +385,7 @@ callable method.'''
         return to_string(self.__class__.__name__)
     
     @classmethod
-    def cleanup(cls, value, attname, constructor = None):
+    def cleanup(cls, value, attname, constructor=None):
         if isinstance(value, cls):
             value = getattr(value,attname)
         elif isinstance(value, Variables):

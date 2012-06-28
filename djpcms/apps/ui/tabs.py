@@ -1,10 +1,5 @@
 from .base import *
 
-cssv.panel.background = cssv.color.grayLighter
-cssv.panel.border_color = color(RGBA(0,0,0,0.05))
-cssv.panel.border_width = px(1)
-cssv.panel.padding = spacing(px(6))
-
 cssv.tabs.line_height = cssv.body.line_height
 cssv.tabs.radius = cssv.body.radius
 cssv.tabs.border_color = cssv.body.border_color
@@ -16,21 +11,6 @@ cssv.tabs.hover.background = lazy(color.lighten, cssv.tabs.border_color, 5)
 def tabs_border():
     color = cssv.tabs.border_color
     return '{0} {0} transparent'.format(color)
-
-################################################# BOX and PANEL
-css('.panel,.box',
-    border_style='solid',
-    border_width=cssv.panel.border_width,
-    border_color=cssv.panel.border_color)
-
-css('.box',
-    cssa('.flat',
-         css('.ui-widget-head',
-             backgroud='transparent')))
-
-css('.panel',
-    gradient(cssv.panel.background),
-    padding=cssv.panel.padding)
 
 #################################################    TABS
 css('.'+classes.tabs,

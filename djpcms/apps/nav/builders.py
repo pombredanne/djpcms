@@ -146,7 +146,7 @@ class Breadcrumbs(object):
 of current request location. It renders as a ``ul`` element
 with class name defaulted to ``"breadcrumbs"``.
     '''
-    def __init__(self, min_length=1, divider=None, cn=None,
+    def __init__(self, min_length=2, divider=None, cn=None,
                  render_empty=True, tag='div'):
         divider = divider or '&rsaquo;'
         self.divider = "<span class='divider'>"+divider+"</span>"

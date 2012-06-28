@@ -55,6 +55,10 @@ cssv.topbar.brand.width = None
 
 # BREADCRUMBS
 cssv.breadcrumbs.font_size = pc(130)
+cssv.breadcrumbs.font_weight = 'bold'
+cssv.breadcrumbs.line_height = None
+cssv.breadcrumbs.color = None
+cssv.breadcrumbs.text_decoration = 'none'
 
 class topbar(mixin):
     
@@ -124,12 +128,18 @@ class topbar(mixin):
 
 
 css('.'+classes.topbar, topbar())
-css('.'+classes.topbar_fixed, fixtop(),
+css('.'+classes.topbar_container,
     gradient(cssv.topbar.default.background))
+css('.'+classes.topbar_fixed, fixtop())
 cssa('.editable',
      css('.topbar-fixed', unfixtop()))
 
 
 css('.'+classes.breadcrumbs,
     css('ul, ul li', list_style='none', display='inline'),
-    font_size=cssv.breadcrumbs.font_size)
+    css('a',
+        bcd(**cssv.breadcrumbs.params()),
+        font_weight=cssv.breadcrumbs.font_weight),
+    font_size=cssv.breadcrumbs.font_size,
+    font_weight=cssv.breadcrumbs.font_weight,
+    line_height=cssv.breadcrumbs.line_height)

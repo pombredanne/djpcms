@@ -4,34 +4,12 @@ from djpcms.utils.httpurl import iteritems
 from djpcms.utils.async import Deferred, MultiDeferred, Failure
 from djpcms.utils.text import mark_safe
 
-__all__ = ['Renderer',
-           'DeferredDataRenderer',
+__all__ = ['DeferredDataRenderer',
            'ContextRenderer',
            'StreamRenderer']
 
 
 LOGGER = logging.getLogger('djpcms')
-
-
-class Renderer(object):
-    '''A mixin for all classes which render into html.
-
-.. attribute:: description
-
-    An optional description of the renderer.
-    
-    Default ``""``
-'''
-    description = None
-    
-    def render(self, *args, **kwargs):
-        '''render ``self`` as html'''
-        raise NotImplementedError()
-    
-    def media(self, request):
-        '''It returns an instance of :class:`Media`.
-It should be overritten by derived classes.'''
-        return None
     
     
 class DeferredDataRenderer(Deferred):

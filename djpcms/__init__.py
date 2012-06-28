@@ -62,6 +62,33 @@ LOGGING_SAMPLE = {
     }
 }
 
+class Renderer(object):
+    '''A mixin for all classes which render into string or bytes.
+
+.. attribute:: description
+
+    An optional description of the renderer.
+    
+    Default ``None``
+'''
+    description = None
+    
+    def render(self, *args, **kwargs):
+        '''render ``self`` as a string or bytes.'''
+        raise NotImplementedError()
+    
+    def content_type(self):
+        '''Content Type for this renderer'''
+        return 'text/plain' 
+    
+    def media(self, request):
+        '''It returns an instance of :class:`djpcms.media.Media` or ``None``.
+It should be overwritten by derived classes.'''
+        return None
+    
+def is_renderer(obj):
+    return isinstance(obj, Renderer)
+    
 HTML = {
     'ajax': 'ajax',
     'button': 'btn',

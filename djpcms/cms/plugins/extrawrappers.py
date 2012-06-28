@@ -1,12 +1,13 @@
 from djpcms.cms.plugins import DJPwrapper
-from djpcms.html import box, Widget
+from djpcms.html import box, Widget, classes
 
 
 class FlatPanel(DJPwrapper):
     name = 'panel'
     description = 'Panel'
     def wrap(self, request, block, html):
-        return Widget('div', html, cn=self.name).addClass('ui-corner-all')
+        return Widget('div', html,
+                      cn=(self.name, classes.widget_body, classes.corner_all))
 
 
 class FlatBox(DJPwrapper):

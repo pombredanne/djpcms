@@ -3,6 +3,8 @@ from djpcms.media.style import *
 from djpcms.html import classes
 
 cssv.widget.padding = spacing(px(6))
+cssv.widget.border.color = cssv.color.grayLight
+cssv.widget.border.width = px(1)
 
 cssv.widget.head.background = cssv.color.grayLighter
 cssv.widget.head.color = cssv.color.grayDarker
@@ -14,8 +16,13 @@ cssv.widget.head.text_transform = None
 cssv.widget.head.padding = cssv.widget.padding
 
 cssv.widget.body.padding = cssv.widget.padding
+cssv.widget.body.color = cssv.color.grayDarker
+cssv.widget.body.background = cssv.color.white
 
-cssv.widget.foot.padding = cssv.widget.padding
+cssv.panel.color = None
+cssv.panel.background = None
+cssv.panel.border.color = cssv.widget.border.color
+cssv.panel.border.width = cssv.widget.border.width
 
 
 css('.'+classes.widget,
@@ -33,6 +40,10 @@ css('.'+classes.widget,
          border='none')
 )
 
+cssb('.'+classes.widget_body,
+     bcd(**cssv.widget.body.params()),
+     padding=cssv.widget.body.padding),
+         
 css('.'+classes.widget_head,
     bcd(**cssv.widget.head.params()),
     border(**cssv.widget.head.border.params()),
@@ -50,6 +61,12 @@ css('.'+classes.widget_head,
         line_height=cssv.widget.head.line_height),
     padding=cssv.widget.head.padding,
     overflow='hidden')
+
+################################################# PANEL
+css('.'+classes.widget_body,
+    cssa('.panel',
+         bcd(**cssv.panel.params()),
+         border(**cssv.panel.border.params())))
 
 ################################################################ RADIUS
 css('.'+classes.corner_all,

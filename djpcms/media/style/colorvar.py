@@ -24,9 +24,10 @@ def ascolor(col):
         return col
     else:
         try:
-            return color(Variable.pyvalue(col))
+            c = Variable.pyvalue(col)
+            return color(c) if c else None
         except:
-            if isinstance(col,str):
+            if isinstance(col, str):
                 return col
             raise
     

@@ -254,19 +254,19 @@ it is the base class of :class:`pageview` and :class:`View`.
     
     def __call__(self, request):
         method = request.method
-        # Not an AJAX request
         if not request.is_xhr:
-            return getattr(self,'%s_response' % method)(request)
-        data = request.REQUEST
-        ajax_action = forms.get_ajax_action(data)
-        callable = getattr(self,'ajax_%s_response' % method)
-        if ajax_action:
-            ajax_view = 'ajax__' + ajax_action
-            if hasattr(self, ajax_view):
-                callable = getattr(self, ajax_view)
-            else:
-                callable = getattr(self.appmodel, ajax_view, callable)
-        return self.response.render_to_response(request, callable(request))
+            callable = getattr(self,'%s_response' % method)
+        else:
+            data = request.REQUEST
+            ajax_action = forms.get_ajax_action(data)
+            callable = getattr(self,'ajax_%s_response' % method)
+            if ajax_action:
+                ajax_view = 'ajax__' + ajax_action
+                if hasattr(self, ajax_view):
+                    callable = getattr(self, ajax_view)
+                else:
+                    callable = getattr(self.appmodel, ajax_view, callable)
+        return callable(request)
     
     def methods(self, request):
         '''Allowed request methods for this view.
@@ -310,8 +310,9 @@ it is the base class of :class:`pageview` and :class:`View`.
         for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(request, b, editing)
         
-    def get_context(self, request, editing = False):
-        '''View context as a dictionary.'''
+    def get_response(self, request, editing=False):
+        '''Render a standard GET request (not an ajax request). By
+default it returns the page layout.'''
         page = request.page
         layout = page.layout if page else 'default'
         try:
@@ -319,28 +320,23 @@ it is the base class of :class:`pageview` and :class:`View`.
         except:
             return self.render(request)
         else:
-            return layout().render(request)
-
-    def get_response(self, request):
-        '''Get response handler.'''
-        context = self.get_context(request)
-        return self.response.render_to_response(request, context)
+            return layout()
     
     def post_response(self, request):
         '''The post response handler.'''
         return self.get_response(request)
     
     def ajax_get_response(self, request):
-        html = self.render(request)
+        text = self.render(request)
         content_type = request.REQUEST.get('content_type','json')
         if content_type == 'json':
-            return ajax.dialog(hd = request.title,
-                               bd = html,
-                               width = self.dialog_width,
-                               height = self.dialog_height,
-                               modal = True)
+            return ajax.dialog(hd=request.title,
+                               bd=text,
+                               width=self.dialog_width,
+                               height=self.dialog_height,
+                               modal=True)
         else:
-            return ajax.simpledump(html, content_type=content_type)
+            return html.Text(text, content_type=content_type)
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests'''

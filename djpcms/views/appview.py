@@ -4,7 +4,7 @@ import djpcms
 from djpcms.utils.httpurl import zip
 from djpcms import forms, ajax
 from djpcms.utils.text import nicename
-from djpcms.cms import Route, async_instance, Http404, permissions
+from djpcms.cms import Route, Http404, permissions
 from djpcms.cms.plugins import html_plugin_form
 from djpcms.cms.formutils import saveform, deleteinstance, get_redirect
 
@@ -416,11 +416,9 @@ class ObjectActionView(ObjectView):
 on an instance of a model.'''
     parent_view = 'view'
         
-    @async_instance
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
     
-    @async_instance
     def post_response(self, request):
         return saveform(request, force_redirect=self.force_redirect)
       

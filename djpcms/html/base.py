@@ -1,13 +1,14 @@
 import json
 from copy import copy, deepcopy
 
+from djpcms import Renderer
 from djpcms.utils.text import slugify, escape, mark_safe
 from djpcms.utils.decorators import lazymethod
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
                                  is_string_or_native_string, itervalues
 
-from .async import Renderer, StreamRenderer
+from .async import StreamRenderer
 
 if ispy3k:
     from itertools import zip_longest
@@ -18,6 +19,7 @@ __all__ = ['flatatt',
            'render',
            'StreamRenderer',
            'WidgetMaker',
+           'Text',
            'Widget',
            'Div',
            'Anchor',
@@ -185,6 +187,19 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self._css.get(mapping)
     
     
+class Text(Renderer):
+    
+    def __init__(self, text, content_type='text/html'):
+        self._content_type = content_type
+        self.data = text
+    
+    def content_type(self):
+        return self._content_type
+        
+    def render(self, *args, **kwargs):
+        return self.data
+    
+    
 class Widget(Renderer, AttributeMixin):
     '''A class which exposes jQuery-alike API for
 handling HTML classes, attributes and data on a html element::
@@ -214,9 +229,9 @@ handling HTML classes, attributes and data on a html element::
 '''    
     maker = None
     _streamed = False
-    def __init__(self, maker = None, data_stream = None,
-                 cn = None, data = None, options = None, 
-                 css = None, **params):
+    def __init__(self, maker=None, data_stream=None,
+                 cn=None, data=None, options=None, 
+                 css=None, **params):
         '''Initialize a widget. Usually this constructor is not invoked
 directly, Instead it is called by the callable :class:`WidgetMaker` which
 is a factory of :class:`Widget`.
@@ -261,6 +276,9 @@ is a factory of :class:`Widget`.
     def __iter__(self):
         return iter(self.data_stream)
     
+    def content_type(self):
+        return 'text/html'
+    
     @property
     def parent(self):
         return self.internal.get('parent')
@@ -293,7 +311,7 @@ is a factory of :class:`Widget`.
     def insert(self, position, element):
         self.maker.add_to_widget(self, element, position)
     
-    def render(self, request = None, context = None):
+    def render(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
         

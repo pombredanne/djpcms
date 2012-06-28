@@ -15,7 +15,7 @@ registered in the same ApplicationSite::
 '''
 from djpcms import views, html
 from djpcms.html import Widget, WidgetMaker
-from djpcms.utils.httpurl import iteritems
+from djpcms.utils.httpurl import iteritems, remove_end_slashes
 from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename
 from djpcms.cms import ImproperlyConfigured
@@ -151,7 +151,7 @@ application will be included.
 :parameter params: key-value pairs of extra parameters for input in the
     :class:`AdminSite` constructor.
 '''
-    def __init__(self, grouping = None, name = 'admin', **params):
+    def __init__(self, grouping=None, name='admin', **params):
         self.grouping = grouping
         self.name = name
         self.params = params
@@ -172,7 +172,7 @@ application will be included.
                             
         for name_,route,urls in get_admins(settings.INSTALLED_APPS):
             if urls:
-                rname = route[1:-1]
+                rname = remove_end_slashes(route)
                 if rname in adming:
                     url = adming[rname]
                     agroups[url]['urls'] += urls

@@ -57,7 +57,7 @@ class clearfix(mixin):
 class fixtop(mixin):
     '''Fix an element at the top of the page.'''
     def __init__(self, zindex = 2000):
-        self.zindex = self.cleanup(zindex,'zindex')
+        self.zindex = self.cleanup(zindex, 'zindex')
             
     def __call__(self, elem):
         elem['left'] = 0
@@ -222,7 +222,7 @@ mixin.
     def __init__(self, background=None, color=None, text_shadow=None,
                  text_decoration=None, **kwargs):
         self.background = gradient(background)
-        self.color = self.cleanup(color,'color')
+        self.color = self.cleanup(color, 'color')
         self.text_shadow = self.cleanup(text_shadow,'text_shadow')
         self.text_decoration = self.cleanup(text_decoration,'text_decoration')
     
@@ -266,6 +266,7 @@ class horizontal_navigation(clickable):
                  radius=None,
                  box_shadow = None,
                  display_all=False,
+                 z_index=None,
                  **kwargs):
         super(horizontal_navigation, self).__init__(**kwargs)
         if float not in ('left','right'):
@@ -283,6 +284,8 @@ class horizontal_navigation(clickable):
         # padding
         self.padding = padding or secondary_padding
         self.secondary_padding = secondary_padding or px(0)
+        # Z index for subnavigations
+        self.z_index = z_index or 1000
         
     def list(self, maker, parent, default, hover, active):
         return maker('li',
@@ -353,7 +356,8 @@ class horizontal_navigation(clickable):
                   top=self.height,
                   width=self.secondary_width,
                   list_style='none',
-                  list_style_image='none')
+                  list_style_image='none',
+                  z_index=self.z_index)
         if not self.display_all:
             ul['display'] = 'none'
         # The sub lists li

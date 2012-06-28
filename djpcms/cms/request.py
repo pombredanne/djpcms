@@ -12,6 +12,7 @@ from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 from djpcms.cms import permissions
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
+from djpcms.utils.async import is_async
 from djpcms.media import js, Media
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
@@ -25,6 +26,7 @@ absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
 __all__ = ['Response',
+           'is_response',
            'is_xhr']
 
 
@@ -150,10 +152,13 @@ def make_request(environ, node, instance=None, cache=True, safe=True):
         if isclass(model):
             if not isinstance(instance, model):
                 try:
+                    # get the instance of model if any
                     instance = view.instance_from_variables(environ,
                                                             node.urlargs)
-                    callback = partial(build_request, environ, node, cache)
-                    return view.response(instance, callback)
+                    if is_async(instance):
+                        callback = partial(build_request, environ, node, cache)
+                        return instance.add_callback(
+                                partial(build_request, environ, node, cache))
                 except:
                     if not safe:
                         raise
@@ -164,7 +169,6 @@ def make_request(environ, node, instance=None, cache=True, safe=True):
                 node.urlargs.update(urlargs)
         else:
             instance = None
-    
     return build_request(environ, node, cache, instance)
 
 
@@ -580,5 +584,7 @@ def setResponseClass(respcls):
     global ResponseClass
     ResponseClass = respcls
 
-
-
+def is_response(obj):
+    if hasattr(obj, 'status') or hasattr(obj, 'status_code')\
+            and hasattr(obj,'__iter__'):
+        return True

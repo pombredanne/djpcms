@@ -1,14 +1,17 @@
 import os
 import sys
 import logging
+import traceback
 from inspect import isclass
 from copy import copy
 
-from djpcms import ajax
+from djpcms import Renderer, is_renderer, ajax
 from djpcms.utils import orms
-from djpcms.html import Renderer, layout
+from djpcms.html import layout, Widget, error_title, html_doc_stream
 from djpcms.utils.decorators import lazyproperty
-from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri
+from djpcms.utils.text import escape
+from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri,\
+                                 to_bytes
 from djpcms.utils.importer import import_module, module_attribute,\
                                   import_modules
 from djpcms.utils.path import Path
@@ -17,13 +20,12 @@ from djpcms.utils.structures import OrderedDict
 from .conf import Config
 from .tree import DjpcmsTree, BadNode
 from .profiler import profile_response
-from .request import make_request, Response, is_xhr, WsgiHandler
+from .request import make_request, Response, is_xhr, WsgiHandler, is_response
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
-from .async import ResponseHandler
 
 
 __all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite']
@@ -83,7 +85,6 @@ Default ``None``
 
 
 DEFAULT_SITE_HANDLERS = {
-    'response_handler': ResponseHandler(),
     'permissions': PermissionHandler,
     'meta_robots': SimpleRobots,
     'cache': CacheHandler()
@@ -115,7 +116,6 @@ class WSGI(object):
     '''Djpcms WSGI handler.'''
     def __init__(self, site):
         self.site = site
-        self.error = site.response.error_to_response
         
     @property
     def route(self):
@@ -148,7 +148,7 @@ class WSGI(object):
                 raise HttpException(status=405)
             elif not request.has_permission():
                 raise PermissionDenied()
-            return request.view(request)
+            return self.handle_content(request, request.view(request))
         except HttpRedirect as e:
             # handle redirects
             request = self._request(environ, tree, request, node, e)
@@ -169,12 +169,16 @@ class WSGI(object):
             request = make_request(environ, node)
         return request    
             
-    def handle_content(self, request, content, status=200):
-        encoding = request.settings.DEFAULT_CHARSET
-        if ajax.is_ajax(content):
+    def handle_content(self, request, content, content_type=None, status=200):
+        if is_renderer(content):
             content_type = content.content_type()
-            content = content.dumps()
-            content = content.encode(encoding)
+            content = content.render(request)
+        elif is_response(content):
+            return content
+        encoding = request.settings.DEFAULT_CHARSET
+        if content_type == 'text/html':
+            content = '\n'.join(html_doc_stream(request, content, status))
+        content = to_bytes(content, encoding)
         return Response(content=content,
                         status=status,
                         content_type=content_type)
@@ -193,6 +197,51 @@ class WSGI(object):
             return DjpcmsTree(tree, Page.query())
         else:
             return DjpcmsTree(tree)
+        
+    def error(self, request, status=500, exc_info=None):
+        '''The default error renderer. It handles both ajax and
+ standard responses. Override if you need to.'''
+        exc_info = exc_info or sys.exc_info()
+        settings = request.settings
+        if exc_info and exc_info[0] is not None:
+            # Store the stack trace in the request cache and log the traceback
+            request.cache['traces'].append(exc_info)
+        else:
+            exc_info = None
+        tag = None
+        content_type = settings.DEFAULT_CONTENT_TYPE
+        if request.is_xhr or content_type == 'text/html':
+            tag = 'div'
+        error = Widget(tag, cn='page-error error{0}'.format(status))
+        inner = error
+        if not request.is_xhr and tag:
+            inner = Widget(tag, error)
+        if settings.DEBUG:
+            error.add(Widget('h2' if tag else None,
+                             '{0} {1}'.format(status,error_title(status))))
+            error.add(Widget('h3' if tag else None,
+                             request.path))
+            if exc_info:
+                ptag = 'p' if tag else None
+                for traces in traceback.format_exception(*exc_info):
+                    counter = 0
+                    for trace in traces.split('\n'):
+                        if trace.startswith('  '):
+                            counter += 1
+                            trace = trace[2:]
+                        if not trace:
+                            continue
+                        w = Widget(ptag, escape(trace))
+                        if counter:
+                            w.css({'margin-left':'{0}px'.format(20*counter)})
+                        error.add(w)
+        else:
+            error.add(self.errorhtml.get(status, 500))
+        if request.is_xhr:
+            content = ajax.jservererror(request, inner.render(request))
+        else:
+            content = inner.render(request)
+        return self.handle_content(request, content, content_type, status)
         
         
 class Site(ResolverMixin, ViewRenderer):

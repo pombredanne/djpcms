@@ -1,3 +1,4 @@
 topbar = 'topbar'
-topbar_fixed = 'topbar-fixed'
+topbar_container = 'topbar-container'
+topbar_fixed = 'fixed'
 breadcrumbs = 'breadcrumbs'

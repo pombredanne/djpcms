@@ -1,10 +1,10 @@
-'''Utility functions for forms'''
+'''Utility functions for :mod:`djpcms.forms`'''
 import sys
 import logging
 from functools import partial
 from datetime import datetime
 
-from djpcms import forms, html, ajax
+from djpcms import forms, html, is_renderer
 from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import urlsplit, QueryDict
 from djpcms.utils.dates import format
@@ -25,12 +25,8 @@ def set_request_message(f, request):
         for msg in f.messages['__all__']:
             messages.info(request, msg)
 
-def form_kwargs(request,
-                withdata = None,
-                method = 'post',
-                inputs = None,
-                initial = None,
-                **kwargs):
+def form_kwargs(request, withdata=None, method='post', inputs=None,
+                initial=None, **kwargs):
     '''Form arguments aggregator.
 Usage::
 
@@ -39,12 +35,12 @@ Usage::
 :parameter withdata: Force the form to have or not have bound data.
     If not supplied, the form is bound to data only if the request
     method is the same as the form method.
-                     
+    
     Default ``None``.
     
-:parameter method: the form method ('post' or 'get')
-
-    Default: "post".
+:parameter method: Form method.
+                     
+    Default ``"post"``.
 '''
     data = request.REQUEST
     if (withdata or (withdata is None and request.method == method.lower()))\
@@ -202,10 +198,10 @@ has been submitted, including possible asynchronous behavior.'''
     
     if forms.CANCEL_KEY in data:
         url = get_redirect(request, f.instance, True)
-        return view.redirect(request, url)
+        raise HttpRedirect(url)
         
     if forms.SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
-        f.instance = view.mapper.save_as_new(f.instance, commit = False)
+        f.instance = view.mapper.save_as_new(f.instance, commit=False)
         
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
@@ -225,7 +221,7 @@ has been submitted, including possible asynchronous behavior.'''
 def _finish(request, editing, fhtml, force_redirect, response):
     view = request.view
     f = fhtml.form
-    if ajax.is_ajax(response):
+    if is_renderer(response):
         return response
     elif response == f:
         return fhtml.maker.json_messages(f)

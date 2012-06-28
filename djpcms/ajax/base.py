@@ -3,21 +3,16 @@ interaction with ``djpcms.js``
 '''
 import json
 
+from djpcms import Renderer
 from djpcms.utils.async import Deferred
 from djpcms.utils.text import to_string
 from djpcms.utils.structures import OrderedDict
-
-
-def is_ajax(obj):
-    return isinstance(obj, Ajax)
    
-   
-class Ajax(object):
+
+class Ajax(Renderer):
     '''Base class for JSON AJAX utilities'''
-    _content_type = 'application/javascript'
-    
     def content_type(self):
-        return self._content_type
+        return 'application/javascript'
     
     def dict(self):
         '''This is the only functions that needs to be implemented by derived
@@ -30,40 +25,12 @@ as JSON string.
         # Internal function which uses json to serialise elem
         return json.dumps(elem)
     
-    def dumps(self):
+    def render(self, *args, **kwargs):
         '''Serialize ``self`` as a ``JSON`` string'''
         return self._dump(self.dict())
     
-    def tojson(self, autoescape = False):
-        '''Convert the object to a json string autoescaping context if required.'''
-        try:
-            s = force_str(self.dumps())
-            if autoescape:
-                s = self.mark_safe(s)
-            return s
-        except Exception as e:
-            return self.handleError(e, autoescape)
-    
-    def handleError(self, e, autoescape = False):
-        s = force_str(e)
-        if autoescape:
-            s = self.mark_safe(s)
-        return s
-    
     def error(self):
         return False
-    
-    
-class simpledump(Ajax):
-    _content_type = 'text/html'
-    
-    def __init__(self, str, content_type=None):
-        self.data = str
-        if content_type:
-            self._content_type = content_type
-        
-    def dumps(self):
-        return self.data
     
     
 class simplelem(Ajax):

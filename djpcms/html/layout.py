@@ -371,7 +371,7 @@ class column(grid_holder):
 plugins, unless it has children containers.'''
     cn = None
     grid_fixed = False
-    def __init__(self, size = 1, over = 1, *grid, **kwargs):
+    def __init__(self, size=1, over=1, *grid, **kwargs):
         self.size = size
         self.over = over
         if self.span > 1:
@@ -457,11 +457,3 @@ Grid(
 Grid(
     row(column(3,4), column(1,4))
 ).register('grid 75-25')
-
-Grid(
-    row(column(1,5), column(4,5))
-).register('grid 20-80')
-
-Grid(
-    row(column(4,5), column(1,5))
-).register('grid 80-20')

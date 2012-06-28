@@ -1,6 +1,8 @@
 import djpcms
 from djpcms.html import Widget, NON_BREACKING_SPACE
 from djpcms.views import application_link
+
+from . import classes
     
 
 __all__ = ['Navigator', 'Breadcrumbs']
@@ -150,7 +152,7 @@ with class name defaulted to ``"breadcrumbs"``.
         self.divider = "<span class='divider'>"+divider+"</span>"
         self.min_length = min_length
         self.render_empty = render_empty 
-        self.widget = Widget(tag, cn=cn or 'breadcrumbs')
+        self.widget = Widget(tag, cn=cn or classes.breadcrumbs)
         
     def items(self, request):
         crumbs = []

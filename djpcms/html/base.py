@@ -19,6 +19,7 @@ __all__ = ['flatatt',
            'StreamRenderer',
            'WidgetMaker',
            'Widget',
+           'Div',
            'Anchor',
            'Img',
            'NON_BREACKING_SPACE']
@@ -574,6 +575,8 @@ class Anchor(WidgetMaker):
     attributes = WidgetMaker.makeattr('href', 'charset', 'name', 'rel', 'rev',
                                       'shape', 'target')
     
+class Div(WidgetMaker):
+    tag = 'div'
     
 # set defaults
 DefaultMaker = WidgetMaker()

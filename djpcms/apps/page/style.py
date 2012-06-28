@@ -6,6 +6,7 @@ from djpcms.media.style import *
 ##    VARIABLES
 cssv.header.background = None
 cssv.header.min_height = None
+cssv.header.margin = None
 
 cssv.content.color = None
 cssv.content.min_height = None
@@ -30,5 +31,8 @@ css('#page-content',
 
 css('#page-footer',
     gradient(cssv.footer.background),
-    color = cssv.footer.color,
-    min_height = cssv.footer.min_height)
+    color=cssv.footer.color,
+    position='absolute',
+    bottom=0,
+    width=pc(100),
+    min_height=cssv.footer.min_height)

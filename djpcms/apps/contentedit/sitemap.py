@@ -15,6 +15,7 @@ from djpcms.apps.nav import page_links
 from djpcms.apps.admin import AdminApplication
 
 from .layout import HtmlPageForm
+from . import classes
 
 __all__ = ['SiteMapApplication',
            'SiteContentApp']
@@ -63,6 +64,9 @@ class SiteMapView(views.SearchView):
     
     
 class PageChangeView(views.ChangeView):
+    '''View for editing a page. It insert an
+:class:`djpcms.html.layout.container` at the top of the page with the
+editing form.'''
     name='change'
     edit_container=container('edit-page',
                              grid_fixed=False,
@@ -89,7 +93,7 @@ class PageChangeView(views.ChangeView):
         links = page_links(request)
         return box(hd='Editing page {0}'.format(request.instance),
                    bd=text, collapsed=True, edit_menu=links)\
-                .addClass('edit-block')
+                .addClass(classes.edit)
     
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:

@@ -1,11 +1,12 @@
 import os
 
 import djpcms
-from djpcms.html import classes
 
 from .base import *
 from .colorvar import *
 from .mixins import *
+
+from djpcms.html import classes
 
 ################################################################################
 ##    DEFINE THE BASE STYLE VARIABLES
@@ -21,6 +22,7 @@ cssv.color.grayLighter = color('e6e6e6')
 cssv.color.white = color('fff')
 
 # Global body variable
+cssv.html.background = None
 cssv.body.background = cssv.color.white
 cssv.body.color = cssv.color.grayDarker
 cssv.body.border_color = cssv.color.grayLighter
@@ -57,34 +59,25 @@ cssv.link.hover.text_shadow = None
 # Margins
 cssv.block.margin_bottom = px(20)
 
-# edit page panel
-cssv.edit.background = cssv.color.grayDarker
-cssv.edit.border_color = cssv.edit.background 
-cssv.edit.color = cssv.color.white
-cssv.edit.font_size = pc(90)
-cssv.edit.link.hover.text_decoration = 'none'
-cssv.edit.link.default.color = cssv.color.grayLighter
-cssv.edit.link.hover.color = lazy(color.darken,
-                                  cssv.edit.link.default.color, 15)
-
-# Widget head
-cssv.widget.head.background = cssv.color.grayLighter
-cssv.widget.head.color = cssv.color.grayDarker
-cssv.widget.head.border.color = cssv.color.grayLight
-
 ################################################# BODY
 css('body',
     css_include(os.path.join(djpcms.PACKAGE_DIR,'media','reset.css')),
     grid(12, 60, 20),
     gridfluid(12),
     gridfluid(24),
-    background = cssv.body.background,
-    color = cssv.body.color,
-    font_family = cssv.body.font_family,
-    font_size = cssv.body.font_size,
-    min_width = cssv.body.min_width,
-    line_height = cssv.body.line_height,
-    text_align = cssv.body.text_align)
+    gradient(cssv.body.background),
+    color=cssv.body.color,
+    font_family=cssv.body.font_family,
+    font_size=cssv.body.font_size,
+    min_width=cssv.body.min_width,
+    line_height=cssv.body.line_height,
+    text_align=cssv.body.text_align,
+    height=pc(100))
+
+css('html',
+    gradient(cssv.html.background),
+    min_width=cssv.body.min_width,
+    height=pc(100))
 
 ################################################# TOPOGRAPHY
 css('h1,h2,h3,h4,h5,h6',
@@ -128,14 +121,11 @@ css('.cms-block',
     clearfix(),
     margin_bottom=cssv.block.margin_bottom)
 
-css('.ui-widget.box',
-    cssa('.edit-block',
-         cssb('.ui-widget-head,.ui-widget-body',
-              gradient(cssv.edit.background),
-              color=cssv.edit.color),
-         css('.cms-block',
-             margin_bottom=0),
-         border_color=cssv.edit.border_color))
+################################################# SPECIAL CLASSES
+css('.'+classes.wrapper,
+    height='auto !important',
+    margin=0,
+    min_height=pc(100))
 
 ################################################# EDIT PAGE PANEL
 css('#page-edit-page',
@@ -144,17 +134,3 @@ css('#page-edit-page',
     gradient(cssv.edit.background),
     color=cssv.edit.color,
     font_size=cssv.edit.font_size)
-
-################################################# SPECIAL CLASSES
-css('.'+classes.widget_head,
-    bcd(**cssv.widget.head.params()),
-    border(**cssv.widget.head.border.params()))
-
-css('.'+classes.corner_all,
-    radius(cssv.body.radius))
-
-css('.'+classes.corner_top,
-    radius(spacing(cssv.body.radius, cssv.body.radius, 0, 0)))
-
-css('.'+classes.corner_bottom,
-    radius(spacing(0, 0, cssv.body.radius, cssv.body.radius)))

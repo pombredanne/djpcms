@@ -2,6 +2,7 @@
 from collections import deque, namedtuple
 
 from .base import WidgetMaker, Widget
+from . import classes
 
 __all__ = ['LayoutDoesNotExist',
            'grid_systems',
@@ -228,6 +229,7 @@ the body tag. A page contains a list of :class:`container`.'''
         if not containers:
             containers = (container('content'),)
         super(page, self).__init__(*containers, **kwargs)
+        self.addClass(classes.wrapper)
         
     @classmethod
     def childtype(cls):

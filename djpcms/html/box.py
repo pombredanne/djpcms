@@ -1,13 +1,14 @@
 from djpcms.media import Media
-from .base import Widget, WidgetMaker
+
+from .base import Widget, Div
 from .icons import with_icon
+from . import classes
 
 __all__ = ['box']
 
 
-class BoxTemplate(WidgetMaker):
-    tag = 'div'
-    classes = 'ui-widget ui-corner-all box'
+class BoxTemplate(Div):
+    classes = (classes.widget, classes.box)
     _media = Media(js = ['djpcms/collapse.js'])
     
     def media(self, request, widget):
@@ -15,15 +16,14 @@ class BoxTemplate(WidgetMaker):
             return self._media
     
 
-BoxHeader = WidgetMaker(tag='div', cn='hd ui-widget-head', key='hd')
-
 Box = BoxTemplate().add(
-                    BoxHeader,
-                    WidgetMaker(tag='div', cn='bd ui-widget-body', key='bd'),
-                    WidgetMaker(tag='div', cn='ft ui-widget-foot', key='ft'))
+        Div(cn=(classes.widget_head, 'hd'), key='hd'),
+        Div(cn=(classes.widget_body, 'bd'), key='bd'),
+        Div(cn=(classes.widget_foot, 'ft'), key='ft'))
 
-BoxNoFooter = BoxTemplate().add(BoxHeader,
-                                WidgetMaker(tag='div', cn='bd', key='bd'))
+BoxNoFooter = BoxTemplate().add(
+        Div(cn=(classes.widget_head, 'hd'), key='hd'),
+        Div(cn=(classes.widget_body, 'bd'), key='bd'))
 
 
 def box(hd='', bd='', ft=None, minimize=False, detachable=False,
@@ -59,6 +59,6 @@ def box(hd='', bd='', ft=None, minimize=False, detachable=False,
     header = b['hd']
     header.add(Widget('h3', hd))
     if edit_menu:
-        header.add(edit_menu.addClass('edit-menu'))
+        header.add(edit_menu.addClass(classes.edit_menu))
     return b
 

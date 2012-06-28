@@ -5,14 +5,10 @@ from djpcms.cms.plugins.extrawrappers import CollapsedWrapper
 
 from .sitemap import underlying_response
 from .layout import ContentBlockHtmlForm
+from . import classes
 
 
 __all__ = ['ContentApplication']
-
-
-edit_class = 'edit-block ui-state-active'
-movable_class = 'movable'
-edit_movable = edit_class + ' ' + movable_class
 
 
 # Content wrapper in editing mode.
@@ -35,9 +31,9 @@ editing content.'''
     
     def extra_class(self, request, block, html):
         if block.plugin_name:
-            return edit_movable
+            return (classes.edit, classes.movable)
         else:
-            return edit_class
+            return classes.edit
         
     def edit_menu(self, request, block):
         ul = html.Widget('ul')

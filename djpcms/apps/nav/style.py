@@ -1,8 +1,8 @@
 '''Top bar styling
 '''
-from djpcms.apps.nav import topbar_class, topbar_fixed
-
 from djpcms.media.style import *
+
+from . import classes
 
 # Control the size
 cssv.topbar.height = px(40)
@@ -45,8 +45,6 @@ cssv.topbar.secondary_active.background = cssv.color.black
 cssv.topbar.secondary_active.color = cssv.color.white
 cssv.topbar.secondary_active.text_decoration = cssv.topbar.secondary_hover.text_decoration
 cssv.topbar.secondary_active.text_shadow = cssv.topbar.secondary_hover.text_shadow
-
-
 # brand
 cssv.topbar.brand.color = '#ffffff'
 cssv.topbar.brand.font_size = px(20)
@@ -55,6 +53,8 @@ cssv.topbar.brand.font_family = None
 cssv.topbar.brand.padding = px(20)
 cssv.topbar.brand.width = None
 
+# BREADCRUMBS
+cssv.breadcrumbs.font_size = pc(130)
 
 class topbar(mixin):
     
@@ -123,8 +123,13 @@ class topbar(mixin):
         #          margin = '{0}px 0 0 0'.format(space))
 
 
-css('.topbar', topbar())
-css('.topbar-fixed', fixtop(),
+css('.'+classes.topbar, topbar())
+css('.'+classes.topbar_fixed, fixtop(),
     gradient(cssv.topbar.default.background))
 cssa('.editable',
      css('.topbar-fixed', unfixtop()))
+
+
+css('.'+classes.breadcrumbs,
+    css('ul, ul li', list_style='none', display='inline'),
+    font_size=cssv.breadcrumbs.font_size)

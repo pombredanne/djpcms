@@ -14,7 +14,6 @@ HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 HtmlPageForm = forms.HtmlForm(
     PageForm,
     layout = uni.FormLayout(
-                
                 uni.Columns(
                     ('doctype','layout','inner_template','grid_system'),
                     ('title','link','in_navigation','url'),
@@ -46,5 +45,3 @@ HtmlEditContentForm = forms.HtmlForm(
                           uni.Fieldset('body', default_style=uni.blockLabels)
         )
 )
-
-

@@ -3,20 +3,44 @@
 Dependency: ``None``
 '''
 from djpcms import forms, views, html
-from djpcms.html.layout import container, row
+from djpcms.html.layout import container, row, grid
 from djpcms.cms import Route
 from djpcms.cms.plugins import DJPplugin
 from djpcms.utils.httpurl import iri_to_uri
 
 from .builders import *
+from . import classes
 
 layouts = (
            ('v','vertical'),
            ('o','orizontal')
            )
 dlayouts = dict(layouts)
-topbar_class = 'topbar'
-topbar_fixed = 'topbar-fixed'
+
+
+class topbar_container(container):
+    
+    def __init__(self, name='topbar', fixed=True, levels=4,
+                 user_page_links=True, page_links=True):
+        super(topbar_container,self).__init__(name, grid('grid 100'),
+                                              renderer=self._render)
+        self.levels = levels
+        self.page_links = page_links
+        self.user_page_links = user_page_links
+        if fixed:
+            self.addClass(classes.topbar_fixed)
+            
+    def _render(self, request, namespace, column, blocks):
+        '''Render the topbar'''
+        if column == 0:
+            if self.user_page_links:
+                secondary = page_user_links(request)
+            elif self.page_links:
+                secondary = page_links(request)
+            else:
+                secondary = None
+            topbar = Navigator(secondary=secondary, levels=self.levels)
+            return topbar.render(request)
 
 
 def userlinks(request, asbuttons=False):
@@ -44,7 +68,7 @@ def userlinks(request, asbuttons=False):
                 yield a
                 
                 
-def page_links(request, asbuttons = False):
+def page_links(request, asbuttons=False):
     '''Utility for displaying page navigation links.'''
     ul = html.Widget('ul')
     view = request.view

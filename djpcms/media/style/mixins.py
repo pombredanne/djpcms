@@ -117,8 +117,13 @@ g_radius = radius
 
 ################################################# CSS3 GRADIENT
 class gradient(mixin):
-    '''css3 gradient'''
-    def __new__(cls, direction_start_end, pc_end = None):
+    '''css3 gradient
+
+.. attribute:: direction_start_end
+
+    three elements tuple for direction ('h', 'v', 'r' or 's')
+'''
+    def __new__(cls, direction_start_end, pc_end=None):
         if isinstance(direction_start_end, gradient):
             return direction_start_end
         else:

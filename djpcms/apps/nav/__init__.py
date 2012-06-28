@@ -88,6 +88,7 @@ def page_links(request, asbuttons = False):
 
 
 def page_user_links(request, asbuttons=False):
+    '''Returns a ``ul`` :class:`Widget` for page editing and user links.'''
     ul = page_links(request, asbuttons=asbuttons)
     for link in userlinks(request, asbuttons):
         ul.add(link)
@@ -108,13 +109,6 @@ def messages(request):
                 msg.add(html.Widget('li', m, cn= lic))
             lmsg.append(msg.render())
     return {'messages': lmsg}
-
-def navigator(request):
-    settings = request.view.settings
-    cn = settings.HTML.get('main_nav')
-    sitenav = views.Navigator(secondary = page_links(request),
-                              levels = settings.SITE_NAVIGATION_LEVELS)
-    return {'sitenav': html.LazyHtml(request,sitenav)}
 
     
 ##################################################################### PLUGIN

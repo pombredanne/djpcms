@@ -3,6 +3,7 @@ import logging
 from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 
 from djpcms import cms
+from djpcms.utils.log import dictConfig
 
 DEFAULT_PORT = 8060
 
@@ -38,3 +39,16 @@ class Command(cms.Command):
     def handle(self, options):
         site = self.website(options)
         serve(self._website, port=options.port, dry=options.dryrun)
+        
+    def setup_logging(self, settings, options):
+        LOGGING = settings.LOGGING
+        if LOGGING:
+            if settings.DEBUG:
+                handlers = ['console']
+                LOGGING['handlers']['console']['level'] = 'DEBUG' 
+                LOGGING['root'] = {
+                                'handlers': handlers,
+                                'level': 'DEBUG',
+                                }
+            dictConfig(settings.LOGGING)
+        

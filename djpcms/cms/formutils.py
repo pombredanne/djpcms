@@ -8,6 +8,7 @@ from djpcms import forms, html, ajax
 from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import urlsplit, QueryDict
 from djpcms.utils.dates import format
+from djpcms.utils.async import is_async
 
 from .exceptions import HttpRedirect
 from . import messages
@@ -188,7 +189,7 @@ absolute url.
     n = _next()
     return request.build_absolute_uri(n) if n else None
     
-def saveform(request, force_redirect = False):
+def saveform(request, force_redirect=False):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted, including possible asynchronous behavior.'''
@@ -209,26 +210,27 @@ has been submitted, including possible asynchronous behavior.'''
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing = bool(f.instance and f.instance.id)
-        instance = view.save(request, f)
-        return request.view.response(
-                        instance,
-                        partial(_saveinstance, request, editing,
-                                fhtml, force_redirect))
+        response = view.save(request, f)
+        if is_async(response):
+            return instance.add_callback(partial(_finish, request, editing,
+                                                 fhtml, force_redirect))
+        else:
+            return _finish(request, editing, fhtml, force_redirect, response)
     else:
         if request.is_xhr:
             return fhtml.maker.json_messages(f)
         else:
             return view.get_response(request)
         
-def _saveinstance(request, editing, fhtml, force_redirect, instance):
+def _finish(request, editing, fhtml, force_redirect, response):
     view = request.view
     f = fhtml.form
-    if ajax.is_ajax(instance):
-        return instance
-    elif instance == f:
+    if ajax.is_ajax(response):
+        return response
+    elif response == f:
         return fhtml.maker.json_messages(f)
     data = request.REQUEST
-    msg = fhtml.success_message(request, instance,
+    msg = fhtml.success_message(request, response,
                                 'changed' if editing else 'added')
     f.add_message(msg)
     
@@ -243,10 +245,10 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
                 set_request_message(f,request)
                 raise HttpRedirect(curr)
         else:
-            url = view.redirect_url(request, instance, 'change')
+            url = view.redirect_url(request, response, 'change')
     else:
         url = get_redirect(request,
-                           instance=instance,
+                           instance=response,
                            force_redirect=force_redirect)
     
     if not url:
@@ -256,7 +258,7 @@ def _saveinstance(request, editing, fhtml, force_redirect, instance):
             set_request_message(f,request)
             return view.get_response(request)
     else:
-        set_request_message(f,request)
+        set_request_message(f, request)
         raise HttpRedirect(url)
 
 def deleteinstance(request, force_redirect=True):

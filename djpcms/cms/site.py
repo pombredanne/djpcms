@@ -150,36 +150,41 @@ class WSGI(object):
                 raise PermissionDenied()
             return request.view(request)
         except HttpRedirect as e:
-            # Redirecting
-            return self.handle_redirect(environ, e.location)
+            # handle redirects
+            request = self._request(environ, tree, request, node, e)
+            return self.handle_redirect(request, e.location)
         except Exception as e:
-            return self.handle_error(environ, tree, request, node, e)
-        
-    def handle_content(self, content, status=200):
-        if ajax.is_ajax(content):
-            content_type = content.content_type()
-            content = content.dumps()
-        return Response(content=content,
-                        status=status,
-                        content_type=content_type)
-        
-    def handle_redirect(self, environ, location):
-        if is_xhr(environ):
-            return self.handle_content(ajax.jredirect(location))
-        else:
-            h = [('Location', iri_to_uri(location))]
-            return Response(status=302, response_headers=h)
+            # handle any other exception
+            status = getattr(e, 'status', 500)
+            if status == 500:
+                logger.critical('Interval server error', exc_info=True)
+            request = self._request(environ, tree, request, node, e)
+            return self.error(request, status)
     
-    def handle_error(self, environ, tree, request, node, e):
+    def _request(self, environ, tree, request, node, e):
         if node is None:
             handler = getattr(e, 'handler', self.site)
             node = BadNode(tree, handler)
         if request is None:
             request = make_request(environ, node)
-        status = getattr(e, 'status', 500)
-        if status == 500:
-            logger.critical('Interval server error', exc_info=True)
-        return self.error(request, status)
+        return request    
+            
+    def handle_content(self, request, content, status=200):
+        encoding = request.settings.DEFAULT_CHARSET
+        if ajax.is_ajax(content):
+            content_type = content.content_type()
+            content = content.dumps()
+            content = content.encode(encoding)
+        return Response(content=content,
+                        status=status,
+                        content_type=content_type)
+        
+    def handle_redirect(self, request, location):
+        if request.is_xhr:
+            return self.handle_content(request, ajax.jredirect(location))
+        else:
+            h = [('Location', iri_to_uri(location))]
+            return Response(status=302, response_headers=h)
         
     def page_tree(self):
         Page = self.site.Page

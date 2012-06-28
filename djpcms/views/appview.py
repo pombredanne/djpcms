@@ -330,7 +330,7 @@ and handles the saving as default ``POST`` response.'''
         return self.get_form(request, **kwargs).render(request)
     
     def post_response(self, request):
-        return saveform(request, force_redirect = self.force_redirect)
+        return saveform(request, force_redirect=self.force_redirect)
 
 
 class DeleteAllView(ModelView):
@@ -402,7 +402,7 @@ class DeleteView(ObjectView):
     _methods      = ('post',)
     
     def post_response(self, request):
-        return deleteinstance(request, force_redirect = self.force_redirect)
+        return deleteinstance(request, force_redirect=self.force_redirect)
     
     def warning_message(self, request):
         return {'title':'Deleting',
@@ -422,7 +422,7 @@ on an instance of a model.'''
     
     @async_instance
     def post_response(self, request):
-        return saveform(request, force_redirect = self.force_redirect)
+        return saveform(request, force_redirect=self.force_redirect)
       
 
 # Edit/Change an object

@@ -116,6 +116,27 @@ class Select(FieldWidget):
 class FileInput(InputWidget):
     default_attrs = {'type': 'file'}
     attributes = InputWidget.makeattr('multiple')
+    
+
+class List(WidgetMaker):
+    tag='ul'
+    def add_to_widget(self, widget, elem, cn=None):
+        if elem is not None:
+            if not isinstance(elem, Widget) or elem.tag != 'li':
+                elem = Widget('li', elem, cn = cn)
+            widget._data_stream.append(elem)
+
+#___________________________________________________ LIST DEFINITION
+class DefinitionList(WidgetMaker):
+    tag = 'dl'
+    
+    def add_to_widget(self, widget, elem, cn=None):
+        if hasattr(elem,'__iter__'):
+            tags = ('dt', 'dd')
+            for n,data in enumerate(zip_longest(tags, elem, fillvalue='')):
+                if n > 1:
+                    break
+                widget._data_stream.append(Widget(*data))
         
         
 for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
@@ -131,32 +152,8 @@ HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 CheckboxInput(default='input:checkbox')
 Select(default='select')
-
-
-class List(WidgetMaker):
-    tag='ul'
-    def add_to_widget(self, widget, elem, cn = None):
-        if elem is not None:
-            if not isinstance(elem, Widget) or elem.tag != 'li':
-                elem = Widget('li', elem, cn = cn)
-            widget._data_stream.append(elem)
-    
-
-List(default = 'ul')
-
-
-#___________________________________________________ LIST DEFINITION
-class DefinitionList(WidgetMaker):
-    tag = 'dl'
-    
-    def add_to_widget(self, widget, elem, cn = None):
-        if hasattr(elem,'__iter__'):
-            tags = ('dt', 'dd')
-            for n,data in enumerate(zip_longest(tags, elem, fillvalue='')):
-                if n > 1:
-                    break
-                widget._data_stream.append(Widget(*data))
-    
+List(default='ul')
+DefinitionList(default='dl')
 
     
 def SelectWithAction(choices, action_url, **kwargs):

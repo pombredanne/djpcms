@@ -1,3 +1,4 @@
+'''HTML classes for styling'''
 widget = 'ui-widget'
 widget_head = 'ui-widget-header'
 widget_body = 'ui-widget-body'
@@ -10,3 +11,5 @@ edit_menu = 'edit-menu'
 tabs = 'ui-tabs'
 box = 'box'
 wrapper = 'wrapper'
+
+object_definition = 'object-definition'

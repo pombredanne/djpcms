@@ -1,7 +1,7 @@
 from djpcms import forms, html, views, ajax
 from djpcms.cms.plugins import PLUGIN_DATA_FORM_CLASS
 from djpcms.cms.formutils import get_redirect
-from djpcms.cms.plugins.extrawrappers import CollapsedWrapper
+from djpcms.cms.plugins.wrappers import CollapsedWrapper
 
 from .sitemap import underlying_response
 from .layout import ContentBlockHtmlForm
@@ -16,7 +16,6 @@ __all__ = ['ContentApplication']
 class EditWrapperHandler(CollapsedWrapper):
     '''a :class:`djpcms.plugins.DJPwrapper` for
 editing content.'''
-    always_render = True
     auto_register = False
     detachable = True
 

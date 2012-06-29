@@ -10,7 +10,7 @@ import logging
 from djpcms.html import NON_BREACKING_SPACE, htmldoc
 from djpcms.html.layout import grid
 from djpcms.utils import markups
-from djpcms.utils.text import escape, to_string
+from djpcms.utils.text import escape, to_string, NOTHING
 
 from .exceptions import BlockOutOfBound
 from .routing import Route
@@ -153,8 +153,8 @@ with the wrapper callable.'''
                     plugin_response = escape('%s' % e)
         
         # html can be a string or whatever the plugin returns.
-        if plugin_response or not self.position:
-            if plugin_response in (None,''):
+        if plugin_response not in NOTHING or not self.position:
+            if plugin_response in NOTHING:
                 plugin_response = NON_BREACKING_SPACE
             return wrapper(request, self, plugin_response)
     

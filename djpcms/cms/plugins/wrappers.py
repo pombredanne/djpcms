@@ -5,8 +5,8 @@ from djpcms.html import box, Widget, classes
 class FlatPanel(DJPwrapper):
     name = 'panel'
     description = 'Panel'
-    def wrap(self, request, block, html):
-        return Widget('div', html,
+    def render(self, request, block, content):
+        return Widget('div', content,
                       cn=(self.name, classes.widget_body, classes.corner_all))
 
 
@@ -14,18 +14,18 @@ class FlatBox(DJPwrapper):
     name = 'flat'
     description = 'Panel with title'
     
-    def wrap(self, request, block, html):
-        return box(hd=block.title, bd=html).addClass(self.name)
+    def render(self, request, block, content):
+        return box(hd=block.title, bd=content).addClass(self.name)
         
         
-class ListWithTitle(FlatPanel):
-    name = 'title-list'
-    
-    def wrap(self, request, cblock, html):
-        if html and cblock.title:
-            html = '<div class="hd ui-widget-header"><h2>{0}</h2></div>{1}'\
-                            .format(cblock.title,html)
-        return super(ListWithTitle,self).wrap(request,cblock,html)
+#class ListWithTitle(FlatPanel):
+#    name = 'title-list'
+#    
+#    def render(self, request, cblock, content):
+#        if content and cblock.title:
+#            html = '<div class="hd ui-widget-header"><h2>{0}</h2></div>{1}'\
+#                            .format(cblock.title,html)
+#        return super(ListWithTitle,self).render(request,cblock,content)
     
     
 class BoxWrapper(DJPwrapper):
@@ -34,16 +34,16 @@ class BoxWrapper(DJPwrapper):
     collapsed = False
     detachable = False
     
-    def wrap(self, request, block, html):
+    def render(self, request, block, content):
         return box(hd=self.title(block),
-                   bd=html,
-                   ft=self.footer(request,block,html),
+                   bd=content,
+                   ft=self.footer(request,block,content),
                    id=self.id(block),
                    edit_menu=self.edit_menu(request, block),
                    collapsable=self.collapsable,
                    collapsed=self.collapsed,
                    detachable=self.detachable)\
-                    .addClass(self.extra_class(request, block, html))
+                    .addClass(self.extra_class(request, block, content))
         
     def title(self, block):
         return block.title
@@ -54,10 +54,10 @@ class BoxWrapper(DJPwrapper):
     def edit_menu(self, request, block):
         pass
     
-    def extra_class(self, request, block, html):
+    def extra_class(self, request, block, content):
         return None
     
-    def footer(self, request, block, html):
+    def footer(self, request, block, content):
         return ''
         
         

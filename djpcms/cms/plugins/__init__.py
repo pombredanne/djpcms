@@ -2,7 +2,7 @@ import os
 import logging
 import json
 
-from djpcms import forms, html
+from djpcms import forms, html, Renderer
 from djpcms.utils.text import capfirst, nicename
 from djpcms.cms.formutils import form_kwargs
 
@@ -73,18 +73,17 @@ class DJPpluginMetaBase(type):
 
 
 DJPpluginBase = DJPpluginMetaBase('DJPpluginBase',(object,),{'virtual':True})
-DJPwrapperBase = DJPpluginMetaBase('DJPwrapperBase',(object,),{'virtual':True})
+DJPwrapperBase = DJPpluginMetaBase('DJPwrapperBase',(Renderer,),{'virtual':True})
 
 
 class DJPwrapper(DJPwrapperBase):
-    '''Class responsible for wrapping :ref:`djpcms plugins <plugins-index>`.
-    '''
+    '''A :class:`djpcms.Renderer` for wrapping
+:ref:`djpcms plugins <plugins-index>`.'''
     virtual = True
-    always_render = False
     template = html.WidgetMaker(tag='div')
     name = None
 
-    def wrap(self, request, block, html):
+    def render(self, request, block, html):
         '''Wrap content for block and return safe HTML.
 This function should be implemented by derived classes.
         
@@ -93,21 +92,13 @@ This function should be implemented by derived classes.
         return html
     
     def __call__(self, request, block, html):
-        if html not in (None,'') or self.always_render:
-            name = block.plugin_name
-            id = block.htmlid()
-            inner = self.wrap(request, block, html)
-            if inner not in (None,''):
-                w = self.template(id=id,cn='cms-block plugin-'+name)
-                return w.add(inner)
-        return ''
+        return self.template(self.render(request, block, html),
+                             id=block.htmlid(),
+                             cn='cms-block plugin-'+block.plugin_name)
     
     def _register(self):
         global _wrapper_dictionary
         _wrapper_dictionary[self.name] = self
-        
-    def media(self, request):
-        return None
 
 
 class DJPplugin(DJPpluginBase):
@@ -170,7 +161,7 @@ By default do nothing.
         '''
         return kwargs
     
-    def __call__(self, request, args = None, block = None, prefix = None):
+    def __call__(self, request, args=None, block=None, prefix=None):
         return self.render(request, block, prefix, **self.arguments(args))
         
     def edit_url(self, request, args = None):

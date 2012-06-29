@@ -5,10 +5,9 @@ from djpcms import Renderer
 from djpcms.utils.text import slugify, escape, mark_safe
 from djpcms.utils.decorators import lazymethod
 from djpcms.utils.structures import OrderedDict
+from djpcms.utils.async import MultiDeferred
 from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
                                  is_string_or_native_string, itervalues
-
-from .async import StreamRenderer
 
 if ispy3k:
     from itertools import zip_longest
@@ -75,6 +74,32 @@ def update(container, target):
     return target
     
 
+class StreamRenderer(MultiDeferred):
+    '''A :class:`MultiDeferred` which renders to text.'''
+    def __init__(self, stream, renderer=None):
+        super(StreamRenderer, self).__init__(stream)
+        self.renderer = renderer
+        self.add_callback(self.post_process).add_callback(mark_safe)
+        self.lock()
+            
+    def post_process(self, stream):
+        if self.renderer:
+            return self.renderer(stream)
+        else:
+            return ''.join(self._post_process(stream))
+        
+    def _post_process(self, stream):
+        for value in stream:
+            if value is None:
+                continue
+            elif isinstance(value, bytes):
+                yield value.decode('utf-8')
+            elif isinstance(value, str):
+                yield value
+            else:
+                yield str(value)
+            
+            
 class AttributeMixin(object):
     classes = None
     data = None
@@ -321,7 +346,7 @@ request object and a dictionary for rendering children with a key.
         st = StreamRenderer(self.stream(request, context))
         return st.result if st.called else st
     
-    def stream(self, request = None, context = None):
+    def stream(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
         

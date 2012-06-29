@@ -66,3 +66,10 @@ class TestWidgets(test.TestCase):
     def testBoxMenu(self):
         box = html.box(hd='This is a box', bd='bla bla ...', collapsable=True)
         self.assertEqual(len(box), 2)
+
+    def testDefinitionList(self):
+        dl = w('dl', [('first','bla'),('second','foo'),('third','pippo')])
+        self.assertEqual(len(dl), 6)
+        text = dl.render()
+        self.assertTrue('dt' in text)
+        self.assertTrue('dd' in text)

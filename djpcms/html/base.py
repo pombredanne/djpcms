@@ -1,4 +1,5 @@
 import json
+import traceback
 from copy import copy, deepcopy
 
 from djpcms import Renderer
@@ -16,6 +17,7 @@ else:   # pragma nocover
 
 __all__ = ['flatatt',
            'render',
+           'html_trace',
            'StreamRenderer',
            'WidgetMaker',
            'Text',
@@ -64,7 +66,6 @@ def iterable_for_widget(data):
     else:
         return (data,)
     
-    
 def update(container, target):
     if container:
         container = deepcopy(container)
@@ -73,11 +74,28 @@ def update(container, target):
         return container
     return target
     
+def html_trace(exc_info, plain=False):
+    if exc_info:
+        error = Widget()
+        ptag = None if plain else 'p'
+        for traces in traceback.format_exception(*exc_info):
+            counter = 0
+            for trace in traces.split('\n'):
+                if trace.startswith('  '):
+                    counter += 1
+                    trace = trace[2:]
+                if not trace:
+                    continue
+                w = Widget(ptag, escape(trace))
+                if counter:
+                    w.css({'margin-left':'{0}px'.format(20*counter)})
+                error.add(w)
+        return error.render()
 
 class StreamRenderer(MultiDeferred):
     '''A :class:`MultiDeferred` which renders to text.'''
     def __init__(self, stream, renderer=None):
-        super(StreamRenderer, self).__init__(stream)
+        super(StreamRenderer, self).__init__(stream, fireOnOneErrback=True)
         self.renderer = renderer
         self.add_callback(self.post_process).add_callback(mark_safe)
         self.lock()

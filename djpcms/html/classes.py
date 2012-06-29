@@ -12,5 +12,6 @@ edit_menu = 'edit-menu'
 tabs = 'ui-tabs'
 box = 'box'
 wrapper = 'wrapper'
+error = 'error'
 
 object_definition = 'object-definition'

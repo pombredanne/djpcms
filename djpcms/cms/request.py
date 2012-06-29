@@ -238,8 +238,8 @@ arguments.
                 return None
         return make_request(self.environ, node, instance, cache=cache)
     
-    def for_model(self, model = None, all = False, root = False, name = None,
-                  urlargs = None, instance = None):
+    def for_model(self, model=None, all=False, root=False, name=None,
+                  urlargs=None, instance=None):
         '''Create a new :class:`Request` instance for a model class. The
 model can be specified directly or indirectly via the *instance* parameter.
 

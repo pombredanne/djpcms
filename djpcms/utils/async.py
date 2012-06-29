@@ -3,9 +3,13 @@ import os
 
 if os.environ.get('DJPCMS_ASYNCHRONOUS_FRAMEWORK') == 'twisted':
     from twisted.internet.defer import *
+    from twisted.python.failure import Failure
     
     def is_async(obj):
         return isinstance(obj, Deferred)
+    
+    def is_failure(obj):
+        return isinstance(obj, Failure)
     
     def MultiDeferred(DeferredList):
         

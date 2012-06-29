@@ -54,6 +54,8 @@ cssv.topbar.brand.padding = px(20)
 cssv.topbar.brand.width = None
 
 # BREADCRUMBS
+cssv.breadcrumbs.font_weight_start = None
+cssv.breadcrumbs.font_weight_step = None
 cssv.breadcrumbs.font_size = pc(130)
 cssv.breadcrumbs.font_weight = 'bold'
 cssv.breadcrumbs.line_height = None
@@ -140,6 +142,7 @@ css('.'+classes.breadcrumbs,
     css('a',
         bcd(**cssv.breadcrumbs.params()),
         font_weight=cssv.breadcrumbs.font_weight),
+    css('.divider', padding=spacing(0,px(5))),
     font_size=cssv.breadcrumbs.font_size,
     font_weight=cssv.breadcrumbs.font_weight,
     line_height=cssv.breadcrumbs.line_height)

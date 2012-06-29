@@ -55,6 +55,3 @@ def anchor_or_button(text, href=None, icon=None, asbutton=False, size=None,
     
 def legend(text, cn='legend', **kwargs):
     return Widget('div', text, cn=cn, **kwargs)
-
-        
-    

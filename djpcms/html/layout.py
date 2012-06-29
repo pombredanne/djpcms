@@ -317,33 +317,42 @@ default :class:`Grid` element is created.'''
             context['grid_system'] = grid_system(self.grid_fixed, gs.columns)
         children = list(widget.allchildren())
         inner_grid = children[0] if children else None
+        widget_data = None
         if request:
             request = self.context_request(request, widget)
             pageobj = request.page
         else:
             pageobj = None
         if self.key:
+            # if key is context the widget_data is already available
+            if self.key in context:
+                widget_data = context[self.key]
             # if this is the content, get the inner_grid from the pageobj
-            if self.key == 'content' and pageobj and\
-                pageobj.inner_grid is not None:
+            elif self.key == 'content' and pageobj and\
+                    pageobj.inner_grid is not None:
                 inner_grid = pageobj.inner_grid
         if inner_grid is None:
             inner_grid = self.default_inner_grid(request)
         # this must be a column
         if inner_grid is None:
+            data = context.pop('widget_data',None)
             renderer = context.get('renderer')
-            named_columns = context.get('columns')
-            col, blocks = named_columns.columns.popleft()
-            if renderer:
-                data = renderer(request, named_columns.namespace, col, blocks)
-            else:
-                data = blocks
+            if data is None:
+                named_columns = context.get('columns')
+                col, blocks = named_columns.columns.popleft()
+                if renderer:
+                    data = renderer(request, named_columns.namespace, col, blocks)
+                else:
+                    data = blocks
             widget.add(data)
         else:
             all_columns = context.pop('all_columns',{})
-            context['columns'] = columns_deque(request, self.key,
-                                               all_columns, inner_grid)
-            context['renderer'] = self.renderer
+            if widget_data is not None:
+                context['widget_data'] = widget_data
+            else:
+                context['columns'] = columns_deque(request, self.key,
+                                                   all_columns, inner_grid)
+                context['renderer'] = self.renderer
             key = inner_grid.key or 0
             widget.children.clear()
             if isinstance(inner_grid, WidgetMaker):

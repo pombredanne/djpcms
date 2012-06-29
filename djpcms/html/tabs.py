@@ -2,6 +2,7 @@ from djpcms.utils.text import gen_unique_id
 from djpcms.media import Media
 
 from .base import Widget, WidgetMaker, iterable_for_widget
+from . import classes
 
 __all__ = ['tabs','accordion','ajax_html_select']
 
@@ -35,8 +36,8 @@ class Accordion(TabWidget):
     
     def _unwind(self):
         for key, val in self._data_stream:
-            yield Widget('div', Widget('h3', key)).addClass('ui-widget-head')
-            yield Widget('div', val).addClass('ui-widget-body')
+            yield Widget('div', Widget('h3', key), cn=classes.clickable)
+            yield Widget('div', val, cn=classes.widget_body)
         
 
 tab_media = Media(js = ['djpcms/tabs.js'])

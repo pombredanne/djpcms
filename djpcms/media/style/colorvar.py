@@ -173,7 +173,7 @@ new :class:`RGBA` color with lightness increased by that amount.'''
 
 class color(Variable):
     '''A :class:`Variable` wrapping a :class:`RGBA` color.'''
-    def __init__(self, col, alpha = None, unit = None):
+    def __init__(self, col, alpha=None, unit=None):
         if isinstance(col, color):
             col = col._value
         super(color,self).__init__(RGBA.make(col, alpha))
@@ -207,14 +207,16 @@ class color(Variable):
         return self.value.tohsva()
         
     @classmethod
-    def mix(cls, color1, color2, weight = 50):
+    def mix(cls, color1, color2, weight=50):
         return cls(RGBA.mix(color1._value, color2._value, weight))
     
     @classmethod
     def darken(cls, col, weight):
+        '''Darken :class:`color` *col* by a given percentage *weight*'''
         return cls(col).value.darken(weight)
     
     @classmethod
     def lighten(cls, col, weight):
+        '''Lighten :class:`color` *col* by a given percentage *weight*'''
         return cls(col).value.lighten(weight)
 

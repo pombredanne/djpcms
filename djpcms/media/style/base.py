@@ -114,7 +114,7 @@ in a css file.'''
     @classmethod
     def cssvalue(cls, o):
         if isinstance(o, Variable):
-            return o.tocss()
+            return cls.cssvalue(o.tocss())
         elif isinstance(o, Variables):
             return None
         elif hasattr(o, '__call__'):

@@ -83,11 +83,12 @@ class border(mixin):
         self.width = width
     
     def __call__(self, elem):
-        color = self.color
+        color = ascolor(self.color)
         if color:
-            style = self.style or 'solid'
-            width = self.width or px(1)
-            elem['border'] = '%s %s %s' % (width,style,color)
+            style = Variable.cssvalue(self.style) or 'solid'
+            width = Variable.cssvalue(self.width) or px(1)
+            elem['border'] = '%s %s %s' % (width, style, color)
+g_border = border
         
 ################################################# CSS3 BOX SHADOW
 class shadow(mixin):
@@ -127,7 +128,7 @@ class gradient(mixin):
         if isinstance(direction_start_end, gradient):
             return direction_start_end
         else:
-            o = super(gradient,cls).__new__(cls)
+            o = super(gradient, cls).__new__(cls)
             o.direction_start_end = o.cleanup(direction_start_end,
                                               'direction_start_end')
             o.pc_end = o.cleanup(pc_end, 'pc_end')
@@ -141,11 +142,13 @@ class gradient(mixin):
  Got "{0}".'.format(val))
             d,s,e = tuple((Variable.cssvalue(v) for v in val))
             if d in ('h','v','r','s'):
-                self.decorate = getattr(self, d+'gradient')
+                decorate = getattr(self, d+'gradient')
             else:
                 d = int(d)
-                self.decorate = self.dgradient
-            self.decorate(elem,d,s,e)
+                decorate = self.dgradient
+            s = ascolor(s)
+            e = ascolor(e)
+            decorate(elem, d, s, e)
         else:
             # a simple scalar, just set the background
             elem['background'] = ascolor(val)
@@ -220,27 +223,33 @@ mixin.
 :parameter text_decoration: text decoration 
 '''
     def __init__(self, background=None, color=None, text_shadow=None,
-                 text_decoration=None, **kwargs):
+                 text_decoration=None, border=None, **kwargs):
         self.background = gradient(background)
         self.color = self.cleanup(color, 'color')
         self.text_shadow = self.cleanup(text_shadow,'text_shadow')
         self.text_decoration = self.cleanup(text_decoration,'text_decoration')
+        self.border = self.cleanup(border, 'border', g_border)
     
     def __call__(self, elem):
         self.background(elem)
         elem['color'] = ascolor(self.color)
         elem['text-shadow'] = self.text_shadow
         elem['text_decoration'] = self.text_decoration
+        if self.border:
+            self.border(elem)
         
 ################################################# CLICKABLE        
 class clickable(mixin):
     '''Defines the default, hover and active state.'''
-    def __init__(self, default = None, hover = None, active = None, **kwargs):
-        self.default = self.cleanup(default,'default',bcd)
-        self.hover = self.cleanup(hover,'hover',bcd)
-        self.active = self.cleanup(active,'active',bcd)
+    def __init__(self, default=None, hover=None, active=None, cursor='pointer',
+                 **kwargs):
+        self.cursor = cursor
+        self.default = self.cleanup(default,'default', bcd)
+        self.hover = self.cleanup(hover,'hover', bcd)
+        self.active = self.cleanup(active,'active', bcd)
         
     def __call__(self, elem):
+        elem['cursor'] = self.cursor
         if self.default:
             self.default(elem)
         if self.hover:

@@ -84,16 +84,16 @@ class TestSize(Tvariable,test.TestCase):
         self.assertEqual(str(b),'30px')
         b = 1.5*a
         self.assertEqual(b.unit,'px')
-        self.assertEqual(b.value,22.5)
-        self.assertEqual(str(b),'22.5px')
+        self.assertEqual(b.value,22)
+        self.assertEqual(str(b),'22px')
         self.assertRaises(TypeError,lambda: a*b)
         
     def testDivide(self):
         a = px(15)
         b = a/2
-        self.assertEqual(b.unit,'px')
-        self.assertEqual(b.value,7.5)
-        self.assertEqual(str(b),'7.5px')
+        self.assertEqual(b.unit, 'px')
+        self.assertEqual(b.value, 7)
+        self.assertEqual(str(b), '7px')
         b = a/3
         self.assertEqual(b.unit,'px')
         self.assertEqual(b.value,5)
@@ -200,7 +200,7 @@ class TestVariables(test.TestCase):
         bla = v.bla
         self.assertTrue(isinstance(bla,Variables))
         self.assertEqual(bla, v.bla)
-        self.assertEqual(bla._parent,v)
+        self.assertEqual(bla.parent, v)
         
     def testNestednamespace(self):
         v = Variables()
@@ -208,14 +208,14 @@ class TestVariables(test.TestCase):
         bla = v.bla
         self.assertTrue(isinstance(bla,Variables))
         self.assertEqual(bla, v.bla)
-        self.assertEqual(bla._parent,v)
+        self.assertEqual(bla.parent, v)
         
     def testNotAssigned(self):
         v = Variables()
         bla = v.bla
         self.assertTrue(isinstance(bla, Variables))
         self.assertNotEqual(bla,v.bla)
-        self.assertEqual(bla._parent,v)
+        self.assertEqual(bla.parent, v)
     
     def testUnit(self):
         cssv = Variables()
@@ -425,9 +425,6 @@ class TestCSS(test.TestCase):
         # the variable does not exist
         c = css('#random', margin = cssv.skjncdfcd)
         self.assertFalse(c._attributes)
-    
-    def testError(self):
-        self.assertRaises(TypeError, css, '.foo', [])
         
     def testClone(self):
         c = css('body')
@@ -451,9 +448,7 @@ class TestMixins(test.TestCase):
         s = css('.bla',
                 clearfix(),
                 display = 'block')
-        elems = list(s)
-        self.assertEqual(len(elems),3)
-        text = str(s)
+        text = s.render()
         self.assertTrue('*zoom: 1;' in text)
         self.assertEqual(text,\
 '''.bla {
@@ -469,7 +464,8 @@ class TestMixins(test.TestCase):
 
 .bla:after {
     clear: both;
-}''')
+}
+''')
         
     def testRadius(self):
         r = px(5)
@@ -480,7 +476,8 @@ class TestMixins(test.TestCase):
     -webkit-border-radius: 5px;
        -moz-border-radius: 5px;
             border-radius: 5px;
-}''')
+}
+''')
     
     def testRadiusSpacing(self):
         ra = radius(spacing(px(5),0))
@@ -491,7 +488,8 @@ class TestMixins(test.TestCase):
     -webkit-border-radius: 5px 0;
        -moz-border-radius: 5px 0;
             border-radius: 5px 0;
-}''')
+}
+''')
     
     def testRadiusVariable(self):
         r = Variable(spacing(px(5),0))
@@ -503,8 +501,34 @@ class TestMixins(test.TestCase):
     -webkit-border-radius: 5px 0;
        -moz-border-radius: 5px 0;
             border-radius: 5px 0;
-}''')
-        
+}
+''')
+    
+    def testBorder(self):
+        b = border(color='#555')
+        self.assertTrue(isinstance(b.color, color))
+        s = css('.bla', b)
+        text = s.render()
+        self.assertEqual(text,\
+'''.bla {
+    border: 1px solid #555555;
+}
+''')
+    
+    def testBorderVariables(self):
+        c = Variables()
+        c.border.color = '#222'
+        c.border.style = 'dotted'
+        c.border.width = None
+        b = border(**c.border.params())
+        s = css('.bla', b)
+        text = s.render()
+        self.assertEqual(text,\
+'''.bla {
+    border: 1px dotted #222222;
+}
+''')
+            
     def testBoxShadow(self):
         s = css('.bla',
                 shadow('10px 10px 5px #888'),
@@ -530,14 +554,19 @@ class TestMixins(test.TestCase):
         
     def test_clickable(self):
         s = css('.click',
-                clickable())
-        self.assertEqual(str(s),'.click {\n}')
+                clickable(cursor=None))
+        self.assertEqual(s.render(),'')
         s = css('.click', clickable(default = bcd(color = color('#333'))))
-        self.assertEqual(str(s),'.click {\n    color: #333333;\n}')
-        s = css('.click', clickable(default = bcd(color = '#333333'),
-                                    hover = bcd(color = '#000000'),
-                                    active = bcd(color = '#222222')))
-        self.assertEqual(str(s),'''.click {
+        self.assertEqual(s.render(),'''.click {
+    cursor: pointer;
+    color: #333333;
+}
+''')
+        s = css('.click', clickable(default=bcd(color = '#333333'),
+                                    hover=bcd(color = '#000000'),
+                                    active=bcd(color = '#222222')))
+        self.assertEqual(s.render(),'''.click {
+    cursor: pointer;
     color: #333333;
 }
 
@@ -545,9 +574,14 @@ class TestMixins(test.TestCase):
     color: #000000;
 }
 
+.click:active {
+    color: #222222;
+}
+
 .click.active {
     color: #222222;
-}''')
+}
+''')
         
 
 class TestGradient(test.TestCase):
@@ -645,6 +679,7 @@ body {
     font-size: 14px;
     color: #222222;
     text-align: left;
+    height: 100%;
     background: #ffffff;
     min-width: 960px;
     line-height: 18px;

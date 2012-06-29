@@ -2,6 +2,24 @@
 from djpcms.media.style import *
 from djpcms.html import classes
 
+cssv.clickable.default.background = ('v', color('#e6e6e6'), color.darken('#e6e6e6',10))
+cssv.clickable.default.color = color('#555')
+cssv.clickable.default.border.color = color('d3d3d3')
+cssv.clickable.default.border.width = None
+cssv.clickable.default.border.style = None
+#
+cssv.clickable.hover.background = ('v', color('#dadada'), color.darken('#dadada',10))
+cssv.clickable.hover.color = color('#555')
+cssv.clickable.hover.border.color = color('999999')
+cssv.clickable.hover.border.width = None
+cssv.clickable.hover.border.style = None
+#
+cssv.clickable.active.background = color('#fff')
+cssv.clickable.active.color = color('#212121')
+cssv.clickable.active.border.color = color('aaaaaa')
+cssv.clickable.active.border.width = None
+cssv.clickable.active.border.style = None
+
 cssv.widget.padding = spacing(px(6))
 cssv.widget.border.color = cssv.color.grayLight
 cssv.widget.border.width = px(1)
@@ -25,6 +43,14 @@ cssv.panel.border.color = cssv.widget.border.color
 cssv.panel.border.width = cssv.widget.border.width
 
 
+############################################################### CLICKABLE
+css('.'+classes.clickable,
+    clickable(default=bcd(**cssv.clickable.default.params()),
+              hover=bcd(**cssv.clickable.hover.params()),
+              active=bcd(**cssv.clickable.active.params())))
+    
+    
+############################################################### WIDGET
 css('.'+classes.widget,
     cssb('.hd',
          padding_top=0,

@@ -55,8 +55,9 @@ css('.ui-tabs-hide',
     display='none')
 
 
+#################################################    ACCORDION
 css('.ui-accordion-container',
-    cssb('.ui-widget-head',
+    cssb('.'+classes.clickable,
          cssa(':first-child', margin_top=0),
          margin_top=px(1)),
     border='none')

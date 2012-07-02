@@ -30,7 +30,7 @@ def load():
                     continue
                 try:
                     appmod = import_module('djpcms.utils.markups.'+name)
-                except ImportError as e:
+                except:
                     pass
                 else:
                     add(appmod.Application())

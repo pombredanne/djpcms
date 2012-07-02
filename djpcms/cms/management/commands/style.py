@@ -6,6 +6,7 @@ from optparse import make_option
 
 from djpcms import cms
 from djpcms.utils.importer import import_module
+from djpcms.media import site_media_file
 from djpcms.media.style import css, cssv, dump_theme
 
 LOGGER = logging.getLogger('djpcms.command.style')
@@ -82,11 +83,8 @@ class Command(cms.Command):
         self.theme = options.theme or site.settings.STYLING
         if not target:
             target = '{0}.css'.format(self.theme)
-            mdir = os.path.join(site.settings.SITE_DIRECTORY,
-                                'media',
-                                site.settings.SITE_MODULE)
-            if os.path.isdir(mdir):
-                target = os.path.join(mdir, target)
+            target = site_media_file(site.settings, target, directory=True)\
+                     or target
         if options.variables:
             target = '%s.json' % self.theme
         self.target = target

@@ -540,6 +540,7 @@ has been requested.
             if isinstance(result, Widget):
                 result.addClass(self.mapper.class_name(instance))\
                       .addClass(self.mapper.unique_id(instance))
+                result = result.render(request)
             return result
         else:
             return ''

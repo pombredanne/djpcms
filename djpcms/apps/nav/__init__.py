@@ -22,13 +22,14 @@ class topbar_container(container):
     '''A specialized :class:`djpcms.html.layout.container` conaining
 a topbar.'''
     def __init__(self, name='topbar', fixed=True, levels=4,
-                 user_page_links=True, page_links=True):
+                 user_page_links=True, page_links=True, brand=None):
         super(topbar_container,self).__init__(name, grid('grid 100'),
                                               renderer=self._render)
         self.addClass(classes.topbar_container)
         self.levels = levels
         self.page_links = page_links
         self.user_page_links = user_page_links
+        self.brand = brand
         if fixed:
             self.addClass(classes.topbar_fixed)
             
@@ -41,7 +42,8 @@ a topbar.'''
                 secondary = page_links(request)
             else:
                 secondary = None
-            topbar = Navigator(secondary=secondary, levels=self.levels)
+            topbar = Navigator(secondary=secondary, levels=self.levels,
+                               brand=self.brand)
             return topbar.render(request)
 
 

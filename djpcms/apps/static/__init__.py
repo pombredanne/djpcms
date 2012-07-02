@@ -26,7 +26,7 @@ wm = html.WidgetMaker
 static_index = wm().add(wm(tag='h1', key='title'),
                         html.List(key='nav'))
 
-
+    
 class pathHandler(object):
     
     def __init__(self, name, path, mediadir):

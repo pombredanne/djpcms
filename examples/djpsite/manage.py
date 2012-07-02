@@ -30,7 +30,7 @@ from djpcms import cms, views, html
 from djpcms.apps import admin, static, user
 from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
-from djpcms.apps.nav import Navigator, page_user_links
+from djpcms.apps.nav import topbar_container
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
@@ -89,8 +89,8 @@ class WebSite(cms.WebSite):
     def page_layouts(self, site):
         # Page template
         page_template = page(
-            container('topbar', grid('grid 100'), cn='topbar-fixed',
-                      renderer=self.render_topbar),
+            topbar_container(brand="<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>",
+                             fixed=False),
             container('header', grid('grid 100'),
                       renderer=self.render_header),
             container('content'),
@@ -101,11 +101,6 @@ class WebSite(cms.WebSite):
                              container('footer', grid('grid 100')))
         site.register_page_layout('default', page_template)
         site.register_page_layout('tiny', tiny_template)
-    
-    def render_topbar(self, request, namespace, column, blocks):
-        '''Render the topbar container'''
-        if column == 0:
-            return Navigator(secondary=page_user_links(request)).render(request)
     
     def render_header(self, request, namespace, column, blocks):
         if column == 0:

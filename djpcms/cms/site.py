@@ -620,22 +620,6 @@ for djpcms web sites.
             response.content = self.to_bytes(request, content, response)
         return response
     
-    def stream(self, request, content, response):
-        while is_async(content):
-            yield b''
-            if content.called:
-                content = content.result
-        if is_failure(content):
-            response.status_code = 500
-            content = self.handle_error(request, exc_info=content.trace)
-        yield self.to_bytes(request, content, response)
-    
-    def to_bytes(self, request, content, response):
-        if response.content_type == 'text/html':
-            content = '\n'.join(html_doc_stream(request, content,
-                                                response.status))
-        return to_bytes(content, response.encoding)
-    
     def handle_redirect(self, request, start_response, location):
         '''handle a redirect.'''
         if request.is_xhr:
@@ -648,6 +632,13 @@ for djpcms web sites.
         
     def handle_error(self, request, start_response, status=500, exc_info=None):
         '''Error handler.'''
+        content_type = request.settings.DEFAULT_CONTENT_TYPE
+        content = self.render_error(request, content_type, status, exc_info)
+        return self.handle_content(request, start_response, content,
+                                   content_type, status)
+    
+    def render_error(self, request, content_type, status=500, exc_info=None):
+        '''Render error handler.'''
         exc_info = exc_info or sys.exc_info()
         settings = request.settings
         if exc_info and exc_info[0] is not None:
@@ -655,7 +646,6 @@ for djpcms web sites.
             request.cache['traces'].append(exc_info)
         else:
             exc_info = None
-        content_type = settings.DEFAULT_CONTENT_TYPE
         err_cls = '%s%s' % (classes.error, status)
         err_title = '%s %s' % (status, error_title(status))
         if content_type == 'text/plain':
@@ -684,6 +674,21 @@ for djpcms web sites.
                                                            'default')
                 outer = layout()
                 content = outer.render(request, context={'content': inner})
-        return self.handle_content(request, start_response, content,
-                                   content_type, status)
+        return content        
+        
+    def stream(self, request, content, response):
+        while is_async(content):
+            yield b''
+            if content.called:
+                content = content.result
+        if is_failure(content):
+            response.status_code = 500
+            content = self.render_error(request, response.content_type,
+                                        exc_info=content.trace)
+        yield self.to_bytes(request, content, response)
     
+    def to_bytes(self, request, content, response):
+        if response.content_type == 'text/html':
+            content = '\n'.join(html_doc_stream(request, content,
+                                                response.status))
+        return to_bytes(content, response.encoding)

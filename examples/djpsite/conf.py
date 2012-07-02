@@ -1,6 +1,7 @@
 #Main settings file. The site actually import settings.py which in turns it
 #imports this file and specify the reserved settings below
 
+STYLING = 'green'
 INSTALLED_APPS = ('djpcms',
                   'stdcms',
                   'stdcms.cms',
@@ -12,14 +13,11 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.apps.fontawesome',
                   'djpcms.apps.nav',
                   'djpcms.apps.page',
-                  'djpcms.apps.table',
                   'djpcms.apps.ui',
                   'djpcms.apps.color',
                   #
                   'djpsite.apps.design',
                   'djpsite')
-ENABLE_BREADCRUMBS = 1
-DEFAULT_STYLE_SHEET = {'all':["djpsite/smooth.css"]}
 LANGUAGE_CODE = 'en-gb'
 SITE_NAVIGATION_BRAND =\
 "<img src='/media/djpsite/logos/djpcms-light-125x40.png' alt='djpcms'>"

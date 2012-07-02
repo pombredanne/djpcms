@@ -13,7 +13,7 @@ from djpcms.cms import permissions
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
 from djpcms.utils.async import is_async
-from djpcms.media import js, Media
+from djpcms.media import js, Media, site_media_file
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -135,7 +135,12 @@ managing settings.'''
             m.add_js(js.jquery_paths(settings))
             m.add_js(js.bootstrap(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
-            m.add_css(settings.DEFAULT_STYLE_SHEET)
+            if settings.DEFAULT_STYLE_SHEET:
+                m.add_css(settings.DEFAULT_STYLE_SHEET)
+            elif settings.STYLING:
+                target = site_media_file(settings)
+                if target:
+                    m.add_css({'all': (target,)})
             m.add(self.view.media(self))
             self._media = m
         return self._media

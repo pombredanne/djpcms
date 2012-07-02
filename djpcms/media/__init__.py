@@ -1,15 +1,25 @@
 '''Sylesheet generator and Javascript assets aggregator for djpcms.'''
+import os
 from copy import deepcopy
 
 from djpcms.utils.text import mark_safe
 from djpcms.utils.httpurl import urljoin
 
-__all__ = ['MEDIA_TYPES', 'Media']
-
 
 MEDIA_TYPES = ('css','js')
 
 
+def site_media_file(settings, name=None, directory=False):
+    if name is None:
+        name = '%s.css' % settings.STYLING
+    if directory:
+        mdir = os.path.join(settings.SITE_DIRECTORY, 'media', settings.SITE_MODULE)
+        if os.path.isdir(mdir):
+            return os.path.join(mdir, name)
+    else:
+        return os.path.join(settings.SITE_MODULE, name)
+    
+    
 class Media(object):
     '''Originally from django, it is used for manipulating media
 files such as style sheet and javascript.'''

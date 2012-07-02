@@ -601,6 +601,49 @@ for djpcms web sites.
     
     def render_error_404(self, request, status):
         return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
+    
+    def render_error(self, request, content_type, status=500, exc_info=None):
+        '''Render an error into text or Html depending on *content_type*.
+This function can be overwritten by user implementation.'''
+        exc_info = exc_info or sys.exc_info()
+        settings = request.settings
+        if exc_info and exc_info[0] is not None:
+            # Store the stack trace in the request cache and log the traceback
+            request.cache['traces'].append(exc_info)
+        else:
+            exc_info = None
+        err_cls = '%s%s' % (classes.error, status)
+        err_title = '%s %s' % (status, error_title(status))
+        if content_type == 'text/plain':
+            content = err_title
+            if settings.DEBUG:
+                content += '\n\n' + html_trace(exc_info, plain=True)
+        else:
+            inner = Widget('div', cn=(classes.error, err_cls))
+            if settings.DEBUG:
+                inner.addClass('debug')
+                inner.add(Widget('h2', err_title))
+                inner.add(Widget('a', request.path, href=request.path))
+                inner.add(html_trace(exc_info))
+            else:
+                func_name = 'render_error_%s' % status
+                if hasattr(self, func_name):
+                    text = getattr(self, func_name)(request, status)
+                else:
+                    text = error_title
+                inner.add(text)
+            if request.is_xhr:
+                content = ajax.jservererror(request, inner.render(request))
+            else:
+                try:
+                    layout = request.view.root.get_page_layout(err_cls,
+                                                               classes.error,
+                                                               'default')
+                    outer = layout()
+                    content = outer.render(request, context={'content': inner})
+                except:
+                    content = inner.render(request)
+        return content        
         
     def handle_content(self, request, start_response, content,
                        content_type=None, status=200):
@@ -636,45 +679,6 @@ for djpcms web sites.
         content = self.render_error(request, content_type, status, exc_info)
         return self.handle_content(request, start_response, content,
                                    content_type, status)
-    
-    def render_error(self, request, content_type, status=500, exc_info=None):
-        '''Render error handler.'''
-        exc_info = exc_info or sys.exc_info()
-        settings = request.settings
-        if exc_info and exc_info[0] is not None:
-            # Store the stack trace in the request cache and log the traceback
-            request.cache['traces'].append(exc_info)
-        else:
-            exc_info = None
-        err_cls = '%s%s' % (classes.error, status)
-        err_title = '%s %s' % (status, error_title(status))
-        if content_type == 'text/plain':
-            content = err_title
-            if settings.DEBUG:
-                content += '\n\n' + html_trace(exc_info, plain=True)
-        else:
-            inner = Widget('div', cn=(classes.error, err_cls))
-            if settings.DEBUG:
-                inner.addClass('debug')
-                inner.add(Widget('h2', err_title))
-                inner.add(Widget('a', request.path, href=request.path))
-                inner.add(html_trace(exc_info))
-            else:
-                func_name = 'render_error_%s' % status
-                if hasattr(self, func_name):
-                    text = getattr(self, func_name)(request, status)
-                else:
-                    text = error_title
-                inner.add(text)
-            if request.is_xhr:
-                content = ajax.jservererror(request, inner.render(request))
-            else:
-                layout = request.view.root.get_page_layout(err_cls,
-                                                           classes.error,
-                                                           'default')
-                outer = layout()
-                content = outer.render(request, context={'content': inner})
-        return content        
         
     def stream(self, request, content, response):
         while is_async(content):
@@ -688,7 +692,8 @@ for djpcms web sites.
         yield self.to_bytes(request, content, response)
     
     def to_bytes(self, request, content, response):
-        if response.content_type == 'text/html':
+        # If content is HTML on a non-ajax request, render the document 
+        if response.content_type == 'text/html' and not request.is_xhr:
             content = '\n'.join(html_doc_stream(request, content,
-                                                response.status))
+                                                response.status_code))
         return to_bytes(content, response.encoding)

@@ -3,6 +3,7 @@ import os
 from uuid import uuid4
 
 from djpcms.utils.httpurl import to_string
+from djpcms.html import classes
 
 from .base import *
 from .colorvar import *
@@ -86,8 +87,13 @@ class border(mixin):
         color = ascolor(self.color)
         if color:
             style = Variable.cssvalue(self.style) or 'solid'
-            width = Variable.cssvalue(self.width) or px(1)
-            elem['border'] = '%s %s %s' % (width, style, color)
+            width = '%s' % (Variable.cssvalue(self.width) or px(1))
+            if ' ' in width:
+                elem['border-width'] = width
+                elem['border-style'] = style
+                elem['border-color'] = color
+            else:
+                elem['border'] = '%s %s %s' % (width, style, color)
 g_border = border
         
 ################################################# CSS3 BOX SHADOW
@@ -253,9 +259,9 @@ class clickable(mixin):
         if self.default:
             self.default(elem)
         if self.hover:
-            cssa(':hover', self.hover, parent=elem)
+            cssa(':hover,.%s' % classes.state_hover, self.hover, parent=elem)
         if self.active:
-            cssa(':active,.active', self.active, parent=elem)
+            cssa(':active,.%s' % classes.state_active, self.active, parent=elem)
         
 ################################################# HORIZONTAL NAVIGATION
 class horizontal_navigation(clickable):
@@ -311,7 +317,7 @@ class horizontal_navigation(clickable):
                                 text_decoration=hover.text_decoration,
                                 text_shadow=hover.text_shadow)),
                        cssb('ul', display='block')),
-                  cssa(':active, .active',
+                  cssa(':active, .%s' % classes.state_active,
                        active.background,
                        cssb('a',
                             bcd(color=active.color,

@@ -17,7 +17,7 @@ def site_media_file(settings, name=None, directory=False):
         if os.path.isdir(mdir):
             return os.path.join(mdir, name)
     else:
-        return os.path.join(settings.SITE_MODULE, name)
+        return '%s/%s' % (settings.SITE_MODULE, name)
     
     
 class Media(object):

@@ -26,7 +26,7 @@ class TabWidget(Widget):
                     id = gen_unique_id()[:8]
                     key = Widget('a', key, href='#'+id)
                     divs.append(Widget('div', val, id=id))
-                ul.add(key)
+                ul.add(Widget('li', key, cn=classes.clickable))
             yield ul
             for div in divs:
                 yield div        

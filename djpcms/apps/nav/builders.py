@@ -1,5 +1,5 @@
 import djpcms
-from djpcms.html import Widget, NON_BREACKING_SPACE
+from djpcms.html import Widget, WidgetMaker, Anchor, List, NON_BREACKING_SPACE
 from djpcms.views import application_link
 
 from . import classes
@@ -8,7 +8,7 @@ from . import classes
 __all__ = ['Navigator', 'Breadcrumbs']
 
 
-class Navigator(object):
+class Navigator(WidgetMaker):
     '''Build a navigator for the web site.
 
 :parameter levels: number of nesting in navigation.
@@ -31,79 +31,58 @@ class Navigator(object):
     
     Default: ``False``.
 '''
-    link_active_class = 'active'
-    main_layout = ('brand','nav')
-    secondary_layout = ('search','nav')
+    tag = 'div'
+    main_layout = ('brand', 'nav')
+    secondary_layout = ('search', 'nav')
     
     def __init__(self, levels=4, secondary_after=100,
                  nav_element=None, primary=None, secondary=None,
-                 container=None, fixed=False,
-                 brand=None, search=None, soft=False,
-                 main_layout=None, secondary_layout=None):
+                 container=None, brand=None, search=None, soft=False,
+                 main_layout=None, secondary_layout=None, **kwargs):
+        super(Navigator, self).__init__(**kwargs)
         self.main_layout = main_layout if main_layout\
                             is not None else self.main_layout
         self.secondary_layout = secondary_layout if secondary_layout\
                                  is not None else self.secondary_layout
         if brand and not isinstance(brand, Widget):
-            brand = Widget('a',brand,cn='brand',href='/')
+            brand = Ancor(cn='brand', href='/').add(brand)
         self.brand = brand
         self.search = search
         self.soft = soft
         self.nav_element = nav_element
-        self.container = container
-        if container is not None and not isinstance(container, Widget):
-            self.container = Widget('div', cn = self.container)
-        self.fixed = fixed
         self.levels = max(levels,1)
         self.secondary_after = secondary_after
-        self.primary = primary if primary is not None else Widget('ul')
-        self.secondary = secondary if secondary is not None else Widget('ul')
-        self.primary.addClass('nav')
-        self.secondary.addClass('nav secondary-nav')
+        nav = List(key='primary', cn='nav')
+        self.add(*self.elements(self.main_layout, nav))
+        nav = List(key='secondary', cn=('nav secondary-nav'))
+        self.add(*reversed(self.elements(self.secondary_layout, nav)))
     
     def elements(self, layout, nav):
         float = 'right' if nav.hasClass('secondary-nav') else 'left'
+        elems = []
         for elem in layout:
             if elem == 'nav':
                 elem = nav
             else:
-                elem = getattr(self,elem,None)
+                elem = getattr(self, elem, None)
                 if elem is not None:
                     elem.css({'float':float})
             if elem is not None:
-                yield elem
+                elems.append(nav)
+        return elems
                 
-    def render(self, request):
-        if self.nav_element is None:
-            self.nav_element = Widget('div', cn = 'topbar')
-        if self.fixed:
-            widget = Widget('div', self.nav_element, cn = 'topbar-fixed')
-        else:
-            widget = self.nav_element
-            
-        if self.container is not None:
-            self.nav_element.add(self.container.root)
-            nav_element = self.container
-        else:
-            nav_element = self.nav_element
-            
+    def get_context(self, request, widget, context):
+        primary = widget.children['primary']
+        secondary = widget.children['secondary']
         urlselects = []
-        request = self.buildselects(request,urlselects)
-        for li,secondary in navstream(request,
-                                      urlselects,
-                                      self.secondary_after,
-                                      self.link_active_class,
-                                      self.levels-1):
-            if secondary:
-                self.secondary.add(li)
+        request = self.buildselects(request, urlselects)
+        for li ,s in navstream(request, urlselects, self.secondary_after,
+                               self.levels-1):
+            if s:
+                secondary.add(li)
             else:
-                self.primary.add(li)
-        for elem in self.elements(self.main_layout, self.primary):
-            nav_element.add(elem)
-        for elem in self.elements(reversed(self.secondary_layout),\
-                                                         self.secondary):
-            nav_element.add(elem)
-        return widget.render(request)
+                primary.add(li)
+        return context
     
     def buildselects(self, request, urlselects):
         if self.soft and request.view.is_soft(request):
@@ -120,8 +99,8 @@ class Navigator(object):
         return request
     
     
-def navstream(request, urlselects, secondary_after, link_active, level):
-    for request, nav in sorted(((c,c.in_navigation)\
+def navstream(request, urlselects, secondary_after, level):
+    for request, nav in sorted(((c, c.in_navigation)\
                 for c in request.auth_children()), key = lambda x : x[1]):
         if not nav:
             continue
@@ -129,10 +108,9 @@ def navstream(request, urlselects, secondary_after, link_active, level):
         li = Widget('li',link)
         secondary = secondary_after and nav > secondary_after
         if link.attrs['href'] in urlselects:
-            li.addClass(link_active)
+            li.addClass(classes.state_active)
         if level:
-            slis = list(navstream(request, urlselects, None, link_active,
-                                  level-1))
+            slis = list(navstream(request, urlselects, None, level-1))
             if slis:
                 ul = Widget('ul')
                 for sli,_ in slis:

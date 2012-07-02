@@ -26,24 +26,22 @@ a topbar.'''
         super(topbar_container,self).__init__(name, grid('grid 100'),
                                               renderer=self._render)
         self.addClass(classes.topbar_container)
-        self.levels = levels
+        self.navigator = Navigator(levels=levels, brand=brand,
+                                   cn=classes.topbar)
         self.page_links = page_links
         self.user_page_links = user_page_links
-        self.brand = brand
         if fixed:
             self.addClass(classes.topbar_fixed)
             
     def _render(self, request, namespace, column, blocks):
         '''Render the topbar'''
         if column == 0:
+            topbar = self.navigator()
+            secondary = topbar.children['secondary']
             if self.user_page_links:
-                secondary = page_user_links(request)
+                page_user_links(request, ul=secondary)
             elif self.page_links:
-                secondary = page_links(request)
-            else:
-                secondary = None
-            topbar = Navigator(secondary=secondary, levels=self.levels,
-                               brand=self.brand)
+                page_links(request, ul=secondary)
             return topbar.render(request)
 
 
@@ -72,9 +70,9 @@ def userlinks(request, asbuttons=False):
                 yield a
                 
                 
-def page_links(request, asbuttons=False):
+def page_links(request, asbuttons=False, ul=None):
     '''Utility for displaying page navigation links.'''
-    ul = html.Widget('ul')
+    ul = ul if ul is not None else html.Widget('ul')
     view = request.view
     Page = view.Page
     if Page:
@@ -115,9 +113,9 @@ def page_links(request, asbuttons=False):
     return ul
 
 
-def page_user_links(request, asbuttons=False):
+def page_user_links(request, asbuttons=False, ul=None):
     '''Returns a ``ul`` :class:`Widget` for page editing and user links.'''
-    ul = page_links(request, asbuttons=asbuttons)
+    ul = page_links(request, asbuttons=asbuttons, ul=ul)
     for link in userlinks(request, asbuttons):
         ul.add(link)
     return ul

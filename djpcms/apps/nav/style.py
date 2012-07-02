@@ -6,7 +6,7 @@ from . import classes
 
 # Control the size
 cssv.topbar.height = px(40)
-cssv.topbar.padding = spacing(px(10),px(10))
+cssv.topbar.padding = spacing(px(10), px(10))
 cssv.topbar.margin_horizontal = px(10)
 cssv.topbar.secondary_width = px(160)
 cssv.topbar.shadow = '0 4px 8px rgba(0, 0, 0, 0.2)'
@@ -103,7 +103,7 @@ class topbar(mixin):
         else:
             padding1 = 0
             padding2 = 0
-        padding = spacing(padding1,padding.right,padding2,padding.left)
+        padding = spacing(padding1, padding.right, padding2, padding.left)
         css('a.brand',
             color = brand.color,
             display = 'block',

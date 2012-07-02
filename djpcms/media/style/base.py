@@ -18,7 +18,7 @@ __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',
            'cssv', 'lazy', 'px', 'em', 'pc',
            'spacing', 'dump_theme', 'main', 'Variables',
-           'add_arguments']
+           'add_arguments', 'Spacing']
 
 LOGGER = logging.getLogger('djpcms.media.style')
 nan = float('nan')
@@ -117,8 +117,6 @@ in a css file.'''
             return cls.cssvalue(o.tocss())
         elif isinstance(o, Variables):
             return None
-        elif hasattr(o, '__call__'):
-            return cls.cssvalue(o())
         else:
             return o
         
@@ -134,17 +132,19 @@ in a css file.'''
             return o
             
     @classmethod
-    def make(cls, val, unit = None):
+    def make(cls, val, unit=None):
         if isinstance(val,tuple) and len(val) == 1:
             val = val[0]
-        if isinstance(val,(NamedVariable, lazy)):
-            val = val.tocss()
-        if isinstance(val, cls):
-            if not unit or val.unit == unit:
+        if isinstance(val, Variable):
+            if unit and val.unit != unit:
+                raise ValueError('units are not compatible')
+            if isinstance(val, cls):
                 return val
-        elif not isinstance(val, Variable):
+            else:
+                return val
+            #cls(val)
+        else:
             return cls(val, unit=unit)
-        return cls._make(val, unit)
     
     @classmethod
     def _make(cls, val, unit):
@@ -193,7 +193,7 @@ class ProxyVariable(Variable):
     
     def _get(self):
         value = self.tocss()
-        return value.value if isinstance(value,Variable) else value
+        return value.value if isinstance(value, Variable) else value
     
     def _set(self, value):
         self._value = value
@@ -252,6 +252,11 @@ different themes. Themes override the default value.
     def default(self):
         return self._value.get(None)
     
+    def __getattr__(self, name):
+        '''Check if the underlying value has the attribute'''
+        value = self.tocss()
+        return getattr(value, name)
+    
     def tocss(self):
         theme = self.theme
         if theme in self._value:
@@ -303,6 +308,22 @@ class Size(Variable):
     
     def _unit(self):
         return self._fix_unit
+
+    @property
+    def top(self):
+        return self
+    
+    @property
+    def bottom(self):
+        return self
+    
+    @property
+    def left(self):
+        return self
+    
+    @property
+    def right(self):
+        return self
 
 
 class Spacing(Variable):

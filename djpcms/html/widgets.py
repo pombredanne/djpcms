@@ -32,7 +32,7 @@ class FieldWidget(WidgetMaker):
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
-    wrapper_class = 'field-widget input ui-widget-content'
+    wrapper_class = 'field-widget input'
     attributes = FieldWidget.makeattr('type','placeholder')
     
 
@@ -123,7 +123,7 @@ class List(WidgetMaker):
     def add_to_widget(self, widget, elem, cn=None):
         if elem is not None:
             if not isinstance(elem, Widget) or elem.tag != 'li':
-                elem = Widget('li', elem, cn = cn)
+                elem = Widget('li', elem, cn=cn)
             widget._data_stream.append(elem)
 
 #___________________________________________________ LIST DEFINITION

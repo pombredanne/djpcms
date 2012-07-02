@@ -484,7 +484,7 @@ has been requested. This function overrides the
 It uses the :meth:`urlbits` generator for the purpose.
 If the instance could not be retrieved, it raises a 404 exception.'''
         try:
-            query = dict(self.urlbits(data = urlargs))
+            query = dict(self.urlbits(data=urlargs))
         except KeyError:
             raise djpcms.Http404('View Cannot retrieve instance from url')
         
@@ -594,7 +594,7 @@ This method is called by both :meth:`variables_from_instance` and
                     if name not in bits and hasattr(instance, attrname):
                         yield name,getattr(instance,attrname)
                 else:
-                    yield attrname,data[name]
+                    yield attrname, data[name]
 
     def instance_field_view(self, request, instance=None, field_name=None,
                             name=None, urlargs=None, asbutton=None,

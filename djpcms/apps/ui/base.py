@@ -4,18 +4,21 @@ from djpcms.html import classes
 
 cssv.clickable.default.background = ('v', color('#e6e6e6'), color.darken('#e6e6e6',10))
 cssv.clickable.default.color = color('#555')
+cssv.clickable.default.text_decoration = 'none'
 cssv.clickable.default.border.color = color('d3d3d3')
 cssv.clickable.default.border.width = None
 cssv.clickable.default.border.style = None
 #
 cssv.clickable.hover.background = ('v', color('#dadada'), color.darken('#dadada',10))
 cssv.clickable.hover.color = color('#555')
+cssv.clickable.hover.text_decoration = 'none'
 cssv.clickable.hover.border.color = color('999999')
 cssv.clickable.hover.border.width = None
 cssv.clickable.hover.border.style = None
 #
 cssv.clickable.active.background = color('#fff')
 cssv.clickable.active.color = color('#212121')
+cssv.clickable.active.text_decoration = 'none'
 cssv.clickable.active.border.color = color('aaaaaa')
 cssv.clickable.active.border.width = None
 cssv.clickable.active.border.style = None
@@ -47,7 +50,9 @@ cssv.panel.border.width = cssv.widget.border.width
 css('.'+classes.clickable,
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
-              active=bcd(**cssv.clickable.active.params())))
+              active=bcd(**cssv.clickable.active.params())),
+    css('a', text_decoration='none', color='inherit',
+        font_weight='inherit', cursor='inherit'))
     
     
 ############################################################### WIDGET
@@ -98,8 +103,8 @@ css('.'+classes.widget_body,
 css('.'+classes.corner_all,
     radius(cssv.body.radius))
 
-css('.'+classes.corner_top,
-    radius(spacing(cssv.body.radius, cssv.body.radius, 0, 0)))
+radius_top = spacing(cssv.body.radius, cssv.body.radius, 0, 0)
+radius_bottom = spacing(0, 0, cssv.body.radius, cssv.body.radius)
 
-css('.'+classes.corner_bottom,
-    radius(spacing(0, 0, cssv.body.radius, cssv.body.radius)))
+css('.'+classes.corner_top, radius(radius_top))
+css('.'+classes.corner_bottom, radius(radius_bottom))

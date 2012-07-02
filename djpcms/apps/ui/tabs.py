@@ -1,54 +1,41 @@
 from .base import *
 
 cssv.tabs.line_height = cssv.body.line_height
-cssv.tabs.radius = cssv.body.radius
+cssv.tabs.spacing = px(6)
+cssv.tabs.padding = spacing(px(6), px(10), 0)
+cssv.tabs.content.padding = spacing(px(15), px(10), px(6))
 cssv.tabs.border_color = cssv.body.border_color
 cssv.tabs.default.color = cssv.link.default.color
 cssv.tabs.active.background = cssv.body.background
 cssv.tabs.active.color = cssv.body.color
 cssv.tabs.hover.background = lazy(color.lighten, cssv.tabs.border_color, 5)
 
-def tabs_border():
-    color = cssv.tabs.border_color
-    return '{0} {0} transparent'.format(color)
 
 #################################################    TABS
 css('.'+classes.tabs,
-    css('ul',
+    cssb('ul',
         clearfix(),
-        # tab list
+        radius(radius_top),
         cssb('li',
+             cssa('.%s' % classes.clickable, border_bottom='none'),
              cssb('a',
-                  color=cssv.tabs.default.color,
-                  display='block'),
+                  radius(radius_top),
+                  display='block',
+                  line_height=cssv.tabs.line_height,
+                  padding=spacing(px(8),px(12))),
              float='left',
-             line_height=cssv.tabs.line_height),
-        # tabs
-        cssa('.tabs',
-             cssb('li',
-                  cssb('a',
-                       cssa(':hover',
-                            gradient(cssv.tabs.hover.background),
-                            text_decoration='none'),
-                       radius(spacing(cssv.tabs.radius, cssv.tabs.radius, 0, 0)),
-                       border='1px solid transparent',
-                       line_height=cssv.tabs.line_height,
-                       padding=spacing(px(8),px(12))),
-                  cssa('.ui-state-active',
-                       cssb('a, a:hover',
-                            gradient(cssv.tabs.active.background),
-                            color=cssv.tabs.active.color,
-                            border_color= lazy(tabs_border),
-                            text_decoration='none')),
-                  margin_bottom=px(-1)),
-             border_bottom='1px solid',
-             border_color=cssv.tabs.border_color),
+             line_height=cssv.tabs.line_height,
+             margin_right=cssv.tabs.spacing),
         # pills
         cssa('pills'),
         #
-        margin_bottom=cssv.tabs.line_height),
+        padding=cssv.tabs.padding,
+        border_bottom='none'),
     cssb('div',
-         margin_bottom=cssv.tabs.line_height)
+         border(color=cssv.widget.head.border.color,
+                width=spacing(0,px(1),px(1))),
+         padding=cssv.tabs.content.padding),
+    padding=0,
     )
 
 css('.ui-tabs-hide',

@@ -151,6 +151,7 @@ managing settings.'''
     
 
 def make_request(environ, node, instance=None, cache=True, safe=True):
+    '''Internal method for creating a :class:`Request` instance.'''
     if not node.error:
         view = node.view
         model = view.model
@@ -578,7 +579,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         environ = self.environ
         for node in self.node.children():
             request = make_request(environ, node, instance)
-            if request is not None:
+            if isinstance(request, Request):
                 yield request
     
      

@@ -93,7 +93,7 @@ class TabView(views.ObjectView):
             
     def render(self, request):
         instance = request.instance
-        tabs = html.tabs().addData('ajax',True)
+        tabs = html.tabs().addData('ajax', True)
         first = True
         for order, elem in sorted(self.get_views(request), key=lambda v: v[0]):
             # we render so that we add javascript if it is needed
@@ -107,7 +107,6 @@ class AdminApplication(views.Application):
     has_plugins = False
     views_ordering = {'view':0,'change':1}
     pagination = html.Pagination(('__str__',))
-    
     home = views.SearchView()
     delete_all = views.DeleteAllView()
     add = views.AddView()

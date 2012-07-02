@@ -318,7 +318,6 @@ class AddView(ModelView):
 and handles the saving as default ``POST`` response.'''
     default_route = '/add'
     default_title = 'add'
-    default_link = 'add'
     PERM = permissions.ADD
     ICON = 'add'
     has_plugin = True
@@ -341,7 +340,6 @@ in a model. Quite drastic.'''
     DEFAULT_METHOD = 'post'
     ICON = 'delete_all'
     default_title = 'delete all objects'
-    default_link = 'delete all objects'
     ajax_enabled = True
     _methods = ('post',)
     
@@ -364,14 +362,14 @@ class ObjectView(ModelView):
 A view of this type has an embedded object available which is used to 
 generate the full url.'''
     object_view = True
+    default_link = '{1}'
+    default_title = '{1}'
 
 
 class ViewView(ObjectView):
     '''An :class:`ObjectView` class specialised for displaying
 an object.'''
     default_route = '/<id>/'
-    default_title = '{1}'
-    default_link = '{1}'
     
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
@@ -397,8 +395,8 @@ class DeleteView(ObjectView):
     force_redirect = True
     ajax_enabled = True
     link_class = 'minibutton ui-state-error-text'
-    default_title = 'delete {1}'
     default_link = 'delete'
+    default_title = '{2}{1}'
     _methods      = ('post',)
     
     def post_response(self, request):
@@ -415,6 +413,7 @@ class ObjectActionView(ObjectView):
     '''An :class:`ObjectView` class specialised for performing actions
 on an instance of a model.'''
     parent_view = 'view'
+    default_title = '{2}{1}'
         
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
@@ -430,7 +429,6 @@ an instance of a model.'''
     default_route = '/change'
     PERM = permissions.CHANGE
     ICON = 'pencil'
-    default_title = 'edit {1}'
     default_link = 'edit'
     force_redirect = True 
     

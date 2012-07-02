@@ -23,12 +23,15 @@
                     //options.select = function(event, ui) {
                     //    var a;
                     //};
+                    options.load = function(event, ui) {
+                        $(ui.panel).djpcms();
+                    };
                     options.ajaxOptions = {
                             data: {content_type:'text/html'},
                             complete: function(data, status) {
-                                if(status==='success') {
-                                    data.responseText = $(data.responseText).djpcms();
-                                }
+                                //if(status==='success') {
+                                //    data.responseText = $(data.responseText).djpcms();
+                                //}
                                 //return data;
                             },
                             error: function(xhr, status, index, anchor) {

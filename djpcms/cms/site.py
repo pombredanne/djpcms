@@ -30,7 +30,8 @@ from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 
 
-__all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite']
+__all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite',
+           'request_processor']
 
 
 logger = logging.getLogger('djpcms')
@@ -102,7 +103,11 @@ def add_default_handlers(site):
                 value = value(site.settings)
             internals[key] = value
             
-
+def request_processor(f):
+    f.request_processor = True
+    return f
+        
+        
 class ViewRenderer(Renderer):
     appmodel = None
     inherit_page = False
@@ -225,6 +230,7 @@ Attributes available:
         self._model_registry = {}
         self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]
+        self.request_processors = []
         if parent is None:
             settings = settings or get_settings()
         else:
@@ -243,6 +249,15 @@ Attributes available:
             for wrapper in orms.model_wrappers.values():
                 wrapper.setup_environment(self)
             add_default_handlers(self)
+        for app in self.settings.INSTALLED_APPS:
+            try:
+                mod = import_module(app+'.request')
+                for name in dir(mod):
+                    processor = getattr(mod, name)
+                    if getattr(processor, 'request_processor', False):
+                        self.request_processors.append(processor)
+            except ImportError:
+                pass # No management module
         appurls = self.settings.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls, '__call__'):
@@ -333,19 +348,6 @@ for that model.'''
  not application registered'.format(orms.mapper(model)))
         return app
     
-    @lazyproperty
-    def request_context(self):
-        self.lock.acquire()
-        mw = []
-        try:
-            for p_path in self.settings.REQUEST_CONTEXT_PROCESSORS:
-                func = module_attribute(p_path,safe=True)
-                if func:
-                    mw.append(func)
-            return tuple(mw)
-        finally:
-            self.lock.release()
-    
     def children(self, request):
         '''return a generator over children. It uses the
 :func:`djpcms.node` to retrieve the node in the sitemap and
@@ -386,24 +388,6 @@ consequently its children.'''
                 raise AlreadyRegistered('Model %s already registered\
  as application' % model)
             self._model_registry[model] = application
-    
-    def context(self, data, request = None, processors=None):
-        '''Evaluate the context for the template. It returns a dictionary
-which updates the input ``dictionary`` with library dependent information.
-        '''
-        data = data or {}
-        if request:
-            cache = request.cache
-            if 'context' not in cache:
-                context_cache = {}
-                processors = self.request_context
-                if processors is not None:
-                    for processor in processors:
-                        context_cache.update(processor(request))
-                cache['context'] = context_cache
-            data.update(cache['context'])
-            data['request'] = request
-        return data
             
     def applications(self):
         sites = []
@@ -602,48 +586,55 @@ for djpcms web sites.
     def render_error_404(self, request, status):
         return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
     
-    def render_error(self, request, content_type, status=500, exc_info=None):
+    def render_error(self, request, content_type, exc_info=None):
         '''Render an error into text or Html depending on *content_type*.
 This function can be overwritten by user implementation.'''
         exc_info = exc_info or sys.exc_info()
         settings = request.settings
+        status = 500
         if exc_info and exc_info[0] is not None:
             # Store the stack trace in the request cache and log the traceback
             request.cache['traces'].append(exc_info)
+            status = getattr(exc_info[1],'status',status)
         else:
             exc_info = None
-        err_cls = '%s%s' % (classes.error, status)
-        err_title = '%s %s' % (status, error_title(status))
-        if content_type == 'text/plain':
-            content = err_title
-            if settings.DEBUG:
-                content += '\n\n' + html_trace(exc_info, plain=True)
-        else:
-            inner = Widget('div', cn=(classes.error, err_cls))
-            if settings.DEBUG:
-                inner.addClass('debug')
-                inner.add(Widget('h2', err_title))
-                inner.add(Widget('a', request.path, href=request.path))
-                inner.add(html_trace(exc_info))
-            else:
-                func_name = 'render_error_%s' % status
-                if hasattr(self, func_name):
-                    text = getattr(self, func_name)(request, status)
-                else:
-                    text = error_title
-                inner.add(text)
+        if status == 302:
+            content = exc_info[1].location
             if request.is_xhr:
-                content = ajax.jservererror(request, inner.render(request))
+                content = ajax.jredirect(content)
+        else:
+            err_cls = '%s%s' % (classes.error, status)
+            err_title = '%s %s' % (status, error_title(status))
+            if content_type == 'text/plain':
+                content = err_title
+                if settings.DEBUG:
+                    content += '\n\n' + html_trace(exc_info, plain=True)
             else:
-                try:
-                    layout = request.view.root.get_page_layout(err_cls,
-                                                               classes.error,
-                                                               'default')
-                    outer = layout()
-                    content = outer.render(request, context={'content': inner})
-                except:
-                    content = inner.render(request)
-        return content        
+                inner = Widget('div', cn=(classes.error, err_cls))
+                if settings.DEBUG:
+                    inner.addClass('debug')
+                    inner.add(Widget('h2', err_title))
+                    inner.add(Widget('a', request.path, href=request.path))
+                    inner.add(html_trace(exc_info))
+                else:
+                    func_name = 'render_error_%s' % status
+                    if hasattr(self, func_name):
+                        text = getattr(self, func_name)(request, status)
+                    else:
+                        text = error_title
+                    inner.add(text)
+                if request.is_xhr:
+                    content = ajax.jservererror(inner.render(request))
+                else:
+                    try:
+                        layout = request.view.root.get_page_layout(err_cls,
+                                                                   classes.error,
+                                                                   'default')
+                        outer = layout()
+                        content = outer.render(request, context={'content': inner})
+                    except:
+                        content = inner.render(request)
+        return content, status
         
     def handle_content(self, request, start_response, content,
                        content_type=None, status=200):
@@ -653,6 +644,8 @@ This function can be overwritten by user implementation.'''
             content = content.render(request)
         elif is_response(content):
             return content
+        for processor in self.site.request_processors:
+            processor(request)
         response = Response(status=status,
                             encoding=request.encoding,
                             content_type=content_type,
@@ -673,10 +666,10 @@ This function can be overwritten by user implementation.'''
             return Response(status=302, response_headers=h,
                             start_response=start_response)
         
-    def handle_error(self, request, start_response, status=500, exc_info=None):
+    def handle_error(self, request, start_response, exc_info=None):
         '''Error handler.'''
         content_type = request.settings.DEFAULT_CONTENT_TYPE
-        content = self.render_error(request, content_type, status, exc_info)
+        content, status = self.render_error(request, content_type, exc_info)
         return self.handle_content(request, start_response, content,
                                    content_type, status)
         
@@ -686,13 +679,21 @@ This function can be overwritten by user implementation.'''
             if content.called:
                 content = content.result
         if is_failure(content):
-            response.status_code = 500
-            content = self.render_error(request, response.content_type,
-                                        exc_info=content.trace)
+            if request.is_xhr:
+                response.status_code = 200
+                content, status = self.render_error(request, 'text/html',
+                                                    exc_info=content.trace)
+                response.content_type = content.content_type()
+                content = content.render(request)
+            else:
+                content, status = self.render_error(request,
+                                                    response.content_type,
+                                                    exc_info=content.trace)
+                response.status_code = status
         yield self.to_bytes(request, content, response)
     
     def to_bytes(self, request, content, response):
-        # If content is HTML on a non-ajax request, render the document 
+        # If content is HTML on a non-ajax request, render the document
         if response.content_type == 'text/html' and not request.is_xhr:
             content = '\n'.join(html_doc_stream(request, content,
                                                 response.status_code))

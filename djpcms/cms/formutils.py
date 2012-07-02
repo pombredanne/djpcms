@@ -208,7 +208,7 @@ has been submitted, including possible asynchronous behavior.'''
         editing = bool(f.instance and f.instance.id)
         response = view.save(request, f)
         if is_async(response):
-            return instance.add_callback(partial(_finish, request, editing,
+            return response.add_callback(partial(_finish, request, editing,
                                                  fhtml, force_redirect))
         else:
             return _finish(request, editing, fhtml, force_redirect, response)

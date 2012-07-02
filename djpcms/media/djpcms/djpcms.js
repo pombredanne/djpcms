@@ -283,7 +283,8 @@
                 var me = $(this),
                     config = defaults,
                     lp = $('.djp-logging-panel',me),
-                    parent = me.closest('.djpcms-loaded');
+                    //parent = me.closest('.djpcms-loaded'),
+                    parent = [];
                 
                 if(!parent.length) {
                     if(this === document) {
@@ -505,7 +506,9 @@
     });
     
     /**
-     * html JSON callback
+     * html JSON callback. The server returns a list of objects with
+     * a selctor and html attributes which are going to be
+     * added/replaced to the document
      */
     $.djpcms.addJsonCallBack({
         id: "htmls",
@@ -919,7 +922,8 @@
         },
         decorate: function($this, config) {
             var opts = config.datepicker;
-            $(opts.selector,$this).datepicker(opts);
+            var elems = $(opts.selector,$this);
+            elems.datepicker(opts);
         }
     });
     

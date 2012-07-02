@@ -46,6 +46,10 @@ cssv.panel.border.color = cssv.widget.border.color
 cssv.panel.border.width = cssv.widget.border.width
 
 
+css('body',
+    css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'media','ui.css')))
+
 ############################################################### CLICKABLE
 css('.'+classes.clickable,
     clickable(default=bcd(**cssv.clickable.default.params()),

@@ -62,16 +62,16 @@ files such as style sheet and javascript.'''
         done = set()
         for medium in sorted(self._css):
             paths = self._css[medium]
-            medium = '' if medium == 'all' else " media='{0}'".format(medium)
+            medium = '' if medium == 'all' else " media='%s'" % medium
             for path in paths:
                 url = path[0]
                 if url in done:
                     continue
                 done.add(url)
-                link = "<link href='{0}' type='text/css'{1}\
- rel='stylesheet' />".format(absolute(url,prefix), medium)
+                link = "<link href='%s' type='text/css'%s rel='stylesheet'/>"\
+                        % (absolute(url, prefix), medium)
                 if len(path) == 2:
-                    link = '<!--[if {0}]>{1}<![endif]-->'.format(path[1],link)
+                    link = '<!--[if %s]>%s<![endif]-->' % (path[1],link)
                 yield mark_safe(link)
         
     def absolute_path(self, path, prefix=None):

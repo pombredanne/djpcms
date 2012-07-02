@@ -297,7 +297,7 @@ optional parameter (attribute):
 
 class IntegerField(Field):
     default = None
-    widget = html.TextInput(default_class = 'numeric')
+    widget = html.TextInput(cn='numeric')
     convert_error = '"{0}" is not a valid integer.'
     
     def handle_params(self, validator = None, **kwargs):
@@ -335,7 +335,7 @@ class FloatField(IntegerField):
     
         
 class DateField(Field):
-    widget = html.TextInput(default_class = 'dateinput')
+    widget = html.TextInput(cn='dateinput')
     validation_error = 'Could not recognized date {1}.'
     
     def _clean(self, value, bfield):
@@ -606,9 +606,8 @@ form as only argument'''
         self.choices = choices
         if choices.autocomplete:
             if not self.widget.attrs.get('type') == 'text':
-                self.widget = html.TextInput(default_class = 'autocomplete')
-            else:
-                self.widget.default_class = 'autocomplete'
+                self.widget = html.TextInput()
+            self.widget.addClass('autocomplete')
         elif choices.multiple:
             self.widget_attrs['multiple'] = 'multiple'
         self._raise_error(kwargs)

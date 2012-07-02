@@ -85,18 +85,10 @@ class jempty(HeaderBody):
         return 'empty'
 
 
-class jservererror(HeaderBody):
-    template = '''<h3>{0[path]}</h3>\n{0[error]}'''
+class jservererror(CustomHeaderBody):
     
-    def __init__(self, request, err):
-        self.html = self.template.format({'error':err,
-                                          'path': request.path})
-    
-    def header(self):
-        return 'servererror'
-    
-    def body(self):
-        return self.html
+    def __init__(self, text):
+        super(jservererror, self).__init__('servererror', text)
     
     
 class jerror(HeaderBody):

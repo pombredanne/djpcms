@@ -154,7 +154,7 @@ and :class:`djpcmsview`.
         self.has_plugins = has_plugins if has_plugins is not None else\
                              self.has_plugins
         self.insitemap = insitemap if insitemap is not None else self.insitemap
-        if isinstance(form,forms.FormType):
+        if isinstance(form, forms.FormType):
             self.form = forms.HtmlForm(self.form)
         self.body_class = body_class if body_class is not None else\
                                 self.body_class
@@ -283,15 +283,18 @@ it is the base class of :class:`pageview` and :class:`View`.
                     self.appmodel.description if self.appmodel else ''
             if not title:
                 title = self.settings.SITE_MODULE
-        return title.format(request.urlargs,request.instance)
+        link = self.linkname(request)
+        if link:
+            link += ' '
+        return escape(title.format(request.urlargs, request.instance, link))
     
     def linkname(self, request):
         '''Name to display in hyperlinks to this view.'''
         page = request.page
-        link = page.link if page else None
+        link = page.link if page else self.default_link
         if not link:
             link = self.default_link or \
-                    (self.appmodel.description if self.appmodel else 'view')
+                    (self.appmodel.name if self.appmodel else '')
         return escape(link.format(request.urlargs,request.instance))
     
     def breadcrumb(self, request):

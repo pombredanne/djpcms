@@ -90,7 +90,8 @@ def check_fields(fields, missings, layout=None):
         
         
 class FieldTemplate(FormTemplate):
-        
+    '''A class:`djpcms.html.WidgetMaker` which renders a
+:class:`djpcms.forms.Field`'''
     def get_context(self, request, widget, context):
         bfield = widget.bfield
         if bfield.request is not request:

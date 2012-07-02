@@ -537,6 +537,5 @@ class fontface(mixin):
         elem['src'] = "url('{0}.eot?#iefix') format('embedded-opentype'), "\
                       "url('{0}.woff') format('woff'), "\
                       "url('{0}.ttf') format('truetype'), "\
-                      "url('{0}.svgz{1}') format('svg'), "\
                       "url('{0}.svg{1}') format('svg')"\
                       .format(base, self.svg)

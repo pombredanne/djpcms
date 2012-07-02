@@ -1,5 +1,6 @@
 import json
 import traceback
+from inspect import istraceback
 from copy import copy, deepcopy
 
 from djpcms import Renderer
@@ -78,7 +79,10 @@ def html_trace(exc_info, plain=False):
     if exc_info:
         error = Widget()
         ptag = None if plain else 'p'
-        for traces in traceback.format_exception(*exc_info):
+        trace = exc_info[2]
+        if istraceback(trace):
+            trace = traceback.format_exception(*exc_info)
+        for traces in trace:
             counter = 0
             for trace in traces.split('\n'):
                 if trace.startswith('  '):

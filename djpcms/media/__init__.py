@@ -5,6 +5,7 @@ from copy import deepcopy
 from djpcms.utils.text import mark_safe
 from djpcms.utils.httpurl import urljoin
 
+from .js import *
 
 MEDIA_TYPES = ('css','js')
 

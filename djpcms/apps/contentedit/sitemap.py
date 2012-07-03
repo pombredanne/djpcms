@@ -69,6 +69,7 @@ class PageChangeView(views.ChangeView):
 editing form.'''
     name='change'
     edit_container=container('edit-page',
+                             cn=classes.edit,
                              grid_fixed=False,
                              context_request=lambda r: r,
                              renderer=lambda r,namespace,col,b: r.render())
@@ -76,7 +77,7 @@ editing form.'''
     def underlying(self, request):
         return underlying_response(request, request.instance)
         
-    def get_context(self, request):
+    def get_response(self, request, editing=False):
         page = request.instance
         layout = page.layout
         layout = self.root.get_page_layout(layout)()
@@ -86,7 +87,7 @@ editing form.'''
         children = cls({edit_container.key: edit_container})
         children.update(layout.children)
         layout.children = children
-        return layout.render(request)
+        return layout
     
     def render(self, request):
         text = super(PageChangeView,self).render(request)

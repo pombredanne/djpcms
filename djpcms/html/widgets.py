@@ -2,6 +2,7 @@ from djpcms.media import js, Media
 from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
+from . import classes
 
 if ispy3k:
     from itertools import zip_longest
@@ -48,7 +49,7 @@ class PasswordInput(InputWidget):
     
     
 class SubmitInput(InputWidget):
-    classes = 'button'
+    classes = (classes.clickable, 'button')
     default_attrs = {'type': 'submit'}
     
     
@@ -83,8 +84,8 @@ class TextArea(InputWidget):
 class Select(FieldWidget):
     tag = 'select'
     inline = False
-    wrapper_class = 'field-widget select ui-widget-content'
-    attributes = WidgetMaker.makeattr('name','disabled','multiple','size')
+    wrapper_class = 'field-widget select'
+    attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'
     _media = Media(js=['djpcms/jquery.bsmselect.js'])
@@ -141,7 +142,7 @@ class DefinitionList(WidgetMaker):
         
 for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
             'li','tr','span','button','i','dt', 'dd'):
-    WidgetMaker(tag = tag)
+    WidgetMaker(tag=tag)
     
     
 WidgetMaker(tag = 'table', default='table')

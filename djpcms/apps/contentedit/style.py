@@ -1,7 +1,7 @@
 from djpcms.media.style import *
 from .classes import edit as content_edit
 
-# edit page panel
+# content edit page panel
 cssv.cedit.background = cssv.color.grayDarker
 cssv.cedit.border.color = cssv.cedit.background 
 cssv.cedit.color = cssv.color.white
@@ -11,6 +11,8 @@ cssv.cedit.link.default.color = cssv.color.grayLighter
 cssv.cedit.link.hover.color = lazy(color.darken,
                                   cssv.edit.link.default.color, 15)
 
+
+css('.'+content_edit, gradient(cssv.cedit.background))
 
 css('.'+classes.widget,
     cssa('.'+content_edit,

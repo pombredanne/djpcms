@@ -15,4 +15,8 @@ recursive-include examples *.py
 recursive-include examples/djpsite/media *
 recursive-include tests *.py
 recursive-include djpcms/media *
+recursive-include djpcms/apps/color/media *
+recursive-include djpcms/apps/fileupload/media *
+recursive-include djpcms/apps/fontawesome/media *
+recursive-include djpcms/apps/ui/media *
 global-exclude examples/djpsite/settings.py

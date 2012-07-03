@@ -4,13 +4,7 @@ from djpcms.utils.httpurl import zip
 from djpcms import html, ajax
 from djpcms.html.layout import equally_spaced_grid
 from djpcms.utils.text import nicename
-
-inlineLabels   = 'inlineLabels'
-inlineLabels2  = 'inlineLabels fullwidth'
-inlineLabels3  = 'inlineLabels auto'
-blockLabels    = 'blockLabels'
-blockLabels2   = 'blockLabels2'
-inlineFormsets = 'blockLabels2'
+from . import classes
 
 
 __all__ = ['BaseFormLayout',
@@ -24,16 +18,8 @@ __all__ = ['BaseFormLayout',
            'Fieldset',
            'Row',
            'Columns',
-           'nolabel',
-           'SUBMITS',
-           'inlineLabels',
-           'inlineLabels2',
-           'inlineLabels3',
-           'blockLabels',
-           'blockLabels2',
-           'inlineFormsets']
+           'SUBMITS']
 
-nolabel = 'nolabel'
 SUBMITS = 'submits' # string indicating submits in forms
 
 
@@ -121,7 +107,7 @@ class FieldTemplate(FormTemplate):
                 wr.tag = 'label'
                 wr.addAttr('for', bfield.id).add((w,label))
             else:
-                if parent.default_style == nolabel:
+                if parent.default_style == classes.nolabel:
                     w.addAttr('placeholder',label)
                 elif label:
                     widget.add("<label for='{0}' class='label'>{1}</label>"\
@@ -131,8 +117,7 @@ class FieldTemplate(FormTemplate):
                     
 
 class BaseFormLayout(FormTemplate):
-    '''\
-A :class:`djpcms.html.WidgetMaker` for programmatic
+    '''A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.'''
     field_widget_tag = None
     
@@ -154,15 +139,15 @@ form layout design.'''
 class FormLayoutElement(BaseFormLayout):
     '''Base :class:`djpcms.html.WidgetMaker` class for :class:`FormLayout`
 components. An instance of this class render one or several form
-:class:`djpcms.forms.Field`.
+:class:`Field`.
 
 :parameter children: collection of strings indicating
     :class:`djpcms.forms.Field` names and other :class:`FormLayoutElement`
     instances (allowing for nested specification).
 '''
+    field_widget_class = classes.ctrlHolder
     classes = 'layout-element'
     field_widget_tag = 'div'
-    field_widget_class = 'ctrlHolder'
     field_wrapper_tag = 'div'
     submit_container_tag = 'div'
     
@@ -197,7 +182,7 @@ class DivFormElement(FormLayoutElement):
 
 class SubmitElement(FormLayoutElement):
     tag = 'div'
-    classes = 'buttonHolder'
+    classes = classes.ctrlHolder
     
     def check_fields(self, missings, layout):
         del self._children
@@ -213,7 +198,7 @@ class SubmitElement(FormLayoutElement):
 
 class SimpleLayoutElement(FormLayoutElement):
     tag = None
-    default_style = nolabel
+    default_style = classes.nolabel
     classes = 'layout-element'
     
     
@@ -291,13 +276,13 @@ yui3_ grid layout.
 class FormLayout(BaseFormLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
  layout design.'''
-    default_style  = 'inlineLabels'
+    default_style  = classes.inlineLabels
     submit_element = None
     '''Form template'''
     '''Template file for rendering form fields'''
-    form_class = 'uniForm'
+    form_class = classes.form
     '''form css class'''
-    form_messages_container_class = 'form-messages ctrlHolder'
+    form_messages_container_class = ('form-messages', classes.ctrlHolder)
     '''Class used to hold form-wide messages'''
     form_error_class = 'alert alert-error'
     '''Class for form errors'''
@@ -377,7 +362,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             if name in fields:
                 name = '#' + fields[name].errors_id
             elif self.form_messages_container_class:
-                cl = '.'.join(self.form_messages_container_class.split(' '))
+                cl = '.'.join(self.form_messages_container_class)
                 name = '.{0}'.format(cl)
             else:
                 continue

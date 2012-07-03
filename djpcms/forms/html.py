@@ -79,12 +79,12 @@ Simple usage::
     attributes = html.WidgetMaker.makeattr('method','enctype','action')
     
     def __init__(self, form_class,
-                 layout = None,
-                 model = None,
-                 inputs = None,
-                 ajax = True,
-                 success_message = None,
-                 internal = None,
+                 layout=None,
+                 model=None,
+                 inputs=None,
+                 ajax=True,
+                 success_message=None,
+                 internal=None,
                  **params):
         layout = layout if layout is not None else FormLayout()
         layout.key = 'layout'
@@ -101,7 +101,7 @@ Simple usage::
             'form_class': form_class,
             'model': model,
             'inputs': inputs}
-        super(HtmlForm, self).__init__(internal = internal, **params)
+        super(HtmlForm, self).__init__(internal=internal, **params)
         if ajax:
             self.addClass('ajax')
         self.addClass(layout.form_class)

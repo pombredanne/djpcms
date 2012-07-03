@@ -16,11 +16,6 @@ cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
 #
 cssv.button.padding = spacing(cssv.input.padding, 9)
-cssv.button.default.background = ('v',cssv.color.white,cssv.color.grayLighter)
-cssv.button.hover.background = cssv.color.grayLighter
-cssv.button.active.background = ('v',cssv.color.grayLighter,
-                                 cssv.color.grayLight)
-cssv.button.border_color = cssv.color.grayLight
 #
 cssv.alert.background = color('#FCF8E3')
 cssv.alert.color = color('#C09853')
@@ -30,9 +25,9 @@ cssv.alert_error.background = color('#F2DEDE')
 cssv.alert_error.border_color = lazy(color.darken, cssv.alert_error.background, 5)
 cssv.alert_error.color = color('#B94A48')
 #
-cssv.uniform.padding = px(4)
-cssv.uniform.table_layout = 'auto'
-cssv.uniform.inlinelabels_width = pc(32)
+cssv.form.padding = cssv.input.padding # This controls the padding of all fields
+cssv.form.table_layout = 'auto'
+cssv.form.inlinelabels_width = pc(32)
 #
 cssv.definition_list.opacity = 0.8
 cssv.definition_list.font_weight = 'normal'
@@ -90,8 +85,8 @@ def size(n):
     
     
 def process_elems(elem, data):
-    '''Consistent padding using the ``uniform_padding`` variable'''
-    p = cssv.uniform_padding.value
+    '''Consistent padding using the ``form_padding`` variable'''
+    p = cssv.form.padding
     if elem.name == 'uniformtable-elems':
         data.update({'padding': '{0}px 0 {0}px {0}px'.format(p)})
     elif elem.name == 'uniformtable-errors':
@@ -137,22 +132,11 @@ for n in range(1,10):
     css('.field-widget.span{0}'.format(n),
          width = '{0}px'.format(size(n)))
 
-################################################################################
-#    BUTTONS
-################################################################################
+############################################################    BUTTONS
 #'button.button,a.button,input.button[type="submit"]'
 buttons = 'input.button[type="submit"], button.button'
 css(buttons,
-    clickable(bcd(**cssv.button.default.params()),
-              bcd(**cssv.button.hover.params()),
-              bcd(**cssv.button.active.params())),
-    radius(cssv.input.radius),
     padding = cssv.button.padding,
-    color=cssv.button.color,
-    border_style='solid',
-    border_width=cssv.input.border_width,
-    border_color=cssv.button.border_color,
-    cursor='pointer',
     display='inline-block',
     margin_right=px(4))
 
@@ -168,7 +152,7 @@ css(disabled_selector,
     cursor =  cssv.disabled.cursor)
 
 
-################################################# ALERTS
+############################################################    ALERTS
 css('.alert',
     gradient(cssv.alert.background),
     radius(cssv.alert.radius),
@@ -183,29 +167,28 @@ css('.alert',
     padding='8px 35px 8px 14px')
 
 
-################################################################################
-#    UNIFORM
-################################################################################
-css('form.uniForm',
+############################################################    FORM
+from djpcms.forms.layout import classes
+css('form.%s' % classes.form,
     css('.errorlist,.form-messages', overflow='hidden', display='none'),
-    css('.legend', margin=cssv.uniform.padding),
+    css('.legend', margin=cssv.form.padding),
     css('label'),
     # Inline labels
-    css('.inlineLabels',
+    css('.%s' % classes.inlineLabels,
         css('.label',
             float='left',
-            width=cssv.uniform.inlinelabels_width,
-            margin=spacing(cssv.uniform.padding,pc(2),cssv.uniform.padding,0)),
+            width=cssv.form.inlinelabels_width,
+            margin=spacing(cssv.form.padding,pc(2),cssv.form.padding,0)),
         css('.field-widget',
-            margin_left=lazy(lambda: cssv.uniform.inlinelabels_width+pc(2)),
+            margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)),
             width='auto')),
-    css('.ctrlHolder,.buttonHolder',
+    css('.%s' % classes.ctrlHolder,
         margin=0,
         overflow='hidden',
-        padding=spacing(0, 0, cssv.uniform.padding),
+        padding=spacing(0, cssv.form.padding, cssv.form.padding),
         vertical_align='middle'),
     css('.layout-element',
-        margin=lazy(lambda: spacing(0,0,cssv.uniform.padding*1.5))),
+        margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5))),
     css('.formRow',
         radius(cssv.alert.radius),
         css('table',
@@ -243,18 +226,17 @@ css('form.uniForm',
 #    TABLE LAYOUT
 ################################################################################
 css('table.uniFormTable',
-    css('input[type="checkbox"]',
-        float = 'none',
-        margin = 0),
+    css('input[type="checkbox"]', float='none', margin=0),
     css('th,td',
-        padding = lambda: '{0}px 0 {0}px {0}px'.format(cssv.uniform.padding)),
-    css('th:last-child,td:last-child',
-        padding = cssv.uniform.padding),
+        padding=spacing(cssv.form.padding, 0, cssv.form.padding,
+                        cssv.form.padding)),
+    css('th:last-child, td:last-child',
+        padding=cssv.form.padding),
     clearfix(),
     #process_elems(css('td.error')),
     css('td.error:last-child',
-        padding = cssv.uniform.padding),
-    table_layout = cssv.uniform.table_layout,
+        padding = cssv.form.padding),
+    table_layout = cssv.form.table_layout,
     width = '100%'
 )
          

@@ -277,14 +277,11 @@ it is the base class of :class:`pageview` and :class:`View`.
     def title(self, request):
         '''View title'''
         page = request.page
-        title = page.title if page else None
-        if not title:
-            title = self.default_title or \
-                    self.appmodel.description if self.appmodel else ''
-            if not title:
-                title = self.settings.SITE_MODULE
+        title = page.title if page else self.default_title
         link = self.linkname(request)
-        if link:
+        if not title:
+            return link
+        elif link:
             link += ' '
         return escape(title.format(request.urlargs, request.instance, link))
     
@@ -294,7 +291,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         link = page.link if page else self.default_link
         if not link:
             link = self.default_link or \
-                    (self.appmodel.name if self.appmodel else '')
+                    (self.appmodel.description if self.appmodel else '')
         return escape(link.format(request.urlargs,request.instance))
     
     def breadcrumb(self, request):

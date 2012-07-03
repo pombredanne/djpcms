@@ -1,1 +1,1 @@
-'''Styling User Interface component '''
+'''Styling User Interface components'''

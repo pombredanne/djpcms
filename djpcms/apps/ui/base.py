@@ -2,6 +2,7 @@
 from djpcms.media.style import *
 from djpcms.html import classes
 
+cssv.clickable.radius = cssv.body.radius
 cssv.clickable.default.background = ('v', color('#e6e6e6'), color.darken('#e6e6e6',10))
 cssv.clickable.default.color = color('#555')
 cssv.clickable.default.text_decoration = 'none'
@@ -55,6 +56,7 @@ css('.'+classes.clickable,
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),
+    radius(cssv.clickable.radius),
     css('a', text_decoration='none', color='inherit',
         font_weight='inherit', cursor='inherit'))
     

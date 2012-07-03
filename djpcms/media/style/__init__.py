@@ -126,11 +126,3 @@ css('.'+classes.wrapper,
     height='auto !important',
     margin=0,
     min_height=pc(100))
-
-################################################# EDIT PAGE PANEL
-css('#page-edit-page',
-    #fixtop(),
-    css('a',clickable(**cssv.edit.link.params())),
-    gradient(cssv.edit.background),
-    color=cssv.edit.color,
-    font_size=cssv.edit.font_size)

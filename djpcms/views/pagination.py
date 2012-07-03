@@ -271,7 +271,7 @@ an application based on model is available.
     return toolbox
 
     
-def paginationResponse(request, query, block = None, toolbox = None, **kwargs):
+def paginationResponse(request, query, block=None, toolbox=None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
     
 :parameter query: a query on a model.
@@ -342,7 +342,7 @@ it looks for the following inputs in the request data:
                      ajax = ajax, toolbox = toolbox,
                      appmodel = appmodel, title = title).render(request)
     else:
-        return pagination.ajaxresponse(request, body, pagination = pag,
-                                       ajax = ajax, toolbox = toolbox,
-                                       appmodel = appmodel)
+        return pagination.ajaxresponse(request, body, pagination=pag,
+                                       ajax=ajax, toolbox=toolbox,
+                                       appmodel=appmodel)
     

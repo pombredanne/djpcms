@@ -150,7 +150,7 @@ managing settings.'''
         return self.environ['on_document_ready']
     
 
-def make_request(environ, node, instance=None, cache=True, safe=True):
+def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
     if not node.error:
         view = node.view
@@ -166,9 +166,6 @@ def make_request(environ, node, instance=None, cache=True, safe=True):
                         return instance.add_callback(
                                 partial(build_request, environ, node, cache))
                 except:
-                    if not safe:
-                        raise
-                    # set instance to None
                     instance = None
             if instance:
                 urlargs = view.variables_from_instance(instance)
@@ -587,12 +584,88 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
                 yield request
     
      
-ResponseClass = WsgiResponse
-Response = lambda *args, **kwargs: ResponseClass(*args, **kwargs)
-
-def setResponseClass(respcls):
-    global ResponseClass
-    ResponseClass = respcls
+class Response(WsgiResponse):
+    website = None
+    @property
+    def site(self):
+        return self.website()
+    
+    def default_content(self):
+        environ = self.environ
+        website = self.website
+        tree, node, request, exc_info, content = None, None, None, None, b''
+        try:
+            tree = self.page_tree()
+            node = tree.resolve(environ['PATH_INFO'])
+            request = make_request(environ, node)
+        except Exception as e:
+            exc_info = sys.exc_info()
+        else:
+            if is_async(request) and request.called:
+                request = request.result
+            while is_async(request):
+                yield b''
+                if request.called:
+                    request = request.result    
+            if is_failure(request):
+                exc_info = request.trace
+            else:
+                try:
+                    if request.method not in request.methods():
+                        raise HttpException(status=405)
+                    elif not request.has_permission():
+                        raise PermissionDenied()
+                    else:
+                        content = request.view(request)
+                except Exception as e:
+                    exc_info = sys.exc_info()
+        if exc_info is None: 
+            if is_async(content) and content.called:
+                content = content.result
+            while is_async(content):
+                yield b''
+                if content.called:
+                    content = content.result
+            if is_failure(content):
+                exc_info = content.trace
+        if exc_info is None:
+            try:
+                if isinstance(content, WsgiResponse):
+                    if content.is_streamed:
+                        raise RuntimeError('Received a streamed response')
+                    if content.started:
+                        raise RuntimeError('Response already started')
+                self.cookies = content.cookies
+                self.status_code = content.status_code
+                self.encoding = content.encoding
+                self.content_type = content.content_type
+                self.headers.update(content.headers)
+                content = content.content
+            except:
+                exc_info = sys.exc_info()
+        if exc_info is not None:
+            request = self._request(environ, tree, request, node, exc_info)
+            yield website.handle_error(request, self, exc_info)
+        else:
+            yield website.handle_content(request, self, content)
+        
+    def _request(self, environ, tree, request, node, e):
+        if request is None:
+            if node is None:
+                handler = getattr(e, 'handler', self.site)
+                node = BadNode(tree, handler)
+            request = make_request(environ, node)
+        return request
+        
+    def page_tree(self):
+        site = self.site
+        Page = site.Page
+        tree = site.tree
+        if Page:
+            return DjpcmsTree(tree, Page.query())
+        else:
+            return DjpcmsTree(tree)
+        
 
 def is_response(obj):
     if hasattr(obj, 'status') or hasattr(obj, 'status_code')\

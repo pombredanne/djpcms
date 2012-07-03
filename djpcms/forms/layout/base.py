@@ -83,39 +83,41 @@ class FieldTemplate(FormTemplate):
         if bfield.request is not request:
             bfield.request = request
         w = bfield.widget
-        hidden = w.attr('type')=='hidden' or  w.css('display') == 'none'        
+        w.addClass(w.tag)
+        hidden = w.attr('type')=='hidden' or  w.css('display') == 'none'    
         # Hidden
         if hidden:
             widget.tag = None
             widget.add(w)
         else:
             parent = widget.internal.get('layout-element')
-            parent.add_widget_classes(bfield, w)
-            wr = parent.field_wrapper(w).addClass(w.classes)\
-                                        .addClass(bfield.name)
-            wr.addClass(getattr(w.maker, 'wrapper_class', None))    
+            if parent is not None:
+                wrapper = parent.field_widget(widget).addClass(w.classes)
+                label_style = parent.default_style
+            else:
+                label_style = None
+                wrapper = w
+            wrapper.addClass(bfield.name)
             if w.attr('disabled') == 'disabled':
                 widget.addClass('disabled')
             if w.attr('readonly') == 'readonly':
                 widget.addClass('readonly')
             if bfield.required:
                 widget.addClass(classes.required)
-            label = bfield.label
-            error = bfield.error
-            widget.add("<div id='{0}'>{1}</div>".format(bfield.errors_id,error))
-            if w.attrs.get('type') == 'checkbox':
-                wr.tag = 'label'
-                wr.addClass(classes.label)\
-                  .addAttr('for', bfield.id).add((w,label))
-            else:
-                if parent.default_style == classes.nolabel:
-                    w.addAttr('placeholder',label)
-                elif label:
-                    widget.add("<label for='%s' class='%s'>%s</label>"\
-                               % (bfield.id, classes.label, label))
-                wr.add(w)
-            widget.add(wr)
-                    
+            if bfield.label:
+                # Checkbox is special
+                if w.attrs.get('type') == 'checkbox':
+                    wrapper.tag = 'label'
+                    wrapper.addClass(classes.label)\
+                           .addAttr('for', bfield.id).add(bfield.label)
+                else:
+                    wrapper.addClass(classes.field_wrapper)
+                    if label_style == classes.nolabel:
+                        w.addAttr('placeholder', bfield.label)
+                    else:
+                        widget.add("<label for='%s' class='%s'>%s</label>"\
+                                   % (bfield.id, classes.label, bfield.label))
+            widget.add(wrapper)
 
 class BaseFormLayout(FormTemplate):
     '''A :class:`djpcms.html.WidgetMaker` for programmatic
@@ -135,6 +137,13 @@ form layout design.'''
             context = context if context is not None else {}
             context['legend'] = self.legend_html
         return context
+    
+    def field_widget(self, widget):
+        bfield = widget.bfield
+        wrapper = html.Widget('div', bfield.widget)
+        error = bfield.error
+        widget.add("<div id='{0}'>{1}</div>".format(bfield.errors_id, error))
+        return wrapper  
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -149,7 +158,6 @@ components. An instance of this class render one or several form
     field_widget_class = classes.ctrlHolder
     classes = 'layout-element'
     field_widget_tag = 'div'
-    field_wrapper_tag = 'div'
     submit_container_tag = 'div'
     
     def check_fields(self, missings, layout=None):
@@ -169,12 +177,6 @@ remove available fields from the missing set.'''
                 ft = field
             ft.internal['layout-element'] = self
             self.add(ft)
-
-    def add_widget_classes(self, field, widget):
-        pass
-    
-    def field_wrapper(self, w):
-        return html.Widget(self.field_wrapper_tag)
     
 
 class DivFormElement(FormLayoutElement):
@@ -196,12 +198,6 @@ class SubmitElement(FormLayoutElement):
             widget.tag = parent.submit_container_tag
         widget.add(widget.inputs)
 
-
-class SimpleLayoutElement(FormLayoutElement):
-    tag = None
-    default_style = classes.nolabel
-    classes = 'layout-element'
-    
     
 class Fieldset(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''

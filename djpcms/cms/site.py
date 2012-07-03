@@ -123,10 +123,6 @@ class WSGI(object):
     '''Djpcms WSGI handler.'''
     def __init__(self, website):
         self.website = website
-        
-    @property
-    def site(self):
-        return self.website()
     
     @property
     def route(self):
@@ -141,46 +137,11 @@ class WSGI(object):
     def __call__(self, environ, start_response):
         query = environ.get('QUERY_STRING','')
         PK = self.site.settings.PROFILING_KEY
+        response = Response(environ=environ, start_response=start_response)
+        response.website = self.website 
         if PK and PK in query:
-            return profile_response(environ, start_response, self._handle)
-        else:
-            return self._handle(environ, start_response)
+            return profile_response(response)
         return response
-        
-    def _handle(self, environ, start_response):
-        tree = None
-        request = None
-        node = None
-        try:
-            tree = self.page_tree()
-            node = tree.resolve(environ['PATH_INFO'])
-            request = make_request(environ, node, safe=False)
-            if request.method not in request.methods():
-                raise HttpException(status=405)
-            elif not request.has_permission():
-                raise PermissionDenied()
-            return self.website.handle_content(request, start_response,
-                                               request.view(request))
-        except Exception as e:
-            request = self._request(environ, tree, request, node, e)
-            return self.website.handle_error(request, start_response)
-    
-    def _request(self, environ, tree, request, node, e):
-        if node is None:
-            handler = getattr(e, 'handler', self.site)
-            node = BadNode(tree, handler)
-        if request is None:
-            request = make_request(environ, node)
-        return request
-        
-    def page_tree(self):
-        site = self.site
-        Page = site.Page
-        tree = site.tree
-        if Page:
-            return DjpcmsTree(tree, Page.query())
-        else:
-            return DjpcmsTree(tree)
         
         
 class Site(ResolverMixin, ViewRenderer):
@@ -577,7 +538,7 @@ for djpcms web sites.
     def render_error_404(self, request, status):
         return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
     
-    def render_error(self, request, response, exc_info):
+    def handle_error(self, request, response, exc_info):
         '''Render an error into text or Html depending on *content_type*.
 This function can be overwritten by user implementation.'''
         settings = request.settings
@@ -640,7 +601,7 @@ This function can be overwritten by user implementation.'''
             logger.critical('Interval server error', exc_info=exc_info)
         return content
         
-    def handle_content(self, request, start_response, content):
+    def handle_content(self, request, response, content):
         '''handle synchronous and asynchronous content.'''
         if is_response(content):
             return content
@@ -657,24 +618,6 @@ This function can be overwritten by user implementation.'''
         else:
             response.content = self.to_bytes(request, content, response)
         return response
-        
-    def handle_error(self, request, start_response):
-        '''Error handler.'''
-        response = Response(encoding=request.encoding,
-                            content_type=request.content_type,
-                            start_response=start_response)
-        response.content = self.render_error(request, response, sys.exc_info())
-        return response
-        
-    def stream(self, request, content, response):
-        '''Invoked when the content is asynchronous.'''
-        while is_async(content):
-            yield b''
-            if content.called:
-                content = content.result
-        if is_failure(content):
-            content = self.render_error(request, response, content.trace)
-        yield self.to_bytes(request, content, response)
     
     def to_bytes(self, request, content, response):
         # If content is HTML on a non-ajax request, render the document

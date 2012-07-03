@@ -23,7 +23,6 @@ __all__ = ['TextInput',
 
 
 class FieldWidget(WidgetMaker):
-    wrapper_class = None
     attributes = WidgetMaker.makeattr('value','name','disabled','readonly')
     
     def set_value(self, value, widget):
@@ -33,7 +32,6 @@ class FieldWidget(WidgetMaker):
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
-    wrapper_class = 'field-widget input'
     attributes = FieldWidget.makeattr('type','placeholder')
     
 
@@ -59,7 +57,6 @@ class HiddenInput(InputWidget):
     
     
 class CheckboxInput(InputWidget):
-    wrapper_class = None
     default_attrs = {'type':'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
     
@@ -84,7 +81,6 @@ class TextArea(InputWidget):
 class Select(FieldWidget):
     tag = 'select'
     inline = False
-    wrapper_class = 'field-widget select'
     attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
     _option = '<option value="{0}"{1}>{2}</option>'
     _selected = ' selected="selected"'

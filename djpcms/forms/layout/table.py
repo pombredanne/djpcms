@@ -1,13 +1,20 @@
 from djpcms.html import Widget, WidgetMaker, table_header 
 from djpcms.utils.text import nicename
 
-from .base import FormWidget, FieldTemplate, SimpleLayoutElement, classes
+from .base import FormWidget, FieldTemplate, FormLayoutElement, classes
 
 
 __all__ = ['TableRow', 'TableFormElement', 'TableRelatedFieldset']
 
 
-class TableRow(SimpleLayoutElement):
+class BaseTable(FormLayoutElement):
+    default_style = classes.nolabel
+    
+    def field_widget(self, widget):
+        return Widget('div', widget.bfield.widget)
+    
+    
+class TableRow(BaseTable):
     '''A row in a table rendering a group of :class:`Fields`.'''
     field_widget_tag = 'td'
     field_widget_class = None
@@ -40,7 +47,7 @@ table row'''
         yield Widget('tr', self.stream_fields(request, children))
         
 
-class TableFormElement(SimpleLayoutElement):
+class TableFormElement(BaseTable):
     '''A :class:`FormLayoutElement` for rendering a group of :class:`Field`
 in a table.
 

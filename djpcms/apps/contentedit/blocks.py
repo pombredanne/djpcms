@@ -56,8 +56,7 @@ class ChangeContentView(BlockChangeView):
     '''View class for managing inline editing of a content block.
     '''
     def underlying(self, request):
-        request = request.DJPCMS.request
-        return underlying_response(request, request.instance)
+        return underlying_response(request, request.instance.page)
     
     def get_preview(self, request, instance, plugin=None):
         '''Render a plugin and its wrapper for preview within a div element'''
@@ -95,7 +94,7 @@ class ChangeContentView(BlockChangeView):
     
     def ajax__container_type(self, request):
         '''Change container'''
-        return self.post_response(request, commit = False, plugin_form = False)
+        return self.post_response(request, commit=False, plugin_form=False)
     
     def ajax__plugin_name(self, request):
         '''Change plugin'''
@@ -104,12 +103,12 @@ class ChangeContentView(BlockChangeView):
     def ajax__edit_content(self, request):
         pluginview = self.appmodel.views.get('plugin')
         return pluginview.post_response(pluginview(request,
-                                                   instance = request.instance))
+                                                   instance=request.instance))
         
     def ajax_get_response(self, request):
-        return self.post_response(request, commit = False)
+        return self.post_response(request, commit=False)
     
-    def render(self, request, url = None):
+    def render(self, request, url=None):
         formhtml = self.get_form(request,
                                  initial = {'url': url},
                                  force_prefix = True)
@@ -134,7 +133,7 @@ class ChangeContentView(BlockChangeView):
         plugin = self.plugin_form_container(instance, plugin_form)
         return wrapper.render(request, {'plugin': plugin})
     
-    def post_response(self, request, commit = True, plugin_form = True):
+    def post_response(self, request, commit=True, plugin_form=True):
         '''View called when changing the content plugin values.
 The instance.plugin object is maintained but its fields may change.'''       
         fhtml = self.get_form(request, withdata=True)

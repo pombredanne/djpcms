@@ -209,7 +209,7 @@
                 selector: 'div.data-table',
                 fnRowCallbacks: [],
                 options: {
-                    bJQueryUI: true,
+                    //bJQueryUI: true,
                     bDeferRender: true,
                     "aaSorting": [],
                     "sPaginationType": "full_numbers",

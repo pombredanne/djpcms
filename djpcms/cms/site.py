@@ -161,18 +161,9 @@ class WSGI(object):
                 raise PermissionDenied()
             return self.website.handle_content(request, start_response,
                                                request.view(request))
-        except HttpRedirect as e:
-            # handle redirects
-            request = self._request(environ, tree, request, node, e)
-            return self.website.handle_redirect(request, start_response,
-                                                e.location)
         except Exception as e:
-            # handle any other exception
-            status = getattr(e, 'status', 500)
-            if status == 500:
-                logger.critical('Interval server error', exc_info=True)
             request = self._request(environ, tree, request, node, e)
-            return self.website.handle_error(request, start_response, status)
+            return self.website.handle_error(request, start_response)
     
     def _request(self, environ, tree, request, node, e):
         if node is None:
@@ -586,10 +577,9 @@ for djpcms web sites.
     def render_error_404(self, request, status):
         return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
     
-    def render_error(self, request, content_type, exc_info=None):
+    def render_error(self, request, response, exc_info):
         '''Render an error into text or Html depending on *content_type*.
 This function can be overwritten by user implementation.'''
-        exc_info = exc_info or sys.exc_info()
         settings = request.settings
         status = 500
         if exc_info and exc_info[0] is not None:
@@ -598,10 +588,16 @@ This function can be overwritten by user implementation.'''
             status = getattr(exc_info[1],'status',status)
         else:
             exc_info = None
+        # 302 is a special case, we redirect
+        content_type = request.content_type
         if status == 302:
-            content = exc_info[1].location
+            location = exc_info[1].location
             if request.is_xhr:
                 content = ajax.jredirect(content)
+            else:
+                response.status = status
+                response.headers['Location'] = iri_to_uri(location)
+                content = b''
         else:
             err_cls = '%s%s' % (classes.error, status)
             err_title = '%s %s' % (status, error_title(status))
@@ -634,62 +630,50 @@ This function can be overwritten by user implementation.'''
                         content = outer.render(request, context={'content': inner})
                     except:
                         content = inner.render(request)
-        return content, status
-        
-    def handle_content(self, request, start_response, content,
-                       content_type=None, status=200):
-        '''handle synchronous and asynchronous content.'''
         if is_renderer(content):
-            content_type = content.content_type()
+            response.status_code = 200
+            response.content_type = content.content_type()
             content = content.render(request)
-        elif is_response(content):
+        else:
+            response.status_code = status
+        if status == 500:
+            logger.critical('Interval server error', exc_info=exc_info)
+        return content
+        
+    def handle_content(self, request, start_response, content):
+        '''handle synchronous and asynchronous content.'''
+        if is_response(content):
             return content
+        response = Response(encoding=request.encoding,
+                            content_type=request.content_type,
+                            start_response=start_response)
+        if is_renderer(content):
+            response.content_type = content.content_type()
+            content = content.render(request)
         for processor in self.site.request_processors:
             processor(request)
-        response = Response(status=status,
-                            encoding=request.encoding,
-                            content_type=content_type,
-                            start_response=start_response)
         if is_async(content):
             response.content = self.stream(request, content, response)
         else:
             response.content = self.to_bytes(request, content, response)
         return response
-    
-    def handle_redirect(self, request, start_response, location):
-        '''handle a redirect.'''
-        if request.is_xhr:
-            return self.handle_content(request, start_response,
-                                       ajax.jredirect(location))
-        else:
-            h = [('Location', iri_to_uri(location))]
-            return Response(status=302, response_headers=h,
-                            start_response=start_response)
         
-    def handle_error(self, request, start_response, exc_info=None):
+    def handle_error(self, request, start_response):
         '''Error handler.'''
-        content_type = request.settings.DEFAULT_CONTENT_TYPE
-        content, status = self.render_error(request, content_type, exc_info)
-        return self.handle_content(request, start_response, content,
-                                   content_type, status)
+        response = Response(encoding=request.encoding,
+                            content_type=request.content_type,
+                            start_response=start_response)
+        response.content = self.render_error(request, response, sys.exc_info())
+        return response
         
     def stream(self, request, content, response):
+        '''Invoked when the content is asynchronous.'''
         while is_async(content):
             yield b''
             if content.called:
                 content = content.result
         if is_failure(content):
-            if request.is_xhr:
-                response.status_code = 200
-                content, status = self.render_error(request, 'text/html',
-                                                    exc_info=content.trace)
-                response.content_type = content.content_type()
-                content = content.render(request)
-            else:
-                content, status = self.render_error(request,
-                                                    response.content_type,
-                                                    exc_info=content.trace)
-                response.status_code = status
+            content = self.render_error(request, response, content.trace)
         yield self.to_bytes(request, content, response)
     
     def to_bytes(self, request, content, response):

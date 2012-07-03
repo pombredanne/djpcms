@@ -99,19 +99,20 @@ class FieldTemplate(FormTemplate):
             if w.attr('readonly') == 'readonly':
                 widget.addClass('readonly')
             if bfield.required:
-                widget.addClass('required')
+                widget.addClass(classes.required)
             label = bfield.label
             error = bfield.error
             widget.add("<div id='{0}'>{1}</div>".format(bfield.errors_id,error))
             if w.attrs.get('type') == 'checkbox':
                 wr.tag = 'label'
-                wr.addAttr('for', bfield.id).add((w,label))
+                wr.addClass(classes.label)\
+                  .addAttr('for', bfield.id).add((w,label))
             else:
                 if parent.default_style == classes.nolabel:
                     w.addAttr('placeholder',label)
                 elif label:
-                    widget.add("<label for='{0}' class='label'>{1}</label>"\
-                               .format(bfield.id,label))
+                    widget.add("<label for='%s' class='%s'>%s</label>"\
+                               % (bfield.id, classes.label, label))
                 wr.add(w)
             widget.add(wr)
                     

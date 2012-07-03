@@ -240,6 +240,10 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
         '''Encoding for this route'''
         return self.settings.DEFAULT_CHARSET
     
+    def content_type(self, request):
+        '''Content type for this route'''
+        return self.settings.DEFAULT_CONTENT_TYPE
+    
     def cssgrid(self, request):
         settings = self.settings
         page = request.page

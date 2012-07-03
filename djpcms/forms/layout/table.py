@@ -35,9 +35,9 @@ They all have the class ``error``.'''
         '''We override stream since we don't care about a legend in a
 table row'''
         children = list(widget.allchildren())
-        yield '<tr class="error-row">'+\
-                ''.join(self.stream_errors(request, children))+'</tr>'
-        yield '<tr>'+''.join(self.stream_fields(request, children))+'</tr>'
+        yield Widget('tr', self.stream_errors(request, children))\
+                    .addClass('error-row')
+        yield Widget('tr', self.stream_fields(request, children))
         
 
 class TableFormElement(SimpleLayoutElement):
@@ -69,26 +69,29 @@ in a table.
                 th.addClass('djph')
             else:
                 label = Widget('span', head.name,
-                               title = head.name,
-                               cn = head.extraclass).addClass('label')
-                th.add(label)
+                               title=head.name,
+                               cn=classes.label)
+                th.addClass(head.extraclass).add(label)
                 if head.description:
-                    label.addData('content',head.description);
+                    label.addData('content', head.description);
             yield th.render(request)
             
+    def rows(self, widget):
+        return widget.allchildren()
+    
     def row_generator(self, request, widget, context):
-        for row in widget.allchildren():
-            yield row.render(request)
+        for row in self.rows(widget):
+            for tr in row.stream(request, context):
+                yield tr
             
     def stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
-        rows = list(self.row_generator(request, widget, context))
-        if rows:
-            head = ''.join(self.render_heads(request, widget, context))
-            body = Widget('body', rows)
-            table = Widget('table',('<thead><tr>',head,'</tr></thead>',body))
-            yield table.addClass(self.elem_css).render(request)
+        tr = Widget('tr', self.render_heads(request, widget, context))
+        head = Widget('thead', tr)
+        body = Widget('tbody', self.row_generator(request, widget, context))
+        table = Widget('table', (head, body))
+        yield table.addClass(self.elem_css).render(request)
         
 
 class TableRelatedFieldset(TableFormElement):
@@ -123,12 +126,11 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
                                        label,
                                        field.help_text,
                                        extraclass=extraclass)
-         
-    def row_generator(self, request, widget, context):
+    
+    def rows(self, widget):
         formset = widget.form.form_sets[self.formset]
         for form in formset.forms:
-            row = self.child_widget(self.row_maker, widget, form=form)
-            yield row.render(request)
+            yield self.child_widget(self.row_maker, widget, form=form)
     
     def stream(self, request, widget, context):
         for data in super(TableRelatedFieldset,self).stream(request,\

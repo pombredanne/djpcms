@@ -360,6 +360,10 @@ is available, the name is set to ``view``.
     def encoding(self):
         return self.view.encoding(self)
     
+    @lazyproperty
+    def content_type(self):
+        return self.view.content_type(self)
+    
     @lazymethod
     def underlying(self):
         return self.view.underlying(self)

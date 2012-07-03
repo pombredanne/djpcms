@@ -22,28 +22,38 @@ cssv.table.head.padding = cssv.table.padding
 ################################################################################
 css('td.checkbox', text_align='center')
 css('td.one-line', white_space='nowrap')
-
+css('th.%s' % classes.clickable, radius(0))
 
 ################################################################################
 # DATATABLE
 ################################################################################
+border_width = cssv.clickable.default.border.width
 css('.'+table_container_class,
     css('.dataTables_filter input',
         width = '200px',
         padding = '5px 5px',
         font_size = '110%'),
     css('table',
-        css('th.sortable', cursor = 'pointer'),
-        css('td,th',
+        css('tbody',
+            border(color=cssv.clickable.default.border.color,
+                   width=spacing(0, border_width),
+                   style=cssv.clickable.default.border.style)),
+        css('td',
             vertical_align='center',
             padding=cssv.table.padding,
             line_height=cssv.table.line_height),
-        css('thead tr th, tfoot tr th',
-            border=cssv.table.border_color,
+        css('th',
+            bcd(**cssv.clickable.default.params()),
+            vertical_align='center',
             font_size=cssv.table.head.font_size,
             font_weight=cssv.table.head.font_weight,
-            padding=cssv.table.head.padding)),
-    width='100%',
+            padding=cssv.table.head.padding,
+            line_height=cssv.table.line_height),
+        cssa('.nofooter',
+             border(color=cssv.clickable.default.border.color,
+                    width=spacing(0, 0, border_width),
+                    style=cssv.clickable.default.border.style))),
+    width=pc(100),
     display='none',
     text_align='left',
     margin=0,

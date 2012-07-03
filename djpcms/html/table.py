@@ -129,11 +129,14 @@ javascript plugin'''
             # if title is available insert a div containing it
             yield "<div class='"+head_class+"'>"\
                   "<h3 class='table-title'>"+title+"</h3></div>"
-        yield '<table>\n<thead>\n<tr>'
-        for head in context['headers']:
-            th = Widget('th',head['sTitle'],title=head['description'])
-            if head['description']:
-                th.addClass('hint')
+        footer = context.get('footer')
+        if footer:
+            yield '<table>\n<thead>\n<tr>'
+        else:
+            yield '<table class="nofooter">\n<thead>\n<tr>'
+        # Loop over headers
+        headers = context['headers']
+        for th in self.headers(headers):
             yield th.render(request)
         yield '</tr>\n</thead>\n<tbody>'
         for row in self.rows(request, widget):
@@ -142,13 +145,23 @@ javascript plugin'''
                 tr.add('<td>{0}</td>'.format(item))
             yield tr.render(request)
         yield '</tbody>'
-        if context.get('footer'):
+        # footer available
+        if footer:
             yield '<tfoot>\n<tr>'
-            for head in context['headers']:
-                yield '<th>{0}</th>'.format(head['sTitle'])
+            for th in self.headers(headers):
+                yield th.render(request)
             yield '</tr>\n</tfoot>'
         yield '</table>'
 
+    def headers(self, headers):
+        for head in headers:
+            th = Widget('th', head['sTitle'], title=head['description'])
+            if head['description']:
+                th.addClass('hint')
+            if head['bSortable']:
+                th.addClass(classes.clickable)
+            yield th
+            
     def rows(self, request, widget):
         if widget.data_stream:
             headers = widget.internal['headers']

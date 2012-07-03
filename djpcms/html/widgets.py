@@ -140,12 +140,12 @@ class DefinitionList(WidgetMaker):
                 widget._data_stream.append(Widget(*data))
         
         
-for tag in ('div','p','h1','h2','h3','h4','h5','th','td',
-            'li','tr','span','button','i','dt', 'dd'):
+for tag in ('div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5',
+            'tr', 'th', 'td', 'table', 'thead', 'tbody', 'tfoot',
+            'li', 'span', 'button', 'i', 'dt', 'dd'):
     WidgetMaker(tag=tag)
     
-    
-WidgetMaker(tag = 'table', default='table')
+
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')

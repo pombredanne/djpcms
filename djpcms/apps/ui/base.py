@@ -7,21 +7,21 @@ cssv.clickable.default.background = ('v', color('#e6e6e6'), color.darken('#e6e6e
 cssv.clickable.default.color = color('#555')
 cssv.clickable.default.text_decoration = 'none'
 cssv.clickable.default.border.color = color('d3d3d3')
-cssv.clickable.default.border.width = None
+cssv.clickable.default.border.width = px(1)
 cssv.clickable.default.border.style = None
 #
 cssv.clickable.hover.background = ('v', color('#dadada'), color.darken('#dadada',10))
 cssv.clickable.hover.color = color('#555')
 cssv.clickable.hover.text_decoration = 'none'
 cssv.clickable.hover.border.color = color('999999')
-cssv.clickable.hover.border.width = None
+cssv.clickable.hover.border.width = cssv.clickable.default.border.width
 cssv.clickable.hover.border.style = None
 #
 cssv.clickable.active.background = color('#fff')
 cssv.clickable.active.color = color('#212121')
 cssv.clickable.active.text_decoration = 'none'
 cssv.clickable.active.border.color = color('aaaaaa')
-cssv.clickable.active.border.width = None
+cssv.clickable.active.border.width = cssv.clickable.default.border.width
 cssv.clickable.active.border.style = None
 
 cssv.widget.padding = spacing(px(6))
@@ -32,7 +32,7 @@ cssv.widget.head.background = cssv.color.grayLighter
 cssv.widget.head.color = cssv.color.grayDarker
 cssv.widget.head.border.color = cssv.color.grayLight
 cssv.widget.head.font_size = cssv.heading.h3.font_size
-cssv.widget.head.line_height = cssv.heading.h3.line_height
+cssv.widget.head.line_height = cssv.heading.h3.font_size
 cssv.widget.head.font_weight = cssv.head.font_weight
 cssv.widget.head.text_transform = None
 cssv.widget.head.padding = cssv.widget.padding

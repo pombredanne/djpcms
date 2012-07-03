@@ -144,9 +144,6 @@ css('button.button.large,a.button.large,input.button.large[type="submit"]',
     radius(cssv.input.radius),
     padding=2*cssv.input.padding)
 
-css('.required label',
-    font_weight = cssv.input_required_font_weight)
-
 css(disabled_selector,
     opacity(cssv.disabled.opacity),
     cursor =  cssv.disabled.cursor)
@@ -173,9 +170,12 @@ css('form.%s' % classes.form,
     css('.errorlist,.form-messages', overflow='hidden', display='none'),
     css('.legend', margin=cssv.form.padding),
     css('label'),
+    css('.%s' % classes.required,
+        cssb('.%s' % classes.label,
+             font_weight=cssv.input.required_font_weight)),
     # Inline labels
     css('.%s' % classes.inlineLabels,
-        css('.label',
+        css('.%s' % classes.label,
             float='left',
             width=cssv.form.inlinelabels_width,
             margin=spacing(cssv.form.padding,pc(2),cssv.form.padding,0)),

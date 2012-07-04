@@ -140,8 +140,10 @@ def html_doc_stream(request, stream, status=200):
     else:
         for s in stream:
             yield s
-    yield media.all_js
-    yield page_script(request)
+    js = media.all_js
+    if js:
+        yield js
+        yield page_script(request)
     yield '</body>\n</html>'
     
     

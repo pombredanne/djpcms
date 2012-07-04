@@ -52,6 +52,13 @@ def anchor_or_button(text, href=None, icon=None, asbutton=False, size=None,
         w = Widget('a', text, href=href, **kwargs)
     return with_icon(name=icon, size=size, widget=w)
     
-    
 def legend(text, cn='legend', **kwargs):
     return Widget('div', text, cn=cn, **kwargs)
+
+def render_block(f):
+    def _(self, request, block=None, **kwargs):
+        content = f(self, request, block=None, **kwargs)
+        if block is None:
+            content = panel(content)
+        return content
+    return _

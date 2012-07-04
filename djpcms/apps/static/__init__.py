@@ -12,14 +12,11 @@ from email.utils import parsedate_tz, mktime_tz
 from djpcms import views, html
 from djpcms.utils.httpurl import http_date
 from djpcms.utils.importer import import_module
-from djpcms.cms import Http404, Response
+from djpcms.cms import Http404, Response, PermissionDenied
 
 # Third party application list.
 third_party_applications = []
-
 _media = None
-
-
 w = html.Widget
 wm = html.WidgetMaker
 # Template for media index
@@ -36,23 +33,6 @@ class pathHandler(object):
         self.absolute_path = os.path.join(self.mpath,name)
         self.exists   = os.path.exists(self.mpath)
         self.url = '/{0}/{1}/'.format(mediadir,name)
-
-
-class DjangoAdmin(object):
-    '''A django admin static application'''
-    def check(self, app):
-        return app.startswith('django.')
-    
-    def handler(self, app):
-        if app == 'django.contrib.admin':
-            return self
-        
-    def __call__(self, name, path, mediadir):
-        h = pathHandler(name,path,mediadir)
-        h.absolute_path = h.mpath
-        return h
-
-third_party_applications.append(DjangoAdmin())
 
 
 def application_map(applications, safe = True):
@@ -98,6 +78,15 @@ class StaticMapMixin(views.View):
     def title(self, request):
         return 'Index of ' + request.path
     
+    def get_response(self, request):
+        return self.render(request)
+    
+    def add_media(self, m):
+        pass
+    
+    def default_media(self, request):
+        pass
+        
     @property
     def media_mapping(self):
         '''Load application media.'''
@@ -109,20 +98,20 @@ class StaticMapMixin(views.View):
 
 class StaticRootView(StaticMapMixin):
     '''The root view for static files'''
-    def render(self, request):
+    def render(self, request, **kwargs):
         if self.appmodel.show_indexes:
             nav = (w('a', m, href=m+'/') for m in sorted(self.media_mapping))
             return static_index().render(request,
                             {'title': self.title(request),
                              'nav': nav})
         else:
-            raise Http404()
+            raise PermissionDenied()
 
 
 class StaticFileView(StaticMapMixin):
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     
-    def __call__(self, request):
+    def render(self, request, **kwargs):
         mapping = self.media_mapping
         paths = request.urlargs['path'].split('/')
         app = paths.pop(0)
@@ -133,7 +122,7 @@ class StaticFileView(StaticMapMixin):
                 if self.appmodel.show_indexes:
                     return self.directory_index(request, fullpath)
                 else:
-                    raise Http404()
+                    raise PermissionDenied()
             elif os.path.exists(fullpath):
                 return self.serve_file(request, fullpath)
             else:
@@ -196,9 +185,9 @@ class StaticFileView(StaticMapMixin):
             header_mtime = mktime_tz(parsedate_tz(matches.group(1)))
             header_len = matches.group(3)
             if header_len and int(header_len) != size:
-                raise ValueError
+                raise ValueError()
             if mtime > header_mtime:
-                raise ValueError
+                raise ValueError()
         except (AttributeError, ValueError, OverflowError):
             return True
         return False
@@ -207,7 +196,7 @@ class StaticFileView(StaticMapMixin):
 class FavIconView(StaticFileView):
     default_route = '/favicon.ico'
     
-    def __call__(self, request):
+    def render(self, request, **kwargs):
         if not request.urlargs:
             settings = self.settings
             mapping = self.media_mapping

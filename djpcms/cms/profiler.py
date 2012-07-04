@@ -166,6 +166,14 @@ def make_header(headers):
             yield '<p>{0}</p>'.format(h)
 
 
+#class profile_response(objectk):
+#    
+#    def __init__(self, callable):
+#        self.tmp = tempfile.mktemp()
+#        self.out = StringIO()    
+#        self.prof = profiler.Profile()
+#        self.response = prof.runcall(callback, environ, start_response)
+    
 def profile_response(environ, start_response, callback):
     """Displays profiling for any view.
 http://yoursite.com/yourview/?prof

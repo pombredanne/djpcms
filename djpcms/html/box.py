@@ -4,8 +4,13 @@ from .base import Widget, Div
 from .icons import with_icon
 from . import classes
 
-__all__ = ['box']
+__all__ = ['box', 'panel']
 
+
+def panel(content):
+    return Widget('div', content,
+                  cn=(classes.panel, classes.widget_body, classes.corner_all))
+    
 
 class BoxTemplate(Div):
     classes = (classes.widget, classes.box)

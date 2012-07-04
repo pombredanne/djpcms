@@ -11,9 +11,10 @@ from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 
 from djpcms import media, is_renderer
 from djpcms.cms import permissions
+from djpcms.html import html_doc_stream
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.async import is_async, is_failure
+from djpcms.utils.async import is_async, is_failure, async_object
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -55,6 +56,7 @@ def save_on_request(f):
 class NodeEnvironMixin(UnicodeMixin):
     view = None
     page_editing = False
+    exc_info = None
     def __init__(self, environ, node, instance, url):
         self.environ = environ
         self.node = node
@@ -130,18 +132,9 @@ managing settings.'''
     @property
     def media(self):
         if not hasattr(self,'_media'):
-            settings = self.view.settings
-            m = media.Media(settings=settings)
-            m.add_js(media.jquery_paths(settings))
-            m.add_js(media.bootstrap(settings))
-            m.add_js(settings.DEFAULT_JAVASCRIPT)
-            if settings.DEFAULT_STYLE_SHEET:
-                m.add_css(settings.DEFAULT_STYLE_SHEET)
-            elif settings.STYLING:
-                target = media.site_media_file(settings)
-                if target:
-                    m.add_css({'all': (target,)})
-            m.add(self.view.media(self))
+            m = self.view.default_media(self)
+            if m is None:
+                m = media.Media(settings=self.view.settings)
             self._media = m
         return self._media
     
@@ -564,96 +557,102 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
 Response = WsgiResponse
 
 
-class ResponseGenerator(Response):
-    website = None
-    DEFAULT_CONTENT_TYPE = None
+class ResponseGenerator(object):
     
-    def __init__(self, website, **kwargs):
+    def __init__(self, website, environ, start_response):
         self.website = website
-        super(ResponseGenerator, self).__init__(**kwargs)
+        self.environ = environ
+        self.start_response = start_response
         
     @property
     def site(self):
         return self.website()
     
-    def default_content(self):
-        environ = self.environ
-        website = self.website
-        tree, node, request, exc_info, content = None, None, None, None, b''
-        #query = environ.get('QUERY_STRING','')
+    def __iter__(self):
+        #query = self.environ.get('QUERY_STRING','')
         #PK = self.site.settings.PROFILING_KEY
+        #gen = self.generate()
         #if PK and PK in query:
+        #    profiler(self.generate)
         #    return profile_response(response)
+        for request in self.get_request():
+            if request is not None:
+                break
+            yield b''
+        for response in self.get_response(request):
+            if response is not None:
+                break
+            yield b''
+        for c in response(self.environ, self.start_response):
+            yield c
+    
+    def get_response(self, request):
+        content_type, response = request.content_type, None
+        if not request.exc_info:           
+            try:
+                if request.method not in request.methods():
+                    raise HttpException(status=405)
+                elif not request.has_permission():
+                    raise PermissionDenied()
+                else:
+                    content = request.view(request)
+                    if is_renderer(content):
+                        content_type = content.content_type()
+                        content = content.render(request)
+            except Exception as e:
+                request.exc_info = sys.exc_info()
+        if request.exc_info is None: 
+            content = async_object(content)
+            while is_async(content):
+                yield
+                content = async_object(content)
+            if is_failure(content):
+                request.exc_info = content.trace
+                content = b''
+            elif isinstance(content, WsgiResponse):
+                response = content
+        if response is None:
+            response = Response(content_type=content_type)
+            if request.exc_info is not None:
+                content = self.website.handle_error(request, response)
+            if response.content_type == 'text/html' and not request.is_xhr:
+                content = '\n'.join(html_doc_stream(request, content,
+                                                    response.status_code))
+            response.content = (content,)
+        
+        if not response.is_streamed:
+            content = response.content
+            response.content = (c for c in content)
+        yield response
+        
+    def get_request(self):
+        tree, node, request, exc_info = None, None, None, None
         try:
             tree = self.page_tree()
-            node = tree.resolve(environ['PATH_INFO'])
-            request = make_request(environ, node)
+            node = tree.resolve(self.environ['PATH_INFO'])
+            request = make_request(self.environ, node)
         except Exception as e:
             exc_info = sys.exc_info()
         else:
-            if is_async(request) and request.called:
-                request = request.result
+            request = async_object(request)
             while is_async(request):
-                yield b''
-                if request.called:
-                    request = request.result    
+                yield
+                request = async_object(request)    
             if is_failure(request):
                 exc_info = request.trace
-            else:
-                try:
-                    if request.method not in request.methods():
-                        raise HttpException(status=405)
-                    elif not request.has_permission():
-                        raise PermissionDenied()
-                    else:
-                        content = request.view(request)
-                        if is_renderer(content):
-                            self.content_type = content.content_type()
-                            content = content.render(request)
-                except Exception as e:
-                    exc_info = sys.exc_info()
-        if exc_info is None: 
-            if is_async(content) and content.called:
-                content = content.result
-            while is_async(content):
-                yield b''
-                if content.called:
-                    content = content.result
-            if is_failure(content):
-                exc_info = content.trace
-        if exc_info is None:
-            try:
-                if isinstance(content, WsgiResponse):
-                    if content.is_streamed:
-                        raise RuntimeError('Received a streamed response')
-                    if content.started:
-                        raise RuntimeError('Response already started')
-                    self.cookies = content.cookies
-                    self.status_code = content.status_code
-                    self.encoding = content.encoding
-                    self.content_type = content.content_type
-                    self.headers.update(content.headers)
-                    content = content.content
-            except:
-                exc_info = sys.exc_info()
-        if exc_info is not None:
-            request = self._request(environ, tree, request, node, exc_info)
-            data = website.handle_error(request, self, exc_info)
-        else:
-            if not self.content_type and not\
-                has_empty_content(self.status_code, environ['REQUEST_METHOD']):
-                self.content_type = request.content_type
-            data = website.handle_content(request, self, content)
-        for content in data:
-            yield content
-        
-    def _request(self, environ, tree, request, node, exc_info):
+                request = None
         if request is None:
             if node is None:
                 handler = getattr(exc_info[1], 'handler', self.site)
                 node = BadNode(tree, handler)
-            request = make_request(environ, node)
-        return request
+            request = make_request(self.environ, node)
+        request.exc_info = exc_info
+        for processor in self.site.request_processors:
+            try:
+                processor(request)
+            except:
+                pass
+        yield request
         
     def page_tree(self):
         site = self.site

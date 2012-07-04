@@ -2,7 +2,7 @@ from functools import partial
 
 import djpcms
 from djpcms.utils.httpurl import zip
-from djpcms import forms, ajax
+from djpcms import forms, ajax, html
 from djpcms.utils.text import nicename
 from djpcms.cms import Route, Http404, permissions
 from djpcms.cms.plugins import html_plugin_form
@@ -22,7 +22,7 @@ __all__ = ['View',
            'DeleteView',
            'ObjectActionView',
            'ChangeView']
-    
+
 
 class View(djpcmsview):
     '''A specialized :class:`djpcmsview` class for handling views
@@ -317,7 +317,7 @@ class AddView(ModelView):
     '''A :class:`ModelView` class which renders a form for adding instances
 and handles the saving as default ``POST`` response.'''
     default_route = '/add'
-    default_title = 'add'
+    default_link = 'add'
     PERM = permissions.ADD
     ICON = 'add'
     has_plugin = True
@@ -325,6 +325,7 @@ and handles the saving as default ``POST`` response.'''
     ajax_enabled = False
     force_redirect = True
     
+    @html.render_block
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
     
@@ -371,6 +372,7 @@ class ViewView(ObjectView):
 an object.'''
     default_route = '/<id>/'
     
+    @html.render_block
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
@@ -414,7 +416,8 @@ class ObjectActionView(ObjectView):
 on an instance of a model.'''
     parent_view = 'view'
     default_title = '{2}{1}'
-        
+    
+    @html.render_block    
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
     

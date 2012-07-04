@@ -8,9 +8,12 @@ cssv.disabled.opacity = 0.7
 cssv.disabled.cursor = 'not-allowed'
 #
 cssv.input.padding = px(4)
-cssv.input.border_width = px(1)
-cssv.input.border_color = cssv.color.grayLight
-cssv.input.radius = cssv.body.radius
+cssv.input.background = cssv.widget.body.background
+cssv.input.color = cssv.widget.body.color
+cssv.input.radius = cssv.clickable.radius
+cssv.input.border.width = cssv.clickable.default.border.width
+cssv.input.border.color = cssv.clickable.default.border.color
+cssv.input.border.style = cssv.clickable.default.border.style
 cssv.input.focus_color = None
 cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
@@ -96,33 +99,25 @@ def process_elems(elem, data):
                      'padding': p})
     return data
 
-        
-        
-################################################################################
-#    INPUT FIELDS
-################################################################################
+
+############################################################    INPUTS
 css('.field-widget',
+    gradient(cssv.input.background),
+    radius(cssv.input.radius),
+    border(**cssv.input.border.params()),
     css('input[type="text"],input[type="password"],textarea,select',
         clearinp(),
         placeholder(cssv.input.placeholder_color),
-        border_style='solid',
-        border_width=0,
-        border_color='transparent',
+        bcd(background=cssv.input.background, color=cssv.input.color),
+        border='none',
         line_height=1,
-        padding=spacing(cssv.input.padding, 0),
+        padding=spacing(cssv.input.padding.top, 0, cssv.input.padding.bottom),
         margin=0,
-        width='100%',
-        color='inherit',
-        background='transparent'),
+        width='100%'),
     css('select',
-        #_webkit_appearance='button',
         padding=lazy(lambda: spacing(cssv.input.padding-px(1), 0))),
     css('input:focus,textarea:focus,select:focus', clearinp()),
-    radius(cssv.input.radius),
-    padding=spacing(0, cssv.input.padding),
-    border_style='solid',
-    border_width=cssv.input.border_width,
-    border_color=cssv.input.border_color)
+    padding=spacing(0, cssv.input.padding))
 
 css('.field-widget.focus',
     shadow(cssv.input.focus_shadow),
@@ -201,7 +196,7 @@ css('form.%s' % classes.form,
                 cssa(':first-child',
                      css(buttons+',.field-widget',
                          radius(lambda: spacing(cssv.body.radius,0,0,cssv.body.radius)))),
-                border_width=spacing(0,cssv.input.border_width,0,0),
+                border_width=spacing(0,cssv.input.border.width,0,0),
                 border_style='solid',
                 border_color=cssv.button.border_color),
             table_layout='auto'),

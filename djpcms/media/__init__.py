@@ -106,7 +106,7 @@ files such as style sheet and javascript.'''
                     medium.append(path)
 
     def add(self, other):
-        if isinstance(other,Media):
+        if isinstance(other, Media):
             for name in MEDIA_TYPES:
                 getattr(self, 'add_{0}'.format(name))(\
                             getattr(other, '_{0}'.format(name)))

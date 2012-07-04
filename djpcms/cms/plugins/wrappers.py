@@ -2,14 +2,6 @@ from djpcms.cms.plugins import DJPwrapper
 from djpcms.html import box, Widget, classes
 
 
-class FlatPanel(DJPwrapper):
-    name = 'panel'
-    description = 'Panel'
-    def render(self, request, block, content):
-        return Widget('div', content,
-                      cn=(self.name, classes.widget_body, classes.corner_all))
-
-
 class FlatBox(DJPwrapper):
     name = 'flat'
     description = 'Panel with title'

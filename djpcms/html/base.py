@@ -631,7 +631,8 @@ inner part of the widget.
 
 
 class Img(WidgetMaker):
-    tag = 'img'
+    tag='img'
+    inline=True
     attributes = WidgetMaker.makeattr('src', 'alt')
 
 

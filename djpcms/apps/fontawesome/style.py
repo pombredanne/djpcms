@@ -5,7 +5,7 @@ import os
 from djpcms.media.style import *
 
 css('@font-face',
-    fontface('fontawesome/fontawesome-webfont', 'FontAwesomeRegular'),
+    fontface('fontawesome/fontawesome-webfont', 'FontAwesome'),
     font_family="'FontAwesome'",       
     font_weight='normal',
     font_style='normal'

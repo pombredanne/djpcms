@@ -224,19 +224,19 @@ class EmptyPlugin(DJPplugin):
 
 class ThisPlugin(DJPplugin):
     '''Current view plugin. This plugin render the current view
-only if it is an instance of :class:`djpcms.views.appview.AppViewBase`.
-For example if the current view is a :class:`djpcms.views.appview.SearchView`,
+only if it is an instance of :class:`djpcms.views.View`.
+For example if the current view is a :class:`djpcms.views.SearchView`,
 the plugin will display the search view for that application.
     '''
     name        = 'this'
     description = 'Current View'
     
     def render(self, request, block, prefix, **kwargs):
-        return request.render(block = block)
+        return request.render(block=block)
     
     
 class ApplicationPlugin(DJPplugin):
-    '''Plugin formed by :class:`djpcms.views.appview.AppViewBase` classes
+    '''Plugin formed by :class:`djpcms.views.AppViewBase` classes
 which have the :attr:`djpcms.views.RendererMixin.has_plugin` attribute
 set to ``True``.
 
@@ -257,7 +257,7 @@ which is registered to be a plugin, than it will be managed by this plugin.'''
     def render(self, request, block, prefix, **kwargs):
         req = request.for_path(self.app.path)
         if req and req.has_permission():
-            return req.render(block = block, **kwargs)
+            return req.render(block=block, **kwargs)
         else:
             return ''
     
@@ -273,5 +273,12 @@ class NoWrapper(DJPwrapper):
     name = '             nothing'
     description  = '--------------------'
     
+    
+class FlatPanel(DJPwrapper):
+    name = 'panel'
+    description = 'Panel'
+    def render(self, request, block, content):
+        return html.panel(content)
+
 
 default_content_wrapper = NoWrapper()

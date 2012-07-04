@@ -5,14 +5,13 @@ import traceback
 from inspect import isclass
 from copy import copy
 
-from djpcms import Renderer, is_renderer, ajax
+from djpcms import Renderer, is_renderer, ajax, media
 from djpcms.utils import orms
-from djpcms.html import layout, Widget, error_title, html_doc_stream,\
-                        classes, html_trace
+from djpcms.html import layout, Widget, error_title, classes, html_trace
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.text import escape
 from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri,\
-                                 to_bytes
+                                    REDIRECT_CODES
 from djpcms.utils.importer import import_module, module_attribute,\
                                   import_modules
 from djpcms.utils.path import Path
@@ -115,7 +114,25 @@ class ViewRenderer(Renderer):
 for the parent view. By default it returns *instance*. This function
 is used by the :attr:`djpcms.Request.parent` attribute.'''
         return instance
+    
+    def add_media(self, request, media):
+        request.media.add(media)
         
+    def default_media(self, request):
+        settings = self.settings
+        m = media.Media(settings=settings)
+        m.add_js(media.jquery_paths(settings))
+        m.add_js(media.bootstrap(settings))
+        m.add_js(settings.DEFAULT_JAVASCRIPT)
+        if settings.DEFAULT_STYLE_SHEET:
+            m.add_css(settings.DEFAULT_STYLE_SHEET)
+        elif settings.STYLING:
+            target = media.site_media_file(settings)
+            if target:
+                m.add_css({'all': (target,)})
+        m.add(self.media(request))
+        return m
+    
 
 class WSGI(object):
     '''Djpcms WSGI handler.'''
@@ -133,9 +150,7 @@ class WSGI(object):
         return '%s(%s)' % (self.__class__.__name__, self)
         
     def __call__(self, environ, start_response):
-        return ResponseGenerator(self.website,
-                                 environ=environ,
-                                 start_response=start_response)
+        return ResponseGenerator(self.website, environ, start_response)
         
         
 class Site(ResolverMixin, ViewRenderer):
@@ -532,9 +547,10 @@ for djpcms web sites.
     def render_error_404(self, request, status):
         return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
     
-    def handle_error(self, request, response, exc_info):
+    def handle_error(self, request, response):
         '''Render an error into text or Html depending on *content_type*.
 This function can be overwritten by user implementation.'''
+        exc_info = request.exc_info
         settings = request.settings
         status = 500
         if exc_info and exc_info[0] is not None:
@@ -545,12 +561,11 @@ This function can be overwritten by user implementation.'''
             exc_info = None
         # 302 is a special case, we redirect
         content_type = request.content_type
-        if status == 302:
+        if status in REDIRECT_CODES:
             location = exc_info[1].location
             if request.is_xhr:
-                content = ajax.jredirect(content)
+                content = ajax.jredirect(location)
             else:
-                response.status = status
                 response.headers['Location'] = iri_to_uri(location)
                 content = b''
         else:
@@ -596,16 +611,3 @@ This function can be overwritten by user implementation.'''
             logger.critical('Interval server error', exc_info=exc_info)
         yield content
         
-    def handle_content(self, request, response, content):
-        '''handle synchronous and asynchronous content.'''
-        for processor in self.site.request_processors:
-            processor(request)
-        # If content is HTML on a non-ajax request, render the document
-        if response.content_type == 'text/html' and not request.is_xhr:
-            content = '\n'.join(html_doc_stream(request, content,
-                                                response.status_code))
-        if not isinstance(content, (list, tuple)):
-            yield content
-        else:
-            for c in content:
-                yield c

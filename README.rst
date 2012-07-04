@@ -13,7 +13,8 @@ high level of customization.
 Lots of AJAX enabled features including inline editing, autocomplete,
 ajax forms, dynamic tables and more.
 It works with Python_ 2.6 and up including python 3 series.
-The template engine is jinja2_ which is shipped with the distribution.
+Djpcms does not use any template language, it uses Python alone to render on the
+server side.
 
 
 .. contents::

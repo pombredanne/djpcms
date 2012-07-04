@@ -11,18 +11,33 @@ __all__ = ['BaseFormLayout',
            'FormTemplate',
            'FormLayout',
            'FormLayoutElement',
-           'DivFormElement',
            'FieldTemplate',
            'FormLayout',
            'SubmitElement',
            'Fieldset',
-           'Row',
            'Columns',
            'SUBMITS']
 
 SUBMITS = 'submits' # string indicating submits in forms
 
 
+def check_fields(fields, missings, layout=None):
+    '''Utility function for checking fields in layouts'''
+    for field in fields:
+        if field in missings:
+            if field == SUBMITS:
+                field = SubmitElement(key=SUBMITS)
+                field.check_fields(missings, layout)
+            else:
+                missings.remove(field)
+        elif isinstance(field, html.WidgetMaker):
+            if isinstance(field, FormLayoutElement):
+                field.check_fields(missings, layout)
+        else:
+            field = FormTemplate(key=field)
+        yield field
+        
+        
 class FormWidget(html.Widget):  
     @property 
     def form(self):
@@ -56,23 +71,6 @@ See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         
 class FormTemplate(html.WidgetMaker):
     _widget = FormWidget
-    
-
-def check_fields(fields, missings, layout=None):
-    '''Utility function for checking fields in layouts'''
-    for field in fields:
-        if field in missings:
-            if field == SUBMITS:
-                field = SubmitElement(key=SUBMITS)
-                field.check_fields(missings, layout)
-            else:
-                missings.remove(field)
-        elif isinstance(field, html.WidgetMaker):
-            if isinstance(field, FormLayoutElement):
-                field.check_fields(missings, layout)
-        else:
-            field = FormTemplate(key=field)
-        yield field
         
         
 class FieldTemplate(FormTemplate):
@@ -119,6 +117,7 @@ class FieldTemplate(FormTemplate):
                                    % (bfield.id, classes.label, bfield.label))
             widget.add(wrapper)
 
+
 class BaseFormLayout(FormTemplate):
     '''A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.'''
@@ -158,7 +157,6 @@ components. An instance of this class render one or several form
     field_widget_class = classes.ctrlHolder
     classes = 'layout-element'
     field_widget_tag = 'div'
-    submit_container_tag = 'div'
     
     def check_fields(self, missings, layout=None):
         '''Check if the specified fields are available in the form and
@@ -179,52 +177,26 @@ remove available fields from the missing set.'''
             self.add(ft)
     
 
-class DivFormElement(FormLayoutElement):
-    tag = 'div'
-    
-
 class SubmitElement(FormLayoutElement):
     tag = 'div'
+    key = SUBMITS
     classes = classes.ctrlHolder
     
     def check_fields(self, missings, layout):
         del self._children
-        if SUBMITS in missings:
-            missings.remove(SUBMITS)
+        if self.key in missings:
+            missings.remove(self.key)
             
     def get_context(self, request, widget, context):
-        parent = widget.internal.get('layout-element')
-        if parent:
-            widget.tag = parent.submit_container_tag
-        widget.add(widget.inputs)
+        inner = html.Widget('div', widget.inputs,
+                            cn=(self.default_style,classes.buttonHolder))
+        widget.removeClass(self.default_style)
+        widget.add(inner)
 
     
 class Fieldset(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
     tag = 'fieldset'
-      
-
-class Row(Fieldset):
-    '''A :class:`FormLayoutElement` which renders to a <div>.'''
-    tag = 'div'
-    classes = "formRow"
-    field_widget_tag = None
-    submit_container_tag = None
-    
-    def __init__(self, *children, **params):
-        super(Row, self).__init__(*children, **params)
-        table = html.WidgetMaker(tag='table')
-        body = html.WidgetMaker(tag='body')
-        row = html.WidgetMaker(tag='tr')
-        self.row = row
-        body.add(row)
-        table.add(body)
-        super(Row,self).add(table)
-        
-    def add(self, field):
-        td = html.WidgetMaker(tag='td')
-        td.add(field)
-        return self.row.add(td)
     
 
 class Columns(FormLayoutElement):
@@ -260,7 +232,7 @@ yui3_ grid layout.
                 column = layout.default_element(*column, **kwargs)
             elif not isinstance(column, html.WidgetMaker):
                 column = layout.default_element(column,
-                                        default_style = self.default_style)
+                                        default_style=self.default_style)
             column.check_fields(missings, layout)
             self.add(column)
     
@@ -327,7 +299,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 missings.remove(SUBMITS)
             fields = [self.default_element(*missings)]
             if addinputs:
-                fields.append(SubmitElement(key=SUBMITS))
+                fields.append(SubmitElement())
             for field in fields:
                 self.add(field)
                 field.check_fields(missings, self)

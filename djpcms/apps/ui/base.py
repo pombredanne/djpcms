@@ -51,8 +51,8 @@ css('body',
     css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'media','ui.css')))
 
-############################################################### CLICKABLE
-css('.'+classes.clickable,
+################################################################ CLICKABLE
+css('.%s,button'%classes.clickable,
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),
@@ -61,11 +61,8 @@ css('.'+classes.clickable,
         font_weight='inherit', cursor='inherit'))
     
     
-############################################################### WIDGET
+################################################################ WIDGET
 css('.'+classes.widget,
-    cssb('.hd',
-         padding_top=0,
-         padding_bottom=0),
     cssb('.bd',
          padding=cssv.widget.body.padding,
          overflow='hidden',
@@ -99,7 +96,7 @@ css('.'+classes.widget_head,
     padding=cssv.widget.head.padding,
     overflow='hidden')
 
-################################################# PANEL
+################################################################ PANEL
 css('.'+classes.widget_body,
     cssa('.panel',
          bcd(**cssv.panel.params()),
@@ -115,6 +112,6 @@ radius_bottom = spacing(0, 0, cssv.body.radius, cssv.body.radius)
 css('.'+classes.corner_top, radius(radius_top))
 css('.'+classes.corner_bottom, radius(radius_bottom))
 
-################################################################# DRAGGABLE
+################################################################ DRAGGABLE
 css('.%s' % classes.draggable,
     cursor='move')

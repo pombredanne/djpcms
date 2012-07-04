@@ -22,11 +22,13 @@ LIBRARY_NAME = os.path.basename(PACKAGE_DIR)
 SOFTWARE_NAME = LIBRARY_NAME + ' ' +  __version__
 
 
-def DEFAULT_JAVASCRIPT():
-    return ['djpcms/jquery.cookie.js',
-            'djpcms/jquery.form.js',
-            'djpcms/showdown.js',
-            'djpcms/djpcms.js']
+def DEFAULT_JAVASCRIPT(*extra):
+    js = ['djpcms/jquery.cookie.js',
+          'djpcms/jquery.form.js',
+          'djpcms/showdown.js',
+          'djpcms/djpcms.js']
+    js.extend(extra)
+    return js
 
 
 LOGGING_SAMPLE = {

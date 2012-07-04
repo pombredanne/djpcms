@@ -407,25 +407,56 @@ class horizontal_navigation(clickable):
 ################################################# INCLUDE CSS
         
 class css_include(mixin):
-    '''Include one or more css resources'''
-    def __init__(self, *paths):
-        self.paths = paths
+    '''Include one or more css resources. The correct Use of this mixin is
+with the *body* tag only::
+
+    css('body', css_include(path))
+    
+path can be both an internett address as well as a local url.
+
+.. attribute:: path
+
+    A valid file location or a fully qualified internet address
+    
+.. attribute:: location
+
+    Optional relative location of images
+'''
+    def __init__(self, path, location=None):
+        self.path = path
+        self.location = location
         self._code = to_string(uuid4())[:8]
         
     def __unicode__(self):
         return self._code
     
     def __call__(self, elem):
-        for path in self.paths:
-            if not path.startswith('http'):
-                if os.path.isfile(path):
-                    with open(path,'r') as f:
-                        stream = f.read()
-                else:
-                    stream = path
+        path = self.path
+        if not path.startswith('http'):
+            if os.path.isfile(path):
+                with open(path,'r') as f:
+                    stream = f.read()
             else:
-                raise NotImplementedError('http fetching not yet implemented')
-            css_stream(self._code, stream)
+                stream = path
+        else:
+            raise NotImplementedError('http fetching not yet implemented')
+        if self.location:
+            stream = '\n'.join(self.correct(stream, self.location))
+        css_stream(self._code, stream)
+        
+    @classmethod
+    def correct(cls, stream, location):
+        for line in stream.splitlines():
+            p1 = line.find('url(')
+            if p1 > 0:
+                p2 = line.find(')')
+                if p2 > p1:
+                    url = line[p1+4:p2]
+                    if not (url.startswith('.') or url.startswith('/')):
+                        url = '%s%s/%s' % (cssv.MEDIAURL, location, url)
+                        line = line[:p1+4]+url+line[p2:]
+            yield line
+        
             
    
 ################################################# FIXED GRID

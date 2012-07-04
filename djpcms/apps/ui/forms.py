@@ -129,13 +129,13 @@ for n in range(1,10):
 
 ############################################################    BUTTONS
 #'button.button,a.button,input.button[type="submit"]'
-buttons = 'input.button[type="submit"], button.button'
+buttons = 'input.button[type="submit"], button, a.button'
 css(buttons,
     padding = cssv.button.padding,
     display='inline-block',
     margin_right=px(4))
 
-css('button.button.large,a.button.large,input.button.large[type="submit"]',
+css('button.large,a.button.large,input.button.large[type="submit"]',
     radius(cssv.input.radius),
     padding=2*cssv.input.padding)
 
@@ -176,8 +176,16 @@ css('form.%s' % classes.form,
             margin=spacing(cssv.form.padding,pc(2),cssv.form.padding,0)),
         css('.field-widget',
             margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)),
-            width='auto')),
+            width='auto'),
+        cssa('.%s'%classes.buttonHolder,
+             padding_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)))),
     css('.%s' % classes.ctrlHolder,
+        css('.%s'%classes.align_right,
+            float='right'),
+        css('.%s'%classes.align_middle,
+            text_align='center',
+            margin_right=0,
+            margin_left=0),
         margin=0,
         overflow='hidden',
         padding=spacing(0, cssv.form.padding, cssv.form.padding),

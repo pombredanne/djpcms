@@ -472,6 +472,7 @@ corner cases, users can subclass it to customize behavior.
 
 '''
     tag = None
+    key = None
     is_hidden = False
     default_style = None
     inline = False
@@ -494,8 +495,8 @@ corner cases, users can subclass it to customize behavior.
         self.tag = params.pop('tag', self.tag)
         if internal:
             self.internal.update(internal)
-        self.key = key
-        self.default_style = params.pop('default_style',self.default_style)
+        self.key = key if key is not None else self.key
+        self.default_style = params.pop('default_style', self.default_style)
         self._widget = widget or self._widget or Widget
         if self.default_attrs:
             p = self.default_attrs.copy()

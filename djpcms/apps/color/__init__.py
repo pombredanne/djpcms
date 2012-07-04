@@ -1,10 +1,18 @@
-from djpcms import html, forms
-from djpcms.media import Media, js
+'''Color picker application from
+
+https://github.com/vanderlee/colorpicker
+
+MIT License
+'''
+from djpcms import html, forms, media
 
 
 class ColorInput(html.TextInput):
     classes = 'color-picker'
-    _media = Media(js=[js.RAPHAEL, 'color/color.js'])
+    _media = media.Media(
+                js=['color/colorpicker/jquery.colorpicker.js',
+                    'color/colorpicker/i18n/jquery.ui.colorpicker-en.js',
+                    'color/color.js'])
     
     def set_value(self, value, widget):
         if value and value.startswith('#'):

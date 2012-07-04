@@ -19,14 +19,14 @@ if os.environ.get('DJPCMS_ASYNCHRONOUS_FRAMEWORK') == 'twisted':
             if self.type not in ('list',):
                 raise TypeError('Multideferred type container must be a list')
             DeferredList.__init__(self, stream)
+    
+    def async_object(obj):
+        '''Obtain the result if available, otherwise it returns self.'''
+        if is_async(obj):
+            return obj.result if obj.called and not obj.paused else obj
+        else:
+            return obj
             
 else:
     from pulsar.async.defer import *
     
-    
-def async_object(obj):
-    '''Obtain the result if available, otherwise it returns self.'''
-    if is_async(obj):
-        return obj.result if obj.called and not obj.paused else obj
-    else:
-        return obj

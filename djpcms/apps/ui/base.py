@@ -114,3 +114,7 @@ radius_bottom = spacing(0, 0, cssv.body.radius, cssv.body.radius)
 
 css('.'+classes.corner_top, radius(radius_top))
 css('.'+classes.corner_bottom, radius(radius_bottom))
+
+################################################################# DRAGGABLE
+css('.%s' % classes.draggable,
+    cursor='move')

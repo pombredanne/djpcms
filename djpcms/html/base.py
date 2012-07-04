@@ -96,13 +96,15 @@ def html_trace(exc_info, plain=False):
                 error.add(w)
         return error.render()
 
+
 class StreamRenderer(MultiDeferred):
     '''A :class:`MultiDeferred` which renders to text.'''
-    def __init__(self, stream, renderer=None):
-        super(StreamRenderer, self).__init__(stream, fireOnOneErrback=True)
+    def __init__(self, stream, fireOnOneErrback=True, renderer=None, **params):
+        super(StreamRenderer, self).__init__(stream,
+                                             fireOnOneErrback=fireOnOneErrback,
+                                             **params)
         self.renderer = renderer
         self.add_callback(self.post_process).add_callback(mark_safe)
-        self.lock()
             
     def post_process(self, stream):
         if self.renderer:
@@ -365,7 +367,7 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
-        st = StreamRenderer(self.stream(request, context))
+        st = StreamRenderer(self.stream(request, context)).lock()
         return st.result if st.called else st
     
     def stream(self, request=None, context=None):

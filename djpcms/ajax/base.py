@@ -4,30 +4,39 @@ interaction with ``djpcms.js``
 import json
 
 from djpcms import Renderer
-from djpcms.utils.async import Deferred
+from djpcms.utils.async import MultiDeferred, is_async, async_object
 from djpcms.utils.text import to_string
 from djpcms.utils.structures import OrderedDict
    
+def dorender(request, elem):
+    if isinstance(elem, Renderer):
+        elem = elem.render(request)
+    return elem
+
 
 class Ajax(Renderer):
     '''Base class for JSON AJAX utilities'''
     def content_type(self):
         return 'application/javascript'
     
-    def dict(self):
+    def serialize(self, request):
         '''This is the only functions that needs to be implemented by derived
 classes. It converts ``self`` into a dictionary ready to be serialised
 as JSON string.
         '''
         raise NotImplementedError()
 
-    def _dump(self, elem):
+    def dump(self, elem):
         # Internal function which uses json to serialise elem
         return json.dumps(elem)
     
-    def render(self, *args, **kwargs):
+    def render(self, request=None, **kwargs):
         '''Serialize ``self`` as a ``JSON`` string'''
-        return self._dump(self.dict())
+        elem = async_object(self.serialize(request))
+        if is_async(elem):
+            return elem.add_callback(self.dump)
+        else:
+            return self.dump(elem)
     
     def error(self):
         return False
@@ -38,16 +47,21 @@ class simplelem(Ajax):
     def __init__(self, elem):
         self.elem = elem
     
-    def dict(self):
-        return self.elem
-
-
+    def serialize(self, request):
+        elem = self.elem
+        if isinstance(elem, Renderer):
+            elem = elem.render(request, **kwargs)
+        return elem
+    
+    
 class HeaderBody(Ajax):
     '''Base class for interacting with ``$.djpcms.jsonCallBack`` in
 ``djpcms.js``. 
     '''
-    def dict(self):
-        return self._dict(self.header(), self.body())
+    def serialize(self, request):
+        return MultiDeferred(self._dict(
+                    self.header(), self.body()),
+                    handle_value=lambda elem: dorender(request, elem)).lock()
     
     def header(self):
         '''Type of element recognized by ``$.djpcms.jsonCallBack``'''
@@ -56,7 +70,7 @@ class HeaderBody(Ajax):
     def body(self):
         return ''
     
-    def _dict(self,hd,bd):
+    def _dict(self, hd, bd):
         return {'header': hd,
                 'body':   bd,
                 'error':  self.error()}
@@ -127,8 +141,8 @@ class jhtmls(HeaderBody):
 :parameter identifier: jquery selector
 :parameter type: one of ``"replacewith"``, ``"replace"``, ``"addto"``.
     '''
-    def __init__(self, html = None, identifier = None, alldocument = True,
-                        type = 'replace', removable = False):
+    def __init__(self, html=None, identifier=None, alldocument=True,
+                type='replace', removable=False):
         self.html = OrderedDict()
         if html != None:
             self.add(identifier, html, type, alldocument, removable)

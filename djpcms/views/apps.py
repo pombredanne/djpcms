@@ -409,7 +409,8 @@ the *request*.'''
         if 'query' not in context:
             context['query'] = self.query(request)
         return StreamRenderer(
-                    context, renderer=lambda r: self.render_query(request, **r))
+                    context,
+                    renderer=lambda r: self.render_query(request, **r)).lock()
     
     def render_query(self, request, query=None, **kwargs):
         '''Render a *query* as a table or a list of items.

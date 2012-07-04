@@ -73,7 +73,7 @@ class Renderer(object):
 '''
     description = None
     
-    def render(self, *args, **kwargs):
+    def render(self, request=None, **kwargs):
         '''render ``self`` as a string or bytes.'''
         raise NotImplementedError()
     

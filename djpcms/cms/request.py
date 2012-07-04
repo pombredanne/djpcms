@@ -575,18 +575,18 @@ class ResponseGenerator(object):
         #if PK and PK in query:
         #    profiler(self.generate)
         #    return profile_response(response)
-        for request in self.get_request():
+        for request in self.request():
             if request is not None:
                 break
             yield b''
-        for response in self.get_response(request):
+        for response in self.response(request):
             if response is not None:
                 break
             yield b''
         for c in response(self.environ, self.start_response):
             yield c
     
-    def get_response(self, request):
+    def response(self, request):
         content_type, response = request.content_type, None
         if not request.exc_info:           
             try:
@@ -625,7 +625,7 @@ class ResponseGenerator(object):
             response.content = (c for c in content)
         yield response
         
-    def get_request(self):
+    def request(self):
         tree, node, request, exc_info = None, None, None, None
         try:
             tree = self.page_tree()

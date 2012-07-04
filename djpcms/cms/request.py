@@ -9,25 +9,25 @@ from datetime import datetime, timedelta
 # IMPORT PULSAR STUFF
 from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 
+from djpcms import media, is_renderer
 from djpcms.cms import permissions
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.async import is_async
-from djpcms.media import js, Media, site_media_file
+from djpcms.utils.async import is_async, is_failure
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
                                  itervalues, ispy3k, native_str, to_bytes,\
-                                 iri_to_uri, parse_form_data
-                                 
+                                 iri_to_uri, parse_form_data,\
+                                 has_empty_content
+
+from .tree import DjpcmsTree, BadNode
 from .exceptions import *
 
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
-__all__ = ['Response',
-           'is_response',
-           'is_xhr']
+__all__ = ['Response', 'is_xhr']
 
 
 def is_xhr(environ):
@@ -131,14 +131,14 @@ managing settings.'''
     def media(self):
         if not hasattr(self,'_media'):
             settings = self.view.settings
-            m = Media(settings=settings)
-            m.add_js(js.jquery_paths(settings))
-            m.add_js(js.bootstrap(settings))
+            m = media.Media(settings=settings)
+            m.add_js(media.jquery_paths(settings))
+            m.add_js(media.bootstrap(settings))
             m.add_js(settings.DEFAULT_JAVASCRIPT)
             if settings.DEFAULT_STYLE_SHEET:
                 m.add_css(settings.DEFAULT_STYLE_SHEET)
             elif settings.STYLING:
-                target = site_media_file(settings)
+                target = media.site_media_file(settings)
                 if target:
                     m.add_css({'all': (target,)})
             m.add(self.view.media(self))
@@ -224,8 +224,7 @@ arguments.
     
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
-    def for_path(self, path = None, urlargs = None, instance = None,
-                 cache = True):
+    def for_path(self, path=None, urlargs=None, instance=None, cache=True):
         '''Create a new :class:`Request` from a given *path*.'''
         path = path if path is not None else self.path
         request = self.cache['requests'].get(path)
@@ -390,27 +389,6 @@ is available, the name is set to ``view``.
         if hasattr(icon, '__call__'):
             icon = icon(self)
         return icon
-    
-    @lazyproperty
-    def template_file(self):
-        page = self.page
-        # First Check if page has a template
-        if page and page.template:
-            return page.template
-        view = self.view
-        t = view.template_file
-        if not t and view.appmodel:
-            t = view.appmodel.template_file
-        de = view.settings.DEFAULT_TEMPLATE_NAME
-        if t:
-            if de not in t:
-                t += de
-            return t
-        else:
-            return de
-        
-    def render_to_response(self, context, **kwargs):
-        return self.view.response.render_to_response(self, context, **kwargs)
         
     def has_permission(self, code = None, instance = None, **kwargs):
         view = self.view
@@ -583,9 +561,17 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             if isinstance(request, Request):
                 yield request
     
-     
-class Response(WsgiResponse):
+Response = WsgiResponse
+
+
+class ResponseGenerator(Response):
     website = None
+    DEFAULT_CONTENT_TYPE = None
+    
+    def __init__(self, website, **kwargs):
+        self.website = website
+        super(ResponseGenerator, self).__init__(**kwargs)
+        
     @property
     def site(self):
         return self.website()
@@ -594,6 +580,10 @@ class Response(WsgiResponse):
         environ = self.environ
         website = self.website
         tree, node, request, exc_info, content = None, None, None, None, b''
+        #query = environ.get('QUERY_STRING','')
+        #PK = self.site.settings.PROFILING_KEY
+        #if PK and PK in query:
+        #    return profile_response(response)
         try:
             tree = self.page_tree()
             node = tree.resolve(environ['PATH_INFO'])
@@ -617,6 +607,9 @@ class Response(WsgiResponse):
                         raise PermissionDenied()
                     else:
                         content = request.view(request)
+                        if is_renderer(content):
+                            self.content_type = content.content_type()
+                            content = content.render(request)
                 except Exception as e:
                     exc_info = sys.exc_info()
         if exc_info is None: 
@@ -635,24 +628,29 @@ class Response(WsgiResponse):
                         raise RuntimeError('Received a streamed response')
                     if content.started:
                         raise RuntimeError('Response already started')
-                self.cookies = content.cookies
-                self.status_code = content.status_code
-                self.encoding = content.encoding
-                self.content_type = content.content_type
-                self.headers.update(content.headers)
-                content = content.content
+                    self.cookies = content.cookies
+                    self.status_code = content.status_code
+                    self.encoding = content.encoding
+                    self.content_type = content.content_type
+                    self.headers.update(content.headers)
+                    content = content.content
             except:
                 exc_info = sys.exc_info()
         if exc_info is not None:
             request = self._request(environ, tree, request, node, exc_info)
-            yield website.handle_error(request, self, exc_info)
+            data = website.handle_error(request, self, exc_info)
         else:
-            yield website.handle_content(request, self, content)
+            if not self.content_type and not\
+                has_empty_content(self.status_code, environ['REQUEST_METHOD']):
+                self.content_type = request.content_type
+            data = website.handle_content(request, self, content)
+        for content in data:
+            yield content
         
-    def _request(self, environ, tree, request, node, e):
+    def _request(self, environ, tree, request, node, exc_info):
         if request is None:
             if node is None:
-                handler = getattr(e, 'handler', self.site)
+                handler = getattr(exc_info[1], 'handler', self.site)
                 node = BadNode(tree, handler)
             request = make_request(environ, node)
         return request
@@ -666,8 +664,3 @@ class Response(WsgiResponse):
         else:
             return DjpcmsTree(tree)
         
-
-def is_response(obj):
-    if hasattr(obj, 'status') or hasattr(obj, 'status_code')\
-            and hasattr(obj,'__iter__'):
-        return True

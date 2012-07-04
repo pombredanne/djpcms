@@ -135,7 +135,11 @@ def html_doc_stream(request, stream, status=200):
         yield "<body class='{0}'>".format(body_class)
     else:
         yield '<body>'
-    yield stream
+    if not isinstance(stream, (list,tuple)):
+        yield stream
+    else:
+        for s in stream:
+            yield s
     yield media.all_js
     yield page_script(request)
     yield '</body>\n</html>'

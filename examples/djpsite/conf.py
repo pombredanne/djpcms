@@ -9,7 +9,6 @@ INSTALLED_APPS = ('djpcms',
                   'stdcms.sessions',
                   'social',
                   #
-                  'djpcms.apps.base',
                   'djpcms.apps.fontawesome',
                   'djpcms.apps.nav',
                   'djpcms.apps.page',

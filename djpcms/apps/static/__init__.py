@@ -93,6 +93,7 @@ It looks for the ``media`` directory in each installed application.'''
 
 
 class StaticMapMixin(views.View):
+    _methods = ('get',)
     
     def title(self, request):
         return 'Index of ' + request.path
@@ -107,18 +108,13 @@ class StaticMapMixin(views.View):
     
 
 class StaticRootView(StaticMapMixin):
-    '''The root view for static files'''    
+    '''The root view for static files'''
     def render(self, request):
         if self.appmodel.show_indexes:
             nav = (w('a', m, href=m+'/') for m in sorted(self.media_mapping))
             return static_index().render(request,
                             {'title': self.title(request),
                              'nav': nav})
-            #html = self.template.render(request.template_file,
-            #                    {'names':sorted(self.media_mapping),
-            #                     'files':[],
-            #                     'directory':directory,
-            #                     'notroot':notroot})
         else:
             raise Http404()
 
@@ -141,8 +137,7 @@ class StaticFileView(StaticMapMixin):
             elif os.path.exists(fullpath):
                 return self.serve_file(request, fullpath)
             else:
-                raise Http404('No file "{0}" in application "{1}".\
- Could not render {1}'.format(paths,app))
+                raise Http404()
         else:
             raise Http404()
         
@@ -156,11 +151,9 @@ class StaticFileView(StaticMapMixin):
                 else:
                     files.append(w('a', f, href = f))
         names.extend(files)
-        text = static_index().render(request,
+        return static_index().render(request,
                             {'title': self.title(request),
                              'nav': names})
-        return Response(content=text.encode('latin-1','replace'),
-                        content_type='text/html')
         
     def serve_file(self, request, fullpath):
         # Respect the If-Modified-Since header.

@@ -11,7 +11,6 @@ from djpcms.html import layout, Widget, error_title, html_doc_stream,\
                         classes, html_trace
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.text import escape
-from djpcms.utils.async import is_async, is_failure
 from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri,\
                                  to_bytes
 from djpcms.utils.importer import import_module, module_attribute,\
@@ -20,9 +19,8 @@ from djpcms.utils.path import Path
 from djpcms.utils.structures import OrderedDict
 
 from .conf import Config
-from .tree import DjpcmsTree, BadNode
 from .profiler import profile_response
-from .request import make_request, Response, is_xhr, WsgiHandler, is_response
+from .request import ResponseGenerator, WsgiHandler
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
@@ -135,13 +133,9 @@ class WSGI(object):
         return '%s(%s)' % (self.__class__.__name__, self)
         
     def __call__(self, environ, start_response):
-        query = environ.get('QUERY_STRING','')
-        PK = self.site.settings.PROFILING_KEY
-        response = Response(environ=environ, start_response=start_response)
-        response.website = self.website 
-        if PK and PK in query:
-            return profile_response(response)
-        return response
+        return ResponseGenerator(self.website,
+                                 environ=environ,
+                                 start_response=start_response)
         
         
 class Site(ResolverMixin, ViewRenderer):
@@ -596,32 +590,22 @@ This function can be overwritten by user implementation.'''
             response.content_type = content.content_type()
             content = content.render(request)
         else:
+            response.content_type = content_type
             response.status_code = status
         if status == 500:
             logger.critical('Interval server error', exc_info=exc_info)
-        return content
+        yield content
         
     def handle_content(self, request, response, content):
         '''handle synchronous and asynchronous content.'''
-        if is_response(content):
-            return content
-        response = Response(encoding=request.encoding,
-                            content_type=request.content_type,
-                            start_response=start_response)
-        if is_renderer(content):
-            response.content_type = content.content_type()
-            content = content.render(request)
         for processor in self.site.request_processors:
             processor(request)
-        if is_async(content):
-            response.content = self.stream(request, content, response)
-        else:
-            response.content = self.to_bytes(request, content, response)
-        return response
-    
-    def to_bytes(self, request, content, response):
         # If content is HTML on a non-ajax request, render the document
         if response.content_type == 'text/html' and not request.is_xhr:
             content = '\n'.join(html_doc_stream(request, content,
                                                 response.status_code))
-        return to_bytes(content, response.encoding)
+        if not isinstance(content, (list, tuple)):
+            yield content
+        else:
+            for c in content:
+                yield c

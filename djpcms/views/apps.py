@@ -5,6 +5,7 @@ from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string
 from djpcms import html, forms, ajax
 from djpcms.html import table_header, StreamRenderer, Widget
 from djpcms.utils import orms
+from djpcms.utils.async import async_object
 from djpcms.utils.structures import OrderedDict
 from djpcms.cms import ResolverMixin, PermissionDenied,\
                        UrlException, AlreadyRegistered
@@ -408,9 +409,10 @@ the *request*.'''
     def render(self, request, **context):
         if 'query' not in context:
             context['query'] = self.query(request)
-        return StreamRenderer(
-                    context,
-                    renderer=lambda r: self.render_query(request, **r)).lock()
+        return async_object(
+                    StreamRenderer(
+                        context,
+                        renderer=lambda r: self.render_query(request, **r)))
     
     def render_query(self, request, query=None, **kwargs):
         '''Render a *query* as a table or a list of items.

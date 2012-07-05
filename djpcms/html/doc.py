@@ -3,6 +3,8 @@ import json
 from djpcms.html import Widget, WidgetMaker
 from djpcms.utils.text import UnicodeMixin, ispy3k
 
+from . import classes
+
 if ispy3k:
     from http.client import responses
 else:
@@ -24,6 +26,11 @@ _Meta = WidgetMaker(tag='meta',
 
 error_title = lambda status : responses.get(\
                                 status,'Unknown error {0}'.format(status))
+
+def isiterable(elem):
+    return isinstance(elem, (list,tuple)) or\
+            (hasattr(elem, '__iter__') and not hasattr(elem, '__len__'))
+
 
 def Meta(*args,**kwargs):
     return Widget(_Meta,*args,**kwargs)
@@ -115,7 +122,7 @@ def html_doc_stream(request, stream, status=200):
         body_class = view.get_body_class(request)
         title = request.title
     else:
-        body_class = settings.HTML.get('error')
+        body_class = classes.error
         title = error_title(status)
     for name in settings.META_TAGS:
         value = getattr(view, 'meta_'+name, meta_default)(request)
@@ -135,11 +142,11 @@ def html_doc_stream(request, stream, status=200):
         yield "<body class='{0}'>".format(body_class)
     else:
         yield '<body>'
-    if not isinstance(stream, (list,tuple)):
-        yield stream
-    else:
+    if isiterable(stream):
         for s in stream:
             yield s
+    else:
+        yield stream
     js = media.all_js
     if js:
         yield js

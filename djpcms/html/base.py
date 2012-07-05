@@ -7,7 +7,7 @@ from djpcms import Renderer
 from djpcms.utils.text import slugify, escape, mark_safe
 from djpcms.utils.decorators import lazymethod
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.async import MultiDeferred
+from djpcms.utils.async import MultiDeferred, Deferred, async_object
 from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
                                  is_string_or_native_string, itervalues
 
@@ -97,12 +97,12 @@ def html_trace(exc_info, plain=False):
         return error.render()
 
 
-class StreamRenderer(MultiDeferred):
-    '''A :class:`MultiDeferred` which renders to text.'''
-    def __init__(self, stream, fireOnOneErrback=True, renderer=None, **params):
-        super(StreamRenderer, self).__init__(stream,
-                                             fireOnOneErrback=fireOnOneErrback,
-                                             **params)
+class StreamRenderer(Deferred):
+    
+    def __init__(self, stream, renderer=None, **params):
+        super(StreamRenderer, self).__init__()
+        self._m = MultiDeferred(stream, fireOnOneErrback=True, **params)\
+                    .lock().addBoth(self.callback)
         self.renderer = renderer
         self.add_callback(self.post_process).add_callback(mark_safe)
             
@@ -367,8 +367,7 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
-        st = StreamRenderer(self.stream(request, context)).lock()
-        return st.result if st.called else st
+        return async_object(StreamRenderer(self.stream(request, context)))
     
     def stream(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http

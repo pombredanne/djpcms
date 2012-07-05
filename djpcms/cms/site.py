@@ -133,6 +133,8 @@ is used by the :attr:`djpcms.Request.parent` attribute.'''
         m.add(self.media(request))
         return m
     
+    def get_body_class(self, request):
+        pass
 
 class WSGI(object):
     '''Djpcms WSGI handler.'''
@@ -567,7 +569,7 @@ This function can be overwritten by user implementation.'''
                 content = ajax.jredirect(location)
             else:
                 response.headers['Location'] = iri_to_uri(location)
-                content = b''
+                content = ''
         else:
             err_cls = '%s%s' % (classes.error, status)
             err_title = '%s %s' % (status, error_title(status))
@@ -597,7 +599,8 @@ This function can be overwritten by user implementation.'''
                                                                    classes.error,
                                                                    'default')
                         outer = layout()
-                        content = outer.render(request, context={'content': inner})
+                        content = outer.render(request,
+                                               context={'content': inner})
                     except:
                         content = inner.render(request)
         if is_renderer(content):
@@ -609,5 +612,5 @@ This function can be overwritten by user implementation.'''
             response.status_code = status
         if status == 500:
             logger.critical('Interval server error', exc_info=exc_info)
-        yield content
+        return content
         

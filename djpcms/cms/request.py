@@ -601,7 +601,7 @@ class ResponseGenerator(object):
                         content = content.render(request)
             except Exception as e:
                 request.exc_info = sys.exc_info()
-        if request.exc_info is None: 
+        if request.exc_info is None:
             content = async_object(content)
             while is_async(content):
                 yield

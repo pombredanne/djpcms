@@ -158,6 +158,7 @@
                     'delete': 'Please confirm delete',
                     'flush': 'Please confirm flush'
                         },
+                icons: 'fontawesome',
                 autoload_class: "autoload",
                 ajax_server_error: "ajax-server-error",
                 errorlist: "errorlist",
@@ -353,7 +354,6 @@
         };
     }());
     
-    
     /**
      * ______________________ PLUGINS CALLBACKS AND DECORATORS
      * 
@@ -363,6 +363,22 @@
         djpcms: $.djpcms.construct
     });
     
+    $.djpcms.ui = {
+        widget_head: 'ui-widget-header',
+        widget_body: 'ui-widget-content',
+        corner_top: 'ui-corner-top',
+        corner_bottom: 'ui-corner-bottom',
+        ui_input: 'ui-input',
+        button: function(elem, text, icons) {
+            var name = $.djpcms.options.icons;
+            var icon = icons[name];
+            if(icon) {
+                if(name === 'fontawesome') {
+                    elem.html('').append('<i class="'+icon+'"></i>');
+                }
+            }
+        }
+    };
     
     $.djpcms.confirmation_dialog = function(title, html, callback, opts) {
         var el = $('<div title="'+title+'"></div>').html(html+""),

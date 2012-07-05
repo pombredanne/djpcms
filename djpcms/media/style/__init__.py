@@ -59,6 +59,18 @@ cssv.link.hover.text_shadow = None
 # Margins
 cssv.block.margin_bottom = px(20)
 
+cssv.logging_panel.font_size = px(12)
+cssv.logging_panel.line_height = px(14)
+cssv.logging_panel.background = color('#ededed')
+cssv.logging_panel.border.color = cssv.color.gray
+cssv.logging_panel.border.width = px(1)
+cssv.logging_panel.border.style = None
+cssv.logging_panel.debug = cssv.color.gray
+cssv.logging_panel.info = color('#0066CC')
+cssv.logging_panel.warn = color('#CC6600')
+cssv.logging_panel.error = color('#ff0000')
+cssv.logging_panel.critical = cssv.logging_panel.error
+
 ################################################# BODY
 css('body',
     css_include(os.path.join(djpcms.PACKAGE_DIR,'media','reset.css')),
@@ -126,3 +138,16 @@ css('.'+classes.wrapper,
     height='auto !important',
     margin=0,
     min_height=pc(100))
+
+################################################# LOGGING PANEL
+css('.djp-logging-panel',
+    gradient(cssv.logging_panel.background),
+    border(**cssv.logging_panel.border.params()),
+    css('.debug', color=cssv.logging_panel.debug),
+    css('.info', color=cssv.logging_panel.info),
+    css('.warn', color=cssv.logging_panel.warn),
+    css('.error', color=cssv.logging_panel.error),
+    css('.critical', color=cssv.logging_panel.critical),
+    font_size=cssv.logging_panel.font_size,
+    line_height=cssv.logging_panel.line_height,
+    overflow='scroll')

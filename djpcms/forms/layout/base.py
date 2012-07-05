@@ -109,7 +109,7 @@ class FieldTemplate(FormTemplate):
                     wrapper.addClass(classes.label)\
                            .addAttr('for', bfield.id).add(bfield.label)
                 else:
-                    wrapper.addClass(classes.field_wrapper)
+                    wrapper.addClass(classes.ui_input)
                     if label_style == classes.nolabel:
                         w.addAttr('placeholder', bfield.label)
                     else:

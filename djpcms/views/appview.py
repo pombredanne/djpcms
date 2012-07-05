@@ -305,7 +305,7 @@ There are three additional parameters that can be set:
             qs = qs.load_only(*fields)
         maxRows = params.get('maxRows')
         auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
-        return ajax.CustomHeaderBody('autocomplete',auto_list)
+        return ajax.CustomHeaderBody(request.environ, 'autocomplete', auto_list)
     
     def ajax_get_response(self, request):
         query = self.query(request)
@@ -349,9 +349,9 @@ in a model. Quite drastic.'''
         num = qs.count()
         qs.delete()
         if request.is_xhr:
-            c = ajax.jcollection()
+            c = ajax.jcollection(request.environ)
             for instance in qs:
-                c.append(ajax.jremove('#'+instance.id))
+                c.append(ajax.jremove(None,'#'+instance.id))
             return c
         else:
             url = get_redirect(request,force_redirect=True)

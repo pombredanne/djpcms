@@ -1,5 +1,6 @@
 '''Style inputs, widgets and forms used by djpcms.'''
 from djpcms.media.style import *
+from djpcms.forms.layout import classes
 
 ################################################################################
 ##    VARIABLES
@@ -75,10 +76,10 @@ css('dl.object-definition',
 
 
 disabled_selector = '''\
-.disabled .field-widget, .readonly .field-widget, 
+.disabled .{0}, .readonly .{0}, 
 input[disabled], select[disabled], textarea[disabled],
 input[readonly], select[readonly], textarea[readonly]
-''' 
+'''.format(classes.ui_input)
 
 def size(n):
     if n == 1:
@@ -101,7 +102,7 @@ def process_elems(elem, data):
 
 
 ############################################################    INPUTS
-css('.field-widget',
+css('.%s' % classes.ui_input,
     gradient(cssv.input.background),
     radius(cssv.input.radius),
     border(**cssv.input.border.params()),
@@ -119,13 +120,13 @@ css('.field-widget',
     css('input:focus,textarea:focus,select:focus', clearinp()),
     padding=spacing(0, cssv.input.padding))
 
-css('.field-widget.focus',
+css('.%s.focus' % classes.ui_input,
     shadow(cssv.input.focus_shadow),
     border_color = cssv.input.focus_color)
 
 for n in range(1,10):
-    css('.field-widget.span{0}'.format(n),
-         width = '{0}px'.format(size(n)))
+    css('.%s.span%s' % (classes.ui_input, n),
+         width=px(size(n)))
 
 ############################################################    BUTTONS
 #'button.button,a.button,input.button[type="submit"]'
@@ -160,7 +161,6 @@ css('.alert',
 
 
 ############################################################    FORM
-from djpcms.forms.layout import classes
 css('form.%s' % classes.form,
     css('.errorlist,.form-messages', overflow='hidden', display='none'),
     css('.legend', margin=cssv.form.padding),
@@ -174,7 +174,7 @@ css('form.%s' % classes.form,
             float='left',
             width=cssv.form.inlinelabels_width,
             margin=spacing(cssv.form.padding,pc(2),cssv.form.padding,0)),
-        css('.field-widget',
+        css('.%s' % classes.ui_input,
             margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)),
             width='auto'),
         cssa('.%s'%classes.buttonHolder,
@@ -191,39 +191,9 @@ css('form.%s' % classes.form,
         padding=spacing(0, cssv.form.padding, cssv.form.padding),
         vertical_align='middle'),
     css('.layout-element',
-        margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5))),
-    css('.formRow',
-        radius(cssv.alert.radius),
-        css('table',
-            css('td',
-                css(buttons, width='100%'),
-                cssa(':last-child',
-                     css(buttons+',.field-widget',
-                         radius(lambda: spacing(0,cssv.body.radius,cssv.body.radius,0))),
-                     border='none'),
-                cssa(':first-child',
-                     css(buttons+',.field-widget',
-                         radius(lambda: spacing(cssv.body.radius,0,0,cssv.body.radius)))),
-                border_width=spacing(0,cssv.input.border.width,0,0),
-                border_style='solid',
-                border_color=cssv.button.border_color),
-            table_layout='auto'),
-        css('.field-widget',
-            border='none'),
-        css('table',
-            width='100%'),
-        css(buttons, radius(0), margin=0, border='none'),
-        
-        border_style='solid',
-        border_width=cssv.input.border_width,
-        border_color=cssv.button.border_color,
-        padding=0,
-        margin=0))
+        margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5)))
+    )
 
-
-#                   'buttonholder_padding': "10px 0",
-#                   'error_color': '#af4c4c',
-#                   'error_background': '#ffbfbf'
 
 ################################################################################
 #    TABLE LAYOUT

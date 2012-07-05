@@ -29,8 +29,7 @@ cssv.widget.border.color = cssv.color.grayLight
 cssv.widget.border.width = px(1)
 
 cssv.widget.head.background = cssv.color.grayLighter
-cssv.widget.head.color = cssv.color.grayDarker
-cssv.widget.head.border.color = cssv.color.grayLight
+cssv.widget.head.color = cssv.color.grayDarker 
 cssv.widget.head.font_size = cssv.heading.h3.font_size
 cssv.widget.head.line_height = cssv.heading.h3.font_size
 cssv.widget.head.font_weight = cssv.head.font_weight
@@ -41,8 +40,9 @@ cssv.widget.body.padding = cssv.widget.padding
 cssv.widget.body.color = cssv.color.grayDarker
 cssv.widget.body.background = cssv.color.white
 
-cssv.panel.color = None
-cssv.panel.background = None
+# Panel with default set to match the widget body values
+cssv.panel.color = cssv.widget.body.color
+cssv.panel.background = cssv.widget.body.background
 cssv.panel.border.color = cssv.widget.border.color
 cssv.panel.border.width = cssv.widget.border.width
 
@@ -66,21 +66,24 @@ css('.'+classes.widget,
     cssb('.bd',
          padding=cssv.widget.body.padding,
          overflow='hidden',
-         border='none',
          display='block'),
     cssb('.ft',
          padding=cssv.widget.foot.padding,
-         overflow='hidden',
-         border='none')
+         overflow='hidden')
 )
 
 cssb('.'+classes.widget_body,
      bcd(**cssv.widget.body.params()),
+     border(color=cssv.widget.border.color,
+            width=spacing(0, cssv.widget.border.width.right,
+                          cssv.widget.border.width.bottom,
+                          cssv.widget.border.width.left),
+            style=cssv.widget.head.border.style),
      padding=cssv.widget.body.padding),
          
 css('.'+classes.widget_head,
     bcd(**cssv.widget.head.params()),
-    border(**cssv.widget.head.border.params()),
+    border(**cssv.widget.border.params()),
     css('h1,h2,h3,h4,h5',
         font_size=cssv.widget.head.font_size,
         font_weight=cssv.widget.head.font_weight,

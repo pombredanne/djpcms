@@ -390,7 +390,7 @@ is available, the name is set to ``view``.
             icon = icon(self)
         return icon
         
-    def has_permission(self, code = None, instance = None, **kwargs):
+    def has_permission(self, code=None, instance=None, **kwargs):
         view = self.view
         perm = view.permissions
         user = kwargs.pop('user',self.user)
@@ -399,10 +399,10 @@ is available, the name is set to ``view``.
             page = self.page
             if page and not perm.has(self, permissions.VIEW, page, user = user):
                 return False
-            return perm.has(self, view.PERM, self.instance, user = user)
+            return perm.has(self, view.PERM, self.instance, user=user)
         else:
             # Check permissions on a different entity
-            return perm.has(self, code, obj = instance, user = user, **kwargs)
+            return perm.has(self, code, obj=instance, user=user, **kwargs)
     
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):

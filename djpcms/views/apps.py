@@ -382,7 +382,7 @@ to render a table.'''
     def addurl(self, request, name = 'add'):
         return None
     
-    def query(self, request, query = None, **kwargs):
+    def query(self, request, query=None, **kwargs):
         '''Overrides the :meth:`RendererMixin.query` to perform the base
 query from the request input parameters. If a :attr:`mapper` is available,
 it delegates the query to it, otherwise it returns the children views for

@@ -1,11 +1,11 @@
-from djpcms import forms, html, views, VIEW
-from djpcms.utils import to_string
-from djpcms.core import orms
-from djpcms.core.http import query_from_string
-from djpcms.plugins import DJPplugin
+from djpcms import forms, html, views
+from djpcms.utils import orms
+from djpcms.utils.text import to_string
+from djpcms.utils.httpurl import query_from_string
+from djpcms.cms.plugins import DJPplugin
 
 
-def registered_models(bfield, required = True):
+def registered_models(bfield, required=True):
     '''Generator of model Choices'''
     form = bfield.form
     request = form.request
@@ -18,7 +18,7 @@ def registered_models(bfield, required = True):
             if app.mapper and app.model not in models:
                 models.add(app.model)
                 id = app.mapper.hash
-                if id and request.has_permission(VIEW,app.model):
+                if id and request.has_permission(instance=app.model):
                     yield (id,str(app.mapper))
 
 
@@ -51,39 +51,39 @@ class ForModelForm(forms.Form):
 
 
 class ModelItemListForm(ForModelForm):
-    max_display = forms.IntegerField(initial = 10)
-    pagination  = forms.BooleanField(initial = False)
-    text_search = forms.CharField(required = False)
-    filter = forms.CharField(required = False)
-    exclude = forms.CharField(required = False)
-    order_by = forms.CharField(required = False)
-    headers = forms.CharField(required = False,
-                              help_text = 'space separated list of headers.\
+    max_display = forms.IntegerField(initial=10)
+    pagination  = forms.BooleanField(initial=False)
+    text_search = forms.CharField(required=False)
+    filter = forms.CharField(required=False)
+    exclude = forms.CharField(required=False)
+    order_by = forms.CharField(required=False)
+    headers = forms.CharField(required=False,
+                              help_text='space separated list of headers.\
  If supplied, the widget will be displayed as a table with header given\
  by this input.')
-    table_footer = forms.BooleanField(initial = False)
-    display_if_empty = forms.BooleanField(initial = False)
+    table_footer = forms.BooleanField(initial=False)
+    display_if_empty = forms.BooleanField(initial=False)
 
 
 class FormModelForm(ForModelForm):
-    method      = forms.ChoiceField(choices = (('get','get'),('post','post')),
-                                    initial = 'get')
-    ajax        = forms.BooleanField(initial = False)
+    method      = forms.ChoiceField(choices=(('get','get'),('post','post')),
+                                    initial='get')
+    ajax        = forms.BooleanField(initial=False)
 
 
 class ModelLinksForm(forms.Form):
-    asbuttons = forms.BooleanField(initial = True, label = 'as buttons')
+    asbuttons = forms.BooleanField(initial=True, label='as buttons')
     for_instance = forms.BooleanField()
-    layout = forms.ChoiceField(choices = (('horizontal','horizontal'),
-                                          ('vertical','vertical')))
+    layout = forms.ChoiceField(choices=(('horizontal','horizontal'),
+                                        ('vertical','vertical')))
     for_instance = forms.BooleanField()
-    exclude = forms.CharField(max_length=600,required=False)
-    include = forms.CharField(max_length=600,required=False)
+    exclude = forms.CharField(max_length=600, required=False)
+    include = forms.CharField(max_length=600, required=False)
     
 
 class ContentForm(forms.Form):
-    content = forms.ChoiceField(choices = forms.ChoiceFieldOptions(\
-                                    query = get_contet_choices))
+    content = forms.ChoiceField(choices=forms.ChoiceFieldOptions(\
+                                    query=get_contet_choices))
 #TODO, MAKE THIS AUTOCOMPLETE IF POSSIBLE
                                     #autocomplete = True))
 #
@@ -167,14 +167,10 @@ certain number of items as specified in the max display input.'''
     def ajax__for_model(self, request, for_model):
         pass
     
-    def render(self, request, block, prefix,
-               for_model = None, max_display = 5,
-               pagination = False, filter = None,
-               exclude = None, order_by = None,
-               text_search = None, headers = None,
-               display_if_empty = '',
-               table_footer = False,
-               **kwargs):
+    def render(self, request, block, prefix, for_model=None, max_display=5,
+               pagination=False, filter=None, exclude=None, order_by =None,
+               text_search=None, headers=None, display_if_empty='',
+               table_footer=False, **kwargs):
         instance = request.instance
         request = request.for_model(for_model)
         if request is None:

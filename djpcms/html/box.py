@@ -22,13 +22,13 @@ class BoxTemplate(Div):
     
 
 Box = BoxTemplate().add(
-        Div(cn=(classes.widget_head, 'hd'), key='hd'),
+        Div(cn=(classes.widget_head, classes.corner_top, 'hd'), key='hd'),
         Div(cn=(classes.widget_body, 'bd'), key='bd'),
-        Div(cn=(classes.widget_foot, 'ft'), key='ft'))
+        Div(cn=(classes.widget_foot, classes.corner_bottom, 'ft'), key='ft'))
 
 BoxNoFooter = BoxTemplate().add(
-        Div(cn=(classes.widget_head, 'hd'), key='hd'),
-        Div(cn=(classes.widget_body, 'bd'), key='bd'))
+        Div(cn=(classes.widget_head, classes.corner_top, 'hd'), key='hd'),
+        Div(cn=(classes.widget_body, classes.corner_bottom, 'bd'), key='bd'))
 
 
 def box(hd='', bd='', ft=None, minimize=False, detachable=False,

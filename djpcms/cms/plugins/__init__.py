@@ -236,26 +236,23 @@ the plugin will display the search view for that application.
     
     
 class ApplicationPlugin(DJPplugin):
-    '''Plugin formed by :class:`djpcms.views.AppViewBase` classes
-which have the :attr:`djpcms.views.RendererMixin.has_plugin` attribute
-set to ``True``.
-
-For example, lets say an application as a :class:`djpcms.views.appview.AddView` view
-which is registered to be a plugin, than it will be managed by this plugin.'''
+    '''Plugin formed by :class:`djpcms.views.View` which have
+the :attr:`djpcms.views.RendererMixin.has_plugins` attribute
+set to ``True``.'''
     auto_register = False
     
-    def __init__(self, app, name = None, description = None):
+    def __init__(self, view, name=None, description=None):
         global _plugin_dictionary
-        self.app  = app
-        self.form = app.plugin_form
-        name = name or app.code
-        description = description or app.description or name
+        self.view = view
+        self.form = view.plugin_form
+        name = name or view.code
+        description = description or view.description or name
         self.name = name
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self
         
     def render(self, request, block, prefix, **kwargs):
-        req = request.for_path(self.app.path)
+        req = request.for_path(self.view.path)
         if req and req.has_permission():
             return req.render(block=block, **kwargs)
         else:

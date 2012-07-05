@@ -21,7 +21,6 @@ __all__ = ['flatatt',
            'html_trace',
            'StreamRenderer',
            'WidgetMaker',
-           'Text',
            'Widget',
            'Div',
            'Anchor',
@@ -167,13 +166,15 @@ with key ``name`` and value ``value`` and return ``self``.'''
     
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
-        if isinstance(cn,(tuple,list,set,frozenset)):
-            self.classes.update(cn)
-        elif cn:
-            add = self.classes.add
-            for cn in cn.split():
-                cn = slugify(cn)
-                add(cn)
+        if cn:
+            if isinstance(cn,(tuple,list,set,frozenset)):
+                add = self.addClass
+                for c in cn:
+                    add(c)
+            else:
+                add = self.classes.add
+                for cn in cn.split():
+                    add(slugify(cn))
         return self
     
     def hasClass(self, cn):
@@ -234,19 +235,6 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self
         else:
             return self._css.get(mapping)
-    
-    
-class Text(Renderer):
-    
-    def __init__(self, text, content_type='text/html'):
-        self._content_type = content_type
-        self.data = text
-    
-    def content_type(self):
-        return self._content_type
-        
-    def render(self, *args, **kwargs):
-        return self.data
     
     
 class Widget(Renderer, AttributeMixin):

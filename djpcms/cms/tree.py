@@ -217,7 +217,7 @@ class MultiTree(object):
         for tree in self.trees:
             if tree.site is None:
                 continue
-            view,args = tree.site.resolve(path[1:])
+            view, args = tree.site.resolve(path[1:])
             return tree[view.path],args
     
     def __children(self, path):

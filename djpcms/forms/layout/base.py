@@ -315,7 +315,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
         '''Convert errors in form into a JSON serializable dictionary with keys
         given by errors html id.'''
         dfields = f._fields_dict
-        ListDict = ajax.jhtmls()
+        ListDict = ajax.jhtmls(f.environ)
         self._add(ListDict,dfields,f.errors,self.form_error_class)
         self._add(ListDict,dfields,f.messages,self.form_message_class)
         for fset in f.form_sets.values():

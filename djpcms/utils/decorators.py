@@ -72,7 +72,7 @@ to store the result for futures uses.'''
         name = '_lazy_%s' % f.__name__
         
         def _(obj, *args, **kwargs):
-            if not hasattr(obj,name):
+            if not hasattr(obj, name):
                 try:
                     v = f(obj, *args, **kwargs)
                 except:

@@ -111,6 +111,7 @@ and :class:`djpcmsview`.
     proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
 '''
     creation_counter = 0
+    cache_control = None
     appmodel = None
     template_file = None
     name = None
@@ -129,7 +130,8 @@ and :class:`djpcmsview`.
     def __init__(self, name=None, parent_view=None, pagination=None,
                  ajax_enabled=None, form=None, template_file=None,
                  description=None, in_nav=None, has_plugins=None,
-                 insitemap=None, body_class=None, view_ordering=None):
+                 insitemap=None, body_class=None, view_ordering=None,
+                 cache_control=None):
         self.creation_counter = RendererMixin.creation_counter
         self.view_ordering = view_ordering if view_ordering is not None else\
                                 self.creation_counter
@@ -141,6 +143,7 @@ and :class:`djpcmsview`.
                                  else self.parent_view
         self.pagination = pagination if pagination is not None\
                                      else self.pagination
+        self.cache_control = cache_control or self.cache_control
         self.form = form if form is not None else self.form
         self.template_file = template_file or self.template_file
         if self.template_file:
@@ -184,6 +187,12 @@ if available. By defaults it invoke the ``query`` method in the
         '''Return an instance of a user model if the current renderer
 belongs to a user, otherwise returns ``None``.'''
         return None
+    
+    def get_cache_control(self):
+        cache_control = self.cache_control
+        if not cache_control and self.appmodel:
+            cache_control = self.appmodel.cache_control
+        return cache_control
 
 
 class djpcmsview(RouteMixin, RendererMixin):
@@ -328,15 +337,16 @@ default it returns the page layout.'''
     
     def ajax_get_response(self, request):
         text = self.render(request)
-        content_type = request.REQUEST.get('content_type','json')
+        content_type = request.REQUEST.get('content_type', 'json')
         if content_type == 'json':
-            return ajax.dialog(hd=request.title,
+            return ajax.dialog(request.environ,
+                               hd=request.title,
                                bd=text,
                                width=self.dialog_width,
                                height=self.dialog_height,
                                modal=True)
         else:
-            return html.Text(text, content_type=content_type)
+            return ajax.Text(request.environ, text)
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests'''

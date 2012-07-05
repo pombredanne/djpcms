@@ -1,13 +1,14 @@
 from copy import copy, deepcopy
 
 import djpcms
-from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string
+from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string,\
+                                    CacheControl
 from djpcms import html, forms, ajax
 from djpcms.html import table_header, StreamRenderer, Widget
 from djpcms.utils import orms
 from djpcms.utils.async import async_object
 from djpcms.utils.structures import OrderedDict
-from djpcms.cms import ResolverMixin, PermissionDenied,\
+from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
                        UrlException, AlreadyRegistered
 from djpcms.cms.formutils import get_form
 from djpcms.cms.plugins import register_application
@@ -80,7 +81,7 @@ class ApplicationMetaClass(type):
 
 class Application(ApplicationMetaClass('ApplicationBase', (object,), {}),
                   ResolverMixin,RendererMixin):
-    '''Application class which implements :class:`djpcms.ResolverMixin` and
+    '''Application class which implements :class:`djpcms.cms.ResolverMixin` and
 :class:`RendererMixin` and defines a set of :class:`View` instances
 which are somehow related
 to each other and share a common application object in the
@@ -141,7 +142,7 @@ overwritten to customize its behavior.
     
 .. attribute:: mapper
 
-    Instance of :class:`djpcms.core.orms.OrmWrapper` or ``None``.
+    Instance of :class:`djpcms.utils.orms.OrmWrapper` or ``None``.
     Created from :attr:`model` if available, during construction.
         
 .. attribute:: autocomplete_fields
@@ -213,7 +214,7 @@ overwritten to customize its behavior.
     
 .. attribute:: url_bits_mapping
     
-    An optional dictionary for mapping :class:`djpcms.Route` variable names
+    An optional dictionary for mapping :class:`djpcms.cms.Route` variable names
     into attribute names of :attr:`model`. It is used when
     a :attr:`model` is available only. A typical usage::
     
@@ -244,6 +245,7 @@ overwritten to customize its behavior.
 
 '''
     inherit = False
+    cache_control = CacheControl()
     authenticated = False
     related_field = None
     always_load_fields = None
@@ -479,7 +481,7 @@ has been requested. This function overrides the
 :meth:`RouteMixin.instance_from_variables` method.
 
 :parameter environ: The request WSGI environment. This function is called
-    before the :class:`djpcms.core.http.Request` is created, that is why the
+    before the :class:`djpcms.cms.Request` is created, that is why the
     environment is passed instead.
 :parameter urlargs: dictionary of url variables with their values.
 :rtype: an instance of :attr:`model`
@@ -489,7 +491,7 @@ If the instance could not be retrieved, it raises a 404 exception.'''
         try:
             query = dict(self.urlbits(data=urlargs))
         except KeyError:
-            raise djpcms.Http404('View Cannot retrieve instance from url')
+            raise Http404()
         
         if self.mapper:
             try:
@@ -503,10 +505,9 @@ If the instance could not be retrieved, it raises a 404 exception.'''
                                                                    urlargs)
                         if pi:
                             return self.get_from_parent_object(pi, urlargs)
-                    except djpcms.Http404:
+                    except Http404:
                         pass
-        raise djpcms.Http404('Cannot retrieve instance from url parameters\
- {0}'.format(query))
+        raise Http404()
     
     @store_on_instance        
     def variables_from_instance(self, instance):
@@ -574,7 +575,7 @@ has been requested.
     def urlbits(self, instance = None, data = None, bits = None):
         '''Generator of key, value pairs of url variables
 from an *instance* of :attr:`model` or from a *data* dictionary.
-It loops through the :attr:`djpcms.RouteMixin.route` variables, map them
+It loops through the :attr:`djpcms.cms.RouteMixin.route` variables, map them
 to :attr:`model` attributes by using the :attr:`url_bits_mapping`
 and get the values. If an instance is provided it yields::
 
@@ -638,13 +639,13 @@ the instance.'''
         '''An ajax view for deleting a list of ids.'''
         objs = self.get_instances(request)
         mapper = self.mapper
-        c = ajax.jcollection()
+        c = ajax.jcollection(request.environ)
         if objs is not None:
             objs = objs.delete()
         if objs:
             for id in objs:
                 id = mapper.unique_id(id)
-                c.append(ajax.jremove('#'+id))
+                c.add(ajax.jremove(request.environ, '#'+id))
         return c
     
     def redirect_url(self, request, instance = None, name = None):
@@ -744,8 +745,9 @@ Can be overritten to include request dictionary.'''
             if len(routes) == N:
                 raise UrlException('Cannot find parent views in "{0}"'\
                                     .format(self))
-        # Add routes
-        for route in itervalues(processed):
+        # Add routes sorted by creation counter
+        for route in sorted(itervalues(processed),
+                            key=lambda x: x.view_ordering):
             if route.path == '/':
                 self.root_view = route
             if isinstance(route, View) and route.object_view:

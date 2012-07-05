@@ -7,14 +7,14 @@ from functools import partial
 from datetime import datetime, timedelta
 
 # IMPORT PULSAR STUFF
-from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
+from pulsar.apps.wsgi import WsgiResponse, WsgiHandler, WsgiResponseGenerator
 
 from djpcms import media, is_renderer
 from djpcms.cms import permissions
 from djpcms.html import html_doc_stream
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.async import is_async, is_failure, async_object
+from djpcms.utils.async import is_async, is_failure, async_object, as_failure
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -56,14 +56,14 @@ def save_on_request(f):
 class NodeEnvironMixin(UnicodeMixin):
     view = None
     page_editing = False
-    exc_info = None
-    def __init__(self, environ, node, instance, url):
+    def __init__(self, environ, node, instance, url, exc_info=None):
         self.environ = environ
         self.node = node
         if self.node is not None:
             self.view = node.view
         self.instance = instance
         self.url = url
+        self.exc_info = exc_info
         
     def __getitem__(self, key):
         return self.environ[key]
@@ -73,6 +73,10 @@ class NodeEnvironMixin(UnicodeMixin):
         
     def get(self, key, default = None):
         return self.environ.get(key,default)
+    
+    @property
+    def valid(self):
+        return not bool(self.exc_info)
     
     @property
     def urlargs(self):
@@ -115,7 +119,7 @@ managing settings.'''
         environ = {'requests':{},
                    'traces':[],
                    'on_document_ready':[]}
-        super(RequestNode,self).__init__(environ,node,instance,path)
+        super(RequestNode,self).__init__(environ, node, instance, path)
         self.path = path
         
     def __unicode__(self):
@@ -156,22 +160,25 @@ def make_request(environ, node, instance=None, cache=True):
                                                             node.urlargs)
                     if is_async(instance):
                         callback = partial(build_request, environ, node, cache)
-                        return instance.add_callback(
+                        return instance.addBoth(
                                 partial(build_request, environ, node, cache))
-                except:
-                    instance = None
-            if instance:
-                urlargs = view.variables_from_instance(instance)
-                node.urlargs.update(urlargs)
+                except Exception as e:
+                    instance = as_failure(e)
         else:
             instance = None
     return build_request(environ, node, cache, instance)
 
 
 def build_request(environ, node, cache, instance):
+    exc_info=None
+    if is_failure(instance):
+        exc_info, instance = instance.trace, None
     if node.error:
         url = environ.get('PATH_INFO', '/')
     else:
+        if instance:
+            urlargs = node.view.variables_from_instance(instance)
+            node.urlargs.update(urlargs)
         url = node.url()
     if 'DJPCMS' not in environ:
         if url is None:
@@ -182,13 +189,13 @@ def build_request(environ, node, cache, instance):
         rn = environ['DJPCMS']
         request = rn.requests.get(url)
         if request is None:
-            request = Request(environ, node, instance, url)
+            request = Request(environ, node, instance, url, exc_info)
             rn.requests[url] = request
         return request
     else:
-        # if we are not caching, return a request regarthless it has
+        # if we are not caching, return a request regardless if it has
         # a valid url or not
-        return Request(environ, node, instance, url)
+        return Request(environ, node, instance, url, exc_info)
     
     
 class Request(NodeEnvironMixin):
@@ -557,12 +564,11 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
 Response = WsgiResponse
 
 
-class ResponseGenerator(object):
-    
+class DjpcmsResponseGenerator(WsgiResponseGenerator):
+    '''Asynchronous response generator invoked by the djpcms WSGI middleware'''
     def __init__(self, website, environ, start_response):
         self.website = website
-        self.environ = environ
-        self.start_response = start_response
+        super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
         
     @property
     def site(self):
@@ -583,10 +589,11 @@ class ResponseGenerator(object):
             if response is not None:
                 break
             yield b''
-        for c in response(self.environ, self.start_response):
+        for c in self(response):
             yield c
     
     def response(self, request):
+        '''Generate the Response'''
         content_type, response = request.content_type, None
         if not request.exc_info:           
             try:
@@ -619,11 +626,16 @@ class ResponseGenerator(object):
                 content = '\n'.join(html_doc_stream(request, content,
                                                     response.status_code))
             response.content = (content,)
+        yield self.cache(request, response)
         
-        if not response.is_streamed:
-            content = response.content
-            response.content = (c for c in content)
-        yield response
+    def cache(self, request, response):
+        '''Apply cache control headers of successful non ajax GET requests'''
+        if request.method == 'get' and response.status_code == 200 and\
+                not request.is_xhr:
+            cache_control = request.view.get_cache_control()
+            if cache_control:
+                cache_control(response.headers)
+        return response
         
     def request(self):
         tree, node, request, exc_info = None, None, None, None
@@ -646,7 +658,7 @@ class ResponseGenerator(object):
                 handler = getattr(exc_info[1], 'handler', self.site)
                 node = BadNode(tree, handler)
             request = make_request(self.environ, node)
-        request.exc_info = exc_info
+            request.exc_info = exc_info
         for processor in self.site.request_processors:
             try:
                 processor(request)

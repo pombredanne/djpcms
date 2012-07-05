@@ -19,7 +19,7 @@ from djpcms.utils.structures import OrderedDict
 
 from .conf import Config
 from .profiler import profile_response
-from .request import ResponseGenerator, WsgiHandler
+from .request import DjpcmsResponseGenerator, WsgiHandler
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
@@ -152,7 +152,7 @@ class WSGI(object):
         return '%s(%s)' % (self.__class__.__name__, self)
         
     def __call__(self, environ, start_response):
-        return ResponseGenerator(self.website, environ, start_response)
+        return DjpcmsResponseGenerator(self.website, environ, start_response)
         
         
 class Site(ResolverMixin, ViewRenderer):
@@ -566,7 +566,7 @@ This function can be overwritten by user implementation.'''
         if status in REDIRECT_CODES:
             location = exc_info[1].location
             if request.is_xhr:
-                content = ajax.jredirect(location)
+                content = ajax.jredirect(request.environ, location)
             else:
                 response.headers['Location'] = iri_to_uri(location)
                 content = ''
@@ -592,7 +592,8 @@ This function can be overwritten by user implementation.'''
                         text = error_title
                     inner.add(text)
                 if request.is_xhr:
-                    content = ajax.jservererror(inner.render(request))
+                    content = ajax.jservererror(request.environ,
+                                                inner.render(request))
                 else:
                     try:
                         layout = request.view.root.get_page_layout(err_cls,
@@ -602,6 +603,8 @@ This function can be overwritten by user implementation.'''
                         content = outer.render(request,
                                                context={'content': inner})
                     except:
+                        logger.error('Could not render %s error on %s layout',
+                                     status, layout, exc_info=True)
                         content = inner.render(request)
         if is_renderer(content):
             response.status_code = 200

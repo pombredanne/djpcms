@@ -1,3 +1,6 @@
+/**
+ * decorator for a colorpicker widget on a form input element
+ */
 (function($) {        
     $.djpcms.decorator({
         id:"color_picker",

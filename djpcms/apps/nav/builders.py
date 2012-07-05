@@ -72,16 +72,17 @@ class Navigator(WidgetMaker):
         return elems
                 
     def get_context(self, request, widget, context):
-        primary = widget.children['primary']
-        secondary = widget.children['secondary']
-        urlselects = []
-        request = self.buildselects(request, urlselects)
-        for li ,s in navstream(request, urlselects, self.secondary_after,
-                               self.levels-1):
-            if s:
-                secondary.add(li)
-            else:
-                primary.add(li)
+        if request.valid:
+            primary = widget.children['primary']
+            secondary = widget.children['secondary']
+            urlselects = []
+            request = self.buildselects(request, urlselects)
+            for li ,s in navstream(request, urlselects, self.secondary_after,
+                                   self.levels-1):
+                if s:
+                    secondary.add(li)
+                else:
+                    primary.add(li)
         return context
     
     def buildselects(self, request, urlselects):
@@ -158,14 +159,15 @@ with class name defaulted to ``"breadcrumbs"``.
             yield li
         
     def render(self, request):
-        ul = Widget('ul')
-        for li in reversed(tuple(self.items(request))):
-            ul.add(li)
-        if ul:
-            self.widget.add(ul)
-            return self.widget.render(request)
-        elif self.render_empty:
-            return Widget('div',NON_BREACKING_SPACE).render(request)
+        if request.valid:
+            ul = Widget('ul')
+            for li in reversed(tuple(self.items(request))):
+                ul.add(li)
+            if ul:
+                self.widget.add(ul)
+                return self.widget.render(request)
+        if self.render_empty:
+            return NON_BREACKING_SPACE
         else:
             return ''
 

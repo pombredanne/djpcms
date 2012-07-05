@@ -10,7 +10,7 @@ import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
 from djpcms import views, html
-from djpcms.utils.httpurl import http_date
+from djpcms.utils.httpurl import http_date, CacheControl
 from djpcms.utils.importer import import_module
 from djpcms.cms import Http404, Response, PermissionDenied
 
@@ -215,6 +215,7 @@ class Static(views.Application):
     in_nav = 0
     has_plugins = False
     show_indexes = True
+    cache_control = CacheControl(maxage=86400)
     root = StaticRootView()
     path = StaticFileView('<path:path>', parent_view = 'root')
     

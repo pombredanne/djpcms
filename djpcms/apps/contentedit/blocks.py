@@ -146,7 +146,7 @@ The instance.plugin object is maintained but its fields may change.'''
                 if commit:
                     return fhtml.maker.json_messages(form)
                 else:
-                    return ajax.jhtmls() 
+                    return ajax.jhtmls(request.environ) 
             data = form.cleaned_data
             pform = self.get_plugin_form(request,
                                          data['plugin_name'],
@@ -177,13 +177,14 @@ The instance.plugin object is maintained but its fields may change.'''
                 instance = form.save(commit=commit)
                 plugin_form = ''
             plugin_form = self.plugin_form_container(instance, plugin_form)
-            jquery = ajax.jhtmls(identifier = '#' + plugin_form.attr('id'),
+            jquery = ajax.jhtmls(request.environ,
+                                 identifier = '#' + plugin_form.attr('id'),
                                  html = plugin_form.render(request),
                                  type = 'replacewith')
         else:
             # we are just rerendering the plugin with a different wrapper
             instance = form.save(commit=commit)
-            jquery = ajax.jhtmls()
+            jquery = ajax.jhtmls(request.environ)
             
         preview = self.get_preview(request, instance)
         jquery.add('#%s' % instance.pluginid('preview'),
@@ -231,9 +232,10 @@ The instance.plugin object is maintained but its fields may change.'''
                 contentblock.block = block
                 contentblock.save()
                 #update_page(self.model,page)
-            return ajax.jempty()
+            return ajax.jempty(request.environ)
         except Exception as e:
-            return ajax.jerror('Could not find target block. {0}'.format(e))
+            return ajax.jerror(request.environ,
+                               'Could not find target block. {0}'.format(e))
         
         
 class DeleteContentView(views.DeleteView):
@@ -241,24 +243,24 @@ class DeleteContentView(views.DeleteView):
     def post_response(self, request):
         instance = request.instance
         block  = instance.block
-        jquery = ajax.jcollection()
+        jquery = ajax.jcollection(request.environ)
         blockcontents = self.model.for_page_block(self.mapper,
                                                   instance.page, block)
         if instance.position == len(blockcontents) - 1:
             return jquery
         
-        jatt   = ajax.jattribute()
+        jatt   = ajax.jattribute(request.environ)
         pos    = 0
         for b in blockcontents:
             if b == instance:
-                jquery.append(ajax.jremove('#'+instance.htmlid()))
+                jquery.add(ajax.jremove(None, '#'+instance.htmlid()))
                 b.delete()
                 continue
             if b.position != pos:
                 b.position = pos
                 b.save()
             pos += 1
-        jquery.append(jatt)
+        jquery.add(jatt)
 
         if request.is_xhr:
             return jquery

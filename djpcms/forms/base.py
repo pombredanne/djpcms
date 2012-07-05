@@ -151,10 +151,8 @@ procedure calls validation.
     prefix_input = '_prefixed'
     request = None
     
-    def __init__(self, data = None, files = None,
-                 initial = None, prefix = None,
-                 model = None, instance = None,
-                 request = None):
+    def __init__(self, data=None, files=None, initial=None, prefix=None,
+                 model=None, instance=None, request=None, environ=None):
         '''Initialize a :class:`Form` with *data* or *initial* values.
 If *data* is not ``None`` the form will bound itself to the data, otherwise
 it remains unbounded.
@@ -183,6 +181,9 @@ it remains unbounded.
         self.instance = instance
         self.messages = {}
         self.request = request
+        self.environ = environ
+        if environ is None:
+            self.environ = getattr(request, 'environ')
         self.changed = False
         self.user = getattr(request,'user',None) if request else None 
         if self.instance:

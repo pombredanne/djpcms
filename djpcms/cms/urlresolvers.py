@@ -313,7 +313,7 @@ class ResolverMixin(RouteMixin):
     def __init__(self, route, routes=None):
         self.routes = [] if not routes else list(routes)
         if not isinstance(route, Route):
-            route = Route(route, append_slash = True)
+            route = Route(route, append_slash=True)
         if route.is_leaf:
             raise ValueError('A resolver cannot have a leaf route {0}'\
                              .format(route))

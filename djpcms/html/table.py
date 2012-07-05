@@ -8,9 +8,8 @@ from functools import partial
 from copy import deepcopy
 from collections import namedtuple
 
-from djpcms.media import Media
+from djpcms import ajax, media
 from djpcms.utils.text import nicename
-from djpcms.ajax import simplelem
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
@@ -65,7 +64,7 @@ class TableMaker(WidgetMaker):
     '''A :class:`WidgetMaker` for rendering data tables.'''
     tag = 'div'
     classes = table_container_class
-    _media = Media(
+    _media = media.Media(
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
                   'djpcms/datatables/ColVis/js/ColVis.js',
@@ -418,7 +417,7 @@ a standard pagination.
                     'iTotalDisplayRecords':total,
                     'sEcho':inputs.get('sEcho'),
                     'aaData':aaData}
-            return simplelem(data)
+            return ajax.Text(request.environ, data)
         else:
             raise NotImplementedError()
         

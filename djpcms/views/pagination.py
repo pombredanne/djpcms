@@ -1,7 +1,6 @@
 from collections import namedtuple
 from inspect import isgenerator
 
-from djpcms import ajax
 from djpcms.utils import orms
 from djpcms.utils.httpurl import query_from_querydict
 from djpcms.html import anchor_or_button

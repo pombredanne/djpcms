@@ -5,7 +5,8 @@ import json
 
 from djpcms import Renderer
 from djpcms.utils.async import MultiDeferred, is_async, async_object
-from djpcms.utils.text import to_string
+from djpcms.utils.httpurl import accept_content_type
+from djpcms.utils.text import to_string, string_type
 from djpcms.utils.structures import OrderedDict
    
 def dorender(request, elem):
@@ -14,10 +15,32 @@ def dorender(request, elem):
     return elem
 
 
+ajax_json_types = ('application/json', 'application/javascript')
+ajax_content_types = ajax_json_types +\
+                    ('text/javascript', 'text/plain', 'text/css')
+
 class Ajax(Renderer):
     '''Base class for JSON AJAX utilities'''
+    _content_type = None
+    _default_content_type = 'application/json'
+    
+    def __new__(cls, environ, *args, **kwargs):
+        o = super(Ajax, cls).__new__(cls)
+        if environ:
+            contents = accept_content_type(environ.get('HTTP_ACCEPT'))
+            if cls._default_content_type in contents:
+                o._content_type = cls._default_content_type
+            else:
+                for c in ajax_content_types:
+                    if c in contents:
+                         o._content_type = c
+                         break
+                if not o._content_type:
+                    raise ValueError('Could not set content type')
+        return o 
+                                 
     def content_type(self):
-        return 'application/javascript'
+        return self._content_type
     
     def serialize(self, request):
         '''This is the only functions that needs to be implemented by derived
@@ -27,8 +50,10 @@ as JSON string.
         raise NotImplementedError()
 
     def dump(self, elem):
-        # Internal function which uses json to serialise elem
-        return json.dumps(elem)
+        if self.content_type() in ajax_json_types:
+            return json.dumps(elem)
+        else:
+            return elem
     
     def render(self, request=None, **kwargs):
         '''Serialize ``self`` as a ``JSON`` string'''
@@ -42,15 +67,14 @@ as JSON string.
         return False
     
     
-class simplelem(Ajax):
-    
-    def __init__(self, elem):
-        self.elem = elem
+class Text(Ajax):    
+    def __init__(self, environ, text): 
+        self.text = text
     
     def serialize(self, request):
-        elem = self.elem
+        elem = self.text
         if isinstance(elem, Renderer):
-            elem = elem.render(request, **kwargs)
+            elem = elem.render(request)
         return elem
     
     
@@ -82,7 +106,7 @@ class HeaderBody(Ajax):
 
 class CustomHeaderBody(HeaderBody):
     
-    def __init__(self, h, b):
+    def __init__(self, environ, h, b):
         self.h = h
         self.b = b
     
@@ -101,13 +125,14 @@ class jempty(HeaderBody):
 
 class jservererror(CustomHeaderBody):
     
-    def __init__(self, text):
-        super(jservererror, self).__init__('servererror', text)
+    def __init__(self, environ, text):
+        super(jservererror, self).__init__(environ,
+                                           'servererror', text)
     
     
 class jerror(HeaderBody):
     
-    def __init__(self, msg):
+    def __init__(self, environ, msg):
         self.html = msg
     
     def header(self):
@@ -119,13 +144,13 @@ class jerror(HeaderBody):
 
 class jcollection(HeaderBody):
     '''A collection of HeaderBody elements'''
-    def __init__(self):
+    def __init__(self, environ):
         self.data = []
         
     def header(self):
         return 'collection'
     
-    def append(self, elem):
+    def add(self, elem):
         if isinstance(elem,HeaderBody):
             self.data.append(elem)
             
@@ -141,8 +166,8 @@ class jhtmls(HeaderBody):
 :parameter identifier: jquery selector
 :parameter type: one of ``"replacewith"``, ``"replace"``, ``"addto"``.
     '''
-    def __init__(self, html=None, identifier=None, alldocument=True,
-                type='replace', removable=False):
+    def __init__(self, environ, html=None, identifier=None, alldocument=True,
+                 type='replace', removable=False):
         self.html = OrderedDict()
         if html != None:
             self.add(identifier, html, type, alldocument, removable)
@@ -159,8 +184,8 @@ class jhtmls(HeaderBody):
         else:
             objr['html'] += obj['html']
         
-    def add(self, identifier, html = '', type = 'replace',
-                    alldocument = True, removable = False):
+    def add(self, identifier, html='', type='replace',
+            alldocument=True, removable=False):
         obj = {'identifier': identifier,
                'html': html,
                'type': type,
@@ -169,7 +194,7 @@ class jhtmls(HeaderBody):
         self.__update(obj)
         
     def update(self, html):
-        if isinstance(html,jhtmls):
+        if isinstance(html, jhtmls):
             html = html.html
         for v in html.values():
             self.__update(v)
@@ -180,7 +205,7 @@ class jhtmls(HeaderBody):
 
 class jattribute(HeaderBody):
     '''Modify ``dom`` attributes'''
-    def __init__(self):
+    def __init__(self, environ):
         self.data = []
         
     def header(self):
@@ -204,7 +229,7 @@ class jattribute(HeaderBody):
         
 class jclass(HeaderBody):
     '''Modify, delete or add a new class to a dom element.'''
-    def __init__(self, selector, clsname, type = 'add'):
+    def __init__(self, environ, selector, clsname, type='add'):
         self.selector = selector
         self.clsname = clsname
         self.type = type
@@ -220,8 +245,8 @@ class jclass(HeaderBody):
 
 class jerrors(jhtmls):
     
-    def __init__(self, **kwargs):
-        super(jerrors,self).__init__(**kwargs)
+    def __init__(self, environ, **kwargs):
+        super(jerrors, self).__init__(environ, **kwargs)
         
     def error(self):
         return True
@@ -229,7 +254,7 @@ class jerrors(jhtmls):
 
 class jremove(HeaderBody):
     
-    def __init__(self, identifier, alldocument = True):
+    def __init__(self, environ, identifier, alldocument=True):
         self.identifiers = []
         self.add(identifier, alldocument)
         
@@ -245,10 +270,8 @@ class jremove(HeaderBody):
         
 
 class jredirect(HeaderBody):
-    '''
-    Redirect to new url
-    '''
-    def __init__(self, url):
+    '''Redirect to new url'''
+    def __init__(self, environ, url):
         self.url = url
         
     def header(self):
@@ -269,7 +292,7 @@ class dialog(HeaderBody):
     '''
     jQuery UI dialog
     '''
-    def __init__(self, hd = '', bd = None, **kwargs):
+    def __init__(self, environ, hd='', bd=None, **kwargs):
         self.bd         = bd
         self.options    = self.get_options(hd,**kwargs)
         self.buttons    = []

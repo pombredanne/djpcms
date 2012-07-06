@@ -1,4 +1,5 @@
 from djpcms import forms, html, views
+from djpcms.html import classes
 from djpcms.utils import orms
 from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import query_from_string
@@ -72,9 +73,14 @@ class FormModelForm(ForModelForm):
 
 
 class ModelLinksForm(forms.Form):
-    asbuttons = forms.BooleanField(initial=True, label='as buttons')
+    size = forms.ChoiceField(choices=(('', 'standard'),
+                                      (classes.button_large, 'large'),
+                                      (classes.button_small, 'small')),
+                             required=False)
     for_instance = forms.BooleanField()
-    layout = forms.ChoiceField(choices=(('horizontal','horizontal'),
+    layout = forms.ChoiceField(choices=(('group left','group left'),
+                                        ('group right','group right'),
+                                        ('horizontal','horizontal'),
                                         ('vertical','vertical')))
     for_instance = forms.BooleanField()
     exclude = forms.CharField(max_length=600, required=False)
@@ -121,32 +127,37 @@ class ApplicationLinks(DJPplugin):
     asbuttons_class = 'asbuttons'
     form = ModelLinksForm
     
-    def render(self, request, wrapper, prefix, layout = 'horizontal',
-               asbuttons = True, exclude = '', include = '',
-               for_instance = False, **kwargs):
+    def render(self, request, wrapper, prefix, layout='group',
+               size='', exclude='', include='',
+               for_instance=False, **kwargs):
         appmodel = request.view.appmodel
         if not appmodel:
             return
         exclude = None if not exclude else exclude.split(',')
         include = None if not include else include.split(',')
         instance = None if not for_instance else request.instance
-        asbuttons = self.asbuttons_class if asbuttons else None
         links = views.application_links(
                             views.application_views(request,
-                                                    exclude = exclude,
-                                                    include = include,
-                                                    instance = instance),
-                            asbuttons = asbuttons)
+                                                    exclude=exclude,
+                                                    include=include,
+                                                    instance=instance),
+                            asbuttons=True)
         if appmodel.mapper:
             name = appmodel.mapper.class_name(appmodel.model)
         else:
             name = None
         if links:
-            return html.Widget('ul', (l[1] for l in links), cn = name)\
-                       .addClass('model-links')\
-                       .addClass(layout)\
-                       .addClass(asbuttons)\
-                       .render(request)
+            links = [link[1].addClass(size) for link in links]
+            if layout.startswith('group'):
+                d = html.Widget('div', links, cn=classes.button_group)
+                if layout == 'group right':
+                    d.addClass(classes.float_right)
+                return d
+            else:
+                return html.Widget('ul', (l[1] for l in links), cn = name)\
+                           .addClass('model-links')\
+                           .addClass(layout)\
+                           .render(request)
     
     
 def attrquery(heads,query):

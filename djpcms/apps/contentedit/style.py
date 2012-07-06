@@ -11,7 +11,6 @@ cssv.cedit.link.default.color = cssv.color.grayLighter
 cssv.cedit.link.hover.color = lazy(color.darken,
                                   cssv.edit.link.default.color, 15)
 
-
 css('.'+content_edit, gradient(cssv.cedit.background))
 
 css('.'+classes.widget,

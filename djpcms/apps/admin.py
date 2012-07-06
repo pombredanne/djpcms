@@ -14,7 +14,7 @@ registered in the same ApplicationSite::
                   
 '''
 from djpcms import views, html
-from djpcms.html import Widget, WidgetMaker
+from djpcms.html import Widget, classes
 from djpcms.utils.httpurl import iteritems, remove_end_slashes
 from djpcms.utils.importer import import_module
 from djpcms.utils.text import nicename
@@ -28,63 +28,8 @@ __all__ = ['AdminSite',
            'make_admin_urls']
 
 
-class ApplicationGroup(views.Application):
-    '''An :class:`djpcms.views.Application` class for
-administer a group of :class:`djpcms.views.Applications`.'''
-    has_plugins = False
-    pagination = html.Pagination(('name','actions'),
-                                 ajax = False,
-                                 footer = False,
-                                 html_data = {'options':{'sDom':'t'}})
-    
-    home = views.View(in_nav=1)
-    
-    def table_generator(self, request, headers, qs):
-        for child in qs:
-            title = child.title
-            links = ''.join((l.render() for l in
-                              views.application_views_links(child)))
-            yield ('<a href="{0}">{1}</a>'.format(child.url,title),links)
-    
-
-class AdminSite(views.Application):
-    '''An :class:`djpcms.views.Application` class for
-administer models in groups.'''
-    has_plugins = False
-    in_nav = 1000
-    pagination = html.Pagination(layout=html.accordion,
-                                 ajax=False,
-                                 size=None)
-    
-    home = views.View(in_nav=1, icon='admin')
-    
-    def groups(self, request):
-        for child in request.auth_children():
-            yield {'body':child.render(),
-                   'title':child.title,
-                   'url': child.url}
-            
-    def query(self, request, **kwargs):
-        for g in sorted(self.groups(request), key = lambda x : x['title']):
-            url = g['url']
-            if url:
-                a = Widget('a', g['title'], href = url)
-            else:
-                a = g['title']
-            yield a, g['body']
-      
-
-class AdminApplicationSimple(views.Application):
-    pagination = html.Pagination(('__str__',))
-    has_plugins = False
-    search = views.SearchView()
-    delete_all = views.DeleteAllView()
-    view = views.ViewView()
-    delete = views.DeleteView()
-    
-    
 class TabView(views.ObjectView):
-    
+    '''A view which displays children views in tabs.'''
     def get_views(self, request):
         appmodel = request.view.appmodel
         for r in views.application_views(request, exclude=('delete',)):
@@ -103,6 +48,65 @@ class TabView(views.ObjectView):
         return tabs
      
      
+class AdminSite(views.Application):
+    '''An :class:`djpcms.views.Application` for a site Admin. It
+contains several :class:`ApplicationGroup`.'''
+    has_plugins = False
+    in_nav = 1000
+    pagination = html.Pagination(layout=html.accordion,
+                                 ajax=False,
+                                 size=None)
+    
+    home = views.View(in_nav=1, icon='admin')
+    
+    def groups(self, request):
+        for child in request.auth_children():
+            yield {'body':child.render(block=True),
+                   'title':child.title,
+                   'url': child.url}
+            
+    def query(self, request, **kwargs):
+        for g in sorted(self.groups(request), key = lambda x : x['title']):
+            url = g['url']
+            if url:
+                a = Widget('a', g['title'], href = url)
+            else:
+                a = g['title']
+            yield a, g['body']
+            
+            
+class ApplicationGroup(views.Application):
+    '''An :class:`djpcms.views.Application` class for
+administer a group of :class:`djpcms.views.Applications`.'''
+    has_plugins = False
+    pagination = html.Pagination(('name','actions'),
+                                 ajax=False,
+                                 html_data={'options':{'sDom':'t'}})
+    
+    home = views.View(in_nav=1,
+                      methods=('get',),
+                      renderer=lambda request, **kwargs:\
+                            request.appmodel.models_list(request, **kwargs))
+    
+    @html.render_block
+    def models_list(self, request, **kwargs):
+        def _make():
+            for c in self.query(request):
+                links = ''.join((l.render() for l in
+                                  views.application_views_links(c)))
+                yield Widget('dl', (Widget('a', c.title, href=c.url), links))
+        return Widget('div', cn=classes.object_definition).add(_make())
+      
+
+class AdminApplicationSimple(views.Application):
+    pagination = html.Pagination(('__str__',))
+    has_plugins = False
+    search = views.SearchView()
+    delete_all = views.DeleteAllView()
+    view = views.ViewView()
+    delete = views.DeleteView()
+    
+    
 class AdminApplication(views.Application):
     has_plugins = False
     views_ordering = {'view':0,'change':1}

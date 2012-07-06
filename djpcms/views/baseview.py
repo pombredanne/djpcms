@@ -229,9 +229,9 @@ it is the base class of :class:`pageview` and :class:`View`.
     redirect_to_view = None
     logger = logging.getLogger('djpcmsview')
     
-    _methods      = ('get','post')
+    _methods      = ('get',)
     
-    def __init__(self, route = '', parent = None, **kwargs):
+    def __init__(self, route='', parent=None, **kwargs):
         RouteMixin.__init__(self, route)
         RendererMixin.__init__(self, **kwargs)
         if parent is not None:

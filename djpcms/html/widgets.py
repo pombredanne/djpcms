@@ -2,6 +2,7 @@ from djpcms.media import js, Media
 from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
+from .icons import with_icon
 from . import classes
 
 if ispy3k:
@@ -19,7 +20,8 @@ __all__ = ['TextInput',
            'List',
            'HiddenInput',
            'SelectWithAction',
-           'DefinitionList']
+           'DefinitionList',
+           'anchor_or_button']
 
 
 class FieldWidget(WidgetMaker):
@@ -127,13 +129,11 @@ class List(WidgetMaker):
 class DefinitionList(WidgetMaker):
     tag = 'dl'
     
-    def add_to_widget(self, widget, elem, cn=None):
-        if hasattr(elem,'__iter__'):
-            tags = ('dt', 'dd')
-            for n,data in enumerate(zip_longest(tags, elem, fillvalue='')):
-                if n > 1:
-                    break
-                widget._data_stream.append(Widget(*data))
+    def add_to_widget(self, widget, elem):
+        n = len(widget)
+        tag = 'dt' if (n // 2)*2 == n else 'dd'
+        return super(DefinitionList, self).add_to_widget(widget,
+                                                         Widget(tag,elem))
         
         
 for tag in ('div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5',
@@ -152,7 +152,15 @@ Select(default='select')
 List(default='ul')
 DefinitionList(default='dl')
 
-    
+def anchor_or_button(text, href=None, icon=None, asbutton=False, size=None,
+                     **kwargs):
+    if asbutton:
+        w = Widget('button', text, cn=classes.button, **kwargs)\
+                        .addData('href',href)
+    else:
+        w = Widget('a', text, href=href, **kwargs)
+    return with_icon(name=icon, size=size, widget=w)
+
 def SelectWithAction(choices, action_url, **kwargs):
     a = HtmlWidget('a', cn = 'djph select-action').addAttr('href',action_url)
     s = Select(choices = choices, **kwargs).addClass('ajax actions')

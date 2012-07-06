@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from djpcms import html
+from djpcms.html import WidgetMaker, Widget, classes
 from djpcms.utils.httpurl import zip, to_string, itervalues 
 from djpcms.utils.text import UnicodeMixin, smart_escape
 
@@ -12,7 +13,7 @@ __all__ = ['ObjectItem',
            'ObjectPagination']
     
 
-class ObjectItem(html.WidgetMaker):
+class ObjectItem(WidgetMaker):
     tag = 'div'
     classes = 'item-view'
 
@@ -21,9 +22,10 @@ class ObjectItem(html.WidgetMaker):
         yield str(instance)
     
     
-class ObjectDef(html.DefinitionList):
+class ObjectDef(WidgetMaker):
     '''Simply display a definition list for the object.'''
-    classes = 'object-definition'
+    tag = 'div'
+    classes = classes.object_definition
     
     def get_context(self, request, widget, context):
         appmodel = widget.internal.get('appmodel',request.view.appmodel)
@@ -38,7 +40,8 @@ class ObjectDef(html.DefinitionList):
                                     instance,
                                     appmodel)
         display = ctx.pop('display')
-        items = ((head.name,value) for head,value in zip(headers,display))
+        items = (Widget('dl',(head.name,value))\
+                                for head,value in zip(headers,display))
         widget.add(items)
 
     

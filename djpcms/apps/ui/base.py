@@ -46,13 +46,29 @@ cssv.panel.background = cssv.widget.body.background
 cssv.panel.border.color = cssv.widget.border.color
 cssv.panel.border.width = cssv.widget.border.width
 
+class widget_header(mixin):
+    
+    def __call__(self, elem):
+        elem['padding'] = cssv.widget.head.padding
+        elem['overflow'] = 'hidden'
+        css('h1,h2,h3,h4,h5',
+            parent=elem,
+            font_size=cssv.widget.head.font_size,
+            font_weight=cssv.widget.head.font_weight,
+            text_transform=cssv.widget.head.text_transform,
+            line_height=cssv.widget.head.line_height,
+            float='left',
+            padding=0,
+            margin=0,
+            background='transparent')
 
+################################################################ jQuery UI
 css('body',
     css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'media','ui.css')))
 
 ################################################################ CLICKABLE
-css('.%s,button'%classes.clickable,
+css('.%s, button'%classes.clickable,
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),
@@ -79,26 +95,27 @@ cssb('.'+classes.widget_body,
                           cssv.widget.border.width.bottom,
                           cssv.widget.border.width.left),
             style=cssv.widget.head.border.style),
-     padding=cssv.widget.body.padding),
+     padding=cssv.widget.body.padding)
          
 css('.'+classes.widget_head,
     bcd(**cssv.widget.head.params()),
     border(**cssv.widget.border.params()),
-    css('h1,h2,h3,h4,h5',
-        font_size=cssv.widget.head.font_size,
-        font_weight=cssv.widget.head.font_weight,
-        text_transform=cssv.widget.head.text_transform,
-        line_height=cssv.widget.head.line_height,
-        float='left',
-        padding=0,
-        margin=0,
-        background='transparent'
-    ),
+    widget_header(),
     css('.'+classes.edit_menu,
         line_height=cssv.widget.head.line_height),
-    padding=cssv.widget.head.padding,
-    overflow='hidden')
+    css('a',
+        clickable(default=bcd(background='transparent',
+                              color=cssv.clickable.default.color,
+                              text_decoration=cssv.clickable.default.text_decoration),
+                  hover=bcd(background='transparent',
+                              color=cssv.clickable.hover.color,
+                              text_decoration=cssv.clickable.hover.text_decoration),
+                  active=bcd(background='transparent',
+                              color=cssv.clickable.active.color,
+                              text_decoration=cssv.clickable.active.text_decoration))))
 
+css('.'+classes.widget_body,
+    overflow='hidden')
 ################################################################ PANEL
 css('.'+classes.widget_body,
     cssa('.panel',
@@ -111,6 +128,8 @@ css('.'+classes.corner_all,
 
 radius_top = spacing(cssv.body.radius, cssv.body.radius, 0, 0)
 radius_bottom = spacing(0, 0, cssv.body.radius, cssv.body.radius)
+radius_left = spacing(cssv.body.radius, 0, 0, cssv.body.radius)
+radius_right = spacing(0, cssv.body.radius, cssv.body.radius, 0)
 
 css('.'+classes.corner_top, radius(radius_top))
 css('.'+classes.corner_bottom, radius(radius_bottom))

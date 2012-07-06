@@ -547,6 +547,7 @@ corner cases, users can subclass it to customize behavior.
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
  attribute. It can be overwritten but call super for consistency.'''
+        element = async_object(element)
         if element is not None:
             if isinstance(element, Widget):
                 element.internal['parent'] = widget

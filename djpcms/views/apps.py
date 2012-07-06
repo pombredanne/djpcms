@@ -140,6 +140,10 @@ overwritten to customize its behavior.
     
     Default: ``None``.
     
+.. attribute:: cache_control
+
+    The default Cache control headers for this :class:`Application`.
+    
 .. attribute:: mapper
 
     Instance of :class:`djpcms.utils.orms.OrmWrapper` or ``None``.
@@ -330,8 +334,8 @@ overwritten to customize its behavior.
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
-    def get_form(self, request, form_class, addinputs = True, instance  = None,
-                 block = None, **kwargs):
+    def get_form(self, request, form_class, addinputs=True, instance=None,
+                 block=None, **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
 :parameter form_class: form class to use.

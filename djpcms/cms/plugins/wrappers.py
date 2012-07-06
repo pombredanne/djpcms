@@ -34,8 +34,7 @@ class BoxWrapper(DJPwrapper):
                    edit_menu=self.edit_menu(request, block),
                    collapsable=self.collapsable,
                    collapsed=self.collapsed,
-                   detachable=self.detachable)\
-                    .addClass(self.extra_class(request, block, content))
+                   detachable=self.detachable)
         
     def title(self, block):
         return block.title
@@ -45,9 +44,6 @@ class BoxWrapper(DJPwrapper):
     
     def edit_menu(self, request, block):
         pass
-    
-    def extra_class(self, request, block, content):
-        return None
     
     def footer(self, request, block, content):
         return ''

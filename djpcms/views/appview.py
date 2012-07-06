@@ -3,6 +3,7 @@ from functools import partial
 import djpcms
 from djpcms.utils.httpurl import zip
 from djpcms import forms, ajax, html
+from djpcms.html import classes, render_block
 from djpcms.utils.text import nicename
 from djpcms.cms import Route, Http404, permissions
 from djpcms.cms.plugins import html_plugin_form
@@ -175,6 +176,7 @@ views::
     has_plugins = False
     force_redirect = False
     default_route = '/'
+    _methods = ('get','post')
     
     def __init__(self,
                  route=None,
@@ -325,7 +327,7 @@ and handles the saving as default ``POST`` response.'''
     ajax_enabled = False
     force_redirect = True
     
-    @html.render_block
+    @render_block
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
     
@@ -372,7 +374,7 @@ class ViewView(ObjectView):
 an object.'''
     default_route = '/<id>/'
     
-    @html.render_block
+    @render_block
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
@@ -396,10 +398,10 @@ class DeleteView(ObjectView):
     ICON = 'trash'
     force_redirect = True
     ajax_enabled = True
-    link_class = 'minibutton ui-state-error-text'
+    link_class = classes.state_error
     default_link = 'delete'
     default_title = '{2}{1}'
-    _methods      = ('post',)
+    _methods = ('post',)
     
     def post_response(self, request):
         return deleteinstance(request, force_redirect=self.force_redirect)
@@ -417,7 +419,7 @@ on an instance of a model.'''
     parent_view = 'view'
     default_title = '{2}{1}'
     
-    @html.render_block    
+    @render_block    
     def render(self, request, **kwargs):
         return self.get_form(request, **kwargs).render(request)
     

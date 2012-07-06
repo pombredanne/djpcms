@@ -158,7 +158,6 @@
                     'delete': 'Please confirm delete',
                     'flush': 'Please confirm flush'
                         },
-                icons: 'fontawesome',
                 autoload_class: "autoload",
                 ajax_server_error: "ajax-server-error",
                 errorlist: "errorlist",
@@ -364,19 +363,43 @@
     });
     
     $.djpcms.ui = {
+        icons: 'fontawesome',
+        classes: {button: 'btn',
+                  button_small: 'btn-small',
+                  clickable: 'ui-clickable',
+                  float_right: 'f-right'},
         widget_head: 'ui-widget-header',
         widget_body: 'ui-widget-content',
         corner_top: 'ui-corner-top',
         corner_bottom: 'ui-corner-bottom',
         ui_input: 'ui-input',
         button: function(elem, text, icons) {
-            var name = $.djpcms.options.icons;
+            var name = $.djpcms.ui.icons;
             var icon = icons[name];
             if(icon) {
                 if(name === 'fontawesome') {
                     elem.html('').append('<i class="'+icon+'"></i>');
                 }
             }
+        },
+        dialog: function (el, options) {
+            var ui = $.djpcms.ui,
+                open = true, wdg;
+            options = options || {};
+            if(options.autoOpen === false) {
+                open = false;
+            }
+            options.autoOpen = false;
+            wdg = el.dialog(options).dialog('widget');
+            if(ui.icons === 'fontawesome') {
+                $('.ui-dialog-titlebar-close', wdg)
+                    .html('<i class="icon-remove"></i>')
+                    .addClass(ui.classes.float_right);
+            }
+            if(open) {
+                el.dialog('open');
+            }
+            return el;
         }
     };
     
@@ -395,9 +418,12 @@
                        $(this).dialog( "close" );
                        callback(false);
                    }
-                }
+                },
+              close: function(event, ui) {
+                  el.dialog('destroy').remove();
+              }
             });
-        return el.dialog(options);
+        return $.djpcms.ui.dialog(el, options);
     };
     
     $.djpcms.warning_dialog = function(title, warn, callback) {
@@ -495,6 +521,17 @@
         id: "servererror",
         handle: function(data, elem) {
             $.djpcms.errorDialog(data,"Unhandled Server Error");
+        }
+    });
+    
+    /**
+     * Message callback
+     */
+    $.djpcms.addJsonCallBack({
+        id: "message",
+        handle: function(data, elem) {
+            $.djpcms.logger.info(data);
+            return true;
         }
     });
     
@@ -724,62 +761,26 @@
      */
     $.djpcms.decorator({
         id: "ajax_widgets",
+        description: "add ajax functionality to links, buttons and selects",
         config: {
             blank_target: true,
             submit: {jquery: false,
                      selector: 'input[type="submit"]'},
-            link: {jquery: false,
-                   selector: 'a, button',
-                   ajax_selector: 'a.ajax, button'},
+            links: 'a.ajax, button',
             selector_select: 'select.ajax',
             selector_form: 'form.ajax',
             submit_class: 'submitted'
         },
-        description: "add ajax functionality to links, buttons and selects",
-        decorate: function($this,config) {
+        decorate: function($this, config) {
             var confirm = config.confirm_actions,
                 cfg = config.ajax_widgets,
                 callback = $.djpcms.jsonCallBack,
                 logger = $.djpcms.logger,
                 bt = cfg.blank_target,
-                that = this, links
-            
-            // Submits
-            if(cfg.submit.jquery) {
-                $(cfg.submit.selector,$this).button();
-            }
+                that = this;
             
             // Links and buttons
-            links = $(cfg.link.selector,$this);
-            if(cfg.link.jquery) {
-                links.each(function() {
-                    var el = $(this),
-                        data = el.data(),
-                        icon = data.icon,
-                        text = data.text;
-                    if(this.tagName.toLowerCase() === 'a') {
-                        if(icon) { 
-                            icon = '<span class="ui-icon '+icon+'"></span>';
-                            el.before(icon).css({'padding-left':0});
-                            if(bt) {
-                                var href = el.attr('href');
-                                if(href && href.substring(0,4) == 'http') {
-                                    el.attr('target','_blank');
-                                }
-                            }
-                        }
-                    } else {
-                        if(!text) {
-                            text = icon ? false : true;
-                        }
-                        el.button({
-                            icons:{primary:icon},
-                            text:text
-                        });
-                    }
-                });
-            }
-            $(cfg.link.ajax_selector,$this).click(function(event) {
+            $(cfg.links, $this).click(function(event) {
                 event.preventDefault();
                 var elem = $(this),
                     ajax = elem.hasClass('ajax'),
@@ -1262,48 +1263,53 @@
         }
     });
     
-    
+    /**
+     * Page blocks rearranging
+     */
     $.djpcms.decorator({
         id: "rearrange",
         config: {
             body_selector: 'body.editable',
+            cmsblock: '.cms-edit-block',
+            placeholder: 'cms-block-placeholder',
+            cmsform: 'form.cms-blockcontent',
+            movable: '.movable',
+            sortblock: '.sortable-block'
         },
         description: "Drag and drop functionalities in editing mode",
-        decorate: function($this,config) {
-            // The selectors
-            if(!$(config.rearrange.body_selector).length) {
+        decorate: function($this, config) {
+            var options = config.rearrange;
+            if(!$(options.body_selector).length) {
                 if(!$.djpcms.content_edit) {
                     return;
                 }
             }
+            // Decorate
             $.djpcms.content_edit = (function() {
-                
-                var sortblock = '.sortable-block',
-                    divpaceholder = 'djpcms-placeholder',
-                    editblock = 'div.edit-block',
+                var movable = options.movable,
+                    cmsblock = options.cmsblock,
+                    sortblock = options.sortblock,
                     columns = $(sortblock),
                     holderelem = columns.commonAncestor(),
                     curposition = null,
                     logger = $.djpcms.logger;
                 
                 
-                columns.delegate(editblock+'.movable .hd', 'mousedown', function(event) {
-                    curposition = position($(this).parent(editblock));
-                    $.djpcms.logger.info('selected item to move');
-                    var elem = $(this).parent();
-                    elem.css({
-                        width: elem.width() + 'px'
-                    });
+                columns.delegate(cmsblock+movable+' .hd', 'mousedown', function(event) {
+                    var block = $(this).parent(movable);
+                    if(block.length) {
+                        curposition = position(block);
+                    }
                 });
                 
                 function position(elem) {
-                    var neighbour = elem.prev(editblock),
+                    var neighbour = elem.prev(cmsblock),
                         data = {};
                     if(neighbour.length) {
                         data.previous = neighbour.attr('id');
                     }
                     else {
-                        neighbour = elem.next(editblock);
+                        neighbour = elem.next(cmsblock);
                         if(neighbour.length) {
                             data.next = neighbour.attr('id');
                         }
@@ -1312,44 +1318,36 @@
                 }
                 
                 function moveblock(elem, pos, callback) {
-                    var data = $.extend($.djpcms.ajaxparams('rearrange'),pos);
-                    var form = $('form.djpcms-blockcontent',elem);
-                    function movedone(e,s) {
-                        $.djpcms.jsonCallBack(e,s);
-                        callback();
-                    }
+                    var form = $(options.cmsform, elem);
                     if(form) {
-                        var url = form.attr('action');
-                        logger.info('Sending rearrange post request to "'+url+'"')
-                        $.post(url,
-                               data,
-                               movedone,
-                               'json');
+                        var data = $.extend($.djpcms.ajaxparams('rearrange'), pos),
+                            url = form.attr('action');
+                        logger.info('Updating position at "'+url+'"');
+                        $.post(url, data, callback, 'json');
                     }
                 }
             
                 columns.sortable({
-                    items: editblock,
-                    cancel: "div.edit-block:not(.movable)",
-                    handle: 'div.hd',
+                    items: cmsblock,
+                    cancel: cmsblock+ ":not("+movable+")",
+                    handle: '.hd',
                     forcePlaceholderSize: true,
                     connectWith: sortblock,
                     revert: 300,
                     delay: 100,
                     opacity: 0.8,
                     //containment: holderelem,
-                    placeholder: divpaceholder,
-                    start: function (e,ui) {
-                        //$(ui.helper).addClass('dragging').css({width:''});
+                    placeholder: options.placeholder,
+                    start: function (e, ui) {
+                        var block = ui.item.addClass('dragging');
+                        $.djpcms.logger.info('Moving '+block.attr('id'));
+                        block.width(block.width());
                     },
-                    stop: function (e,ui) {
-                        var elem = ui.item;
-                        logger.info('Stopping drag and drop of element ' + elem);
+                    stop: function (e, ui) {
+                        var elem = ui.item,
+                            pos = position(elem);
+                        logger.info('Stopping ' + elem.attr('id'));
                         elem.css({width:''}).removeClass('dragging');
-                        function updatedone() {
-                            columns.sortable('enable');
-                        }
-                        var pos = position(elem);
                         if(pos.previous) {
                             if(pos.previous === curposition.previous) {return;}
                         }
@@ -1357,7 +1355,10 @@
                             if(pos.next === curposition.next) {return;}
                         }
                         columns.sortable('disable');
-                        moveblock(elem,pos,updatedone);
+                        moveblock(elem, pos, function (e, s) {
+                            columns.sortable('enable');
+                            $.djpcms.jsonCallBack(e, s);
+                        });
                     }
                 });
             }());

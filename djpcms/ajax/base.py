@@ -123,6 +123,12 @@ class jempty(HeaderBody):
         return 'empty'
 
 
+class message(CustomHeaderBody):
+    
+    def __init__(self, environ, text):
+        super(message, self).__init__(environ, 'message', text)
+
+
 class jservererror(CustomHeaderBody):
     
     def __init__(self, environ, text):
@@ -130,16 +136,10 @@ class jservererror(CustomHeaderBody):
                                            'servererror', text)
     
     
-class jerror(HeaderBody):
+class jerror(CustomHeaderBody):
     
     def __init__(self, environ, msg):
-        self.html = msg
-    
-    def header(self):
-        return 'error'
-    
-    def body(self):
-        return self.html
+        super(jerror, self).__init__(environ, 'error', msg)
 
 
 class jcollection(HeaderBody):

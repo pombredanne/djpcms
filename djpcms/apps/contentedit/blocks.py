@@ -18,6 +18,7 @@ class EditWrapperHandler(CollapsedWrapper):
 editing content.'''
     auto_register = False
     detachable = True
+    template = None
 
     def title(self, cblock):
         if cblock.plugin:
@@ -25,14 +26,17 @@ editing content.'''
         else:
             return 'Content Editor'
     
-    def id(self, cblock):
-        return 'edit-{0}'.format(cblock.htmlid())
+    def id(self, block):
+        return block.htmlid(edit=True)
     
-    def extra_class(self, request, block, html):
+    def render(self, request, block, content):
+        box = super(EditWrapperHandler, self).render(request, block, content)
         if block.plugin_name:
-            return (classes.edit, classes.movable)
+            box.addClass((classes.edit, classes.movable))
+            box['hd'].addClass(classes.draggable)
         else:
-            return classes.edit
+            box.addClass(classes.edit)
+        return box
         
     def edit_menu(self, request, block):
         ul = html.Widget('ul')
@@ -45,14 +49,7 @@ editing content.'''
         return request.view.get_preview(request, request.instance)
 
 
-class BlockChangeView(views.ChangeView):
-    
-    def block_from_edit_id(self, id):
-        id = '-'.join(id.split('-')[1:])
-        return self.model.block_from_html_id(id)
-
-
-class ChangeContentView(BlockChangeView):
+class ChangeContentView(views.ChangeView):
     '''View class for managing inline editing of a content block.
     '''
     def underlying(self, request):
@@ -129,6 +126,7 @@ class ChangeContentView(BlockChangeView):
                              .addData('method','get')
             formhtml.inputs.append(edit_url)
         wrapper = EditWrapperHandler()(request, instance, formhtml)
+        wrapper.addClass(classes.cms_edit_block)
         # GET THE PLUGIN FORM IF NEEDED
         plugin = self.plugin_form_container(instance, plugin_form)
         return wrapper.render(request, {'plugin': plugin})
@@ -202,50 +200,48 @@ The instance.plugin object is maintained but its fields may change.'''
     def ajax__rearrange(self, request):
         '''Move the content block to a new position.'''
         contentblock = request.instance
-        data   = request.REQUEST
-        try:            
-            previous = data.get('previous',None)
-            if previous:
-                block = self.block_from_edit_id(previous)
+        data = request.REQUEST            
+        previous = data.get('previous', None)
+        if previous:
+            block = self.model.block_from_html_id(previous)
+            pos = block.position
+            newposition = pos + 1
+        else:
+            nextv = data.get('next', None)
+            if nextv:
+                block = self.model.block_from_html_id(nextv)
                 pos = block.position
-                newposition = pos + 1
             else:
-                nextv = data.get('next',None)
-                if nextv:
-                    block = self.block_from_edit_id(nextv)
-                    pos = block.position
-                else:
-                    return jempty()
-                newposition = pos if not pos else pos-1
-            
-            block = block.block
-            if block != contentblock.block or\
-               contentblock.position != newposition:
-                # modify positions in the drop box
-                for bc in self.model.objects.filter(page = contentblock.page,
-                                                    block = block):
-                    if bc.position < newposition:
-                        continue
-                    bc.position += 1
-                    bc.save()
-                contentblock.position = newposition
-                contentblock.block = block
-                contentblock.save()
-                #update_page(self.model,page)
-            return ajax.jempty(request.environ)
-        except Exception as e:
-            return ajax.jerror(request.environ,
-                               'Could not find target block. {0}'.format(e))
+                return jempty()
+            newposition = pos if not pos else pos-1
+        
+        column = block.column
+        c0 = contentblock.column
+        p0 = contentblock.position
+        if column != c0 or p0 != newposition:
+            for bc in self.model.objects.filter(page=contentblock.page):
+                if bc.column != column or bc.position < newposition:
+                    continue
+                bc.position += 1
+                bc.save()
+            contentblock.position = newposition
+            contentblock.column = column
+            contentblock.save()
+            return ajax.message(request.environ,
+                        '%s moved from column, position (%s, %s) to (%s, %s)'
+                        % (block.htmlid(),c0,p0,column,newposition))
+            #update_page(self.model,page)
+        return ajax.message(request.environ, 'nothing moved')
         
         
 class DeleteContentView(views.DeleteView):
     
     def post_response(self, request):
         instance = request.instance
-        block  = instance.block
+        column  = instance.column
         jquery = ajax.jcollection(request.environ)
-        blockcontents = self.model.for_page_block(self.mapper,
-                                                  instance.page, block)
+        blockcontents = [b for b in self.mapper.filter(page=instance.page)\
+                         if b.column==column]
         if instance.position == len(blockcontents) - 1:
             return jquery
         
@@ -292,42 +288,3 @@ content in a content block.'''
         instance.delete()
         return bid
 
-    def blockhtml(self, request, instance, editpath, wrapper):
-        '''A content block rendered in editing mode'''
-        request = request.for_path(editpath, instance = instance)
-        html = request.render(url = request.url)
-        #layoutview = self.getview('layout')
-        #html0 =  layoutview(djp.request, instance = instance).render()
-        # html = html0 + html
-        return wrapper(request,instance,html)
-            
-    def blocks(self, request, page, blocknum):
-        '''Return a generator of edit blocks.
-        '''
-        blockcontents = self.model.for_page_block(self.mapper, page, blocknum)
-        editpath = self.views.get('change').path
-        wrapper  = EditWrapperHandler()
-        Tot = len(blockcontents)
-        pos = 0
-        last = None
-        # We update positions if needed
-        for t, b in enumerate(blockcontents,1):
-            last = b
-            if not b.plugin_name and t < Tot:
-                b.delete()
-                last = None
-                continue
-            else:
-                if b.position != pos:
-                    b.position = pos
-                    b.save()
-                if b.plugin_name:
-                    last = None
-                pos += 1
-            yield self.blockhtml(request, b, editpath, wrapper)
-            
-        # Create last block
-        if last == None:
-            last = self.model(page = page, block = blocknum, position = pos)
-            last.save()
-            yield self.blockhtml(request, last, editpath, wrapper)

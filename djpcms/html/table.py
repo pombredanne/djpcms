@@ -37,9 +37,9 @@ def attrname_from_header(header, code):
     return code
 
 
-def table_header(code, name = None, description = None, function = None,
-                 attrname = None, sortable = True, width = None,
-                 extraclass = None, hidden = False):
+def table_header(code, name=None, description=None, function=None,
+                 attrname=None, sortable=True, width=None,
+                 extraclass=None, hidden=False):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
     
 :param code: unique code for the header

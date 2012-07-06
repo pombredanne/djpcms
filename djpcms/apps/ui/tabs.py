@@ -10,6 +10,8 @@ cssv.tabs.active.background = cssv.body.background
 cssv.tabs.active.color = cssv.body.color
 cssv.tabs.hover.background = lazy(color.lighten, cssv.tabs.border_color, 5)
 
+cssv.accordion.spacing = px(2)
+
 
 #################################################    TABS
 css('.'+classes.tabs,
@@ -46,5 +48,7 @@ css('.ui-tabs-hide',
 css('.ui-accordion-container',
     cssb('.'+classes.clickable,
          cssa(':first-child', margin_top=0),
-         margin_top=px(1)),
+         margin_top=cssv.accordion.spacing),
+    css('.ui-accordion-header',
+        widget_header()),
     border='none')

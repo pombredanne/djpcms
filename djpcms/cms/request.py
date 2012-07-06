@@ -352,6 +352,10 @@ is available, the name is set to ``view``.
     #    View methods and properties
     ############################################################################
     
+    @property
+    def appmodel(self):
+        return self.view.appmodel
+    
     @lazyproperty
     def encoding(self):
         return self.view.encoding(self)

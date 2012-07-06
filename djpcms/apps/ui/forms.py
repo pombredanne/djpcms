@@ -19,8 +19,6 @@ cssv.input.focus_color = None
 cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
 #
-cssv.button.padding = spacing(cssv.input.padding, 9)
-#
 cssv.alert.background = color('#FCF8E3')
 cssv.alert.color = color('#C09853')
 cssv.alert.radius = cssv.body.radius
@@ -32,9 +30,6 @@ cssv.alert_error.color = color('#B94A48')
 cssv.form.padding = cssv.input.padding # This controls the padding of all fields
 cssv.form.table_layout = 'auto'
 cssv.form.inlinelabels_width = pc(32)
-#
-cssv.definition_list.opacity = 0.8
-cssv.definition_list.font_weight = 'normal'
 ################################################################################
 
 
@@ -50,29 +45,6 @@ css('.edit-menu',
     horizontal_navigation(float='right',
                           hover=bcd(text_decoration='none'),
                           padding=spacing(0,px(2))))
-
-
-################################################# OBJECT DEFINITIONS
-css('dl.object-definition',
-    cssa(':first-child', margin_top = 0),
-    css('dt',
-        opacity(cssv.definition_list.opacity),
-        font_weight=cssv.definition_list.font_weight,
-        float='left',
-        clear='left',
-        width='40%',
-        margin = 0),
-    css('dd', margin = 0),
-    cssa('.w20 dt', width='20%'),
-    cssa('.w40 dt', width='40%'),
-    cssa('.w50 dt', width='50%'),
-    overflow='hidden',
-    margin='5px 0 0')
-
-################################################################################
-# Uniform variables
-################################################################################
-
 
 
 disabled_selector = '''\
@@ -128,22 +100,9 @@ for n in range(1,10):
     css('.%s.span%s' % (classes.ui_input, n),
          width=px(size(n)))
 
-############################################################    BUTTONS
-#'button.button,a.button,input.button[type="submit"]'
-buttons = 'input.button[type="submit"], button, a.button'
-css(buttons,
-    padding = cssv.button.padding,
-    display='inline-block',
-    margin_right=px(4))
-
-css('button.large,a.button.large,input.button.large[type="submit"]',
-    radius(cssv.input.radius),
-    padding=2*cssv.input.padding)
-
 css(disabled_selector,
     opacity(cssv.disabled.opacity),
-    cursor =  cssv.disabled.cursor)
-
+    cursor=cssv.disabled.cursor)
 
 ############################################################    ALERTS
 css('.alert',

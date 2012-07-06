@@ -27,7 +27,9 @@ mapping = {'admin': 'cog',
 
 def icon(name, size, widget):
     name = mapping.get(name, name)
-    inner = Widget('i', cn='icon-{0}'.format(name))
+    if not name.startswith('icon-'):
+        name = 'icon-%s' % name
+    inner = Widget('i', cn=name)
     if size:
         inner.addClass('icon-{0}'.format(size))
     if widget:

@@ -3,6 +3,7 @@ import logging
 import json
 
 from djpcms import forms, html, Renderer
+from djpcms.html import classes, WidgetMaker, panel
 from djpcms.utils.text import capfirst, nicename
 from djpcms.cms.formutils import form_kwargs
 
@@ -80,7 +81,7 @@ class DJPwrapper(DJPwrapperBase):
     '''A :class:`djpcms.Renderer` for wrapping
 :ref:`djpcms plugins <plugins-index>`.'''
     virtual = True
-    template = html.WidgetMaker(tag='div')
+    template = WidgetMaker(tag='div')
     name = None
 
     def render(self, request, block, html):
@@ -92,9 +93,10 @@ This function should be implemented by derived classes.
         return html
     
     def __call__(self, request, block, html):
-        return self.template(self.render(request, block, html),
-                             id=block.htmlid(),
-                             cn='cms-block plugin-'+block.plugin_name)
+        el = self.render(request, block, html)
+        if self.template:
+            el = self.template(el, id=block.htmlid())
+        return el.addClass((classes.cms_block, 'plugin-'+block.plugin_name))
     
     def _register(self):
         global _wrapper_dictionary
@@ -275,7 +277,7 @@ class FlatPanel(DJPwrapper):
     name = 'panel'
     description = 'Panel'
     def render(self, request, block, content):
-        return html.panel(content)
+        return panel(content)
 
 
 default_content_wrapper = NoWrapper()

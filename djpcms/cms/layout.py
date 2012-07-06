@@ -164,8 +164,8 @@ with the wrapper callable.'''
             p = '{0}-{1}'.format(p,extra)
         return p
             
-    def htmlid(self):
-        return 'block-{0}'.format(self.id)
+    def htmlid(self, edit=False):
+        return 'edit-block-%s' % self.id if edit else 'block-%s' % self.id
     
     def __unicode__(self):
         return self.htmlid()
@@ -173,9 +173,9 @@ with the wrapper callable.'''
     @classmethod
     def block_from_html_id(cls, htmlid):
         id = htmlid.split('-')
-        if len(id) == 2:
-            id = id[1]
-            return cls.objects.get(id = id)
+        if len(id) > 1:
+            id = id[-1]
+            return cls.objects.get(id=id)
         else:
             return None
         

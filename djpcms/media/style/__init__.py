@@ -56,9 +56,13 @@ cssv.link.hover.background = None
 cssv.link.hover.text_decoration = 'underline'
 cssv.link.hover.text_shadow = None
 
-# Margins
-cssv.block.margin_bottom = px(20)
+# Content Blocks
+cssv.cmsblock.margin_bottom = px(20)
+cssv.cmsblock.placeholder.border.color = '#666666'
+cssv.cmsblock.placeholder.border.width = px(2)
+cssv.cmsblock.placeholder.border.style = 'dashed'
 
+# Logging panel
 cssv.logging_panel.font_size = px(12)
 cssv.logging_panel.line_height = px(14)
 cssv.logging_panel.background = color('#ededed')
@@ -129,15 +133,24 @@ css('a',
 css('input',
     placeholder(cssv.input.placeholder_color))
 
-css('.cms-block',
+################################################# CONTENT BLOCKS
+css('.%s' % classes.cms_block,
     clearfix(),
-    margin_bottom=cssv.block.margin_bottom)
+    margin_bottom=cssv.cmsblock.margin_bottom)
+
+css('.%s-placeholder' % classes.cms_block,
+    border(**cssv.cmsblock.placeholder.border.params()),
+    clearfix(),
+    margin_bottom=cssv.cmsblock.margin_bottom)
 
 ################################################# SPECIAL CLASSES
 css('.'+classes.wrapper,
     height='auto !important',
     margin=0,
     min_height=pc(100))
+
+css('.'+classes.float_right,
+    float='right')
 
 ################################################# LOGGING PANEL
 css('.djp-logging-panel',

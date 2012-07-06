@@ -539,6 +539,8 @@ corner cases, users can subclass it to customize behavior.
                 for k in self.internal:
                     if k not in widget.internal:
                         widget.internal[k] = self.internal[k]
+            elif is_string_or_native_string(widget):
+                self.children[len(self.children)] = widget
         return self
   
     def add_to_widget(self, widget, element, position=None):

@@ -44,7 +44,7 @@ class Navigator(WidgetMaker):
                             is not None else self.main_layout
         self.secondary_layout = secondary_layout if secondary_layout\
                                  is not None else self.secondary_layout
-        if brand and not isinstance(brand, Widget):
+        if brand:
             brand = Anchor(cn='brand', href='/').add(brand)
         self.brand = brand
         self.search = search

@@ -618,14 +618,16 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
                 content = b''
             elif isinstance(content, WsgiResponse):
                 response = content
+        # Response not yet available, build it from content or exc_info
         if response is None:
-            response = Response(content_type=content_type)
+            response = Response(content_type=content_type,
+                                encoding=request.encoding)
             if request.exc_info is not None:
                 content = self.website.handle_error(request, response)
             if response.content_type == 'text/html' and not request.is_xhr:
                 content = '\n'.join(html_doc_stream(request, content,
                                                     response.status_code))
-            response.content = (content,)
+            response.content = (to_bytes(content, response.encoding),)
         yield self.cache(request, response)
         
     def cache(self, request, response):

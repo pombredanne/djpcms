@@ -4,20 +4,31 @@ from djpcms import forms, views, html
 from djpcms.cms.formutils import get_form
 from djpcms.forms import layout as uni
 from djpcms.apps.color import ColorField
+import djpcms.apps.ui.style
+from djpcms.media.style import cssv
 
 from stdnet import odm
 
 
 class Theme(odm.StdModel):
-    timestamp = odm.DateTimeField(default=  datetime.now)
+    timestamp = odm.DateTimeField(default=datetime.now)
     data = odm.JSONField()
     
     class Meta:
         ordering = '-timestamp'
     
     
+def theme_field(elem, field=forms.CharField):
+    name = elem.name
+    return (name, field, str(elem))
+    
 class AddTheme(forms.Form):
-    pass
+    body = forms.FieldList((theme_field(cssv.body.font_family),
+                            theme_field(cssv.body.font_size),
+                            theme_field(cssv.body.radius),
+                            theme_field(cssv.body.color, ColorField)),
+                           withprefix=False)
+
 
 class ThemeInputs(forms.Form):
     '''input form for theme variables'''

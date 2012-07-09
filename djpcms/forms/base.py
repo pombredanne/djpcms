@@ -37,16 +37,22 @@ class FieldList(list):
          some_fields = forms.FieldList(('name',forms.CharField()),
                                        ('description',forms.CharField()))
 '''
-    def fields(self, prefix = None):
-        for name, field in self:
+    def __init__(self, data=None, withprefix=True):
+        self.withprefix = withprefix
+        super(FieldList, self).__init__(data)
+        
+    def fields(self, prefix=None):
+        for nf in self:
+            name, field = nf[0], nf[1]
+            initial = nf[2] if len(nf) > 2 else None
             if isinstance(field, self.__class__):
-                for name2,field2 in field.fields(name):
-                    yield name2,field2
+                for name2, field2 in field.fields(name):
+                    yield name2, field2
             else:
-                if prefix:
+                if prefix and self.withprefix:
                     name = '{0}{1}'.format(prefix,name)
                 if isinstance(field, type):
-                    field = field()
+                    field = field(initial=initial)
                 yield name, field
                 
 

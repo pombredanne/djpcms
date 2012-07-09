@@ -376,8 +376,9 @@ class ResolverMixin(RouteMixin):
                 yield child
                     
     def resolve(self, path, urlargs=None):
-        '''Resolve a path'''            
+        '''Resolve a *path* recursively.'''
         with resolver_manager(self, path) as rm:
+            best_match, best_rem = self, path
             urlargs = urlargs if urlargs is not None else {}
             for handler in self.urls():
                 match = handler.rel_route.match(path)
@@ -385,7 +386,10 @@ class ResolverMixin(RouteMixin):
                     continue
                 remaining_path = match.pop('__remaining__','')
                 urlargs.update(match)
-                if isinstance(handler,ResolverMixin):
+                if isinstance(handler, ResolverMixin):
+                    if len(remaining_path) < len(best_rem):
+                        best_rem = remaining_path
+                        best_match = handler
                     res = handler.resolve(remaining_path, urlargs)
                     if res:
                         return res
@@ -393,14 +397,8 @@ class ResolverMixin(RouteMixin):
                     return handler, urlargs
                 
             # Nothing found Check the static pages if they are available
-            if self.is_root:
-                raise Http404(path, handler = self)
-                path = self.route + path
-                view = self.pageview(path)
-                if view:
-                    return view, {}
-                else:
-                    raise Http404(path, handler = self)
+            if self.root:
+                raise Http404(path, handler=best_match)
             
     def pageview(self, path):
         Page = self.root.Page

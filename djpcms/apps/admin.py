@@ -116,7 +116,7 @@ class AdminApplication(views.Application):
     add = views.AddView()
     tabview = TabView('/<id>/')
     view = views.ViewView('/view', parent_view='tabview')
-    change = views.ChangeView(parent_view='tabview')
+    change = views.ChangeView(parent_view='tabview', force_redirect=False)
     delete = views.DeleteView(parent_view='tabview')
     
     def view_for_instance(self, request, instance):

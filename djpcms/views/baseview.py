@@ -417,8 +417,8 @@ is installed.
     the :attr:`RendererMixin.appmodel` attribute for the view.'''
     name = 'flat'
     def __init__(self, page, parent):
-        if isinstance(parent,RendererMixin):
+        if isinstance(parent, RendererMixin):
             self.appmodel = parent
         self.page = page
-        super(pageview,self).__init__(self.page.route, parent)
+        super(pageview, self).__init__(self.page.route, parent)
     

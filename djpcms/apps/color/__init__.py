@@ -8,7 +8,7 @@ from djpcms import html, forms, media
 
 
 class ColorInput(html.TextInput):
-    classes = 'color-picker'
+    classes = 'color-picker span2'
     _media = media.Media(
                 js=['color/colorpicker/jquery.colorpicker.js',
                     'color/colorpicker/i18n/jquery.ui.colorpicker-en.js',

@@ -17,8 +17,7 @@ from djpcms.apps.admin import AdminApplication
 from .layout import HtmlPageForm
 from . import classes
 
-__all__ = ['SiteMapApplication',
-           'SiteContentApp']
+__all__ = ['SiteMapApplication', 'SiteContentApp']
 
 
 def underlying_response(request, page):
@@ -148,9 +147,9 @@ class SiteMapApplication(views.Application):
     
     
 class SiteContentApp(AdminApplication):
-    inherit = True
-    
+        
     def on_bound(self):
+        # Register the Page mapper with the roo internal dictionary
         self.root.internals['SiteContent'] = self.mapper
         
     def render_instance_default(self, request, instance, **kwargs):
@@ -159,3 +158,4 @@ class SiteContentApp(AdminApplication):
         if mkp:
             text = mkp(request, text)
         return mark_safe(text)
+    

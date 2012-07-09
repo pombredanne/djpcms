@@ -25,7 +25,7 @@ __all__ = ['TextInput',
 
 
 class FieldWidget(WidgetMaker):
-    attributes = WidgetMaker.makeattr('value','name','disabled','readonly')
+    attributes = WidgetMaker.makeattr('value', 'name', 'disabled', 'readonly')
     
     def set_value(self, value, widget):
         widget.addAttr('value',value)
@@ -34,7 +34,7 @@ class FieldWidget(WidgetMaker):
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
-    attributes = FieldWidget.makeattr('type','placeholder')
+    attributes = FieldWidget.makeattr('type', 'placeholder')
     
 
 class TextInput(InputWidget):
@@ -49,7 +49,7 @@ class PasswordInput(InputWidget):
     
     
 class SubmitInput(InputWidget):
-    classes = (classes.clickable, 'button')
+    classes = (classes.clickable, classes.button)
     default_attrs = {'type': 'submit'}
     
     
@@ -59,7 +59,7 @@ class HiddenInput(InputWidget):
     
     
 class CheckboxInput(InputWidget):
-    default_attrs = {'type':'checkbox'}
+    default_attrs = {'type': 'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
     
     def set_value(self, value, widget):

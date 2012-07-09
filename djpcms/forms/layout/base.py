@@ -256,8 +256,6 @@ class FormLayout(BaseFormLayout):
     form_error_class = 'alert alert-error'
     '''Class for form errors'''
     form_message_class = 'alert alert-success'
-    '''Class for form messages'''
-    from_input_class = 'buttonHolder'
     default_element = Fieldset
     
     def __init__(self, *fields, **kwargs):
@@ -272,8 +270,7 @@ class FormLayout(BaseFormLayout):
     def setup(self, kwargs):
         attrs = ('form_messages_container_class',
                  'form_error_class',
-                 'form_message_class',
-                 'from_input_class')
+                 'form_message_class')
         for att in attrs:
             if att in kwargs:
                 setattr(self,att,kwargs.pop(att))

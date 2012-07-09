@@ -48,7 +48,7 @@ def legend(text, cn='legend', **kwargs):
 def render_block(f):
     def _(self, request, block=None, **kwargs):
         content = f(self, request, block=block, **kwargs)
-        if block is None:
+        if block is None and not request.is_xhr:
             content = panel(content)
         return content
     return _

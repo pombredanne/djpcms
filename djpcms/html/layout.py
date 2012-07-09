@@ -32,7 +32,7 @@ namespace_columns = namedtuple('namespace_columns','namespace columns')
 
 def get_grid_system(request=None):
     if request: 
-        page = request.page
+        page = request.underlying().page
         system = page.grid_system if page else None
         system = system or request.settings.LAYOUT_GRID_SYSTEM
     try:
@@ -119,7 +119,6 @@ def all_columns(request):
         column[b.position] = b
     return namespaces
 
-
 def edit_blocks(request, blocks):
     '''Renders blocks in editing mode.'''
     for block in blocks:
@@ -144,7 +143,7 @@ def default_renderer(request, namespace, column, blocks):
     
 
 class PageElemWidget(Widget):
-    
+    '''Add the :attr:`numcolumns` attribute to a :class:`Widget`.'''
     @property
     def numcolumns(self):
         return self.maker.numcolumns
@@ -185,7 +184,8 @@ grid system.'''
         return context
             
     def get_grid_system(self, request, widget, context):
-        pass
+        '''Retrieve the gri system for this request'''
+        return get_grid_system(request)
     
     @property
     def numcolumns(self):
@@ -235,9 +235,6 @@ the body tag. A page contains a list of :class:`container`.'''
     def childtype(cls):
         return container
     
-    def get_grid_system(self, request, widget, context):
-        return get_grid_system(request)
-    
     def get_context(self, request, widget, context):
         context = super(page, self).get_context(request, widget, context)
         if request:
@@ -262,9 +259,6 @@ class Grid(elem):
     @classmethod
     def childtype(cls):
         return row
-    
-    def get_grid_system(self, request, widget, context):
-        return grid_system(False, 12)
         
     def get_context(self, request, widget, context):
         context = super(Grid, self).get_context(request, widget, context)

@@ -2,6 +2,7 @@ import re
 from inspect import isclass
 from copy import copy
 from threading import Lock
+from collections import namedtuple
 
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import iteritems, itervalues
@@ -10,11 +11,11 @@ from djpcms.utils.structures import OrderedDict
 from .exceptions import *
 from .routing import Route
 from .tree import NRT
-from .permissions import VIEW
+from .views import RouteMixin, url_match
 
 
-__all__ = ['RouteMixin', 'ResolverMixin']
-
+__all__ = ['ResolverMixin']
+        
 
 class resolver_manager(object):
     '''A Context manager for injecting the trypath attribute to the Http404
@@ -31,272 +32,16 @@ class resolver_manager(object):
     
     def __exit__(self, type, value, traceback):
         path = self.path
-        if path and isinstance(value,Http404) and not path.endswith('/'):
-            path = path+'/'
-            try:
-                v,u = self.resolver.resolve(path)
-            except:
-                pass
-            else:
-                value.trypath = '/'+path
-    
-    
-class RouteMixin(UnicodeMixin):
-    '''Class for routing trees. This class is the base class for all
-routing and handler classes in djpcms including, but not only, :class:`Site`,
-:class:`djpcms.views.Application` and :class:`djpcms.views.View`.
-    
-:parameter route: A :class:`Route` instance or a route string, it is used
-    to set the :attr:`rel_route` attribute.
-    
-:parameter parent: It sets the :attr:`parent` attribute.
-
-    Default: ``None``.
-    
-
---
-
-
-**Attributes**
-
-    
-.. attribute:: parent
-
-    The :class:`RouteMixin` immediately before this route. When setting
-    this attribute, the :attr:`route` is updated from the :attr:`rel_route`
-    attribute as ``self`` and the :attr:`route` of :attr:`parent`.
-    
-.. attribute:: rel_route
-
-    The relative :class:`Route` with respect :attr:`parent` for this instance.
-    
-.. attribute:: route
-
-    The :class:`Route` for this instance. Calculated from :attr:`rel_route`
-    and :attr:`parent`.
-    
-.. attribute:: path
-
-    proxy to the :attr:`Route.path` attribute of :attr:`route`.
-    It is the absolute path for this instance.
-    
-.. attribute:: isbound
-
-    ``True`` when the route is bound to a :class:`ResolverMixin` instance.
-    
-.. attribute:: root
-
-    The root :class:`RouteMixin` instance for of this route. If this instance
-    has :attr:`parent` set to ``None``, the :attr:`root` is equal to ``self``.
-    
-.. attribute:: is_root
-
-    ``True`` if :attr:`root` is ``self``.
-    
-.. attribute:: tree
-
-    The views non-recombining tree
-    
-.. attribute:: site
-
-    The closes :class:`Site` instance for of this route.
-    
-.. attribute:: settings
-
-    web site settings dictionary, available when :attr:`isbound` is ``True``.
-'''
-    PERM = VIEW
-    
-    def __init__(self, route):
-        if not isinstance(route, Route):
-            route = Route(route)
-        self._rel_route = route
-        self.local = {}
-        self.internals = {}
-        self.parent = None
-        
-    def __unicode__(self):
-        return self.route.rule
-    
-    def __copy__(self):
-        d = self.__dict__.copy()
-        o = self.__class__.__new__(self.__class__)
-        d['_rel_route'] = copy(self._rel_route)
-        d['local'] = {}
-        o.__dict__ = d
-        o.parent = None
-        return o
-    
-    def __deepcopy__(self, memo):
-        return copy(self)
-    
-    @property
-    def lock(self):
-        if not 'lock' in self.local:
-            self.local['lock'] = Lock()
-        return self.local['lock']
-    
-    @property
-    def route(self):
-        return self.local['route']
-    
-    def _get_parent(self):
-        return self.local['parent']
-    def _set_parent(self, parent):
-        self.local['parent'] = self._make_parent(parent)
-    parent = property(_get_parent,_set_parent)
-    
-    def __get_rel_route(self):
-        return self._rel_route
-    def __set_rel_route(self, r):
-        if self.route == self._rel_route:
-            self._rel_route = r
-            self.local['route'] = r
-        else:
-            br = self.route - self._rel_route
-            self._rel_route = r
-            self.local['route'] = br + r
-    rel_route = property(__get_rel_route,__set_rel_route)
-    
-    @property
-    def site(self):
-        return self._site()
-    
-    @property
-    def is_root(self):
-        return self.parent is None
-    
-    @property
-    def path(self):
-        return self.route.path
-    
-    @property
-    def root(self):
-        if self.parent is not None:
-            return self.parent.root
-        else:
-            return self
-        
-    @property
-    def tree(self):
-        if self.is_root:
-            return self.local['tree']
-        else:
-            return self.root.tree
-    
-    @property
-    def isbound(self):
-        return self._isbound()
-    
-    def internal_data(self, name):
-        v = self.internals.get(name)
-        if v is None and self.parent:
-            return self.parent.internal_data(name)
-        else:
-            return v
-    
-    @property
-    def response(self):
-        '''Access the site :ref:`response handler <response-handler>`.'''
-        return self.internal_data('response_handler')
-    
-    @property
-    def settings(self):
-        return self.internal_data('settings')
-    
-    @property
-    def search_engine(self):
-        return self.internal_data('search_engine')
-    
-    @property
-    def permissions(self):
-        return self.internal_data('permissions')
-    
-    @property
-    def meta_robots(self):
-        return self.internal_data('meta_robots')
-    
-    @property
-    def template(self):
-        return self.internal_data('template')
-    
-    @property
-    def User(self):
-        return self.internal_data('User')
-    
-    @property
-    def Page(self):
-        return self.internal_data('Page')
-    
-    @property
-    def BlockContent(self):
-        return self.internal_data('BlockContent')
-    
-    @property
-    def storage(self):
-        return self.internal_data('storage')
-    
-    def encoding(self, request):
-        '''Encoding for this route'''
-        return self.settings.DEFAULT_CHARSET
-    
-    def content_type(self, request):
-        '''Content type for this route'''
-        return self.settings.DEFAULT_CONTENT_TYPE
-    
-    def cssgrid(self, request):
-        settings = self.settings
-        page = request.page
-        layout = page.layout if page else None
-        layout = layout or settings.LAYOUT_GRID_SYSTEM
-        return get_cssgrid(layout)
-    
-    def instance_from_variables(self, environ, urlargs):
-        '''Retrieve an instance form the variable part of the
- :attr:`route` attribute.
- 
- :parameter urlargs: dictionary of url arguments.
- 
- This function needs to be implemented by subclasses. By default it returns
- ``None``.
- '''
-        pass
-    
-    def variables_from_instance(self, instance):
-        '''Retrieve the url bits from an instance. It returns an iterator
- over key-value touples or a dictionary. This is the inverse of
- :meth:`instance_from_variables` function.'''
-        raise StopIteration
-    
-    def get_url(self, urlargs, instance = None):
-        '''Retrieve the :attr:`route` full *url* from a dictionary of
-url attributes and, optionally, an instance of an element constructed
-from the variable part of the url.'''
-        if instance:
-            urlargs.update(self.variables_from_instance(instance))
-        try:
-            return self.route.url(**urlargs)
-        except:
-            return None
-    
-    ############################################################################
-    #    INTERNALS
-    ############################################################################
-    def _make_parent(self, parent):
-        if parent is not None:
-            if not isinstance(parent, RouteMixin):
-                raise ValueError('parent must be an instance of RouteMixin.\
- Got "{0}"'.format(parent))
-            self.local['route'] = parent.route + self._rel_route
-        else:
-            self.local['route'] = self._rel_route
-        return parent
-    
-    def _site(self):
-        raise NotImplementedError
-    
-    def _isbound(self):
-        raise NotImplementedError
+        if isinstance(value, Http404):
+            value.url = None
+            if self.resolver.is_root and path and not path.endswith('/'):
+                path = path+'/'
+                try:
+                    v,u = self.resolver.resolve(path)
+                except:
+                    pass
+                else:
+                    value.url = '/'+path
     
     
 class ResolverMixin(RouteMixin):
@@ -377,28 +122,32 @@ class ResolverMixin(RouteMixin):
                     
     def resolve(self, path, urlargs=None):
         '''Resolve a *path* recursively.'''
-        with resolver_manager(self, path) as rm:
-            best_match, best_rem = self, path
-            urlargs = urlargs if urlargs is not None else {}
-            for handler in self.urls():
-                match = handler.rel_route.match(path)
-                if match is None:
-                    continue
-                remaining_path = match.pop('__remaining__','')
-                urlargs.update(match)
-                if isinstance(handler, ResolverMixin):
-                    if len(remaining_path) < len(best_rem):
-                        best_rem = remaining_path
-                        best_match = handler
-                    res = handler.resolve(remaining_path, urlargs)
-                    if res:
-                        return res
-                elif not remaining_path:
-                    return handler, urlargs
-                
-            # Nothing found Check the static pages if they are available
-            if self.root:
+        try:
+            with resolver_manager(self, path) as rm:
+                urlargs = urlargs if urlargs is not None else {}
+                best_match = url_match(self, urlargs, path)
+                for handler in self.urls():
+                    match = handler.rel_route.match(path)
+                    if match is None:
+                        continue
+                    remaining_path = match.pop('__remaining__','')
+                    urlargs.update(match)
+                    if isinstance(handler, ResolverMixin):
+                        try:
+                            return handler.resolve(remaining_path, urlargs)
+                        except Http404 as e:
+                            remaining_path = e.handler.remaining
+                            if len(remaining_path) <= len(best_match.remaining):
+                                best_match = e.handler
+                    elif not remaining_path:
+                        return handler, urlargs
                 raise Http404(path, handler=best_match)
+        except Http404 as e:
+            if e.url:
+                raise HttpRedirect(e.url)
+            else:
+                raise
+            
             
     def pageview(self, path):
         Page = self.root.Page

@@ -5,7 +5,7 @@ import traceback
 from inspect import isclass
 from copy import copy
 
-from djpcms import Renderer, is_renderer, ajax, media
+from djpcms import is_renderer, ajax
 from djpcms.utils import orms
 from djpcms.html import layout, Widget, error_title, classes, html_trace
 from djpcms.utils.decorators import lazyproperty
@@ -25,10 +25,10 @@ from .urlresolvers import ResolverMixin
 from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
+from .views import ViewRenderer
 
 
-__all__ = ['Site', 'ViewRenderer', 'get_settings', 'WebSite',
-           'request_processor']
+__all__ = ['Site', 'get_settings', 'WebSite', 'request_processor']
 
 
 logger = logging.getLogger('djpcms')
@@ -103,38 +103,7 @@ def add_default_handlers(site):
 def request_processor(f):
     f.request_processor = True
     return f
-        
-        
-class ViewRenderer(Renderer):
-    appmodel = None
-    inherit_page = False
     
-    def parent_instance(self, instance):
-        '''Return the parent instance for *instance*. This is the instance
-for the parent view. By default it returns *instance*. This function
-is used by the :attr:`djpcms.Request.parent` attribute.'''
-        return instance
-    
-    def add_media(self, request, media):
-        request.media.add(media)
-        
-    def default_media(self, request):
-        settings = self.settings
-        m = media.Media(settings=settings)
-        m.add_js(media.jquery_paths(settings))
-        m.add_js(media.bootstrap(settings))
-        m.add_js(settings.DEFAULT_JAVASCRIPT)
-        if settings.DEFAULT_STYLE_SHEET:
-            m.add_css(settings.DEFAULT_STYLE_SHEET)
-        elif settings.STYLING:
-            target = media.site_media_file(settings)
-            if target:
-                m.add_css({'all': (target,)})
-        m.add(self.media(request))
-        return m
-    
-    def get_body_class(self, request):
-        pass
 
 class WSGI(object):
     '''Djpcms WSGI handler.'''

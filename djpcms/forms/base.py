@@ -39,7 +39,7 @@ class FieldList(list):
 '''
     def __init__(self, data=None, withprefix=True):
         self.withprefix = withprefix
-        super(FieldList, self).__init__(data)
+        super(FieldList, self).__init__(data or ())
         
     def fields(self, prefix=None):
         for nf in self:

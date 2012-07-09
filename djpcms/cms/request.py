@@ -661,7 +661,8 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
                 request = None
         if request is None:
             if node is None:
-                handler = getattr(exc_info[1], 'handler', self.site)
+                match = getattr(exc_info[1], 'handler', None)
+                handler = self.site if match is None else match.handler()
                 node = BadNode(tree, handler)
             request = make_request(self.environ, node)
             request.exc_info = exc_info

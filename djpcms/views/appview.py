@@ -5,12 +5,11 @@ from djpcms.utils.httpurl import zip
 from djpcms import forms, ajax, html
 from djpcms.html import classes, render_block
 from djpcms.utils.text import nicename
-from djpcms.cms import Route, Http404, permissions
+from djpcms.cms import Route, Http404, permissions, djpcmsview
 from djpcms.cms.plugins import html_plugin_form
 from djpcms.cms.formutils import saveform, deleteinstance, get_redirect
 
 from .pagination import paginationResponse
-from .baseview import djpcmsview 
 
 
 __all__ = ['View',

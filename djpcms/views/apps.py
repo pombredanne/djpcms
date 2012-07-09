@@ -9,11 +9,10 @@ from djpcms.utils import orms
 from djpcms.utils.async import async_object
 from djpcms.utils.structures import OrderedDict
 from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
-                       UrlException, AlreadyRegistered
+                       UrlException, AlreadyRegistered, RendererMixin, SPLITTER
 from djpcms.cms.formutils import get_form
 from djpcms.cms.plugins import register_application
 
-from .baseview import RendererMixin, SPLITTER
 from .appview import View, ViewView
 from .objectdef import *
 from .pagination import *

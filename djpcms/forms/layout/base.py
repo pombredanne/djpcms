@@ -189,7 +189,7 @@ class SubmitElement(FormLayoutElement):
             
     def get_context(self, request, widget, context):
         inner = html.Widget('div', widget.inputs,
-                            cn=(self.default_style,classes.buttonHolder))
+                            cn=(self.default_style,classes.button_holder))
         widget.removeClass(self.default_style)
         widget.add(inner)
 

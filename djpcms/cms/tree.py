@@ -4,6 +4,8 @@ from djpcms.utils.httpurl import unquote_unreserved, itervalues
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils.text import UnicodeMixin
 
+from .views import pageview
+
 
 class Node(UnicodeMixin):
     '''A not in a non-recombining tree'''
@@ -250,7 +252,6 @@ class DjpNode(MultiNode):
     def view(self):
         view = self._view
         if view is None:
-            from djpcms.views import pageview
             parent = self.parent
             if parent is None:
                 handler = self.tree.site

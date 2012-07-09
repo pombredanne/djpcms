@@ -13,7 +13,7 @@ from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
 from djpcms.cms.formutils import get_form
 from djpcms.cms.plugins import register_application
 
-from .appview import View, ViewView
+from .appviews import View, ViewView
 from .objectdef import *
 from .pagination import *
 

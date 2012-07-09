@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "green"
-Created by djpcms.style 2012-07-07 14:24:25.590688
-Time taken 0.367 seconds
+Created by djpcms.style 2012-07-09 17:14:18.234000
+Time taken 0.334 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -772,7 +772,7 @@ input:-ms-input-placeholder {
     border: 1px solid #aaaaaa;
 }
 
-button {
+.btn {
     cursor: pointer;
     background-color: #a9bc7f;
     background-image: -moz-linear-gradient(top, #a9bc7f, #a9bc7f);
@@ -790,11 +790,9 @@ button {
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
-    padding: 4px 9px 4px;
-    display: inline-block;
 }
 
-button:hover {
+.btn:hover {
     background-color: #8e9e6b;
     background-image: -moz-linear-gradient(top, #8e9e6b, #8e9e6b);
     background-image: -ms-linear-gradient(top, #8e9e6b, #8e9e6b);
@@ -810,7 +808,7 @@ button:hover {
     border: 1px solid #999999;
 }
 
-button.ui-state-hover {
+.btn.ui-state-hover {
     background-color: #8e9e6b;
     background-image: -moz-linear-gradient(top, #8e9e6b, #8e9e6b);
     background-image: -ms-linear-gradient(top, #8e9e6b, #8e9e6b);
@@ -826,7 +824,7 @@ button.ui-state-hover {
     border: 1px solid #999999;
 }
 
-button:active {
+.btn:active {
     background-color: #def7a7;
     background-image: -moz-linear-gradient(top, #def7a7, #def7a7);
     background-image: -ms-linear-gradient(top, #def7a7, #def7a7);
@@ -842,7 +840,7 @@ button:active {
     border: 1px solid #aaaaaa;
 }
 
-button.ui-state-active {
+.btn.ui-state-active {
     background-color: #def7a7;
     background-image: -moz-linear-gradient(top, #def7a7, #def7a7);
     background-image: -ms-linear-gradient(top, #def7a7, #def7a7);
@@ -858,7 +856,7 @@ button.ui-state-active {
     border: 1px solid #aaaaaa;
 }
 
-button a {
+.btn a {
     cursor: inherit;
     font-weight: inherit;
     text-decoration: none;
@@ -1337,7 +1335,7 @@ form.uniForm .inlineLabels .ui-input {
     margin-left: 34%;
 }
 
-form.uniForm .inlineLabels.buttonHolder {
+form.uniForm .inlineLabels.btn-holder {
     padding-left: 34%;
 }
 
@@ -1700,7 +1698,7 @@ th.ui-clickable {
     clear: both;
 }
 
-.btn-group > button {
+.btn-group > .btn {
     position: relative;
     float: left;
     margin: 0 0 0 -1px;
@@ -1709,20 +1707,48 @@ th.ui-clickable {
             border-radius: 0;
 }
 
-.btn-group > button:first-child {
+.btn-group > .btn:first-child {
     margin: 0;
     -webkit-border-radius: 4px 0 0 4px;
        -moz-border-radius: 4px 0 0 4px;
             border-radius: 4px 0 0 4px;
 }
 
-.btn-group > button:last-child {
+.btn-group > .btn:last-child {
     -webkit-border-radius: 0 4px 4px 0;
        -moz-border-radius: 0 4px 4px 0;
             border-radius: 0 4px 4px 0;
 }
 
+.btn-holder {
+    *zoom: 1;
+}
+
+.btn-holder:before {
+    content: "";
+    display: table;
+}
+
+.btn-holder:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.btn-holder > * {
+    margin: 0 5px 0 0;
+}
+
+.btn-holder > *:last-child {
+    margin: 0;
+}
+
 input.btn[type="submit"] {
+    padding: 4px 9px 4px;
+    display: inline-block;
+}
+
+button.btn {
     padding: 4px 9px 4px;
     display: inline-block;
 }
@@ -1732,7 +1758,19 @@ a.btn {
     display: inline-block;
 }
 
-button.btn-small {
+label.btn {
+    padding: 4px 9px 4px;
+    display: inline-block;
+}
+
+input.btn.btn-small[type="submit"] {
+    padding: 2px;
+    -webkit-border-radius: 2px;
+       -moz-border-radius: 2px;
+            border-radius: 2px;
+}
+
+button.btn.btn-small {
     padding: 2px;
     -webkit-border-radius: 2px;
        -moz-border-radius: 2px;
@@ -1746,28 +1784,35 @@ a.btn.btn-small {
             border-radius: 2px;
 }
 
-input.btn.btn-small[type="submit"] {
+label.btn.btn-small {
     padding: 2px;
     -webkit-border-radius: 2px;
        -moz-border-radius: 2px;
             border-radius: 2px;
 }
 
-button.btn-large {
+input.btn.btn-large[type="submit"] {
     padding: 8px;
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
 }
 
-a.button.btn-large {
+button.btn.btn-large {
     padding: 8px;
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
 }
 
-input.button.btn-large[type="submit"] {
+a.btn.btn-large {
+    padding: 8px;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+label.btn.btn-large {
     padding: 8px;
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
@@ -2079,6 +2124,19 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
 
 .icon-user-md:before              { content: "\f200"; }
 
+.btn [class^="icon-"], .btn [class*=" icon-"] {
+	float: left;
+	display: inline-block;
+	text-decoration: none !important;
+	overflow: visible;
+	position: relative;
+	padding: 0.1em;
+}
+.btn {
+	display: inline-block;
+	text-align: center;
+	vertical-align: middle;
+}
 .topbar {
     height: 40px;
     z-index: 10000;

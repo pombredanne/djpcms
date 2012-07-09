@@ -65,53 +65,61 @@
     };
     
     /**
-     * A minimalist logging class
+     * Logging module for djpcms. Usage
+     * 
+     * var logger = $.logging.getLogger();
+     * logger.info('bla')
      */
-    function djplogger() {
-        function error(msg, e){
-            if(e) {
-                msg += "- File " + e.fileName + " - Line " + e.lineNumber + ": " + e;
-            }
-            return msg;
-        }
-        
-        var handlers = [],
-            logclass = 'log',
-            level = 10,
-            levels = {
-                    debug: {n:10,v:'DEBUG'},
-                    info: {n:20,v:'INFO'},
-                    warn: {n:30,v:'WARN'},
-                    error: {n:40,v:'ERROR',f: error},
-                    critical: {n:50,v:'CRITICAL', f:error}
+    $.logging = (function() {
+        var levelNames = {},
+            logging = {
+                loggers: {},
+                mapping: {},
+                names: {},
+                format_error: function (msg, e){
+                    if(e !== undefined) {
+                        msg += "- File " + e.fileName + " - Line " + e.lineNumber + ": " + e;
+                    }
+                    return msg;
                 },
-            mapping = {};
-            names = {};
-        $.each(levels,function(fname,val) {
-            mapping[val.n] = val.v;
-            names[val.v] = val.n;
-        });
+                debug: 10,
+                info: 20,
+                warn: 30,
+                error: 40,
+                critical: 50,
+                logclass: 'log',
+            };
         
-        var instance = {
-            'level': function() {return level;},
-            'set_level': function(lev) {
-                var l = names[lev];
-                if(l) {
-                    level = l;
-                }
-            },
-            'addHandler': function(h) {handlers.push(h);}
+        logging.levels = {
+            debug: {level:logging.debug,
+                    name:'DEBUG'},
+            info: {level:logging.info,
+                   name:'INFO'},
+            warn: {level:logging.warn,
+                   name:'WARN'},
+            error: {level:logging.error,
+                    name:'ERROR',
+                    f: function(msg, e) {return logging.format_error(msg, e);}},
+            critical: {level:logging.critical,
+                       name:'CRITICAL',
+                       f: function(msg, e) {return logging.format_error(msg, e);}}
         };
-            
-        if(typeof console !== "undefined" && typeof console.log !== "undefined") {
-            instance.addHandler(function(msg,level) {
-                console.log(msg);
-            });
-        }
-            
-        instance.log = function (msg, lvl) {
-            if(lvl < level) {return;}
-            var mlevel = mapping[lvl] || 'UNKN',
+        $.each(logging.levels, function(name, level) {
+            levelNames[level.level] = level;
+        });
+        logging.getLevelName = function(level) {
+            var l = levelNames[level];
+            if(l !== undefined) {
+                return l.name;
+            }
+            else {
+                return 'Level-'+level;
+            }
+        };
+        
+        // Default formatter
+        logging.default_formatter = function(msg, lvl) {
+            var mlevel = logging.getLevelName(lvl);
                 msg,
                 dte = new Date(),
                 hours = dte.getHours(),
@@ -120,24 +128,73 @@
             if(hours < 10) {hours = '0'+hours;}
             if(minutes < 10) {minutes = '0'+minutes;}
             if(seconds < 10) {seconds = '0'+seconds;}
-            msg = hours+':'+minutes+':'+seconds+' - '+mlevel+' - '+msg;
-            msg = '<pre class="' + logclass + ' '+mlevel.toLowerCase()+'">'+msg+'</pre>';
-            $.each(handlers, function(i,handle) {
-                handle(msg,level);
-            });
-        }
+            return hours+':'+minutes+':'+seconds+' - '+mlevel+' - '+msg;
+        };
         
-        $.each(levels,function(fname,val) {
-            instance[fname] = function (msg,e) {
-                if(val.f) {
-                    msg = val.f(msg,e);
-                }
-                instance.log(msg,val.n);
+        // HTML formatter
+        logging.html_formatter = function(msg, lvl) {
+            var mlevel = logging.getLevelName(lvl);
+            msg = logging.default_formatter(msg, lvl);
+            return '<pre class="' + logging.logclass + ' '+mlevel.toLowerCase()+'">'+msg+'</pre>';
+        };
+        
+        logging.getLogger = function (name) {
+            var logclass = 'log',
+                level = 10,
+                handlers = [],
+                logger;
+            
+            if(name === undefined) {
+                name = 'root';
             }
-        });
-        
-        return instance;
-    };
+            logger = logging.loggers[name];
+            if(logger !== undefined) {
+                return logger;
+            }
+            logger = {
+                'name': name,
+                'level': function() {return level;},
+                'set_level': function(lev) {
+                    var l = names[lev];
+                    if(l) {
+                        level = l;
+                    }
+                },
+                'addHandler': function(h) {
+                    if(h !== undefined) {
+                        if(h.formatter === undefined) {
+                            h = {'formatter': logging.default_formatter,
+                                 'log': h}
+                        }
+                        handlers.push(h);
+                    }
+                },
+                'log': function (message, lvl) {
+                    if(lvl < level) {return;}
+                    $.each(handlers, function(i, handle) {
+                        handle.log(handle.formatter(message, lvl));
+                    });
+                }
+            };
+                
+            if(typeof console !== "undefined" && typeof console.log !== "undefined") {
+                logger.addHandler(console.log);
+            }
+            
+            $.each(logging.levels, function(name, level) {
+                logger[name] = function (msg, e) {
+                    if(level.f) {
+                        msg = level.f(msg, e);
+                    }
+                    logger.log(msg, level.level);
+                };
+            });
+            
+            logging.loggers[logger.name] = logger
+            return logger;
+        };
+        return logging;
+    }());
     
     /**
      * djpcms site manager
@@ -151,7 +208,7 @@
             inrequest = false,
             panel = null,
             appqueue = [],
-            logger = djplogger(),
+            logger = $.logging.getLogger(),
             defaults = {
                 media_url: "/media/",
                 confirm_actions:{
@@ -173,8 +230,11 @@
         function set_logging_pannel(panel) {
             var panel = $(panel);
             if(panel.length) {
-                logger.addHandler(function(msg,level) {
-                    panel.prepend(msg);
+                logger.addHandler({
+                    formatter: $.logging.html_formatter,
+                    log: function(msg) {
+                        panel.prepend(msg);
+                    }
                 });
             }
         }
@@ -364,8 +424,7 @@
     
     $.djpcms.ui = {
         icons: 'fontawesome',
-        classes: {button: 'btn',
-                  button_small: 'btn-small',
+        classes: {active: 'active',
                   clickable: 'ui-clickable',
                   float_right: 'f-right'},
         widget_head: 'ui-widget-header',
@@ -373,15 +432,6 @@
         corner_top: 'ui-corner-top',
         corner_bottom: 'ui-corner-bottom',
         ui_input: 'ui-input',
-        button: function(elem, text, icons) {
-            var name = $.djpcms.ui.icons;
-            var icon = icons[name];
-            if(icon) {
-                if(name === 'fontawesome') {
-                    elem.html('').append('<i class="'+icon+'"></i>');
-                }
-            }
-        },
         dialog: function (el, options) {
             var ui = $.djpcms.ui,
                 open = true, wdg;

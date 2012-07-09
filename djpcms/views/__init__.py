@@ -1,4 +1,5 @@
+'''Application and Application views.'''
 from .pagination import *
-from .appview import *
-from .apps import *
+from .appviews import *
+from .application import *
 from .objectdef import *

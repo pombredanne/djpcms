@@ -26,7 +26,8 @@ def DEFAULT_JAVASCRIPT(*extra):
     js = ['djpcms/jquery.cookie.js',
           'djpcms/jquery.form.js',
           'djpcms/showdown.js',
-          'djpcms/djpcms.js']
+          'djpcms/djpcms.js',
+          'djpcms/button.js']
     js.extend(extra)
     return js
 

@@ -1,3 +1,4 @@
+from djpcms.html.classes import button_holder, button
 form = 'uniForm'
 inlineLabels = 'inlineLabels'
 inlineLabels2 = 'inlineLabels fullwidth'
@@ -7,7 +8,6 @@ blockLabels2 = 'blockLabels2'
 inlineFormsets = 'blockLabels2'
 nolabel = 'nolabel'
 ctrlHolder = 'ctrlHolder'
-buttonHolder = 'buttonHolder'
 required = 'required'
 label = 'label'
 ui_input = 'ui-input'

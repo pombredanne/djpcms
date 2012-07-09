@@ -32,6 +32,7 @@ object_definition = 'object-definition'
 
 # Buttons
 button = 'btn'
+button_holder = 'btn-holder'
 button_group = 'btn-group'
 button_large = 'btn-large'
 button_small = 'btn-small'

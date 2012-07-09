@@ -14,3 +14,7 @@ css('@font-face',
 css('body',
     css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'media','font-awesome.css')))
+
+css('body',
+    css_include(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'media','extra.css')))

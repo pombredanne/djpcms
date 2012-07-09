@@ -68,7 +68,7 @@ css('body',
                          'media','ui.css')))
 
 ################################################################ CLICKABLE
-css('.%s, button'%classes.clickable,
+css('.%s, .%s'%(classes.clickable,classes.button),
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),

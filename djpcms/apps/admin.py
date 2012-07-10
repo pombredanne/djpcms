@@ -92,8 +92,9 @@ administer a group of :class:`djpcms.views.Applications`.'''
     def models_list(self, request, **kwargs):
         def _make():
             for c in self.query(request):
-                links = ''.join((l.render() for l in
-                                  views.application_views_links(c)))
+                links=  Widget('div',
+                               views.application_views_links(c),
+                               cn=classes.button_holder)
                 yield Widget('dl', (Widget('a', c.title, href=c.url), links))
         return Widget('div', cn=classes.object_definition).add(_make())
       

@@ -1,8 +1,6 @@
 .btn [class^="icon-"], .btn [class*=" icon-"] {
-	float: left;
 	display: inline-block;
 	text-decoration: none !important;
 	overflow: visible;
 	position: relative;
-	padding: 0.1em;
 }

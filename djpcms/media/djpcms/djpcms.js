@@ -11,6 +11,8 @@
  * http://www.opensource.org/licenses/bsd-license.php
  *
  */
+/*globals window, document, jQuery, console*/
+/*jslint nomen: true, plusplus: true */
 /**
  * 
  * djpcms site handle.
@@ -24,60 +26,58 @@
  * 
  * $(document).djpcms();
  */
-(function($) {
-    
+(function ($) {
+    "use strict";
     /**
      * Common Ancestor jQuery plugin
      */
-    $.fn.commonAncestor = function() {
-        if(!this.length) {
+    $.fn.commonAncestor = function () {
+        if (!this.length) {
             return $([]);
         }
         var parents = [],
             minlen = Infinity,
-            i,j,p,equal;
-    
-        this.each(function() {
+            i, j, p, equal;
+        //
+        this.each(function () {
             var curparents = $(this).parents();
             parents.push(curparents);
             minlen = Math.min(minlen, curparents.length);
         });
-    
-        $.each(parents, function(i,p) {
+        //
+        $.each(parents, function (i, p) {
             parents[i] = p.slice(p.length - minlen);
         });
-    
         // Iterate until equality is found
-        for(i=0;i<parents[0].length;i++) {
+        for (i = 0; i < parents[0].length; i++) {
             p = parents[0][i];
             equal = true;
-            for(j=1;j<parents.length;j++) {
-                if(parents[j][i] !== p) {
+            for (j = 1; j < parents.length; j++) {
+                if (parents[j][i] !== p) {
                     equal = false;
                     break;
                 }
             }
-            if(equal) {
+            if (equal) {
                 return $(p);
             }
         }
         return $([]);
     };
-    
     /**
      * Logging module for djpcms. Usage
      * 
      * var logger = $.logging.getLogger();
      * logger.info('bla')
      */
-    $.logging = (function() {
+    $.logging = (function () {
         var levelNames = {},
             logging = {
                 loggers: {},
                 mapping: {},
                 names: {},
-                format_error: function (msg, e){
-                    if(e !== undefined) {
+                format_error: function (msg, e) {
+                    if (e !== undefined) {
                         msg += "- File " + e.fileName + " - Line " + e.lineNumber + ": " + e;
                     }
                     return msg;
@@ -87,123 +87,163 @@
                 warn: 30,
                 error: 40,
                 critical: 50,
-                logclass: 'log',
+                logclass: 'log'
             };
-        
+        // Logging levels
         logging.levels = {
-            debug: {level:logging.debug,
-                    name:'DEBUG'},
-            info: {level:logging.info,
-                   name:'INFO'},
-            warn: {level:logging.warn,
-                   name:'WARN'},
-            error: {level:logging.error,
-                    name:'ERROR',
-                    f: function(msg, e) {return logging.format_error(msg, e);}},
-            critical: {level:logging.critical,
-                       name:'CRITICAL',
-                       f: function(msg, e) {return logging.format_error(msg, e);}}
+            debug: {
+                level: logging.debug,
+                name: 'DEBUG'
+            },
+            info: {
+                level: logging.info,
+                name: 'INFO'
+            },
+            warn: {
+                level: logging.warn,
+                name: 'WARN'
+            },
+            error: {
+                level: logging.error,
+                name: 'ERROR',
+                f: function (msg, e) {
+                    return logging.format_error(msg, e);
+                }
+            },
+            critical: {
+                level: logging.critical,
+                name: 'CRITICAL',
+                f: function (msg, e) {
+                    return logging.format_error(msg, e);
+                }
+            }
         };
-        $.each(logging.levels, function(name, level) {
+        // Create the mapping between level number and level name
+        $.each(logging.levels, function (name, level) {
             levelNames[level.level] = level;
         });
-        logging.getLevelName = function(level) {
+        logging.getLevelName = function (level) {
             var l = levelNames[level];
-            if(l !== undefined) {
+            if (l !== undefined) {
                 return l.name;
-            }
-            else {
-                return 'Level-'+level;
+            } else {
+                return 'Level-' + level;
             }
         };
-        
         // Default formatter
-        logging.default_formatter = function(msg, lvl) {
-            var mlevel = logging.getLevelName(lvl);
-                msg,
+        logging.default_formatter = function (msg, lvl) {
+            var mlevel = logging.getLevelName(lvl),
                 dte = new Date(),
                 hours = dte.getHours(),
                 minutes = dte.getMinutes(),
                 seconds = dte.getSeconds();
-            if(hours < 10) {hours = '0'+hours;}
-            if(minutes < 10) {minutes = '0'+minutes;}
-            if(seconds < 10) {seconds = '0'+seconds;}
-            return hours+':'+minutes+':'+seconds+' - '+mlevel+' - '+msg;
+            if (hours < 10) {hours = '0' + hours; }
+            if (minutes < 10) {minutes = '0' + minutes; }
+            if (seconds < 10) {seconds = '0' + seconds; }
+            return hours + ':' + minutes + ':' + seconds + ' - ' + mlevel + ' - ' + msg;
         };
-        
         // HTML formatter
-        logging.html_formatter = function(msg, lvl) {
+        logging.html_formatter = function (msg, lvl) {
             var mlevel = logging.getLevelName(lvl);
             msg = logging.default_formatter(msg, lvl);
-            return '<pre class="' + logging.logclass + ' '+mlevel.toLowerCase()+'">'+msg+'</pre>';
+            return '<pre class="' + logging.logclass + ' ' + mlevel.toLowerCase() + '">' + msg + '</pre>';
         };
-        
+        // Get a logger handle
         logging.getLogger = function (name) {
             var logclass = 'log',
                 level = 10,
                 handlers = [],
                 logger;
-            
-            if(name === undefined) {
+            if (name === undefined) {
                 name = 'root';
             }
             logger = logging.loggers[name];
-            if(logger !== undefined) {
+            if (logger !== undefined) {
                 return logger;
             }
             logger = {
                 'name': name,
-                'level': function() {return level;},
-                'set_level': function(lev) {
-                    var l = names[lev];
-                    if(l) {
-                        level = l;
-                    }
+                'level': function () {
+                    return level;
                 },
-                'addHandler': function(h) {
-                    if(h !== undefined) {
-                        if(h.formatter === undefined) {
+                'set_level': function (lev) {
+                    level = parseInt(String(lev), 10);
+                },
+                'addHandler': function (h) {
+                    if (h !== undefined) {
+                        if (h.formatter === undefined) {
                             h = {'formatter': logging.default_formatter,
-                                 'log': h}
+                                 'log': h};
                         }
                         handlers.push(h);
                     }
                 },
                 'log': function (message, lvl) {
-                    if(lvl < level) {return;}
-                    $.each(handlers, function(i, handle) {
+                    if (lvl < level) {return; }
+                    $.each(handlers, function (i, handle) {
                         handle.log(handle.formatter(message, lvl));
                     });
                 }
             };
-                
-            if(typeof console !== "undefined" && typeof console.log !== "undefined") {
+            // Add console handle
+            if (typeof console !== "undefined" && typeof console.log !== "undefined") {
                 logger.addHandler(function (msg) {
                     console.log(msg);
                 });
             }
-            
-            $.each(logging.levels, function(name, level) {
+            // For each logging level add logging function
+            $.each(logging.levels, function (name, level) {
                 logger[name] = function (msg, e) {
-                    if(level.f) {
+                    if (level.f) {
                         msg = level.f(msg, e);
                     }
                     logger.log(msg, level.level);
                 };
             });
-            
-            logging.loggers[logger.name] = logger
+            // Add logger to the global loggers object
+            logging.loggers[logger.name] = logger;
             return logger;
         };
         return logging;
     }());
     
+    $.djpcms = {
+        ui: {
+            widget_head: 'ui-widget-header',
+            widget_body: 'ui-widget-content',
+            corner_top: 'ui-corner-top',
+            corner_bottom: 'ui-corner-bottom',
+            ui_input: 'ui-input',
+            dialog: function (el, options) {
+                var ui = $.djpcms.ui,
+                    open = true,
+                    wdg;
+                options = options || {};
+                if (options.autoOpen === false) {
+                    open = false;
+                }
+                options.autoOpen = false;
+                wdg = el.dialog(options).dialog('widget');
+                if (ui.icons === 'fontawesome') {
+                    $('.ui-dialog-titlebar-close', wdg)
+                        .html('<i class="icon-remove"></i>')
+                        .addClass(ui.classes.float_right);
+                }
+                if (open) {
+                    el.dialog('open');
+                }
+                return el;
+            }
+        }
+    };
     /**
      * djpcms site manager
      */
-    $.djpcms = (function() {
-        
+    $.djpcms = (function (djpcms) {
+        // Private variables
         var decorators = {},
+            widgets = {},
+            instances = [],
             actions = {},
             jsonCallBacks = {},
             logging_pannel = null,
@@ -212,114 +252,160 @@
             appqueue = [],
             logger = $.logging.getLogger(),
             defaults = {
+                icons: 'fontawesome',
                 media_url: "/media/",
-                confirm_actions:{
+                classes: {
+                    active: 'ui-state-active',
+                    clickable: 'ui-clickable',
+                    float_right: 'f-right',
+                },
+                confirm_actions: {
                     'delete': 'Please confirm delete',
                     'flush': 'Please confirm flush'
-                        },
+                },
                 autoload_class: "autoload",
                 ajax_server_error: "ajax-server-error",
                 errorlist: "errorlist",
                 formmessages: "form-messages",
-                remove_effect: {type:"drop",duration:500},
+                remove_effect: {type: "drop", duration: 500},
                 bitly_key: null,
                 twitter_user: null,
                 fadetime: 200,
                 ajaxtimeout: 30,
                 debug: false
-                };
-        
+            },
+            base_widget = {
+                defaultElement: '<div>',
+                config: {},
+                _create: function() {
+                    return this;
+                }
+            };
+        //
+        function make_widget(name, widget) {
+            widget.name = name;            
+            widgets[widget.name] = widget;
+            $.extend(widget, {
+                create: function (element, options) {
+                    var self = $.extend({}, base_widget, widget),
+                        instance_id = parseInt(instances.push(self), 10) - 1;
+                    element = $( element || self.defaultElement )[ 0 ];
+                    if(options) {
+                        $.extend(true, self.config, options);
+                    }
+                    $.extend(self, {
+                        'djpcms': djpcms,
+                        id: function() {
+                            return instance_id;
+                        },
+                        'element': function() {
+                            return $(element);
+                        }
+                    });
+                    return self._create();
+                },
+                many: function(elements, options) {
+                    var wdgs = [];                    
+                    return $.each(elements, function() {
+                        wdgs.push(widget.create(this, options));
+                    });
+                    return wdgs;
+                }
+            });
+            $.extend(djpcms.ui, {
+                name: function (element, options) {
+                    options = $.extend({}, widget.config, options || {});
+                    return widget.many($(elements), options);
+                }
+            });
+        }
+        // Set a logging panel
         function set_logging_pannel(panel) {
-            var panel = $(panel);
-            if(panel.length) {
+            panel = $(panel);
+            if (panel.length) {
                 logger.addHandler({
                     formatter: $.logging.html_formatter,
-                    log: function(msg) {
+                    log: function (msg) {
                         panel.prepend(msg);
                     }
                 });
             }
         }
-                
+        // Create an object containing data to send to the server via AJAX.
+        // *NAME* is the name of the interaction
         function ajaxparams(name, data) {
-            var p = {'xhr':name};
-            if(data) {
-                return $.extend(p,data);
+            var p = {'xhr': name};
+            if (data) {
+                p = $.extend(p, data);
             }
-            else {
-                return p;
-            }
+            return p;
         }
-        
+        //
         function queue_application(app) {
-            if($.data(document,'djpcms')) {
+            if ($.data(document, 'djpcms')) {
                 app();
-            }
-            else {
+            } else {
                 appqueue.push(app);
             }
         }
-        
         // Set options
-        function setOptions(options_) {
-            $.extend(true, defaults, options_);
+        function setOptions(options) {
+            $.extend(true, defaults, options);
         }
-        
         // Add a new decorator
         function addDecorator(deco) {
             var config = deco.config || {},
-                opts = defaults[deco.id] || {}; 
-            decorators[deco.id] = $.proxy(deco.decorate, deco);
-            defaults[deco.id] = $.extend(config,opts);
+                opts = defaults[deco.name] || {};
+            decorators[deco.name] = $.proxy(deco.decorate, deco);
+            defaults[deco.name] = $.extend(config, opts);
+            if(deco.widget) {
+                make_widget(deco.name, deco);
+            }
         }
-        
         // Add a new callback for JSON data
         function addJsonCallBack(jcb) {
             jsonCallBacks[jcb.id] = jcb;
         }
-        
         // Remove a decorator
         function removeDecorator(rid) {
-            if(decorators.hasOwnMethod(rid)) {
+            if (decorators.hasOwnMethod(rid)) {
                 delete decorators[rid];
             }
         }
-        
+        //
         function _jsonParse(data, elem) {
-            var id  = data.header;
-            var jcb = jsonCallBacks[id];
-            if(jcb) {
-                return jcb.handle(data.body, elem, defaults) & data.error;
-            }
-            else {
+            var id  = data.header,
+                jcb = jsonCallBacks[id];
+            if (jcb) {
+                return jcb.handle(data.body, elem, defaults) && data.error;
+            } else {
                 logger.error('Could not find callback ' + id);
             }
         }
-        
+        // Add new action
         function addAction(id, action) {
             var a = actions[id];
-            if(!a) {
-               a = {'action':action, 'ids': {}};
-               actions[id] = a;
-            } else if(action) {
+            if (!a) {
+                a = {'action': action, 'ids': {}};
+                actions[id] = a;
+            } else if (action) {
                 a.action = action;
             }
             return a;
         }
-        
+        //
         function registerActionElement(actionid, id) {
-            var action = addAction(actionid,null);
+            var action = addAction(actionid, null);
             action.ids[id] = id;
         }
-        
+        //
         function getAction(actionid, id) {
-            var action = addAction(actionid,null);
-            if(action.ids[id]) {
+            var action = addAction(actionid, null);
+            if (action.ids[id]) {
                 delete action.ids[id];
                 return action.action;
             }
         }
-        
         /**
          * Handle a JSON call back by looping through all the callback
          * objects registered
@@ -329,56 +415,49 @@
          */
         function _jsonCallBack(data, status, elem) {
             var v = false;
-            if(status === "success") {
-                v = _jsonParse(data,elem);
+            if (status === "success") {
+                v = _jsonParse(data, elem);
             }
             inrequest = false;
             return v;
         }
-        
         /**
          * DJPCMS Handler constructor
          * It applys djpcms decorator to the element.
          */
         function _construct() {
-            return this.each(function() {
+            return this.each(function () {
                 var me = $(this),
                     config = defaults,
-                    lp = $('.djp-logging-panel',me),
+                    lp = $('.djp-logging-panel', me),
                     //parent = me.closest('.djpcms-loaded'),
                     parent = [];
-                
-                if(!parent.length) {
-                    if(this === document) {
+                //
+                if (!parent.length) {
+                    if (this === document) {
                         me = $('body');
                     }
-                    me.addClass('djpcms-loaded')
-                      .trigger('djpcms-before-loading');
-                    
-                    if(lp) {
+                    me.addClass('djpcms-loaded').trigger('djpcms-before-loading');
+                    if (lp) {
                         set_logging_pannel(lp);
                     }
-                    
-                    $.each(decorators,function(id,decorator) {
+                    $.each(decorators, function (id, decorator) {
                         logger.info('Adding decorator ' + id);
-                        decorator(me,config);
+                        decorator(me, config);
                     });
-                    
-                    if(this === document) {
-                        $.data(this,'djpcms',config);
-                        $.each(appqueue, function(i,app) {
+                    if (this === document) {
+                        $.data(this, 'djpcms', config);
+                        $.each(appqueue, function (i, app) {
                             app();
                         });
                         appqueue = [];
                     }
-                    
                     me.trigger('djpcms-after-loading');
                 }
             });
         }
-        
-        //    API
-        return {
+        //
+        return $.extend(djpcms, {
             construct: _construct,
             options: defaults,
             jsonParse: _jsonParse,
@@ -387,7 +466,7 @@
             decorator: addDecorator,
             set_options: setOptions,
             'ajaxparams': ajaxparams,
-            set_inrequest: function(v){inrequest=v;},
+            set_inrequest: function (v) {inrequest = v; },
             before_form_submit: [],
             //
             // Action in slements ids
@@ -395,95 +474,61 @@
             'registerActionElement': registerActionElement,
             'getAction': getAction,
             //
-            'inrequest': function(){return inrequest;},
+            'inrequest': function () {return inrequest; },
             'logger': logger,
             'queue': queue_application,
-            'panel': function() {
+            'panel': function () {
                 // A floating panel
-                if(!panel) {
+                if (!panel) {
                     panel = $('<div>').hide().appendTo($('body'))
                                     .addClass('float-panel ui-widget ui-widget-content ui-corner-all')
-                                    .css({position:'absolute',
-                                         'text-align':'left',
-                                          padding:'5px'});
+                                    .css({position: 'absolute',
+                                         'text-align': 'left',
+                                          padding: '5px'});
                 }
                 return panel;
             },
-            smartwidth: function(html) {
-                return Math.max(15*Math.sqrt(html.length),200);
+            smartwidth: function (html) {
+                return Math.max(15 * Math.sqrt(html.length), 200);
             }
-        };
-    }());
-    
-    /**
-     * ______________________ PLUGINS CALLBACKS AND DECORATORS
-     * 
-     */
+        });
+    }($.djpcms));
+    //
     // extend plugin scope
     $.fn.extend({
         djpcms: $.djpcms.construct
     });
-    
-    $.djpcms.ui = {
-        icons: 'fontawesome',
-        classes: {active: 'ui-state-active',
-                  clickable: 'ui-clickable',
-                  float_right: 'f-right'},
-        widget_head: 'ui-widget-header',
-        widget_body: 'ui-widget-content',
-        corner_top: 'ui-corner-top',
-        corner_bottom: 'ui-corner-bottom',
-        ui_input: 'ui-input',
-        dialog: function (el, options) {
-            var ui = $.djpcms.ui,
-                open = true, wdg;
-            options = options || {};
-            if(options.autoOpen === false) {
-                open = false;
-            }
-            options.autoOpen = false;
-            wdg = el.dialog(options).dialog('widget');
-            if(ui.icons === 'fontawesome') {
-                $('.ui-dialog-titlebar-close', wdg)
-                    .html('<i class="icon-remove"></i>')
-                    .addClass(ui.classes.float_right);
-            }
-            if(open) {
-                el.dialog('open');
-            }
-            return el;
-        }
-    };
-    
-    $.djpcms.confirmation_dialog = function(title, html, callback, opts) {
-        var el = $('<div title="'+title+'"></div>').html(html+""),
-            options = $.extend({},opts,{
-               modal: true,
-               draggable: false,
-               resizable: false,
-               buttons: {
-                   Ok : function() {
-                       $( this ).dialog( "close" );
-                       callback(true);
-                   },
-                   Cancel: function() {
-                       $(this).dialog( "close" );
-                       callback(false);
-                   }
+    //
+    $.djpcms.confirmation_dialog = function (title, html, callback, opts) {
+        var el = $('<div title="' + title + '"></div>').html(String(html)),
+            options = $.extend({}, opts, {
+                modal: true,
+                draggable: false,
+                resizable: false,
+                buttons: {
+                    Ok: function () {
+                        $(this).dialog("close");
+                        callback(true);
+                    },
+                    Cancel: function () {
+                        $(this).dialog("close");
+                        callback(false);
+                    }
                 },
-              close: function(event, ui) {
-                  el.dialog('destroy').remove();
-              }
+                close: function (event, ui) {
+                    el.dialog('destroy').remove();
+                }
             });
         return $.djpcms.ui.dialog(el, options);
     };
-    
-    $.djpcms.warning_dialog = function(title, warn, callback) {
+    // Warning dialog
+    $.djpcms.warning_dialog = function (title, warn, callback) {
         var opts = {
                 dialogClass: 'ui-state-error',
-                autoOpen: false},
+                autoOpen: false
+            },
             el = $.djpcms.confirmation_dialog(title, warn, callback, opts);
-        $('.ui-dialog-titlebar, .ui-dialog-buttonpane',el.dialog('widget'))
+        $('.ui-dialog-titlebar, .ui-dialog-buttonpane', el.dialog('widget'))
                     .addClass('ui-state-error');
         el.dialog("open");
         return el;
@@ -501,115 +546,108 @@
      *  myloader()
      *  
      */
-    $.djpcms.ajax_loader =  function djpcms_loader(url,action,method,data,conf) {
-        var sendrequest = function(callback) {
+    $.djpcms.ajax_loader =  function djpcms_loader(url, action, method, data, conf) {
+        var sendrequest = function (callback) {
             var that = this;
-            if(conf && !callback) {
-                var el = $('<div></div>').html(conf);
-                el.dialog({modal: true,
-                           draggable: false,
-                           resizable: false,
-                           buttons: {
-                               Ok : function() {
-                                   $( this ).dialog( "close" );
-                                   sendrequest(true);
-                               },
-                               Cancel: function() {
-                                   $(this).dialog( "close" );
-                                   $.djpcms.set_inrequest(false);
-                               }
-                    }});
+            if (conf && !callback) {
+                $('<div></div>').html(conf).dialog({
+                    modal: true,
+                    draggable: false,
+                    resizable: false,
+                    buttons: {
+                        Ok: function () {
+                            $(this).dialog("close");
+                            sendrequest(true);
+                        },
+                        Cancel: function () {
+                            $(this).dialog("close");
+                            $.djpcms.set_inrequest(false);
+                        }
+                    }
+                });
             } else {
                 $.ajax({
-                        'url':url,
-                        'type': method || 'post',
-                        'dataType': 'json',
-                        'success': function callBack(e,s) {
-                            $.djpcms.set_inrequest(false);
-                            $.djpcms.jsonCallBack(e,s,that);
-                         },
-                        'data': $.djpcms.ajaxparams(action,data)
-                    });
+                    'url': url,
+                    'type': method || 'post',
+                    'dataType': 'json',
+                    'success': function (e, s) {
+                        $.djpcms.set_inrequest(false);
+                        $.djpcms.jsonCallBack(e, s, that);
+                    },
+                    'data': $.djpcms.ajaxparams(action, data)
+                });
             }
         };
-        return sendrequest 
+        return sendrequest;
     };
-    
-    $.djpcms.ajax_loader_from_tool = function(tool) {
-        if(tool.ajax) {
+    //
+    $.djpcms.ajax_loader_from_tool = function (tool) {
+        if (tool.ajax) {
             return $.djpcms.ajax_loader(tool.url,
                                         tool.action,
                                         tool.method,
                                         tool.data,
                                         tool.conf);
         }
-    }
-    
+    };
     /**
      * A modal error dialog
      */
-    $.djpcms.errorDialog = function(html,title) {
+    $.djpcms.errorDialog = function (html, title) {
         title = title || 'Something did not work';
-        var el = $('<div title="'+title+'"></div>').html(html+""),
+        var el = $('<div title="' + title + '"></div>').html(String(html)),
             width = $.djpcms.smartwidth(html);
-        el.dialog({modal:true,
-                   autoOpen:false,
+        el.dialog({modal: true,
+                   autoOpen: false,
                    dialogClass: 'ui-state-error',
                    'width': width});
-        $('.ui-dialog-titlebar',el.dialog('widget')).addClass('ui-state-error');
+        $('.ui-dialog-titlebar', el.dialog('widget')).addClass('ui-state-error');
         el.dialog("open");
-     };
-    
+    };
     /**
-     * ERROR and SERVER ERROR callback
+     * 
+     * JSON CALLBACKS
      */
     $.djpcms.addJsonCallBack({
         id: "error",
-        handle: function(data, elem) {
+        handle: function (data, elem) {
             $.djpcms.errorDialog(data);
         }
     });
+    //
     $.djpcms.addJsonCallBack({
         id: "servererror",
-        handle: function(data, elem) {
-            $.djpcms.errorDialog(data,"Unhandled Server Error");
+        handle: function (data, elem) {
+            $.djpcms.errorDialog(data, "Unhandled Server Error");
         }
     });
-    
-    /**
-     * Message callback
-     */
+    //
     $.djpcms.addJsonCallBack({
         id: "message",
-        handle: function(data, elem) {
+        handle: function (data, elem) {
             $.djpcms.logger.info(data);
             return true;
         }
     });
-    
-    /**
-     * empty callback
-     */
+    //
     $.djpcms.addJsonCallBack({
         id: "empty",
-        handle: function(data, elem) {
+        handle: function (data, elem) {
             return true;
         }
     });
-    
     /**
      * collection callback
      */
     $.djpcms.addJsonCallBack({
         id: "collection",
-        handle: function(data, elem) {
-            $.each(data, function(i,component) {
-                $.djpcms.jsonParse(component,elem);
+        handle: function (data, elem) {
+            $.each(data, function (i, component) {
+                $.djpcms.jsonParse(component, elem);
             });
             return true;
         }
     });
-    
     /**
      * html JSON callback. The server returns a list of objects with
      * a selctor and html attributes which are going to be
@@ -617,39 +655,33 @@
      */
     $.djpcms.addJsonCallBack({
         id: "htmls",
-        handle: function(data, elem, config) {
-            $.each(data, function(i,b) {
-                var el = $(b.identifier,elem),
+        handle: function (data, elem, config) {
+            $.each(data, function (i, b) {
+                var el = $(b.identifier, elem),
                     fade = config.fadetime,
                     html;
-                if(!el.length & b.alldocument) {
+                if (!el.length && b.alldocument) {
                     el = $(b.identifier);
                 }
-                if(el.length) {
-                    if(b.type === 'hide') {
+                if (el.length) {
+                    if (b.type === 'hide') {
                         el.hide();
-                    }
-                    else if(b.type === 'show') {
+                    } else if (b.type === 'show') {
                         el.show();
-                    }
-                    else if(b.type === 'value') {
+                    } else if (b.type === 'value') {
                         el.val(b.html);
-                    }
-                    else if(b.type === 'append') {
+                    } else if (b.type === 'append') {
                         $(b.html).djpcms().appendTo(el);
-                    }
-                    else {
+                    } else {
                         html = $(b.html).djpcms();
                         el.show();
-                        el.fadeOut(fade,'linear',function(){
-                            if(b.type === 'replacewith') {
+                        el.fadeOut(fade, 'linear', function () {
+                            if (b.type === 'replacewith') {
                                 el.replaceWith(html);
-                            }
-                            else {
-                                if(b.type === 'addto') {
+                            } else {
+                                if (b.type === 'addto') {
                                     el.append(html);
-                                }
-                                else {
+                                } else {
                                     // The append method does not seems to
                                     // presenve events on html. So I use this
                                     // hack.
@@ -666,75 +698,60 @@
             return true;
         }
     });
-    
     /**
      * attribute JSON callback
      */
     $.djpcms.addJsonCallBack({
         id: "attribute",
-        handle: function(data, elem) {
+        handle: function (data, elem) {
             var selected = [];
-            $.each(data, function(i,b) {
+            $.each(data, function (i, b) {
                 var el;
-                if(b.alldocument) {
+                if (b.alldocument) {
                     el = $(b.selector);
+                } else {
+                    el = $(b.selector, elem);
                 }
-                else {
-                    el = $(b.selector,elem);
-                }
-                if(el.length) {
+                if (el.length) {
                     b.elem = el;
                 }
             });
-            $.each(data, function(i,b) {
-                if(b.elem) {
-                    b.elem.attr(b.attr,b.value);
+            $.each(data, function (i, b) {
+                if (b.elem) {
+                    b.elem.attr(b.attr, b.value);
                 }
             });
         }
     });
-    
     /**
      * Remove html elements
      */
     $.djpcms.addJsonCallBack({
         id: "remove",
-        handle: function(data, elem) {
-            $.each(data, function(i,b) {
-                var el = $(b.identifier,elem);
-                if(!el.length & b.alldocument) {
+        handle: function (data, elem) {
+            $.each(data, function (i, b) {
+                var el = $(b.identifier, elem),
+                    be = $.djpcms.options.remove_effect;
+                if (!el.length && b.alldocument) {
                     el = $(b.identifier);
                 }
-                if(el.length) {
-                    var be = $.djpcms.options.remove_effect;
-                    el.fadeIn(be.duration, function() {el.remove();});
+                if (el.length) {
+                    el.fadeIn(be.duration, function () {el.remove(); });
                     //el.hide(be.type,{},be.duration,function() {el.remove();});
                 }
             });
             return true;
         }
     });
-    
     /**
      * Redirect
      */
     $.djpcms.addJsonCallBack({
         id: "redirect",
-        handle: function(data, elem) {
+        handle: function (data, elem) {
             window.location = data;
         }
     });
-    
-    /**
-     * Popup
-     */
-    $.djpcms.addJsonCallBack({
-        id: "popup",
-        handle: function(data, elem) {
-            $.popupWindow({windowURL:data,centerBrowser:1});
-        }
-    });
-    
     /**
      * Dialog callback
      * 
@@ -742,69 +759,80 @@
      */
     $.djpcms.addJsonCallBack({
         id: "dialog",
-        handle: function(data, elem) {
-            var el = $('<div></div>').html(data.html).djpcms();
-            var buttons = {};
-            $.each(data.buttons,function(n,b) {
-                buttons[b.name] = function() {
+        handle: function (data, elem) {
+            var el = $('<div></div>').html(data.html).djpcms(),
+                buttons = {},
+                options = data.options;
+            $.each(data.buttons, function (n, b) {
+                buttons[b.name] = function () {
                     b.d = $(this);
-                    
-                    b.dialogcallBack = function(data) {
-                        $.djpcms.jsonCallBack(data,'success',el);
-                        if(b.close) {
+                    b.dialogcallBack = function (data) {
+                        $.djpcms.jsonCallBack(data, 'success', el);
+                        if (b.close) {
                             b.d.dialog("close");
                         }
                     };
-                    
-                    if(b.url) {
-                        var params = $('form',el).formToArray();
-                        if(b.func) {
-                            var extra = $.djpcms.ajaxparams(b.func);
-                            $.each(extra, function(k,v) {
-                                params.push({'name':k, 'value':v});
+                    if (b.url) {
+                        var params = $('form', el).formToArray(),
+                            extra;
+                        if (b.func) {
+                            extra = $.djpcms.ajaxparams(b.func);
+                            $.each(extra, function (k, v) {
+                                params.push({'name': k, 'value': v});
                             });
                         }
-                        $.post(b.url,$.param(params),b.dialogcallBack,"json");
-                    }
-                    else {
+                        $.post(b.url,
+                                $.param(params),
+                                b.dialogcallBack,
+                                "json");
+                    } else {
                         b.d.dialog('close');
                     }
                 };
             });
-            var options = data.options;
             options.buttons = buttons;
             el.dialog(options);
             return true;
         }
     });
-    
-    
+    //
+    $.djpcms.addJsonCallBack({
+        id: "autocomplete",
+        handle: function (data, elem) {
+            elem.response($.map(data, function (item) {
+                return {
+                    value: item[0],
+                    label: item[1],
+                    real_value: item[2],
+                    multiple: elem.multiple
+                };
+            }));
+        }
+    });
     ////////////////////////////////////////////////////////////////////////////
     //                      DECORATORS
     ////////////////////////////////////////////////////////////////////////////
     /**
      * Accordion menu
-     */    
+     */
     $.djpcms.decorator({
-        id:"accordion",
-        config:{
-            effect:null,//'drop',
+        name: "accordion",
+        config: {
+            effect: null,//'drop',
             fadetime: 200,
-            autoHeight:false,
-            fillSpace:false
-            },
-        decorate: function($this,config) {
-            var c = $.extend({},config.accordion);
-            $('.ui-accordion-container',$this).each(function() {
+            autoHeight: false,
+            fillSpace: false
+        },
+        decorate: function ($this, config) {
+            var c = $.extend({}, config.accordion);
+            $('.ui-accordion-container', $this).each(function () {
                 var el = $(this),
                     options = el.data('options'),
-                    opts = $.extend(c,options);
-                el.accordion(opts).show(opts.effect,{},opts.fadetime);
+                    opts = $.extend(c, options);
+                el.accordion(opts).show(opts.effect, {}, opts.fadetime);
             });
         }
     });
-    
-    
     /**
      * Ajax links, buttons, select and forms
      * 
@@ -812,7 +840,7 @@
      * and apply ajax functionality where required.
      */
     $.djpcms.decorator({
-        id: "ajax_widgets",
+        name: "ajax_widgets",
         description: "add ajax functionality to links, buttons and selects",
         config: {
             blank_target: true,
@@ -823,98 +851,96 @@
             selector_form: 'form.ajax',
             submit_class: 'submitted'
         },
-        decorate: function($this, config) {
+        decorate: function ($this, config) {
             var confirm = config.confirm_actions,
                 cfg = config.ajax_widgets,
                 callback = $.djpcms.jsonCallBack,
                 logger = $.djpcms.logger,
                 bt = cfg.blank_target,
                 that = this;
-            
             // Links and buttons
-            $(cfg.links, $this).click(function(event) {
+            $(cfg.links, $this).click(function (event) {
                 event.preventDefault();
                 var elem = $(this),
                     ajax = elem.hasClass('ajax'),
                     conf = elem.data('warning'),
                     form = elem.closest('form');
-                
+                // Handle click
                 function handleClick(handle) {
-                    var url = elem.attr('href') || elem.data('href') || '.';
-                    if(!handle) {return;}
-                    if(!elem.hasClass('ajax')) {
+                    var url = elem.attr('href') || elem.data('href') || '.',
+                        method,
+                        action;
+                    if (!handle) {return; }
+                    if (!elem.hasClass('ajax')) {
                         window.location = url;
                     } else {
-                        var method = elem.data('method') || 'post',
-                            action = elem.attr('name');
-                        $.djpcms.ajax_loader(url,action,method,{})();
+                        method = elem.data('method') || 'post';
+                        action = elem.attr('name');
+                        $.djpcms.ajax_loader(url, action, method, {})();
                     }
                 }
-                
-                if(conf) {
-                    var title = conf.title || '',
-                        body = conf.body || conf;
-                    $.djpcms.warning_dialog(title,body,handleClick);
-                }
-                else {
+                if (conf) {
+                    $.djpcms.warning_dialog(conf.title || '',
+                                            conf.body || conf,
+                                            handleClick);
+                } else {
                     handleClick(true);
                 }
             });
-            
             // AJAX Select widget.
             // Send an ajax request when it change context
-            $(cfg.selector_select,$this).change(function(event) {
+            $(cfg.selector_select, $this).change(function (event) {
                 var elem = $(this),
                     data = elem.data(),
                     url = data.href,
                     name = elem.attr('name'),
                     form = elem.closest('form'),
-                    method = data.method || 'get';
-                if(form.length === 1 && !url) {
+                    method = data.method || 'get',
+                    opts,
+                    p;
+                if (form.length === 1 && !url) {
                     url = form.attr('action');
                 }
-                if(!url) {
+                if (!url) {
                     url = window.location.toString();
                 }
-                
-                if(!form) {
-                    var p   = $.djpcms.ajaxparams(elem.attr('name'));
+                if (!form) {
+                    p = $.djpcms.ajaxparams(elem.attr('name'));
                     p.value = elem.val();
-                    $.post(_url,$.param(p),$.djpcms.jsonCallBack,"json");
-                }
-                else {
-                	// we are going to use the form submit so we send
-                	// all form's inputs too.
-                    var opts = {
-                            'url': url,
-                            'type': method,
-                            success: callback,
-                            dataType: "json",
-                            data: {xhr: name},
-                            iframe: false,
-                            };
+                    $.post(url, $.param(p), $.djpcms.jsonCallBack, "json");
+                } else {
+                    // we are going to use the form submit so we send
+                    // all form's inputs too.
+                    opts = {
+                        'url': url,
+                        'type': method,
+                        success: callback,
+                        dataType: "json",
+                        data: {xhr: name},
+                        iframe: false
+                    };
                     form[0].clk = elem[0];
-                    logger.info('Submitting select change from "'+name+'"');
+                    logger.info('Submitting select change from "' + name + '"');
                     form.ajaxSubmit(opts);
                 }
             });
-            
+            //
             function form_beforeSerialize(jqForm, opts) {
                 return true;
             }
             function form_beforeSubmit(formData, jqForm, opts) {
-                $.each($.djpcms.before_form_submit,function() {
-                    formData = this(formData,jqForm);
+                $.each($.djpcms.before_form_submit, function () {
+                    formData = this(formData, jqForm);
                 });
                 jqForm.addClass(cfg.submit_class);
                 return true;
             }
-            function success_form(o,s,xhr,jqForm) {
+            function success_form(o, s, xhr, jqForm) {
                 jqForm.removeClass(cfg.submit_class);
-                $.djpcms.jsonCallBack(o,s,jqForm);
+                $.djpcms.jsonCallBack(o, s, jqForm);
             }
             // Form submission
-            $(cfg.selector_form,$this).each(function() {
+            $(cfg.selector_form, $this).each(function () {
                 var f = $(this),
                     opts = {
                         url: this.action,
@@ -925,7 +951,8 @@
                         beforeSerialize: form_beforeSerialize,
                         beforeSubmit: form_beforeSubmit,
                         iframe: false
-                        };
+                    },
+                    name;
                 f.ajaxForm(opts);
                 //f.submit(function(e) {
                 //   e.preventDefault();
@@ -933,149 +960,69 @@
                 //    return false;
                 //});
                 //f.ajaxForm(opts);
-                if(f.hasClass(config.autoload_class))  {
-                    var name = f.attr("name");
-                    f[0].clk = $(":submit[name='"+name+"']",f)[0];
+                if (f.hasClass(config.autoload_class)) {
+                    name = f.attr("name");
+                    f[0].clk = $(":submit[name='" + name + "']", f)[0];
                     f.submit();
                 }
             });
         }
     });
-    
     /**
      * Autocomplete Off
      */
     $.djpcms.decorator({
-        id:"autocomplete_off",
-        decorate: function($this,config) {
-            $('.autocomplete-off',$this).each(function() {
-                $(this).attr('autocomplete','off');
+        name: "autocomplete_off",
+        decorate: function ($this, config) {
+            $('.autocomplete-off', $this).each(function () {
+                $(this).attr('autocomplete', 'off');
             });
-            $('input:password',$this).each(function() {
-                $(this).attr('autocomplete','off');
-            });
-        }
-    });
-    
-    /**
-     * Classy Search
-     */
-    $.djpcms.decorator({
-        id:"classy-search",
-        decorate: function($this,config) {
-            $('.classy-search',$this).each(function() {
-                var el = $(this),
-                    val = el.val(),
-                    df = el.attr('title');
-                if(!val) {
-                    el.val(df);
-                }
-                if(el.val() === df) {
-                    el.addClass('idlefield');
-                }
-                el.focus(function() {
-                        $(this).removeClass('idlefield').val('');
-                }).blur(function() {
-                    $(this).addClass('idlefield');
-                });
+            $('input:password', $this).each(function () {
+                $(this).attr('autocomplete', 'off');
             });
         }
     });
-    
+    //
     // Calendar Date Picker Decorator
     $.djpcms.decorator({
-        id:"datepicker",
+        name: "datepicker",
         config: {
             selector: 'input.dateinput',
-            dateFormat: 'd M yy',
+            dateFormat: 'd M yy'
         },
-        decorate: function($this, config) {
+        decorate: function ($this, config) {
             var opts = config.datepicker;
-            var elems = $(opts.selector,$this);
-            elems.datepicker(opts);
+            $(opts.selector, $this).datepicker(opts);
         }
     });
-    
     // Currency Input
     $.djpcms.decorator({
-        id:"numeric",
+        name: "numeric",
         config: {
             selector: 'input.numeric',
             negative_class: 'negative'
         },
-        format: function(elem,nc) {
+        format: function (elem, nc) {
             elem = $(elem);
             var v = $.djpcms.format_currency(elem.val());
-            if(v.negative) {elem.addClass(nc);}
-            else {elem.removeClass(nc);}
-            elem.val(v.value); 
+            if (v.negative) {
+                elem.addClass(nc);
+            } else {
+                elem.removeClass(nc);
+            }
+            elem.val(v.value);
         },
-        decorate: function($this, config) {
+        decorate: function ($this, config) {
             var opts = config.numeric,
                 format = this.format;
-            $(opts.selector,$this).keyup(function() {
-                format(this,opts.negative_class); 
+            $(opts.selector, $this).keyup(function () {
+                format(this, opts.negative_class);
             });
         }
     });
-    
-    /**
-     * Cycle jQuery Plugin decorator, from django-flowrepo
-     * 
-     */ 
+    //
     $.djpcms.decorator({
-        id:"image_cycle",
-        decorate: function($this, config) {
-            if(!$.cycle) {
-                return;
-            }
-            $('.image-cycle', $this).each(function() {
-                var this_ = $(this);
-                var w     = this_.width();
-                var h     = this_.height();
-                var classes = this.className.split(" ");
-                var type_  = 'fade';
-                var speed_ = 5000;
-                var timeout_ = 10000;
-                $('img',this_).width(w).height(h);
-                $.each(classes,function(i,v) {
-                    if(v.substr(0,6) === "speed-"){
-                        try {
-                            speed_ = parseInt(v.substr(6));
-                        } catch(e) {}
-                    }
-                    else if(v.substr(0,8) === "timeout-"){
-                        try {
-                            timeout_ = parseInt(v.substr(8));
-                        } catch(e2) {}
-                    }
-                    else if(v.substr(0,5) === "type-") {
-                        type_ = v.substr(5);
-                    }
-                });
-                this_.cycle({fx: type_,
-                          speed: speed_,
-                          timeout: timeout_});
-            });
-        }
-    });    
-
-    $.djpcms.addJsonCallBack({
-        id: "autocomplete",
-        handle: function(data, elem) {
-            elem.response($.map(data, function( item ) {
-                return {
-                    value: item[0],
-                    label: item[1],
-                    real_value: item[2],
-                    multiple: elem.multiple,
-                }
-            }));
-        }
-    });
-    
-    $.djpcms.decorator({
-        id: 'asmSelect',
+        name: 'asmSelect',
         config: {
             defaults: {
                 addItemTarget: 'bottom',
@@ -1084,43 +1031,42 @@
                 sortable: false
             }
         },
-        decorate: function($this,config) {
-            $.each($('select[multiple="multiple"]',$this), function() {
+        decorate: function ($this, config) {
+            $.each($('select[multiple="multiple"]', $this), function () {
                 var v = $(this),
                     data = v.data(),
-                    opts = data.options ? data.options : {},
+                    opts = data.options || {},
                     options  = $.extend(true, {}, config.asmSelect.defaults, opts);
                 v.bsmSelect(options);
             });
         }
     });
-    
-    
+    //
     $.djpcms.decorator({
-        id:'message',
+        name: 'message',
         config: {
             dismiss: true,
             fade: 400,
             float: 'right'
         },
-        decorate: function($this,config) {
+        decorate: function ($this, config) {
             var opts = config.message;
-            $('li.messagelist, li.errorlist',$this).each(function(){
+            $('li.messagelist, li.errorlist', $this).each(function () {
                 var li = $(this),
                     a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
-                        .css({'float':opts.float})
+                        .css({'float': opts.float})
                         .addClass('ui-corner-all')
-                        .mouseenter(function(){$(this).addClass('ui-state-hover');})
-                        .mouseleave(function(){$(this).removeClass('ui-state-hover');})
-                        .click(function(){$(this).parent('li').fadeOut(opts.fade,'linear',function(){
-                            $(this).remove();
+                        .mouseenter(function () {$(this).addClass('ui-state-hover'); })
+                        .mouseleave(function () {$(this).removeClass('ui-state-hover'); })
+                        .click(function () {
+                            $(this).parent('li').fadeOut(opts.fade, 'linear', function () {
+                                $(this).remove();
                             });
                         });
                 li.append(a);
             });
         }
-    });  
-    
+    });
     /**
      * AUTOCOMPLETE
      * 
@@ -1129,28 +1075,26 @@
      * available.
      */
     $.djpcms.decorator({
-        id: "autocomplete",
+        name: "autocomplete",
         description: "Autocomplete to an input",
         config: {
-            selector:'input.autocomplete',
-            widgetcontainer:'.field-widget',
+            selector: 'input.autocomplete',
+            widgetcontainer: '.field-widget',
             minLength: 2,
             maxRows: 50,
             search_string: 'q',
-            separator: ', ',
+            separator: ', '
         },
-        decorate: function($this,config) {
+        decorate: function ($this, config) {
             var opts = config.autocomplete;
-            
-            function split( val ) {
-                return val.split( /,\s*/ );
+            function split(val) {
+                return val.split(/,\s*/);
             }
-            
-            function clean_data(terms,data) {
-                new_data = [];
-                $.each(terms,function(i,val) {
-                    for(i=0;i<data.length;i+=1) {
-                        if(data[i].label == val) {
+            function clean_data(terms, data) {
+                var new_data = [];
+                $.each(terms, function (i, val) {
+                    for (i = 0; i < data.length; i++) {
+                        if (data[i].label === val) {
                             new_data.push(data[i]);
                             break;
                         }
@@ -1158,59 +1102,52 @@
                 });
                 return new_data;
             }
-            
             // The call back from the form to obtain the real data for
             // the autocomplete input field.
-            function get_real_data(multiple,separator) {
-                return function(val) {
-                    if(multiple) {
+            function get_real_data(multiple, separator) {
+                return function (val) {
+                    if (multiple) {
                         var data = [];
-                        $.each(clean_data(split(val),this.data),function(i,d) {
+                        $.each(clean_data(split(val), this.data), function (i, d) {
                             data.push(d.value);
                         });
                         return data.join(separator);
-                    }
-                    else {
-                        if(val && this.data.length) {
+                    } else {
+                        if (val && this.data.length) {
                             return this.data[0].real_value;
-                        }
-                        else {
+                        } else {
                             return '';
                         }
                     }
-                }
+                };
             }
-            
             function single_add_data(item) {
                 this.real.val(item.real_value);
                 this.proxy.val(item.value);
-                this.real.data('value',item.value);
+                this.real.data('value', item.value);
             }
-            
             function multiple_add_data(item) {
                 var terms = split(this.value);
                 terms.pop();
-                data = clean_data(terms,data);
+                data = clean_data(terms, data);
                 terms.push(display);
                 new_data.push(item);
                 terms.push("");
                 display = terms.join(separator);
                 real_data['data'] = data;
             }
-            
             function get_autocomplete_data(jform, options, veto) {
                 var value = this.proxy.val();
                 if(this.multiple) {
-                    
+                    //
                 } else {    
-                    if(this.real.data('value') != value) {
+                    if (this.real.data('value') !== value) {
                         this.real.val(value);
                     }
                 }
             }
-               
             /* Loop over each element and setup plugin */
-            $(opts.selector,$this).each(function() {
+            $(opts.selector, $this).each(function () {
                 var elem = $(this),
                     name = elem.attr('name'),
                     data = elem.data(),
@@ -1226,37 +1163,34 @@
                         proxy: elem,
                         widget: elem,
                         'multiple': multiple,
-                        add_data: multiple ? multiple_add_data : single_add_data,
+                        add_data: multiple ? multiple_add_data : single_add_data
                     },
                     options = {
-                            minLength: data.minlength || opts.minLength,
-                            select: function(event, ui) {
-                                manager.add_data(ui.item);
-                                return false;
-                            }
+                        minLength: data.minlength || opts.minLength,
+                        select: function (event, ui) {
+                            manager.add_data(ui.item);
+                            return false;
+                        }
                     };
-                
                 // Bind to form pre-serialize 
-                elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data,manager));
+                elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data, manager));
                 // Optain the widget container for positioning if specified. 
-                if(opts.widgetcontainer) {
+                if (opts.widgetcontainer) {
                     manager.widget = elem.parent(opts.widgetcontainer);
-                    if(!manager.widget.length) {
+                    if (!manager.widget.length) {
                         manager.widget = elem;
                     }
                     options.position = {of: manager.widget};
                 }
-                
                 // Build the real (hidden) input
                 if(multiple) {
                     manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
-                }
-                else {
+                } else {
                     manager.real = $('<input name="'+ name +'"></input>');
                 }
                 elem.attr('name',name+'_proxy');
                 manager.widget.prepend(manager.real.hide());
-                
+                //
                 if(multiple) {
                     options.focus = function() {
                         return false;
@@ -1314,12 +1248,11 @@
             })
         }
     });
-    
     /**
      * Page blocks rearranging
      */
     $.djpcms.decorator({
-        id: "rearrange",
+        name: "rearrange",
         config: {
             body_selector: 'body.editable',
             cmsblock: '.cms-edit-block',
@@ -1416,9 +1349,9 @@
             }());
         }
     });
-    
+    //
     $.djpcms.decorator({
-        id: "textselect",
+        name: "textselect",
         config: {
             selector: 'select.text-select',
         },
@@ -1459,13 +1392,12 @@
             elems.change(function(){text(this)});
         }
     });
-    
     /**
      * This little decorator add the 'focus' class to input containers
      * in djpcms forms when they are on focus.
      */
     $.djpcms.decorator({
-        id: "field_widget",
+        name: "field_widget",
         config: {
             selector: '.field-widget',
         },
@@ -1490,9 +1422,9 @@
             }
         }
     });
-    
+    //
     $.djpcms.decorator({
-        id: "popover",
+        name: "popover",
         config: {
             selector: '.pop-over, .label',
             x:10,
@@ -1502,8 +1434,8 @@
             fadeOutSpeed:200,
             position: "top"
         },
-        decorate: function($this,config) {
-            if($.fn.popover) {
+        decorate: function ($this, config) {
+            if ($.fn.popover) {
                 var that = this,
                     c = config.popover;
                 $(c.selector,$this).each(function(){
@@ -1516,8 +1448,8 @@
                     }
                 });
             }
-        }});
-        
+        }
+    }); 
     /**
      * Format a number and return a string based on input settings
      * @param {Number} number The input number to format
@@ -1537,7 +1469,6 @@
         return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) +
             (c ? d + mathAbs(n - i).toFixed(c).slice(2) : "");
     };
-    
     /**
      * Return an object containing the formatted currency and a flag
      * indicating if it is negative
@@ -1601,63 +1532,5 @@
             cs = ''+cs;
         }
         return {value:cs,negative:isneg};
-    }
-    
-    
-}(jQuery));
-    
-    
-    
-    (function($){         
-        $.popupWindow = function(instanceSettings){
-            
-            var defaultSettings = {
-                centerBrowser:0, // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
-            centerScreen:0, // center window over entire screen? {1 (YES) or 0 (NO)}. overrides top and left
-            height:500, // sets the height in pixels of the window.
-            left:0, // left position when the window appears.
-            location:0, // determines whether the address bar is displayed {1 (YES) or 0 (NO)}.
-            menubar:0, // determines whether the menu bar is displayed {1 (YES) or 0 (NO)}.
-            resizable:0, // whether the window can be resized {1 (YES) or 0 (NO)}. Can also be overloaded using resizable.
-            scrollbars:0, // determines whether scrollbars appear on the window {1 (YES) or 0 (NO)}.
-            status:0, // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
-            width:500, // sets the width in pixels of the window.
-            windowName:null, // name of window set from the name attribute of the element that invokes the click
-            windowURL:null, // url used for the popup
-            top:0, // top position when the window appears.
-            toolbar:0 // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
-        };
-        
-        settings = $.extend({}, defaultSettings, instanceSettings || {});
-        
-        var windowFeatures =    'height=' + settings.height +
-                                ',width=' + settings.width +
-                                ',toolbar=' + settings.toolbar +
-                                ',scrollbars=' + settings.scrollbars +
-                                ',status=' + settings.status + 
-                                ',resizable=' + settings.resizable +
-                                ',location=' + settings.location +
-                                ',menuBar=' + settings.menubar;
-    
-        settings.windowName = this.name || settings.windowName;
-        var centeredY,centeredX;
-    
-        if(settings.centerBrowser){
-                
-            if ($.browser.msie) {//hacked together for IE browsers
-                centeredY = (window.screenTop - 120) + ((((document.documentElement.clientHeight + 120)/2) - (settings.height/2)));
-                centeredX = window.screenLeft + ((((document.body.offsetWidth + 20)/2) - (settings.width/2)));
-            }else{
-                centeredY = window.screenY + (((window.outerHeight/2) - (settings.height/2)));
-                centeredX = window.screenX + (((window.outerWidth/2) - (settings.width/2)));
-            }
-            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
-        }else if(settings.centerScreen){
-            centeredY = (screen.height - settings.height)/2;
-            centeredX = (screen.width - settings.width)/2;
-            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + centeredX +',top=' + centeredY).focus();
-        }else{
-            window.open(settings.windowURL, settings.windowName, windowFeatures+',left=' + settings.left +',top=' + settings.top).focus();  
-        }
     };
 }(jQuery));

@@ -103,16 +103,17 @@ css('.'+classes.widget_head,
     widget_header(),
     css('.'+classes.edit_menu,
         line_height=cssv.widget.head.line_height),
-    css('a',
-        clickable(default=bcd(background='transparent',
-                              color=cssv.clickable.default.color,
-                              text_decoration=cssv.clickable.default.text_decoration),
-                  hover=bcd(background='transparent',
-                              color=cssv.clickable.hover.color,
-                              text_decoration=cssv.clickable.hover.text_decoration),
-                  active=bcd(background='transparent',
-                              color=cssv.clickable.active.color,
-                              text_decoration=cssv.clickable.active.text_decoration))))
+    #css('a',
+    #    clickable(default=bcd(background='transparent',
+    #                          color=cssv.clickable.default.color,
+    #                          text_decoration=cssv.clickable.default.text_decoration),
+    #              hover=bcd(background='transparent',
+    #                          color=cssv.clickable.hover.color,
+    #                          text_decoration=cssv.clickable.hover.text_decoration),
+    #              active=bcd(background='transparent',
+    #                          color=cssv.clickable.active.color,
+    #                          text_decoration=cssv.clickable.active.text_decoration)))
+    )
 
 css('.'+classes.widget_body,
     overflow='hidden')

@@ -156,9 +156,8 @@ def html_doc_stream(request, stream, status=200):
     
 def page_script(request):
         settings = request.view.settings
-        html_options = settings.HTML.copy()
-        html_options.update({'debug':settings.DEBUG,
-                             'media_url': settings.MEDIA_URL})
+        html_options = {'debug':settings.DEBUG,
+                        'media_url': settings.MEDIA_URL}
         on_document_ready = '\n'.join(request.on_document_ready)
         return '''\
 <script type="text/javascript">

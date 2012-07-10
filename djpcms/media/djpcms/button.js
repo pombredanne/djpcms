@@ -1,75 +1,96 @@
+/*jslint evil: true, undef: true, browser: true */
+/*globals jQuery*/
+
 (function ($) {
     "use strict";
-    $.djpcms = (function (djpcms) {
-        var ui = djpcms.ui,
-            classes = ui.classes;
-        classes.button = 'btn';
-        classes.button_small = 'btn-small';
-        classes.button_large = 'btn-large';
-        classes.button_group = 'btn-group';
-        //
-        ui.addicon = function (el, icon, icon_only) {
-            if ($.isPlainObject(icon)) {
-                icon = icon[ui.icons];
+    //
+    $.djpcms.decorator({
+        name: 'button',
+        widget: true,
+        config: {
+            disabled: null,
+            text: true,
+            icon: null,
+            classes: {
+                button: 'btn',
+                button_small: 'btn-small',
+                button_large: 'btn-large',
+                button_group: 'btn-group',
             }
-            if (icon !== undefined) {
-                if (icon_only) {
-                    el.html('');
-                }
-                if (ui.icons === 'fontawesome') {
-                    el.prepend('<i class="' + icon + '"></i>');
-                }
-            }
-        };
-        //
-        ui.button = function (elem, options) {
+        },
+        init: function() {
             var ui = $.djpcms.ui,
-                options = options || {};
-            $.each($(elem), function () {
-                var element = $(this).hide(),
-                    labelSelector,
-                    ancestor;
-                if (this.type === "checkbox" || this.type === "radio") {
-                    labelSelector = "label[for='" + this.id + "']";
-                    ancestor = element.parents().last();
-                    this.buttonElement = ancestor.find(labelSelector);
-                    if (this.buttonElement) {
-                        this.buttonElement.attr('title', this.buttonElement.html());
-                        this.buttonElement[0].element = element[0];
-                        if (element.prop("checked")) {
-                            this.buttonElement.addClass(classes.active);
-                        }
-                        this.buttonElement.click(function(e) {
-                            e.preventDefault();
-                            this.element.checked = !this.element.checked;
-                            if (this.element.checked) {
-                                $.djpcms.logger.debug('checked');
-                                $(this).addClass(classes.active);
-                            } else {
-                                $.djpcms.logger.debug('unchecked');
-                                $(this).removeClass(classes.active);
-                            }
-                        });
+                self = this;
+            //
+            $.extend(ui, {
+                // Add an icon to jQuery element elem
+                addicon: function (elem, icon, icon_only) {
+                    if ($.isPlainObject(icon)) {
+                        icon = icon[ui.icons];
                     }
-                } else {
-                    this.buttonElement = element;
+                    if (icon !== undefined) {
+                        if (icon_only) {
+                            elem.html('');
+                        }
+                        if (ui.icons === 'fontawesome') {
+                            elem.prepend('<i class="' + icon + '"></i>');
+                        }
+                    }
                 }
-                if (options.text) {
-                    this.buttonElement.html(options.text);
-                }
-                ui.addicon(this.buttonElement, options.icon, options.icon_only);
-                this.buttonElement.addClass(classes.button).show();
             });
-        };
-        // Decorator
-        djpcms.decorator({
-            id: 'button',
-            decorate: function ($this, config) {
-                ui.button($('.' + classes.button, $this));
+        },
+        decorate: function(container, config) {
+            var elements = $('.'+config.button.classes.button, container);
+            return this.many(elements);
+        },
+        _create: function () {
+            var element = this.element(),
+                classes = this.config.classes,
+                labelSelector,
+                ancestor;
+            if (this.element.is("[type=checkbox]")) {
+                this.type = "checkbox";
+            } else if (this.element.is("[type=radio]")) {
+                this.type = "radio";
+            } else if (this.element.is("input")) {
+                this.type = "input";
+            } else {
+                this.type = "button";
             }
-        });
-        // Return djpcms
-        return djpcms;
-    }($.djpcms || {}));
-    
+            // This is a checkbox
+            if (this.type === "checkbox" || this.type === "radio") {
+                labelSelector = "label[for='" + $this.id + "']";
+                ancestor = element.parents().last();
+                buttonElement = ancestor.find(labelSelector);
+                if (buttonElement) {
+                    element.removeClass(classes.button);
+                    buttonElement.attr('title', buttonElement.html());
+                }
+            } else {
+                buttonElement = element;
+            }
+            buttonElement[0].element = element;
+            if (!options.text) {
+                buttonElement.html('');
+            }
+            ui.addicon(buttonElement, options.icon, !options.text);
+            buttonElement.addClass(classes.button).css('display', 'inline-block');
+        },
+        _setup: function () {
+            if (element.prop("checked")) {
+                buttonElement.addClass(ui.classes.active);
+            }
+            buttonElement.click(function (e) {
+                e.preventDefault();
+                this.element.checked = !this.element.checked;
+                if (this.element.checked) {
+                    $.djpcms.logger.debug('checked');
+                    $(this).addClass(classes.active);
+                } else {
+                    $.djpcms.logger.debug('unchecked');
+                    $(this).removeClass(classes.active);
+                }
+            });
+        }
+    });
 }(jQuery));

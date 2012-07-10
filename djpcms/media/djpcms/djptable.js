@@ -12,7 +12,7 @@
      */
 	
 	$.djpcms.decorator({
-		id: "color_number",
+		name: "color_number",
         config: {
         	selector: 'tr .color'
         },
@@ -204,7 +204,7 @@
          * djpcms - datatable decorator
          */
         $.djpcms.decorator({
-            id: "datatable",
+            name: "datatable",
             config: {
                 selector: 'div.data-table',
                 fnRowCallbacks: [],

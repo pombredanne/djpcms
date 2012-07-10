@@ -2,8 +2,8 @@ from djpcms import html, forms, views
 from djpcms.forms import layout
 
 
-def search_form(name = 'SearchForm', placeholder = 'search', input_name = None,
-                submit = None, cn = None, choices = None, **kwargs):
+def search_form(name='SearchForm', placeholder='search', input_name=None,
+                submit=None, cn=None, choices=None, **kwargs):
     '''Create a new :class:`djpcms.forms.HtmlForm` for searching.
     
 :parameter name: name of the :class:`Form`

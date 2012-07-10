@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "green"
-Created by djpcms.style 2012-07-09 17:14:18.234000
-Time taken 0.334 seconds
+Created by djpcms.style 2012-07-10 07:17:56.043149
+Time taken 0.362 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1402,6 +1402,10 @@ table.uniFormTable td.error:last-child {
     padding: 4px;
 }
 
+textarea.taboverride {
+    font-family: monospace;
+}
+
 .ui-tabs {
     padding: 0;
 }
@@ -1744,22 +1748,38 @@ th.ui-clickable {
 }
 
 input.btn[type="submit"] {
+    font-size: inherit;
+    text-align: center;
     padding: 4px 9px 4px;
+    font-weight: normal;
+    vertical-align: middle;
     display: inline-block;
 }
 
 button.btn {
+    font-size: inherit;
+    text-align: center;
     padding: 4px 9px 4px;
+    font-weight: normal;
+    vertical-align: middle;
     display: inline-block;
 }
 
 a.btn {
+    font-size: inherit;
+    text-align: center;
     padding: 4px 9px 4px;
+    font-weight: normal;
+    vertical-align: middle;
     display: inline-block;
 }
 
 label.btn {
+    font-size: inherit;
+    text-align: center;
     padding: 4px 9px 4px;
+    font-weight: normal;
+    vertical-align: middle;
     display: inline-block;
 }
 
@@ -2131,11 +2151,6 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
 	overflow: visible;
 	position: relative;
 	padding: 0.1em;
-}
-.btn {
-	display: inline-block;
-	text-align: center;
-	vertical-align: middle;
 }
 .topbar {
     height: 40px;

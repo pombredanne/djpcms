@@ -172,3 +172,6 @@ css('table.uniFormTable',
     width = '100%'
 )
          
+############################################################    TEXTAREA
+css('textarea.taboverride',
+    font_family='monospace')

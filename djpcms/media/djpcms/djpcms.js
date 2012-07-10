@@ -178,7 +178,9 @@
             };
                 
             if(typeof console !== "undefined" && typeof console.log !== "undefined") {
-                logger.addHandler(console.log);
+                logger.addHandler(function (msg) {
+                    console.log(msg);
+                });
             }
             
             $.each(logging.levels, function(name, level) {
@@ -424,7 +426,7 @@
     
     $.djpcms.ui = {
         icons: 'fontawesome',
-        classes: {active: 'active',
+        classes: {active: 'ui-state-active',
                   clickable: 'ui-clickable',
                   float_right: 'f-right'},
         widget_head: 'ui-widget-header',

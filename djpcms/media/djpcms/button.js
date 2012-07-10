@@ -35,14 +35,14 @@
                     this.buttonElement = ancestor.find(labelSelector);
                     if (this.buttonElement) {
                         this.buttonElement.attr('title', this.buttonElement.html());
-                        this.buttonElement[0].element = element;
+                        this.buttonElement[0].element = element[0];
                         if (element.prop("checked")) {
                             this.buttonElement.addClass(classes.active);
                         }
-                        this.buttonElement.click(function() {
-                            var el = this.element[0];
-                            el.checked = !el.checked;
-                            if (el.checked) {
+                        this.buttonElement.click(function(e) {
+                            e.preventDefault();
+                            this.element.checked = !this.element.checked;
+                            if (this.element.checked) {
                                 $.djpcms.logger.debug('checked');
                                 $(this).addClass(classes.active);
                             } else {

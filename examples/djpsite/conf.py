@@ -1,7 +1,7 @@
 #Main settings file. The site actually import settings.py which in turns it
 #imports this file and specify the reserved settings below
 
-STYLING = 'green'
+#STYLING = 'green'
 INSTALLED_APPS = ('djpcms',
                   'stdcms',
                   'stdcms.cms',

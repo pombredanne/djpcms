@@ -31,7 +31,7 @@ cssv.body.font_size = px(14)
 cssv.body.line_height = px(18)
 cssv.body.min_width = px(960)
 cssv.body.text_align = 'left'
-cssv.body.radius = px(0)
+cssv.body.radius = px(5)
 
 cssv.header.background = cssv.color.grayLight
 # Inputs

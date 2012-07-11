@@ -16,6 +16,7 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.apps.color',
                   #
                   'djpsite.apps.design',
+                  'djpsite.apps.jstests',
                   'djpsite')
 LANGUAGE_CODE = 'en-gb'
 SITE_NAVIGATION_BRAND =\

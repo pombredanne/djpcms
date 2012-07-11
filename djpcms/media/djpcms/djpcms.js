@@ -208,7 +208,24 @@
     }());
     
     $.djpcms = {
+        base_widget: {
+            name: 'widget',
+            as_widget: true,
+            defaultElement: '<div>',
+            selector: null,
+            config: {},
+            decorate: function (container) {
+                var selector = this.selector;
+                if (selector) {
+                    this.make($(selector, container));
+                }
+            },
+            _create: function() {
+                return this;
+            }
+        },
         ui: {
+            name: 'djpcms',
             widget_head: 'ui-widget-header',
             widget_body: 'ui-widget-content',
             corner_top: 'ui-corner-top',
@@ -251,85 +268,94 @@
             appqueue = [],
             logger = $.logging.getLogger(),
             defaults = {
-                icons: 'fontawesome',
                 media_url: "/media/",
                 classes: {
                     active: 'ui-state-active',
                     clickable: 'ui-clickable',
                     float_right: 'f-right',
                 },
-                confirm_actions: {
-                    'delete': 'Please confirm delete',
-                    'flush': 'Please confirm flush'
-                },
-                autoload_class: "autoload",
                 ajax_server_error: "ajax-server-error",
                 errorlist: "errorlist",
                 formmessages: "form-messages",
                 remove_effect: {type: "drop", duration: 500},
-                bitly_key: null,
-                twitter_user: null,
                 fadetime: 200,
-                ajaxtimeout: 30,
                 debug: false
-            },
-            base_widget = {
-                name: 'widget',
-                defaultElement: '<div>',
-                config: {},
-                decorate: function (container, options) {},
-                _create: function() {
-                    return this;
-                }
-            };
+            };            
         // Add a new decorator
         function addDecorator(deco) {
-            var widget = $.extend(true, {}, base_widget, deco),
-                factory = $.extend({}, widget);
-            defaults[widget.name] = widget.config;
+            var widget = $.extend({'djpcms': djpcms}, djpcms.base_widget, deco),
+                name = widget.name,
+                factory = $.extend({destroy: function () {
+                    var idx = widgets.instances.indexOf(this.id),
+                        res;
+                    if(idx !== -1) {
+                        res = widgets.instances[idx];
+                        delete widgets.instances[idx];
+                        //res = widgets.instances.splice(idx, 1)[0];
+                    }
+                    return res;
+                }}, widget);
+            defaults[name] = widget.config;
+            widgets[name] = widget;
             delete widget.config;
-            widgets[widget.name] = widget;
+            // Create the widget factory
             $.extend(widget, {
                 'factory': factory,
                 instances: [],
-                create: function (element, options) {
-                    var self = $.extend({}, widget.factory),
-                        instance_id = parseInt(widget.instances.push(self), 10) - 1;
-                    element = $( element || self.defaultElement )[ 0 ];
-                    $.extend(self, {
-                        'options': options,
-                        'djpcms': djpcms,
-                        id: function() {
-                            return instance_id;
-                        },
-                        'element': function() {
-                            return $(element);
-                        }
-                    });
-                    return self._create();
+                instance: function (id) {
+                    if (typeof id !== 'number') { id = id.id; }
+                    return this.instances[id];
                 },
-                options: function () {
-                    return widget.djpcms.options[widget.name];
+                // Create the widget on element
+                create: function (element, options) {
+                    var widget = this,
+                        element = $(element),
+                        data = element.data('options'),
+                        self, instance_id;
+                    if (!options) {
+                        options = $.extend({}, widget.options(), data);
+                    } else {
+                        options = $.extend({}, widget.options(), data, options);
+                    }
+                    self = $.extend({}, widget.factory),
+                    self.id = parseInt(widget.instances.push(self), 10) - 1;
+                    self.element = element;
+                    self.config = options;
+                    djpcms.logger.debug('Creating widget ' + widget.name);
+                    self._create();
+                    return this.instance(self.id);
                 },
                 // Given a jQuery object, build as many widgets
-                many: function(elements, options) {
-                    var wdgs = [];
-                    return $.each(elements, function() {
-                        wdgs.push(widget.create(this, options));
+                make: function (elements, options) {
+                    var self = this,
+                        wdgs = [],
+                        wdg;
+                    $.each(elements, function() {
+                        wdg = widget.create(this, options);
+                        if (wdg !== undefined) {
+                            wdgs.push(wdg);
+                        }
                     });
+                    if(wdgs.length === 1) {
+                        wdgs = wdgs[0];
+                    }
                     return wdgs;
                 }
             });
-            $.extend(djpcms.ui, {
-                name: function (element, options) {
-                    if(!options) {
-                        options = widget.options();
-                    } else {
-                        options = $.extend({}, widget.options(), options);
-                    }
-                    return widget.many($(elements), options);
+            // Add options function
+            widget.options = function () {
+                return djpcms.options[widget.name];
+            }
+            // The user interface factory
+            djpcms.ui[name] = function (options_or_element, options) {
+                var element = options_or_element;
+                if (options === undefined && $.isPlainObject(options_or_element)) {
+                    options = options_or_element;
+                    element = undefined;
                 }
-            });
+                element = $(element || widget.defaultElement);
+                return widget.make(element, options);
+            };
         }
         // Set a logging panel
         function set_logging_pannel(panel) {
@@ -444,8 +470,7 @@
                         set_logging_pannel(lp);
                     }
                     $.each(widgets, function (name, widget) {
-                        logger.info('Adding decorator ' + name);
-                        widget.decorate(me, config);
+                        widget.decorate(me);
                     });
                     if (this === document) {
                         $.data(this, 'djpcms', config);
@@ -819,20 +844,17 @@
      */
     $.djpcms.decorator({
         name: "accordion",
-        config: {
+        selector: '.ui-accordion-container',
+        config: {            
             effect: null,//'drop',
             fadetime: 200,
             autoHeight: false,
             fillSpace: false
         },
-        decorate: function ($this, config) {
-            var c = $.extend({}, config.accordion);
-            $('.ui-accordion-container', $this).each(function () {
-                var el = $(this),
-                    options = el.data('options'),
-                    opts = $.extend(c, options);
-                el.accordion(opts).show(opts.effect, {}, opts.fadetime);
-            });
+        _create: function () {
+            var element = this.element,
+                opts = this.config;
+            element.accordion(opts).show(opts.effect, {}, opts.fadetime);
         }
     });
     /**
@@ -842,56 +864,45 @@
      * and apply ajax functionality where required.
      */
     $.djpcms.decorator({
-        name: "ajax_widgets",
-        description: "add ajax functionality to links, buttons and selects",
+        name: "ajax",
+        description: "add ajax functionality to links, buttons, selects and forms",
+        defaultElement: 'a',
+        selector: '.ajax',
         config: {
-            blank_target: true,
-            submit: {jquery: false,
-                     selector: 'input[type="submit"]'},
-            links: 'a.ajax, button',
-            selector_select: 'select.ajax',
-            selector_form: 'form.ajax',
-            submit_class: 'submitted'
+            dataType: "json",
+            classes: {
+                submit: 'submitted',
+                autoload: "autoload"
+            },
+            confirm_actions: {
+                'delete': 'Please confirm delete',
+                'flush': 'Please confirm flush'
+            },
+            timeout: 30
         },
-        decorate: function ($this, config) {
-            var confirm = config.confirm_actions,
-                cfg = config.ajax_widgets,
+        _create: function () {
+            var self = this,
+                element = self.element,
+                config = self.config,
+                confirm = config.confirm_actions,
                 callback = $.djpcms.jsonCallBack,
-                logger = $.djpcms.logger,
-                bt = cfg.blank_target,
-                that = this;
+                logger = $.djpcms.logger;
             // Links and buttons
-            $(cfg.links, $this).click(function (event) {
-                event.preventDefault();
-                var elem = $(this),
-                    ajax = elem.hasClass('ajax'),
-                    conf = elem.data('warning'),
-                    form = elem.closest('form');
-                // Handle click
-                function handleClick(handle) {
-                    var url = elem.attr('href') || elem.data('href') || '.',
-                        method,
-                        action;
-                    if (!handle) {return; }
-                    if (!elem.hasClass('ajax')) {
-                        window.location = url;
-                    } else {
-                        method = elem.data('method') || 'post';
-                        action = elem.attr('name');
-                        $.djpcms.ajax_loader(url, action, method, {})();
-                    }
-                }
-                if (conf) {
-                    $.djpcms.warning_dialog(conf.title || '',
-                                            conf.body || conf,
-                                            handleClick);
-                } else {
-                    handleClick(true);
-                }
-            });
-            // AJAX Select widget.
-            // Send an ajax request when it change context
-            $(cfg.selector_select, $this).change(function (event) {
+            if (element.is('select')) {
+                self.type = 'select';
+                self.create_select();
+            } else if (element.is('form')) {
+                self.type = 'form';
+                self.create_form();
+            } else {
+                self.type = 'link';
+                self.create_link();
+            }
+        },
+        create_select: function() {
+            var self = this,
+                config = self.config;
+            self.element.change(function (event) {
                 var elem = $(this),
                     data = elem.data(),
                     url = data.href,
@@ -917,7 +928,7 @@
                         'url': url,
                         'type': method,
                         success: callback,
-                        dataType: "json",
+                        dataType: config.dataType,
                         data: {xhr: name},
                         iframe: false
                     };
@@ -926,48 +937,70 @@
                     form.ajaxSubmit(opts);
                 }
             });
-            //
-            function form_beforeSerialize(jqForm, opts) {
-                return true;
+        },
+        create_link: function () {
+            // Handle click
+            function handleClick(handle) {
+                var url = elem.attr('href') || elem.data('href') || '.',
+                    method,
+                    action;
+                if (!handle) {return; }
+                if (!elem.hasClass('ajax')) {
+                    window.location = url;
+                } else {
+                    method = elem.data('method') || 'post';
+                    action = elem.attr('name');
+                    $.djpcms.ajax_loader(url, action, method, {})();
+                }
             }
-            function form_beforeSubmit(formData, jqForm, opts) {
-                $.each($.djpcms.before_form_submit, function () {
-                    formData = this(formData, jqForm);
-                });
-                jqForm.addClass(cfg.submit_class);
-                return true;
-            }
-            function success_form(o, s, xhr, jqForm) {
-                jqForm.removeClass(cfg.submit_class);
-                $.djpcms.jsonCallBack(o, s, jqForm);
-            }
-            // Form submission
-            $(cfg.selector_form, $this).each(function () {
-                var f = $(this),
-                    opts = {
-                        url: this.action,
-                        type: this.method,
-                        success: success_form,
-                        submitkey: config.post_view_key,
-                        dataType: "json",
-                        beforeSerialize: form_beforeSerialize,
-                        beforeSubmit: form_beforeSubmit,
-                        iframe: false
-                    },
-                    name;
-                f.ajaxForm(opts);
-                //f.submit(function(e) {
-                //   e.preventDefault();
-                //    $(this).ajaxSubmit(opts);
-                //    return false;
-                //});
-                //f.ajaxForm(opts);
-                if (f.hasClass(config.autoload_class)) {
-                    name = f.attr("name");
-                    f[0].clk = $(":submit[name='" + name + "']", f)[0];
-                    f.submit();
+            this.element.click(function (event) {
+                event.preventDefault();
+                var elem = $(this),
+                    ajax = elem.hasClass('ajax'),
+                    conf = elem.data('warning'),
+                    form = elem.closest('form');
+                if (conf) {
+                    $.djpcms.warning_dialog(conf.title || '',
+                                            conf.body || conf,
+                                            handleClick);
+                } else {
+                    handleClick(true);
                 }
             });
+        },
+        form_beforeSerialize: function (jqForm, opts) {
+            return true;
+        },
+        form_beforeSubmit: function (formData, jqForm, opts) {
+            $.each($.djpcms.before_form_submit, function () {
+                formData = this(formData, jqForm);
+            });
+            jqForm.addClass(self.config.classes.submit);
+            return true;
+        },
+        form_success: function (o, s, xhr, jqForm) {
+            jqForm.removeClass(self.config.classes.submit);
+            $.djpcms.jsonCallBack(o, s, jqForm);
+        },
+        create_form: function() {
+            var self = this,
+                f = self.element,
+                opts = {
+                    url: f.attr('action'),
+                    type: f.attr('method'),
+                    success: self.form_success,
+                    dataType: self.config.dataType,
+                    beforeSerialize: self.form_beforeSerialize,
+                    beforeSubmit: self.form_beforeSubmit,
+                    iframe: false
+                },
+                name;
+            f.ajaxForm(opts);
+            if (f.hasClass(self.config.classes.autoload)) {
+                name = f.attr("name");
+                f[0].clk = $(":submit[name='" + name + "']", f)[0];
+                f.submit();
+            }
         }
     });
     /**
@@ -975,7 +1008,7 @@
      */
     $.djpcms.decorator({
         name: "autocomplete_off",
-        decorate: function ($this, config) {
+        decorate: function ($this) {
             $('.autocomplete-off', $this).each(function () {
                 $(this).attr('autocomplete', 'off');
             });
@@ -988,25 +1021,27 @@
     // Calendar Date Picker Decorator
     $.djpcms.decorator({
         name: "datepicker",
+        selector: 'input.dateinput',
         config: {
-            selector: 'input.dateinput',
             dateFormat: 'd M yy'
         },
-        decorate: function ($this, config) {
-            var opts = config.datepicker;
-            $(opts.selector, $this).datepicker(opts);
+        _create: function () {
+            this.element.datepicker(self.config);
         }
     });
     // Currency Input
     $.djpcms.decorator({
         name: "numeric",
+        selector: 'input.numeric',
         config: {
-            selector: 'input.numeric',
-            negative_class: 'negative'
+            classes: {
+                negative: 'negative'
+            }
         },
         format: function (elem, nc) {
-            elem = $(elem);
-            var v = $.djpcms.format_currency(elem.val());
+            var elem = self.element,
+                nc = self.config.classes.negative;
+                v = $.djpcms.format_currency(elem.val());
             if (v.negative) {
                 elem.addClass(nc);
             } else {
@@ -1014,59 +1049,50 @@
             }
             elem.val(v.value);
         },
-        decorate: function ($this, config) {
-            var opts = config.numeric,
-                format = this.format;
-            $(opts.selector, $this).keyup(function () {
-                format(this, opts.negative_class);
+        _create: function () {
+            var self = this;
+            this.element.keyup(function () {
+                self.format();
             });
         }
     });
     //
     $.djpcms.decorator({
         name: 'asmSelect',
+        selector: 'select[multiple="multiple"]',
         config: {
-            defaults: {
-                addItemTarget: 'bottom',
-                animate: true,
-                highlight: true,
-                sortable: false
-            }
+            addItemTarget: 'bottom',
+            animate: true,
+            highlight: true,
+            sortable: false
         },
-        decorate: function ($this, config) {
-            $.each($('select[multiple="multiple"]', $this), function () {
-                var v = $(this),
-                    data = v.data(),
-                    opts = data.options || {},
-                    options  = $.extend(true, {}, config.asmSelect.defaults, opts);
-                v.bsmSelect(options);
-            });
+        _create: function () {
+            self.element.bsmSelect(self.config);
         }
     });
     //
     $.djpcms.decorator({
         name: 'message',
+        selector: 'li.messagelist, li.errorlist',
         config: {
             dismiss: true,
             fade: 400,
             float: 'right'
         },
-        decorate: function ($this, config) {
-            var opts = config.message;
-            $('li.messagelist, li.errorlist', $this).each(function () {
-                var li = $(this),
-                    a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
-                        .css({'float': opts.float})
-                        .addClass('ui-corner-all')
-                        .mouseenter(function () {$(this).addClass('ui-state-hover'); })
-                        .mouseleave(function () {$(this).removeClass('ui-state-hover'); })
-                        .click(function () {
-                            $(this).parent('li').fadeOut(opts.fade, 'linear', function () {
-                                $(this).remove();
-                            });
+        _create: function () {
+            var self = this,
+                opts = self.config;
+                a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
+                    .css({'float': opts.float})
+                    .addClass('ui-corner-all')
+                    .mouseenter(function () {$(this).addClass('ui-state-hover'); })
+                    .mouseleave(function () {$(this).removeClass('ui-state-hover'); })
+                    .click(function () {
+                        $(this).parent('li').fadeOut(opts.fade, 'linear', function () {
+                            $(this).remove();
                         });
-                li.append(a);
-            });
+                    });
+            self.element.append(a);
         }
     });
     /**
@@ -1079,175 +1105,177 @@
     $.djpcms.decorator({
         name: "autocomplete",
         description: "Autocomplete to an input",
+        defaultElement: 'input',
+        selector: 'input.autocomplete',
         config: {
-            selector: 'input.autocomplete',
-            widgetcontainer: '.field-widget',
+            classes: {
+                autocomplete: 'autocomplete',
+            },
+            widgetcontainer: '.ui-input',
             minLength: 2,
             maxRows: 50,
             search_string: 'q',
             separator: ', '
         },
-        decorate: function ($this, config) {
-            var opts = config.autocomplete;
-            function split(val) {
-                return val.split(/,\s*/);
-            }
-            function clean_data(terms, data) {
-                var new_data = [];
-                $.each(terms, function (i, val) {
-                    for (i = 0; i < data.length; i++) {
-                        if (data[i].label === val) {
-                            new_data.push(data[i]);
-                            break;
-                        }
+        split: function (val) {
+            return val.split(/,\s*/);
+        },
+        clean_data: function (terms, data) {
+            var new_data = [];
+            $.each(terms, function (i, val) {
+                for (i = 0; i < data.length; i++) {
+                    if (data[i].label === val) {
+                        new_data.push(data[i]);
+                        break;
                     }
-                });
-                return new_data;
-            }
-            // The call back from the form to obtain the real data for
-            // the autocomplete input field.
-            function get_real_data(multiple, separator) {
-                return function (val) {
-                    if (multiple) {
-                        var data = [];
-                        $.each(clean_data(split(val), this.data), function (i, d) {
-                            data.push(d.value);
-                        });
-                        return data.join(separator);
+                }
+            });
+            return new_data;
+        },
+        // The call back from the form to obtain the real data for
+        // the autocomplete input field.
+        get_real_data: function  (multiple, separator) {
+            return function (val) {
+                if (multiple) {
+                    var data = [];
+                    $.each(clean_data(split(val), this.data), function (i, d) {
+                        data.push(d.value);
+                    });
+                    return data.join(separator);
+                } else {
+                    if (val && this.data.length) {
+                        return this.data[0].real_value;
                     } else {
-                        if (val && this.data.length) {
-                            return this.data[0].real_value;
-                        } else {
-                            return '';
-                        }
+                        return '';
+                    }
+                }
+            };
+        },
+        single_add_data: function  (item) {
+            this.real.val(item.real_value);
+            this.proxy.val(item.value);
+            this.real.data('value', item.value);
+        },
+        multiple_add_data: function (item) {
+            var terms = split(this.value);
+            terms.pop();
+            data = clean_data(terms, data);
+            terms.push(display);
+            new_data.push(item);
+            terms.push("");
+            display = terms.join(separator);
+            real_data['data'] = data;
+        },
+        get_autocomplete_data: function (jform, options, veto) {
+            var value = this.proxy.val();
+            if(this.multiple) {
+                //
+            } else {    
+                if (this.real.data('value') !== value) {
+                    this.real.val(value);
+                }
+            }
+        },
+        _create: function () {
+            var self = this,
+                opts = self.config;
+                elem = this.element,
+                name = elem.attr('name'),
+                data = elem.data(),
+                url = data.url,
+                choices = data.choices,
+                maxRows = data.maxrows || opts.maxRows,
+                search_string = data.search_string || opts.search_string,
+                multiple = data.multiple,
+                separator = data.separator || opts.separator,
+                initials,
+                manager = {
+                    'name': name,
+                    proxy: elem,
+                    widget: elem,
+                    'multiple': multiple,
+                    add_data: multiple ? multiple_add_data : single_add_data
+                },
+                options = {
+                    minLength: data.minlength || opts.minLength,
+                    select: function (event, ui) {
+                        manager.add_data(ui.item);
+                        return false;
                     }
                 };
+            // Bind to form pre-serialize 
+            elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data, manager));
+            // Optain the widget container for positioning if specified. 
+            if (opts.widgetcontainer) {
+                manager.widget = elem.parent(opts.widgetcontainer);
+                if (!manager.widget.length) {
+                    manager.widget = elem;
+                }
+                options.position = {of: manager.widget};
             }
-            function single_add_data(item) {
-                this.real.val(item.real_value);
-                this.proxy.val(item.value);
-                this.real.data('value', item.value);
+            // Build the real (hidden) input
+            if(multiple) {
+                manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
+            } else {
+                manager.real = $('<input name="'+ name +'"></input>');
             }
-            function multiple_add_data(item) {
-                var terms = split(this.value);
-                terms.pop();
-                data = clean_data(terms, data);
-                terms.push(display);
-                new_data.push(item);
-                terms.push("");
-                display = terms.join(separator);
-                real_data['data'] = data;
-            }
-            function get_autocomplete_data(jform, options, veto) {
-                var value = this.proxy.val();
-                if(this.multiple) {
-                    //
-                } else {    
-                    if (this.real.data('value') !== value) {
-                        this.real.val(value);
+            elem.attr('name',name+'_proxy');
+            manager.widget.prepend(manager.real.hide());
+            //
+            if(multiple) {
+                options.focus = function() {
+                    return false;
+                };
+                elem.bind("keydown", function( event ) {
+                    if ( event.keyCode === $.ui.keyCode.TAB &&
+                            $( this ).data( "autocomplete" ).menu.active ) {
+                        event.preventDefault();
                     }
-                }
+                });
             }
-            /* Loop over each element and setup plugin */
-            $(opts.selector, $this).each(function () {
-                var elem = $(this),
-                    name = elem.attr('name'),
-                    data = elem.data(),
-                    url = data.url,
-                    choices = data.choices,
-                    maxRows = data.maxrows || opts.maxRows,
-                    search_string = data.search_string || opts.search_string,
-                    multiple = data.multiple,
-                    separator = data.separator || opts.separator,
-                    initials,
-                    manager = {
-                        'name': name,
-                        proxy: elem,
-                        widget: elem,
-                        'multiple': multiple,
-                        add_data: multiple ? multiple_add_data : single_add_data
-                    },
-                    options = {
-                        minLength: data.minlength || opts.minLength,
-                        select: function (event, ui) {
-                            manager.add_data(ui.item);
-                            return false;
-                        }
-                    };
-                // Bind to form pre-serialize 
-                elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data, manager));
-                // Optain the widget container for positioning if specified. 
-                if (opts.widgetcontainer) {
-                    manager.widget = elem.parent(opts.widgetcontainer);
-                    if (!manager.widget.length) {
-                        manager.widget = elem;
+            initials = data.initial_value;
+            if(initials) {
+                $.each(initials, function(i,initial) {
+                    manager.add_data({real_value: initial[0],
+                                      value: initial[1]});
+                });
+            }
+            
+            // If choices are available, it is a locfal autocomplete.
+            if(choices && choices.length) {
+                var sources = [];
+                $.each(choices,function(i,val) {
+                    sources[i] = {value:val[0],label:val[1]};
+                });
+                options.source = function( request, response ) {
+                    if(multiple) {
+                        response( $.ui.autocomplete.filter(
+                            sources, split(request.term).pop() ) );
                     }
-                    options.position = {of: manager.widget};
-                }
-                // Build the real (hidden) input
-                if(multiple) {
-                    manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
-                } else {
-                    manager.real = $('<input name="'+ name +'"></input>');
-                }
-                elem.attr('name',name+'_proxy');
-                manager.widget.prepend(manager.real.hide());
-                //
-                if(multiple) {
-                    options.focus = function() {
-                        return false;
-                    };
-                    elem.bind("keydown", function( event ) {
-                        if ( event.keyCode === $.ui.keyCode.TAB &&
-                                $( this ).data( "autocomplete" ).menu.active ) {
-                            event.preventDefault();
-                        }
-                    });
-                }
-                initials = data.initial_value;
-                if(initials) {
-                    $.each(initials, function(i,initial) {
-                        manager.add_data({real_value: initial[0],
-                                          value: initial[1]});
-                    });
-                }
-                
-                // If choices are available, it is a locfal autocomplete.
-                if(choices && choices.length) {
-                    var sources = [];
-                    $.each(choices,function(i,val) {
-                        sources[i] = {value:val[0],label:val[1]};
-                    });
-                    options.source = function( request, response ) {
-                        if(multiple) {
-                            response( $.ui.autocomplete.filter(
-                                sources, split(request.term).pop() ) );
-                        }
-                        else {
-                            return sources;
-                        }
-                    },
-                    elem.autocomplete(options);
-                }
-                else if(url) {
-                    // We have a url, the data is obtained remotely.
-                    options.source = function(request,response) {
-                                    var ajax_data = {style: 'full',
-                                                     maxRows: maxRows,
-                                                     'search_string': search_string 
-                                                     };
-                                    ajax_data[search_string] = request.term;
-                                    var loader = $.djpcms.ajax_loader(url,
-                                                                    'autocomplete',
-                                                                    'get',ajax_data),
-                                        that = {'response':response,
-                                                'multiple': multiple,
-                                                'request':request};                                    
-                                    $.proxy(loader,that)();
-                                };
-                    elem.autocomplete(options);
-                }
-            })
+                    else {
+                        return sources;
+                    }
+                },
+                elem.autocomplete(options);
+            }
+            else if(url) {
+                // We have a url, the data is obtained remotely.
+                options.source = function(request,response) {
+                                var ajax_data = {style: 'full',
+                                                 maxRows: maxRows,
+                                                 'search_string': search_string 
+                                                 };
+                                ajax_data[search_string] = request.term;
+                                var loader = $.djpcms.ajax_loader(url,
+                                                                'autocomplete',
+                                                                'get',ajax_data),
+                                    that = {'response':response,
+                                            'multiple': multiple,
+                                            'request':request};                                    
+                                $.proxy(loader,that)();
+                            };
+                elem.autocomplete(options);
+            }
         }
     });
     /**
@@ -1255,8 +1283,8 @@
      */
     $.djpcms.decorator({
         name: "rearrange",
+        selector: 'body.editable',
         config: {
-            body_selector: 'body.editable',
             cmsblock: '.cms-edit-block',
             placeholder: 'cms-block-placeholder',
             cmsform: 'form.cms-blockcontent',
@@ -1264,12 +1292,10 @@
             sortblock: '.sortable-block'
         },
         description: "Drag and drop functionalities in editing mode",
-        decorate: function($this, config) {
-            var options = config.rearrange;
-            if(!$(options.body_selector).length) {
-                if(!$.djpcms.content_edit) {
-                    return;
-                }
+        _create: function() {
+            var options = this.config;
+            if(!$.djpcms.content_edit) {
+                return;
             }
             // Decorate
             $.djpcms.content_edit = (function() {
@@ -1354,11 +1380,9 @@
     //
     $.djpcms.decorator({
         name: "textselect",
-        config: {
-            selector: 'select.text-select',
-        },
+        selector: 'select.text-select',
         description: "A selct widget with text to display",
-        decorate: function($this,config) {
+        _create: function() {
             var elems = $(config.textselect.selector,$this);
             
             // The selectors
@@ -1394,41 +1418,11 @@
             elems.change(function(){text(this)});
         }
     });
-    /**
-     * This little decorator add the 'focus' class to input containers
-     * in djpcms forms when they are on focus.
-     */
-    $.djpcms.decorator({
-        name: "field_widget",
-        config: {
-            selector: '.field-widget',
-        },
-        description: "Add focus class to field-widget-input when underlying input is on focus",
-        decorate: function($this,config) {
-            var selector = config.field_widget.selector,
-                elem = $(selector+' input',$this);
-            elem.focus(function() {
-                var p = $(this).parent(selector);
-                p.addClass('focus');
-            }).blur(function() {
-                var p = $(this).parent(selector);
-                p.removeClass('focus');
-            });
-            if(elem.hasClass('submit-on-enter')) {
-                elem.keypress(function(e){
-                    if(e.which == 13){
-                        var form = elem.closest('form');
-                        form.submit();
-                    }
-                });
-            }
-        }
-    });
     //
     $.djpcms.decorator({
         name: "popover",
+        selector: '.pop-over, .label',
         config: {
-            selector: '.pop-over, .label',
             x:10,
             y:30,
             predelay: 400,
@@ -1436,19 +1430,17 @@
             fadeOutSpeed:200,
             position: "top"
         },
-        decorate: function ($this, config) {
+        _create: function () {
             if ($.fn.popover) {
-                var that = this,
-                    c = config.popover;
-                $(c.selector,$this).each(function(){
-                    var el = $(this),
-                        data = el.data(),
-                        des = el.data('content');
-                    if(des) {
-                        el.attr('rel','popover');
-                        el.popover();
-                    }
-                });
+                var self = this,
+                    el = self.element,
+                    des = el.data('content');
+                if(des) {
+                    el.attr('rel','popover');
+                    el.popover();
+                }
+            } else {
+                self.destroy();
             }
         }
     }); 

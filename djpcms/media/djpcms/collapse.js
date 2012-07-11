@@ -3,17 +3,12 @@
     $.djpcms.decorator({
         name: "collapsable",
         description: "Decorate box elements",
+        selector: '.ui-widget.collapsable',
         config: {
-            selector: '.ui-widget.collapsable',
             effect: {type:"blind",duration:10},
         },
-        decorate: function(container, config) {
-            var opts = config[this.name],
-                elems = $(opts.selector, container);
-            return this.many(elems, opts);
-        },
         _create: function() {
-            var element = this.element(),
+            var element = this.element,
                 opts = this.options;
             element.mousedown(function (e) {
                 e.stopPropagation();    

@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-11 07:00:21.455234
-Time taken 0.346 seconds
+Created by djpcms.style 2012-07-11 10:14:39.633000
+Time taken 0.309 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -703,9 +703,9 @@ input:-ms-input-placeholder {
     color: #555555;
     text-decoration: none;
     border: 1px solid #d3d3d3;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 }
 
 .ui-clickable:hover {
@@ -769,9 +769,9 @@ input:-ms-input-placeholder {
     color: #555555;
     text-decoration: none;
     border: 1px solid #d3d3d3;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
     font-size: inherit;
     text-align: center;
     display: inline-block;
@@ -919,21 +919,21 @@ input:-ms-input-placeholder {
 }
 
 .ui-corner-all {
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 }
 
 .ui-corner-top {
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+       -moz-border-radius: 5px 5px 0 0;
+            border-radius: 5px 5px 0 0;
 }
 
 .ui-corner-bottom {
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 0 0 5px 5px;
+       -moz-border-radius: 0 0 5px 5px;
+            border-radius: 0 0 5px 5px;
 }
 
 .ui-draggable {
@@ -1016,9 +1016,9 @@ input:-ms-input-placeholder {
     padding: 0 4px;
     width: auto;
     background: #ffffff;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
     border: 1px solid #d3d3d3;
 }
 
@@ -1227,9 +1227,9 @@ textarea[readonly]
     border-width: 1px;
     border-style: solid;
     background: #fcf8e3;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 }
 
 .alert.alert-error {
@@ -1345,9 +1345,9 @@ textarea.taboverride {
     padding: 6px 10px 0;
     border-bottom: none;
     *zoom: 1;
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+       -moz-border-radius: 5px 5px 0 0;
+            border-radius: 5px 5px 0 0;
 }
 
 .ui-tabs > ul:before {
@@ -1375,9 +1375,9 @@ textarea.taboverride {
     padding: 8px 12px;
     line-height: 18px;
     display: block;
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+       -moz-border-radius: 5px 5px 0 0;
+            border-radius: 5px 5px 0 0;
 }
 
 .ui-tabs > div {
@@ -1549,9 +1549,9 @@ th.ui-clickable {
 .ui-dialog .ui-dialog-titlebar {
     font-weight: bold;
     font-size: 110%;
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+       -moz-border-radius: 5px 5px 0 0;
+            border-radius: 5px 5px 0 0;
     background: #ededed;
     color: #333333;
     border-width: 0 0 1px 0;
@@ -1566,9 +1566,9 @@ th.ui-clickable {
 .ui-dialog .ui-dialog-buttonpane {
     background: #ededed;
     color: #333333;
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 0 0 5px 5px;
+       -moz-border-radius: 0 0 5px 5px;
+            border-radius: 0 0 5px 5px;
     border-width: 1px 0 0 0;
     border-style: solid;
     border-color: #e6e6e6;
@@ -1644,15 +1644,15 @@ th.ui-clickable {
 
 .btn-group > .btn:first-child {
     margin: 0;
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 5px 0 0 5px;
+       -moz-border-radius: 5px 0 0 5px;
+            border-radius: 5px 0 0 5px;
 }
 
 .btn-group > .btn:last-child {
-    -webkit-border-radius: 0 0 0 0;
-       -moz-border-radius: 0 0 0 0;
-            border-radius: 0 0 0 0;
+    -webkit-border-radius: 0 5px 5px 0;
+       -moz-border-radius: 0 5px 5px 0;
+            border-radius: 0 5px 5px 0;
 }
 
 .btn-holder {
@@ -1687,9 +1687,9 @@ th.ui-clickable {
 
 .btn.btn-large {
     padding: 8px;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 }
 
 @font-face {

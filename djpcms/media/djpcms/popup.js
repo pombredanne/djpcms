@@ -55,7 +55,7 @@
      */
     if ($.djpcms) {
         $.djpcms.addJsonCallBack({
-            id: "popup",
+            name: "popup",
             handle: function (data, elem) {
                 $.popupWindow({windowURL: data, centerBrowser: 1});
             }

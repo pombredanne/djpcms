@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-10 11:34:40.409000
-Time taken 0.038 seconds
+Created by djpcms.style 2012-07-11 07:00:21.455234
+Time taken 0.346 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -772,6 +772,13 @@ input:-ms-input-placeholder {
     -webkit-border-radius: 0;
        -moz-border-radius: 0;
             border-radius: 0;
+    font-size: inherit;
+    text-align: center;
+    display: inline-block;
+    padding: 4px 9px 4px;
+    font-weight: normal;
+    vertical-align: middle;
+    font-family: inherit;
 }
 
 .btn:hover {
@@ -909,37 +916,6 @@ input:-ms-input-placeholder {
 
 .ui-widget-header .edit-menu {
     line-height: 18px;
-}
-
-.ui-widget-header a {
-    cursor: pointer;
-    background: transparent;
-    color: #555555;
-    text-decoration: none;
-}
-
-.ui-widget-header a:hover {
-    background: transparent;
-    color: #555555;
-    text-decoration: none;
-}
-
-.ui-widget-header a.ui-state-hover {
-    background: transparent;
-    color: #555555;
-    text-decoration: none;
-}
-
-.ui-widget-header a:active {
-    background: transparent;
-    color: #212121;
-    text-decoration: none;
-}
-
-.ui-widget-header a.ui-state-active {
-    background: transparent;
-    color: #212121;
-    text-decoration: none;
 }
 
 .ui-corner-all {
@@ -1702,92 +1678,14 @@ th.ui-clickable {
     margin: 0;
 }
 
-input.btn[type="submit"] {
-    font-size: inherit;
-    text-align: center;
-    padding: 4px 9px 4px;
-    font-weight: normal;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-button.btn {
-    font-size: inherit;
-    text-align: center;
-    padding: 4px 9px 4px;
-    font-weight: normal;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-a.btn {
-    font-size: inherit;
-    text-align: center;
-    padding: 4px 9px 4px;
-    font-weight: normal;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-label.btn {
-    font-size: inherit;
-    text-align: center;
-    padding: 4px 9px 4px;
-    font-weight: normal;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-input.btn.btn-small[type="submit"] {
+.btn.btn-small {
     padding: 2px;
     -webkit-border-radius: 2px;
        -moz-border-radius: 2px;
             border-radius: 2px;
 }
 
-button.btn.btn-small {
-    padding: 2px;
-    -webkit-border-radius: 2px;
-       -moz-border-radius: 2px;
-            border-radius: 2px;
-}
-
-a.btn.btn-small {
-    padding: 2px;
-    -webkit-border-radius: 2px;
-       -moz-border-radius: 2px;
-            border-radius: 2px;
-}
-
-label.btn.btn-small {
-    padding: 2px;
-    -webkit-border-radius: 2px;
-       -moz-border-radius: 2px;
-            border-radius: 2px;
-}
-
-input.btn.btn-large[type="submit"] {
-    padding: 8px;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
-}
-
-button.btn.btn-large {
-    padding: 8px;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
-}
-
-a.btn.btn-large {
-    padding: 8px;
-    -webkit-border-radius: 0;
-       -moz-border-radius: 0;
-            border-radius: 0;
-}
-
-label.btn.btn-large {
+.btn.btn-large {
     padding: 8px;
     -webkit-border-radius: 0;
        -moz-border-radius: 0;
@@ -2100,12 +1998,10 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
 .icon-user-md:before              { content: "\f200"; }
 
 .btn [class^="icon-"], .btn [class*=" icon-"] {
-	float: left;
 	display: inline-block;
 	text-decoration: none !important;
 	overflow: visible;
 	position: relative;
-	padding: 0.1em;
 }
 .topbar {
     height: 40px;

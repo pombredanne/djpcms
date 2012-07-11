@@ -40,19 +40,20 @@
             });
         },
         decorate: function(container, config) {
-            var elements = $('.'+config.button.classes.button, container);
-            return this.many(elements);
+            var options = config[this.name],
+                elements = $('.'+options.classes.button, container);
+            return this.many(elements, options);
         },
         _create: function () {
             var element = this.element(),
                 classes = this.config.classes,
                 labelSelector,
                 ancestor;
-            if (this.element.is("[type=checkbox]")) {
+            if (element.is("[type=checkbox]")) {
                 this.type = "checkbox";
-            } else if (this.element.is("[type=radio]")) {
+            } else if (element.is("[type=radio]")) {
                 this.type = "radio";
-            } else if (this.element.is("input")) {
+            } else if (element.is("input")) {
                 this.type = "input";
             } else {
                 this.type = "button";

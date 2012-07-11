@@ -241,8 +241,7 @@
      */
     $.djpcms = (function (djpcms) {
         // Private variables
-        var decorators = {},
-            widgets = {},
+        var widgets = {},
             instances = [],
             actions = {},
             jsonCallBacks = {},
@@ -275,25 +274,30 @@
                 debug: false
             },
             base_widget = {
+                name: 'widget',
                 defaultElement: '<div>',
                 config: {},
+                decorate: function (container, options) {},
                 _create: function() {
                     return this;
                 }
             };
-        //
-        function make_widget(name, widget) {
-            widget.name = name;            
+        // Add a new decorator
+        function addDecorator(deco) {
+            var widget = $.extend(true, {}, base_widget, deco),
+                factory = $.extend({}, widget);
+            defaults[widget.name] = widget.config;
+            delete widget.config;
             widgets[widget.name] = widget;
             $.extend(widget, {
+                'factory': factory,
+                instances: [],
                 create: function (element, options) {
-                    var self = $.extend({}, base_widget, widget),
-                        instance_id = parseInt(instances.push(self), 10) - 1;
+                    var self = $.extend({}, widget.factory),
+                        instance_id = parseInt(widget.instances.push(self), 10) - 1;
                     element = $( element || self.defaultElement )[ 0 ];
-                    if(options) {
-                        $.extend(true, self.config, options);
-                    }
                     $.extend(self, {
+                        'options': options,
                         'djpcms': djpcms,
                         id: function() {
                             return instance_id;
@@ -304,8 +308,12 @@
                     });
                     return self._create();
                 },
+                options: function () {
+                    return widget.djpcms.options[widget.name];
+                },
+                // Given a jQuery object, build as many widgets
                 many: function(elements, options) {
-                    var wdgs = [];                    
+                    var wdgs = [];
                     return $.each(elements, function() {
                         wdgs.push(widget.create(this, options));
                     });
@@ -314,7 +322,11 @@
             });
             $.extend(djpcms.ui, {
                 name: function (element, options) {
-                    options = $.extend({}, widget.config, options || {});
+                    if(!options) {
+                        options = widget.options();
+                    } else {
+                        options = $.extend({}, widget.options(), options);
+                    }
                     return widget.many($(elements), options);
                 }
             });
@@ -352,24 +364,14 @@
         function setOptions(options) {
             $.extend(true, defaults, options);
         }
-        // Add a new decorator
-        function addDecorator(deco) {
-            var config = deco.config || {},
-                opts = defaults[deco.name] || {};
-            decorators[deco.name] = $.proxy(deco.decorate, deco);
-            defaults[deco.name] = $.extend(config, opts);
-            if(deco.widget) {
-                make_widget(deco.name, deco);
-            }
-        }
         // Add a new callback for JSON data
         function addJsonCallBack(jcb) {
             jsonCallBacks[jcb.id] = jcb;
         }
         // Remove a decorator
         function removeDecorator(rid) {
-            if (decorators.hasOwnMethod(rid)) {
-                delete decorators[rid];
+            if (widgets.hasOwnMethod(rid)) {
+                delete widgets[rid];
             }
         }
         //
@@ -441,9 +443,9 @@
                     if (lp) {
                         set_logging_pannel(lp);
                     }
-                    $.each(decorators, function (id, decorator) {
-                        logger.info('Adding decorator ' + id);
-                        decorator(me, config);
+                    $.each(widgets, function (name, widget) {
+                        logger.info('Adding decorator ' + name);
+                        widget.decorate(me, config);
                     });
                     if (this === document) {
                         $.data(this, 'djpcms', config);

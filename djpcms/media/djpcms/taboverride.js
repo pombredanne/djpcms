@@ -245,16 +245,16 @@
         
         return tabOverride;
     }());
-    
+    //
     $.djpcms.decorator({
-        id: 'taboverride',
+        name: 'taboverride',
         description: "Override tab key to insert n spaces",
         config: {
             spaces: 4    
         },
         decorate: function($this,config) {
             $.fn.tabOverride.setTabSize(config.taboverride.spaces);
-            $('textarea.taboverride',$this).tabOverride(true);
+            $('textarea.taboverride', $this).tabOverride(true);
         }
     });
     

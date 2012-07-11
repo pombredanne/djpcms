@@ -37,7 +37,7 @@
         }});
         
         
-    if ($.djpcms && $.fn.dataTable) {
+    if ($.fn.dataTable) {
         
     	// djpcms dataTable handler
         $.djpcms.dataTable = {};

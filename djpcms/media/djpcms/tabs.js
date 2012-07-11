@@ -4,15 +4,15 @@
      */
 (function ($) {
     $.djpcms.decorator({
-        id:"ui_tabs",
-        config:{
+        name: "ui_tabs",
+        config: {
             effect:'drop',
             fadetime: 500,
            //tabs: {cookie: {expiry: 7}},
-            },
-        decorate: function($this, config) {
+        },
+        decorate: function(container, config) {
             var c = config.ui_tabs;
-            $('.ui-tabs',$this).each(function() {
+            $('.ui-tabs', container).each(function() {
                 var el = $(this),
                     data = el.data(),
                     options = {};

@@ -1,17 +1,21 @@
 (function ($) {
     "use strict";
     $.djpcms.decorator({
-        id:"djpcms_widget",
-        description:"Decorate box elements",
+        name: "collapsable",
+        description: "Decorate box elements",
         config: {
             selector: '.ui-widget.collapsable',
             effect: {type:"blind",duration:10},
         },
-        decorate: function($this, config) {
-            var opts = config.djpcms_widget,
-                bname = '.hd',
-                elems = $(opts.selector,$this);
-            $('a.collapse',elems).mousedown(function (e) {
+        decorate: function(container, config) {
+            var opts = config[this.name],
+                elems = $(opts.selector, container);
+            return this.many(elems, opts);
+        },
+        _create: function() {
+            var element = this.element(),
+                opts = this.options;
+            element.mousedown(function (e) {
                 e.stopPropagation();    
             }).click(function() {
                 var self = $(this),

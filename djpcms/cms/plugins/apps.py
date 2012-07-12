@@ -100,18 +100,18 @@ class RenderObject(DJPplugin):
 :attr:`Application.instance_view`.'''
     virtual = True
     form = ContentForm
-    
+    view = 'view'
     def get_object(self, request, content):
         model = self.for_model(request)
         if content and model:
-            return orms.mapper(model).get(id = content)
+            return orms.mapper(model).get(id=content)
         
-    def render(self, request, wrapper, prefix, content = None, **kwargs):
+    def render(self, request, block, prefix, content=None, **kwargs):
         instance = self.get_object(request, content)
         if instance:
-            request = request.for_model(instance=instance, name='view')
+            request = request.for_model(instance=instance, name=self.view)
             if request:
-                return request.render()
+                return request.render(block=block)
             else:
                 return to_string(instance)
         else:

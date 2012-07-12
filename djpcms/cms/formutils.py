@@ -130,21 +130,16 @@ def get_form(request,
         inputs.append(Widget('input:hidden',
                              name=forms.PREFIX_KEY,
                              value=prefix))
-                
-    # Create the form instance
-    form  = form_factory(inputs=inputs,
-                         action=request.url,
-                         **form_kwargs(request=request,
-                                       initial=initial,
-                                       instance=instance,
-                                       model=model,
-                                       prefix=prefix,
-                                       withdata=withdata,
-                                       method=form_factory.attrs['method']))
-    
-    if model:
-        form.addClass(str(model._meta).replace('.','-'))
-    return form
+    # Create the form widget
+    return form_factory(inputs=inputs,
+                        action=request.url,
+                        **form_kwargs(request=request,
+                                      initial=initial,
+                                      instance=instance,
+                                      model=model,
+                                      prefix=prefix,
+                                      withdata=withdata,
+                                      method=form_factory.attrs['method']))
 
 def return_form_errors(fhtml,request):
     if request.is_xhr:

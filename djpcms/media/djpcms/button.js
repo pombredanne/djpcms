@@ -1,6 +1,6 @@
 /*jslint evil: true, nomen: true, plusplus: true, browser: true */
 /*globals jQuery*/
-
+//
 (function ($) {
     "use strict";
     //
@@ -11,6 +11,8 @@
         config: {
             classes: {
                 input: 'ui-input',
+                focus: 'focus',
+                sumbit: 'submit-on-enter'
             }
         },
         _create: function () {
@@ -35,26 +37,22 @@
             } else {
                 self.wrapper = elem;
                 elem = self.wrapper.children('input');
-                if (elem.length == 1) {
+                if (elem.length === 1) {
                     self.element = elem;
                 }
             }
-        },
-        focus: function() {
-            var selector = config.field_widget.selector,
-                elem = $(selector+' input',$this);
-            elem.focus(function() {
-                var p = $(this).parent(selector);
-                p.addClass('focus');
-            }).blur(function() {
-                var p = $(this).parent(selector);
-                p.removeClass('focus');
+            self.element.focus(function () {
+                self.wrapper.addClass(config.classes.focus);
+            }).blur(function () {
+                self.wrapper.removeClass(config.classes.focus);
             });
-            if(elem.hasClass('submit-on-enter')) {
-                elem.keypress(function(e){
-                    if(e.which == 13){
+            if (self.element.hasClass(config.classes.submit)) {
+                self.element.keypress(function (e) {
+                    if (e.which === 13) {
                         var form = elem.closest('form');
-                        form.submit();
+                        if (form.length) {
+                            form.submit();
+                        }
                     }
                 });
             }
@@ -145,7 +143,7 @@
                     buttonElement.html(options.text);
                 }
                 if (options.icon) {
-                    self.djpcms.ui.icon(buttonElement, {icon: options.icon});
+                    self.ui('icon', buttonElement, {icon: options.icon});
                 }
                 buttonElement.addClass(classes.button).css('display', 'inline-block');
                 if (toggle) {
@@ -160,12 +158,12 @@
         },
         refresh: function () {
             var self = this,
-                classes = self.djpcms.options.classes;
+                classes = $.djpcms.options.widget.classes;
             if (self.element.prop("checked")) {
-                self.djpcms.logger.debug('checked');
+                $.djpcms.logger.debug('checked');
                 self.buttonElement.addClass(classes.active);
             } else {
-                self.djpcms.logger.debug('unchecked');
+                $.djpcms.logger.debug('unchecked');
                 self.buttonElement.removeClass(classes.active);
             }
         }

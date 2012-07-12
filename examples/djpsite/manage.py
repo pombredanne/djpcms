@@ -77,12 +77,13 @@ class WebSite(cms.WebSite):
         return site
     
     def urls(self, site):
-        from djpsite.apps import design, jstests
+        from djpsite.apps import design, jstests, geo
         return (
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
                 design.DesignApplication('/design', design.Theme),
                 jstests.Application('/jstests'),
+                geo.Application('/apps/geo', geo.Geo),
                 UserApplication('/accounts/', User),
                 MainApplication('/')
                 )

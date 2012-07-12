@@ -4,12 +4,12 @@ following to your application urls tuple::
     SiteMapApplication('/sitemap/',
                         name = 'sitemap')
 '''
-from djpcms import views
+from djpcms import views, media
 from djpcms.utils import markups
 from djpcms.utils.text import mark_safe, escape
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
-from djpcms.cms import Http404, messages
+from djpcms.cms import Http404, messages, pageview
 from djpcms.cms.formutils import request_get_data
 from djpcms.apps.nav import page_links
 from djpcms.apps.admin import AdminApplication
@@ -67,6 +67,7 @@ class PageChangeView(views.ChangeView):
 :class:`djpcms.html.layout.container` at the top of the page with the
 editing form.'''
     name='change'
+    _media = media.Media(js=['djpcms/rearrange.js'])
     edit_container=container('edit-page',
                              cn=classes.edit,
                              grid_fixed=False,
@@ -101,6 +102,9 @@ editing form.'''
         return super(PageChangeView,self).defaultredirect(request,
                                                           instance = instance,
                                                           **kwargs)
+    
+    def media(self, request):
+        return self._media
     
     
 class SiteMapApplication(views.Application):
@@ -138,7 +142,7 @@ class SiteMapApplication(views.Application):
         if field_name == 'view':
             node = request.tree.get(page.url)
             view = node.view
-            if not isinstance(view,views.pageview):
+            if not isinstance(view, pageview):
                 return view.code
             else:
                 return ''

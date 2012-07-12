@@ -4,7 +4,7 @@ from djpcms.media import Media
 from .base import Widget, WidgetMaker, iterable_for_widget
 from . import classes
 
-__all__ = ['tabs','accordion','ajax_html_select']
+__all__ = ['tabs', 'accordion', 'ajax_html_select']
 
 
 class TabWidget(Widget):
@@ -54,7 +54,8 @@ pills = WidgetMaker(tag='div',
                     media=tab_media)
 accordion = WidgetMaker(tag='div',
                         widget=Accordion,
-                        cn='ui-accordion-container djph')
+                        cn='ui-accordion-container djph',
+                        media=tab_media)
 
 
 def ajax_html_select(name_title_html, **kwargs):

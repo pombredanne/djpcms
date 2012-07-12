@@ -39,6 +39,14 @@ class InputWidget(FieldWidget):
 
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
+    
+    def media(self, request, widget):
+        if widget.hasClass(classes.autocomplete):
+            m = Media(js=['djpcms/autocomplete.js'])
+            m += super(TextInput, self).media(request, widget)
+        else:
+            m = super(TextInput, self).media(request, widget)
+        return m
 
 
 class PasswordInput(InputWidget):

@@ -37,7 +37,10 @@
         }
         var parents = [],
             minlen = Infinity,
-            i, j, p, equal;
+            i,
+            j,
+            p,
+            equal;
         //
         this.each(function () {
             var curparents = $(this).parents();
@@ -125,10 +128,11 @@
         logging.getLevelName = function (level) {
             var l = levelNames[level];
             if (l !== undefined) {
-                return l.name;
+                l = l.name;
             } else {
-                return 'Level-' + level;
+                l = 'Level-' + level;
             }
+            return l;
         };
         // Default formatter
         logging.default_formatter = function (msg, lvl) {
@@ -211,39 +215,66 @@
      * The global djpcms object
      */
     $.djpcms = {
+        widgets: {},
+        // Base object for widgets
         base_widget: {
+            _create: function () {
+                return this;
+            },
+            factory: function () {
+                return $.djpcms.widgets[this.name];
+            },
+            destroy: function () {
+                var instances = this.factory().instances,
+                    idx = instances.indexOf(this.id),
+                    res;
+                if (idx !== -1) {
+                    res = instances[idx];
+                    delete instances[idx];
+                    delete res.element[0].djpcms_widget;
+                    //res = widgets.instances.splice(idx, 1)[0];
+                }
+                return res;
+            },
+            ui: function (name, options_or_element, options) {
+                return $.djpcms.ui[name](options_or_element, options);
+            },
+            tostring: function (msg) {
+                if (msg) {
+                    msg = this.name + ' ' + this.id + ' - ' + msg;
+                } else {
+                    msg = this.name + ' ' + this.id;
+                }
+                return msg;
+            },
+            debug: function (msg) {$.djpcms.logger.debug(this.tostring(msg)); },
+            info: function (msg) {$.djpcms.logger.info(this.tostring(msg)); },
+            warn: function (msg) {$.djpcms.logger.warn(this.tostring(msg)); },
+            error: function (msg) {$.djpcms.logger.error(this.tostring(msg)); },
+            critical: function (msg) {$.djpcms.logger.critical(this.tostring(msg)); }
+        },
+        // Base object for widget factories.
+        widgetmaker: {
             name: 'widget',
-            as_widget: true,
             defaultElement: '<div>',
             selector: null,
-            config: {},
-            decorate: function (container) {
-                var selector = this.selector;
-                if (selector) {
-                    this.make($(selector, container));
-                }
-            },
-            _create: function() {
-                return this;
-            }
-        },
-        widgetmaker: {
             instance: function (id) {
                 if (typeof id !== 'number') { id = id.id; }
                 return this.instances[id];
             },
             options: function () {
-                return this.djpcms.options[this.name];
+                return $.djpcms.options[this.name];
             },
             // Create the widget on element
             create: function (element, options) {
                 var maker = this,
-                    element = $(element),
                     data = element.data('options'),
-                    self, instance_id;
+                    self,
+                    instance_id;
                 self = $.extend({}, maker.factory);
                 self.id = parseInt(maker.instances.push(self), 10) - 1;
                 self.element = element;
+                element[0].djpcms_widget = self;
                 if (data) {
                     options = $.extend({}, options, data);
                 }
@@ -258,16 +289,40 @@
                     wdgs = [],
                     wdg;
                 options = $.extend(true, {}, maker.options(), options);
-                $.each(elements, function() {
-                    wdg = maker.create(this, options);
+                $.each(elements, function () {
+                    wdg = maker.create($(this), options);
                     if (wdg !== undefined) {
                         wdgs.push(wdg);
                     }
                 });
-                if(wdgs.length === 1) {
+                if (wdgs.length === 1) {
                     wdgs = wdgs[0];
                 }
                 return wdgs;
+            },
+            decorate: function (container) {
+                var selector = this.selector;
+                if (selector) {
+                    if (container.is(selector)) {
+                        this.make(container);
+                    }
+                    this.make($(selector, container));
+                }
+            },
+            ui: function (options_or_element, options) {
+                var element = options_or_element;
+                if (options === undefined && $.isPlainObject(options_or_element)) {
+                    options = options_or_element;
+                    element = undefined;
+                }
+                element = $(element || this.defaultElement);
+                return this.make(element, options);
+            },
+            create_ui: function () {
+                var self = this;
+                return function (options_or_element, options) {
+                    return self.ui(options_or_element, options);
+                };
             }
         },
         ui: {
@@ -304,68 +359,48 @@
      */
     $.djpcms = (function (djpcms) {
         // Private variables
-        var widgets = {},
-            instances = [],
-            actions = {},
+        var actions = {},
             jsonCallBacks = {},
-            logging_pannel = null,
             inrequest = false,
             panel = null,
             appqueue = [],
             logger = $.logging.getLogger(),
             defaults = {
                 media_url: "/media/",
-                classes: {
-                    active: 'ui-state-active',
-                    clickable: 'ui-clickable',
-                    float_right: 'f-right',
-                },
-                ajax_server_error: "ajax-server-error",
-                errorlist: "errorlist",
-                formmessages: "form-messages",
+                debug: false,
                 remove_effect: {type: "drop", duration: 500},
-                fadetime: 200,
-                debug: false
+                fadetime: 200
             };
         //
-        function widgetmaker(widget) {
-            widget.instances = [];
-            widget.factory = $.extend({
-                factory: function () {
-                    return widgets[this.name];
-                },
-                destroy: function () {
-                    var instances = this.factory().instances,
-                        idx = instances.indexOf(this.id),
-                        res;
-                    if(idx !== -1) {
-                        res = widgets.instances[idx];
-                        delete widgets.instances[idx];
-                        //res = widgets.instances.splice(idx, 1)[0];
-                    }
-                    return res;
+        function widgetmaker(deco, base_widget) {
+            var base = base_widget || djpcms.widgetmaker,
+                factory = base.factory || djpcms.base_widget;
+            deco.factory = $.extend({}, factory, deco);
+            deco.superClass = base_widget;
+            deco.instances = [];
+            $.each(base, function (name, value) {
+                if (deco[name] === undefined) {
+                    deco[name] = value;
                 }
-            }, widget);
-            return $.extend(widget, djpcms.widgetmaker);
+            });
+            return deco;
         }
         // Add a new decorator
         function addDecorator(deco) {
-            var maker = $.extend({'djpcms': djpcms}, djpcms.base_widget, deco),
-                name = maker.name;
-            defaults[name] = maker.config;
-            delete maker.config;
-            widgets[name] = widgetmaker(maker);
-            // The user interface factory
-            djpcms.ui[name] = function (options_or_element, options) {
-                var element = options_or_element,
-                    maker = widgets[name];
-                if (options === undefined && $.isPlainObject(options_or_element)) {
-                    options = options_or_element;
-                    element = undefined;
-                }
-                element = $(element || maker.defaultElement);
-                return maker.make(element, options);
-            };
+            var name = deco.name || djpcms.widgetmaker.name,
+                base_widget = djpcms.widgets[name] || djpcms.widgets[djpcms.widgetmaker.name],
+                config = deco.config;
+            deco.name = name;
+            if (config !== undefined) {
+                delete deco.config;
+            }
+            if (defaults[name]) {
+                config = $.extend(true, defaults[name], config);
+            }
+            defaults[name] = config;
+            deco = widgetmaker(deco, base_widget);
+            djpcms.widgets[name] = deco;
+            djpcms.ui[name] = deco.create_ui();
         }
         // Set a logging panel
         function set_logging_pannel(panel) {
@@ -406,8 +441,8 @@
         }
         // Remove a decorator
         function removeDecorator(rid) {
-            if (widgets.hasOwnMethod(rid)) {
-                delete widgets[rid];
+            if ($.djpcms.widgets.hasOwnMethod(rid)) {
+                delete $.djpcms.widgets[rid];
             }
         }
         //
@@ -415,10 +450,11 @@
             var id  = data.header,
                 jcb = jsonCallBacks[id];
             if (jcb) {
-                return jcb.handle(data.body, elem, defaults) && data.error;
+                jcb = jcb.handle(data.body, elem, defaults) && data.error;
             } else {
                 logger.error('Could not find callback ' + id);
             }
+            return jcb;
         }
         // Add new action
         function addAction(id, action) {
@@ -479,7 +515,7 @@
                     if (lp) {
                         set_logging_pannel(lp);
                     }
-                    $.each(widgets, function (name, widget) {
+                    $.each($.djpcms.widgets, function (name, widget) {
                         widget.decorate(me);
                     });
                     if (this === document) {
@@ -495,22 +531,19 @@
         }
         //
         return $.extend(djpcms, {
-            construct: _construct,
-            options: defaults,
-            jsonParse: _jsonParse,
+            'construct': _construct,
+            'options': defaults,
+            'jsonParse': _jsonParse,
             'addJsonCallBack': addJsonCallBack,
             'jsonCallBack': _jsonCallBack,
-            decorator: addDecorator,
-            set_options: setOptions,
+            'decorator': addDecorator,
+            'set_options': setOptions,
             'ajaxparams': ajaxparams,
-            set_inrequest: function (v) {inrequest = v; },
-            before_form_submit: [],
-            //
-            // Action in slements ids
+            'set_inrequest': function (v) {inrequest = v; },
+            'before_form_submit': [],
             'addAction': addAction,
             'registerActionElement': registerActionElement,
             'getAction': getAction,
-            //
             'inrequest': function () {return inrequest; },
             'logger': logger,
             'queue': queue_application,
@@ -525,7 +558,7 @@
                 }
                 return panel;
             },
-            smartwidth: function (html) {
+            'smartwidth': function (html) {
                 return Math.max(15 * Math.sqrt(html.length), 200);
             }
         });
@@ -847,24 +880,22 @@
         }
     });
     ////////////////////////////////////////////////////////////////////////////
-    //                      DECORATORS
+    //                    WIDGETS - DECORATORS
     ////////////////////////////////////////////////////////////////////////////
     /**
-     * Accordion menu
+     * BASE WIDGET
      */
     $.djpcms.decorator({
-        name: "accordion",
-        selector: '.ui-accordion-container',
-        config: {            
-            effect: null,//'drop',
-            fadetime: 200,
-            autoHeight: false,
-            fillSpace: false
-        },
-        _create: function () {
-            var element = this.element,
-                opts = this.config;
-            element.accordion(opts).show(opts.effect, {}, opts.fadetime);
+        config: {
+            classes: {
+                widget: 'ui-widget',
+                head: 'ui-widget-header',
+                body: 'ui-widget-content',
+                foot: 'ui-widget-footer',
+                active: 'ui-state-active',
+                clickable: 'ui-clickable',
+                float_right: 'f-right'
+            }
         }
     });
     /**
@@ -876,8 +907,8 @@
     $.djpcms.decorator({
         name: "ajax",
         description: "add ajax functionality to links, buttons, selects and forms",
-        defaultElement: 'a',
-        selector: '.ajax',
+        defaultElement: '<a>',
+        selector: 'a.ajax, button.ajax, select.ajax, form.ajax',
         config: {
             dataType: "json",
             classes: {
@@ -888,16 +919,35 @@
                 'delete': 'Please confirm delete',
                 'flush': 'Please confirm flush'
             },
+            form: {
+                iframe: false,
+                beforeSerialize: function (jqForm, opts) {
+                    return true;
+                },
+                beforeSubmit: function (formData, jqForm, opts) {
+                    var self = jqForm[0].djpcms_widget;
+                    $.each($.djpcms.before_form_submit, function () {
+                        formData = this(formData, jqForm);
+                    });
+                    jqForm.addClass(self.config.classes.submit);
+                    return true;
+                },
+                success: function (o, s, xhr, jqForm) {
+                    var self = jqForm[0].djpcms_widget;
+                    jqForm.removeClass(self.config.classes.submit);
+                    $.djpcms.jsonCallBack(o, s, jqForm);
+                },
+                error: function (o, s, xhr, jqForm) {
+                    var self = jqForm[0].djpcms_widget;
+                    jqForm.removeClass(self.config.classes.submit);
+                    $.djpcms.jsonCallBack(o, s, jqForm);
+                }
+            },
             timeout: 30
         },
         _create: function () {
             var self = this,
-                element = self.element,
-                config = self.config,
-                confirm = config.confirm_actions,
-                callback = $.djpcms.jsonCallBack,
-                logger = $.djpcms.logger;
-            // Links and buttons
+                element = self.element;
             if (element.is('select')) {
                 self.type = 'select';
                 self.create_select();
@@ -909,107 +959,85 @@
                 self.create_link();
             }
         },
-        create_select: function() {
+        form_data: function () {
+            var elem = this.element,
+                form = elem.closest('form'),
+                data = {
+                    conf: elem.data('warning'),
+                    name: elem.attr('name'),
+                    url: elem.attr('href') || elem.data('href'),
+                    type: elem.data('method') || 'get'
+                };
+            if (form.length === 1) {
+                data.form = form;
+            }
+            if (!data.url && data.form) {
+                data.url = data.form.attr('action');
+            }
+            if (!data.url) {
+                data.url = window.location.toString();
+            }
+            return data;
+        },
+        submit: function (data) {
+            var self = this;
+            //
+            function loader(ok) {
+                if (ok) {
+                    var opts = {
+                            url: data.url,
+                            type: data.type,
+                            dataType: self.config.dataType,
+                            data: $.djpcms.ajaxparams(data.name)
+                        };
+                    self.info('Submitting ajax ' + opts.type +' request "' + data.name + '"');
+                    if (!data.form) {
+                        opts.data.value = self.element.val();
+                        opts.success = $.djpcms.jsonCallBack;
+                        $.ajax(opts);
+                    } else {
+                        $.extend(opts, self.config.form);
+                        data.form[0].clk = self.element[0];
+                        data.form.ajaxSubmit(opts);
+                    }
+                }
+            }
+            if (data.conf) {
+                $.djpcms.warning_dialog(data.conf.title || '', data.conf.body || data.conf, loader);
+            } else {
+                loader(true);
+            }
+        },
+        create_select: function () {
             var self = this,
-                config = self.config;
+                data = self.form_data();
             self.element.change(function (event) {
-                var elem = $(this),
-                    data = elem.data(),
-                    url = data.href,
-                    name = elem.attr('name'),
-                    form = elem.closest('form'),
-                    method = data.method || 'get',
-                    opts,
-                    p;
-                if (form.length === 1 && !url) {
-                    url = form.attr('action');
-                }
-                if (!url) {
-                    url = window.location.toString();
-                }
-                if (!form) {
-                    p = $.djpcms.ajaxparams(elem.attr('name'));
-                    p.value = elem.val();
-                    $.post(url, $.param(p), $.djpcms.jsonCallBack, "json");
-                } else {
-                    // we are going to use the form submit so we send
-                    // all form's inputs too.
-                    opts = {
-                        'url': url,
-                        'type': method,
-                        success: callback,
-                        dataType: config.dataType,
-                        data: {xhr: name},
-                        iframe: false
-                    };
-                    form[0].clk = elem[0];
-                    logger.info('Submitting select change from "' + name + '"');
-                    form.ajaxSubmit(opts);
-                }
+                self.submit(data);
             });
         },
         create_link: function () {
-            // Handle click
-            function handleClick(handle) {
-                var url = elem.attr('href') || elem.data('href') || '.',
-                    method,
-                    action;
-                if (!handle) {return; }
-                if (!elem.hasClass('ajax')) {
-                    window.location = url;
-                } else {
-                    method = elem.data('method') || 'post';
-                    action = elem.attr('name');
-                    $.djpcms.ajax_loader(url, action, method, {})();
-                }
-            }
-            this.element.click(function (event) {
-                event.preventDefault();
-                var elem = $(this),
-                    ajax = elem.hasClass('ajax'),
-                    conf = elem.data('warning'),
-                    form = elem.closest('form');
-                if (conf) {
-                    $.djpcms.warning_dialog(conf.title || '',
-                                            conf.body || conf,
-                                            handleClick);
-                } else {
-                    handleClick(true);
-                }
-            });
-        },
-        form_beforeSerialize: function (jqForm, opts) {
-            return true;
-        },
-        form_beforeSubmit: function (formData, jqForm, opts) {
-            $.each($.djpcms.before_form_submit, function () {
-                formData = this(formData, jqForm);
-            });
-            jqForm.addClass(self.config.classes.submit);
-            return true;
-        },
-        form_success: function (o, s, xhr, jqForm) {
-            jqForm.removeClass(self.config.classes.submit);
-            $.djpcms.jsonCallBack(o, s, jqForm);
-        },
-        create_form: function() {
             var self = this,
-                f = self.element,
+                data = self.form_data();
+            self.element.click(function (event) {
+                event.preventDefault();
+                self.submit(data);
+            });
+        },
+        create_form: function () {
+            var self = this,
+                form = self.element,
                 opts = {
-                    url: f.attr('action'),
-                    type: f.attr('method'),
-                    success: self.form_success,
-                    dataType: self.config.dataType,
-                    beforeSerialize: self.form_beforeSerialize,
-                    beforeSubmit: self.form_beforeSubmit,
-                    iframe: false
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    dataType: self.config.dataType
                 },
                 name;
-            f.ajaxForm(opts);
-            if (f.hasClass(self.config.classes.autoload)) {
-                name = f.attr("name");
-                f[0].clk = $(":submit[name='" + name + "']", f)[0];
-                f.submit();
+            $.extend(opts, self.config.form);
+            form.ajaxForm(opts);
+            if (form.hasClass(self.config.classes.autoload)) {
+                name = form.attr("name");
+                form[0].clk = $(":submit[name='" + name + "']", form)[0];
+                form.submit();
             }
         }
     });
@@ -1036,7 +1064,7 @@
             dateFormat: 'd M yy'
         },
         _create: function () {
-            this.element.datepicker(self.config);
+            this.element.datepicker(this.config);
         }
     });
     // Currency Input
@@ -1048,9 +1076,9 @@
                 negative: 'negative'
             }
         },
-        format: function (elem, nc) {
-            var elem = self.element,
-                nc = self.config.classes.negative;
+        format: function () {
+            var elem = this.element,
+                nc = this.config.classes.negative,
                 v = $.djpcms.format_currency(elem.val());
             if (v.negative) {
                 elem.addClass(nc);
@@ -1077,7 +1105,7 @@
             sortable: false
         },
         _create: function () {
-            self.element.bsmSelect(self.config);
+            this.element.bsmSelect(this.config);
         }
     });
     //
@@ -1091,7 +1119,7 @@
         },
         _create: function () {
             var self = this,
-                opts = self.config;
+                opts = self.config,
                 a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
                     .css({'float': opts.float})
                     .addClass('ui-corner-all')
@@ -1105,339 +1133,16 @@
             self.element.append(a);
         }
     });
-    /**
-     * AUTOCOMPLETE
-     * 
-     * The actual values are stored in the data attribute of the input element.
-     * The positioning is with respect the "widgetcontainer" parent element if
-     * available.
-     */
-    $.djpcms.decorator({
-        name: "autocomplete",
-        description: "Autocomplete to an input",
-        defaultElement: 'input',
-        selector: 'input.autocomplete',
-        config: {
-            classes: {
-                autocomplete: 'autocomplete',
-            },
-            widgetcontainer: '.ui-input',
-            minLength: 2,
-            maxRows: 50,
-            search_string: 'q',
-            separator: ', '
-        },
-        split: function (val) {
-            return val.split(/,\s*/);
-        },
-        clean_data: function (terms, data) {
-            var new_data = [];
-            $.each(terms, function (i, val) {
-                for (i = 0; i < data.length; i++) {
-                    if (data[i].label === val) {
-                        new_data.push(data[i]);
-                        break;
-                    }
-                }
-            });
-            return new_data;
-        },
-        // The call back from the form to obtain the real data for
-        // the autocomplete input field.
-        get_real_data: function  (multiple, separator) {
-            return function (val) {
-                if (multiple) {
-                    var data = [];
-                    $.each(clean_data(split(val), this.data), function (i, d) {
-                        data.push(d.value);
-                    });
-                    return data.join(separator);
-                } else {
-                    if (val && this.data.length) {
-                        return this.data[0].real_value;
-                    } else {
-                        return '';
-                    }
-                }
-            };
-        },
-        single_add_data: function  (item) {
-            this.real.val(item.real_value);
-            this.proxy.val(item.value);
-            this.real.data('value', item.value);
-        },
-        multiple_add_data: function (item) {
-            var terms = split(this.value);
-            terms.pop();
-            data = clean_data(terms, data);
-            terms.push(display);
-            new_data.push(item);
-            terms.push("");
-            display = terms.join(separator);
-            real_data['data'] = data;
-        },
-        get_autocomplete_data: function (jform, options, veto) {
-            var value = this.proxy.val();
-            if(this.multiple) {
-                //
-            } else {    
-                if (this.real.data('value') !== value) {
-                    this.real.val(value);
-                }
-            }
-        },
-        _create: function () {
-            var self = this,
-                opts = self.config;
-                elem = this.element,
-                name = elem.attr('name'),
-                data = elem.data(),
-                url = data.url,
-                choices = data.choices,
-                maxRows = data.maxrows || opts.maxRows,
-                search_string = data.search_string || opts.search_string,
-                multiple = data.multiple,
-                separator = data.separator || opts.separator,
-                initials,
-                manager = {
-                    'name': name,
-                    proxy: elem,
-                    widget: elem,
-                    'multiple': multiple,
-                    add_data: multiple ? multiple_add_data : single_add_data
-                },
-                options = {
-                    minLength: data.minlength || opts.minLength,
-                    select: function (event, ui) {
-                        manager.add_data(ui.item);
-                        return false;
-                    }
-                };
-            // Bind to form pre-serialize 
-            elem.closest('form').bind('form-pre-serialize', $.proxy(get_autocomplete_data, manager));
-            // Optain the widget container for positioning if specified. 
-            if (opts.widgetcontainer) {
-                manager.widget = elem.parent(opts.widgetcontainer);
-                if (!manager.widget.length) {
-                    manager.widget = elem;
-                }
-                options.position = {of: manager.widget};
-            }
-            // Build the real (hidden) input
-            if(multiple) {
-                manager.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
-            } else {
-                manager.real = $('<input name="'+ name +'"></input>');
-            }
-            elem.attr('name',name+'_proxy');
-            manager.widget.prepend(manager.real.hide());
-            //
-            if(multiple) {
-                options.focus = function() {
-                    return false;
-                };
-                elem.bind("keydown", function( event ) {
-                    if ( event.keyCode === $.ui.keyCode.TAB &&
-                            $( this ).data( "autocomplete" ).menu.active ) {
-                        event.preventDefault();
-                    }
-                });
-            }
-            initials = data.initial_value;
-            if(initials) {
-                $.each(initials, function(i,initial) {
-                    manager.add_data({real_value: initial[0],
-                                      value: initial[1]});
-                });
-            }
-            
-            // If choices are available, it is a locfal autocomplete.
-            if(choices && choices.length) {
-                var sources = [];
-                $.each(choices,function(i,val) {
-                    sources[i] = {value:val[0],label:val[1]};
-                });
-                options.source = function( request, response ) {
-                    if(multiple) {
-                        response( $.ui.autocomplete.filter(
-                            sources, split(request.term).pop() ) );
-                    }
-                    else {
-                        return sources;
-                    }
-                },
-                elem.autocomplete(options);
-            }
-            else if(url) {
-                // We have a url, the data is obtained remotely.
-                options.source = function(request,response) {
-                                var ajax_data = {style: 'full',
-                                                 maxRows: maxRows,
-                                                 'search_string': search_string 
-                                                 };
-                                ajax_data[search_string] = request.term;
-                                var loader = $.djpcms.ajax_loader(url,
-                                                                'autocomplete',
-                                                                'get',ajax_data),
-                                    that = {'response':response,
-                                            'multiple': multiple,
-                                            'request':request};                                    
-                                $.proxy(loader,that)();
-                            };
-                elem.autocomplete(options);
-            }
-        }
-    });
-    /**
-     * Page blocks rearranging
-     */
-    $.djpcms.decorator({
-        name: "rearrange",
-        selector: 'body.editable',
-        config: {
-            cmsblock: '.cms-edit-block',
-            placeholder: 'cms-block-placeholder',
-            cmsform: 'form.cms-blockcontent',
-            movable: '.movable',
-            sortblock: '.sortable-block'
-        },
-        description: "Drag and drop functionalities in editing mode",
-        _create: function() {
-            var options = this.config;
-            if(!$.djpcms.content_edit) {
-                return;
-            }
-            // Decorate
-            $.djpcms.content_edit = (function() {
-                var movable = options.movable,
-                    cmsblock = options.cmsblock,
-                    sortblock = options.sortblock,
-                    columns = $(sortblock),
-                    holderelem = columns.commonAncestor(),
-                    curposition = null,
-                    logger = $.djpcms.logger;
-                
-                
-                columns.delegate(cmsblock+movable+' .hd', 'mousedown', function(event) {
-                    var block = $(this).parent(movable);
-                    if(block.length) {
-                        curposition = position(block);
-                    }
-                });
-                
-                function position(elem) {
-                    var neighbour = elem.prev(cmsblock),
-                        data = {};
-                    if(neighbour.length) {
-                        data.previous = neighbour.attr('id');
-                    }
-                    else {
-                        neighbour = elem.next(cmsblock);
-                        if(neighbour.length) {
-                            data.next = neighbour.attr('id');
-                        }
-                    }
-                    return data;
-                }
-                
-                function moveblock(elem, pos, callback) {
-                    var form = $(options.cmsform, elem);
-                    if(form) {
-                        var data = $.extend($.djpcms.ajaxparams('rearrange'), pos),
-                            url = form.attr('action');
-                        logger.info('Updating position at "'+url+'"');
-                        $.post(url, data, callback, 'json');
-                    }
-                }
-            
-                columns.sortable({
-                    items: cmsblock,
-                    cancel: cmsblock+ ":not("+movable+")",
-                    handle: '.hd',
-                    forcePlaceholderSize: true,
-                    connectWith: sortblock,
-                    revert: 300,
-                    delay: 100,
-                    opacity: 0.8,
-                    //containment: holderelem,
-                    placeholder: options.placeholder,
-                    start: function (e, ui) {
-                        var block = ui.item.addClass('dragging');
-                        $.djpcms.logger.info('Moving '+block.attr('id'));
-                        block.width(block.width());
-                    },
-                    stop: function (e, ui) {
-                        var elem = ui.item,
-                            pos = position(elem);
-                        logger.info('Stopping ' + elem.attr('id'));
-                        elem.css({width:''}).removeClass('dragging');
-                        if(pos.previous) {
-                            if(pos.previous === curposition.previous) {return;}
-                        }
-                        else {
-                            if(pos.next === curposition.next) {return;}
-                        }
-                        columns.sortable('disable');
-                        moveblock(elem, pos, function (e, s) {
-                            columns.sortable('enable');
-                            $.djpcms.jsonCallBack(e, s);
-                        });
-                    }
-                });
-            }());
-        }
-    });
-    //
-    $.djpcms.decorator({
-        name: "textselect",
-        selector: 'select.text-select',
-        description: "A selct widget with text to display",
-        _create: function() {
-            var elems = $(config.textselect.selector,$this);
-            
-            // The selectors
-            function text(elem) {
-                var me = $(elem),
-                    val = me.val(),
-                    target = me.data('target');
-                if(target) {
-                    $('.target',target).hide();
-                    if(val) {
-                        $('.target.'+val,target).show();
-                    }
-                }
-            }
-            
-            $.each(elems,function() {
-                var me = $(this),
-                    target = me.data('target');
-                if(target) {
-                    var t = $(target,$this);
-                    if(!t.length) {
-                        t = $(target)
-                    }
-                    if(t.length) {
-                        me.data('target',t);
-                        text(me);
-                    }
-                    else {
-                        me.data('target',null);
-                    }
-                }
-            });
-            elems.change(function(){text(this)});
-        }
-    });
     //
     $.djpcms.decorator({
         name: "popover",
         selector: '.pop-over, .label',
         config: {
-            x:10,
-            y:30,
+            x: 10,
+            y: 30,
             predelay: 400,
-            effect:'fade',
-            fadeOutSpeed:200,
+            effect: 'fade',
+            fadeOutSpeed: 200,
             position: "top"
         },
         _create: function () {
@@ -1445,15 +1150,15 @@
                 var self = this,
                     el = self.element,
                     des = el.data('content');
-                if(des) {
-                    el.attr('rel','popover');
+                if (des) {
+                    el.attr('rel', 'popover');
                     el.popover();
                 }
             } else {
                 this.destroy();
             }
         }
-    }); 
+    });
     /**
      * Format a number and return a string based on input settings
      * @param {Number} number The input number to format
@@ -1461,80 +1166,94 @@
      * @param {String} decPoint The decimal point, defaults to the one given in the lang options
      * @param {String} thousandsSep The thousands separator, defaults to the one given in the lang options
      */
-    $.djpcms.numberFormat = function (number, decimals, decPoint, thousandsSep) {
-        var lang = defaultOptions.lang,
-            // http://kevin.vanzonneveld.net/techblog/article/javascript_equivalent_for_phps_number_format/
-            n = number, c = isNaN(decimals = mathAbs(decimals)) ? 2 : decimals,
-            d = decPoint === undefined ? lang.decimalPoint : decPoint,
-            t = thousandsSep === undefined ? lang.thousandsSep : thousandsSep, s = n < 0 ? "-" : "",
-            i = String(pInt(n = mathAbs(+n || 0).toFixed(c))),
-            j = i.length > 3 ? i.length % 3 : 0;
-        
-        return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) +
-            (c ? d + mathAbs(n - i).toFixed(c).slice(2) : "");
-    };
+    //$.djpcms.numberFormat = function (number, decimals, decPoint, thousandsSep) {
+    //    var lang = defaultOptions.lang,
+    //        // http://kevin.vanzonneveld.net/techblog/article/javascript_equivalent_for_phps_number_format/
+    //        n = number, c = isNaN(decimals = mathAbs(decimals)) ? 2 : decimals,
+    //        d = decPoint === undefined ? lang.decimalPoint : decPoint,
+    //        t = thousandsSep === undefined ? lang.thousandsSep : thousandsSep, s = n < 0 ? "-" : "",
+    //        i = String(pInt(n = mathAbs(+n || 0).toFixed(c))),
+    //        j = i.length > 3 ? i.length % 3 : 0;
+    //    
+    //    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) +
+    //        (c ? d + mathAbs(n - i).toFixed(c).slice(2) : "");
+    //};
     /**
      * Return an object containing the formatted currency and a flag
      * indicating if it is negative
      */
-    $.djpcms.format_currency = function(s,precision) {
-        if(!precision) {
+    $.djpcms.format_currency = function (s, precision) {
+        if (!precision) {
             precision = 3;
         }
         s = s.replace(/,/g,'');
         var c = parseFloat(s),
             isneg = false,
             decimal = false,
-            cs,cn,d,k,N,de = '';
-        if(isNaN(c))  {
-            return {value:s,negative:isneg};
-        }
-        cs = s.split('.',2);
-        if(c<0) {
-            isneg = true;
-            c = Math.abs(c);
-        }
-        cn = parseInt(c,10);
-        if(cs.length == 2) {
-            de = cs[1];
-            if(!de) {
-                de = '.';
-            } else {
-                decimal = true;
-                de = c - cn;
+            de = '',
+            i,
+            cs,
+            cn,
+            d,
+            k,
+            N,
+            mul,
+            atom;
+        //
+        if (isNaN(c)) {
+            cs = s;
+        } else {
+            cs = s.split('.', 2);
+            if (c < 0) {
+                isneg = true;
+                c = Math.abs(c);
             }
-        }
-        if(decimal) {
-            var mul = Math.pow(10,precision);
-            var atom = (parseInt(c*mul)/mul + '').split(".")[1];
-            var de = '';
-            decimal = false;
-            for(var i=0;i<Math.min(atom.length,precision);i++)  {
-                de += atom[i];
-                if(parseInt(atom[i],10) > 0)  {
+            cn = parseInt(c, 10);
+            if (cs.length === 2) {
+                de = cs[1];
+                if (!de) {
+                    de = '.';
+                } else {
                     decimal = true;
+                    de = c - cn;
                 }
             }
-            if(decimal) {de = '.' + de;}
-        }
-        cn += "";
-        N  = cn.length;
-        cs = "";
-        for(var j=0;j<N;j++)  {
-            cs += cn[j];
-            k = N - j - 1;
-            d = parseInt(k/3,10);
-            if(3*d == k && k > 0) {
-                cs += ',';
+            if (decimal) {
+                mul = Math.pow(10, precision);
+                atom = String(parseInt(c * mul, 10) / mul).split(".")[1];
+                de = '';
+                decimal = false;
+                for (i = 0; i < Math.min(atom.length, precision); i++) {
+                    de += atom[i];
+                    if (parseInt(atom[i], 10) > 0) {
+                        decimal = true;
+                    }
+                }
+                if (decimal) {
+                    de = '.' + de;
+                }
+            }
+            cn += "";
+            N  = cn.length;
+            cs = "";
+            for (i = 0; i < N; i++) {
+                cs += cn[i];
+                k = N - i - 1;
+                d = parseInt(k / 3, 10);
+                if (3 * d === k && k > 0) {
+                    cs += ',';
+                }
+            }
+            cs += de;
+            if (isneg) {
+                cs = '-' + cs;
+            } else {
+                cs = String(cs);
             }
         }
-        cs += de;
-        if(isneg) {
-            cs = '-'+cs;
-        }
-        else {
-            cs = ''+cs;
-        }
-        return {value:cs,negative:isneg};
+        return {
+            value: cs,
+            negative: isneg
+        };
     };
 }(jQuery));

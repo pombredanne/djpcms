@@ -160,7 +160,7 @@ class TestSpacing(Tvariable,test.TestCase):
         self.assertRaises(TypeError, spacing, 5, None)
         
     def testLazy(self):
-        sp = spacing(lazy(lambda : 5))
+        sp = lazy(lambda : spacing(5))
         self.assertEqual(str(sp),'5px')
         
     def testVariable(self):
@@ -178,9 +178,9 @@ class TestSpacing(Tvariable,test.TestCase):
         self.assertEqual(str(sp),'10px')
         
     def testMultiply(self):
-        a = spacing(5,10)
+        a = spacing(5, 10)
         b = 0.5*a
-        self.assertEqual(a.left, 0.5*b.left);
+        self.assertEqual(b.left, 0.5*a.left);
         
 
 class TestLazy(test.TestCase):

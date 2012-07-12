@@ -333,7 +333,7 @@ overwritten to customize its behavior.
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
     
-    def get_form(self, request, form_class, addinputs=True, instance=None,
+    def get_form(self, request, form_class=None, addinputs=True, instance=None,
                  block=None, **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
@@ -362,19 +362,16 @@ overwritten to customize its behavior.
                     .format(request.view,self.__class__.__name__,self))
         elif isinstance(form_class, forms.FormType):
             form_class = forms.HtmlForm(form_class)
-        
-        # Check instance and model    
+        # Check instance and model
         if instance == False:
             instance = None
         else:
             instance = instance or request.instance
-            
-        model = instance.__class__ if instance else self.model
         return get_form(request,
                         form_class,
                         instance=instance,
                         addinputs=addinputs,
-                        model=model,
+                        model=self.model,
                         **kwargs)
     
     def table_generator(self, request, headers, qs):
@@ -400,7 +397,7 @@ the *request*.'''
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
                         qs = qs.filter(**{related_field:instance})
-            search_string = inputs.get('search_string',forms.SEARCH_STRING)
+            search_string = inputs.get('search_string', forms.SEARCH_STRING)
             search = inputs.get(search_string)
             if search:
                 qs = qs.search(search)

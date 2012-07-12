@@ -11,9 +11,21 @@ model_from_hash = {}
 ORMS = lambda : model_wrappers.values()
 
 
-__all__ = ['OrmWrapper',
-           'RegisterORM',
-           'mapper']
+class ModelType(type):
+    pass
+
+
+class Model(ModelType('ModelBase', (object,), {})):
+    id = None
+    
+    @classmethod
+    def query(cls):
+        return cls
+    
+    @classmethod
+    def filter(cls, **kwargs):
+        raise NotImplementedError()
+    
 
 
 class OrmWrapper(UnicodeMixin):
@@ -40,16 +52,14 @@ class OrmWrapper(UnicodeMixin):
     proxy to the exception thrown when a model field has wrong value.
 
 '''
-    orm = None
+    orm = 'djpcms'
     hash = None
     DoesNotExist = None
     FieldValueError = None
     model = None
     short_description = 'short_description'
-    module_name = None
     
     def __init__(self, model):
-        self.orig_model = model
         self.model = model
         self.appmodel = None
         self.nicename = None
@@ -66,21 +76,23 @@ class OrmWrapper(UnicodeMixin):
     
     def test(self):
         '''Test if this is the right mapper for :attr:`model`. If not it
-must raise a ValueError.
-'''
-        raise NotImplementedError
+must raise a ValueError. This method needs to be implemented by subclasses.'''
+        if not isinstance(self.model, ModelType):
+            raise ValueError()
     
     def query(self):
-        '''Return a query class for the model'''
-        raise NotImplementedError
+        '''Return a query class for the model.
+This method needs to be implemented by subclasses.'''
+        return self.model
     
     def filter(self, **kwargs):
-        '''Return a query class for the model'''
-        raise NotImplementedError
+        '''Return a query class for the model.
+This method needs to be implemented by subclasses.'''
+        return self.model.filter(**kwargs)
     
     def get(self, **kwargs):
         '''Return a query class for the model'''
-        raise NotImplementedError
+        raise NotImplementedError()
         
     def is_query(self, query):
         return True
@@ -93,7 +105,7 @@ must raise a ValueError.
         pass
     
     def _hash(self):
-        raise NotImplementedError
+        raise NotImplementedError()
     
     def pretty_repr(self, instance):
         '''Return a string with a pretty representation of instance'''
@@ -111,9 +123,6 @@ must raise a ValueError.
         self.object_display = appmodel.object_display or self.list_display
         self.list_display_links = appmodel.list_display_links or []
         self.search_fields = appmodel.search_fields or []
-        
-    def model_to_dict(self, instance, fields = None, exclude = None):
-        raise NotImplementedError
     
     def label_for_field(self, field):
         if hasattr(field,'name'):
@@ -177,34 +186,16 @@ Return an iterable over items'''
  site initialization.'''
         pass
 
-
-def RegisterORM(name):
-    '''Register a new Object Relational Mapper to Djpcms. ``name`` is the
-dotted path to a python module containing a class named ``OrmWrapper``
-derived from :class:`BaseOrmWrapper`.'''
+    
+def RegisterORM(orm):
+    '''Register a new Object Relational Mapper to djpcms.'''
     global model_wrappers
-    if isclass(name):
-        if not name.orm:
-            raise ValueError('"orm" not defined in OrmWrapper')
-        model_wrappers[name.orm] = name
-        if name.model:
-            register_wrapper(name(name.model))
-    else:
-        names = name.split('.')
-        if len(names) == 1:
-            mod_name = 'djpcms.core.orms._' + name
-        else:
-            mod_name = name
-        try:
-            mod = import_module(mod_name)
-        except ImportError as e:
-            return
-        model_wrappers[name] = mod.OrmWrapper
-
+    model_wrappers[orm.orm] = orm
+    
+RegisterORM(OrmWrapper)
 
 def register_wrapper(wrapper):
-    setattr(wrapper.model,'_djpcms_orm_wrapper',wrapper)
-    
+    setattr(wrapper.model, '_djpcms_orm_wrapper', wrapper)
     
 def getmodel(appmodel):
     global _models
@@ -214,12 +205,11 @@ def getmodel(appmodel):
         except:
             continue
     raise ValueError('Model {0} not recognised'.format(appmodel))
-
 def mapper(model):
     '''Return an instance of a ORM djpcms wrapper'''
     if model is None:
         return
-    elif isinstance(model,OrmWrapper):
+    elif isinstance(model, OrmWrapper):
         return model
     elif not isinstance(model, type):
         instance = model
@@ -239,7 +229,6 @@ def getmodel(appmodel):
             register_wrapper(wrapper)
     return wrapper
 
-
 def getid(obj):
     '''If ``obj`` is an instance of a ORM it returns its id'''
     if obj:
@@ -250,7 +239,6 @@ def getid(obj):
     else:
         return obj
         
-
 def registered_models_tuple():
     for model in model_from_hash.values():
         mp = mapper(model)

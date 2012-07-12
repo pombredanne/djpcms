@@ -21,7 +21,7 @@ You can use several different markup languages or simply raw HTML.'''
     name = "text"
     description = "Html"
     
-    def for_model(elf, request):
+    def for_model(self, request):
         return request.view.root.internals.get('SiteContent')
     
     def html(self):
@@ -29,35 +29,3 @@ You can use several different markup languages or simply raw HTML.'''
             return self.site_content.bodyhtml()
         else:
             return ''
-            
-    def __render(self, djp, wrapper, prefix, site_content = None, **kwargs):
-        if site_content:
-            try:
-                site_content = SiteContent.objects.get(id = int(site_content))
-                return '\n'.join(('<div class="djpcms-text-content">',
-                                  site_content.htmlbody(),
-                                  '</div>'))
-            except Exception as e:
-                if djp.settings.DEBUG:
-                    return str(e) 
-                else:
-                    return ''
-        else:
-            return ''
-    
-    def edit_form(self, djp, site_content = None, **kwargs):
-        if site_content:
-            try:
-                obj = SiteContent.objects.get(id = int(site_content))
-            except Exception as e:
-                return None
-            # Check for permissions
-            if has_permission(djp.request.user,get_change_permission(obj), obj):
-                return EditContentForm(**form_kwargs(request = djp.request,
-                                                     instance = obj,
-                                                     withrequest = True,
-                                                     **kwargs))
-            else:
-                raise PermissionDenied("Cannot edit '%s'. You don't have the right permissions" % obj)
-            
-        

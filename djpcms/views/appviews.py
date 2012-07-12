@@ -249,7 +249,7 @@ views::
  view of the application.'''
         return self.appmodel.root_view is self
     
-    def get_form(self, request, form = None, **kwargs):
+    def get_form(self, request, form=None, **kwargs):
         return self.appmodel.get_form(request, form or self.form, **kwargs)
         
     def is_soft(self, request):

@@ -1,21 +1,38 @@
 from djpcms import views, forms, html, ajax
-from djpcms.forms.utils import saveform
-from djpcms.forms.layout import uniforms as uni
-from djpcms.apps import static
+from djpcms.forms import layout as uni
+from djpcms.utils import orms
+from djpcms.apps import search
 
-from .geonames import Geonames
-
+class Geo(orms.Model):
+    '''A simple model for querying the geonames database.'''
+    search_url = 'http://ws.geonames.org/searchJSON?'
     
+    @classmethod
+    def filter(cls, q=None, maxRows = 10, **kwargs):
+        http = self.httpclient
+        body = urlencode({'q': q,'maxRows': maxRows,
+                          'lang': 'en',
+                          'style': 'full'})
+        response = http.request(self.search_url,body)
+        if response.status == 200:
+            data = json.loads(response.content.decode('utf-8'))
+            if not data['geonames']:
+                return None
+            return data['geonames'][:maxRows]
+        
+           
 class GeoSearchForm(forms.Form):
-    q = forms.CharField(label = 'search text')
+    q = forms.ChoiceField(choices=search.Search(
+                                    autocomplete=True,
+                                    search=True,
+                                    model=Geo),
+                          label='Type a geographical place')
         
 
 GeoSearchFormHtml = forms.HtmlForm(
        GeoSearchForm,
-       inputs = (('search','search'),),
-       layout = uni.Layout(uni.Columns('q','submits'),
-                           html.Html(tag = 'div', id = 'geo-search-result'),
-                           default_style = uni.nolabel)
+       inputs=(),
+       layout=uni.FormLayout(default_style=uni.nolabel)
 )
 
 
@@ -36,11 +53,21 @@ class GeoEntry(html.WidgetMaker):
         yield html.DefinitionList(data_stream = data)\
                   .addClass(request.settings.HTML.objectdef)\
                   .render(request)
-        
+
+
+class Application(views.Application):
+    form = GeoSearchFormHtml
+    search = views.SearchView()
+    view = views.ViewView()
     
-
-geo_entry = GeoEntry()
-
+    def render(self, request, query=None, **context):
+        # Render the search view
+        return self.get_form(request, **context).render(request)
+        
+    def render_instance_default(self, request, instance, **kwargs):
+        # render the default instance view
+        maker = GeoEntry()
+        return maker(instance=instance, appmodel=self)
 
     
 class geosearch(views.View):
@@ -66,17 +93,4 @@ just perform the query.'''
         return ajax.jhtmls(html,'#geo-search-result')
     
 
-def home_view(request):
-    return 'Testing'
-
-
-class Geonames(views.Application):
-    api = Geonames()
-    search = geosearch(form=GeoSearchFormHtml, in_nav=1)
-
-
-class PlayGround(views.Application):
-    home = views.View(renderer = home_view)
-    favicon = static.FavIconView()
     
-        

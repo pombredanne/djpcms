@@ -460,3 +460,7 @@ Grid(
 Grid(
     row(column(3,4), column(1,4))
 ).register('grid 75-25')
+
+Grid(
+    row(column(1,4), column(1,2), column(1,4))
+).register('grid 25-50-25')

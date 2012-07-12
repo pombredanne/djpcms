@@ -458,7 +458,7 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     def all(self, bfield):
         '''An iterable over choices or ``None``.'''
         query = self.query
-        if hasattr(query,'__call__'):
+        if hasattr(query, '__call__'):
             query = query(bfield)
             self._setmodel(query)
         if self.mapper:
@@ -549,7 +549,7 @@ is ``True``, in which case the value is returned.'''
             return
         value = bfield.value
         ch = self.all(bfield)
-        if not hasattr(ch,'__len__'):
+        if not hasattr(ch, '__len__'):
             ch = tuple(ch)
         data = {'multiple':self.multiple,
                 'minlength':self.minLength,
@@ -578,7 +578,7 @@ is ``True``, in which case the value is returned.'''
                         values.append((val,chd[val]))
                 if values:
                     data['initial_value'] = values
-        return data
+        return {'options': data}
     
     
 class ChoiceField(MultipleMixin, Field):
@@ -594,7 +594,7 @@ via the :class:`ChoiceFieldOptions` class.
 '''
     widget = html.Select()
     
-    def handle_params(self, choices = None, **kwargs):
+    def handle_params(self, choices=None, **kwargs):
         '''Choices is an iterable or a callable which takes the
 form as only argument'''
         if not isinstance(choices, ChoiceFieldOptions):

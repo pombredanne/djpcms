@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-12 07:39:42.008894
-Time taken 0.342 seconds
+Created by djpcms.style 2012-07-12 14:56:33.767000
+Time taken 0.316 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1679,14 +1679,16 @@ th.ui-clickable {
 }
 
 .btn.btn-small {
-    padding: 2px;
+    padding: 1px 2px 1px 2px;
+    font-weight: normal;
+    font-size: 80%;
     -webkit-border-radius: 2px;
        -moz-border-radius: 2px;
             border-radius: 2px;
 }
 
 .btn.btn-large {
-    padding: 8px;
+    padding: 8px 18px 8px 18px;
     font-weight: bold;
     font-size: 120%;
     -webkit-border-radius: 5px;

@@ -42,7 +42,7 @@ def alltags(tags):
             yield tag
     
 class Variable(UnicodeMixin):
-    '''A general variable.
+    '''A general variable for css parameters.
     
 .. attribute:: value
 
@@ -75,16 +75,16 @@ in a css file.'''
         return self._value
         
     def __add__(self, other):
-        return self._op(other, lambda a,b: a+b)
+        return self._op(other, lambda a, b: a+b)
     
     def __sub__(self, other):
-        return self._op(other, lambda a,b: a-b)
+        return self._op(other, lambda a, b: a-b)
     
     def __rmul__(self, other):
         return self.__mul__(other)
     
     def __mul__(self, other):
-        return self._op(other, lambda a,b: a*b, supported_types = (int,float))
+        return self._op(other, lambda a, b: a*b, supported_types=(int,float))
     
     if ispy3k:  # pragma: no cover
         def __truediv__(self, other):
@@ -94,10 +94,10 @@ in a css file.'''
             return div(self,other)        
     
     def __floordiv__(self, other):
-        return self._op(other, lambda a,b: a//b, supported_types = (int,float))
+        return self._op(other, lambda a, b: a//b, supported_types=(int,float))
     
     def __eq__(self, other):
-        if isinstance(other,Variable):
+        if isinstance(other, Variable):
             return self.unit == other.unit and self.value == other.value
         else:
             return False
@@ -106,7 +106,7 @@ in a css file.'''
         return not self.__eq__(other)
     
     def __lt__(self, other):
-        if isinstance(other,Variable):
+        if isinstance(other, Variable):
             if self.unit == other.unit:
                 return self.value < self.value
         raise TypeError('Cannot compare "{0}" with "{1}"'.format(self,other))
@@ -133,7 +133,7 @@ in a css file.'''
             
     @classmethod
     def make(cls, val, unit=None):
-        if isinstance(val,tuple) and len(val) == 1:
+        if isinstance(val, tuple) and len(val) == 1:
             val = val[0]
         if isinstance(val, Variable):
             if unit and val.unit != unit:
@@ -327,7 +327,9 @@ class Size(Variable):
 
 
 class Spacing(Variable):
-    '''Handle css Spacing'''
+    '''Css spacing with same unit. It can be used to specify padding,
+marging or any other css parameters which requires spacing box of
+the form (top, right, bottom, left).'''
     def __init__(self, top, *right_bottom_left, **kwargs):
         if isinstance(top,(list,tuple)):
             value = list(top)
@@ -342,6 +344,12 @@ class Spacing(Variable):
         
     def tocss(self):
         return ' '.join((str(b) for b in self.value))
+    
+    def iter_all(self):
+        yield self.top
+        yield self.right
+        yield self.bottom
+        yield self.left
     
     def _unit(self):
         unit = self.top.unit
@@ -379,6 +387,10 @@ class Spacing(Variable):
             raise ValueError('Spacing must have at most 4 elements')
         return list((Size.make(v) for v in value))
     
+    def _do_operation(self, ope, oval):
+        value = [ope(v, oval) for v in self.iter_all()]
+        return self.__class__(value, unit=self.unit)
+        
     @classmethod
     def _make(cls, val, unit):
         if isinstance(val, Size) and not unit:

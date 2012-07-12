@@ -158,7 +158,7 @@ in a css file.'''
     def _unit(self):
         return nan
     
-    def _op(self, other, ope, supported_types = None):
+    def _op(self, other, ope, supported_types=None):
         oval = None
         if not supported_types:
             other = self.make(other, self.unit)

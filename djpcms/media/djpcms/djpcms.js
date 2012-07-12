@@ -4,9 +4,9 @@
  * License:      new BSD licence
  * Contact:      luca.sbardella@gmail.com
  * web:          https://github.com/lsbardel/djpcms
- * @requires:    jQuery, jQuery-UI
+ * @requires:    jQuery
  * 
- * Copyright (c) 2009-2011, Luca Sbardella
+ * Copyright (c) 2009-2012, Luca Sbardella
  * New BSD License 
  * http://www.opensource.org/licenses/bsd-license.php
  *
@@ -206,7 +206,10 @@
         };
         return logging;
     }());
-    
+    /**
+     * 
+     * The global djpcms object
+     */
     $.djpcms = {
         base_widget: {
             name: 'widget',
@@ -222,6 +225,49 @@
             },
             _create: function() {
                 return this;
+            }
+        },
+        widgetmaker: {
+            instance: function (id) {
+                if (typeof id !== 'number') { id = id.id; }
+                return this.instances[id];
+            },
+            options: function () {
+                return this.djpcms.options[this.name];
+            },
+            // Create the widget on element
+            create: function (element, options) {
+                var maker = this,
+                    element = $(element),
+                    data = element.data('options'),
+                    self, instance_id;
+                self = $.extend({}, maker.factory);
+                self.id = parseInt(maker.instances.push(self), 10) - 1;
+                self.element = element;
+                if (data) {
+                    options = $.extend({}, options, data);
+                }
+                self.config = options;
+                $.djpcms.logger.debug('Creating widget ' + self.name);
+                self._create();
+                return maker.instance(self.id);
+            },
+            // Given a jQuery object, build as many widgets
+            make: function (elements, options) {
+                var maker = this,
+                    wdgs = [],
+                    wdg;
+                options = $.extend(true, {}, maker.options(), options);
+                $.each(elements, function() {
+                    wdg = maker.create(this, options);
+                    if (wdg !== undefined) {
+                        wdgs.push(wdg);
+                    }
+                });
+                if(wdgs.length === 1) {
+                    wdgs = wdgs[0];
+                }
+                return wdgs;
             }
         },
         ui: {
@@ -280,13 +326,17 @@
                 remove_effect: {type: "drop", duration: 500},
                 fadetime: 200,
                 debug: false
-            };            
-        // Add a new decorator
-        function addDecorator(deco) {
-            var widget = $.extend({'djpcms': djpcms}, djpcms.base_widget, deco),
-                name = widget.name,
-                factory = $.extend({destroy: function () {
-                    var idx = widgets.instances.indexOf(this.id),
+            };
+        //
+        function widgetmaker(widget) {
+            widget.instances = [];
+            widget.factory = $.extend({
+                factory: function () {
+                    return widgets[this.name];
+                },
+                destroy: function () {
+                    var instances = this.factory().instances,
+                        idx = instances.indexOf(this.id),
                         res;
                     if(idx !== -1) {
                         res = widgets.instances[idx];
@@ -294,67 +344,27 @@
                         //res = widgets.instances.splice(idx, 1)[0];
                     }
                     return res;
-                }}, widget);
-            defaults[name] = widget.config;
-            widgets[name] = widget;
-            delete widget.config;
-            // Create the widget factory
-            $.extend(widget, {
-                'factory': factory,
-                instances: [],
-                instance: function (id) {
-                    if (typeof id !== 'number') { id = id.id; }
-                    return this.instances[id];
-                },
-                // Create the widget on element
-                create: function (element, options) {
-                    var widget = this,
-                        element = $(element),
-                        data = element.data('options'),
-                        self, instance_id;
-                    if (!options) {
-                        options = $.extend({}, widget.options(), data);
-                    } else {
-                        options = $.extend({}, widget.options(), data, options);
-                    }
-                    self = $.extend({}, widget.factory),
-                    self.id = parseInt(widget.instances.push(self), 10) - 1;
-                    self.element = element;
-                    self.config = options;
-                    djpcms.logger.debug('Creating widget ' + widget.name);
-                    self._create();
-                    return this.instance(self.id);
-                },
-                // Given a jQuery object, build as many widgets
-                make: function (elements, options) {
-                    var self = this,
-                        wdgs = [],
-                        wdg;
-                    $.each(elements, function() {
-                        wdg = widget.create(this, options);
-                        if (wdg !== undefined) {
-                            wdgs.push(wdg);
-                        }
-                    });
-                    if(wdgs.length === 1) {
-                        wdgs = wdgs[0];
-                    }
-                    return wdgs;
                 }
-            });
-            // Add options function
-            widget.options = function () {
-                return djpcms.options[widget.name];
-            }
+            }, widget);
+            return $.extend(widget, djpcms.widgetmaker);
+        }
+        // Add a new decorator
+        function addDecorator(deco) {
+            var maker = $.extend({'djpcms': djpcms}, djpcms.base_widget, deco),
+                name = maker.name;
+            defaults[name] = maker.config;
+            delete maker.config;
+            widgets[name] = widgetmaker(maker);
             // The user interface factory
             djpcms.ui[name] = function (options_or_element, options) {
-                var element = options_or_element;
+                var element = options_or_element,
+                    maker = widgets[name];
                 if (options === undefined && $.isPlainObject(options_or_element)) {
                     options = options_or_element;
                     element = undefined;
                 }
-                element = $(element || widget.defaultElement);
-                return widget.make(element, options);
+                element = $(element || maker.defaultElement);
+                return maker.make(element, options);
             };
         }
         // Set a logging panel
@@ -1440,7 +1450,7 @@
                     el.popover();
                 }
             } else {
-                self.destroy();
+                this.destroy();
             }
         }
     }); 

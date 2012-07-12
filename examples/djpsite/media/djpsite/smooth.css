@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-11 10:14:39.633000
-Time taken 0.309 seconds
+Created by djpcms.style 2012-07-12 07:39:42.008894
+Time taken 0.342 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -15,7 +15,7 @@ body {
     min-width: 960px;
     line-height: 18px;
     font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
-    background: #ffffff;
+    background: #222222;
 }
 
 /*
@@ -1687,6 +1687,8 @@ th.ui-clickable {
 
 .btn.btn-large {
     padding: 8px;
+    font-weight: bold;
+    font-size: 120%;
     -webkit-border-radius: 5px;
        -moz-border-radius: 5px;
             border-radius: 5px;
@@ -2283,15 +2285,40 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
 }
 
 #page-header {
+    min-height: 70px;
     width: 100%;
+    background: #fafafa;
 }
 
 #page-content {
+    min-height: 400px;
     width: 100%;
+    background-color: #ffffff;
+    background-image: -moz-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -ms-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafa), to(#ffffff));
+    background-image: -webkit-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -o-linear-gradient(top, #fafafa, #ffffff);
+    background-image: linear-gradient(top, #fafafa, #ffffff);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#fafafa, endColorstr=#ffffff, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 
 #page-footer {
+    min-height: 300px;
     width: 100%;
+    background-color: #222222;
+    background-image: -moz-linear-gradient(top, #444444, #222222);
+    background-image: -ms-linear-gradient(top, #444444, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#444444), to(#222222));
+    background-image: -webkit-linear-gradient(top, #444444, #222222);
+    background-image: -o-linear-gradient(top, #444444, #222222);
+    background-image: linear-gradient(top, #444444, #222222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#444444, endColorstr=#222222, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #e6e6e6;
 }
 
 .ui-colorpicker,

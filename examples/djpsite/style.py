@@ -1,17 +1,25 @@
 from djpcms.media.style import *
 
+cssv.header.min_height = px(70)
+cssv.content.min_height = px(400)
+cssv.footer.min_height = px(300)
 
+
+with cssv.theme('smooth') as t:
+    t.body.background = '#222'
+    t.header.background = '#fafafa'
+    t.content.background = ('v', '#fafafa', '#fff')
+    t.footer.color = t.color.grayLighter
+    t.footer.background = ('v','#444','#222')
+    
+    
+    
 with cssv.theme('green') as t:
     t.body.background = '#222'
     t.body.radius = px(4)
-    t.input.border_width = px(1)
-    
-    t.header.min_height = px(70)
     
     t.header.background = '#94BA65'
     t.content.background = ('v', '#94BA65', '#fff')
-    t.content.min_height = px(400)
-    t.footer.min_height = px(300)
     t.footer.color = t.color.grayLighter
     t.footer.background = ('v','#444','#222')
     

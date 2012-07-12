@@ -5,6 +5,8 @@ cssv.button.font_weight = 'normal'
 cssv.button.font_size = 'inherit'
 cssv.button.font_family = 'inherit'
 cssv.button.padding = spacing(cssv.input.padding.top, px(9), cssv.input.padding.bottom)
+cssv.button.large.font_size = pc(120);
+cssv.button.large.font_weight = 'bold'
 
 css('.%s' % classes.button_group,
     clearfix(),
@@ -36,8 +38,11 @@ css(selector.format(classes.button),
 
 css(selector.format(classes.button+'.'+classes.button_small),
     radius(px(2)),
-    padding=px(2))
+    font_weight='normal',
+    padding=lazy(lambda: 0.5*cssv.button.padding))
 
 css(selector.format(classes.button+'.'+classes.button_large),
     radius(cssv.input.radius),
-    padding=2*cssv.input.padding)
+    padding=lazy(lambda: 2*cssv.button.padding),
+    font_size=cssv.button.large.font_size,
+    font_weight=cssv.button.large.font_weight)

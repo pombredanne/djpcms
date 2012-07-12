@@ -3,35 +3,27 @@
  */
 (function($) {        
     $.djpcms.decorator({
-        id:"color_picker",
+        name:"color_picker",
+        selector: 'input.color-picker',
         config: {
-            selector: 'input.color-picker',
             parent_selector: '.color-picker'
         },
-        decorate: function($this, config) {
-            var opts = config.color_picker;
-            
-            function colorize(el, color) {
-                if(color) {
-                    if(color.substring(0,1) !== '#') {
-                        color = '#'+color
-                    }
-                    el.css('background',color).parent(opts.parent_selector).css('background',color);
+        colorize: function (color) {
+            if(color) {
+                if(color.substring(0,1) !== '#') {
+                    color = '#'+color
                 }
+                this.element.css('background', color).parent(this.config.parent_selector).css('background',color);
             }
-            
-            $(opts.selector, $this).each(function() {
-                var el = $(this),
-                    options = el.data();
-                colorize(el, el.val());
-                if(options.select === undefined) {
-                    options.select = function(event, color) {
-                        colorize($(this), color.formatted);
-                    };
-                }
-                colorize(el, el.val());
-                el.colorpicker(options);
-            });
+        },
+        _create: function() {
+            var self = this,
+                options = $.extend({}, self.config);
+            options.select = function(event, color) {
+                self.colorize(color.formatted);
+            };
+            self.colorize(self.element.val());
+            self.element.colorpicker(options);
         }
     });
 }(jQuery));

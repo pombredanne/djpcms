@@ -177,6 +177,11 @@ class TestSpacing(Tvariable,test.TestCase):
         sp = spacing(v.foo)
         self.assertEqual(str(sp),'10px')
         
+    def testMultiply(self):
+        a = spacing(5,10)
+        b = 0.5*a
+        self.assertEqual(a.left, 0.5*b.left);
+        
 
 class TestLazy(test.TestCase):
     

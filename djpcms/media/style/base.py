@@ -172,7 +172,7 @@ in a css file.'''
             return self._do_operation(ope, oval)
         
     def _do_operation(self, ope, oval):
-        return self.__class__(ope(self.value, oval), unit = self.unit)
+        return self.__class__(ope(self.value, oval), unit=self.unit)
     
     
 class ProxyVariable(Variable):

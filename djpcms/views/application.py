@@ -433,7 +433,7 @@ the *request*.'''
             qs = qs[:int(maxRows)]
         for q in qs:
             l = str(q)
-            yield l,l,q.id
+            yield l, l, q.id
         
     def table_column_groups(self, request):
         '''A hook for returning group of table headers before sending

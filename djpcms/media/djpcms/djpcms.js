@@ -865,20 +865,6 @@
             return true;
         }
     });
-    //
-    $.djpcms.addJsonCallBack({
-        id: "autocomplete",
-        handle: function (data, elem) {
-            elem.response($.map(data, function (item) {
-                return {
-                    value: item[0],
-                    label: item[1],
-                    real_value: item[2],
-                    multiple: elem.multiple
-                };
-            }));
-        }
-    });
     ////////////////////////////////////////////////////////////////////////////
     //                    WIDGETS - DECORATORS
     ////////////////////////////////////////////////////////////////////////////

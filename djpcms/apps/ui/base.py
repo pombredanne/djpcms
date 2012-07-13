@@ -68,6 +68,11 @@ css('body',
                          'media','ui.css')))
 
 ################################################################ CLICKABLE
+clickable_default = lambda: clickable(\
+            default=bcd(**cssv.clickable.default.params()),\
+            hover=bcd(**cssv.clickable.hover.params()),\
+            active=bcd(**cssv.clickable.active.params()))
+
 css('.%s, .%s'%(classes.clickable,classes.button),
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),

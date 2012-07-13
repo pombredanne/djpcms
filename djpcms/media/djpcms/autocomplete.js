@@ -57,6 +57,7 @@
                 return data;
             };
         },
+        // CAllback received when an element is selected
         add_data: function (item) {
             var self = this;
             if (self.config.multiple) {
@@ -70,8 +71,8 @@
                 real_data['data'] = data;
             } else {
                 self.real.val(item.real_value);
-                this.proxy.val(item.value);
-                this.real.data('value', item.value);
+                self.element.val(item.value);
+                //this.real.data('value', item.value);
             }
             return false;
         },
@@ -119,8 +120,7 @@
             elem.attr('name', name + '_proxy').before(self.real.hide());
             if (opts.initials_value) {
                 $.each(initials, function(i,initial) {
-                    manager.add_data({real_value: initial[0],
-                                      value: initial[1]});
+                    self.add_data({real_value: initial[0], value: initial[1]});
                 });
             }
             // If choices are available, it is a local autocomplete.
@@ -149,17 +149,26 @@
                         },
                         loader;
                     ajax_data[opts.search_string] = request.term;
-                    loader = $.djpcms.ajax_loader(opts.url, 'autocomplete', 'get', ajax_data);
-                    //    that = {'response':response,
-                    //            'multiple': multiple,
-                    //           'request':request};                                    
-                    //$.proxy(loader, that)();
-                    loader();
+                    loader = $.djpcms.ajax_loader(opts.url, 'autocomplete', 'get', ajax_data);             
+                    $.proxy(loader, response)();
                 };
                 elem.autocomplete(opts);
             } else {
                 self.warn('Could not find choices or url for autocomplete data');
             }
+        }
+    });
+    //
+    $.djpcms.addJsonCallBack({
+        id: "autocomplete",
+        handle: function (data, response) {
+            response($.map(data, function (item) {
+                return {
+                    value: item[0],
+                    label: item[1],
+                    real_value: item[2]
+                };
+            }));
         }
     });
 }(jQuery));

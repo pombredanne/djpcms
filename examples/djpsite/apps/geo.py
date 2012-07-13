@@ -1,24 +1,51 @@
+import json
+
 from djpcms import views, forms, html, ajax
 from djpcms.forms import layout as uni
 from djpcms.utils import orms
+from djpcms.utils.httpurl import HttpClient
 from djpcms.apps import search
 
 class Geo(orms.Model):
     '''A simple model for querying the geonames database.'''
     search_url = 'http://ws.geonames.org/searchJSON?'
     
+    def __init__(self, id=None, name='', countryCode='', **kwargs):
+        self.id = id
+        self.name = name
+        self.countryCode = countryCode
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+        
+    def __str__(self):
+        return '%s - %s' % (self.name, self.countryCode)
+    
     @classmethod
-    def filter(cls, q=None, maxRows = 10, **kwargs):
-        http = self.httpclient
-        body = urlencode({'q': q,'maxRows': maxRows,
-                          'lang': 'en',
-                          'style': 'full'})
-        response = http.request(self.search_url,body)
-        if response.status == 200:
+    def http(cls):
+        return HttpClient()
+        
+    @classmethod
+    def search(cls, q):
+        c = cls.http()
+        body = {'q': q,
+                'maxRows': 20,
+                'lang': 'en',
+                'style': 'short'}
+        response = c.get(cls.search_url, data=body)
+        if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'))
-            if not data['geonames']:
-                return None
-            return data['geonames'][:maxRows]
+            qs = []
+            all = set()
+            for data in data['geonames']:
+                id = data.pop('geonameId', None)
+                if id:
+                    el = cls(id=id, **data)
+                    re = str(el)
+                    if re not in all:
+                        all.add(re)
+                        qs.append(el)
+            return qs
+        
         
            
 class GeoSearchForm(forms.Form):
@@ -69,28 +96,6 @@ class Application(views.Application):
         maker = GeoEntry()
         return maker(instance=instance, appmodel=self)
 
-    
-class geosearch(views.View):
-    
-    def render(self, request):
-        return self.get_form(request).render(request)
-    
-    def default_post(self, request):
-        '''handle the post request from the search'''
-        return saveform(request)
-
-    def save(self, request, f, commit = True):
-        '''called by the search view. It doesn't save anything,
-just perform the query.'''
-        q = f.cleaned_data['q']
-        res = self.appmodel.api.search(q)
-        if res:
-            g = geo_entry.widget
-            html = '\n'.join((g(data_stream = elem).render(request) for elem in res))
-        else:
-            html = '<p>Your search - <b>{0}</b> -\
- did not match any documents.</p>'.format(q)
-        return ajax.jhtmls(html,'#geo-search-result')
     
 
     

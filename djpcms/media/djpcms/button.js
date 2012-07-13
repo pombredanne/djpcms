@@ -7,12 +7,13 @@
     $.djpcms.decorator({
         name: 'input',
         defaultElement: '<input type="text">',
-        selector: '.ui-input',
+        selector: '.ui-input',        
         config: {
+            // If true, the input can submit the form when ENTER is pressed on it.
+            submit: false,
             classes: {
                 input: 'ui-input',
                 focus: 'focus',
-                sumbit: 'submit-on-enter'
             }
         },
         _create: function () {
@@ -20,7 +21,7 @@
                 elem = self.element,
                 config = self.config,
                 prev;
-            if (elem.is('input')) {
+            if (elem.is('input') || elem.is('textarea')) {
                 // Create the wrapper
                 elem.removeClass(config.classes.input);
                 self.wrapper = $('<div></div>').addClass(config.classes.input);
@@ -36,8 +37,9 @@
                 self.wrapper.append(elem).addClass(elem.attr('name'));
             } else {
                 self.wrapper = elem;
-                elem = self.wrapper.children('input');
+                elem = self.wrapper.children('input,textarea');
                 if (elem.length === 1) {
+                    $.extend(true, config, elem.data('options'));
                     self.element = elem;
                 }
             }
@@ -46,7 +48,9 @@
             }).blur(function () {
                 self.wrapper.removeClass(config.classes.focus);
             });
-            if (self.element.hasClass(config.classes.submit)) {
+            // If the element has the submit-on-enter class, add
+            // the keypressed event on ENTER to submit the form
+            if (config.submit) {
                 self.element.keypress(function (e) {
                     if (e.which === 13) {
                         var form = elem.closest('form');

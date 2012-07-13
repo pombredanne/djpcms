@@ -27,6 +27,9 @@ class Model(ModelType('ModelBase', (object,), {})):
         raise NotImplementedError()
     
 
+class DoesNotExist(Exception):
+    pass
+
 
 class OrmWrapper(UnicodeMixin):
     '''Wrapper for object relational mapper libraries.
@@ -54,8 +57,8 @@ class OrmWrapper(UnicodeMixin):
 '''
     orm = 'djpcms'
     hash = None
-    DoesNotExist = None
-    FieldValueError = None
+    DoesNotExist = DoesNotExist 
+    FieldValueError = DoesNotExist
     model = None
     short_description = 'short_description'
     
@@ -91,8 +94,9 @@ This method needs to be implemented by subclasses.'''
         return self.model.filter(**kwargs)
     
     def get(self, **kwargs):
-        '''Return a query class for the model'''
-        raise NotImplementedError()
+        '''Return a single instance of the model base on some
+filtering (usually id). Similar to :meth:`fileter` method.'''
+        raise self.model.get(**kwargs)
         
     def is_query(self, query):
         return True

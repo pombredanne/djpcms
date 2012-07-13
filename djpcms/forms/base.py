@@ -514,15 +514,10 @@ factory.'''
         field = self.field
         data = field.get_widget_data(self)
         fdata = self.form.get_widget_data(self)
-        if fdata:
-            if not data:
-                data = fdata
-            else:
-                data.update(fdata)
         attr = field.widget_attrs
         if hasattr(attr,'__call__'):
             attr = attr(self)
-        widget = field.widget(data = data).addAttrs(attr)
+        widget = field.widget(data=data).addData(fdata).addAttrs(attr)
         widget.internal['bfield'] = self
         widget.addAttrs({'id': self.id,
                          'name':self.html_name,

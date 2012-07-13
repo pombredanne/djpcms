@@ -515,7 +515,7 @@ is ``True``, in which case the value is returned.'''
         mapper = self.mapper
         try:
             return self.mapper.get(**{self.field: value})
-        except (mapper.DoesNotExist,mapper.FieldValueError):
+        except (mapper.DoesNotExist, mapper.FieldValueError):
             if self.search:
                 # if search is allowed, return the value
                 return value

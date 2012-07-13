@@ -324,12 +324,12 @@ it looks for the following inputs in the request data:
                     query = query.sort_by('{0}{1}'.format(d,head.attrname))
             
     # Reduce the ammount of data
-    if load_only and hasattr(query,'load_only'):
+    if load_only and hasattr(query, 'load_only'):
         query = query.load_only(*load_only)
         
     start = inputs.get('iDisplayStart',0)
     per_page = inputs.get('iDisplayLength',pagination.size)
-    pag,body = pagination.paginate(query, start, per_page, withbody = needbody)
+    pag, body = pagination.paginate(query, start, per_page, withbody=needbody)
     
     if body is not None and pagination.astable:
         body = appmodel.table_generator(request, toolbox['headers'], body)

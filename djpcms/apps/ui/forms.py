@@ -16,7 +16,7 @@ cssv.input.border.width = cssv.clickable.default.border.width
 cssv.input.border.color = cssv.clickable.default.border.color
 cssv.input.border.style = cssv.clickable.default.border.style
 cssv.input.focus_color = None
-cssv.input.focus_shadow = '0 3px 3px rgba(0,0,0,0.2)'
+cssv.input.focus_shadow = '0 0 5px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
 #
 cssv.alert.background = color('#FCF8E3')
@@ -95,7 +95,7 @@ css('.%s' % classes.ui_input,
 
 css('.%s.focus' % classes.ui_input,
     shadow(cssv.input.focus_shadow),
-    border_color = cssv.input.focus_color)
+    border_color=cssv.input.focus_color)
 
 for n in range(1,10):
     css('.%s.span%s' % (classes.ui_input, n),
@@ -139,6 +139,7 @@ css('form.%s' % classes.form,
         cssa('.%s'%classes.button_holder,
              padding_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)))),
     css('.%s' % classes.ctrlHolder,
+        clearfix(),
         css('.%s'%classes.align_right,
             float='right'),
         css('.%s'%classes.align_middle,
@@ -146,7 +147,6 @@ css('form.%s' % classes.form,
             margin_right=0,
             margin_left=0),
         margin=0,
-        overflow='hidden',
         padding=spacing(0, cssv.form.padding, cssv.form.padding),
         vertical_align='middle'),
     css('.layout-element',

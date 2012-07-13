@@ -7,6 +7,7 @@ from djpcms.utils.text import nicename, slugify, escape, UnicodeMixin
 
 from .routing import Route
 from .permissions import VIEW
+from .formutils import saveform
 
 __all__ = ['RouteMixin', 'ViewRenderer', 'RendererMixin', 'djpcmsview',
            'pageview', 'SPLITTER']
@@ -454,16 +455,46 @@ and :class:`djpcmsview`.
         self.body_class = body_class if body_class is not None else\
                                 self.body_class
         makename(self, self.name, self.description)
-            
-    def render(self, request, **kwargs):
-        '''Render the Current View and return a safe string.
-This function is implemented by subclasses of :class:`View`.
-By default it returns an empty string if the view is a :class:`pageview`
-other wise the ``render`` method of the :attr:`appmodel`.'''
-        if self.appmodel:
-            return self.appmodel.render(request, **kwargs)
+    
+    # RESPONSES
+    def get_response(self, request):
+        '''Render a standard GET request (not an ajax request). By
+default it returns the page layout. It invokes the :meth:`render`
+method for this view.'''
+        page = request.page
+        layout = page.layout if page else 'default'
+        try:
+            layout = self.root.get_page_layout(layout)
+        except:
+            return request.render(request)
         else:
-            return ''
+            return layout()
+        
+    def post_response(self, request):
+        '''The post response handler. It invkoes the render method.'''
+        return self.get_response(request)
+    
+    def ajax_get_response(self, request):
+        '''Default AJAX GET response. It renders and return a ajax dialog.'''
+        text = request.render(block=True)
+        content_type = request.REQUEST.get('content_type', 'json')
+        if content_type == 'json':
+            return ajax.dialog(request.environ,
+                               hd=request.title,
+                               bd=text,
+                               width=self.dialog_width,
+                               height=self.dialog_height,
+                               modal=True)
+        else:
+            return ajax.Text(request.environ, text)
+    
+    def ajax_post_response(self, request):
+        '''Handle AJAX post requests. By default it processes the form.'''
+        return saveform(request)
+    
+    def render(self, request, **kwargs):
+        '''Render the Current View. Must be implemented by sublasses'''
+        return ''
         
     def query(self, request, **kwargs):
         '''This function implements a query on the :attr:`RedererMixin.model`
@@ -556,6 +587,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     def __call__(self, request):
         method = request.method
         if not request.is_xhr:
+            # not and AJAX REQUEST
             callable = getattr(self,'%s_response' % method)
         else:
             data = request.REQUEST
@@ -607,39 +639,6 @@ it is the base class of :class:`pageview` and :class:`View`.
         InnerContent(request, editing)
         for b in range(inner_template.numblocks()):
                 cb['content%s' % b] = BlockContentGen(request, b, editing)
-        
-    def get_response(self, request, editing=False):
-        '''Render a standard GET request (not an ajax request). By
-default it returns the page layout.'''
-        page = request.page
-        layout = page.layout if page else 'default'
-        try:
-            layout = self.root.get_page_layout(layout)
-        except:
-            return self.render(request)
-        else:
-            return layout()
-    
-    def post_response(self, request):
-        '''The post response handler.'''
-        return self.get_response(request)
-    
-    def ajax_get_response(self, request):
-        text = self.render(request)
-        content_type = request.REQUEST.get('content_type', 'json')
-        if content_type == 'json':
-            return ajax.dialog(request.environ,
-                               hd=request.title,
-                               bd=text,
-                               width=self.dialog_width,
-                               height=self.dialog_height,
-                               modal=True)
-        else:
-            return ajax.Text(request.environ, text)
-    
-    def ajax_post_response(self, request):
-        '''Handle AJAX post requests'''
-        return self.post_response(request)
     
     def in_navigation(self, request):
         '''

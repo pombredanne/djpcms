@@ -1,14 +1,16 @@
 import json
 
-from djpcms import views, forms, html, ajax
-from djpcms.forms import layout as uni
+from djpcms import views, html, ajax
 from djpcms.utils import orms
 from djpcms.utils.httpurl import HttpClient
 from djpcms.apps import search
 
+
 class Geo(orms.Model):
     '''A simple model for querying the geonames database.'''
-    search_url = 'http://ws.geonames.org/searchJSON?'
+    #search_url = 'http://ws.geonames.org/searchJSON?'
+    search_url = 'http://api.geonames.org/searchJSON'
+    get_url = 'http://api.geonames.org/getJSON'
     
     def __init__(self, id=None, name='', countryCode='', **kwargs):
         self.id = id
@@ -45,22 +47,19 @@ class Geo(orms.Model):
                         all.add(re)
                         qs.append(el)
             return qs
-        
-        
-           
-class GeoSearchForm(forms.Form):
-    q = forms.ChoiceField(choices=search.Search(
-                                    autocomplete=True,
-                                    search=True,
-                                    model=Geo),
-                          label='Type a geographical place')
-        
-
-GeoSearchFormHtml = forms.HtmlForm(
-       GeoSearchForm,
-       inputs=(),
-       layout=uni.FormLayout(default_style=uni.nolabel)
-)
+    
+    @classmethod
+    def get(cls, id=None):
+        if id:
+            c = cls.http()
+            body = {'geonameId': id,
+                    'lang': 'en',
+                    'style': 'full'}
+            response = c.get(cls.get_url, data=body)
+            if response.status_code == 200:
+                data = json.loads(response.content.decode('utf-8'))
+                return cls(id=data.pop('geonameId'), **data)
+        raise cls.DoesNotExist()
 
 
 class GeoEntry(html.WidgetMaker):
@@ -83,19 +82,23 @@ class GeoEntry(html.WidgetMaker):
 
 
 class Application(views.Application):
-    form = GeoSearchFormHtml
-    search = views.SearchView()
+    form = search.search_form(placeholder='Type a geographical place',
+                              choices=search.Search(autocomplete=True,
+                                                    search=True,
+                                                    model=Geo))
+    main = views.View()
     view = views.ViewView()
     
     def render(self, request, query=None, **context):
-        # Render the search view
+        # Render the main view by rendering the search form
         return self.get_form(request, **context).render(request)
-        
+    
+    def post_response(self, request):
+        # the default post response
+        return self.get_form(request, **context).render(request)
+            
     def render_instance_default(self, request, instance, **kwargs):
         # render the default instance view
         maker = GeoEntry()
         return maker(instance=instance, appmodel=self)
-
-    
-
     

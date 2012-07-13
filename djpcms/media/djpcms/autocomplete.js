@@ -95,8 +95,8 @@
                 return self.add_data(ui.item);
             };
             // Bind to form pre-serialize 
-            elem.closest('form').bind('form-pre-serialize',
-                    $.proxy(self.get_autocomplete_data, self));
+            //elem.closest('form').bind('form-pre-serialize',
+            //        $.proxy(self.get_autocomplete_data, self));
             self.widget = elem.parent('.' + $.djpcms.options.input.classes.input);
             if(!self.widget.length) {
                 self.widget = elem;

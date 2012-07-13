@@ -409,6 +409,7 @@ the *request*.'''
             return request.auth_children()  
     
     def render(self, request, **context):
+        '''Default render method for this application.'''
         if 'query' not in context:
             context['query'] = self.query(request)
         return async_object(
@@ -422,6 +423,9 @@ the *request*.'''
 :param query: an iterable over items.
 '''
         return paginationResponse(request, query, **kwargs)
+    
+    def post_response(self, request):
+        return self.get_response()
         
     def gen_autocomplete(self, qs, maxRows = None):
         '''generator of 3-elements tuples for autocomplete responses.

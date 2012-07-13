@@ -77,7 +77,7 @@ editing form.'''
     def underlying(self, request):
         return underlying_response(request, request.instance)
         
-    def get_response(self, request, editing=False):
+    def get_response(self, request):
         page = request.instance
         layout = page.layout
         layout = self.root.get_page_layout(layout)()

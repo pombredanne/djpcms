@@ -111,7 +111,8 @@ class FieldTemplate(FormTemplate):
                 else:
                     wrapper.addClass(classes.ui_input)
                     if label_style == classes.nolabel:
-                        w.addAttr('placeholder', bfield.label)
+                        if not w.attr('placeholder'):
+                            w.addAttr('placeholder', bfield.label)
                     else:
                         widget.add("<label for='%s' class='%s'>%s</label>"\
                                    % (bfield.id, classes.label, bfield.label))
@@ -189,7 +190,7 @@ class SubmitElement(FormLayoutElement):
             
     def get_context(self, request, widget, context):
         inner = html.Widget('div', widget.inputs,
-                            cn=(self.default_style,classes.button_holder))
+                            cn=(self.default_style, classes.button_holder))
         widget.removeClass(self.default_style)
         widget.add(inner)
 
@@ -260,7 +261,7 @@ class FormLayout(BaseFormLayout):
     
     def __init__(self, *fields, **kwargs):
         self.setup(kwargs)
-        super(FormLayout,self).__init__(*fields, **kwargs)
+        super(FormLayout, self).__init__(*fields, **kwargs)
         if self.form_messages_container_class:
             msg = html.WidgetMaker(tag='div',
                                    cn=self.form_messages_container_class,

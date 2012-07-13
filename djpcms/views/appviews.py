@@ -249,8 +249,8 @@ views::
  view of the application.'''
         return self.appmodel.root_view is self
     
-    def get_form(self, request, form=None, **kwargs):
-        return self.appmodel.get_form(request, form or self.form, **kwargs)
+    def get_form(self, request, **kwargs):
+        return self.appmodel.get_form(request, self.form, **kwargs)
         
     def is_soft(self, request):
         page = request.page
@@ -272,6 +272,32 @@ views::
     
     def save_as_new(self, request, f, commit = True):
         return f.save_as_new(commit = commit)
+    
+    #DELEGATE RESPONSE TO THE APPMODEL
+    def get_response(self, request):
+        return self.appmodel.get_response(request)
+    
+    def post_response(self, request):
+        return self.appmodel.post_response(request)
+    
+    def ajax_get_response(self, request):
+        return self.appmodel.ajax_get_response(request)
+    
+    def ajax_post_response(self, request):
+        return self.appmodel.ajax_post_response(request)
+    
+    def ajax__autocomplete(self, request):
+        fields = self.appmodel.autocomplete_fields
+        params = request.REQUEST
+        qs = self.query(request)
+        if fields:
+            qs = qs.load_only(*fields)
+        maxRows = params.get('maxRows')
+        auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
+        return ajax.CustomHeaderBody(request.environ, 'autocomplete', auto_list)
+    
+    def render(self, request, **kwargs):
+        return self.appmodel.render(request, **kwargs)
     
     
 class ModelView(View):
@@ -297,21 +323,16 @@ There are three additional parameters that can be set:
     def render(self, request, **kwargs):
         kwargs['query'] = self.query(request, **kwargs)
         return self.appmodel.render(request, **kwargs)
-        
-    def ajax__autocomplete(self, request):
-        fields = self.appmodel.autocomplete_fields
-        params = request.REQUEST
-        qs = self.query(request)
-        if fields:
-            qs = qs.load_only(*fields)
-        maxRows = params.get('maxRows')
-        auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
-        return ajax.CustomHeaderBody(request.environ, 'autocomplete', auto_list)
     
-    def ajax_get_response(self, request):
+    def ajax_response(self, request):
         query = self.query(request)
         return paginationResponse(request, query)
-    ajax_post_response = ajax_get_response
+    
+    def ajax_get_response(self, request):
+        return self.ajax_response(request)
+    
+    def ajax_post_response(self, request):
+        return self.ajax_response(request)
     
 
 class AddView(ModelView):

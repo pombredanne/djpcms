@@ -593,7 +593,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             if response is not None:
                 break
             yield b''
-        for c in self(response):
+        for c in self.start(response):
             yield c
     
     def response(self, request):

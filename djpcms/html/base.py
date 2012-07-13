@@ -1,5 +1,6 @@
 import json
 import traceback
+from collections import Mapping
 from inspect import istraceback
 from copy import copy, deepcopy
 
@@ -66,14 +67,13 @@ def iterable_for_widget(data):
     else:
         return (data,)
     
-def update(container, target):
-    if container:
-        container = deepcopy(container)
-        if target:
-            container.update(target)
-        return container
-    return target
-    
+def update_mapping(d, u):
+    for k, v in iteritems(u):
+        if isinstance(v, Mapping):
+            v = update_mapping(d.get(k, {}), v)
+        d[k] = v
+    return d
+
 def html_trace(exc_info, plain=False):
     if exc_info:
         error = Widget()
@@ -132,11 +132,11 @@ class AttributeMixin(object):
     def __init__(self, cn=None, data=None, attrs=None, css=None):
         classes = self.classes
         self.classes = set()
-        self.data = update(self.data,{})
-        self.attrs = update(self.attrs,{})
-        self._css = update(self._css,{})
-        self.addData(data)
+        self.data = deepcopy(self.data) if self.data else {}
+        self.attrs = deepcopy(self.attrs) if self.attrs else {}
+        self._css = deepcopy(self._css) if self.attrs else {}
         self.addClass(classes)
+        self.addData(data)
         self.addClass(cn)
         self.addAttrs(attrs)
         self.css(css)
@@ -162,7 +162,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         return self
     
     def attr(self, name):
-        return self.attrs.get(name, None)
+        return self.attrs.get(name)
     
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
@@ -191,21 +191,19 @@ with key ``name`` and value ``value`` and return ``self``.'''
                     ks.remove(cn)
         return self
     
-    def addData(self, name, val = None):
+    def addData(self, name_or_mapping, val=None):
         '''Add/updated the data attribute.'''
         if val is not None:
-            if name in self.data:
-                val0 = self.data[name]
-                if isinstance(val0, dict) and isinstance(val, dict):
-                    val0.update(val)
+            if name_or_mapping in self.data:
+                val0 = self.data[name_or_mapping]
+                if isinstance(val0, Mapping) and isinstance(val, Mapping):
+                    update_mapping(val0, val)
                     return self
-        elif isinstance(name, dict):
-            add = self.addData
-            for n,v in name.items():
-                add(n, v)
+        elif isinstance(name_or_mapping, dict):
+            update_mapping(self.data, name_or_mapping)
             return self
-        if name:
-            self.data[name] = val
+        if name_or_mapping:
+            self.data[name_or_mapping] = val
         return self
     
     def flatatt(self, **attrs):
@@ -230,7 +228,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
  return the css value at *mapping*.'''
         if mapping is None:
             return self._css
-        elif isinstance(mapping, dict):
+        elif isinstance(mapping, Mapping):
             self._css.update(mapping)
             return self
         else:
@@ -281,12 +279,12 @@ is a factory of :class:`Widget`.
             maker = default_widgets_makers[maker]
         if not isinstance(maker, WidgetMaker):
             maker = DefaultMaker
-        cn = update(maker.classes, cn)
-        data = update(maker.data, data)
-        css = update(maker.css(), css)
-        AttributeMixin.__init__(self, cn=cn, data=data,
-                                attrs=maker.attrs, css=css)
         self.maker = maker
+        AttributeMixin.__init__(self, cn=maker.classes, data=maker.data,
+                                attrs=maker.attrs, css=maker.css())
+        self.addClass(cn)
+        self.addData(data)
+        self.css(css)
         self._data_stream = []
         self.addClass(maker.default_style)
         attributes = maker.attributes
@@ -503,11 +501,10 @@ corner cases, users can subclass it to customize behavior.
         if default:
             default_widgets_makers[default] = self
     
-    def __call__(self, data_stream=None, cn=None,
-                 data=None, css=None, **params):
-        # Create a Widget instance
-        return self._widget(self, data_stream=data_stream, cn=cn, data=data,
-                            css=css, **params)
+    def __call__(self, data_stream=None, **params):
+        # Create a Widget instance. data_stream is first so that it can
+        # be passed as positional argument
+        return self._widget(self, data_stream=data_stream, **params)
         
     @property
     def widget_class(self):

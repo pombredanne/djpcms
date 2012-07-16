@@ -80,6 +80,7 @@ class StaticMapMixin(views.View):
     
     def get_response(self, request):
         return self.render(request)
+    ajax_get_response = get_response
     
     def add_media(self, m):
         pass

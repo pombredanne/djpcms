@@ -34,7 +34,6 @@ class ObjectDef(WidgetMaker):
             return
         headers = appmodel.object_display
         mapper = appmodel.mapper
-        widget.addClass(mapper.module_name)
         ctx = html.results_for_item(request,
                                     headers,
                                     instance,

@@ -47,7 +47,7 @@
                 var form = $(classes.cmsform, elem),
                     data,
                     url;
-                if (form) {
+                if (form.length) {
                     data = $.extend($.djpcms.ajaxparams('rearrange'), pos);
                     url = form.attr('action');
                     self.info('Updating position at "' + url + '"');

@@ -57,40 +57,45 @@ css('.'+table_container_class,
     display='none',
     text_align='left',
     margin=0,
-    background='transparent',
-    #
-    toolbox_min_height = '40px',
-    #
-    head_border = '1px solid #a6c9e2',
-    row_border = '1px solid transparent',
-    #
-    # Floating panels
-    DTTT_float = 'right',
-    DTTT_margin = '0 1em 1em 0',
-    #
-    pagination_float = 'right',
-    #
-    dataTables_info_float = 'left',
-    dataTables_info_margin = '0 1em 0 0',
-    #
-    dataTables_filter_float = 'right',
-    dataTables_filter_margin = '0.5em 0 0 0',
-    #
-    processing_float = 'left',
-    processing_margin = '0 0 0 1em',
-    #
-    row_selector_float = 'left',
-    row_selector_margin = '0',
-    #
-    col_selector_float = 'right',
-    col_selector_margin = '0 0 1em',
-    #
-    odd_background_color = cssv.table_odd_background_color,
-    even_background_color = cssv.table_even_background_color,
-    #
-    even_sort_background = cssv.table_even_sort_background,
-    odd_sort_background = cssv.table_odd_sort_background
-)
+    background='transparent')
+
+css('.'+table_container_class,
+    css('.clear',
+        clearfix()),
+    css('.DTTT_container',
+        float='right',
+        margin = '0 1em 1em 0'),
+    css('.row-selector',
+        float='left',
+        margin=0),
+    css('.col-selector',
+        float='right',
+        margin='0 0 1em'),
+    css('.pagination',
+        float='right'),
+    css('.dataTables_info',
+        float='left',
+        margin='0 1em 0 0'),
+    css('.dataTables_filter',
+        float='right',
+        margin='0.5em 0 0 0'),
+    css('.dataTables_processing',
+        float='left',
+        margin='0 0 0 1em'))
+
+#
+#    row_selector_float = 'left',
+#    row_selector_margin = '0',
+#    #
+#    col_selector_float = 'right',
+#    col_selector_margin = '0 0 1em',
+#    #
+#    odd_background_color = cssv.table_odd_background_color,
+#    even_background_color = cssv.table_even_background_color,
+#    #
+#    even_sort_background = cssv.table_even_sort_background,
+#    odd_sort_background = cssv.table_odd_sort_background
+
 
 css('.action-check',
     css('input', margin = '0 5px 0 0')

@@ -180,11 +180,13 @@ absolute url.
     n = _next()
     return request.build_absolute_uri(n) if n else None
     
-def saveform(request, force_redirect=False):
+def saveform(request, force_redirect=None):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted, including possible asynchronous behavior.'''
     view = request.view
+    if force_redirect is None:
+        force_redirect = view.force_redirect
     data = request.REQUEST
     curr = request.environ.get('HTTP_REFERER')
     referrer = data.get(forms.REFERER_KEY)
@@ -252,10 +254,12 @@ def _finish(request, editing, fhtml, force_redirect, response):
         set_request_message(f, request)
         raise HttpRedirect(url)
 
-def deleteinstance(request, force_redirect=True):
+def deleteinstance(request, force_redirect=None):
     '''Delete an instance from database'''
     instance = request.instance
     view = request.view
+    if force_redirect is None:
+        force_redirect = view.force_redirect
     next = get_redirect(request,force_redirect=force_redirect)
     bid = view.appmodel.remove_instance(instance)
     msg = 'Successfully deleted %s' % instance

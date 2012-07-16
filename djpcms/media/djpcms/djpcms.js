@@ -276,7 +276,7 @@
                 self.element = element;
                 element[0].djpcms_widget = self;
                 if (data) {
-                    options = $.extend({}, options, data);
+                    options = $.extend(true, {}, options, data);
                 }
                 self.config = options;
                 $.djpcms.logger.debug('Creating widget ' + self.name);

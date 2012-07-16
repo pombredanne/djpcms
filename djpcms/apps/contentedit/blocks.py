@@ -201,7 +201,7 @@ The instance.plugin object is maintained but its fields may change.'''
     def ajax__rearrange(self, request):
         '''Move the content block to a new position.'''
         contentblock = request.instance
-        data = request.REQUEST            
+        data = request.REQUEST
         previous = data.get('previous', None)
         if previous:
             block = self.model.block_from_html_id(previous)

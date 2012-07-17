@@ -9,6 +9,8 @@ from djpcms.apps import search
 class Geo(orms.Model):
     '''A simple model for querying the geonames database.'''
     #search_url = 'http://ws.geonames.org/searchJSON?'
+    username = ''
+    lang = 'en'
     search_url = 'http://api.geonames.org/searchJSON'
     get_url = 'http://api.geonames.org/getJSON'
     
@@ -25,43 +27,45 @@ class Geo(orms.Model):
     @classmethod
     def http(cls):
         return HttpClient()
+    
+    @classmethod
+    def data(cls, **params):
+        d = {'username': cls.username, 'lang': cls.lang}
+        d.update(params)
+        return d
         
     @classmethod
     def search(cls, q):
         c = cls.http()
-        body = {'q': q,
-                'maxRows': 20,
-                'lang': 'en',
-                'style': 'short'}
+        body = cls.data(q=q, maxRows=20, style='short')
         response = c.get(cls.search_url, data=body)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'))
             qs = []
             all = set()
-            for data in data['geonames']:
-                id = data.pop('geonameId', None)
-                if id:
-                    el = cls(id=id, **data)
-                    re = str(el)
-                    if re not in all:
-                        all.add(re)
-                        qs.append(el)
+            if 'geonames' in data:
+                for data in data['geonames']:
+                    id = data.pop('geonameId', None)
+                    if id:
+                        el = cls(id=id, **data)
+                        re = str(el)
+                        if re not in all:
+                            all.add(re)
+                            qs.append(el)
             return qs
     
     @classmethod
     def get(cls, id=None):
         if id:
             c = cls.http()
-            body = {'geonameId': id,
-                    'lang': 'en',
-                    'style': 'full'}
+            body = cls.data(geonameId=id, style='full')
             response = c.get(cls.get_url, data=body)
             if response.status_code == 200:
                 data = json.loads(response.content.decode('utf-8'))
                 return cls(id=data.pop('geonameId'), **data)
         raise cls.DoesNotExist()
-
-
+    
+    
 class GeoEntry(html.WidgetMaker):
     tag = 'div'
     default_class = 'geo-entry ui-widget-content'
@@ -95,7 +99,7 @@ class Application(views.Application):
     
     def post_response(self, request):
         # the default post response
-        return self.get_form(request, **context).render(request)
+        return self.get_form(request).render(request)
             
     def render_instance_default(self, request, instance, **kwargs):
         # render the default instance view

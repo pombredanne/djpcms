@@ -85,19 +85,19 @@ class PluginChoice(forms.ChoiceField):
     
 class ContentBlockForm(forms.Form):
     '''Form for editing a content block within a page.'''
-    url = forms.HiddenField(required = False)
-    title = forms.CharField(required = False)
-    plugin_name = PluginChoice(label = 'Plugin',
-                               choices = plugins.plugingenerator)
+    url = forms.HiddenField(required=False)
+    title = forms.CharField(required=False)
+    plugin_name = PluginChoice(label='Plugin',
+                               choices=plugins.plugingenerator)
     container_type = forms.ChoiceField(
-                            label = 'Container',
-                            widget = html.Select(cn='ajax'),
-                            choices = plugins.wrappergenerator,
-                            help_text = 'A HTML element which wraps the plugin\
+                            label='Container',
+                            widget=html.Select(cn='ajax'),
+                            choices=plugins.wrappergenerator,
+                            help_text='A HTML element which wraps the plugin\
  before it is rendered in the page.')
-    for_not_authenticated = forms.BooleanField(default = False)
-    view_permission = forms.CharField(required = False)
-    requires_login = forms.BooleanField(default = False)
+    for_not_authenticated = forms.BooleanField(default=False)
+    view_permission = forms.CharField(required=False)
+    requires_login = forms.BooleanField(default=False)
         
     def save(self, commit = True):
         data = self.cleaned_data
@@ -112,7 +112,7 @@ class ContentBlockForm(forms.Form):
             instance.requires_login = True
         if 'container_type' in data:
             instance.container_type = data['container_type'] 
-        cb = super(ContentBlockForm,self).save(commit = commit)
+        cb = super(ContentBlockForm,self).save(commit=commit)
         #if commit and cb.id:
         #    ObjectPermission.objects.set_view_permission(cb, groups = pe)
         return cb

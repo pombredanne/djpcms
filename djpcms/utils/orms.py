@@ -96,7 +96,7 @@ This method needs to be implemented by subclasses.'''
     def get(self, **kwargs):
         '''Return a single instance of the model base on some
 filtering (usually id). Similar to :meth:`fileter` method.'''
-        raise self.model.get(**kwargs)
+        return self.model.get(**kwargs)
         
     def is_query(self, query):
         return True

@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-14 12:15:48.810681
-Time taken 0.372 seconds
+Created by djpcms.style 2012-07-16 22:19:09.153094
+Time taken 0.106 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1476,27 +1476,11 @@ th.ui-clickable {
 }
 
 .data-table {
-    head-border: 1px solid #a6c9e2;
-    DTTT-margin: 0 1em 1em 0;
-    row-selector-float: left;
-    dataTables-info-float: left;
-    dataTables-info-margin: 0 1em 0 0;
-    toolbox-min-height: 40px;
-    DTTT-float: right;
-    col-selector-margin: 0 0 1em;
-    text-align: left;
     width: 100%;
-    processing-float: left;
-    col-selector-float: right;
-    row-selector-margin: 0;
-    background: transparent;
-    pagination-float: right;
-    dataTables-filter-margin: 0.5em 0 0 0;
-    row-border: 1px solid transparent;
-    dataTables-filter-float: right;
     margin: 0;
+    text-align: left;
+    background: transparent;
     display: none;
-    processing-margin: 0 0 0 1em;
 }
 
 .data-table .dataTables_filter input {
@@ -1540,6 +1524,55 @@ th.ui-clickable {
     border-width: 0 0 1px;
     border-style: solid;
     border-color: #d3d3d3;
+}
+
+.data-table .clear {
+    *zoom: 1;
+}
+
+.data-table .clear:before {
+    content: "";
+    display: table;
+}
+
+.data-table .clear:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.data-table .DTTT_container {
+    float: right;
+    margin: 0 1em 1em 0;
+}
+
+.data-table .row-selector {
+    float: left;
+    margin: 0;
+}
+
+.data-table .col-selector {
+    float: right;
+    margin: 0 0 1em;
+}
+
+.data-table .pagination {
+    float: right;
+}
+
+.data-table .dataTables_info {
+    float: left;
+    margin: 0 1em 0 0;
+}
+
+.data-table .dataTables_filter {
+    float: right;
+    margin: 0.5em 0 0 0;
+}
+
+.data-table .dataTables_processing {
+    float: left;
+    margin: 0 0 0 1em;
 }
 
 .action-check input {

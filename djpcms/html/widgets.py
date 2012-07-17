@@ -162,11 +162,9 @@ DefinitionList(default='dl')
 
 def anchor_or_button(text, href=None, icon=None, asbutton=False, size=None,
                      **kwargs):
+    w = Widget('a', text, href=href, **kwargs)
     if asbutton:
-        w = Widget('button', text, cn=classes.button, **kwargs)\
-                        .addData('href',href)
-    else:
-        w = Widget('a', text, href=href, **kwargs)
+        w.addClass(classes.button)
     return with_icon(name=icon, size=size, widget=w)
 
 def SelectWithAction(choices, action_url, **kwargs):

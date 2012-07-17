@@ -352,7 +352,7 @@ and handles the saving as default ``POST`` response.'''
         return self.get_form(request, **kwargs).render(request)
     
     def post_response(self, request):
-        return saveform(request, force_redirect=self.force_redirect)
+        return saveform(request)
 
 
 class DeleteAllView(ModelView):
@@ -373,7 +373,7 @@ in a model. Quite drastic.'''
         if request.is_xhr:
             c = ajax.jcollection(request.environ)
             for instance in qs:
-                c.append(ajax.jremove(None,'#'+instance.id))
+                c.append(ajax.jremove(None, '#'+instance.id))
             return c
         else:
             url = get_redirect(request,force_redirect=True)
@@ -424,7 +424,7 @@ class DeleteView(ObjectView):
     _methods = ('post',)
     
     def post_response(self, request):
-        return deleteinstance(request, force_redirect=self.force_redirect)
+        return deleteinstance(request)
     
     def warning_message(self, request):
         return {'title':'Deleting',

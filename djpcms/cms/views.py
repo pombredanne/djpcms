@@ -472,7 +472,7 @@ method for this view.'''
         
     def post_response(self, request):
         '''The post response handler. It invkoes the render method.'''
-        return self.get_response(request)
+        return saveform(request)
     
     def ajax_get_response(self, request):
         '''Default AJAX GET response. It renders and return a ajax dialog.'''
@@ -490,7 +490,7 @@ method for this view.'''
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests. By default it processes the form.'''
-        return saveform(request)
+        return self.post_response(request)
     
     def render(self, request, **kwargs):
         '''Render the Current View. Must be implemented by sublasses'''

@@ -89,26 +89,11 @@ class ChangeContentView(views.ChangeView):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
                       html = self.instance.plugin_edit_block(request))
     
-    def ajax__container_type(self, request):
-        '''Change container'''
-        return self.post_response(request, commit=False, plugin_form=False)
-    
-    def ajax__plugin_name(self, request):
-        '''Change plugin'''
-        return self.post_response(request, commit=False)
-        
-    def ajax__edit_content(self, request):
-        pluginview = self.appmodel.views.get('plugin')
-        return pluginview.post_response(pluginview(request,
-                                                   instance=request.instance))
-        
-    def ajax_get_response(self, request):
-        return self.post_response(request, commit=False)
-    
     def render(self, request, url=None):
         formhtml = self.get_form(request,
-                                 initial = {'url': url},
-                                 force_prefix = True)
+                                 initial={'url': url},
+                                 force_prefix=True)\
+                                 .addClass(classes.cms_block_edit_form)
         instance = request.instance
         plugin = instance.plugin
         if not plugin:
@@ -131,7 +116,7 @@ class ChangeContentView(views.ChangeView):
         plugin = self.plugin_form_container(instance, plugin_form)
         return wrapper.render(request, {'plugin': plugin})
     
-    def post_response(self, request, commit=True, plugin_form=True):
+    def ajax_post_response(self, request, commit=True, plugin_form=True):
         '''View called when changing the content plugin values.
 The instance.plugin object is maintained but its fields may change.'''       
         fhtml = self.get_form(request, withdata=True)
@@ -196,11 +181,27 @@ The instance.plugin object is maintained but its fields may change.'''
             jquery.update(fhtml.maker.json_messages(form))
             
         return jquery
+    
+    def ajax_get_response(self, request):
+        return self.ajax_post_response(request, commit=False)
+    
+    def ajax__container_type(self, request):
+        '''Change container'''
+        return self.ajax_post_response(request, commit=False, plugin_form=False)
+    
+    def ajax__plugin_name(self, request):
+        '''Change plugin'''
+        return self.ajax_post_response(request, commit=False)
+        
+    def ajax__edit_content(self, request):
+        pluginview = self.appmodel.views.get('plugin')
+        return pluginview.post_response(pluginview(request,
+                                                   instance=request.instance))
 
     def ajax__rearrange(self, request):
         '''Move the content block to a new position.'''
         contentblock = request.instance
-        data = request.REQUEST            
+        data = request.REQUEST
         previous = data.get('previous', None)
         if previous:
             block = self.model.block_from_html_id(previous)

@@ -56,6 +56,8 @@ class WebSite(cms.WebSite):
                 APPLICATION_URLS = self.urls,
                 DEBUG = True
             )
+        from djpsite.apps.geo import Geo
+        Geo.username = settings.GEOUSERNAME
         permissions = PermissionHandler(settings)
         backend = permissions.auth_backends[0]
         # AUTHENTICATION MIDDLEWARE

@@ -276,7 +276,7 @@
                 self.element = element;
                 element[0].djpcms_widget = self;
                 if (data) {
-                    options = $.extend({}, options, data);
+                    options = $.extend(true, {}, options, data);
                 }
                 self.config = options;
                 $.djpcms.logger.debug('Creating widget ' + self.name);
@@ -1117,32 +1117,6 @@
                         });
                     });
             self.element.append(a);
-        }
-    });
-    //
-    $.djpcms.decorator({
-        name: "popover",
-        selector: '.pop-over, .label',
-        config: {
-            x: 10,
-            y: 30,
-            predelay: 400,
-            effect: 'fade',
-            fadeOutSpeed: 200,
-            position: "top"
-        },
-        _create: function () {
-            if ($.fn.popover) {
-                var self = this,
-                    el = self.element,
-                    des = el.data('content');
-                if (des) {
-                    el.attr('rel', 'popover');
-                    el.popover();
-                }
-            } else {
-                this.destroy();
-            }
         }
     });
     /**

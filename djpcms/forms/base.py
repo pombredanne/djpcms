@@ -335,8 +335,8 @@ if it is bound.'''
                 try:
                     value = bfield.clean(rawvalue)
                     func_name = 'clean_' + name
-                    if hasattr(self,func_name):
-                        value = getattr(self,func_name)(value)
+                    if hasattr(self, func_name):
+                        value = getattr(self, func_name)(value)
                     cleaned[name] = value
                 except ValidationError as e:
                     form_message(errors, name, to_string(e))

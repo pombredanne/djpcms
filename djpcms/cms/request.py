@@ -598,7 +598,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
     
     def response(self, request):
         '''Generate the Response'''
-        content_type, response = request.content_type, None
+        self.content_type, response = request.content_type, None
         if not request.exc_info:           
             try:
                 if request.method not in request.methods():
@@ -607,16 +607,13 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
                     raise PermissionDenied()
                 else:
                     content = request.view(request)
-                    if is_renderer(content):
-                        content_type = content.content_type()
-                        content = content.render(request)
             except Exception as e:
                 request.exc_info = sys.exc_info()
         if request.exc_info is None:
-            content = async_object(content)
+            content = self.safe_render(request, content)
             while is_async(content):
                 yield
-                content = async_object(content)
+                content = self.safe_render(request, content)
             if is_failure(content):
                 request.exc_info = content.trace
                 content = b''
@@ -624,7 +621,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
                 response = content
         # Response not yet available, build it from content or exc_info
         if response is None:
-            response = Response(content_type=content_type,
+            response = Response(content_type=self.content_type,
                                 encoding=request.encoding)
             if request.exc_info is not None:
                 content = self.website.handle_error(request, response)
@@ -682,3 +679,12 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
         else:
             return DjpcmsTree(tree)
         
+    def safe_render(self, request, content):
+        content = async_object(content)
+        try:
+            if is_renderer(content):
+                self.content_type = content.content_type()
+                content = async_object(content.render(request))
+            return content
+        except Exception as e:
+            return as_failure(e)

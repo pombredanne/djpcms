@@ -672,7 +672,7 @@ class css(object):
         return cls.body()._children.get(tag)
         
     @classmethod
-    def render_all(cls, media_url = None, charset = 'utf-8'):
+    def render_all(cls, media_url=None, charset='utf-8'):
         if media_url:
             cssv.MEDIAURL = media_url
         now = datetime.now()

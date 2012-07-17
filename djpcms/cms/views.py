@@ -489,7 +489,8 @@ method for this view.'''
             return ajax.Text(request.environ, text)
     
     def ajax_post_response(self, request):
-        '''Handle AJAX post requests. By default it processes the form.'''
+        '''Handle AJAX post requests. By default it invokes the
+:meth:`post_response` method.'''
         return self.post_response(request)
     
     def render(self, request, **kwargs):
@@ -505,6 +506,9 @@ if available. By defaults it invoke the ``query`` method in the
 :rtype: an iterable instance over model instances.'''
         if self.appmodel:
             return self.appmodel.query(request, **kwargs)
+    
+    def success_message(self, request, response):
+        return str(response)
     
     def for_user(self, request):
         '''Return an instance of a user model if the current renderer
@@ -592,7 +596,7 @@ it is the base class of :class:`pageview` and :class:`View`.
         else:
             data = request.REQUEST
             ajax_action = forms.get_ajax_action(data)
-            callable = getattr(self,'ajax_%s_response' % method)
+            callable = getattr(self, 'ajax_%s_response' % method)
             if ajax_action:
                 ajax_view = 'ajax__' + ajax_action
                 if hasattr(self, ajax_view):

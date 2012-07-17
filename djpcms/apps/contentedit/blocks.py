@@ -239,7 +239,7 @@ class DeleteContentView(views.DeleteView):
     
     def post_response(self, request):
         instance = request.instance
-        column  = instance.column
+        column = instance.column
         jquery = ajax.jcollection(request.environ)
         blockcontents = [b for b in self.mapper.filter(page=instance.page)\
                          if b.column==column]

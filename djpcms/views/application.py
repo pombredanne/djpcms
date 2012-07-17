@@ -260,7 +260,8 @@ overwritten to customize its behavior.
     list_display_links = ()
     nice_headers_handler = None
     url_bits_mapping = None
-    in_nav = 1  
+    in_nav = 1
+    instance_template = ObjectDef()
 
     def __init__(self, route, model=None, editavailable=None,
                  list_display_links=None, object_display=None,
@@ -423,9 +424,6 @@ the *request*.'''
 :param query: an iterable over items.
 '''
         return paginationResponse(request, query, **kwargs)
-    
-    def post_response(self, request):
-        return self.get_response()
         
     def gen_autocomplete(self, qs, maxRows = None):
         '''generator of 3-elements tuples for autocomplete responses.
@@ -553,9 +551,10 @@ has been requested.
         else:
             return ''
         
-    def render_instance_default(self, request, instance, **kwargs):
-        maker = ObjectDef()
-        return maker(instance=instance, appmodel=self)
+    def render_instance_default(self, request, instance, block=None, **kwargs):
+        return self.instance_template(instance=instance,
+                                      appmodel=self,
+                                      block=block)
         
     def render_instance_list(self, request, instance, **kwargs):
         maker = ObjectItem()

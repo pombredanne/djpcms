@@ -117,7 +117,7 @@ class UserChangeForm(forms.Form):
 
 HtmlLoginForm = forms.HtmlForm(
     LoginForm,
-    success_message = lambda request, user, m :\
+    success_message = lambda request, user:\
      '{0} successfully signed in'.format(user),
     inputs = (('Sign in','login_user'),)
 )

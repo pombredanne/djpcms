@@ -4,11 +4,11 @@ import logging
 from functools import partial
 from datetime import datetime
 
-from djpcms import forms, html, is_renderer
+from djpcms import forms, html, is_renderer, ajax
 from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import urlsplit, QueryDict
 from djpcms.utils.dates import format
-from djpcms.utils.async import is_async
+from djpcms.utils.async import is_async, is_failure
 
 from .exceptions import HttpRedirect
 from . import messages
@@ -223,8 +223,8 @@ def _finish(request, editing, fhtml, force_redirect, response):
     elif response == f:
         return fhtml.maker.json_messages(f)
     data = request.REQUEST
-    msg = fhtml.success_message(request, response,
-                                'changed' if editing else 'added')
+    success_message = fhtml.success_message or view.success_message 
+    msg = success_message(request, response)
     f.add_message(msg)
     
     # Save and continue. Redirect to referrer if not AJAX or send messages 
@@ -284,3 +284,16 @@ def fill_form_data(f):
             data[field.html_name] = v
     return data 
 
+def message_or_dialog(request, message):
+    view = request.view
+    if view.force_redirect or not request.is_xhr:
+        if is_failure(message):
+            messages.error(request, str(message))
+        else:
+            messages.info(request, message)
+        raise HttpRedirect(request.url)
+    title = 'Failure' if is_failure(message) else 'success' 
+    return ajax.dialog(request.environ,
+                       hd=title,
+                       bd=str(message),
+                       modal=True)

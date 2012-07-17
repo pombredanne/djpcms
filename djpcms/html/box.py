@@ -35,7 +35,7 @@ def box(hd='', bd='', ft=None, minimize=False, detachable=False,
         collapsable=False, collapsed=False, edit_menu=None,
         **kwargs):
     '''Create a box :class:`Widget`.'''
-    if ft:
+    if ft is not None:
         b = Box(**kwargs)
         b['ft'].add(ft)
     else:

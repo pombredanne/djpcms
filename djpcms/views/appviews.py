@@ -283,9 +283,6 @@ views::
     def ajax_get_response(self, request):
         return self.appmodel.ajax_get_response(request)
     
-    def ajax_post_response(self, request):
-        return self.appmodel.ajax_post_response(request)
-    
     def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
         params = request.REQUEST
@@ -353,6 +350,12 @@ and handles the saving as default ``POST`` response.'''
     
     def post_response(self, request):
         return saveform(request)
+    
+    def success_message(self, request, response):
+        mapper = self.appmodel.mapper
+        if mapper:
+            response = mapper.pretty_repr(response)
+        return '%s successfully added' % response
 
 
 class DeleteAllView(ModelView):
@@ -394,7 +397,6 @@ class ViewView(ObjectView):
 an object.'''
     default_route = '/<id>/'
     
-    @render_block
     def render(self, request, **kwargs):
         '''Override the :meth:`djpcmsview.render` method
 to display a html string for an instance of the application model.
@@ -455,5 +457,11 @@ an instance of a model.'''
     PERM = permissions.CHANGE
     ICON = 'pencil'
     default_link = 'edit'
-    force_redirect = True 
+    force_redirect = True
+    
+    def success_message(self, request, response):
+        mapper = self.appmodel.mapper
+        if mapper:
+            response = mapper.pretty_repr(response)
+        return '%s successfully changed' % response
     

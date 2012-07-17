@@ -27,6 +27,7 @@ cssv.clickable.active.border.style = None
 cssv.widget.padding = spacing(px(6))
 cssv.widget.border.color = cssv.color.grayLight
 cssv.widget.border.width = px(1)
+cssv.widget.border.style = None
 
 cssv.widget.head.background = cssv.color.grayLighter
 cssv.widget.head.color = cssv.color.grayDarker 
@@ -39,6 +40,9 @@ cssv.widget.head.padding = cssv.widget.padding
 cssv.widget.body.padding = cssv.widget.padding
 cssv.widget.body.color = cssv.color.grayDarker
 cssv.widget.body.background = cssv.color.white
+
+cssv.widget.foot.background = cssv.widget.body.background
+cssv.widget.foot.color = cssv.widget.body.color
 
 # Panel with default set to match the widget body values
 cssv.panel.color = cssv.widget.body.color
@@ -99,7 +103,7 @@ cssb('.'+classes.widget_body,
             width=spacing(0, cssv.widget.border.width.right,
                           cssv.widget.border.width.bottom,
                           cssv.widget.border.width.left),
-            style=cssv.widget.head.border.style),
+            style=cssv.widget.border.style),
      padding=cssv.widget.body.padding)
          
 css('.'+classes.widget_head,
@@ -120,6 +124,15 @@ css('.'+classes.widget_head,
     #                          text_decoration=cssv.clickable.active.text_decoration)))
     )
 
+cssb('.'+classes.widget_foot,
+     bcd(**cssv.widget.foot.params()),
+     border(color=cssv.widget.border.color,
+            width=spacing(0, cssv.widget.border.width.right,
+                          cssv.widget.border.width.bottom,
+                          cssv.widget.border.width.left),
+            style=cssv.widget.border.style),
+     padding=cssv.widget.body.padding)
+     
 css('.'+classes.widget_body,
     overflow='hidden')
 ################################################################ PANEL

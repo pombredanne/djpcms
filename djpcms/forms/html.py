@@ -13,15 +13,6 @@ from .layout import FormTemplate, FormLayout
 __all__ = ['HtmlForm']
 
 
-def default_success_message(request, instance, modified_or_added):
-    '''Very basic success message. Write your own for a better one.'''
-    if instance:
-        name = mapper(instance).pretty_repr(instance)
-        return '%s successfully %s' % (name,modified_or_added)
-    else:
-        return '%s' % modified_or_added
-
-
 class HtmlForm(FormTemplate):
     '''The :class:`Form` class is designed to be used for validation purposes.
 To render an instance of :class:`Form` on a web page we use this class.
@@ -69,8 +60,7 @@ Simple usage::
     
 .. attribute:: success_message
 
-    A callable which accept the request object, an instance of an object
-    and a string indicating if the form has changed or created the instance.
+    A callable which accept the request object, an instance of an object.
 '''
     tag = 'form'
     default_attrs = {'method':'post',
@@ -97,7 +87,7 @@ Simple usage::
                 new_inputs.append(input)
             inputs = new_inputs
         internal = {
-            'success_message': success_message or default_success_message,
+            'success_message': success_message,
             'form_class': form_class,
             'model': model,
             'inputs': inputs}

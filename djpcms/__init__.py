@@ -27,7 +27,8 @@ def DEFAULT_JAVASCRIPT(*extra):
           'djpcms/jquery.form.js',
           'djpcms/showdown.js',
           'djpcms/djpcms.js',
-          'djpcms/button.js']
+          'djpcms/button.js',
+          'djpcms/autocomplete.js']
     js.extend(extra)
     return js
 

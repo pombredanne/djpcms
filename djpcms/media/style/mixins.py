@@ -24,6 +24,7 @@ __all__ = ['opacity',
            'css_include',
            'grid',
            'gridfluid',
+           'image',
            'fontface']
  
     
@@ -553,6 +554,23 @@ class gridfluid(grid):
     #               margin_left=0)
 
 
+class image(mixin):
+    
+    def __init__(self, url, repeat='no-repeat', position='center'):
+        self.url = url
+        self.repeat = repeat
+        self.position = position
+    
+    def __call__(self, elem):
+        url = self.url
+        if not url.startswith('http'):
+            url = '%s%s' % (cssv.MEDIAURL, url)
+        elem['background-image'] = 'url(%s)' % url
+        if self.repeat:
+            elem['background-repeat'] = self.repeat
+        if self.position:
+            elem['background-position'] = self.position
+        
 ################################################# FONT-FACE 
 class fontface(mixin):
     

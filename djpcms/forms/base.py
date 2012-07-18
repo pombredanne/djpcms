@@ -3,6 +3,7 @@
 Several parts are originally from django
 '''
 import json
+from collections import Mapping
 
 from djpcms.utils import orms
 from djpcms.utils.httpurl import iteritems
@@ -158,7 +159,8 @@ procedure calls validation.
     request = None
     
     def __init__(self, data=None, files=None, initial=None, prefix=None,
-                 model=None, instance=None, request=None, environ=None):
+                 model=None, instance=None, request=None, environ=None,
+                 on_submit=None):
         '''Initialize a :class:`Form` with *data* or *initial* values.
 If *data* is not ``None`` the form will bound itself to the data, otherwise
 it remains unbounded.
@@ -204,6 +206,8 @@ it remains unbounded.
         for name,fset in self.base_inlines.items():
             self.form_sets[name] = fset(self)
         self.forms = []
+        if on_submit is not None:
+            self.on_submit = lambda commit: on_submit(self, commit)
         if not self.is_bound:
             self._fill_initial()
 
@@ -403,14 +407,14 @@ fields for example. It doesn't need to return anything, just throw a
                 fset.set_save_as_new()
         return self.save(commit = commit)
     
-    def save(self, commit = True):
+    def save(self, commit=True):
         '''Save the form and return a model instance.
 This method works if an instance or a model is available.
 
 :parameter commit: if ``True`` changes are committed to the model backend.
 :parameter as_new: if ``True`` the instance is saved as a new instance.
 '''
-        obj = self.before_save(commit)
+        obj = self.on_submit(commit)
         if not obj:
             obj = self.mapper.save(self.cleaned_data, self.instance, commit)
             if commit:
@@ -418,8 +422,8 @@ This method works if an instance or a model is available.
                     fset.save()
         return obj
     
-    def before_save(self, commit=True):
-        '''Hook to modify/manipulate data before saving.
+    def on_submit(self, commit):
+        '''Hook to modify/manipulate data before submitting the form.
         It is advised to override this function rather than the save method.'''
         pass
     
@@ -534,10 +538,11 @@ or None if it wasn't given.
     data = property(_data)
 
 
-def MakeForm(name,fields):
+def MakeForm(name, fields, **params):
     '''Create a form class from a list of fields'''
-    if not isinstance(fields,dict):
-        fields = dict(((f.name,f) for f in fields))
-    return FormType(name,(Form,),fields)
+    if not isinstance(fields, Mapping):
+        fields = ((f.name, f) for f in fields)
+    params.update(fields)
+    return FormType(name, (Form,), params)
 
  

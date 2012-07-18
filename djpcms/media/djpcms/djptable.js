@@ -277,7 +277,7 @@
                     elem = this.element,
                     opts = $.extend({}, this.config),
                     buttons = [],
-                    tbl = $('table', elem).addClass('main display').width('100%'),
+                    tbl = $('table', elem).addClass('main display'),
                     actions,
                     r,
                     s;
@@ -340,6 +340,7 @@
                     $.djpcms.datatable.addViews(tbl, elem.data('groups'));
                 }
                 $('.dataTables_filter input').addClass('ui-widget-content');
+                tbl.width('100%');
                 elem.show();
             }
         });

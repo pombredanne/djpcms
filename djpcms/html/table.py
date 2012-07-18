@@ -395,15 +395,15 @@ a standard pagination.
             maker = self.widget_factory
         
         kwargs['actions'] = data.get('actions')
-        return maker(body, pagination = pagination, data = data,
-                     footer = self.footer, **kwargs)
+        return maker(body, pagination=pagination, data=data,
+                     footer=self.footer, **kwargs)
         
     def ajaxresponse(self, request, body, **kwargs):
         widget = self.widget(body, **kwargs)
         pagination = widget.internal.get('pagination')
         if self.astable:
             aaData = []
-            for item in widget.maker.rows(request,widget):
+            for item in widget.maker.rows(request, widget):
                 id = item['id']
                 aData = {} if not id else {'DT_RowId':id}
                 aData.update(((i,v) for i,v in enumerate(item['display'])))

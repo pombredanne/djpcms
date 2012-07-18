@@ -35,22 +35,21 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                 r = attrs.pop(app_name)
                 r.name = app_name
                 routes.append(r)    
-    
     # order the routes by creation counter
     routes = sorted(routes, key=lambda x: x.view_ordering)
-    
     # If this class is subclassing another Application,
     # and inherit is True add that Application's views.
     # Note that we loop over the bases in *reverse*. This is necessary in
     # order to preserve the correct order of fields.
     if inherit:
+        added = False
         for base in bases[::-1]:
-            if hasattr(base, 'base_routes'):
+            if hasattr(base, 'base_routes') and base.base_routes:
+                added = True
                 routes = base.base_routes + routes
-    
-        routes = list(itervalues(dict(((r.path,r) for r in routes))))
-        routes = sorted(routes, key=lambda x: x.view_ordering)
-    
+        if added:
+            routes = list(itervalues(dict(((r.path,r) for r in routes))))
+            routes = sorted(routes, key=lambda x: x.view_ordering)
     return routes
 
 def store_on_instance(f):

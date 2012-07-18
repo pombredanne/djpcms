@@ -5,7 +5,8 @@ from djpcms.forms import layout
 
 def search_form(name='SearchForm', placeholder='search', input_name=None,
                 submit=None, cn=None, choices=None,
-                deafult_style=layout.nolabel, **kwargs):
+                deafult_style=layout.nolabel, on_submit=None,
+                **kwargs):
     '''Create a new :class:`djpcms.forms.HtmlForm` for searching.
     
 :parameter name: name of the :class:`Form`
@@ -25,7 +26,7 @@ def search_form(name='SearchForm', placeholder='search', input_name=None,
         field = forms.CharField(attrname=input_name,
                                 required=False,
                                 widget=widget)
-    form_cls = forms.MakeForm(name,(field,))
+    form_cls = forms.MakeForm(name, (field,), on_submit=on_submit)
     return forms.HtmlForm(form_cls,
                           inputs=submit,
                           layout=layout.FormLayout(default_style=deafult_style),

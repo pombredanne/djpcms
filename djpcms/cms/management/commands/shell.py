@@ -43,13 +43,13 @@ class Command(cms.Command):
                 pass
         raise ImportError
 
-    def handle(self, callable, options):     #pragma nocoverage
+    def handle(self, options):     #pragma nocoverage
         # XXX: (Temporary) workaround for ticket #1796: force early loading of all
         # models from installed apps.
         use_plain = options.plain
         try:
             if use_plain:
-                raise ImportError
+                raise ImportError()
             self.run_shell()
         except ImportError:
             import code

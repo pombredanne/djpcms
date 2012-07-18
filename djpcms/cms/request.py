@@ -265,7 +265,7 @@ is available, the name is set to ``view``.
             if not mapper:
                 return
             model = mapper.model
-        app = self.app_for_model(model, all = all, root = root)
+        app = self.app_for_model(model, all=all, root=root)
         if app:
             view = app.views.get(name) if name else None
             if not view and instance:
@@ -507,7 +507,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         elif view.appmodel:
             return view.appmodel.pagination
     
-    def app_for_model(self, model, all = False, root = False):
+    def app_for_model(self, model, all=False, root=False):
         '''Fetch an :class:`djpcms.views.Application` for a given *model*.
 
 :parameter all: if ``True`` it returns a list of all matched applications,

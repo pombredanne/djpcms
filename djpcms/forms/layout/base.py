@@ -189,7 +189,7 @@ class SubmitElement(FormLayoutElement):
             missings.remove(self.key)
             
     def get_context(self, request, widget, context):
-        inputs = widget.inputs
+        inputs = widget.inputs or ()
         hidden = True
         for inp in inputs:
             if inp.attr('type') != 'hidden':

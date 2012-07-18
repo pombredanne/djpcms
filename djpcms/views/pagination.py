@@ -226,7 +226,7 @@ def headers_from_groups(pagination, groups):
             yield col
             
             
-def table_toolbox(request, all = True):
+def table_toolbox(request, appmodel=None, all=True):
     '''\
 Create a toolbox for a table if possible. A toolbox is created when
 an application based on model is available.
@@ -236,27 +236,21 @@ an application based on model is available.
     If the toolbox is not available it returns ``None``.
 '''
     pagination = request.pagination
-    appmodel = request.view.appmodel
+    appmodel = appmodel or request.appmodel
     has = request.view.permissions.has
     bulk_actions = []
     toolbox = {}
-    
     for name, description, pcode in pagination.bulk_actions:
         if has(request, pcode, None):
-            bulk_actions.append((name,description))
-    
+            bulk_actions.append((name, description))
     if bulk_actions:
-        toolbox['actions'] = {'choices':bulk_actions,
-                              'url':request.url}
-        
+        toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}    
     if not all:
         return toolbox
-    
     menu = list(views_serializable(\
-                    application_views(request, include = pagination.actions)))
+                    application_views(request, include=pagination.actions)))
     if menu:
         toolbox['tools'] = menu
-        
     groups = appmodel.table_column_groups(request)
     if isgenerator(groups):
         groups = tuple(groups)
@@ -266,7 +260,6 @@ an application based on model is available.
         toolbox['headers'] = tuple(headers_from_groups(pagination,groups))
     else:
         toolbox['headers'] = pagination.list_display
-
     return toolbox
 
     
@@ -280,21 +273,22 @@ it looks for the following inputs in the request data:
 * `sSearch` for performing search
 * `iSortingCols` for sorting.
 '''
-    if isgenerator(query):
-        query = list(query)
-    
-    toolbox = toolbox if toolbox is not None else table_toolbox(request)
     render = True
     pagination = request.pagination
     view = request.view
     appmodel = view.appmodel
+    if isgenerator(query):
+        query = list(query)
+    elif hasattr(query, 'model'):
+        appmodel = request.app_for_model(query.model)
+    if toolbox is None:
+        toolbox = table_toolbox(request, appmodel=appmodel)
     inputs = request.REQUEST
     headers = toolbox['headers']
     ajax = None
     load_only = None
     page_menu = None
     body = None
-    
     needbody = True
     if pagination.ajax:
         ajax = request.get_full_path()
@@ -327,8 +321,8 @@ it looks for the following inputs in the request data:
     if load_only and hasattr(query, 'load_only'):
         query = query.load_only(*load_only)
         
-    start = inputs.get('iDisplayStart',0)
-    per_page = inputs.get('iDisplayLength',pagination.size)
+    start = inputs.get('iDisplayStart', 0)
+    per_page = inputs.get('iDisplayLength', pagination.size)
     pag, body = pagination.paginate(query, start, per_page, withbody=needbody)
     
     if body is not None and pagination.astable:
@@ -337,9 +331,9 @@ it looks for the following inputs in the request data:
     if render:
         title = block.title if block else None
         return pagination.widget(
-                     body, pagination = pag,
-                     ajax = ajax, toolbox = toolbox,
-                     appmodel = appmodel, title = title).render(request)
+                     body, pagination=pag,
+                     ajax=ajax, toolbox=toolbox,
+                     appmodel=appmodel, title=title).render(request)
     else:
         return pagination.ajaxresponse(request, body, pagination=pag,
                                        ajax=ajax, toolbox=toolbox,

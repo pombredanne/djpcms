@@ -82,7 +82,7 @@ class FieldTemplate(FormTemplate):
             bfield.request = request
         w = bfield.widget
         w.addClass(w.tag)
-        hidden = w.attr('type')=='hidden' or  w.css('display') == 'none'    
+        hidden = w.attr('type') == 'hidden' or  w.css('display') == 'none'    
         # Hidden
         if hidden:
             widget.tag = None
@@ -189,9 +189,19 @@ class SubmitElement(FormLayoutElement):
             missings.remove(self.key)
             
     def get_context(self, request, widget, context):
-        inner = html.Widget('div', widget.inputs,
-                            cn=(self.default_style, classes.button_holder))
-        widget.removeClass(self.default_style)
+        inputs = widget.inputs
+        hidden = True
+        for inp in inputs:
+            if inp.attr('type') != 'hidden':
+                hidden = False
+                break
+        if hidden:
+            widget.tag = None
+            inner = inputs
+        else:
+            inner = html.Widget('div', inputs,
+                                cn=(self.default_style, classes.button_holder))
+            widget.removeClass(self.default_style)
         widget.add(inner)
 
     

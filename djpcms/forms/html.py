@@ -82,8 +82,7 @@ Simple usage::
             new_inputs = []
             for input in inputs:
                 if not hasattr(input, 'render'):
-                    input = html.SubmitInput(value = input[0],
-                                             name = input[1])
+                    input = html.SubmitInput(value=input[0], name=input[1])
                 new_inputs.append(input)
             inputs = new_inputs
         internal = {
@@ -110,8 +109,7 @@ Simple usage::
     def inputs(self):
         return self.internal['inputs']
     
-    def __call__(self, model = None, inputs = None,
-                 action = '.', **kwargs):
+    def __call__(self, model=None, inputs=None, action='.', **kwargs):
         '''Create a :attr:`form_class` instance with
 input paramaters ``kwargs``.'''
         f = self.form_class(model=model or self.model, **kwargs)

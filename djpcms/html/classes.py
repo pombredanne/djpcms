@@ -22,6 +22,7 @@ state_error = 'ui-state-error'
 
 float_right = 'f-right'
 autocomplete = 'autocomplete'
+taboverride = 'taboverride'
 edit = 'edit'
 edit_menu = 'edit-menu'
 tabs = 'ui-tabs'

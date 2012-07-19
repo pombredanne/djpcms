@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-16 22:19:09.153094
-Time taken 0.106 seconds
+Created by djpcms.style 2012-07-19 08:01:38.372069
+Time taken 0.417 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -834,6 +834,12 @@ input:-ms-input-placeholder {
     color: inherit;
 }
 
+.btn i {
+    width: 1.25em;
+    vertical-align: middle;
+    font-size: 120%;
+}
+
 .ui-widget > .bd {
     padding: 6px;
     overflow: hidden;
@@ -859,6 +865,27 @@ input:-ms-input-placeholder {
     color: #222222;
     border: 1px solid #999999;
     border: 1px solid #999999;
+}
+
+.ui-widget-content ul ul {
+    margin-bottom: 0;
+}
+
+.ui-widget-content ul ol {
+    margin-bottom: 0;
+}
+
+.ui-widget-content ol ol {
+    margin-bottom: 0;
+}
+
+.ui-widget-content ol ul {
+    margin-bottom: 0;
+}
+
+.ui-widget-content ul {
+    list-style: disc outside none;
+    margin: 0 0 9px 25px;
 }
 
 .ui-widget-header {
@@ -916,6 +943,15 @@ input:-ms-input-placeholder {
 
 .ui-widget-header .edit-menu {
     line-height: 18px;
+}
+
+.ui-widget-footer {
+    padding: 6px;
+    background: #ffffff;
+    color: #222222;
+    border-width: 0 1px 1px 1px;
+    border-style: solid;
+    border-color: #999999;
 }
 
 .ui-corner-all {
@@ -1353,7 +1389,9 @@ textarea.taboverride {
 }
 
 .ui-tabs > ul {
+    list-style: none;
     padding: 6px 10px 0;
+    margin: 0;
     border-bottom: none;
     *zoom: 1;
     -webkit-border-radius: 5px 5px 0 0;
@@ -1490,6 +1528,8 @@ th.ui-clickable {
 }
 
 .data-table table tbody {
+    background: #ffffff;
+    color: #222222;
     border-width: 0 1px;
     border-style: solid;
     border-color: #d3d3d3;
@@ -1526,7 +1566,12 @@ th.ui-clickable {
     border-color: #d3d3d3;
 }
 
+.data-table .ui-widget-header {
+    line-height: 20px;
+}
+
 .data-table .clear {
+    margin-bottom: 10px;
     *zoom: 1;
 }
 
@@ -1543,7 +1588,7 @@ th.ui-clickable {
 
 .data-table .DTTT_container {
     float: right;
-    margin: 0 1em 1em 0;
+    margin: 0;
 }
 
 .data-table .row-selector {
@@ -1553,7 +1598,7 @@ th.ui-clickable {
 
 .data-table .col-selector {
     float: right;
-    margin: 0 0 1em;
+    margin: 0;
 }
 
 .data-table .pagination {
@@ -1562,17 +1607,173 @@ th.ui-clickable {
 
 .data-table .dataTables_info {
     float: left;
-    margin: 0 1em 0 0;
+    margin: 0;
 }
 
-.data-table .dataTables_filter {
+.data-table .dataTables_length {
+    float: left;
+    margin: 0;
+}
+
+.data-table .dataTables_paginate {
     float: right;
-    margin: 0.5em 0 0 0;
+}
+
+.data-table .dataTables_paginate > span:first-child {
+    -webkit-border-radius: 5px 0 0 5px;
+       -moz-border-radius: 5px 0 0 5px;
+            border-radius: 5px 0 0 5px;
+}
+
+.data-table .dataTables_paginate > span:last-child {
+    -webkit-border-radius: 0 5px 5px 0;
+       -moz-border-radius: 0 5px 5px 0;
+            border-radius: 0 5px 5px 0;
+}
+
+.data-table .dataTables_paginate .paginate_button {
+    cursor: pointer;
+    padding: 2px 6px;
+    margin: 0;
+    cursor: pointer;
+    background-color: #cccccc;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#cccccc));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -o-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: linear-gradient(top, #e6e6e6, #cccccc);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#cccccc, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #d3d3d3;
+}
+
+.data-table .dataTables_paginate .paginate_button:hover {
+    background-color: #c0c0c0;
+    background-image: -moz-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -ms-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#dadada), to(#c0c0c0));
+    background-image: -webkit-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -o-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: linear-gradient(top, #dadada, #c0c0c0);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#dadada, endColorstr=#c0c0c0, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #999999;
+}
+
+.data-table .dataTables_paginate .paginate_button.ui-state-hover {
+    background-color: #c0c0c0;
+    background-image: -moz-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -ms-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#dadada), to(#c0c0c0));
+    background-image: -webkit-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -o-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: linear-gradient(top, #dadada, #c0c0c0);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#dadada, endColorstr=#c0c0c0, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #999999;
+}
+
+.data-table .dataTables_paginate .paginate_button:active {
+    background: #ffffff;
+    color: #212121;
+    text-decoration: none;
+    border: 1px solid #aaaaaa;
+}
+
+.data-table .dataTables_paginate .paginate_button.ui-state-active {
+    background: #ffffff;
+    color: #212121;
+    text-decoration: none;
+    border: 1px solid #aaaaaa;
+}
+
+.data-table .dataTables_paginate .paginate_active {
+    cursor: pointer;
+    padding: 2px 6px;
+    margin: 0;
+    cursor: pointer;
+    background-color: #cccccc;
+    background-image: -moz-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -ms-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e6e6), to(#cccccc));
+    background-image: -webkit-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: -o-linear-gradient(top, #e6e6e6, #cccccc);
+    background-image: linear-gradient(top, #e6e6e6, #cccccc);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e6e6e6, endColorstr=#cccccc, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #d3d3d3;
+    background: #ffffff;
+    color: #212121;
+    text-decoration: none;
+    border: 1px solid #aaaaaa;
+}
+
+.data-table .dataTables_paginate .paginate_active:hover {
+    background-color: #c0c0c0;
+    background-image: -moz-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -ms-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#dadada), to(#c0c0c0));
+    background-image: -webkit-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -o-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: linear-gradient(top, #dadada, #c0c0c0);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#dadada, endColorstr=#c0c0c0, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #999999;
+}
+
+.data-table .dataTables_paginate .paginate_active.ui-state-hover {
+    background-color: #c0c0c0;
+    background-image: -moz-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -ms-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#dadada), to(#c0c0c0));
+    background-image: -webkit-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: -o-linear-gradient(top, #dadada, #c0c0c0);
+    background-image: linear-gradient(top, #dadada, #c0c0c0);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#dadada, endColorstr=#c0c0c0, GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    color: #555555;
+    text-decoration: none;
+    border: 1px solid #999999;
+}
+
+.data-table .dataTables_paginate .paginate_active:active {
+    background: #ffffff;
+    color: #212121;
+    text-decoration: none;
+    border: 1px solid #aaaaaa;
+}
+
+.data-table .dataTables_paginate .paginate_active.ui-state-active {
+    background: #ffffff;
+    color: #212121;
+    text-decoration: none;
+    border: 1px solid #aaaaaa;
 }
 
 .data-table .dataTables_processing {
     float: left;
-    margin: 0 0 0 1em;
+    margin: 0;
+}
+
+.data-table .dataTables_filter {
+    float: right;
 }
 
 .action-check input {

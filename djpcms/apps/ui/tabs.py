@@ -31,6 +31,8 @@ css('.'+classes.tabs,
         # pills
         cssa('pills'),
         #
+        list_style='none',
+        margin=0,
         padding=cssv.tabs.padding,
         border_bottom='none'),
     cssb('div',

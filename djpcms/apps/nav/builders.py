@@ -44,35 +44,39 @@ class Navigator(WidgetMaker):
                             is not None else self.main_layout
         self.secondary_layout = secondary_layout if secondary_layout\
                                  is not None else self.secondary_layout
-        if brand:
-            brand = Anchor(cn='brand', href='/').add(brand)
         self.brand = brand
-        self.search = search
+        if brand:
+            brand = WidgetMaker(tag='a', key='brand').addAttr('href','/')
         self.soft = soft
         self.nav_element = nav_element
         self.levels = max(levels,1)
         self.secondary_after = secondary_after
         nav = List(key='primary', cn='nav')
-        self.add(*self.elements(self.main_layout, nav))
+        self.add(*self.elements(self.main_layout, nav,
+                                brand=brand, search=search))
         nav = List(key='secondary', cn=('nav secondary-nav'))
-        self.add(*reversed(self.elements(self.secondary_layout, nav)))
+        self.add(*reversed(self.elements(self.secondary_layout, nav,
+                                         brand=brand, search=search)))
     
-    def elements(self, layout, nav):
+    def elements(self, layout, nav, **extra):
         float = 'right' if nav.hasClass('secondary-nav') else 'left'
         elems = []
         for elem in layout:
             if elem == 'nav':
                 elem = nav
             else:
-                elem = getattr(self, elem, None)
+                elem = extra.get(elem, None)
                 if elem is not None:
                     elem.css({'float':float})
             if elem is not None:
-                elems.append(nav)
+                elems.append(elem)
         return elems
-                
+    
     def get_context(self, request, widget, context):
         if request.valid:
+            if self.brand:
+                context = context if context is not None else {}
+                context['brand'] = self.brand
             primary = widget.children['primary']
             secondary = widget.children['secondary']
             urlselects = []

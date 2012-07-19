@@ -29,6 +29,10 @@ css('.%s' % classes.button_holder,
 
 selector = '.{0}'
 css(selector.format(classes.button),
+    css('i',
+        width=em(1.25),
+        vertical_align='middle',
+        font_size=pc(120)),
     padding=cssv.button.padding,
     display='inline-block',
     text_align='center',

@@ -1,11 +1,12 @@
 from copy import copy
 
 from djpcms import forms, html
+from djpcms.html import classes
 from djpcms.utils import orms, markups
 from djpcms.utils.text import nicename
 from djpcms.html import html_choices, htmldefaultdoc
 from djpcms.html.layout import grid_systems, grids
-from djpcms.cms import plugins 
+from djpcms.cms import plugins
 
 
 __all__ = ['TemplateForm',
@@ -130,7 +131,8 @@ class ContentBlockForm(forms.Form):
 class EditContentForm(forms.Form):
     '''Form used to edit and add Content'''
     title   = forms.CharField()
-    body    = forms.CharField(widget=html.TextArea(cn='taboverride'),
+    body    = forms.CharField(widget=html.TextArea(cn=classes.taboverride,
+                                                   rows=30),
                               required=False)
     markup  = forms.ChoiceField(choices=lambda bf : tuple(markups.choices()),
                                 initial=lambda form : markups.default(),

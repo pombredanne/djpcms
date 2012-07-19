@@ -348,6 +348,10 @@ is available, the name is set to ``view``.
     def cache(self):
         return self.DJPCMS.environ
     
+    @property
+    def owner(self):
+        return self.DJPCMS.owner
+        
     ############################################################################
     #    View methods and properties
     ############################################################################
@@ -397,11 +401,11 @@ is available, the name is set to ``view``.
     def has_permission(self, code=None, instance=None, **kwargs):
         view = self.view
         perm = view.permissions
-        user = kwargs.pop('user',self.user)
+        user = kwargs.pop('user', self.user)
         # if code is not provided we check if the page can be viewed
         if code is None:
             page = self.page
-            if page and not perm.has(self, permissions.VIEW, page, user = user):
+            if page and not perm.has(self, permissions.VIEW, page, user=user):
                 return False
             return perm.has(self, view.PERM, self.instance, user=user)
         else:
@@ -491,7 +495,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         node = self.node.parent
         instance = self.view.parent_instance(self.instance)
         if instance != self.instance:
-            return self.for_model(instance = instance)
+            return self.for_model(instance=instance)
         elif node:
             return make_request(self.environ, node, instance)
     

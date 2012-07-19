@@ -152,9 +152,6 @@ class SoftNavigation(DJPplugin):
     description = 'Navigation'
     form = navigationForm
     
-    def render(self, request, wrapper, prefix, levels = 1,
-               layout = 'v', **kwargs):
-        nav_element = html.Widget('div', cn = dlayouts[layout])
-        nav = views.Navigator(soft = True, levels = int(levels),
-                              nav_element = nav_element)
-        return nav.render(request)
+    def render(self, request, wrapper, prefix, levels=1, layout='v', **kwargs):
+        nav = Navigator(soft=True, levels=int(levels))()
+        return nav.addClass(dlayouts.get(layout)).render(request)

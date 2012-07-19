@@ -4,6 +4,7 @@ from djpcms.utils.httpurl import unquote_unreserved, itervalues
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils.text import UnicodeMixin
 
+from .exceptions import Http404
 from .views import pageview
 
 
@@ -142,21 +143,24 @@ class MultiNode(UnicodeMixin):
             route = self.route
             while route.level > tree.level:
                 route,_ = route.split()
-                p = tree.get(route.path, self.__urlargs)
-                if p is not None:
-                    return p
+                if self.__urlargs:
+                    p = tree.get(route.path, self.__urlargs)
+                    if p is not None:
+                        return p
+                else:
+                    try:
+                        return tree.resolve(route.path)
+                    except Http404:
+                        pass
         else:
             return self.tree.node(p,self.__urlargs)
         
     def children(self):
         '''tuple containing children nodes'''
-        return tuple(self.tree.children(self.path, self.__urlargs))
+        return tuple(self.tree.children(self.route, self.__urlargs))
     
     def url(self):
-        try:
-            return self.route.url(**self.__urlargs)
-        except KeyError:
-            return None
+        return self.route.safe_url(self.__urlargs)
     
     
 class MultiTree(object):
@@ -179,8 +183,9 @@ class MultiTree(object):
     def level(self):
         return self.__level
         
-    def node(self, node, urlargs = None):
-        raise NotImplementedError
+    def node(self, node, urlargs=None):
+        '''Wrap the node with this multinode tree.'''
+        raise NotImplementedError()
     
     def __containes__(self, path):
         for tree in self.trees:
@@ -188,21 +193,21 @@ class MultiTree(object):
                 return True
         return False
     
-    def get(self, path, urlargs = None):
+    def get(self, path, urlargs=None):
         for tree in self.trees:
             if path in tree:
                 return self.node(tree[path],urlargs)
             
-    def children(self, path, urlargs = None):
+    def children(self, route, urlargs=None):
         '''Generator of all direct :class:`MultiNode` children for *path*.'''
         node = self.node
-        for child in self.__children(path):
+        for child in self.__children(route, urlargs):
             yield node(child, urlargs)
             
     def resolve(self, path):
         '''Resolve the *path* on the multi tree. This is the main function
  of this class. It return an instance of :class:`MultiNode` if the *path*
- matches a node. Otherwise it raises a :class:`djpcms.Http404` exception.'''
+ matches a node. Otherwise it raises a :class:`Http404` exception.'''
         return self.node(*self.__resolve(path))
         
     def __resolve(self, path):
@@ -220,21 +225,22 @@ class MultiTree(object):
             if tree.site is None:
                 continue
             view, args = tree.site.resolve(path[1:])
-            return tree[view.path],args
+            return tree[view.path], args
     
-    def __children(self, path):
-        #generator of direct children nodes for path
-        bits = tuple((b for b in path.split('/') if b))
-        # the current level (0 for root)
-        level = len(bits)
+    def __children(self, route, urlargs):
+        path = route.path
+        url = route.safe_url(urlargs)
+        bits = tuple((b for b in url.split('/') if b)) if url else ()
+        level = route.level
         for tree in self.trees:
             # if the path is in tree delegate to the node children method
             if path in tree:
                 for child in tree[path].children:
                     yield child
-            else:
+            elif url:
                 for child in tree.nodes():
                     if child.level == level+1 and not child.parent:
+                        child = self.node(child)
                         if child.route.bits[:level] == bits:
                             yield child
         
@@ -290,14 +296,16 @@ for the application views and one for flat pages.'''
         else:
             super(DjpcmsTree,self).__init__(tree)
     
-    def node(self, node, urlargs = None):
-        view = node.view
-        if getattr(view,'root',None) == self.site:
-            page = self.tree_pages.get(view.path)
-        else:
-            page = view
-            view = None
-        
-        return DjpNode(self, view, page, urlargs=urlargs,
-                       parent=node.parent)
+    def node(self, node, urlargs=None):
+        if not isinstance(node, DjpNode):
+            view = node.view
+            if getattr(view, 'root', None) == self.site:
+                page = self.tree_pages.get(view.path)
+            else:
+                # the view is a page
+                page = view
+                view = None
+            node = DjpNode(self, view, page, urlargs=urlargs,
+                           parent=node.parent)
+        return node
         

@@ -65,7 +65,6 @@ class OrmWrapper(UnicodeMixin):
     def __init__(self, model):
         self.model = model
         self.appmodel = None
-        self.nicename = None
         self.test()
         self.setup()
         if self.hash:
@@ -248,5 +247,5 @@ def registered_models_tuple():
         mp = mapper(model)
         id = mp.hash
         if id:
-            yield id,mp.nicename
+            yield id, str(mp)
             

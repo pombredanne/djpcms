@@ -30,6 +30,9 @@ and converts spaces to hyphens *rtx* character'''
 def mark_safe(v):
     return SafeString(v)
 
+def is_safe(v):
+    return getattr(v, '__html__', False)
+
 def escape(html, force=False):
     """Returns the given HTML with ampersands,
 quotes and angle brackets encoded."""
@@ -42,7 +45,7 @@ quotes and angle brackets encoded."""
             .replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 
 def smart_escape(text):
-    if hasattr(text,'__html__'):
+    if is_safe(text):
         return text
     lines = to_string(text).split('\n')
     if len(lines) > 1:

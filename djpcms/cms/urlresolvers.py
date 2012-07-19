@@ -148,7 +148,6 @@ class ResolverMixin(RouteMixin):
             else:
                 raise
             
-            
     def pageview(self, path):
         Page = self.root.Page
         if Page:

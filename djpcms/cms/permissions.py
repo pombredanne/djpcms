@@ -60,19 +60,19 @@ class PermissionHandler(object):
     
 .. attribute:: auth_backends
 
-    an iterable over authentication backends.
+    An iterable over authentication backends. An authentication backend is an
+    object with implement the :class:`AuthBackend` signature.
     
-
 .. attribute:: requires_login
 
     boolean indicating if login is required to access resources.
     
     Default: ``False``.
     
-.. attribute:: auth_backends
+.. attribute:: permission_codes
 
-    A list of authentication backends. An authentication backend must
-    implement the :class:`AuthBackend` signature.
+    A dictionary for mapping numeric codes to permission names. The higher the
+    numeric code the more permissions are required.
 '''
     AuthenticationError = AuthenticationError
     
@@ -121,7 +121,7 @@ class PermissionHandler(object):
          
     def permission_choices(self):
         c = self.permission_codes
-        return ((k,c[k]) for k in sorted(c))
+        return ((k, c[k]) for k in sorted(c))
             
     def authenticate_and_login(self, environ, **params):
         '''authenticate and login user. If it fails raises
@@ -192,9 +192,6 @@ if needed.
                 continue
         if not success:
             raise ValueError('Could not set password for user {0}'.format(user))
-    
-    def permission_choices():
-        return ((k,PERMISSION_CODES[k]) for k in sorted(PERMISSION_CODES))
     
     def authenticated(self, request, obj, default = False):
         if getattr(obj, 'requires_login', default):

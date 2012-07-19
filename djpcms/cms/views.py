@@ -576,7 +576,7 @@ it is the base class of :class:`pageview` and :class:`View`.
     def mapper(self):
         if self.appmodel:
             return self.appmodel.mapper
-        
+     
     def instance_from_variables(self, environ, urlargs):
         if self.appmodel:
             if self.object_view:
@@ -635,25 +635,15 @@ it is the base class of :class:`pageview` and :class:`View`.
         return self.linkname(request)
     
     def is_soft(self, request):
+        '''Check if this view is a root of a navigation.'''
         page = request.page
         return False if not page else page.soft_root
     
-    def inner_contents(self, request, inner_template):
-        site = self.site
-        InnerContent(request, editing)
-        for b in range(inner_template.numblocks()):
-                cb['content%s' % b] = BlockContentGen(request, b, editing)
-    
     def in_navigation(self, request):
-        '''
-        Hook for modifying the in_navigation property.
-        This default implementation should suffice
-        '''
+        '''Hook for modifying the in_navigation property.
+This default implementation should suffice'''
         page = request.page
-        if page:
-            return page.in_navigation
-        else:
-            return 0
+        return page.in_navigation if page else 0
     
     def redirect_url(self, request, instance = None, name = None):
         '''Call the :meth:`Application.redirect_url` by default.'''

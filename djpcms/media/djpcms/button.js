@@ -172,4 +172,24 @@
             }
         }
     });
+    //
+    $.djpcms.decorator({
+        name: 'asmSelect',
+        selector: 'select[multiple="multiple"]',
+        config: {
+            addItemTarget: 'bottom',
+            animate: true,
+            highlight: true,
+            sortable: false
+        },
+        _create: function () {
+            // Check if there is a ui-input wrapper
+            var classes = $.djpcms.options.input.classes,
+                wrapper = this.element.parent('.'+classes.input);
+            this.element.bsmSelect(this.config);
+            if (wrapper.length) {
+                this.wrapper = wrapper;
+            }
+        }
+    });
 }(jQuery));

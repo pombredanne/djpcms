@@ -15,10 +15,6 @@ class Navigator(WidgetMaker):
 
     Default: ``2``
     
-:parameter nav_element: the navigation element. It must be an instance of
-    a class:`djpcms.html.Widget` or ``None``. This is the outer element of the
-    navigation. If not provided a topbar element is created.
-    
 :parameter container: The container class for the inner part of the navigation.
     If available a ``div`` element with this class is created inside the
     navigation element.
@@ -36,7 +32,7 @@ class Navigator(WidgetMaker):
     secondary_layout = ('search', 'nav')
     
     def __init__(self, levels=4, secondary_after=100,
-                 nav_element=None, primary=None, secondary=None,
+                 primary=None, secondary=None,
                  container=None, brand=None, search=None, soft=False,
                  main_layout=None, secondary_layout=None, **kwargs):
         super(Navigator, self).__init__(**kwargs)
@@ -48,7 +44,6 @@ class Navigator(WidgetMaker):
         if brand:
             brand = WidgetMaker(tag='a', key='brand').addAttr('href','/')
         self.soft = soft
-        self.nav_element = nav_element
         self.levels = max(levels,1)
         self.secondary_after = secondary_after
         nav = List(key='primary', cn='nav')
@@ -106,7 +101,7 @@ class Navigator(WidgetMaker):
     
 def navstream(request, urlselects, secondary_after, level):
     for request, nav in sorted(((c, c.in_navigation)\
-                for c in request.auth_children()), key = lambda x : x[1]):
+                for c in request.auth_children()), key=lambda x : x[1]):
         if not nav:
             continue
         link = application_link(request, asbutton=False)

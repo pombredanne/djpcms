@@ -207,6 +207,15 @@ class Route(UnicodeMixin):
         else:
             url = '/' + url
             return url if self.is_leaf else url + '/'
+        
+    def safe_url(self, params=None):
+        try:
+            if params:
+                return self.url(**params)
+            else:
+                return self.url()
+        except KeyError:
+            return None
     
     def match(self, path):
         '''Match a path and return ``None`` if no matching, otherwise

@@ -4,7 +4,7 @@ import logging
 
 from djpcms.utils.dates import smart_time
 from djpcms.utils.numbers import significant_format
-from djpcms.utils.text import to_string, mark_safe, escape, nicename
+from djpcms.utils.text import to_string, mark_safe, escape, nicename, is_safe
 
 from .base import Widget
 from .icons import with_icon
@@ -48,7 +48,9 @@ Prettify a value to be displayed in html.
 '''
     if val is None:
         return NONE_VALUE
-    elif isinstance(val,date):
+    elif is_safe(val):
+        return val
+    elif isinstance(val, date):
         return smart_time(val,dateformat,timeformat,settings)
     elif isinstance(val,bool):
         if val:
@@ -96,7 +98,7 @@ several possibilities in the following order.
     if appmodel:
         val = appmodel.instance_field_value(request, obj, field_name, val)
 
-    return nicerepr(val, settings = request.settings)
+    return nicerepr(val, settings=request.settings)
             
             
 def results_for_item(request, headers, result, appmodel = None, 

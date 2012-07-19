@@ -1082,20 +1082,6 @@
     });
     //
     $.djpcms.decorator({
-        name: 'asmSelect',
-        selector: 'select[multiple="multiple"]',
-        config: {
-            addItemTarget: 'bottom',
-            animate: true,
-            highlight: true,
-            sortable: false
-        },
-        _create: function () {
-            this.element.bsmSelect(this.config);
-        }
-    });
-    //
-    $.djpcms.decorator({
         name: 'message',
         selector: 'li.messagelist, li.errorlist',
         config: {

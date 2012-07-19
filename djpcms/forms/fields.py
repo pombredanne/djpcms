@@ -103,22 +103,23 @@ very similar to django forms API.
     validation_error = standard_validation_error
     
     def __init__(self,
-                 required = None,
-                 default = None,
-                 initial = None,
-                 validation_error = None,
-                 help_text = None,
-                 label = None,
-                 widget = None,
-                 widget_attrs = None,
-                 disabled = None,
-                 attrname = None,
+                 required=None,
+                 default=None,
+                 initial=None,
+                 validation_error=None,
+                 help_text=None,
+                 label=None,
+                 widget=None,
+                 widget_attrs=None,
+                 disabled=None,
+                 attrname=None,
                  **kwargs):
         self.name = attrname
         self.default = default if default is not None else self.default
         self.initial = initial
         self.required = required if required is not None else self.required
-        self.validation_error = validation_error or standard_validation_error
+        self.validation_error = validation_error or self.validation_error or\
+                                    standard_validation_error
         self.help_text = escape(help_text)
         self.label = label
         self.disabled = disabled
@@ -336,7 +337,7 @@ class FloatField(IntegerField):
         
 class DateField(Field):
     widget = html.TextInput(cn='dateinput')
-    validation_error = 'Could not recognized date {1}.'
+    validation_error = '{1} is not a valid date.'
     
     def _clean(self, value, bfield):
         if not isinstance(value, date):
@@ -344,7 +345,7 @@ class DateField(Field):
                 value = dateparser(value)
             except:
                 raise ValidationError(
-                        self.validation_error.format(bfield,value))
+                        self.validation_error.format(bfield, value))
         return self.todate(value)
     
     def todate(self, value):

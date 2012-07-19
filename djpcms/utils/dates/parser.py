@@ -1,22 +1,19 @@
-# -*- coding:iso-8859-1 -*-
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
+# This is for PEP 0263
 """\
 Original file form python-dateutil.
-Adapted for ccy and Python 3 compatibility.
+Adapted for Python 3 compatibility.
 
 Copyright (c) 2003-2007  Gustavo Niemeyer <gustavo@niemeyer.net>
-
-This module offers extensions to the standard python 2.3+
-datetime module.
+License: BSD
 """
-__author__ = "Gustavo Niemeyer <gustavo@niemeyer.net>"
-__license__ = "PSF License"
-
 import datetime
 import string
 import time
-from io import StringIO
+from io import StringIO, BytesIO
 
-from djpcms.utils.httpurl import is_string
+from djpcms.utils.httpurl import is_string, ispy3k
 
 from .relativedelta import relativedelta
 
@@ -24,6 +21,12 @@ from .relativedelta import relativedelta
 __all__ = ["parse", "parserinfo"]
 
 
+WORDCHARS = ('abcdfeghijklmnopqrstuvwxyz'
+             'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'
+             'ßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ'
+             'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ')
+NUMCHARS = '0123456789'
+WHITESPACE = ' \t\r\n'
 # Some pointers:
 #
 # http://www.cl.cam.ac.uk/~mgk25/iso-time.html
@@ -37,15 +40,13 @@ __all__ = ["parse", "parserinfo"]
 class _timelex(object):
 
     def __init__(self, instream):
-        if is_string(instream):
+        if not ispy3k:
+            if is_string(instream):
+                instream = instream.encode('iso-8859-1')
+            instream = BytesIO(instream)
+        else:
             instream = StringIO(instream)
         self.instream = instream
-        self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
-                          'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'
-                          'ßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ'
-                          'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ')
-        self.numchars = '0123456789'
-        self.whitespace = ' \t\r\n'
         self.charstack = []
         self.tokenstack = []
         self.eof = False
@@ -56,9 +57,9 @@ class _timelex(object):
         seenletters = False
         token = None
         state = None
-        wordchars = self.wordchars
-        numchars = self.numchars
-        whitespace = self.whitespace
+        wordchars = WORDCHARS
+        numchars = NUMCHARS
+        whitespace = WHITESPACE
         while not self.eof:
             if self.charstack:
                 nextchar = self.charstack.pop(0)
@@ -138,9 +139,9 @@ class _timelex(object):
         return token
     __next__ = next
 
-    def split(cls, s):
+    @classmethod
+    def split(cls, s): 
         return list(cls(s))
-    split = classmethod(split)
 
 
 class _resultbase(object):
@@ -851,7 +852,6 @@ class _tzparser(object):
 DEFAULTTZPARSER = _tzparser()
 def _parsetz(tzstr):
     return DEFAULTTZPARSER.parse(tzstr)
-
 
 def _parsems(value):
     """Parse a I[.F] seconds value into (seconds, microseconds)."""

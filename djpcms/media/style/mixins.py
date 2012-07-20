@@ -10,6 +10,7 @@ from .colorvar import *
 
 __all__ = ['opacity',
            'clearfix',
+           'clear_anchor',
            'fixtop',
            'unfixtop',
            'border',
@@ -26,8 +27,8 @@ __all__ = ['opacity',
            'gridfluid',
            'image',
            'fontface']
- 
-    
+
+
 ################################################################################
 ##    BATTERY INCLUDED MIXINS
 ################################################################################
@@ -36,15 +37,15 @@ __all__ = ['opacity',
 class opacity(mixin):
     def __init__(self, o):
         self.o = o
-        
+
     def __call__(self, elem):
         elem['opacity'] = self.o
         elem['filter'] = 'alpha(opacity={0})'.format(100*self.o)
-        
-        
+
+
 ################################################# CLEARFIX
 class clearfix(mixin):
-    '''For clearing floats to all *elements*.'''    
+    '''For clearing floats to all *elements*.'''
     def __call__(self, elem):
         elem['*zoom'] = 1
         cssa(':before,:after',
@@ -54,20 +55,31 @@ class clearfix(mixin):
         cssa(':after',
              parent = elem,
              clear = 'both')
-            
+
+
+class clear_anchor(mixin):
+
+    def __call__(self, elem):
+        css('a',
+            parent=elem,
+            text_decoration='none',
+            color='inherit',
+            font_weight='inherit',
+            cursor='inherit')
+
 ################################################# FIXTOP
 class fixtop(mixin):
     '''Fix an element at the top of the page.'''
     def __init__(self, zindex = 2000):
         self.zindex = self.cleanup(zindex, 'zindex')
-            
+
     def __call__(self, elem):
         elem['left'] = 0
         elem['top'] = 0
         elem['right'] = 0
         elem['position'] = 'fixed'
         elem['z_index'] = Variable.cssvalue(self.zindex)
-        
+
 
 class unfixtop(mixin):
     def __call__(self, elem):
@@ -76,14 +88,14 @@ class unfixtop(mixin):
         elem['right'] = 'auto'
         elem['position'] = 'static'
         elem['z_index'] = 'auto'
-        
+
 ################################################# CSS BORDER
 class border(mixin):
     def __init__(self, color=None, style=None, width=None):
         self.color = color
         self.style = style
         self.width = width
-    
+
     def __call__(self, elem):
         color = ascolor(self.color)
         if color:
@@ -96,25 +108,25 @@ class border(mixin):
             else:
                 elem['border'] = '%s %s %s' % (width, style, color)
 g_border = border
-        
+
 ################################################# CSS3 BOX SHADOW
 class shadow(mixin):
     def __init__(self, shadow):
         self.shadow = self.cleanup(shadow,'shadow')
-        
+
     def __call__(self, elem):
         shadow = Variable.cssvalue(self.shadow)
         if shadow is not None:
             elem['-webkit-box-shadow'] = shadow
             elem['   -moz-box-shadow'] = shadow
             elem['        box-shadow'] = shadow
-        
-################################################# CSS3 RADIUS        
+
+################################################# CSS3 RADIUS
 class radius(mixin):
     '''css3 border radius.'''
     def __init__(self, radius):
         self.radius = self.cleanup(radius, 'radius')
-        
+
     def __call__(self, elem):
         r = Variable.cssvalue(self.radius)
         if r is not None:
@@ -140,7 +152,7 @@ class gradient(mixin):
                                               'direction_start_end')
             o.pc_end = o.cleanup(pc_end, 'pc_end')
             return o
-        
+
     def __call__(self, elem):
         val = Variable.pyvalue(self.direction_start_end)
         if not isinstance(val, RGBA) and isinstance(val, (tuple, list)):
@@ -159,7 +171,7 @@ class gradient(mixin):
         else:
             # a simple scalar, just set the background
             elem['background'] = ascolor(val)
-            
+
     def _gradient(self, elem, l, s, e):
         p = '100% 0' if l == 'left' else '0 100%'
         t = 1 if l == 'left' else 0
@@ -192,42 +204,42 @@ class gradient(mixin):
         #
         # IE9 and down
         elem['filter'] = "progid:DXImageTransform.Microsoft.gradient(\
-startColorstr={0}, endColorstr={1}, GradientType={2})".format(s,e,t)
+startColorstr='{0}', endColorstr='{1}', GradientType={2})".format(s,e,t)
         #
         # Reset filters for IE
-        elem['filter'] = 'progid:DXImageTransform.Microsoft.gradient'\
-                         '(enabled = false)'
-        
+        #elem['filter'] = 'progid:DXImageTransform.Microsoft.gradient'\
+        #                 '(enabled = false)'
+
     def hgradient(self, elem, d, s, e):
         self._gradient(elem, 'left', s, e)
-        
+
     def vgradient(self, elem, d, s, e):
         self._gradient(elem, 'top', s, e)
-        
+
 
 ################################################# PLACEHOLDER
 class placeholder(mixin):
-    
+
     def __init__(self, color):
         self.color = color
-    
+
     def __call__(self, elem):
         cssa('::-webkit-input-placeholder,'\
              ':-moz-placeholder,'\
              ':-ms-input-placeholder',
              parent=elem,
              color=self.color)
-        
+
 ################################################# BCD - BACKGROUND-COLOR-DECO
 class bcd(mixin):
     '''Background-color-text decoration and text shadow mixin. It
 can be applied to any element. It forms the basis for the :class:`clickable`
 mixin.
-    
+
 :parameter background: backgroud or css3 box-gradient
 :parameter colour: colour
 :parameter text_shadow: text shadow
-:parameter text_decoration: text decoration 
+:parameter text_decoration: text decoration
 '''
     def __init__(self, background=None, color=None, text_shadow=None,
                  text_decoration=None, border=None, **kwargs):
@@ -236,7 +248,7 @@ mixin.
         self.text_shadow = self.cleanup(text_shadow,'text_shadow')
         self.text_decoration = self.cleanup(text_decoration,'text_decoration')
         self.border = self.cleanup(border, 'border', g_border)
-    
+
     def __call__(self, elem):
         self.background(elem)
         elem['color'] = ascolor(self.color)
@@ -244,8 +256,8 @@ mixin.
         elem['text_decoration'] = self.text_decoration
         if self.border:
             self.border(elem)
-        
-################################################# CLICKABLE        
+
+################################################# CLICKABLE
 class clickable(mixin):
     '''Defines the default, hover and active state.'''
     def __init__(self, default=None, hover=None, active=None, cursor='pointer',
@@ -254,7 +266,7 @@ class clickable(mixin):
         self.default = self.cleanup(default,'default', bcd)
         self.hover = self.cleanup(hover,'hover', bcd)
         self.active = self.cleanup(active,'active', bcd)
-        
+
     def __call__(self, elem):
         elem['cursor'] = self.cursor
         if self.default:
@@ -263,11 +275,11 @@ class clickable(mixin):
             cssa(':hover,.%s' % classes.state_hover, self.hover, parent=elem)
         if self.active:
             cssa(':active,.%s' % classes.state_active, self.active, parent=elem)
-        
+
 ################################################# HORIZONTAL NAVIGATION
 class horizontal_navigation(clickable):
     '''Horizontal navigation with ul and li tags.
-    
+
 :parameter padding: the padding for the navigation anchors.'''
     def __init__(self,
                  float='left',
@@ -302,7 +314,7 @@ class horizontal_navigation(clickable):
         self.secondary_padding = secondary_padding or px(0)
         # Z index for subnavigations
         self.z_index = z_index or 1000
-        
+
     def list(self, maker, parent, default, hover, active):
         return maker('li',
                   default.background,
@@ -326,7 +338,7 @@ class horizontal_navigation(clickable):
                                 text_shadow=active.text_shadow))),
                   cursor='pointer',
                   parent=parent)
-        
+
     def __call__(self, elem):
         elem['display'] = 'block'
         elem['float'] = self.float
@@ -343,20 +355,20 @@ class horizontal_navigation(clickable):
         secondary_padding = self.secondary_padding or padding
         #
         default = self.default or bcd()
-        hover = self.hover or bcd() 
+        hover = self.hover or bcd()
         active = self.active or bcd()
         # li elements in the main navigation ( > li)
         li = self.list(cssb, elem, default, hover, active)
         li['display'] = 'block'
         li['float'] ='left'
-        
+
         if self.height:
             line_height = self.height - padding.top - padding.bottom
             if line_height.value <= 0:
                 raise ValueError('Nav has height to low compared to paddings')
         else:
             line_height = None
-            
+
         # subnavigations
         default = self.secondary_default or default
         hover = self.secondary_hover or hover
@@ -404,21 +416,21 @@ class horizontal_navigation(clickable):
             line_height=line_height,
             padding=self.padding)
 
-                
+
 ################################################# INCLUDE CSS
-        
+
 class css_include(mixin):
     '''Include one or more css resources. The correct Use of this mixin is
 with the *body* tag only::
 
     css('body', css_include(path))
-    
+
 path can be both an internett address as well as a local url.
 
 .. attribute:: path
 
     A valid file location or a fully qualified internet address
-    
+
 .. attribute:: location
 
     Optional relative location of images
@@ -427,10 +439,10 @@ path can be both an internett address as well as a local url.
         self.path = path
         self.location = location
         self._code = to_string(uuid4())[:8]
-        
+
     def __unicode__(self):
         return self._code
-    
+
     def __call__(self, elem):
         path = self.path
         if not path.startswith('http'):
@@ -444,7 +456,7 @@ path can be both an internett address as well as a local url.
         if self.location:
             stream = '\n'.join(self.correct(stream, self.location))
         css_stream(self._code, stream)
-        
+
     @classmethod
     def correct(cls, stream, location):
         for line in stream.splitlines():
@@ -457,9 +469,9 @@ path can be both an internett address as well as a local url.
                         url = '%s%s/%s' % (cssv.MEDIAURL, location, url)
                         line = line[:p1+4]+url+line[p2:]
             yield line
-        
-            
-   
+
+
+
 ################################################# FIXED GRID
 class grid(mixin):
     '''Generate a grid layout given a number of *columns*, a *span*
@@ -473,20 +485,20 @@ size for one column and the *gutter* size between columns.'''
         self.gutter = gutter
         self.columns = columns
         self.width = columns*span + (columns-1)*gutter
-    
+
     def __unicode__(self):
         return to_string(self.__class__.__name__+'-{0}'.format(self.columns)+\
                          self.extra_identity())
-        
+
     def extra_identity(self):
         return '-'+str(int(self.width))
-        
+
     def row(self, tag, **kwargs):
         m = '{0}{1}'.format(self.gutter,self.unit)
         return css(tag,
                    clearfix(),
                    **kwargs)
-    
+
     def container(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
@@ -494,7 +506,7 @@ size for one column and the *gutter* size between columns.'''
                    margin_left = 'auto',
                    margin_right = 'auto',
                    **kwargs)
-        
+
     def __call__(self, elem):
         scol = '-{0}'.format(self.columns)
         row = self.row('.row'+self.grid_class+scol, parent=elem)
@@ -510,10 +522,10 @@ size for one column and the *gutter* size between columns.'''
              margin_left=0)
         self.container('.grid-container'+self.grid_class+scol,
                        parent=elem)
-        
-        
 
-################################################# FLUID GRID        
+
+
+################################################# FLUID GRID
 class gridfluid(grid):
     grid_class = '-fluid'
     unit = '%'
@@ -527,23 +539,23 @@ class gridfluid(grid):
         self.span = round((100 - (columns-1)*gutter)/columns, 4)
         if self.span <= 0:
             raise ValueError('gutter too large')
-    
+
     def extra_identity(self):
         return ''
-    
+
     def row(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
                    width = '100%',
                    **kwargs)
-    
+
     def container(self, tag, **kwargs):
         return css(tag,
                    clearfix(),
                    padding_left = '20px',
                    padding_right = '20px',
                    **kwargs)
-        
+
     #def __call__(self):
     #    elems = list(super(fluidgrid,self).__call__())
     #    row = elems[0]
@@ -555,12 +567,12 @@ class gridfluid(grid):
 
 
 class image(mixin):
-    
+
     def __init__(self, url, repeat='no-repeat', position='center'):
         self.url = url
         self.repeat = repeat
         self.position = position
-    
+
     def __call__(self, elem):
         url = self.url
         if not url.startswith('http'):
@@ -570,14 +582,14 @@ class image(mixin):
             elem['background-repeat'] = self.repeat
         if self.position:
             elem['background-position'] = self.position
-        
-################################################# FONT-FACE 
+
+################################################# FONT-FACE
 class fontface(mixin):
-    
+
     def __init__(self, base, svg=None):
         self.base = base
         self.svg = '#'+svg if svg else ''
-        
+
     def __call__(self, elem):
         base = self.base
         if not base.startswith('http'):

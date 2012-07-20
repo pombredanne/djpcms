@@ -38,43 +38,43 @@ def check_fields(fields, missings, layout=None):
         else:
             field = FormTemplate(key=field)
         yield field
-        
-        
-class FormWidget(html.Widget):  
-    @property 
+
+
+class FormWidget(html.Widget):
+    @property
     def form(self):
         return self.internal.get('form')
-    
-    @property 
+
+    @property
     def inputs(self):
         return self.internal.get('inputs')
-    
+
     @property
     def success_message(self):
         return self.internal.get('success_message')
-    
+
     def is_valid(self):
         '''Proxy for :attr:`forms` ``is_valid`` method.
 See :meth:`djpcms.forms.Form.is_valid` method for more details.'''
         form = self.form
         if form:
             return self.form.is_valid()
-    
-    @property 
+
+    @property
     def field(self):
         return self.internal.get('field')
-    
+
     @property
     def bfield(self):
         field = self.field
         if field:
             return self.form.dfields.get(field)
-        
-        
+
+
 class FormTemplate(html.WidgetMaker):
     _widget = FormWidget
-        
-        
+
+
 class FieldTemplate(FormTemplate):
     '''A class:`djpcms.html.WidgetMaker` which renders a
 :class:`djpcms.forms.Field`'''
@@ -84,7 +84,7 @@ class FieldTemplate(FormTemplate):
             bfield.request = request
         w = bfield.widget
         w.addClass(w.tag)
-        hidden = w.attr('type') == 'hidden' or  w.css('display') == 'none'    
+        hidden = w.attr('type') == 'hidden' or  w.css('display') == 'none'
         # Hidden
         if hidden:
             widget.tag = None
@@ -105,10 +105,11 @@ class FieldTemplate(FormTemplate):
             if bfield.required:
                 widget.addClass(classes.required)
             if bfield.label:
-                # Checkbox is special
-                if w.attrs.get('type') == 'checkbox':
+                # Checkbox and radio are special
+                input_type = w.attrs.get('type')
+                if input_type in ('checkbox', 'radio'):
                     wrapper.tag = 'label'
-                    wrapper.addClass(classes.label)\
+                    wrapper.addClass(input_type)\
                            .addAttr('for', bfield.id).add(bfield.label)
                 else:
                     wrapper.addClass(classes.ui_input)
@@ -125,27 +126,27 @@ class BaseFormLayout(FormTemplate):
     '''A :class:`djpcms.html.WidgetMaker` for programmatic
 form layout design.'''
     field_widget_tag = None
-    
+
     def __init__(self, *children, **params):
         self._children = children
-        legend = params.pop('legend', None) 
+        legend = params.pop('legend', None)
         self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout, self).__init__(**params)
         if self.legend_html:
             self.add(html.WidgetMaker(tag='div',cn='legend',key='legend'))
-        
+
     def get_context(self, request, widget, context):
         if self.legend_html:
             context = context if context is not None else {}
             context['legend'] = self.legend_html
         return context
-    
+
     def field_widget(self, widget):
         bfield = widget.bfield
         wrapper = html.Widget('div', bfield.widget)
         error = bfield.error
         widget.add("<div id='{0}'>{1}</div>".format(bfield.errors_id, error))
-        return wrapper  
+        return wrapper
 
 
 class FormLayoutElement(BaseFormLayout):
@@ -160,7 +161,7 @@ components. An instance of this class render one or several form
     field_widget_class = classes.ctrlHolder
     classes = 'layout-element'
     field_widget_tag = 'div'
-    
+
     def check_fields(self, missings, layout=None):
         '''Check if the specified fields are available in the form and
 remove available fields from the missing set.'''
@@ -178,18 +179,18 @@ remove available fields from the missing set.'''
                 ft = field
             ft.internal['layout-element'] = self
             self.add(ft)
-    
+
 
 class SubmitElement(FormLayoutElement):
     tag = 'div'
     key = SUBMITS
     classes = classes.ctrlHolder
-    
+
     def check_fields(self, missings, layout):
         del self._children
         if self.key in missings:
             missings.remove(self.key)
-            
+
     def get_context(self, request, widget, context):
         inputs = widget.inputs or ()
         hidden = True
@@ -206,30 +207,47 @@ class SubmitElement(FormLayoutElement):
             widget.removeClass(self.default_style)
         widget.add(inner)
 
-    
+
 class Fieldset(FormLayoutElement):
     '''A :class:`FormLayoutElement` which renders to a <fieldset>.'''
     tag = 'fieldset'
-    
+
 
 class MultiElement(FormLayoutElement):
     tag = 'div'
-    
+
     def check_fields(self, missings, layout):
         newcolumns = []
         children = self._children
         del self._children
+        elements = []
         for column in children:
-            if isinstance(column,(list,tuple)):
-                kwargs = {'default_style': self.default_style}
-                column = layout.default_element(*column, **kwargs)
+            if isinstance(column, (list, tuple)):
+                group = []
+                for el in column:
+                    if isinstance(el, html.WidgetMaker):
+                        if group:
+                            elements.append(
+                                    self.default_element(layout, *group))
+                            group = []
+                        elements.append(el)
+                    else:
+                        group.append(el)
+                if group:
+                    elements.append(self.default_element(layout, *group))
             elif not isinstance(column, html.WidgetMaker):
-                column = layout.default_element(column,
-                                        default_style=self.default_style)
-            column.check_fields(missings, layout)
-            self.add(column)
-            
-    
+                elements.append(self.default_element(layout, column))
+            else:
+                elements.append(column)
+        for element in elements:
+            element.check_fields(missings, layout)
+            self.add(element)
+
+    def default_element(self, layout, *elems):
+        kwargs = {'default_style': self.default_style}
+        return layout.default_element(*elems, **kwargs)
+
+
 class Columns(MultiElement):
     '''A :class:`FormLayoutElement` which defines a set of columns.
 
@@ -238,9 +256,9 @@ class Columns(MultiElement):
     equally spaced columns grid is used.
 '''
     classes = "formColumns"
-    
+
     def __init__(self, *columns, **kwargs):
-        grid = kwargs.pop('grid', None) 
+        grid = kwargs.pop('grid', None)
         super(Columns, self).__init__(*columns, **kwargs)
         ncols = len(self._children)
         if not grid:
@@ -250,23 +268,23 @@ class Columns(MultiElement):
  html elements {1}'.format(ncols, grid.numcolumns))
         self.internal['grid_fixed'] = False
         self.grid = grid
-    
+
     def stream(self, request, widget, context):
         grid = self.child_widget(self.grid, widget)
         grid.add(widget.allchildren())
         return grid.stream(request, context)
-    
-    
+
+
 class tab(object):
-    
+
     def __init__(self, name, *fields):
         self.name = name
         self.fields = fields
-        
+
 class Tabs(MultiElement):
     classes = "formTabs"
     tabtemplate = html.tabs
-    
+
     def __init__(self, *tabs, **kwargs):
         tab_type = kwargs.pop('tab_type', None)
         columns = []
@@ -285,12 +303,12 @@ class Tabs(MultiElement):
             self.tab = html.accordion
         else:
             self.tab = html.tabs
-        
+
     def stream(self, request, widget, context):
         tab = self.child_widget(self.tab, widget)
         tab.add(zip(self.names,widget.allchildren()))
         return tab.stream(request, context)
-        
+
 
 class FormLayout(BaseFormLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
@@ -307,7 +325,7 @@ class FormLayout(BaseFormLayout):
     '''Class for form errors'''
     form_message_class = 'alert alert-success'
     default_element = Fieldset
-    
+
     def __init__(self, *fields, **kwargs):
         self.setup(kwargs)
         super(FormLayout, self).__init__(*fields, **kwargs)
@@ -316,7 +334,7 @@ class FormLayout(BaseFormLayout):
                                    cn=self.form_messages_container_class,
                                    key='messages')
             self.add(msg)
-        
+
     def setup(self, kwargs):
         attrs = ('form_messages_container_class',
                  'form_error_class',
@@ -324,7 +342,7 @@ class FormLayout(BaseFormLayout):
         for att in attrs:
             if att in kwargs:
                 setattr(self,att,kwargs.pop(att))
-        
+
     def check_fields(self, missings):
         '''Add missing fields to ``self``. This
 method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
@@ -350,7 +368,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             for field in fields:
                 self.add(field)
                 field.check_fields(missings, self)
-    
+
     def get_context(self, request, widget, context):
         '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''
         context = context if context is not None else {}
@@ -371,7 +389,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
                 self._add(ListDict,dfields,f.errors,self.form_error_class)
                 self._add(ListDict,dfields,f.messages,self.form_message_class)
         return ListDict
-        
+
     def _add(self, ListDict, fields, container, msg_class):
         # Add messages to the list dictionary
         for name,msg in container.items():
@@ -383,7 +401,6 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
             else:
                 continue
             ul = html.Widget('ul',
-                             (html.Widget('li',d,cn=msg_class) for d in msg))   
+                             (html.Widget('li',d,cn=msg_class) for d in msg))
             ListDict.add(name, ul.render(), removable=True)
 
-    

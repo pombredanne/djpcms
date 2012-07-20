@@ -4,7 +4,7 @@ from djpcms.media import Media
 from .base import Widget, WidgetMaker, iterable_for_widget
 from . import classes
 
-__all__ = ['tabs', 'accordion', 'ajax_html_select']
+__all__ = ['tabs', 'pills', 'accordion', 'ajax_html_select']
 
 
 class TabWidget(Widget):
@@ -44,12 +44,12 @@ tab_media = Media(js = ['djpcms/tabs.js'])
 
 tabs = WidgetMaker(tag='div',
                    widget=TabWidget,
-                   cn='ui-tabs djph',
+                   cn='ui-tabs standard djph',
                    internal={'type':'tabs'},
                    media=tab_media)
 pills = WidgetMaker(tag='div',
                     widget=TabWidget,
-                    cn='ui-tabs djph',
+                    cn='ui-tabs pills',
                     internal={'type':'pills'},
                     media=tab_media)
 accordion = WidgetMaker(tag='div',

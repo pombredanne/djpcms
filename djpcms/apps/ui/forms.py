@@ -35,7 +35,7 @@ cssv.form.inlinelabels_width = pc(32)
 
 ################################################# CLEARINPUT
 class clearinp(mixin):
-    '''For clearing floats to all *elements*.'''    
+    '''For clearing floats to all *elements*.'''
     def __call__(self, elem):
         elem['outline'] = 'none'
 
@@ -48,7 +48,7 @@ css('.edit-menu',
 
 
 disabled_selector = '''\
-.disabled .{0}, .readonly .{0}, 
+.disabled .{0}, .readonly .{0},
 input[disabled], select[disabled], textarea[disabled],
 input[readonly], select[readonly], textarea[readonly]
 '''.format(classes.ui_input)
@@ -58,8 +58,8 @@ def size(n):
         return 30
     else:
         return 60*(n-1)
-    
-    
+
+
 def process_elems(elem, data):
     '''Consistent padding using the ``form_padding`` variable'''
     p = cssv.form.padding
@@ -105,6 +105,15 @@ css(disabled_selector,
     opacity(cssv.disabled.opacity),
     cursor=cssv.disabled.cursor)
 
+########################################################    CHECKBOX AND RADIO
+css('label',
+    display='block')
+css('.checkbox,.radio',
+    padding_left=px(18))
+css('.checkbox input[type="checkbox"],.radio input[type="radio"]',
+    float='left',
+    margin_left='-18px')
+
 ############################################################    ALERTS
 css('.alert',
     gradient(cssv.alert.background),
@@ -138,6 +147,11 @@ css('form.%s' % classes.form,
             margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2))),
         cssa('.%s'%classes.button_holder,
              padding_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)))),
+    # Block labels
+    css('.%s' % classes.blockLabels,
+        css('.%s' % classes.label,
+            margin_bottom=px(5))),
+    # Control holder
     css('.%s' % classes.ctrlHolder,
         clearfix(),
         css('.%s'%classes.align_right,
@@ -171,7 +185,7 @@ css('table.uniFormTable',
     table_layout = cssv.form.table_layout,
     width = '100%'
 )
-         
+
 ############################################################    TEXTAREA
 css('textarea.taboverride',
     font_family='monospace')

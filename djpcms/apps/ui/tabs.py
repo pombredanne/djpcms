@@ -10,6 +10,8 @@ cssv.tabs.active.background = cssv.body.background
 cssv.tabs.active.color = cssv.body.color
 cssv.tabs.hover.background = lazy(color.lighten, cssv.tabs.border_color, 5)
 
+cssv.pills.padding = spacing(px(10), px(10))
+
 cssv.accordion.spacing = px(2)
 
 
@@ -19,9 +21,7 @@ css('.'+classes.tabs,
         clearfix(),
         radius(radius_top),
         cssb('li',
-             cssa('.%s' % classes.clickable, border_bottom='none'),
              cssb('a',
-                  radius(radius_top),
                   display='block',
                   line_height=cssv.tabs.line_height,
                   padding=spacing(px(8),px(12))),
@@ -34,7 +34,9 @@ css('.'+classes.tabs,
         list_style='none',
         margin=0,
         padding=cssv.tabs.padding,
-        border_bottom='none'),
+        border_bottom='none',
+        border_right='none',
+        border_left='none'),
     cssb('div',
          border(color=cssv.widget.head.border.color,
                 width=spacing(0,px(1),px(1))),
@@ -45,10 +47,30 @@ css('.'+classes.tabs,
 css('.ui-tabs-hide',
     display='none')
 
+css('.%s.standard' % classes.tabs,
+    cssb('ul',
+        cssb('li',
+             cssa('.%s' % classes.clickable, border_bottom='none'),
+             cssb('a', radius(radius_top)))))
+
+
+#################################################    PILLS
+css('.%s.%s' % (classes.tabs, classes.pills),
+    cssb('ul',
+         cssb('li', radius(cssv.body.radius)),
+         border='none',
+         background='transparent',
+         padding=cssv.pills.padding),
+    cssb('div',
+         border='none',
+         padding=0),
+    border='none')
+
 
 #################################################    ACCORDION
 css('.ui-accordion-container',
     cssb('.'+classes.clickable,
+         clear_anchor(),
          cssa(':first-child', margin_top=0),
          margin_top=cssv.accordion.spacing),
     css('.ui-accordion-header',

@@ -24,13 +24,13 @@ cssv.clickable.active.border.color = color('aaaaaa')
 cssv.clickable.active.border.width = cssv.clickable.default.border.width
 cssv.clickable.active.border.style = None
 
-cssv.widget.padding = spacing(px(6))
+cssv.widget.padding = spacing(px(6), px(10))
 cssv.widget.border.color = cssv.color.grayLight
 cssv.widget.border.width = px(1)
 cssv.widget.border.style = None
 
 cssv.widget.head.background = cssv.color.grayLighter
-cssv.widget.head.color = cssv.color.grayDarker 
+cssv.widget.head.color = cssv.body.color
 cssv.widget.head.font_size = cssv.heading.h3.font_size
 cssv.widget.head.line_height = cssv.heading.h3.font_size
 cssv.widget.head.font_weight = cssv.head.font_weight
@@ -38,7 +38,7 @@ cssv.widget.head.text_transform = None
 cssv.widget.head.padding = cssv.widget.padding
 
 cssv.widget.body.padding = cssv.widget.padding
-cssv.widget.body.color = cssv.color.grayDarker
+cssv.widget.body.color = cssv.body.color
 cssv.widget.body.background = cssv.color.white
 
 cssv.widget.foot.background = cssv.widget.body.background
@@ -51,7 +51,7 @@ cssv.panel.border.color = cssv.widget.border.color
 cssv.panel.border.width = cssv.widget.border.width
 
 class widget_header(mixin):
-    
+
     def __call__(self, elem):
         elem['padding'] = cssv.widget.head.padding
         elem['overflow'] = 'hidden'
@@ -82,10 +82,9 @@ css('.%s, .%s'%(classes.clickable,classes.button),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),
     radius(cssv.clickable.radius),
-    css('a', text_decoration='none', color='inherit',
-        font_weight='inherit', cursor='inherit'))
-    
-    
+    clear_anchor())
+
+
 ################################################################ WIDGET
 css('.'+classes.widget,
     cssb('.bd',
@@ -105,7 +104,7 @@ cssb('.'+classes.widget_body,
                           cssv.widget.border.width.left),
             style=cssv.widget.border.style),
      padding=cssv.widget.body.padding)
-         
+
 css('.'+classes.widget_head,
     bcd(**cssv.widget.head.params()),
     border(**cssv.widget.border.params()),
@@ -132,7 +131,7 @@ cssb('.'+classes.widget_foot,
                           cssv.widget.border.width.left),
             style=cssv.widget.border.style),
      padding=cssv.widget.body.padding)
-     
+
 css('.'+classes.widget_body,
     overflow='hidden')
 ################################################################ PANEL
@@ -164,4 +163,9 @@ css('.%s' % classes.sitecontent,
         padding=0,
         margin=spacing(0, 0, px(9), px(25))),
     css('ul', list_style='disc outside none'),
-    css('ol', list_style='decimal outside none'))
+    css('ol', list_style='decimal outside none'),
+    css('strong', font_weight='bold'),
+    css('em', font_style='italic'),
+    float='left',
+    width=pc(100),
+    margin=0)

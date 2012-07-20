@@ -15,8 +15,8 @@ from djpcms.html import classes
 # Grey scale
 cssv.color.black = color('000')
 cssv.color.grayDarker = color('222')
-cssv.color.grayDark = color('333')
-cssv.color.gray = color('555')
+cssv.color.grayDark = color('444')
+cssv.color.gray = color('666')
 cssv.color.grayLight = color('999')
 cssv.color.grayLighter = color('e6e6e6')
 cssv.color.white = color('fff')
@@ -24,7 +24,7 @@ cssv.color.white = color('fff')
 # Global body variable
 cssv.html.background = None
 cssv.body.background = cssv.color.white
-cssv.body.color = cssv.color.grayDarker
+cssv.body.color = cssv.color.grayDark
 cssv.body.border_color = cssv.color.grayLighter
 cssv.body.font_family = "Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif"
 cssv.body.font_size = px(14)

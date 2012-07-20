@@ -98,8 +98,9 @@ class Select(FieldWidget):
     
     def set_value(self, val, widget):
         if val:
-            selected = tuple((to_string(val) for v in\
-                               (val if widget.attr('multiple') else (val,))))
+            if not widget.attr('multiple'):
+                val = (val,)
+            selected = tuple((to_string(v) for v in val))
         else:
             selected = ()
         widget.add(self._all_choices(widget, selected))

@@ -249,6 +249,7 @@ class Grid(elem):
     
     def __init__(self, *rows, **kwargs):
         cleaned_rows = []
+        self.default_columns = kwargs.pop('default_columns', 12)
         for row in rows:
             if isinstance(row, Grid):
                 cleaned_rows.extend(row.allchildren())
@@ -261,6 +262,9 @@ class Grid(elem):
         return row
         
     def get_context(self, request, widget, context):
+        if self.is_nested(widget):
+            context = context.copy() if context is not None else {}
+            context['grid_system'] = grid_system(False, self.default_columns)
         context = super(Grid, self).get_context(request, widget, context)
         columns = context.get('columns')
         # If columns are not available, it means we are using a Grid on its own
@@ -276,12 +280,14 @@ class Grid(elem):
         return self
     
     def add_css_data(self, widget, grid):
-        parent = widget.parent
         #ADD CLASS ONLY IF PARENT IS A CONTAINER
-        if parent is not None and isinstance(parent.maker, container):
+        if not self.is_nested(widget):
             suffix = ('{0}' if grid.fixed else 'fluid-{0}').format(grid.columns)
             widget.addClass('grid-container-'+suffix)
     
+    def is_nested(self, widget):
+        parent = widget.parent
+        return parent is None or not isinstance(parent.maker, container)
 
 class grid_holder(elem):
     '''A grid holder can contain one :class:`Grid` element or nothing. If

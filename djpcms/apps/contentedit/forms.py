@@ -130,14 +130,17 @@ class ContentBlockForm(forms.Form):
 
 class EditContentForm(forms.Form):
     '''Form used to edit and add Content'''
-    title   = forms.CharField()
-    body    = forms.CharField(widget=html.TextArea(cn=classes.taboverride,
-                                                   rows=30),
+    title = forms.CharField()
+    body = forms.CharField(widget=html.TextArea(cn=classes.taboverride,
+                                                rows=30),
                               required=False)
+    javascript = forms.CharField(widget=html.TextArea(cn=classes.taboverride,
+                                                rows=30),
+                                 required=False)
     markup  = forms.ChoiceField(choices=lambda bf : tuple(markups.choices()),
                                 initial=lambda form : markups.default(),
                                 required=False)
-        
+    
 
 def _getid(obj):
     if obj:

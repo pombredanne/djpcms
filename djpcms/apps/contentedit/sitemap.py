@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views, media
 from djpcms.utils import markups
-from djpcms.utils.text import mark_safe, escape
+from djpcms.utils.text import escape
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
 from djpcms.cms import Http404, messages, pageview
@@ -161,5 +161,5 @@ class SiteContentApp(AdminApplication):
         text = instance.body
         if mkp:
             text = mkp(request, text)
-        return mark_safe(text)
+        return Widget('div', text, cn=classes.sitecontent)
     

@@ -20,6 +20,7 @@ state_active = 'ui-state-active'
 state_hover = 'ui-state-hover'
 state_error = 'ui-state-error'
 
+sitecontent = 'sitecontent'
 float_right = 'f-right'
 autocomplete = 'autocomplete'
 taboverride = 'taboverride'

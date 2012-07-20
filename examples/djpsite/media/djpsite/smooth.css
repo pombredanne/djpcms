@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-19 08:01:38.372069
-Time taken 0.417 seconds
+Created by djpcms.style 2012-07-19 22:11:35.737384
+Time taken 0.426 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -867,27 +867,6 @@ input:-ms-input-placeholder {
     border: 1px solid #999999;
 }
 
-.ui-widget-content ul ul {
-    margin-bottom: 0;
-}
-
-.ui-widget-content ul ol {
-    margin-bottom: 0;
-}
-
-.ui-widget-content ol ol {
-    margin-bottom: 0;
-}
-
-.ui-widget-content ol ul {
-    margin-bottom: 0;
-}
-
-.ui-widget-content ul {
-    list-style: disc outside none;
-    margin: 0 0 9px 25px;
-}
-
 .ui-widget-header {
     background: #e6e6e6;
     color: #222222;
@@ -974,6 +953,34 @@ input:-ms-input-placeholder {
 
 .ui-draggable {
     cursor: move;
+}
+
+.sitecontent ul ul {
+    margin-bottom: 0;
+}
+
+.sitecontent ul ol {
+    margin-bottom: 0;
+}
+
+.sitecontent ol ol {
+    margin-bottom: 0;
+}
+
+.sitecontent ol ul {
+    margin-bottom: 0;
+}
+
+.sitecontent ul {
+    padding: 0;
+    margin: 0 0 9px 25px;
+    list-style: disc outside none;
+}
+
+.sitecontent ol {
+    padding: 0;
+    margin: 0 0 9px 25px;
+    list-style: decimal outside none;
 }
 
 .edit-menu {

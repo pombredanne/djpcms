@@ -2,7 +2,7 @@ from inspect import isclass
 
 from djpcms.utils.httpurl import zip
 from djpcms import html, ajax
-from djpcms.html.layout import equally_spaced_grid
+from djpcms.html.layout import equally_spaced_grid, container
 from djpcms.utils.text import nicename
 from . import classes
 
@@ -16,6 +16,8 @@ __all__ = ['BaseFormLayout',
            'SubmitElement',
            'Fieldset',
            'Columns',
+           'tab',
+           'Tabs',
            'SUBMITS']
 
 SUBMITS = 'submits' # string indicating submits in forms
@@ -210,19 +212,35 @@ class Fieldset(FormLayoutElement):
     tag = 'fieldset'
     
 
-class Columns(FormLayoutElement):
-    '''A :class:`FormLayoutElement` which defines a set of columns using
-yui3_ grid layout.
+class MultiElement(FormLayoutElement):
+    tag = 'div'
+    
+    def check_fields(self, missings, layout):
+        newcolumns = []
+        children = self._children
+        del self._children
+        for column in children:
+            if isinstance(column,(list,tuple)):
+                kwargs = {'default_style': self.default_style}
+                column = layout.default_element(*column, **kwargs)
+            elif not isinstance(column, html.WidgetMaker):
+                column = layout.default_element(column,
+                                        default_style=self.default_style)
+            column.check_fields(missings, layout)
+            self.add(column)
+            
+    
+class Columns(MultiElement):
+    '''A :class:`FormLayoutElement` which defines a set of columns.
 
 :parameter columns: tuple of columns
 :parameter grid: optional :class:`djpcms.html.layout.grid`. If not provided, an
     equally spaced columns grid is used.
 '''
-    tag = 'div'
     classes = "formColumns"
     
     def __init__(self, *columns, **kwargs):
-        grid = kwargs.pop('grid',None) 
+        grid = kwargs.pop('grid', None) 
         super(Columns, self).__init__(*columns, **kwargs)
         ncols = len(self._children)
         if not grid:
@@ -232,26 +250,47 @@ yui3_ grid layout.
  html elements {1}'.format(ncols, grid.numcolumns))
         self.internal['grid_fixed'] = False
         self.grid = grid
-
-    def check_fields(self, missings, layout):
-        newcolumns = []
-        children = self._children
-        del self._children
-        for column in children:
-            if isinstance(column,(list,tuple)):
-                kwargs = {'default_style':self.default_style}
-                column = layout.default_element(*column, **kwargs)
-            elif not isinstance(column, html.WidgetMaker):
-                column = layout.default_element(column,
-                                        default_style=self.default_style)
-            column.check_fields(missings, layout)
-            self.add(column)
     
     def stream(self, request, widget, context):
         grid = self.child_widget(self.grid, widget)
         grid.add(widget.allchildren())
         return grid.stream(request, context)
-
+    
+    
+class tab(object):
+    
+    def __init__(self, name, *fields):
+        self.name = name
+        self.fields = fields
+        
+class Tabs(MultiElement):
+    classes = "formTabs"
+    tabtemplate = html.tabs
+    
+    def __init__(self, *tabs, **kwargs):
+        tab_type = kwargs.pop('tab_type', None)
+        columns = []
+        self.names = []
+        for n, t in enumerate(tabs, 1):
+            if not isinstance(t, tab):
+                if not isinstance(t, (list, tuple)):
+                    t = (t,)
+                t = tab('tab-%s' % n, *t)
+            self.names.append(t.name)
+            columns.append(t.fields)
+        super(Tabs, self).__init__(*columns, **kwargs)
+        if tab_type == 'pills':
+            self.tab = html.pills
+        elif tab_type == 'accordion':
+            self.tab = html.accordion
+        else:
+            self.tab = html.tabs
+        
+    def stream(self, request, widget, context):
+        tab = self.child_widget(self.tab, widget)
+        tab.add(zip(self.names,widget.allchildren()))
+        return tab.stream(request, context)
+        
 
 class FormLayout(BaseFormLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`

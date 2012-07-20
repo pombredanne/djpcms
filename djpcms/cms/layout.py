@@ -130,6 +130,7 @@ class BlockModel(object):
     '''Content Block Interface.'''
     logger  = logging.getLogger('BlockContent')
     namespace = 'content'
+    row = 1
     
     def widget(self, request, plugin=None, wrapper=None):
         '''Render the plugin in the content block

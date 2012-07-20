@@ -157,10 +157,11 @@ css('.'+classes.corner_bottom, radius(radius_bottom))
 css('.%s' % classes.draggable,
     cursor='move')
 
-################################################################ TOPOGRAPHY
-css('.%s' % classes.widget_body,
+################################################################ LISTS
+css('.%s' % classes.sitecontent,
     css('ul ul, ul ol, ol ol, ol ul', margin_bottom=0),
-    css('ul',
-        list_style='disc outside none',
-        margin=spacing(0, 0, px(9), px(25)))
-    )
+    css('ul, ol',
+        padding=0,
+        margin=spacing(0, 0, px(9), px(25))),
+    css('ul', list_style='disc outside none'),
+    css('ol', list_style='decimal outside none'))

@@ -2,9 +2,9 @@
 Markup handlers for converting text into html. There are three
 handlers implemented:
 
-* creole
 * Markdown (requires markdown2 package)
 * restructuredText (requires sphinx package)
+* creole
 
 To use it::
 

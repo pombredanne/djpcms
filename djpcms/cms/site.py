@@ -525,8 +525,6 @@ This function can be overwritten by user implementation.'''
         settings = request.settings
         status = 500
         if exc_info and exc_info[0] is not None:
-            # Store the stack trace in the request cache and log the traceback
-            request.cache['traces'].append(exc_info)
             status = getattr(exc_info[1],'status',status)
         else:
             exc_info = None

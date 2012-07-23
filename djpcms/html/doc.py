@@ -158,16 +158,12 @@ def page_script(request):
         settings = request.view.settings
         html_options = {'debug':settings.DEBUG,
                         'media_url': settings.MEDIA_URL}
-        ready = request.on_document_ready
-        ready.append("$.djpcms.logger.info('djpcms ready');")
-        on_document_ready = '\n'.join(ready)
         return '''\
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
         $.djpcms.set_options(%s);
         $(document).djpcms().trigger('djpcms-loaded');
-        %s
     });
 }(jQuery));
-</script>''' % (json.dumps(html_options), on_document_ready)
+</script>''' % (json.dumps(html_options))

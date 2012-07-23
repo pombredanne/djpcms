@@ -301,19 +301,20 @@ is used by the :attr:`djpcms.Request.parent` attribute.'''
         request.media.add(media)
         
     def default_media(self, request):
-        settings = self.settings
-        m = media.Media(settings=settings)
-        m.add_js(media.jquery_paths(settings))
-        m.add_js(media.bootstrap(settings))
-        m.add_js(settings.DEFAULT_JAVASCRIPT)
-        if settings.DEFAULT_STYLE_SHEET:
-            m.add_css(settings.DEFAULT_STYLE_SHEET)
-        elif settings.STYLING:
-            target = media.site_media_file(settings)
-            if target:
-                m.add_css({'all': (target,)})
-        m.add(self.media(request))
-        return m
+        if not request.is_xhr:
+            settings = self.settings
+            m = media.Media(settings=settings)
+            m.add_js(media.jquery_paths(settings))
+            m.add_js(media.bootstrap(settings))
+            m.add_js(settings.DEFAULT_JAVASCRIPT)
+            if settings.DEFAULT_STYLE_SHEET:
+                m.add_css(settings.DEFAULT_STYLE_SHEET)
+            elif settings.STYLING:
+                target = media.site_media_file(settings)
+                if target:
+                    m.add_css({'all': (target,)})
+            m.add(self.media(request))
+            return m
     
     def get_body_class(self, request):
         pass
@@ -478,15 +479,18 @@ method for this view.'''
         '''Default AJAX GET response. It renders and return a ajax dialog.'''
         text = request.render(block=True)
         content_type = request.REQUEST.get('content_type', 'json')
+        media = request.media
         if content_type == 'json':
-            return ajax.dialog(request.environ,
-                               hd=request.title,
-                               bd=text,
-                               width=self.dialog_width,
-                               height=self.dialog_height,
-                               modal=True)
+            js = ajax.dialog(request.environ,
+                             hd=request.title,
+                             bd=text,
+                             width=self.dialog_width,
+                             height=self.dialog_height,
+                             modal=True)
         else:
-            return ajax.Text(request.environ, text)
+            js = ajax.Text(request.environ, text)
+        js.javascript(media.all_js)
+        return js
     
     def ajax_post_response(self, request):
         '''Handle AJAX post requests. By default it invokes the

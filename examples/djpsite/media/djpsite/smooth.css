@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-20 18:16:43.987000
-Time taken 0.396 seconds
+Created by djpcms.style 2012-07-21 15:05:26.800914
+Time taken 0.437 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -2674,6 +2674,9 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
     min-height: 70px;
     width: 100%;
     background: #fafafa;
+    padding: 10px;
+    line-height: 20px;
+    text-align: center;
 }
 
 #page-content {

@@ -2,7 +2,7 @@
 import os
 from copy import deepcopy
 
-from djpcms.utils.text import mark_safe
+from djpcms.utils.text import mark_safe, escape
 from djpcms.utils.httpurl import urljoin
 
 from .js import *
@@ -48,9 +48,10 @@ files such as style sheet and javascript.'''
         prefix = self.settings.get('MEDIA_URL','')
         absolute = self.absolute_path
         for path in self._js:
-            path = absolute(path,prefix)
-            yield mark_safe('<script type="text/javascript"\
- src="{0}"></script>'.format(path))
+            if not path.startswith('<script'):
+                path = '<script type="text/javascript" src="%s"></script>'\
+                         % absolute(path, prefix)
+            yield path                         
     
     @property
     def all_js(self):

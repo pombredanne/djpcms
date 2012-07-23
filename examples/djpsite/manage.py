@@ -30,7 +30,7 @@ from djpcms import cms, views, html
 from djpcms.apps import admin, static, user
 from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
-from djpcms.apps.nav import topbar_container
+from djpcms.apps.nav import topbar_container, Breadcrumbs
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
@@ -108,7 +108,9 @@ class WebSite(cms.WebSite):
     
     def render_header(self, request, namespace, column, blocks):
         if column == 0:
-            return '<h2>Dynamic content management system for Python</h2>'
+            return Widget(None,
+                   ('<h2>Dynamic content management system for Python</h2>',
+                    Breadcrumbs().render(request))).render(request)
     
     def render_footer(self, request, namespace, column, blocks):
         if column == 0:

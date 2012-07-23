@@ -1,7 +1,4 @@
-'''\
-Dependencies: **None**
-
-An application which displays a table with all applications
+'''An application which displays a table with all applications
 registered in the same ApplicationSite::
 
     from djpcms.apps.admin import AdminSite

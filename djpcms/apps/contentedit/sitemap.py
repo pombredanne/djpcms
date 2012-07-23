@@ -6,7 +6,7 @@ following to your application urls tuple::
 '''
 from djpcms import views, media
 from djpcms.utils import markups
-from djpcms.utils.text import escape
+from djpcms.utils.text import escape, mark_safe
 from djpcms.utils.async import is_async
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
@@ -158,6 +158,12 @@ class SiteMapApplication(views.Application):
             return escape(val)
 
 
+script_template = '''<script type='text/javascript'>
+    (function() {
+        %s;
+    }());
+</script>
+'''
 class SiteContentApp(AdminApplication):
 
     def on_bound(self):
@@ -171,11 +177,10 @@ class SiteContentApp(AdminApplication):
             text = mkp(request, text)
         w = Widget('div', text, cn=classes.sitecontent)
         if instance.javascript:
-            g = ('<script type="text/javascript">',
-                 '$(document).bind("djpcms-loaded", function() {',
-                 instance.javascript,
-                 '});',
-                 '</script>')
-            script = '\n'.join(g)
-            request.media.add(media.Media(js=[script]))
-        return w
+            g = script_template % instance.javascript
+            script = g.replace('\r\n','\n')
+            if request.is_xhr:
+                w.add(script)
+            else:
+                request.media.add(media.Media(js=[script]))
+        return w.render(request)

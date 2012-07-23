@@ -11,7 +11,7 @@
     $.djpcms.decorator({
         name: "accordion",
         selector: '.ui-accordion-container',
-        config: {            
+        config: {
             effect: null,//'drop',
             fadetime: 200,
             autoHeight: false,
@@ -36,15 +36,23 @@
            //tabs: {cookie: {expiry: 7}},
         },
         _create: function () {
-            var options = this.config;
+            var options = this.config,
+                current;
             if (options.ajax) {
                 options = $.extend({
+                    select: function(event, ui) {
+                        current=ui;
+                    },
                     load: function (event, ui) {
+                        current=ui;
                         $(ui.panel).djpcms();
                     },
                     ajaxOptions: {
                         data: {
                             content_type: 'text/html'
+                        },
+                        success: function (xhr, status, index, anchor) {
+                            //$(current.panel).append(xhr);
                         },
                         complete: function (data, status) {
                             //if(status==='success') {

@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-21 15:05:26.800914
-Time taken 0.437 seconds
+Created by djpcms.style 2012-07-23 17:18:09.288000
+Time taken 0.433 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1298,6 +1298,24 @@ label {
 .radio input[type="radio"] {
     float: left;
     margin-left: -18px;
+}
+
+.radio.inline {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+checkbox.inline {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.radio.inline + .radio.inline {
+    margin-left: 10px;
+}
+
+checkbox.inline + .checkbox.inline {
+    margin-left: 10px;
 }
 
 .alert {

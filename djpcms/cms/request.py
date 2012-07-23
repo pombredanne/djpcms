@@ -3,7 +3,7 @@ import re
 import logging
 import time
 from inspect import isclass
-from functools import partial 
+from functools import partial
 from datetime import datetime, timedelta
 
 # IMPORT PULSAR STUFF
@@ -39,7 +39,7 @@ def save_on_cache(f):
     def _(self,request):
         cache = request.cache
         if name not in cache:
-            cache[name] = f(self,request) 
+            cache[name] = f(self,request)
         return cache[name]
     return _
 
@@ -64,28 +64,28 @@ class NodeEnvironMixin(UnicodeMixin):
         self.instance = instance
         self.url = url
         self.exc_info = exc_info
-        
+
     def __getitem__(self, key):
         return self.environ[key]
-    
+
     def __setitem__(self, key, value):
         self.environ[key] = value
-        
+
     def get(self, key, default = None):
         return self.environ.get(key,default)
-    
+
     @property
     def valid(self):
         return not bool(self.exc_info)
-    
+
     @property
     def urlargs(self):
         return self.node.urlargs
-    
+
     @property
     def settings(self):
         return self.view.settings
-    
+
     @property
     def page(self):
         if self.view.inherit_page:
@@ -97,40 +97,40 @@ class NodeEnvironMixin(UnicodeMixin):
             return page
         else:
             return self.node.page
-    
+
     @property
     def name(self):
         return self.view.name
-    
+
     @property
     def model(self):
         return getattr(self.view,'model',None)
-    
+
     @property
     def tree(self):
         return self.node.tree
-    
-    
+
+
 class RequestNode(NodeEnvironMixin):
     '''Holds information and data to be reused during a single request.
 This is used as a way to speed up responses as well as for
 managing settings.'''
     def __init__(self, node, instance, path):
-        environ = {'requests':{}}
+        environ = {'requests':{}, 'traces':[]}
         super(RequestNode, self).__init__(environ, node, instance, path)
         self.path = path
-        
+
     def __unicode__(self):
         return self.name
-    
+
     @property
     def requests(self):
         return self.environ['requests']
-    
+
     @property
     def request(self):
         return self.requests.get(self.path)
-    
+
     @property
     def media(self):
         if not hasattr(self,'_media'):
@@ -139,7 +139,7 @@ managing settings.'''
                 m = media.Media(settings=self.view.settings)
             self._media = m
         return self._media
-    
+
 
 def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
@@ -178,7 +178,7 @@ def build_request(environ, node, cache, instance):
         if url is None:
             raise ValueError('Critical error in request')
         environ['DJPCMS'] = RequestNode(node, instance, url)
-    
+
     if cache and url is not None:
         rn = environ['DJPCMS']
         request = rn.requests.get(url)
@@ -190,32 +190,32 @@ def build_request(environ, node, cache, instance):
         # if we are not caching, return a request regardless if it has
         # a valid url or not
         return Request(environ, node, instance, url, exc_info)
-    
-    
+
+
 class Request(NodeEnvironMixin):
     '''A lightweight class which wraps the WSGI_ request environment, the
 :class:`djpcms.views.djpcmsview` serving the request and the request
 arguments.
- 
+
 .. attribute:: environ
 
     The WSGI environment dictionary
-     
+
 .. attribute:: view
 
     The request handler
-    
+
 .. attribute:: urlargs
 
     Dictionary of arguments from the variable part of the :attr:`view`
     route attribute (check :class:`djpcms.cms.Route` for more information).
-    
+
 .. attribute:: instance
 
     For some views, the variable part of the urls is used to retrieve an
     instance of a :class:`djpcms.viewsApplication.model`.
     in this case this attribute is that instance, otherwise it is ``None``.
-    
+
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
     def for_path(self, path=None, urlargs=None, instance=None, cache=True):
@@ -233,7 +233,7 @@ arguments.
             except Http404:
                 return None
         return make_request(self.environ, node, instance, cache=cache)
-    
+
     def for_model(self, model=None, all=False, root=False, name=None,
                   urlargs=None, instance=None):
         '''Create a new :class:`Request` instance for a model class. The
@@ -269,7 +269,7 @@ is available, the name is set to ``view``.
                 view = self.for_path(view.path, urlargs = urlargs,
                                      instance = instance)
             return view
-            
+
     def __unicode__(self):
         if self.url is not None:
             return self.url + ' (' + self.path + ')'
@@ -277,29 +277,29 @@ is available, the name is set to ``view``.
             return self.node.path + ' (' + self.path + ')'
         else:
             return self.path
-    
+
     ############################################################################
     #    environment shortcuts
     ############################################################################
-    
+
     @property
     def is_xhr(self):
         return is_xhr(self.environ)
-    
+
     @property
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
             and self.environ['wsgi.url_scheme'] == 'https'
-    
+
     @property
     def path(self):
         return self.environ.get('PATH_INFO', '/')
-    
+
     @property
     def method(self):
         return self.environ.get('REQUEST_METHOD','get').lower()
-    
-    @property    
+
+    @property
     def REQUEST(self):
         if 'REQUEST' not in self.cache:
             res = MultiValueDict(((k,v[:]) for k,v in self.POST.lists()))
@@ -325,73 +325,73 @@ is available, the name is set to ``view``.
         if 'FILES' not in self.cache:
             self._load_post_and_files()
         return self.cache['FILES']
-    
+
     @property
     def user(self):
         return self.environ.get('user')
-    
+
     @property
     def session(self):
         return self.environ.get('session')
-    
+
     @property
     def DJPCMS(self):
         return self.environ['DJPCMS']
-    
+
     @property
     def cache(self):
         return self.DJPCMS.environ
-    
+
     @property
     def owner(self):
         return self.DJPCMS.owner
-        
+
     ############################################################################
     #    View methods and properties
     ############################################################################
-    
+
     @property
     def appmodel(self):
         return self.view.appmodel
-    
+
     @lazyproperty
     def encoding(self):
         return self.view.encoding(self)
-    
+
     @lazyproperty
     def content_type(self):
         return self.view.content_type(self)
-    
+
     @lazymethod
     def underlying(self):
         return self.view.underlying(self)
-    
+
     def methods(self):
         return self.view.methods(self)
-    
+
     @property
     def media(self):
         return self.DJPCMS.media
-    
+
     @property
     def on_document_ready(self):
         return self.DJPCMS.on_document_ready
-        
-    @lazyproperty    
+
+    @lazyproperty
     def title(self):
         return self.view.title(self)
-    
-    @lazyproperty    
+
+    @lazyproperty
     def linkname(self):
         return self.view.linkname(self)
-    
+
     @lazyproperty
     def icon(self):
         icon = self.view.ICON
         if hasattr(icon, '__call__'):
             icon = icon(self)
         return icon
-        
+
     def has_permission(self, code=None, instance=None, **kwargs):
         view = self.view
         perm = view.permissions
@@ -405,7 +405,7 @@ is available, the name is set to ``view``.
         else:
             # Check permissions on a different entity
             return perm.has(self, code, obj=instance, user=user, **kwargs)
-    
+
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):
             c = self.environ.get('HTTP_COOKIE', '')
@@ -418,7 +418,7 @@ is available, the name is set to ``view``.
         self._cookies = cookies
 
     COOKIES = property(_get_cookies, _set_cookies)
-    
+
     def get_host(self):
         """Returns the HTTP host using the environment or request headers."""
         # We try three options, in order of decreasing preference.
@@ -434,7 +434,7 @@ is available, the name is set to ``view``.
             if server_port != (self.is_secure and '443' or '80'):
                 host = '%s:%s' % (host, server_port)
         return host
-    
+
     def get_full_path(self):
         url = self.url
         qs = self.environ.get('QUERY_STRING', '')
@@ -442,7 +442,7 @@ is available, the name is set to ``view``.
             return url + '?' + iri_to_uri(qs)
         else:
             return url
-    
+
     def build_absolute_uri(self, location=None):
         """
         Builds an absolute URI from the location and the variables available in
@@ -456,7 +456,7 @@ is available, the name is set to ``view``.
                                          self.get_host(), self.path)
             location = urljoin(current_uri, location)
         return iri_to_uri(location)
-    
+
     @lazymethod
     def cssgrid(self):
         grid = self.view.cssgrid(self)
@@ -467,23 +467,23 @@ is available, the name is set to ``view``.
     @lazymethod
     def children(self):
         return tuple(self._children())
-    
+
     @lazymethod
     def auth_children(self):
         return tuple((c for c in self.children() if c.has_permission()))
-    
+
     def render(self, **kwargs):
         '''\
 Render the underlying view.
 A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
         self.media.add(self.view.media(self))
         return self.view.render(self, **kwargs)
-    
+
     def get_context(self, **kwargs):
         '''Proxy of :meth:`djpcms.views.djpcmsview.get_context`, it return
  a context dictionary for the view'''
         return self.view.get_context(self, **kwargs)
-    
+
     @lazyproperty
     def parent(self):
         node = self.node.parent
@@ -492,11 +492,11 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             return self.for_model(instance=instance)
         elif node:
             return make_request(self.environ, node, instance)
-    
+
     @lazyproperty
     def in_navigation(self):
         return self.view.in_navigation(self)
-    
+
     @property
     def pagination(self):
         view = self.view
@@ -504,7 +504,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             return view.pagination
         elif view.appmodel:
             return view.appmodel.pagination
-    
+
     def app_for_model(self, model, all=False, root=False):
         '''Fetch an :class:`djpcms.views.Application` for a given *model*.
 
@@ -518,14 +518,14 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             return self.view.appmodel
         else:
             model = native_str(model)
-            site = self.view.root if root else self.view.site 
+            site = self.view.root if root else self.view.site
             if isinstance(model,str):
                 return site.for_hash(model, all = all)
             elif model is not None:
                 return site.for_model(model, all = all)
             else:
                 return None
-        
+
     ############################################################################
     #    Private methods
     ############################################################################
@@ -541,7 +541,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
                   MultiValueDict()
         self.cache['POST'] = p
         self.cache['FILES'] = f
-    
+
     def _post_data(self):
         if 'raw_post_data' not in self.cache:
             try:
@@ -554,7 +554,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
                 data = b''
             self.cache['raw_post_data'] = data
         return self.cache['raw_post_data']
-    
+
     def _children(self):
         instance = self.instance
         environ = self.environ
@@ -562,7 +562,7 @@ A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
             request = make_request(environ, node, instance)
             if isinstance(request, Request):
                 yield request
-    
+
 Response = WsgiResponse
 
 
@@ -571,11 +571,11 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
     def __init__(self, website, environ, start_response):
         self.website = website
         super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
-        
+
     @property
     def site(self):
         return self.website()
-    
+
     def __iter__(self):
         #query = self.environ.get('QUERY_STRING','')
         #PK = self.site.settings.PROFILING_KEY
@@ -593,11 +593,11 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             yield b''
         for c in self.start(response):
             yield c
-    
+
     def response(self, request):
         '''Generate the Response'''
         self.content_type, response = request.content_type, None
-        if not request.exc_info:           
+        if not request.exc_info:
             try:
                 if request.method not in request.methods():
                     raise HttpException(status=405)
@@ -628,7 +628,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
                                                     response.status_code))
             response.content = (to_bytes(content, response.encoding),)
         yield self.cache(request, response)
-        
+
     def cache(self, request, response):
         '''Apply cache control headers of successful non ajax GET requests'''
         if request.method == 'get' and response.status_code == 200 and\
@@ -637,7 +637,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             if cache_control:
                 cache_control(response.headers)
         return response
-        
+
     def request(self):
         tree, node, request, exc_info = None, None, None, None
         try:
@@ -650,7 +650,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             request = async_object(request)
             while is_async(request):
                 yield
-                request = async_object(request)    
+                request = async_object(request)
             if is_failure(request):
                 exc_info = request.trace
                 request = None
@@ -667,7 +667,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             except:
                 pass
         yield request
-        
+
     def page_tree(self):
         site = self.site
         Page = site.Page
@@ -676,7 +676,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             return DjpcmsTree(tree, Page.query())
         else:
             return DjpcmsTree(tree)
-        
+
     def safe_render(self, request, content):
         content = async_object(content)
         try:

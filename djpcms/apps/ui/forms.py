@@ -113,6 +113,11 @@ css('.checkbox,.radio',
 css('.checkbox input[type="checkbox"],.radio input[type="radio"]',
     float='left',
     margin_left='-18px')
+css('.radio.inline, checkbox.inline',
+    display='inline-block',
+    vertical_align='middle')
+css('.radio.inline + .radio.inline, checkbox.inline + .checkbox.inline',
+    margin_left=px(10))
 
 ############################################################    ALERTS
 css('.alert',

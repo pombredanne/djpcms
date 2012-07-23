@@ -7,6 +7,7 @@ following to your application urls tuple::
 from djpcms import views, media
 from djpcms.utils import markups
 from djpcms.utils.text import escape
+from djpcms.utils.async import is_async
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
 from djpcms.cms import Http404, messages, pageview
@@ -29,15 +30,22 @@ def underlying_response(request, page):
         except KeyError as e:
             url = route.path
         underlying = request.for_path(url, urlargs={})
-        if not underlying:
-            messages.error(request,
-                'This page has problems. Could not find matching view')
-        underlying.page_editing = True
-        return underlying
+        if is_async(underlying):
+            return underlying.add_callback(
+                                lambda r: _underlying_response(request, r))
+        else:
+            return _underlying_response(request, underlying)
+
+def _underlying_response(request, underlying):
+    if not underlying:
+        messages.error(request,
+            'This page has problems. Could not find matching view')
+    underlying.page_editing = True
+    return underlying
 
 
 class PageView(object):
-    
+
     def __init__(self, r):
         view = r.view
         page = r.page
@@ -49,7 +57,7 @@ class PageView(object):
         self.id = page.id if page else None
         self.inner_template = page.inner_template if page else None
         self.doc_type = htmldoc(None if not page else page.doctype)
-    
+
 
 class SiteMapView(views.SearchView):
     pagination = Pagination(('url','view','page','template',
@@ -58,10 +66,10 @@ class SiteMapView(views.SearchView):
                             ajax = False)
     def query(self, request, **kwargs):
         for view in request.view.root.all_views():
-            r = request.for_path(view.path, cache = False)
+            r = request.for_path(view.path, cache=False)
             yield PageView(r)
-    
-    
+
+
 class PageChangeView(views.ChangeView):
     '''View for editing a page. It insert an
 :class:`djpcms.html.layout.container` at the top of the page with the
@@ -73,10 +81,10 @@ editing form.'''
                              grid_fixed=False,
                              context_request=lambda r: r,
                              renderer=lambda r,namespace,col,b: r.render())
-    
+
     def underlying(self, request):
         return underlying_response(request, request.instance)
-        
+
     def get_response(self, request):
         page = request.instance
         layout = page.layout
@@ -88,25 +96,25 @@ editing form.'''
         children.update(layout.children)
         layout.children = children
         return layout
-    
+
     def render(self, request):
         text = super(PageChangeView,self).render(request)
         links = page_links(request)
         return box(hd='Editing page {0}'.format(request.instance),
                    bd=text, collapsed=True, edit_menu=links)\
                 .addClass(classes.edit)
-    
+
     def defaultredirect(self, request, next = None, instance = None, **kwargs):
         if next:
             return next
         return super(PageChangeView,self).defaultredirect(request,
                                                           instance = instance,
                                                           **kwargs)
-    
+
     def media(self, request):
         return self._media
-    
-    
+
+
 class SiteMapApplication(views.Application):
     '''Application to use for admin sitemaps'''
     has_plugins = False
@@ -118,7 +126,7 @@ class SiteMapApplication(views.Application):
                              'soft_root'),
                             bulk_actions = [views.bulk_delete])
     list_display_links = ('id', 'url', 'page')
-    
+
     home = SiteMapView()
     pages = views.SearchView('pages/',
                              icon='th-list',
@@ -131,13 +139,13 @@ class SiteMapApplication(views.Application):
                             linkname=lambda djp : 'edit page',
                             body_class='editable')
     delete = views.DeleteView()
-        
+
     def on_bound(self):
         self.root.internals['Page'] = self.mapper
-        
+
     def view_for_instance(self, request, instance):
-        return self.views['change'] 
-        
+        return self.views['change']
+
     def instance_field_value(self, request, page, field_name, val = ''):
         if field_name == 'view':
             node = request.tree.get(page.url)
@@ -148,18 +156,17 @@ class SiteMapApplication(views.Application):
                 return ''
         else:
             return escape(val)
-    
-    
+
+
 class SiteContentApp(AdminApplication):
-        
+
     def on_bound(self):
         # Register the Page mapper with the roo internal dictionary
         self.root.internals['SiteContent'] = self.mapper
-        
+
     def render_instance_default(self, request, instance, **kwargs):
         mkp = markups.get(instance.markup)
         text = instance.body
         if mkp:
             text = mkp(request, text)
         return Widget('div', text, cn=classes.sitecontent)
-    

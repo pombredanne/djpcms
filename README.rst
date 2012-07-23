@@ -52,10 +52,6 @@ Otherwise you can use pip::
 
 	pip install djpcms
 	
-or easy_install::
-
-	easy_install djpcms
-	
 	
 Version Check
 =====================

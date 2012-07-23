@@ -4,14 +4,12 @@ cssv.header.min_height = px(70)
 cssv.content.min_height = px(400)
 cssv.footer.min_height = px(300)
 
-
 with cssv.theme('smooth') as t:
     t.body.background = '#222'
     t.header.background = '#fafafa'
     t.content.background = ('v', '#fafafa', '#fff')
     t.footer.color = t.color.grayLighter
     t.footer.background = ('v','#444','#222')
-    
     
     
 with cssv.theme('green') as t:
@@ -31,9 +29,10 @@ with cssv.theme('green') as t:
     t.widget.head.background = ('v', 'D47333', 'D48957')
 
 
-#css('#page-header',
-#    margin_top=cssv.topbar.height,
-#    padding_top=px(20))
+css('#page-header',
+    text_align='center',
+    padding=px(10),
+    line_height=px(20))
 #
 css('.topbar',
     css('a.brand',

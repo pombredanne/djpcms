@@ -21,6 +21,7 @@ ajax_content_types=ajax_json_types +\
 
 class Ajax(Renderer):
     '''Base class for JSON AJAX utilities'''
+    js = None
     _content_type=None
     _default_content_type='application/json'
     
@@ -65,6 +66,9 @@ as JSON string.
     
     def error(self):
         return False
+    
+    def javascript(self, js):
+        self.js = js
     
     
 class Text(Ajax):    

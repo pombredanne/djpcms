@@ -41,11 +41,11 @@ def table_header(code, name=None, description=None, function=None,
                  attrname=None, sortable=True, width=None,
                  extraclass=None, hidden=False):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
-    
+
 :param code: unique code for the header
 :param attrname: optional attribute name, if not supplied the *code* will be
     used. The attrname is the actual attribute name in the object, and
-    therefore the actual field in the database. 
+    therefore the actual field in the database.
 '''
     if isinstance(code,table_header_):
         return code
@@ -58,7 +58,7 @@ def table_header(code, name=None, description=None, function=None,
     attrname = attrname or code
     return table_header_(code,name,description,function,sortable,width,
                          extraclass,attrname,hidden)
-    
+
 
 class TableMaker(WidgetMaker):
     '''A :class:`WidgetMaker` for rendering data tables.'''
@@ -68,13 +68,13 @@ class TableMaker(WidgetMaker):
             js = [
                   'djpcms/datatables/jquery.dataTables.js',
                   'djpcms/datatables/ColVis/js/ColVis.js',
-                  'djpcms/datatables/TableTools/js/TableTools.min.js',
+                  'djpcms/datatables/TableTools/js/TableTools.js',
                   'djpcms/djptable.js'],
             css = {'screen':
                     ['djpcms/datatables/TableTools/css/TableTools_JUI.css']
                     }
         )
-    
+
     def get_context(self, request, widget, context):
         # Get the title of the widget (if it has one
         title = widget.attrs.get('title')
@@ -95,7 +95,7 @@ class TableMaker(WidgetMaker):
         widget.data['options']['aoColumns'] = headers
         context.update({'headers': headers, 'title':title})
         return context
-    
+
     def make_headers(self, headers):
         '''Generator of html headers tags'''
         for head in headers:
@@ -103,7 +103,7 @@ class TableMaker(WidgetMaker):
             if head.description:
                 w.addData('description',head.description)
             yield w.render(inner = head.name)
-    
+
     def aoColumns(self, headers):
         '''Return an array of column definition to be used by the dataTable
 javascript plugin'''
@@ -120,7 +120,7 @@ javascript plugin'''
                    'sTitle':head.name,
                    'sWidth':head.width,
                    'description':head.description}
-    
+
     def stream(self, request, widget, context):
         title = context.get('title')
         head_class = '%s %s' % (classes.widget_head, classes.corner_top)
@@ -160,17 +160,17 @@ javascript plugin'''
             if head['bSortable']:
                 th.addClass(classes.clickable)
             yield th
-            
+
     def rows(self, request, widget):
         if widget.data_stream:
             headers = widget.internal['headers']
             appmodel = widget.internal.get('appmodel')
-            actions = widget.internal.get('actions')                
+            actions = widget.internal.get('actions')
             return (results_for_item(request, headers, res, appmodel,
                             actions = actions) for res in widget.data_stream)
         else:
             return ()
-        
+
 
 _TableMaker = TableMaker()
 
@@ -182,18 +182,18 @@ def table(headers, body, **kwargs):
 class ListItems(WidgetMaker):
     '''A widget maker which creates a list of underlying item makers.'''
     tag = 'div'
-        
+
     def stream(self, request, widget, context):
         for item in widget.data_stream:
             yield self.render_item(request, widget, context, item)
-    
+
     def render_item(self, request, widget, context, item):
         yield item
-            
+
 
 class Pagination(object):
     '''Class for specifying options for a table or a general pagination.
-    
+
 :parameter headers: Optional iterable of headers. If specified the pagination
     will be rendered as a :class:`Table`. It sets the :attr:`headers` and
     :attr:`list_display` attributes.
@@ -206,50 +206,50 @@ class Pagination(object):
 :parameter size_choices: A list or tuple of size choices.
 
     Default: ``(10,25,50,100)``.
-    
+
 :parameter actions: a list of actions available to the table.
 
     Default: ``[]``
-    
+
 :parameter bulk_actions: a list of bulk actions available to the table.
     Bulk actions are instances of :class:`djpcms.views.application_action`
     namedtuple::
-    
+
         from djpcms import views, DELETE
-        
+
         bulk_actions=(views.application_action('bulk_delete','Delete',DELETE),)
 
     Default: ``[]``
-    
+
 :parameter sortable: default value for the headers sortable attribute.
 
     Default: ``False``
-    
+
 :parameter ordering: optional string indicating the default field for ordering.
     Starting with a minus means in descending order.
-    
+
         Default ``None``
-    
+
 :parameter footer: when ``True`` the table will display the footer element.
 
     Default: ``False``.
-    
+
 :parameter ajax: enable ``ajax`` interaction.
 
     Default: ``True``.
-    
+
 :parameter html_data: dictionary of data to add to the pagination
     :class:`Widget`
-    
+
     Default: None
-    
+
 :parameter flat_layout: An optional :class:`WidgetMaker` to render flat
     pagination (rather than table pagination).
-    
+
 :parameter pagination_entry: An optional :class:`WidgetMaker` to render each
     element within a flat layout pagination (rather than table pagination).
 
-    
+
 **Attributes**
 
 .. attribute:: headers
@@ -257,19 +257,19 @@ class Pagination(object):
     Dictionary of table headers. The key are the headers code, value are
     instances of :class:`table_header`. If ``None``, the pagination
     is not a table.
-    
+
 .. attribute:: list_display
 
     List of :class:`table_header` in the order specified at initialization.
     It contains the same instances as :attr:`headers` but in a list.
-    
+
 **Methods**
 '''
     table_defaults = {
           'sPaginationType': 'full_numbers',
           'sDom': '<"H"<"row-selector"><"col-selector">T<"clear">ilrp>t<"F"ip>'}
     flat_defaults = {}
-    
+
     def __init__(self, headers=None, actions=None, bulk_actions=None,
                  sortable=False, footer=False, ajax=True,
                  size=25, size_choices=(10,25,50,100,-1), ordering=None,
@@ -293,17 +293,17 @@ class Pagination(object):
         self.list_display = tuple(ld)
         self.headers = heads
         self.html_data = html_data or {}
-        
+
     @property
     def astable(self):
         return bool(self.headers)
-    
+
     def defaultdata(self):
         if self.astable:
             return deepcopy(self.table_defaults)
         else:
             return deepcopy(self.flat_defaults)
-    
+
     def paginate(self, data, start = 0, per_page = None, withbody = True):
         '''paginate *data* according to :attr:`size` and return a two elements
 tuple containing the pagination dictionary and the (possibly) reduced data.
@@ -347,7 +347,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 'end':end,
                 'page_menu':page_menu}
         return self._paginate(pagi, data, withbody)
-        
+
     def _paginate(self,pagi,data,withbody):
         # Return a tuple with the pagination info dictionary and
         # a list of elements if the body is required, otherwise None.
@@ -365,7 +365,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                **kwargs):
         '''Return the pagination :class:`Widget`. This is either a *table* or
 a standard pagination.
- 
+
 :parameter body: body to paginate. An iterable over data.
 :parameter toolbox: Additional tool to display in the pagination page.
 :parameter pagination: Optional dictionary containing pagination information
@@ -381,9 +381,9 @@ a standard pagination.
         if 'options' not in data:
             options = {}
             data['options'] = options
-        
+
         options = data['options']
-        
+
         if self.astable:
             if ajax:
                 options['bProcessing'] = True
@@ -393,11 +393,11 @@ a standard pagination.
             maker = partial(table, headers)
         else:
             maker = self.widget_factory
-        
+
         kwargs['actions'] = data.get('actions')
         return maker(body, pagination=pagination, data=data,
                      footer=self.footer, **kwargs)
-        
+
     def ajaxresponse(self, request, body, **kwargs):
         widget = self.widget(body, **kwargs)
         pagination = widget.internal.get('pagination')
@@ -420,4 +420,4 @@ a standard pagination.
             return ajax.Text(request.environ, data)
         else:
             raise NotImplementedError()
-        
+

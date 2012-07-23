@@ -116,35 +116,29 @@ class RequestNode(NodeEnvironMixin):
 This is used as a way to speed up responses as well as for
 managing settings.'''
     def __init__(self, node, instance, path):
-        environ = {'requests':{},
-                   'traces':[],
-                   'on_document_ready':[]}
-        super(RequestNode,self).__init__(environ, node, instance, path)
+        environ = {'requests':{}}
+        super(RequestNode, self).__init__(environ, node, instance, path)
         self.path = path
         
     def __unicode__(self):
         return self.name
     
     @property
-    def request(self):
-        return self.requests.get(self.path)
-    
-    @property
     def requests(self):
         return self.environ['requests']
     
     @property
+    def request(self):
+        return self.requests.get(self.path)
+    
+    @property
     def media(self):
         if not hasattr(self,'_media'):
-            m = self.view.default_media(self)
+            m = self.view.default_media(self.request)
             if m is None:
                 m = media.Media(settings=self.view.settings)
             self._media = m
         return self._media
-    
-    @property
-    def on_document_ready(self):
-        return self.environ['on_document_ready']
     
 
 def make_request(environ, node, instance=None, cache=True):
@@ -289,6 +283,10 @@ is available, the name is set to ``view``.
     ############################################################################
     
     @property
+    def is_xhr(self):
+        return is_xhr(self.environ)
+    
+    @property
     def is_secure(self):
         return 'wsgi.url_scheme' in self.environ \
             and self.environ['wsgi.url_scheme'] == 'https'
@@ -300,10 +298,6 @@ is available, the name is set to ``view``.
     @property
     def method(self):
         return self.environ.get('REQUEST_METHOD','get').lower()
-    
-    @property
-    def is_xhr(self):
-        return is_xhr(self.environ)
     
     @property    
     def REQUEST(self):

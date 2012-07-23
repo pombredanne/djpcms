@@ -169,4 +169,13 @@ class SiteContentApp(AdminApplication):
         text = instance.body
         if mkp:
             text = mkp(request, text)
-        return Widget('div', text, cn=classes.sitecontent)
+        w = Widget('div', text, cn=classes.sitecontent)
+        if instance.javascript:
+            g = ('<script type="text/javascript">',
+                 '$(document).bind("djpcms-loaded", function() {',
+                 instance.javascript,
+                 '});',
+                 '</script>')
+            script = '\n'.join(g)
+            request.media.add(media.Media(js=[script]))
+        return w

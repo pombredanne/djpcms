@@ -108,11 +108,17 @@ css(disabled_selector,
 ########################################################    CHECKBOX AND RADIO
 css('label',
     display='block')
-css('.checkbox,.radio',
-    padding_left=px(18))
+css('.checkbox, .radio',
+    padding_left=px(18),
+    padding_top=px(5),
+    line_height='normal')
 css('.checkbox input[type="checkbox"],.radio input[type="radio"]',
     float='left',
-    margin_left='-18px')
+    margin_left='-18px',
+    display='inline-block',
+    cursor='pointer',
+    line_height='normal',
+    margin_bottom=0)
 css('.radio.inline, checkbox.inline',
     display='inline-block',
     vertical_align='middle')
@@ -148,10 +154,14 @@ css('form.%s' % classes.form,
             float='left',
             width=cssv.form.inlinelabels_width,
             margin=spacing(cssv.form.padding,pc(2),cssv.form.padding,0)),
-        css('.%s' % classes.ui_input,
+        css('.%s' % classes.control,
             margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2))),
-        cssa('.%s'%classes.button_holder,
+        cssa('.%s' % classes.button_holder,
              padding_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)))),
+    css('.inline',
+        display='inline-block'),
+    css('.inline + .inline',
+        margin_left=px(10)),
     # Block labels
     css('.%s' % classes.blockLabels,
         css('.%s' % classes.label,

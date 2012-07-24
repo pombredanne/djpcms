@@ -7,12 +7,13 @@
     $.djpcms.decorator({
         name: 'input',
         defaultElement: '<input type="text">',
-        selector: '.ui-input',        
+        selector: '.ui-input',
         config: {
             // If true, the input can submit the form when ENTER is pressed on it.
             submit: false,
             classes: {
                 input: 'ui-input',
+                control: 'control',
                 focus: 'focus',
             }
         },
@@ -169,26 +170,6 @@
             } else {
                 $.djpcms.logger.debug('unchecked');
                 self.buttonElement.removeClass(classes.active);
-            }
-        }
-    });
-    //
-    $.djpcms.decorator({
-        name: 'bsmSelect',
-        selector: 'select[multiple="multiple"]',
-        config: {
-            addItemTarget: 'bottom',
-            animate: true,
-            highlight: true,
-            sortable: false
-        },
-        _create: function () {
-            // Check if there is a ui-input wrapper
-            var classes = $.djpcms.options.input.classes,
-                wrapper = this.element.parent('.'+classes.input);
-            this.element.bsmSelect(this.config);
-            if (wrapper.length) {
-                this.wrapper = wrapper;
             }
         }
     });

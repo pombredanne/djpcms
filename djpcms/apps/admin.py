@@ -3,12 +3,12 @@ registered in the same ApplicationSite::
 
     from djpcms.apps.admin import AdminSite
     from djpcms.apps.sitemap import SiteMapView
-    
+
     admin_urls = (
                   SiteAdmin('/', name = 'admin'),
                   SiteMapView('/sitemap/', name = 'sitemap'),
                  )
-                  
+
 '''
 from djpcms import views, html
 from djpcms.html import Widget, classes
@@ -25,14 +25,14 @@ __all__ = ['AdminSite',
            'make_admin_urls']
 
 
-class TabView(views.ObjectView):
+class TabView(views.ViewView):
     '''A view which displays children views in tabs.'''
     def get_views(self, request):
         appmodel = request.view.appmodel
         for r in views.application_views(request, exclude=('delete',)):
             order = appmodel.views_ordering.get(r.view.name,100)
             yield order,r
-            
+
     def render(self, request):
         instance = request.instance
         tabs = html.tabs().addData('options', {'ajax': True})
@@ -43,8 +43,8 @@ class TabView(views.ObjectView):
             link = views.application_link(elem, asbutton=False)
             tabs.addtab(link, text)
         return tabs
-     
-     
+
+
 class AdminSite(views.Application):
     '''An :class:`djpcms.views.Application` for a site Admin. It
 contains several :class:`ApplicationGroup`.'''
@@ -53,15 +53,15 @@ contains several :class:`ApplicationGroup`.'''
     pagination = html.Pagination(layout=html.accordion,
                                  ajax=False,
                                  size=None)
-    
+
     home = views.View(in_nav=1, icon='admin')
-    
+
     def groups(self, request):
         for child in request.auth_children():
             yield {'body':child.render(block=True),
                    'title':child.title,
                    'url': child.url}
-            
+
     def query(self, request, **kwargs):
         for g in sorted(self.groups(request), key = lambda x : x['title']):
             url = g['url']
@@ -70,8 +70,8 @@ contains several :class:`ApplicationGroup`.'''
             else:
                 a = g['title']
             yield a, g['body']
-            
-            
+
+
 class ApplicationGroup(views.Application):
     '''An :class:`djpcms.views.Application` class for
 administer a group of :class:`djpcms.views.Applications`.'''
@@ -79,12 +79,12 @@ administer a group of :class:`djpcms.views.Applications`.'''
     pagination = html.Pagination(('name','actions'),
                                  ajax=False,
                                  html_data={'options':{'sDom':'t'}})
-    
+
     home = views.View(in_nav=1,
                       methods=('get',),
                       renderer=lambda request, **kwargs:\
                             request.appmodel.models_list(request, **kwargs))
-    
+
     @html.render_block
     def models_list(self, request, **kwargs):
         def _make():
@@ -94,7 +94,7 @@ administer a group of :class:`djpcms.views.Applications`.'''
                                cn=classes.button_holder)
                 yield Widget('dl', (Widget('a', c.title, href=c.url), links))
         return Widget('div', cn=classes.object_definition).add(_make())
-      
+
 
 class AdminApplicationSimple(views.Application):
     pagination = html.Pagination(('__str__',))
@@ -103,29 +103,25 @@ class AdminApplicationSimple(views.Application):
     delete_all = views.DeleteAllView()
     view = views.ViewView()
     delete = views.DeleteView()
-    
-    
-class AdminApplicationMixin(object):
-    tabview = TabView('/<id>/all')
-    
-    def view_for_instance(self, request, instance):
-        return self.views.get('tabview')
-    
-    
+
+
 class AdminApplication(views.Application):
     has_plugins = False
-    views_ordering = {'view':0,'change':1}
+    views_ordering = {'description': 0,
+                      'change': 1}
     pagination = html.Pagination(('__str__',))
+
     home = views.SearchView()
-    delete_all = views.DeleteAllView()
     add = views.AddView()
-    tabview = TabView('/<id>/')
-    view = views.ViewView('/view', parent_view='tabview')
-    change = views.ChangeView(parent_view='tabview', force_redirect=False)
-    delete = views.DeleteView(parent_view='tabview')
-    
-    def view_for_instance(self, request, instance):
-        return self.views.get('tabview')
+    delete_all = views.DeleteAllView()
+    view = TabView(in_nav=0)
+    description = views.ObjectView('/description',
+                                   in_nav=0,
+                                   parent_view='view',
+                                   renderer=lambda r, **kwargs:\
+                                   r.appmodel.render_instance(r, **kwargs))
+    change = views.ChangeView(force_redirect=False)
+    delete = views.DeleteView()
 
 
 def get_admins(INSTALLED_APPS):
@@ -143,8 +139,8 @@ def get_admins(INSTALLED_APPS):
             yield (name, route, urls)
         except ImportError:
             continue
-        
-      
+
+
 class make_admin_urls(object):
     '''Utility class which provide a callable instance for building
 admin urls. A callable instance returns a one element tuple containing an
@@ -163,7 +159,7 @@ application will be included.
         self.grouping = grouping
         self.name = name
         self.params = params
-        
+
     def __call__(self, site):
         settings = site.settings
         adming = {}
@@ -177,7 +173,7 @@ application will be included.
                             v = v.copy()
                             v['urls'] = ()
                             agroups[url] = v
-                            
+
         for name_,route,urls in get_admins(settings.INSTALLED_APPS):
             if urls:
                 rname = remove_end_slashes(route)
@@ -188,11 +184,11 @@ application will be included.
                     adming[rname] = route
                     agroups[route] = {'name':name_,
                                       'urls':urls}
-        
+
         groups = [AdminSite('/', name = self.name, **self.params)]
         for route,data in agroups.items():
             groups.append(ApplicationGroup(route,
                                            name = data['name'],
                                            routes = data['urls']))
-            
+
         return tuple(groups)

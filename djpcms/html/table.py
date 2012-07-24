@@ -70,9 +70,6 @@ class TableMaker(WidgetMaker):
                   'djpcms/datatables/ColVis/js/ColVis.js',
                   'djpcms/datatables/TableTools/js/TableTools.js',
                   'djpcms/djptable.js'],
-            css = {'screen':
-                    ['djpcms/datatables/TableTools/css/TableTools_JUI.css']
-                    }
         )
 
     def get_context(self, request, widget, context):

@@ -266,8 +266,9 @@ is available, the name is set to ``view``.
                 view = app.view_for_instance(self, instance)
             view = view or app.root_view
             if view and not isinstance(view, self.__class__):
-                view = self.for_path(view.path, urlargs = urlargs,
-                                     instance = instance)
+                view = self.for_path(view.path,
+                                     urlargs=urlargs,
+                                     instance=instance)
             return view
 
     def __unicode__(self):

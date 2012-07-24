@@ -27,73 +27,73 @@ __all__ = ['Field',
 
 NOTHING = ('', None)
 standard_validation_error = '{0} is required'
-    
+
 
 class Field(object):
     '''Base class for all :class:`Form` fields.
 Field are specified as attribute of a form, for example::
 
     from djpcms import forms
-    
+
     class MyForm(forms.Form):
         name = forms.CharField()
         age = forms.IntegerField()
-    
+
 very similar to django forms API.
 
 :parameter required: set the :attr:`required` attribute.
 :parameter default: set the :attr:`default` attribute.
 :parameter initial: set the :attr:`initial` attribute.
 :parameter widget: set the :attr:`widget` attribute.
-    
+
 .. attribute:: required
 
     boolean specifying if the field is required or not.
     If a field is required and
     it is not available or empty it will fail validation.
-    
+
     Default: ``True``.
-    
+
 .. attribute:: default
 
-    Default value for this field. It can be a callable accepting 
+    Default value for this field. It can be a callable accepting
     a :class:`BoundField` instance for the field as only parameter.
-    
+
     Default: ``None``.
-    
+
 .. attribute:: initial
 
     Initial value for field. If Provided, the field will display
     the value when rendering the form without bound data.
     It can be a callable which receive a :class:`Form`
     instance as argument.
-    
+
     Default: ``None``.
-    
+
     .. seealso::
-        
+
         Inital is used by :class:`Form` and
         by :class:`HtmlForm` instances to render
         an unbounded form. The :func:`Form.initials`
         method return a dictionary of initial values for fields
-        providing one. 
-        
+        providing one.
+
 .. attribute:: widget
 
     The :class:`djpcms.html.WidgetMaker` for this field.
-    
+
     Default: ``None``.
-    
+
 .. attribute:: widget_attrs
 
     dictionary of widget attributes used for setting the widget
     html attributes. For example::
-    
+
         widget_attrs = {'title':'my title'}
-    
+
     It can also be a callable which accept a :class:`BoundField` as the
     only parameter.
-    
+
     Default: ``None``.
 '''
     default = None
@@ -101,7 +101,7 @@ very similar to django forms API.
     required = True
     creation_counter = 0
     validation_error = standard_validation_error
-    
+
     def __init__(self,
                  required=None,
                  default=None,
@@ -143,22 +143,22 @@ very similar to django forms API.
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
-    
+
     def __repr__(self):
         return self.name
     __str__ = __repr__
-    
+
     def set_name(self, name):
         self.name = name
         if not self.label:
             self.label = name
-        
+
     def handle_params(self, **kwargs):
         '''Called during initialization for handling extra key-valued
 parameters. By default it will raise an error if extra parameters
 are available. Override for customized behaviour.'''
         self._raise_error(kwargs)
-        
+
     def value_from_datadict(self, data, files, key):
         """Given a dictionary of data this field name, returns the value
 of this field. Returns None if it's not provided.
@@ -170,12 +170,12 @@ of this field. Returns None if it's not provided.
 """
         if key in data:
             return data[key]
-        
+
     def _raise_error(self, kwargs):
         keys = list(kwargs)
         if keys:
             raise ValueError('Parameter {0} not recognized'.format(keys[0]))
-    
+
     def clean(self, value, bfield):
         '''Clean the field value'''
         if value in NOTHING:
@@ -186,10 +186,10 @@ of this field. Returns None if it's not provided.
             elif not self.required:
                 return value
         return self._clean(value, bfield)
-    
+
     def _clean(self, value, bfield):
         return value
-    
+
     def get_initial(self, form):
         '''\
 Get the initial value of field if available.
@@ -201,7 +201,7 @@ Get the initial value of field if available.
         if hasattr(initial,'__call__'):
             initial = initial(form)
         return initial
-        
+
     def get_default(self, bfield):
         default = self.default
         if hasattr(default,'__call__'):
@@ -210,14 +210,14 @@ Get the initial value of field if available.
 
     def model(self):
         return None
-    
+
     @property
     def is_hidden(self):
         return self.widget.is_hidden
-    
+
     def html_name(self, name):
         return name
-    
+
     def get_widget_data(self, bfield):
         '''Returns a dictionary of data to be added to the widget data
 attribute. By default return ``None``. Override for custom behaviour.
@@ -225,7 +225,7 @@ attribute. By default return ``None``. Override for custom behaviour.
 :parameter bfield: instance of :class:`BoundField` of this field.
 :rtype: an instance of ``dict`` or ``None``.'''
         return None
-    
+
 
 class CharField(Field):
     '''\
@@ -235,33 +235,33 @@ optional parameter (attribute):
 .. attribute:: max_length
 
     If provided, the text length will be validated accordingly.
-    
+
     Default ``None``.
-    
+
 .. attribute:: char_transform
 
     One of ``None``, ``u`` for upper and ``l`` for lower. If provided
     converts text to upper or lower.
-    
+
     Default ``None``.
-    
+
 .. attribute:: toslug
 
     If provided it will be used to create a slug text which can be used
     as URI without the need to escape.
     For example, if ``toslug`` is set to "_", than::
-    
+
         bla foo; bee
 
     becomes::
-    
+
         bla_foo_bee
-    
+
     Default ``None``
 '''
     default = ''
     widget = html.TextInput()
-    
+
     def handle_params(self, max_length = 30, char_transform = None,
                       toslug = None, **kwargs):
         if not max_length:
@@ -277,7 +277,7 @@ optional parameter (attribute):
             toslug = slugify(toslug)
         self.toslug = toslug
         self._raise_error(kwargs)
-        
+
     def _clean(self, value, bfield):
         try:
             value = to_string(value)
@@ -300,18 +300,18 @@ class IntegerField(Field):
     default = None
     widget = html.TextInput(cn='numeric')
     convert_error = '"{0}" is not a valid integer.'
-    
+
     def handle_params(self, validator = None, **kwargs):
         self.validator = validator
         self._raise_error(kwargs)
-        
+
     def clean(self, value, bfield):
         try:
             value = value.replace(',','')
         except AttributeError:
             pass
         return super(IntegerField,self).clean(value,bfield)
-    
+
     def _clean(self, value, bfield):
         try:
             value = int(value)
@@ -320,7 +320,7 @@ class IntegerField(Field):
             return value
         except:
             raise ValidationError(self.convert_error.format(value))
-        
+
 
 class FloatField(IntegerField):
     '''A field which normalises to a Python float value'''
@@ -333,12 +333,12 @@ class FloatField(IntegerField):
             return value
         except:
             raise ValidationError(self.validation_error.format(bfield,value))
-    
-        
+
+
 class DateField(Field):
     widget = html.TextInput(cn='dateinput')
     validation_error = '{1} is not a valid date.'
-    
+
     def _clean(self, value, bfield):
         if not isinstance(value, date):
             try:
@@ -347,26 +347,26 @@ class DateField(Field):
                 raise ValidationError(
                         self.validation_error.format(bfield, value))
         return self.todate(value)
-    
+
     def todate(self, value):
         if hasattr(value,'date'):
             value = value.date()
         return value
-    
+
 
 class DateTimeField(DateField):
-    
+
     def todate(self, value):
         if not hasattr(value, 'date'):
             value = datetime(value.year, value.month, value.day)
         return value
 
-    
+
 class BooleanField(Field):
     default = False
     required = False
     widget = html.CheckboxInput()
-    
+
     def clean(self, value, bfield):
         '''Clean the field value'''
         if value in NOTHING:
@@ -376,28 +376,28 @@ class BooleanField(Field):
                 return False
             else:
                 return bool(value)
-    
+
 
 class MultipleMixin(Field):
-    
+
     def handle_params(self, multiple = None, **kwargs):
         self.multiple = multiple or False
         if self.multiple:
             self.widget_attrs['multiple'] = 'multiple'
         self._raise_error(kwargs)
-    
+
     def html_name(self, name):
         return name if not self.multiple else '{0}[]'.format(name)
-    
+
     def value_from_datadict(self, data, files, key):
         return self._value_from_datadict(data,key)
-    
+
     def _value_from_datadict(self, data, key):
         if self.multiple and hasattr(data,'getlist'):
             return data.getlist(key)
         elif key in data:
             return data[key]
-    
+
 
 class ChoiceFieldOptions(object):
     '''A class for handling :class:`ChoiceField` options. Each
@@ -411,27 +411,27 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     be a callable returning one of the above also. If a callable it accept
     a :class:`BoundField` instance as only parameter.
     It can be a *generator function* (but not a generator).
-    
+
 .. attribute:: autocomplete
 
     An optional boolean indicating if the field is rendered as
     an autocomplete widget.
-    
+
     Default: ``False``.
 
 .. attribute:: multiple
 
     ``True`` if multiple choices are possible.
-    
+
     Default: ``False``.
-    
+
 .. attribute:: search
 
     A flag indicating if the field can be used as a search input in the case
     no choices where made.
-    
+
     Default: ``False``.
-    
+
 .. attribute:: empty_label
 
     If provided it represents an empty choice
@@ -446,7 +446,7 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     empty_label = '-----------'
     minLength = 2
     maxRows = 30
-    
+
     def __init__(self, **kwargs):
         cls = self.__class__
         for attname in kwargs:
@@ -455,32 +455,35 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
         self.mapper = orms.mapper(self.model) if self.model is not None\
                          else None
         self._setmodel(self.query)
-                
+
     def all(self, bfield):
-        '''An iterable over choices or ``None``.'''
+        '''Generator of choices.'''
         query = self.query
         if hasattr(query, '__call__'):
             query = query(bfield)
             self._setmodel(query)
+        # The choice field is based on a model and therefore a query
         if self.mapper:
             if not self.autocomplete:
                 query = query if query is not None else self.mapper.query()
                 for v in query:
+                    #TODO: allow for diferent attribute name for id
                     yield v.id, v
         elif query:
             for v in query:
                 yield v
-    
+
     def _setmodel(self, query):
+        # Set the model based on a query
         if not self.model and query is not None:
             self.model = getattr(query, 'model', None)
             if self.model:
                 self.mapper = orms.mapper(self.model)
-    
+
     def url(self, request):
         '''Retrieve a url for search.'''
         return None
-    
+
     def clean(self, value, bfield):
         '''Perform the cleaning of *value* for the :class:`BoundField`
 instance *bfield*. The :class:`ChoiceField` uses this method to
@@ -492,7 +495,7 @@ clean its values.'''
                 return self.clean_model_value(value, bfield)
         else:
             return self.clean_simple(value, bfield)
-        
+
     def clean_simple(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
         ch = set((to_string(x[0]) for x in self.all(bfield)))
@@ -505,7 +508,7 @@ clean its values.'''
             if v not in ch:
                 raise ValidationError('{0} is not a valid choice'.format(v))
         return value
-        
+
     def clean_model_value(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is defined
 and :attr:`multiple` is ``False``. It return an instance of :attr:`model`
@@ -523,11 +526,11 @@ is ``True``, in which case the value is returned.'''
             else:
                 raise ValidationError(
                     '{0} is not a valid {1}'.format(value,self.mapper))
-    
+
     def clean_multiple_model_value(self, value, bfield):
         field = '{0}__in'.format(self.field)
         return self.mapper.filter(**{field:value})
-    
+
     def widget_value(self, value):
         model = self.model
         if not value or not model:
@@ -536,13 +539,13 @@ is ``True``, in which case the value is returned.'''
             return [v.id if isinstance(v,model) else v for v in value]
         else:
             return value.id if isinstance(value,model) else value
-    
+
     def html_name(self, name):
         if not self.autocomplete and self.multiple:
             return '{0}[]'.format(name)
         else:
             return name
-            
+
     def get_widget_data(self, bfield):
         '''Called by the :meth:`Field.get_widget_data` method of
 :class:`ChoiceField`.'''
@@ -580,8 +583,8 @@ is ``True``, in which case the value is returned.'''
                 if values:
                     data['initial_value'] = values
         return {'options': data}
-    
-    
+
+
 class ChoiceField(MultipleMixin, Field):
     '''A :class:`Field` which validates against a set of ``choices``.
 It has several additional attributes which can be specified
@@ -594,7 +597,7 @@ via the :class:`ChoiceFieldOptions` class.
     attribute.
 '''
     widget = html.Select()
-    
+
     def handle_params(self, choices=None, **kwargs):
         '''Choices is an iterable or a callable which takes the
 form as only argument'''
@@ -612,11 +615,11 @@ form as only argument'''
         elif choices.multiple:
             self.widget_attrs['multiple'] = 'multiple'
         self._raise_error(kwargs)
-        
+
     @property
     def multiple(self):
         return self.choices.multiple
-                
+
     def _clean(self, value, bfield):
         if value is not None:
             try:
@@ -624,21 +627,21 @@ form as only argument'''
             except Exception as e:
                 raise ValidationError(str(e))
         return value
-    
+
     def get_widget_data(self, bfield):
         return self.choices.get_widget_data(bfield)
-        
+
     def html_name(self, name):
         return self.choices.html_name(name)
-    
-    
+
+
 class EmailField(CharField):
     pass
 
 
 class FileField(MultipleMixin, Field):
     widget = html.FileInput()
-    
+
     def value_from_datadict(self, data, files, key):
         res = self._value_from_datadict(files,key)
         if self.multiple:

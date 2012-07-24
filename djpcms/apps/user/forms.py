@@ -8,7 +8,7 @@ class LoginForm(forms.Form):
     username   = forms.CharField(max_length=30,
                     widget=html.TextInput(default_class = 'autocomplete-off'))
     password   = forms.CharField(max_length=60,widget=html.PasswordInput())
-    
+
     def clean(self):
         '''process login
         '''
@@ -21,13 +21,13 @@ class LoginForm(forms.Form):
                 return
         except ValueError as e:
             raise forms.ValidationError(str(e))
-            
+
         raise ValueError('No authentication backend available.')
-    
+
     def save(self,commit=True):
         return self.cleaned_data['user']
     save_as_new = save
-    
+
 
 class PasswordChange(forms.Form):
     password = forms.CharField(max_length=32,
@@ -35,12 +35,12 @@ class PasswordChange(forms.Form):
     re_type  = forms.CharField(max_length=32,
                                widget=html.PasswordInput(),
                                label="Re-enter password")
-    
+
     def clean(self):
         if not self.user:
             raise forms.ValidationError('Not logged in')
         return self.double_check_password()
-    
+
     def double_check_password(self):
         data     = self.cleaned_data
         password = data.get("password")
@@ -57,10 +57,10 @@ class PasswordChange(forms.Form):
             except:
                 pass
         return data
-        
- 
+
+
 class PasswordChangeForm(PasswordChange):
-    
+
     def save(self, commit = True):
         request = self.request
         user = self.user
@@ -71,22 +71,22 @@ class PasswordChangeForm(PasswordChange):
         pe = self.request.view.permissions
         pe.set_password(user, self.cleaned_data['password'])
         return user
-    
+
 
 def  change_passwrod_message(request, user, m):
     if request.user == user:
         return '{0}, you have successfully changed your password.'.format(user)
     else:
         return 'Successfully changed password for {0}.'.format(user)
-    
-    
+
+
 class RegisterForm(PasswordChange):
     '''use this form for a simple user registration with *username*,
 *password* and *password confirmation*.'''
     username = forms.CharField(max_length=32)
     #email_address = forms.CharField(
     #                    help_text="This will be used for confirmation only.")
-    
+
     def clean_username(self, value):
         '''Username must be unique and without spaces'''
         value = value.replace(' ','').lower()
@@ -96,17 +96,17 @@ class RegisterForm(PasswordChange):
             raise forms.ValidationError('Username "{0}" is not available.\
  Choose a different one.'.format(value))
         return value
-    
+
     def clean(self):
         return self.double_check_password()
-    
+
     def save(self, commit = True):
         '''Create the new user.'''
         cd = self.cleaned_data
         pe = self.request.view.permissions
         return pe.create_user(username = cd['username'],
                               password = cd['password'])
-    
+
 
 class UserChangeForm(forms.Form):
     first_name = forms.CharField(required=False)
@@ -114,16 +114,24 @@ class UserChangeForm(forms.Form):
     email_address = forms.CharField(required=False)
     is_superuser = forms.BooleanField()
     is_active = forms.BooleanField(initial=True)
-    
+
 
 class UserAddForm(RegisterForm, UserChangeForm):
     pass
-    
+
 HtmlLoginForm = forms.HtmlForm(
     LoginForm,
     success_message = lambda request, user:\
      '{0} successfully signed in'.format(user),
     inputs = (('Sign in','login_user'),)
+)
+
+HtmlAddUserForm = forms.HtmlForm(
+    UserAddForm,
+    layout = uni.FormLayout(uni.Fieldset('username','password','re_type')),
+    success_message = lambda request, user, m :\
+     'Successfully created user {0}.'.format(user),
+    inputs = (('create','create'),)
 )
 
 HtmlRegisterForm = forms.HtmlForm(

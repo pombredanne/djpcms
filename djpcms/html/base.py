@@ -28,7 +28,7 @@ __all__ = ['flatatt',
            'Img',
            'NON_BREACKING_SPACE']
 
-    
+
 default_widgets_makers = {}
 
 NON_BREACKING_SPACE = mark_safe('&nbsp;')
@@ -39,7 +39,7 @@ def attrsiter(attrs):
         if v not in NOTHING:
             yield " {0}='{1}'".format(k, escape(v,force=True))
 
-                
+
 def flatatt(attrs):
     return ''.join(attrsiter(attrs))
 
@@ -48,7 +48,7 @@ def render(request, data):
         return data.render(request)
     else:
         return data
-    
+
 def dump_data_value(v):
     if not is_string(v):
         if isinstance(v,bytes):
@@ -66,7 +66,7 @@ def iterable_for_widget(data):
         return data
     else:
         return (data,)
-    
+
 def update_mapping(d, u):
     for k, v in iteritems(u):
         if isinstance(v, Mapping):
@@ -97,20 +97,20 @@ def html_trace(exc_info, plain=False):
 
 
 class StreamRenderer(Deferred):
-    
+
     def __init__(self, stream, renderer=None, **params):
         super(StreamRenderer, self).__init__()
         self._m = MultiDeferred(stream, fireOnOneErrback=True, **params)\
                     .lock().addBoth(self.callback)
         self.renderer = renderer
         self.add_callback(self.post_process).add_callback(mark_safe)
-            
+
     def post_process(self, stream):
         if self.renderer:
             return self.renderer(stream)
         else:
             return ''.join(self._post_process(stream))
-        
+
     def _post_process(self, stream):
         for value in stream:
             if value is None:
@@ -121,14 +121,14 @@ class StreamRenderer(Deferred):
                 yield value
             else:
                 yield str(value)
-            
-            
+
+
 class AttributeMixin(object):
     classes = None
     data = None
     attrs = None
     _css = None
-    
+
     def __init__(self, cn=None, data=None, attrs=None, css=None):
         classes = self.classes
         self.classes = set()
@@ -141,29 +141,34 @@ class AttributeMixin(object):
         self.addAttrs(attrs)
         self.css(css)
         self.children = OrderedDict()
-        self.internal = {} 
-    
+        self.internal = {}
+
     def __getitem__(self, key):
         return self.children[key]
-    
+
     def allchildren(self):
         return itervalues(self.children)
-    
+
+    def __contains__(self, key):
+        if key not in self.children:
+            return False
+        return True
+
     def addAttr(self, name, val):
         '''Add the specific attribute to the attribute dictionary
 with key ``name`` and value ``value`` and return ``self``.'''
         if val is not None:
             self.attrs[name] = val
         return self
-    
+
     def addAttrs(self, mapping):
         if mapping:
             self.attrs.update(mapping)
         return self
-    
+
     def attr(self, name):
         return self.attrs.get(name)
-    
+
     def addClass(self, cn):
         '''Add the specific class names to the class set and return ``self``.'''
         if cn:
@@ -176,11 +181,11 @@ with key ``name`` and value ``value`` and return ``self``.'''
                 for cn in cn.split():
                     add(slugify(cn))
         return self
-    
+
     def hasClass(self, cn):
         '''``True`` if ``cn`` is a class of self.'''
         return cn in self.classes
-                
+
     def removeClass(self, cn):
         '''Remove classes
         '''
@@ -190,7 +195,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
                 if cn in ks:
                     ks.remove(cn)
         return self
-    
+
     def addData(self, name_or_mapping, val=None):
         '''Add/updated the data attribute.'''
         if val is not None:
@@ -205,7 +210,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
         if name_or_mapping:
             self.data[name_or_mapping] = val
         return self
-    
+
     def flatatt(self, **attrs):
         '''Return a string with atributes to add to the tag'''
         cs = ''
@@ -222,7 +227,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return flatatt(attrs)
         else:
             return ''
-    
+
     def css(self, mapping=None):
         '''Update the css dictionary if *mapping* is a dictionary, otherwise
  return the css value at *mapping*.'''
@@ -233,8 +238,8 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self
         else:
             return self._css.get(mapping)
-    
-    
+
+
 class Widget(Renderer, AttributeMixin):
     '''A class which exposes jQuery-alike API for
 handling HTML classes, attributes and data on a html element::
@@ -248,24 +253,24 @@ handling HTML classes, attributes and data on a html element::
     ' name="pippo" class="foo bla"'
 
 .. attribute:: data_stream
-    A list data elements 
-    
+    A list data elements
+
 .. attribute:: parent
 
     The parent :class:`Widget` holding ``self``.
-    
+
     Default ``None``
-    
+
 .. attribute:: root
 
     The root :class:`Widget` of the tree where ``self`` belongs to. This is
     obtained by recursively navigating up the :attr:`parent` attribute.
     If the element has no :attr:`parent`, return ``self``.
-'''    
+'''
     maker = None
     _streamed = False
     def __init__(self, maker=None, data_stream=None,
-                 cn=None, data=None, options=None, 
+                 cn=None, data=None, options=None,
                  css=None, **params):
         '''Initialize a widget. Usually this constructor is not invoked
 directly, Instead it is called by the callable :class:`WidgetMaker` which
@@ -297,31 +302,31 @@ is a factory of :class:`Widget`.
         self.add(data_stream)
         self.children.update(((k,maker.child_widget(c,self))\
                                 for k, c in iteritems(maker.children)))
-        
+
     def __repr__(self):
         if self.tag:
             return '<' + self.tag + self.flatatt() + '>'
         else:
             return '{0}({1})'.format(self.__class__.__name__,self.maker)
     __str__ = __repr__
-    
+
     def __len__(self):
         return len(self.data_stream)
-    
+
     def __iter__(self):
         return iter(self.data_stream)
-    
+
     def content_type(self):
         return 'text/html'
-    
+
     @property
     def parent(self):
         return self.internal.get('parent')
-    
+
     @property
     def key(self):
         return self.maker.key
-    
+
     @property
     def root(self):
         p = self.parent
@@ -329,11 +334,11 @@ is a factory of :class:`Widget`.
             return p.root
         else:
             return self
-    
+
     @property
     def data_stream(self):
         return self._data_stream
-    
+
     def add(self, data_stream):
         '''Add to the stream. This functions delegates the adding to the
  :meth:`WidgetMaker.add_to_widget` method.'''
@@ -342,23 +347,23 @@ is a factory of :class:`Widget`.
             for element in data_stream:
                 self.maker.add_to_widget(self, element)
         return self
-                
+
     def insert(self, position, element):
         self.maker.add_to_widget(self, element, position)
-    
+
     def render(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
-        
+
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
         return async_object(StreamRenderer(self.stream(request, context)))
-    
+
     def stream(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
-        
+
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
@@ -366,26 +371,26 @@ request object and a dictionary for rendering children with a key.
             raise RuntimeError('{0} Already streamed'.format(self))
         self._streamed = True
         return self.maker.stream_from_widget(request, self, context)
-    
+
     def hide(self):
         '''Set the ``css`` ``display`` property to ``none`` and return self
 for concatenation.'''
         self.css({'display':'none'})
         return self
-        
+
     def show(self):
         self.css.pop('display',None)
         return self
-    
+
 
 class WidgetMaker(Renderer, AttributeMixin):
     '''A :class:`Renderer` used as factory for :class:`Widget` instances.
 It is general enough that it can be use for a vast array of HTML widgets. For
-corner cases, users can subclass it to customize behavior. 
+corner cases, users can subclass it to customize behavior.
 
 :parameter inline: Its value is stored in the :attr:`inline` attribute.
 :parameter widget: Optional :class:`Widget` class which overrides the default.
-    
+
 --
 
 
@@ -395,59 +400,59 @@ corner cases, users can subclass it to customize behavior.
 .. attribute:: tag
 
     A HTML tag (ex. ``div``, ``a`` and so forth)
-    
+
     Default ``None``.
-    
+
 .. attribute:: attributes
 
     List of attributes supported by the widget.
-    
+
 .. attribute:: is_hidden
 
     If ``True`` the widget is hidden.
-    
+
     Default ``False``.
 
 .. attribute:: default_style
 
     default css class style for the widget.
-    
+
     Default ``None``.
-    
+
 .. attribute:: inline
 
     If ``True`` the element is rendered as an inline element::
-    
+
         <tag ....>
-        
+
     rather than::
-    
+
         <tag ...>
          ....
         </tag>
-    
+
 .. attribute:: children
 
     An ordered dictionary containing all :class:`WidgetMaker` instances
     which are direct children of the instance.
-        
+
 .. attribute:: widget_class
 
     The widget class used by the :meth:`widget` method when creating widgets.
-    
+
     Default: :class:`Widget`
-    
+
 .. attribute:: default
 
     Optional string which register the ``self`` as the default maker for
     the value of ``default``. For Example::
-    
+
         >>> from djpcms import html
         >>> html.WidgetMaker('div', default='div')
         >>> html.WidgetMaker('a', default='a.ajax')
         >>> html.Widget('a.ajax', cn='ciao').render(inner='bla bla')
         <a class='ciao ajax'>bla bla</a>
-        
+
     Default ``None``
 
 --
@@ -465,7 +470,7 @@ corner cases, users can subclass it to customize behavior.
     default_attrs = None
     _widget = None
     _media = None
-    
+
     def __init__(self, inline=None, default=False, description='', widget=None,
                  attributes=None, media=None, data=None, cn=None, key=None,
                  css=None, internal=None, **params):
@@ -500,22 +505,22 @@ corner cases, users can subclass it to customize behavior.
             default = self.tag
         if default:
             default_widgets_makers[default] = self
-    
+
     def __call__(self, data_stream=None, **params):
         # Create a Widget instance. data_stream is first so that it can
         # be passed as positional argument
         return self._widget(self, data_stream=data_stream, **params)
-        
+
     @property
     def widget_class(self):
         return self._widget
-    
+
     @classmethod
     def makeattr(cls, *attrs):
         attr = set(attrs)
         attr.update(cls.attributes)
         return attr
-    
+
     def __repr__(self):
         n =  '{0}{1}'.format(self.__class__.__name__,'-'+\
                              self.tag if self.tag else '')
@@ -523,7 +528,7 @@ corner cases, users can subclass it to customize behavior.
             n += '(' + self.key + ')'
         return n
     __str__ = __repr__
-    
+
     def add(self, *widgets):
         '''Add children *widgets* to this class:`WidgetMaker`.
 *widgets* must be class:`WidgetMaker`. It returns ``self`` for concatenation.'''
@@ -539,7 +544,7 @@ corner cases, users can subclass it to customize behavior.
             elif is_string_or_native_string(widget):
                 self.children[len(self.children)] = widget
         return self
-  
+
     def add_to_widget(self, widget, element, position=None):
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
@@ -552,12 +557,12 @@ corner cases, users can subclass it to customize behavior.
                 widget._data_stream.insert(position, element)
             else:
                 widget._data_stream.append(element)
-                    
+
     def get_context(self, request, widget, context):
         '''Called by the :meth:`inner` method to build extra context.
 By default it return *context*.'''
         return context
-        
+
     def stream_from_widget(self, request, widget, context):
         '''Render the *widget* using the *context* dictionary and
 information contained in this :class:`WidgetMaker`.'''
@@ -574,7 +579,7 @@ information contained in this :class:`WidgetMaker`.'''
                 yield '</' + widget.tag + '>'
         if request:
             request.media.add(self.media(request, widget))
-    
+
     def stream(self, request, widget, context):
         '''This method is called by :meth:`stream_from_widget` method.
 It returns an iterable over chunks of html to be displayed in the
@@ -599,7 +604,7 @@ inner part of the widget.
                     yield bit
             else:
                 yield data
-            
+
     def child_widget(self, child_maker, widget, **params):
         '''Function invoked when there are children available. See the
 :attr:`children`` attribute for more information on children.
@@ -615,7 +620,7 @@ inner part of the widget.
         p.update(params)
         p['parent'] = widget
         return child_maker(**p)
-    
+
     def media(self, request, widget):
         return self._media
 
@@ -630,10 +635,10 @@ class Anchor(WidgetMaker):
     tag = 'a'
     attributes = WidgetMaker.makeattr('href', 'charset', 'name', 'rel', 'rev',
                                       'shape', 'target')
-    
+
 class Div(WidgetMaker):
     tag = 'div'
-    
+
 # set defaults
 DefaultMaker = WidgetMaker()
 Img()

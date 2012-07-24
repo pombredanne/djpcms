@@ -27,34 +27,27 @@ def get_declared_application_routes(bases, attrs):
     """Create a list of Application views instances from the passed
 in 'attrs', plus any similar fields on the base classes (in 'bases')."""
     inherit = attrs.pop('inherit', True)
-    routes = []
+    pviews = {}
+    if inherit:
+        for base in reversed(bases):
+            if hasattr(base, 'base_routes') and base.base_routes:
+                pviews.update(((r.name, r) for r in base.base_routes))
     for app_name, obj in list(attrs.items()):
         if hasattr(obj, '__class__'):
             if isinstance(obj, View) or\
                  isinstance(obj.__class__, ApplicationMetaClass):
                 r = attrs.pop(app_name)
                 r.name = app_name
-                routes.append(r)    
-    # order the routes by creation counter
-    routes = sorted(routes, key=lambda x: x.view_ordering)
-    # If this class is subclassing another Application,
-    # and inherit is True add that Application's views.
-    # Note that we loop over the bases in *reverse*. This is necessary in
-    # order to preserve the correct order of fields.
-    if inherit:
-        added = False
-        for base in bases[::-1]:
-            if hasattr(base, 'base_routes') and base.base_routes:
-                added = True
-                routes = base.base_routes + routes
-        if added:
-            routes = list(itervalues(dict(((r.path,r) for r in routes))))
-            routes = sorted(routes, key=lambda x: x.view_ordering)
-    return routes
+                if r.name in pviews:
+                    # pick up the same order number
+                    r.view_ordering = pviews[r.name].view_ordering
+                pviews[r.name] = r
+    return list(sorted(itervalues(pviews), key= lambda x: x.view_ordering))
+
 
 def store_on_instance(f):
     name = '_djpcms_' + f.__name__
-    
+
     def _(self, instance):
         if not hasattr(instance,name):
             res = f(self, instance)
@@ -62,7 +55,7 @@ def store_on_instance(f):
                 setattr(instance,name,res)
             return res
         return getattr(instance,name)
-    
+
     _.__name__ = f.__name__
     _.__doc__ = f.__doc__
     return _
@@ -90,30 +83,30 @@ input parameters in the :class:`Application` constructor. For example, the
 snippets::
 
     from djpcms import views
-    
+
     VIEWS = (
         views.View(name = 'home', renderer = lambda djp : 'Hello world!'),
         views.View('/what'/, renderer = lambda djp : 'Whatever view!')
         )
-    
+
     app = views.Application('/', views = VIEWS)
-                    
+
 and::
 
     from djpcms import views
-    
+
     class MyApplication(views.Application):
         home = views.View(renderer = lambda djp : 'Hello world!')
         what = views.View("/what/", renderer=Lambda djp : 'whatever view!')
-                              
+
     app = MyApplication('/')
-    
+
 are equivalent and define an application serving on '/' with two views,
 the `home` serving at "/" and the `whatever` view serving at "/what/".
 The application class has several :ref:`attributes <application-attributes>`
 and :ref:`methods <application-methods>`, some of which can be
 overwritten to customize its behavior.
-    
+
 :parameter editavailable: ``True`` if :ref:`inline editing <inline-editing>`
                           is available for the application.
 :parameter list_display_links: set the :attr:`list_display_links`.
@@ -130,115 +123,115 @@ overwritten to customize its behavior.
 .. _application-attributes:
 
 **Application attributes**
-    
+
 .. attribute:: model
 
     Model associated with this application.
     Check :ref:`Object relational mapper <orms>` for more information.
-    
+
     Default: ``None``.
-    
+
 .. attribute:: cache_control
 
     The default Cache control headers for this :class:`Application`.
-    
+
 .. attribute:: mapper
 
     Instance of :class:`djpcms.utils.orms.OrmWrapper` or ``None``.
     Created from :attr:`model` if available, during construction.
-        
+
 .. attribute:: autocomplete_fields
 
     List of fields to load when querying for autocomplete. Usually you may
     want to limit this to a small set to speed up retrieval.
-    
+
     Default: ``None``.
-    
+
 .. attribute:: always_load_fields
 
     list or tuple of :attr:`model` fields which must be loaded every time
     we query the model. Used by the :meth:`load_fields` method.
-    
+
     Default: ``None``.
-        
+
 .. attribute:: list_display_links
 
     List of model fields to render as a link.
-     
+
      Default is ``None``.
-        
+
 .. attribute:: exclude_links
 
     List or tuple of view names to exclude form visible views.
-    
+
     Default: ``()``
-    
+
 .. attribute:: editavailable
 
     ``True`` if :ref:`inline editing <inline-editing>`
     is available for the application.
-    
+
 .. attribute:: root_view
 
     An instance of :class:`View` which represents the root view
     of the application.
     This attribute is calculated by djpcms and specified by the user.
-    
+
 .. attribute:: instance_view
 
     An instance of :class:`ViewView` which represents view which render
     the instance of a :attr:`model`.
     This attribute is calculated by djpcms and specified by the user.
-    
+
 .. attribute:: related_field
-    
+
     When a :attr:`parent` view is defined, this field represent the
     related field in the model which refers to the parent
     view instance.
 
 .. attribute:: object_widgets
-    
+
     Dictionary of object :class:`djpcms.html.WidgetMaker`.
-    
-    
+
+
 .. attribute:: object_display
 
     The field list is used to display the object definition.
     If not available, :attr:`pagination.list_display` is used.
-    
+
     Default ``None``.
-    
+
 .. attribute:: inherit
 
     Flag indicating if application views are inherited from base class.
-    
-    Default ``False``.    
-    
+
+    Default ``False``.
+
 .. attribute:: url_bits_mapping
-    
+
     An optional dictionary for mapping :class:`djpcms.cms.Route` variable names
     into attribute names of :attr:`model`. It is used when
     a :attr:`model` is available only. A typical usage::
-    
+
         from djpcms import views
-        
+
         class MyModel:
             id = ...
-            
+
         class MyApp(views.Application):
             model = MyModel
             url_bits_mapping = {'pid':'id'}
             view = views.ViewView('<pid>')
-            
+
     Here the ``pid`` variable is mapped to the ``id`` attribute of your model.
-    
+
     Default: ``None``.
 
 .. attribute:: views
 
     Dictionary of :class:`View` instances created during registration. The
     keys of the dictionary are the the view names.
-    
+
 --
 
 .. _application-methods:
@@ -295,44 +288,44 @@ overwritten to customize its behavior.
             for head in object_display or ():
                 head = table_header(head)
                 d.append(self.pagination.headers.get(head.code,head))
-            self.object_display = tuple(d)   
+            self.object_display = tuple(d)
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.clear()
-    
+
     def __copy__(self):
         o = ResolverMixin.__copy__(self)
         o.clear()
         return o
-    
+
     def clear(self):
         self.mapper = None
         self.root_view = None
         self.instance_view = None
         self.routes = []
         self.views = {}
-        
+
     def _site(self):
         if self.appmodel:
             return self.appmodel.site
         else:
             return self.parent
-                
+
     def applications(self):
         for app in self:
             if isinstance(app,Application):
                 yield app
                 for app in app.applications():
                     yield app
-                    
+
     def for_model(self, model, all = False):
         return self.parent.for_model(model, all = all)
-    
+
     def get_from_parent_object(self, parent, urlargs):
         return parent
-    
+
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
-    
+
     def get_form(self, request, form_class=None, addinputs=True, instance=None,
                  block=None, **kwargs):
         '''Build a form. This method is called by editing/adding views.
@@ -340,15 +333,15 @@ overwritten to customize its behavior.
 :parameter form_class: form class to use.
 
 :parameter addinputs: boolean flag indicating if submit inputs should be added.
-    
+
     Default ``True``.
 
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False``
     no instance will be passed to the form constructor.
     If ``None`` the instance will be obtained from '`request``.
-                     
+
     Default ``None``.
-    
+
 :parameter block: The content block holding the form.
 
 :rtype: An instance of :class:`djpcms.forms.Form`.
@@ -373,7 +366,7 @@ overwritten to customize its behavior.
                         addinputs=addinputs,
                         model=self.model,
                         **kwargs)
-    
+
     def table_generator(self, request, headers, qs):
         '''Return an generator from an iterable to be used
 to render a table.'''
@@ -381,7 +374,7 @@ to render a table.'''
 
     def addurl(self, request, name = 'add'):
         return None
-    
+
     def query(self, request, query=None, **kwargs):
         '''Overrides the :meth:`RendererMixin.query` to perform the base
 query from the request input parameters. If a :attr:`mapper` is available,
@@ -406,8 +399,8 @@ the *request*.'''
                 qs = qs.sort_by(self.pagination.ordering)
             return qs
         else:
-            return request.auth_children()  
-    
+            return request.auth_children()
+
     def render(self, request, **context):
         '''Default render method for this application.'''
         if 'query' not in context:
@@ -416,26 +409,26 @@ the *request*.'''
                     StreamRenderer(
                         context,
                         renderer=lambda r: self.render_query(request, **r)))
-    
+
     def render_query(self, request, query=None, **kwargs):
         '''Render a *query* as a table or a list of items.
 
 :param query: an iterable over items.
 '''
         return paginationResponse(request, query, **kwargs)
-        
+
     def gen_autocomplete(self, qs, maxRows = None):
         '''generator of 3-elements tuples for autocomplete responses.
 
 :parameter qs: the autocomplete query
 :paramater maxRows: optional number of rows.
-''' 
+'''
         if maxRows:
             qs = qs[:int(maxRows)]
         for q in qs:
             l = str(q)
             yield l, l, q.id
-        
+
     def table_column_groups(self, request):
         '''A hook for returning group of table headers before sending
 data to the client.
@@ -447,7 +440,7 @@ data to the client.
 
     By default it returns ``None``.'''
         pass
-    
+
     def load_fields(self, headers = None):
         '''Return a tuple containing the name of the fields to be loaded
 from attr:`model` if available. These fields are obtained from the
@@ -463,18 +456,18 @@ input *headers*.'''
             return tuple(load_only)
         else:
             return ()
-        
+
     ############################################################################
     ##    MODEL INSTANCE RELATED FUNCTIONS
     ############################################################################
-    
+
     def view_for_instance(self, request, instance):
         '''Return the :class:`View` for *instance*. By default it returns the
 :attr:`instance_view`.
 This is used when an :ref:`instance view <instance-views>`
 has been requested.'''
         return self.instance_view
-    
+
     def instance_from_variables(self, environ, urlargs):
         '''Retrieve an :attr:`model` instance from a dictionary of route
 variables values. This is used when an :ref:`instance view <instance-views>`
@@ -493,7 +486,7 @@ If the instance could not be retrieved, it raises a 404 exception.'''
             query = dict(self.urlbits(data=urlargs))
         except KeyError:
             raise Http404()
-        
+
         if self.mapper:
             try:
                 return self.mapper.get(**query)
@@ -509,8 +502,8 @@ If the instance could not be retrieved, it raises a 404 exception.'''
                     except Http404:
                         pass
         raise Http404()
-    
-    @store_on_instance        
+
+    @store_on_instance
     def variables_from_instance(self, instance):
         '''Override the :meth:`RouteMixin.variables_from_instance` method
 to obtain a dictionary of url variables from an instance of :attr:`model`.
@@ -523,7 +516,7 @@ has been requested. It uses the :meth:`urlbits` generator for the purpose.'''
                 bits.update(self.appmodel.variables_from_instance(related))
             bits.update(self.urlbits(instance = instance, bits = bits))
         return bits
-    
+
     def render_instance(self, request, instance=None, context=None, **kwargs):
         '''Render an instance of :attr:`model`.
 This is used when an :ref:`instance view <instance-views>`
@@ -549,31 +542,31 @@ has been requested.
             return result
         else:
             return ''
-        
+
     def render_instance_default(self, request, instance, block=None, **kwargs):
         return self.instance_template(instance=instance,
                                       appmodel=self,
                                       block=block)
-        
+
     def render_instance_list(self, request, instance, **kwargs):
         maker = ObjectItem()
         return maker(instance=instance, appmodel=self)
-    
+
     def instance_field_value(self, request, instance, field_name, val = None):
         '''Return the value associated with *field_name* for the
  object *instance*, an instance of :attr:`model`. This function is only used
  when the application as a model associated with it.
 
-:parameter request: a WSGI request. 
+:parameter request: a WSGI request.
 :parameter instance: an instance of :attr:`model`.
 :parameter field_name: name of the field to obtain value from.
 :parameter val: A value of the field already obtained.
 :return: the value of *field_name*.
- 
+
  By default it returns *val*.
  '''
         return val
-    
+
     def urlbits(self, instance = None, data = None, bits = None):
         '''Generator of key, value pairs of url variables
 from an *instance* of :attr:`model` or from a *data* dictionary.
@@ -582,11 +575,11 @@ to :attr:`model` attributes by using the :attr:`url_bits_mapping`
 and get the values. If an instance is provided it yields::
 
     url_variable_name, url_variable_value
-    
+
 otherwise::
 
     url_model_attribute, url_variable_value
-    
+
 This method is called by both :meth:`variables_from_instance` and
 :meth:`instance_field_value`.
 '''
@@ -606,7 +599,7 @@ This method is called by both :meth:`variables_from_instance` and
                             name=None, urlargs=None, asbutton=None,
                             icon=True):
         '''Obtain a link for instance field if possible.
-        
+
 :parameter instance: an instance of :attr`model`
 :parameter name: optional view name. By default it is the object view.
 :parameter field_name: the instance field name.
@@ -624,19 +617,19 @@ It uses the :func:`instance_field_view_value` for the purpose.
                                     icon=icon)
         else:
             return view
-    
+
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for
 the instance.'''
         id = self.mapper.unique_id(instance)
         instance.delete()
         return id
-    
+
     def get_instances(self, request):
         data = request.REQUEST
         if 'ids[]' in data:
             return self.mapper.filter(id__in = data.getlist('ids[]'))
-    
+
     def ajax__bulk_delete(self, request):
         '''An ajax view for deleting a list of ids.'''
         objs = self.get_instances(request)
@@ -649,17 +642,17 @@ the instance.'''
                 id = mapper.unique_id(id)
                 c.add(ajax.jremove(request.environ, '#'+id))
         return c
-    
+
     def redirect_url(self, request, instance = None, name = None):
         '''Evaluate a url for an applicationview.
 It uses the following algorithm:
-        
+
 * Checks if *name* correspond to a valid view in the :attr:`views` dictionary.
 * Checks if the view has a :attr:`View.redirect_to_view` attribute available.
 * Checks for the instance view via :meth:`view_for_instance` if the input
   *instance* is not ``None``.
 * Last it picks the :attr:`root_view`.
-        
+
 :parameter instance: optional instance.
 :parameter name: optional :class:`View` name in :attr:`views` dictionary.
 :rtype: a url string or ``None``.
@@ -687,35 +680,35 @@ It uses the following algorithm:
             view = request.for_path(view.path,instance=instance)
         if view:
                 return view.url
-              
+
     def meta_charset(self, request):
         return self.settings.DEFAULT_CHARSET
-            
+
     def meta_description(self, request):
         return self.settings.META_DESCRIPTION
-    
+
     def meta_keywords(self, request):
         return self.settings.META_KEYWORDS
-    
+
     def meta_author(self, request):
         return self.settings.META_AUTHOR
-    
+
     def meta_viewport(self, request):
         return self.settings.META_VIEWPORT
-    
-    ############################################################################    
+
+    ############################################################################
     #TODO
     #
     # OLD ModelApplication methods. NEEDS TO CHECK THEIR USE
-    
+
     def instancecode(self, request, instance):
         '''Obtain an unique code for an instance.
 Can be overritten to include request dictionary.'''
         return '%s:%s' % (instance._meta,instance.id)
-  
+
     ############################################################################
     ##  INTERNALS
-    
+
     def _addroutes(self):
         # Clone base_routes
         routes = []
@@ -746,7 +739,7 @@ Can be overritten to include request dictionary.'''
                 break
             if len(routes) == N:
                 raise UrlException('Cannot find parent views in "{0}"'\
-                                    .format(self))
+                                    .format(self.__repr__()))
         # Add routes sorted by creation counter
         for route in sorted(itervalues(processed),
                             key=lambda x: x.view_ordering):
@@ -755,8 +748,8 @@ Can be overritten to include request dictionary.'''
             if isinstance(route, View) and route.object_view:
                 self.object_views.append(route)
             self.routes.append(route)
-            
-    def _load(self):   
+
+    def _load(self):
         if not self.site:
             raise UrlException("There is no site for {0}\
  application.".format(self))
@@ -767,7 +760,7 @@ Can be overritten to include request dictionary.'''
         # Set the in_nav if required
         if self.in_nav and self.root_view:
             self.root_view.in_nav = self.in_nav
-        
+
         self.mapper = None if not self.model else orms.mapper(self.model)
         self.site.register_app(self)
         for view in self:
@@ -786,7 +779,7 @@ Can be overritten to include request dictionary.'''
  parameters to initialize objects.'.format(self.name))
                     self.model_url_bits = vars
                     if not self.url_bits_mapping:
-                        self.url_bits_mapping = dict(((v,v) for v in vars))   
+                        self.url_bits_mapping = dict(((v,v) for v in vars))
                 if self.has_plugins and view.has_plugins:
                     register_application(view)
             else:

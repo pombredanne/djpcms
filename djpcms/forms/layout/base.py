@@ -15,6 +15,7 @@ __all__ = ['BaseFormLayout',
            'FormLayout',
            'SubmitElement',
            'Fieldset',
+           'Inlineset',
            'Columns',
            'tab',
            'Tabs',
@@ -112,7 +113,7 @@ class FieldTemplate(FormTemplate):
                     wrapper.addClass(input_type)\
                            .addAttr('for', bfield.id).add(bfield.label)
                 else:
-                    wrapper.addClass(classes.ui_input)
+                    wrapper.addClass((classes.ui_input, classes.control))
                     if label_style == classes.nolabel:
                         if not w.attr('placeholder'):
                             w.addAttr('placeholder', bfield.label)
@@ -213,6 +214,30 @@ class Fieldset(FormLayoutElement):
     tag = 'fieldset'
 
 
+class Inlineset(FormLayoutElement):
+    tag = 'div'
+    field_widget_class = 'inline'
+    classes = 'ctrlHolder'
+
+    def __init__(self, *args, **kwargs):
+        self.label = kwargs.pop('label', None)
+        super(Inlineset, self).__init__(*args, **kwargs)
+        self.add(html.WidgetMaker(tag='label', key='label', cn='label'),
+                 html.WidgetMaker(tag='div', key='inputs', cn=classes.control))
+
+    def add(self, *widgets):
+        if 'inputs' in self:
+            return self['inputs'].add(*widgets)
+        else:
+            return super(Inlineset, self).add(*widgets)
+
+    def get_context(self, request, widget, context):
+        if self.label:
+            context = context if context is not None else {}
+            context['label'] = self.label
+        return context
+
+
 class MultiElement(FormLayoutElement):
     tag = 'div'
 
@@ -280,6 +305,7 @@ class tab(object):
     def __init__(self, name, *fields):
         self.name = name
         self.fields = fields
+
 
 class Tabs(MultiElement):
     classes = "formTabs"

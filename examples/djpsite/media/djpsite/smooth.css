@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-23 17:18:09.288000
-Time taken 0.433 seconds
+Created by djpcms.style 2012-07-24 17:53:42.048000
+Time taken 0.407 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1283,21 +1283,33 @@ label {
 }
 
 .checkbox {
+    padding-top: 5px;
+    line-height: normal;
     padding-left: 18px;
 }
 
 .radio {
+    padding-top: 5px;
+    line-height: normal;
     padding-left: 18px;
 }
 
 .checkbox input[type="checkbox"] {
     float: left;
+    cursor: pointer;
     margin-left: -18px;
+    margin-bottom: 0;
+    line-height: normal;
+    display: inline-block;
 }
 
 .radio input[type="radio"] {
     float: left;
+    cursor: pointer;
     margin-left: -18px;
+    margin-bottom: 0;
+    line-height: normal;
+    display: inline-block;
 }
 
 .radio.inline {
@@ -1360,12 +1372,20 @@ form.uniForm .inlineLabels .label {
     margin: 4px 2% 4px 0;
 }
 
-form.uniForm .inlineLabels .ui-input {
+form.uniForm .inlineLabels .control {
     margin-left: 34%;
 }
 
 form.uniForm .inlineLabels.btn-holder {
     padding-left: 34%;
+}
+
+form.uniForm .inline {
+    display: inline-block;
+}
+
+form.uniForm .inline + .inline {
+    margin-left: 10px;
 }
 
 form.uniForm .blockLabels .label {
@@ -2099,6 +2119,57 @@ th.ui-clickable {
 
 * html .ui-autocomplete {
     width: 1px;
+}
+
+.multiSelectContainer {
+    overflow: hidden;
+}
+
+.multiSelectContainer > .ui-input + .ui-input {
+    overflow: hidden;
+    margin-top: 0.25em;
+}
+
+.multiSelectContainer > .ui-input ul {
+    padding: 0;
+    width: 100%;
+    float: left;
+    margin: 0;
+}
+
+.multiSelectContainer > .ui-input ul > li {
+    padding: 4px 0 4px;
+    width: 100%;
+    margin: 0;
+}
+
+.multiSelectContainer .disabled {
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+.multiSelectList {
+    list-style: none;
+    position: relative;
+    display: block;
+}
+
+.multiSelectList li {
+    list-style: none;
+    position: relative;
+    float: left;
+}
+
+.multiSelectList li > span {
+    float: left;
+}
+
+.multiSelectList li > a {
+    float: right;
+}
+
+.edit-user {
+    width: 400px;
 }
 
 @font-face {

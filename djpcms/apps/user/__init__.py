@@ -6,14 +6,14 @@ as your user model, than you can define the application::
 
     from django.contrib.auth.models import User
     from djpcms.apps.user import UserApplication
-    
+
     UserApplication('/accounts/',User)
-     
+
 '''
 
 from djpcms.forms import HtmlForm
 
-from .forms import LoginForm, HtmlRegisterForm, \
+from .forms import LoginForm, HtmlRegisterForm, HtmlAddUserForm, \
                     UserChangeForm, HtmlLoginForm, HtmlChangePassword
 from .views import *
 
@@ -33,8 +33,15 @@ utility methods for dealing with users and user data.'''
     home = views.SearchView()
     login = LoginView()
     logout = LogoutView()
-    add = views.AddView(in_nav=0, form=HtmlRegisterForm, force_redirect=True)
-    
+    add = views.AddView(in_nav=0,
+                        form=HtmlAddUserForm,
+                        force_redirect=True)
+    register = views.AddView('/register',
+                             in_nav=0,
+                             linkname=lambda r: 'register',
+                             form=HtmlRegisterForm,
+                             force_redirect=True)
+
     def userhomeurl(self, request):
         '''The user home page url'''
         user = getattr(request,'user',None)
@@ -46,64 +53,20 @@ utility methods for dealing with users and user data.'''
             if view:
                 djp = view(request, instance = user)
                 return djp.url
-        
+
     def on_bound(self):
         '''Set the user model in the application site'''
         self.root.internals['User'] = self.mapper
-        
-    def instance_from_variables(self, environ, urlargs):
-        if self.userpage:
-            return super(UserAppBase,self).instance_from_variables(environ,
-                                                                   urlargs)
-        else:
-            return request.user
 
 
 class UserApplication(UserAppBase):
     '''This is a special Application since it deals with users and therefore is everywhere.
 No assumption has been taken over which model is used for storing user data.'''
-    in_nav = 0  
+    in_nav = 0
+    view = views.ViewView('<username>/')
+    change = views.ChangeView(form=HtmlForm(UserChangeForm))
     change_password = views.ChangeView('change-password',
-                                       has_plugins = True,
-                                       parent_view = 'home',
-                                       form = HtmlChangePassword)
-        
-    def has_add_permission(self, request = None, obj = None):
-        # Add new user permissions
-        if request:
-            if request.user.is_authenticated():
-                return True
-        return False
-    
-    def has_edit_permission(self, request = None, obj=None):
-        return permission(self,request,obj)
-
-
-class UserApplicationWithFilter(UserApplication):
-    '''Application for managing user home pages in the form of "/username/...".
-The userhome view'''
-    userpage = True
-    userhome = UserView('<username>/')
-    change  = views.ChangeView(parent_view = 'userhome',
-                               form = HtmlForm(UserChangeForm))
-    change_password = views.ChangeView('change-password',
-                                       parent_view = 'userhome',
-                                       has_plugins = True,
-                                       form = HtmlChangePassword)
-    #userdata = UserDataView('(?P<path>[\w./-]*)',
-    #                        parent_view = 'userhome')
-    
-    def for_user(self, djp):
-        '''If user instance not available, return None'''
-        try:
-            return djp.instance
-        except djp.http.Http404:
-            return None
-    
-    def get_view_from_path(self, path):
-        path = path.split('/')
-        
-
-class UserDataApplication(views.Application):
-    pass
-
+                                       linkname=lambda r: 'change password',
+                                       icon='icon-key',
+                                       has_plugins=True,
+                                       form=HtmlChangePassword)

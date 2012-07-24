@@ -26,20 +26,20 @@ __all__ = ['TextInput',
 
 class FieldWidget(WidgetMaker):
     attributes = WidgetMaker.makeattr('value', 'name', 'disabled', 'readonly')
-    
+
     def set_value(self, value, widget):
         widget.addAttr('value',value)
-    
+
 
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
     attributes = FieldWidget.makeattr('type', 'placeholder')
-    
+
 
 class TextInput(InputWidget):
     default_attrs = {'type': 'text'}
-    
+
     def media(self, request, widget):
         if widget.hasClass(classes.autocomplete):
             m = Media(js=['djpcms/autocomplete.js'])
@@ -51,30 +51,30 @@ class TextInput(InputWidget):
 
 class PasswordInput(InputWidget):
     default_attrs = {'type': 'password'}
-    
+
     def set_value(self, value, widget):
         pass
-    
-    
+
+
 class SubmitInput(InputWidget):
     classes = (classes.clickable, classes.button)
     default_attrs = {'type': 'submit'}
-    
-    
+
+
 class HiddenInput(InputWidget):
     is_hidden = True
     default_attrs = {'type': 'hidden'}
-    
-    
+
+
 class CheckboxInput(InputWidget):
     default_attrs = {'type': 'checkbox'}
     attributes = InputWidget.makeattr('type','checked')
-    
+
     def set_value(self, value, widget):
         if value:
             widget.attrs['checked'] = 'checked'
-    
-    
+
+
 class TextArea(InputWidget):
     tag = 'textarea'
     inline = False
@@ -86,45 +86,51 @@ class TextArea(InputWidget):
 
     def set_value(self, value, widget):
         widget.add(escape(value))
-        
-    
+
+
 class Select(FieldWidget):
     tag = 'select'
     inline = False
     attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
-    _option = '<option value="{0}"{1}>{2}</option>'
-    _selected = ' selected="selected"'
+    _option = '<option value="%s"%s>%s</option>'
     _media = Media(js=['djpcms/jquery.bsmselect.js'])
-    
+    _media = Media(js=['djpcms/plugins/multiselect.js'])
+
+    def option(self, value, text, selected=False):
+        if selected:
+            return self._option % (value,' selected="selected"', text)
+        else:
+            return self._option % (value,'', text)
+
     def set_value(self, val, widget):
+        # Set the value. We use the widget bound field to do that
+        bfield = widget.internal.get('bfield', None)
+        if bfield:
+            choices = bfield.field.choices
+            if val and choices.multiple and choices.mapper:
+                val = (el.id for el in val)
         if val:
             if not widget.attr('multiple'):
                 val = (val,)
             selected = tuple((to_string(v) for v in val))
         else:
             selected = ()
-        widget.add(self._all_choices(widget, selected))
-        
-    def _all_choices(self, widget, selected):
-        bfield =  widget.internal.get('bfield',None)
-        if not bfield:
-            return
-        choices = bfield.field.choices
-        option = self._option
-        if not bfield.field.required:
-            yield option.format('','',choices.empty_label)
-        for id,val in choices.all(bfield):
-            id = to_string(id)
-            if id in selected:
-                yield option.format(id,self._selected,val)
-            else:
-                yield option.format(id,'',val)
-    
-        
+        widget.add(self._all_choices(bfield, selected))
+
+    def _all_choices(self, bfield, selected):
+        if bfield:
+            choices = bfield.field.choices
+            if not bfield.field.required and not choices.multiple:
+                yield self.option('', choices.empty_label)
+            for id, val in choices.all(bfield):
+                id = to_string(id)
+                yield self.option(id, val, id in selected)
+
+
 class FileInput(InputWidget):
     default_attrs = {'type': 'file'}
     attributes = InputWidget.makeattr('multiple')
-    
+
 
 class List(WidgetMaker):
     tag='ul'
@@ -137,19 +143,19 @@ class List(WidgetMaker):
 #___________________________________________________ LIST DEFINITION
 class DefinitionList(WidgetMaker):
     tag = 'dl'
-    
+
     def add_to_widget(self, widget, elem):
         n = len(widget)
         tag = 'dt' if (n // 2)*2 == n else 'dd'
         return super(DefinitionList, self).add_to_widget(widget,
                                                          Widget(tag,elem))
-        
-        
+
+
 for tag in ('div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5',
             'tr', 'th', 'td', 'table', 'thead', 'tbody', 'tfoot',
             'li', 'span', 'button', 'i', 'dt', 'dd'):
     WidgetMaker(tag=tag)
-    
+
 
 TextInput(default='input:text')
 InputWidget(default='input:password')

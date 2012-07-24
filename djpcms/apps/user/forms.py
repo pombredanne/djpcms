@@ -84,14 +84,15 @@ class RegisterForm(PasswordChange):
     '''use this form for a simple user registration with *username*,
 *password* and *password confirmation*.'''
     username = forms.CharField(max_length=32)
-    #email_address = UniqueEmail(help_text="This will be used for confirmation only.")
+    #email_address = forms.CharField(
+    #                    help_text="This will be used for confirmation only.")
     
     def clean_username(self, value):
         '''Username must be unique and without spaces'''
         value = value.replace(' ','').lower()
         if not value:
             raise forms.ValidationError('Please provide a username')
-        elif self.mapper.filter(username = value):
+        elif self.mapper.filter(username=value):
             raise forms.ValidationError('Username "{0}" is not available.\
  Choose a different one.'.format(value))
         return value
@@ -108,13 +109,16 @@ class RegisterForm(PasswordChange):
     
 
 class UserChangeForm(forms.Form):
-    first_name = forms.CharField(required = False)
-    last_name = forms.CharField(required = False)
-    email = forms.CharField(required = False)
+    first_name = forms.CharField(required=False)
+    last_name = forms.CharField(required=False)
+    email_address = forms.CharField(required=False)
     is_superuser = forms.BooleanField()
-    is_active = forms.BooleanField(initial = True)
+    is_active = forms.BooleanField(initial=True)
     
 
+class UserAddForm(RegisterForm, UserChangeForm):
+    pass
+    
 HtmlLoginForm = forms.HtmlForm(
     LoginForm,
     success_message = lambda request, user:\

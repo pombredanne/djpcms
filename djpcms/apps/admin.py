@@ -105,6 +105,13 @@ class AdminApplicationSimple(views.Application):
     delete = views.DeleteView()
     
     
+class AdminApplicationMixin(object):
+    tabview = TabView('/<id>/all')
+    
+    def view_for_instance(self, request, instance):
+        return self.views.get('tabview')
+    
+    
 class AdminApplication(views.Application):
     has_plugins = False
     views_ordering = {'view':0,'change':1}

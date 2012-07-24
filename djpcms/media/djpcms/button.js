@@ -174,7 +174,7 @@
     });
     //
     $.djpcms.decorator({
-        name: 'asmSelect',
+        name: 'bsmSelect',
         selector: 'select[multiple="multiple"]',
         config: {
             addItemTarget: 'bottom',

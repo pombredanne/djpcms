@@ -160,7 +160,14 @@ class SiteMapApplication(views.Application):
 
 script_template = '''<script type='text/javascript'>
     (function() {
-        %s;
+        function run_script() {
+            %s
+        }
+        if ($('body').hasClass('djpcms-loaded')) {
+            run_script();
+        } else {
+            $.bind('djpcms-loaded', run_script);
+        }
     }());
 </script>
 '''

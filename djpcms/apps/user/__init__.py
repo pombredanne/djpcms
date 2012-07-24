@@ -29,13 +29,11 @@ utility methods for dealing with users and user data.'''
     name = 'accounts'
     userpage = False
     exclude_links = ('login','logout')
-    
+    #
     home = views.SearchView()
     login = LoginView()
     logout = LogoutView()
-    add = views.AddView(in_nav = 0,
-                        form = HtmlRegisterForm,
-                        force_redirect = True)
+    add = views.AddView(in_nav=0, form=HtmlRegisterForm, force_redirect=True)
     
     def userhomeurl(self, request):
         '''The user home page url'''
@@ -64,7 +62,6 @@ utility methods for dealing with users and user data.'''
 class UserApplication(UserAppBase):
     '''This is a special Application since it deals with users and therefore is everywhere.
 No assumption has been taken over which model is used for storing user data.'''
-    inherit = True
     in_nav = 0  
     change_password = views.ChangeView('change-password',
                                        has_plugins = True,
@@ -85,7 +82,6 @@ No assumption has been taken over which model is used for storing user data.'''
 class UserApplicationWithFilter(UserApplication):
     '''Application for managing user home pages in the form of "/username/...".
 The userhome view'''
-    inherit = True
     userpage = True
     userhome = UserView('<username>/')
     change  = views.ChangeView(parent_view = 'userhome',

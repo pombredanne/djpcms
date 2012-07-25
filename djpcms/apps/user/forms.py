@@ -5,13 +5,12 @@ from djpcms.forms import layout as uni
 class LoginForm(forms.Form):
     '''The Standard login form
     '''
-    username   = forms.CharField(max_length=30,
-                    widget=html.TextInput(default_class = 'autocomplete-off'))
-    password   = forms.CharField(max_length=60,widget=html.PasswordInput())
+    username = forms.CharField(max_length=30,
+                    widget=html.TextInput(cn='autocomplete-off'))
+    password = forms.CharField(max_length=60, widget=html.PasswordInput())
 
     def clean(self):
-        '''process login
-        '''
+        '''process login'''
         data = self.cleaned_data
         try:
             user = self.request.view.permissions.authenticate_and_login(
@@ -32,9 +31,9 @@ class LoginForm(forms.Form):
 class PasswordChange(forms.Form):
     password = forms.CharField(max_length=32,
                                widget=html.PasswordInput())
-    re_type  = forms.CharField(max_length=32,
-                               widget=html.PasswordInput(),
-                               label="Re-enter password")
+    re_type = forms.CharField(max_length=32,
+                              widget=html.PasswordInput(),
+                              label="Re-enter password")
 
     def clean(self):
         if not self.user:
@@ -61,7 +60,7 @@ class PasswordChange(forms.Form):
 
 class PasswordChangeForm(PasswordChange):
 
-    def save(self, commit = True):
+    def save(self, commit=True):
         request = self.request
         user = self.user
         if request:
@@ -71,13 +70,6 @@ class PasswordChangeForm(PasswordChange):
         pe = self.request.view.permissions
         pe.set_password(user, self.cleaned_data['password'])
         return user
-
-
-def  change_passwrod_message(request, user, m):
-    if request.user == user:
-        return '{0}, you have successfully changed your password.'.format(user)
-    else:
-        return 'Successfully changed password for {0}.'.format(user)
 
 
 class RegisterForm(PasswordChange):
@@ -119,31 +111,40 @@ class UserChangeForm(forms.Form):
 class UserAddForm(RegisterForm, UserChangeForm):
     pass
 
+
+def change_password_message(request, user):
+    if request.user == user:
+        return '%s, you have successfully changed your password.' % user
+    else:
+        return 'Successfully changed password for %s.' % user
+    
+############################################################## FORM LAYOUTS
+
 HtmlLoginForm = forms.HtmlForm(
     LoginForm,
     success_message = lambda request, user:\
-     '{0} successfully signed in'.format(user),
+     '%s successfully signed in' % user,
     inputs = (('Sign in','login_user'),)
 )
 
 HtmlAddUserForm = forms.HtmlForm(
     UserAddForm,
     layout = uni.FormLayout(uni.Fieldset('username','password','re_type')),
-    success_message = lambda request, user, m :\
-     'Successfully created user {0}.'.format(user),
+    success_message = lambda request, user:\
+        'User "%s" successfully created.' % user,
     inputs = (('create','create'),)
 )
 
 HtmlRegisterForm = forms.HtmlForm(
     RegisterForm,
     layout = uni.FormLayout(uni.Fieldset('username','password','re_type')),
-    success_message = lambda request, user, m :\
-     'Successfully created user {0}.'.format(user),
-    inputs = (('create','create'),)
+    success_message = lambda request, user:\
+        'User %s successfully registered.' % user,
+    inputs = (('register','create'),)
 )
 
 HtmlChangePassword = forms.HtmlForm(
     PasswordChangeForm,
-    success_message = change_passwrod_message,
+    success_message = change_password_message,
     inputs = (('change','change'),)
 )

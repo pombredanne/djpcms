@@ -171,6 +171,11 @@ of this field. Returns None if it's not provided.
         if key in data:
             return data[key]
 
+    def value_from_instance(self, instance):
+        '''Extract a value from an *instance*. By default it raises a ValueError
+so that the :meth:`Form.value_from_instance` is used.'''
+        raise ValueError()
+
     def _raise_error(self, kwargs):
         keys = list(kwargs)
         if keys:
@@ -198,7 +203,7 @@ Get the initial value of field if available.
                  where the ``self`` is declared.
         '''
         initial = self.initial
-        if hasattr(initial,'__call__'):
+        if hasattr(initial, '__call__'):
             initial = initial(form)
         return initial
 
@@ -393,24 +398,27 @@ class MultipleMixin(Field):
         return self._value_from_datadict(data,key)
 
     def _value_from_datadict(self, data, key):
-        if self.multiple and hasattr(data,'getlist'):
-            return data.getlist(key)
-        elif key in data:
-            return data[key]
+        if key in data:
+            if self.multiple and hasattr(data,'getlist'):
+                return data.getlist(key)
+            else:
+                return data[key]
 
 
 class ChoiceFieldOptions(object):
     '''A class for handling :class:`ChoiceField` options. Each
-parameters can be overridden at initialization. It can handle both
-queries on models as well as list of two-elements tuples ``(value,label)``.
+parameters can be overridden at during initialisation. It can handle both
+queries on models as well as list of two-elements tuples ``(value, label)``.
 
 .. attribute:: query
 
-    In most cases, this is the only attribute required. It can be an iterable
-    over two elements tuples, a query set on a model or ``None``. It can
-    be a callable returning one of the above also. If a callable it accept
-    a :class:`BoundField` instance as only parameter.
-    It can be a *generator function* (but not a generator).
+    In most cases, this is the only attribute required. It can be
+     * an iterable over two elements tuples (but not a generator).
+     * a query on a model
+     * ``None``
+     * a callable returning one of the above. The callable must accept
+       a :class:`BoundField` instance as only parameter.
+       It can be a *generator function*.
 
 .. attribute:: autocomplete
 
@@ -444,6 +452,7 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
     search = False
     autocomplete = None
     empty_label = '-----------'
+    with_empty_label = None
     minLength = 2
     maxRows = 30
 
@@ -456,8 +465,11 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
                          else None
         self._setmodel(self.query)
 
-    def all(self, bfield):
-        '''Generator of choices.'''
+    def all(self, bfield, html=False):
+        '''Generator of all choices.'''
+        if html and not self.multiple and\
+             (self.with_empty_label or not bfield.field.required):
+            yield ('', self.empty_label)
         query = self.query
         if hasattr(query, '__call__'):
             query = query(bfield)
@@ -473,12 +485,30 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
             for v in query:
                 yield v
 
-    def _setmodel(self, query):
-        # Set the model based on a query
-        if not self.model and query is not None:
-            self.model = getattr(query, 'model', None)
-            if self.model:
-                self.mapper = orms.mapper(self.model)
+    def html_value(self, val):
+        '''Convert val into a suitable html value'''
+        if val:
+            single_value = self.html_single_value
+            if self.multiple:
+                val = (single_value(el) for el in val)
+            else:
+                val = single_value(val)
+        return val
+
+    def html_single_value(self, value):
+        '''Convert the single *value* into a suitable html value'''
+        if self.mapper and hasattr(value, 'id'):
+            value = value.id
+        return value
+
+    def get_initial(self, field, form):
+        initial = field.initial
+        if hasattr(initial, '__call__'):
+            initial = initial(form)
+        return initial
+
+    def value_from_instance(self, field, instance):
+        raise ValueError()
 
     def url(self, request):
         '''Retrieve a url for search.'''
@@ -486,30 +516,32 @@ queries on models as well as list of two-elements tuples ``(value,label)``.
 
     def clean(self, value, bfield):
         '''Perform the cleaning of *value* for the :class:`BoundField`
-instance *bfield*. The :class:`ChoiceField` uses this method to
+instance *bfield*. The :meth:`ChoiceField.clean` uses this method to
 clean its values.'''
         if self.mapper:
             if self.multiple:
-                return self.clean_multiple_model_value(value, bfield)
+                return self._clean_multiple_model_value(value, bfield)
             else:
-                return self.clean_model_value(value, bfield)
+                return self._clean_model_value(value, bfield)
         else:
-            return self.clean_simple(value, bfield)
+            return self._clean_simple(value, bfield)
 
-    def clean_simple(self, value, bfield):
+    #    INTERNALS
+
+    def _clean_simple(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
         ch = set((to_string(x[0]) for x in self.all(bfield)))
         values = value if self.multiple else (value,)
-        if not isinstance(values,(list,tuple)):
+        if not isinstance(values, (list, tuple)):
             raise ValidationError('Critical error. {0} is not a list'\
                                   .format(values))
         for v in values:
-            v = str(v)
+            v = to_string(v)
             if v not in ch:
-                raise ValidationError('{0} is not a valid choice'.format(v))
+                raise ValidationError('%s is not a valid choice' % v)
         return value
 
-    def clean_model_value(self, value, bfield):
+    def _clean_model_value(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is defined
 and :attr:`multiple` is ``False``. It return an instance of :attr:`model`
 otherwise it raises a validation exception unless :attr:`search`
@@ -527,9 +559,9 @@ is ``True``, in which case the value is returned.'''
                 raise ValidationError(
                     '{0} is not a valid {1}'.format(value,self.mapper))
 
-    def clean_multiple_model_value(self, value, bfield):
+    def _clean_multiple_model_value(self, value, bfield):
         field = '{0}__in'.format(self.field)
-        return self.mapper.filter(**{field:value})
+        return self.mapper.filter(**{field: value})
 
     def widget_value(self, value):
         model = self.model
@@ -584,6 +616,13 @@ is ``True``, in which case the value is returned.'''
                     data['initial_value'] = values
         return {'options': data}
 
+    def _setmodel(self, query):
+        # Set the model based on a query
+        if not self.model and query is not None:
+            self.model = getattr(query, 'model', None)
+            if self.model:
+                self.mapper = orms.mapper(self.model)
+
 
 class ChoiceField(MultipleMixin, Field):
     '''A :class:`Field` which validates against a set of ``choices``.
@@ -597,6 +636,14 @@ via the :class:`ChoiceFieldOptions` class.
     attribute.
 '''
     widget = html.Select()
+
+    def get_initial(self, form):
+        # Delegate to choices
+        return self.choices.get_initial(self, form)
+
+    def value_from_instance(self, instance):
+        # Delegate to choices
+        return self.choices.value_from_instance(self, instance)
 
     def handle_params(self, choices=None, **kwargs):
         '''Choices is an iterable or a callable which takes the

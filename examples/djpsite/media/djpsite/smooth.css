@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-25 07:04:46.253417
-Time taken 0.444 seconds
+Created by djpcms.style 2012-07-25 13:31:03.754000
+Time taken 0.405 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1436,19 +1436,19 @@ table.uniFormTable input[type="checkbox"] {
 }
 
 table.uniFormTable th {
-    padding: 4px 0 4px 4px;
+    padding: 4px;
 }
 
 table.uniFormTable td {
-    padding: 4px 0 4px 4px;
-}
-
-table.uniFormTable th:last-child {
     padding: 4px;
 }
 
-table.uniFormTable td:last-child {
-    padding: 4px;
+table.uniFormTable th + th {
+    padding: 4px 4px 4px 0;
+}
+
+table.uniFormTable td + td {
+    padding: 4px 4px 4px 0;
 }
 
 table.uniFormTable:before {
@@ -1462,8 +1462,9 @@ table.uniFormTable:after {
     clear: both;
 }
 
-table.uniFormTable td.error:last-child {
-    padding: 4px;
+table.uniFormTable td.error {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 textarea.taboverride {

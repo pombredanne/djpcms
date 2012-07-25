@@ -14,8 +14,8 @@ from .globals import ValidationError
 from .fields import IntegerField, CharField
 
 __all__ = ['FormSet']
-        
-        
+
+
 class FormSet(UnicodeMixin):
     '''A factory class for foreign keys model fields. Instances
 of this class are declared in the body of a :class:`Form`.
@@ -26,35 +26,35 @@ of this class are declared in the body of a :class:`Form`.
     specifies the related model.
 :parameter clean: A function which takes the formset instance as parameter
     and perform the last validation check on all forms.
-                  
+
     Default ``None``.
 :parameter instances_from_related: a callable for retrieving instances
     from the related instance.
-                                   
+
     Default ``None``.
-    
+
 :parameter initial_length: The initial number of forms. This is the number
     of forms when no instance is available. By setting this number to ``0``
     there won't be any forms when no related instance is available.
-    
+
     Default ``3``.
 
 :parameter extra_length: When a related instance is available, this is the
     number of extra form to add to the formset.
-    
+
     Default ``3``.
 '''
     creation_counter = 0
     NUMBER_OF_FORMS_CODE = 'NUMBER_OF_FORMS'
-    
+
     def __init__(self,
                  form_class,
-                 model = None,
-                 related_name = None,
-                 clean = None,
-                 initial_length = 3,
-                 extra_length = 3,
-                 instances_from_related = None):
+                 model=None,
+                 related_name=None,
+                 clean=None,
+                 initial_length=3,
+                 extra_length=3,
+                 instances_from_related=None):
         self.form_class = form_class
         self.model = model
         self.mapper = orms.mapper(model)
@@ -72,29 +72,29 @@ of this class are declared in the body of a :class:`Form`.
         self.extra_length = extra_length
         FormSet.creation_counter += 1
         self.form = None
-    
+
     def __call__(self, form):
         fset = copy(self)
         fset.form = form
         return fset
-    
+
     @property
     def is_bound(self):
         if self.form:
             return self.form.is_bound
         else:
             return False
-        
+
     @property
     def errors(self):
         self._unwind()
         return self._errors
-    
+
     @property
     def forms(self):
         self._unwind()
         return self._forms
-    
+
     def _unwind(self):
         if hasattr(self,'_forms'):
             return
@@ -106,7 +106,7 @@ of this class are declared in the body of a :class:`Form`.
         forms = self._forms = []
         is_bound = self.is_bound
         nf = '{0}{1}'.format(self.prefix,self.NUMBER_OF_FORMS_CODE)
-        instances = [] 
+        instances = []
         if is_bound:
             if nf not in form.rawdata:
                 raise ValidationError(\
@@ -124,23 +124,23 @@ of this class are declared in the body of a :class:`Form`.
                 instances = list(instances)
                 num_forms = self.extra_length + len(instances)
             num_forms = max(num_forms,self.initial_length)
-        
+
         self.num_forms = HiddenInput(name = nf, value = num_forms)
-        
+
         for idx,instance in zip_longest(range(num_forms),instances):
             f = self.get_form(self.prefix, idx, instance)
             if f is not None:
                 forms.append(f)
                 errors.update(f.errors)
-        
+
         if is_bound and not errors and self.clean:
             try:
                 self.clean(self)
             except ValidationError as e:
                 self.form.add_error(to_string(e))
-                
-            
-    def get_form(self, prefix, idx, instance = None):
+
+
+    def get_form(self, prefix, idx, instance=None):
         form = self.form
         related = form.instance
         prefix = '{0}{1}_'.format(prefix,idx)
@@ -163,22 +163,21 @@ of this class are declared in the body of a :class:`Form`.
             if not f.changed:
                 f._errors = {}
         return f
-    
+
     def clean(self):
         '''Equivalent to the :meth:`Form.clean` method, it
 is the last step in the validation process for a set of related forms.
 This method can be overridden in the constructor.'''
         pass
-        
+
     def save(self):
         for form in self.forms:
             if form.changed:
                 form.cleaned_data[self.related_name] = self.form.instance
                 form.save()
-        
+
     def set_save_as_new(self):
         for form in self.forms:
             if form.changed:
                 form.instance.id = None
                 form.cleaned_data.pop('id',None)
-    

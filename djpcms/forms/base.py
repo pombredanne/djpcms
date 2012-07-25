@@ -31,9 +31,9 @@ class FieldList(list):
  It can be used to specify fields
  using a declarative list in a :class:`Form` class.
  For example::
- 
+
      from djpcms import forms
-     
+
      class MyForm(forms.Form):
          some_fields = forms.FieldList(('name',forms.CharField()),
                                        ('description',forms.CharField()))
@@ -41,7 +41,7 @@ class FieldList(list):
     def __init__(self, data=None, withprefix=True):
         self.withprefix = withprefix
         super(FieldList, self).__init__(data or ())
-        
+
     def fields(self, prefix=None):
         for nf in self:
             name, field = nf[0], nf[1]
@@ -55,7 +55,7 @@ class FieldList(list):
                 if isinstance(field, type):
                     field = field(initial=initial)
                 yield name, field
-                
+
 
 def get_form_meta_data(bases, attrs, with_base_fields=True):
     fields = []
@@ -71,10 +71,10 @@ def get_form_meta_data(bases, attrs, with_base_fields=True):
         elif isinstance(obj, FormSet):
             obj.name = name
             inlines.append((name, attrs.pop(name)))
-                        
+
     fields = sorted(fields, key=lambda x: x[1].creation_counter)
     inlines = sorted(inlines, key=lambda x: x[1].creation_counter)
-    
+
     # If this class is subclassing another Form, add that Form's fields.
     # Note that we loop over the bases in *reverse*. This is necessary in
     # order to preserve the correct order of fields.
@@ -101,10 +101,10 @@ class FormType(type):
         attrs['base_inlines'] = inlines
         new_class = super(FormType,cls).__new__(cls, name, bases, attrs)
         return new_class
-    
+
 
 # Base class for forms. Hack taht works for python 2 and python 3
-BaseForm = FormType('BaseForm',(UnicodeMixin,),{})    
+BaseForm = FormType('BaseForm',(UnicodeMixin,),{})
 
 
 class Form(BaseForm):
@@ -115,56 +115,56 @@ procedure calls validation.
 .. attribute:: is_bound
 
     If ``True`` the form has data which can be validated.
-    
+
 .. attribute:: initial
 
     Dictionary of initial values for fields. The values in :attr:`initial` are
     only used when :attr:`is_bound` is ``False``.
-    
+
 .. attribute:: request
 
     An instance of a Http request class stored for convenience.
     The Form itself does not use it, however user's implementations
     may want to access it.
     In custom validation functions for example. Default ``None``.
-    
+
 .. attribute:: widget_attrs
 
     dictionary of widget attributes. Used for midifying widget html attributes.
-    
+
     Default: ``None``.
-    
+
 .. attribute:: forms
 
     A list of :class:`Form` classes. If available, the forms are used to
     create sub-forms which are included in the current form.
-    
+
     Default: ``[]``.
-    
+
 .. attribute:: form_sets
 
     A disctionary of :class:`FormSet` instances. If available,
     form-sets are used to create a given number of sub-forms which are
     included in the current form.
-    
+
     Default: ``{}``.
-    
+
 .. attribute:: instance
 
     An optional instance of a model.
-    
+
     Default: ``None``.
 '''
     prefix_input = '_prefixed'
     request = None
-    
+
     def __init__(self, data=None, files=None, initial=None, prefix=None,
                  model=None, instance=None, request=None, environ=None,
                  on_submit=None):
         '''Initialize a :class:`Form` with *data* or *initial* values.
 If *data* is not ``None`` the form will bound itself to the data, otherwise
 it remains unbounded.
-    
+
 :parameter data: dictionary type object containing data to validate.
 :parameter files: dictionary type object containing files to upload.
 :parameter initial: dictionary type object containing initial values for
@@ -191,9 +191,9 @@ it remains unbounded.
         self.request = request
         self.environ = environ
         if environ is None:
-            self.environ = getattr(request, 'environ')
+            self.environ = getattr(request, 'environ', None)
         self.changed = False
-        self.user = getattr(request,'user',None) if request else None 
+        self.user = getattr(request,'user',None) if request else None
         if self.instance:
             model = self.instance.__class__
         if model:
@@ -203,7 +203,7 @@ it remains unbounded.
         else:
             self.mapper = None
         self.form_sets = {}
-        for name,fset in self.base_inlines.items():
+        for name, fset in self.base_inlines.items():
             self.form_sets[name] = fset(self)
         self.forms = []
         if on_submit is not None:
@@ -214,12 +214,12 @@ it remains unbounded.
     @property
     def model(self):
         return self.mapper.model if self.mapper is not None else None
-    
+
     @property
     def data(self):
         self._unwind()
         return self._data
-    
+
     @property
     def cleaned_data(self):
         '''Form cleaned data, the data after the validation
@@ -228,7 +228,7 @@ not yet validated, this property will kick off the process and return
 cleaned.'''
         self._unwind()
         return self._cleaned_data
-        
+
     @property
     def errors(self):
         '''Dictionary of errors, if any, after validation. If the form was
@@ -236,7 +236,7 @@ not yet validated, this property will kick off the process and returns errors
 if they occur.'''
         self._unwind()
         return self._errors
-    
+
     @property
     def fields(self):
         '''List of :class:`BoundField` instances after
@@ -244,37 +244,40 @@ validation, if the form is bound, otherwise a list of :class:`BoundField`
 instances with initial values.'''
         self._unwind()
         return self._fields
-    
+
     @property
     def dfields(self):
         '''Dictionary of :class:`BoundField` instances after
 validation.'''
         self._unwind()
         return self._fields_dict
-    
+
     @property
     def view(self):
         if self.request:
             return self.request.view
-        
+
     def _fill_initial(self):
         # Fill the initial dictionary with data from fields and from
         # the instance if available
         initials = self.initial
         instance = self.instance
-        instanceid = instance.id if instance else None
-        for name,field in iteritems(self.base_fields):
+        instance_id = instance.id if instance else None
+        for name, field in iteritems(self.base_fields):
             if name in initials:
                 continue
             initial = field.get_initial(self)
             # Instance with id can override the initial value
-            if instance and instanceid:
-                value = self.value_from_instance(instance, name)
+            if instance and instance_id:
+                try:
+                    value = field.value_from_instance(instance)
+                except ValueError:
+                    value = self.value_from_instance(instance, name)
                 if value is not None:
                     initial = value
             if initial is not None:
                 initials[name] = initial
-    
+
     def value_from_instance(self, instance, name):
         '''Utility function for extracting an attribute value from an
 *instance*. This function is called when :class:`Form` is not bounded to data
@@ -282,11 +285,11 @@ and an :attr:`instance` of a model is available.
 
 By default it returns the attribute value for the instance or ``None``.
 Override if you need to.'''
-        value = getattr(instance,name,None)
-        if hasattr(value,'__call__'):
+        value = getattr(instance, name, None)
+        if hasattr(value, '__call__'):
             value = value()
         return value
-        
+
     def get_prefix(self, prefix, data):
         if data and self.prefix_input in data:
             return data[self.prefix_input]
@@ -296,10 +299,10 @@ Override if you need to.'''
             return prefix
         else:
             return ''
-    
+
     def additional_data(self):
         return None
-        
+
     def _unwind(self):
         '''unwind the form by building bound fields and validating
 if it is bound.'''
@@ -312,16 +315,16 @@ if it is bound.'''
         if rawdata:
             rawdata.update(self.rawdata)
         else:
-            rawdata = self.rawdata 
+            rawdata = self.rawdata
         files = self._files
         self._fields = fields = []
         self._fields_dict = dfields = {}
-        
+
         prefix = self.prefix
         self.initial = initial = self.initial
         is_bound = self.is_bound
         form_message = self.form_message
-        
+
         # Loop over form fields
         for name, field in iteritems(self.base_fields):
             bfield = BoundField(self, field, name, self.prefix)
@@ -329,7 +332,7 @@ if it is bound.'''
             fields.append(bfield)
             dfields[name] = bfield
             field_value = None
-            
+
             if is_bound:
                 rawvalue = field_value = field.value_from_datadict(
                                     rawdata, files, key)
@@ -344,23 +347,23 @@ if it is bound.'''
                     cleaned[name] = value
                 except ValidationError as e:
                     form_message(errors, name, to_string(e))
-            
+
             elif name in initial:
                 data[name] = field_value = initial[name]
-            
+
             bfield.value = field_value
-                
+
         if is_bound and not errors:
             self._cleaned_data = cleaned
-        
+
             # Invoke the form clean method. Usefull for last minute
             # checking or cross field checking
             try:
                 self.clean()
             except ValidationError as e:
                 form_message(errors, '__all__', to_string(e))
-                del self._cleaned_data                
-                
+                del self._cleaned_data
+
     def form_message(self, container, key, msg):
         '''Add a message to a message container in the form.
 Messages can be errors or not. If the message is empty, it does nothing.
@@ -373,7 +376,7 @@ Messages can be errors or not. If the message is empty, it does nothing.
                 container[key].append(msg)
             else:
                 container[key] = [msg]
-            
+
     def is_valid(self):
         '''Check if Form is valid, including any subforms'''
         if self.is_bound:
@@ -385,7 +388,7 @@ Messages can be errors or not. If the message is empty, it does nothing.
                 return True
             return False
         return False
-    
+
     def clean(self):
         '''The form clean method. Called last in the validation algorithm.
 By default it does nothing but it can be overritten to cross checking
@@ -393,20 +396,20 @@ fields for example. It doesn't need to return anything, just throw a
 :class:`djpcms.ValidationError` in case the cleaning is not successful.
  '''
         pass
-    
+
     def add_message(self, msg):
         self.form_message(self.messages, '__all__', msg)
-        
+
     def add_error(self, msg):
         self.form_message(self.errors, '__all__', msg)
-    
+
     def save_as_new(self, commit = True):
-        if self.instance is not None:            
+        if self.instance is not None:
             self.instance.id = None
             for fset in self.form_sets.values():
                 fset.set_save_as_new()
         return self.save(commit = commit)
-    
+
     def save(self, commit=True):
         '''Save the form and return a model instance.
 This method works if an instance or a model is available.
@@ -421,32 +424,32 @@ This method works if an instance or a model is available.
                 for fset in self.form_sets.values():
                     fset.save()
         return obj
-    
+
     def on_submit(self, commit):
         '''Hook to modify/manipulate data before submitting the form.
         It is advised to override this function rather than the save method.'''
         pass
-    
+
     def tojson(self):
         if self.is_valid():
             return json.dumps(self.cleaned_data)
         else:
             return ''
-        
+
     def get_widget_data(self, bound_field):
         pass
-        
+
     @classmethod
     def initials(cls):
         '''Iterator over initial field values.
 Check the :attr:`Field.initial` attribute for more information.
 This class method can be useful when using forms outside web applications.'''
-        for name,field in iteritems(cls.base_fields):
+        for name, field in iteritems(cls.base_fields):
             initial = field.get_initial(cls)
-            if initial is not None: 
-                yield name,initial
-        
-        
+            if initial is not None:
+                yield name, initial
+
+
 class BoundField(object):
     '''A Wrapper containing a :class:`Form` instance,
 a :class:`Field` instance which belongs to the form,
@@ -457,25 +460,25 @@ and shouldn't be used otherwise.
 .. attribute:: form
 
     An instance of :class:`Form`
-    
+
 .. attribute::    field
 
     An instance of :class:`Field`
-    
+
 .. attribute::    request
 
     An instance of :class:`djpcms.core.Request`
-    
+
 .. attribute::    name
 
     The :attr:`field` name (the key in the forms's fields dictionary).
-    
+
 .. attribute::    html_name
 
     The :attr:`field` name to be used in HTML.
 '''
     auto_id='id_{0[for_name]}'
-    
+
     def __init__(self, form, field, name, prefix):
         self.form = form
         self.field = field
@@ -492,24 +495,24 @@ and shouldn't be used otherwise.
         self.help_text = field.help_text
         self.id = self.auto_id.format(self.__dict__)
         self.errors_id = self.id + '-errors'
-    
+
     def __repr__(self):
         return '{0}: {1}'.format(self.name,self.value)
-    
+
     @property
     def is_hidden(self):
         return self.field.is_hidden
-    
+
     @property
     def error(self):
         return self.form.errors.get(self.name,'')
-    
+
     def clean(self, value):
         '''Return a cleaned value for ``value`` by running the validation
 algorithm on :attr:`field`.'''
         self.value = self.field.clean(value, self)
         return self.value
-    
+
     @lazyproperty
     def widget(self):
         '''The :class:`djpcms.html.Widget` instance for the field
@@ -545,4 +548,3 @@ def MakeForm(name, fields, **params):
     params.update(fields)
     return FormType(name, (Form,), params)
 
- 

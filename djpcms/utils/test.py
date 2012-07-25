@@ -11,11 +11,12 @@ try:
     from BeautifulSoup import BeautifulSoup
 except ImportError: # pragma nocover
     BeautifulSoup = None
-    
+
 import djpcms
 from djpcms import views, forms
 from djpcms.cms import Site, WebSite, get_settings
 from djpcms.cms.formutils import fill_form_data
+from djpcms.utils import orms
 
 from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                      urlparse, BytesIO
@@ -29,10 +30,10 @@ class TestWebSite(WebSite):
     def __init__(self, test):
         self.test = test
         super(TestWebSite,self).__init__()
-        
+
     def load(self):
         return self.test.load_site(self)
-    
+
     def finish(self):
         '''Once the site has loaded, we create new tables.'''
         self.site.clear_model_tables()
@@ -41,45 +42,53 @@ class TestWebSite(WebSite):
 
 
 class TestCase(unittest.TestCase):
-    '''A :class:`TestCase` class which adds the :meth:`website` method for 
+    '''A :class:`TestCase` class which adds the :meth:`website` method for
 easy testing web site applications. To use the Http client you need
 to derive from this class.'''
     installed_apps = ('djpcms',)
     settings = None
     web_site_callbacks = []
-        
+
+    def _pre_setup(self):
+        orms.flush_models()
+
+    def _post_teardown(self):
+        orms.flush_models()
+
     def website(self):
         '''Return a :class:`djpcms.WebSite` loader, a callable object
 returning a :class:`djpcms.Site`. Tipical usage::
-        
+
     website = self.website()
-    
+
     site = website()
     wsgi = website.wsgi()
 '''
         website = TestWebSite(self)
         website.callbacks.extend(self.web_site_callbacks)
         return website
-        
+
     def load_site(self, website):
-        settings = get_settings(settings = self.settings,
-                                APPLICATION_URLS = self.urls,
-                                INSTALLED_APPS = self.installed_apps)
+        '''Called by the *website* itself. Don't call directly unless you know
+what you are doing.'''
+        settings=get_settings(settings=self.settings,
+                                APPLICATION_URLS=self.urls,
+                                INSTALLED_APPS=self.installed_apps)
         website.add_wsgi_middleware(self.wsgi_middleware())
         website.add_response_middleware(self.response_middleware())
         return Site(settings)
-    
+
     def client(self, **defaults):
         website = self.website()
         settings = website().settings
         wsgi = website.wsgi()
         return HttpTestClientRequest(self, wsgi, settings, **defaults)
-    
+
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site
 WSGI handler.'''
         return []
-    
+
     def response_middleware(self):
         '''Override this method to add response middleware to the test site
 WSGI handler.'''
@@ -87,7 +96,7 @@ WSGI handler.'''
 
     def bs(self, doc):  # pragma nocover
         return BeautifulSoup(doc)
-    
+
     def urls(self, site):
         '''This should be configured by tests requiring the web
 site interface. By default it return a simple view.'''
@@ -95,13 +104,13 @@ site interface. By default it return a simple view.'''
                     routes = (
                         views.View('/', renderer = lambda request: 'Hello!'),)
                 ),
-                
+
     def add_initial_db_data(self):
         pass
 
-        
+
 class TestCaseWidthAdmin(TestCase):
-    
+
     def load_site(self, website):
         from djpcms.apps.admin import make_admin_urls
         site = super(TestCaseWidthAdmin,self).load_site(website)
@@ -110,16 +119,16 @@ class TestCaseWidthAdmin(TestCase):
                                       INSTALLED_APPS=self.installed_apps)
         site.addsite(settings_admin, route='/admin/')
         return site
-    
-    
+
+
 class PluginTest(TestCase):
     plugin = None
-    
+
     def _pre_setup(self):
         super(PluginTest,self)._pre_setup()
         module = self.plugin.__module__
         self.site.settings.DJPCMS_PLUGINS = [module]
-        
+
     def _simplePage(self):
         c = self.get('/')
         p = c['page']
@@ -128,19 +137,19 @@ class PluginTest(TestCase):
         self.assertEqual(b.plugin_name,self.plugin.name)
         self.assertEqual(b.plugin,self.plugin())
         return c
-        
+
     def request(self, user = None):
         req = http.Request()
         req.user = user
         return req
-        
+
     def testBlockOutOfBound(self):
         p = self.get('/')['page']
         self.assertRaises(BlockOutOfBound, p.add_plugin, self.plugin)
-        
+
     def testSimple(self):
         self._simplePage()
-    
+
     def testEdit(self):
         from djpcms.plugins import SimpleWrap
         '''Test the editing view by getting a the view and the editing form
@@ -165,18 +174,18 @@ and sending AJAX requests.'''
         self.assertTrue(prefix)
         prefix = dict(prefix.attrs)['value']
         self.assertTrue(prefix)
-        
+
         # Send bad post request (no data)
         res = self.post(action, {}, ajax = True, response = True)
         self.assertEqual(res['content-type'],'application/javascript')
         body = json.loads(res.content)
         self.assertFalse(body['error'])
         self.assertEqual(body['header'],'htmls')
-        
+
         for msg in body['body']:
             if msg['identifier'] != '.form-messages':
                 self.assertEqual(msg['html'][:26],'<ul class="errorlist"><li>')
-        
+
         data = {'plugin_name': self.plugin.name,
                 'container_type': SimpleWrap.name}
         data.update(self.get_plugindata(f))
@@ -186,7 +195,7 @@ and sending AJAX requests.'''
         self.assertEqual(res['content-type'],'application/javascript')
         body = json.loads(res.content)
         self.assertFalse(body['error'])
-        
+
         preview = False
         for msg in body['body']:
             if msg['identifier'] == '#plugin-1-0-0-preview':
@@ -194,7 +203,7 @@ and sending AJAX requests.'''
                 preview = True
                 break
         self.assertTrue(preview)
-        
+
     def testRender(self):
         self.testEdit()
         c = self.get('/')
@@ -202,12 +211,12 @@ and sending AJAX requests.'''
         bs = self.bs(inner).find('div', {'class': 'djpcms-block-element plugin-{0}'.format(self.plugin.name)})
         self.assertTrue(bs)
         return bs
-    
+
     def get_plugindata(self, soup_form, request = None):
         '''To be implemented by derived classes'''
         form = self.plugin.form
         return fill_form_data(form(request = request)) if form else {}
-    
+
 
 BOUNDARY = 'BoUnDaRyStRiNg'
 MULTIPART_CONTENT = 'multipart/form-data; boundary=%s' % BOUNDARY
@@ -274,26 +283,26 @@ def encode_file(boundary, key, file):
 
 
 class Response(object):
-    
+
     def __init__(self, environ):
         self.environ = environ
         self.status = None
         self.response_headers = None
         self.exc_info = None
         self.response = None
-        
+
     def __call__(self, status, response_headers, exc_info=None):
         '''Mock the wsgi start_response callable'''
         self.status = status
         self.response_headers = response_headers
         self.exc_info = exc_info
-        
+
     @property
     def status_code(self):
         if self.status:
             return int(self.status.split()[0])
-        
-        
+
+
 class HttpTestClientRequest(object):
     """Class that lets you create mock HTTP environment objects for use
 in testing. Typical usage, from within a test case function::
@@ -353,7 +362,7 @@ in testing. Typical usage, from within a test case function::
                 self.cookies = value
         self.test.assertEqual(r.response.status_code, status_code)
         return r
-        
+
     def get(self, path, data={}, ajax = False, status_code = 200, **extra):
         "Construct a GET request"
         parsed = urlparse(path)
@@ -366,7 +375,7 @@ in testing. Typical usage, from within a test case function::
         }
         r.update(extra)
         return self.request(status_code, **r)
-    
+
     def post(self, path, data={}, content_type=MULTIPART_CONTENT,
              status_code = 200, **extra):
         "Construct a POST request."
@@ -388,7 +397,7 @@ in testing. Typical usage, from within a test case function::
         }
         r.update(extra)
         return self.request(status_code, **r)
-    
+
     def head(self, path, data={}, **extra):
         "Construct a HEAD request."
 
@@ -452,7 +461,7 @@ in testing. Typical usage, from within a test case function::
         }
         r.update(extra)
         return self.request(**r)
-    
+
 
 ################################################################################
 ##    PLUGINS FOR TESTING WITH NOSE OR PULSAR
@@ -461,12 +470,12 @@ try:
     import nose
 except ImportError:
     nose = None
-    
+
 try:
     import pulsar
 except ImportError:
     pulsar = None
-    
+
 try:
     from stdnet import test as stdnet_test
 except ImportError:
@@ -519,4 +528,3 @@ and add testing plugins.'''
     else:
         raise NotImplementedError(
                     'To run tests you need either pulsar or nose.')
-        

@@ -32,7 +32,7 @@ a topbar.'''
         self.user_page_links = user_page_links
         if fixed:
             self.addClass(classes.topbar_fixed)
-            
+
     def _render(self, request, namespace, column, blocks):
         '''Render the topbar'''
         if column == 0:
@@ -68,8 +68,8 @@ def userlinks(request, asbuttons=False):
                                                    asbuttons = asbuttons,
                                                    include = ('login',)):
                 yield a
-                
-                
+
+
 def page_links(request, asbuttons=False, ul=None):
     '''Utility for displaying page navigation links.'''
     ul = ul if ul is not None else html.Widget('ul')
@@ -96,16 +96,16 @@ def page_links(request, asbuttons=False, ul=None):
             page_request = request.for_model(Page)
             if page_request is not None:
                 if page:
-                    kwargs = {'next':request.path}
+                    kwargs = {'next': request.path}
                     include = ('change',)
                 else:
-                    kwargs = {'url':request.view.path}
+                    kwargs = {'url': request.view.path}
                     include = ('add',)
                 for link in views.application_views_links(
                                     page_request,
-                                    instance = page,
-                                    include = include,
-                                    asbuttons = asbuttons):
+                                    instance=page,
+                                    include=include,
+                                    asbuttons=asbuttons):
                     kwargs.update(request.urlargs)
                     href = link.attrs['href']
                     link.attrs['href'] = iri_to_uri(href, kwargs)
@@ -136,7 +136,7 @@ def messages(request):
             lmsg.append(msg.render())
     return {'messages': lmsg}
 
-    
+
 ##################################################################### PLUGIN
 
 class navigationForm(forms.Form):
@@ -151,7 +151,7 @@ class SoftNavigation(DJPplugin):
     name = 'soft-nav'
     description = 'Navigation'
     form = navigationForm
-    
+
     def render(self, request, wrapper, prefix, levels=1, layout='v', **kwargs):
         nav = Navigator(soft=True, levels=int(levels))()
         return nav.addClass(dlayouts.get(layout)).render(request)

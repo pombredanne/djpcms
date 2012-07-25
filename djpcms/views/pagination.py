@@ -40,7 +40,7 @@ def application_action_to_menu_link(action, url):
                      None,
                      True,
                      url)
-    
+
 def request_to_menu_link(request):
     view = request.view
     return menu_link(request,
@@ -51,7 +51,7 @@ def request_to_menu_link(request):
                      view.DEFAULT_METHOD,
                      view.ajax_enabled,
                      request.url)
-    
+
 def application_views(request,
                       exclude=None,
                       include=None,
@@ -78,7 +78,7 @@ def application_views(request,
         instance = instance if isinstance(instance,appmodel.model) else None
     else:
         instance = None
-    
+
     if not include:
         weak_include = True
         include = appmodel.views
@@ -87,13 +87,13 @@ def application_views(request,
         # the exclude set
         weak_include = False
         exclude = exclude.difference(include)
-        
+
     for elem in include:
         if elem in exclude:
             continue
         if not isinstance(elem, application_action):
             view = appmodel.views.get(elem)
-            if hasattr(view,'root_view'):
+            if hasattr(view, 'root_view'):
                 view = view.root_view
             # if this is the current view skip
             if not view or view is request.view:
@@ -106,7 +106,7 @@ def application_views(request,
             descr = view.description or view.name
             req = request.for_path(view.path, instance=instance,
                                    urlargs=urlargs)
-            if not valid_request(req):
+            if not valid_request(req) or req.has_permission():
                 continue
             elem = request_to_menu_link(req)
             yield elem
@@ -156,8 +156,8 @@ def views_serializable(views):
         if hasattr(view,'view'):
             elem['view'] = view.view.name
         yield elem
-        
-        
+
+
 def application_links(views, asbuttons=True, icon=True, text=True,
                       icon_size=None):
     '''A generator of two dimensional tuples containing
@@ -186,12 +186,12 @@ the view name and a rendered html tag (either an anchor or a button).
                                        'text':view.link_text})
         if elem.ajax:
             a.addClass(view.settings.HTML['ajax'])
-        
+
         if asbuttons:
             a.addClass(view.link_class)
-            
-        yield view.name, a 
-    
+
+        yield view.name, a
+
 
 def application_views_links(request, asbuttons=True, icon=True, text=True,
                             **kwargs):
@@ -214,7 +214,7 @@ def application_link(view, value=None, asbutton=True, icon=True, text=True,
             if value is not None:
                 link.data_stream[-1] = value
             return link
-    
+
 
 def headers_from_groups(pagination, groups):
     ld = pagination.list_display
@@ -224,8 +224,8 @@ def headers_from_groups(pagination, groups):
     for col in ld:
         if col.code in ldsubset:
             yield col
-            
-            
+
+
 def table_toolbox(request, appmodel=None, all=True):
     '''\
 Create a toolbox for a table if possible. A toolbox is created when
@@ -244,7 +244,7 @@ an application based on model is available.
         if has(request, pcode, None):
             bulk_actions.append((name, description))
     if bulk_actions:
-        toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}    
+        toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}
     if not all:
         return toolbox
     menu = list(views_serializable(\
@@ -262,10 +262,10 @@ an application based on model is available.
         toolbox['headers'] = pagination.list_display
     return toolbox
 
-    
+
 def paginationResponse(request, query, block=None, toolbox=None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
-    
+
 :parameter query: a query on a model.
 
 it looks for the following inputs in the request data:
@@ -298,12 +298,12 @@ it looks for the following inputs in the request data:
             needbody = False
     if needbody and request.GET:
         query = query.filter(**query_from_querydict(request.GET))
-    
+
     sort_by = {}
     #search = inputs.get('sSearch')
     #if search:
     #    query = query.search(search)
-        
+
     if pagination.astable:
         sortcols = inputs.get('iSortingCols')
         load_only = appmodel.load_fields(headers)
@@ -316,18 +316,18 @@ it looks for the following inputs in the request data:
                              else ''
                     head = headers[c]
                     query = query.sort_by('{0}{1}'.format(d,head.attrname))
-            
+
     # Reduce the ammount of data
     if load_only and hasattr(query, 'load_only'):
         query = query.load_only(*load_only)
-        
+
     start = inputs.get('iDisplayStart', 0)
     per_page = inputs.get('iDisplayLength', pagination.size)
     pag, body = pagination.paginate(query, start, per_page, withbody=needbody)
-    
+
     if body is not None and pagination.astable:
         body = appmodel.table_generator(request, toolbox['headers'], body)
-        
+
     if render:
         title = block.title if block else None
         return pagination.widget(
@@ -338,4 +338,3 @@ it looks for the following inputs in the request data:
         return pagination.ajaxresponse(request, body, pagination=pag,
                                        ajax=ajax, toolbox=toolbox,
                                        appmodel=appmodel)
-    

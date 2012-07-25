@@ -78,6 +78,18 @@
                         self.addOptionGroup(el);
                     }
                 });
+                //
+                self.list.delegate('a', 'click', function(e) {
+                    e.preventDefault();
+                    self.dropListItem($(this).closest('li'));
+                    return false;
+                });
+            },
+            //
+            selectClickEvent: function (e, o) {},
+            selectChangeEvent: function (e, o) {
+                var proxy_opt = $('option:selected:eq(0)', this.proxy);
+                this.addListItem(proxy_opt);
             },
             // Add a new option to the proxy element
             addOption: function (elem) {
@@ -86,11 +98,10 @@
                         text: elem.text(),
                         val: elem.val()
                     }).appendTo(self.proxy).data('original', elem),
-                    selected = elem.is(':selected'),
-                    disabled = elem.is(':disabled');
+                    selected = elem.prop('selected'),
+                    disabled = elem.prop('disabled');
                 if (selected && !disabled) {
                     self.addListItem(opt);
-                    self.disableSelectOption(opt);
                 } else if (!selected && disabled) {
                     self.disableSelectOption(opt);
                 }
@@ -108,18 +119,40 @@
                     self.proxy.hide().show();
                 } // this forces IE to update display
             },
+            //
+            enableSelectOption: function (proxy_opt) {
+                var self = this,
+                    opt = proxy_opt.data('original');
+                proxy_opt.removeClass(self.config.classes.disabled)
+                    .prop('selected', false)
+                    .prop('disabled', false);
+                opt.prop('selected', false);
+            },
             // Add a selected option to the item list
-            addListItem: function (opt) {
+            addListItem: function (proxy_opt) {
                 var self = this,
                     item = $('<li>'),
-                    original = opt.data('original'),
+                    opt = proxy_opt.data('original'),
                     options = self.config;
-                if (!original) {
+                if (!opt) {
                     return;
                 }
-                item.append($('<span>', {html: options.extractLabel(opt)}))
+                item.append($('<span>', {html: options.extractLabel(proxy_opt)}))
                     .append(options.removelink(self))
-                    .data('option', opt).appendTo(self.list);
+                    .data('option', proxy_opt).appendTo(self.list);
+                if (self.list.children().length) {
+                    self.list_container.show();
+                }
+                self.disableSelectOption(proxy_opt);
+                opt.prop('selected', true);
+            },
+            dropListItem: function (li) {
+                var proxy_opt = li.data('option');
+                this.enableSelectOption(proxy_opt);
+                li.remove();
+                if (this.list.children().length === 0) {
+                    this.list_container.hide();
+                }
             },
             //
             buildDom: function () {
@@ -136,7 +169,8 @@
                 } else {
                     container.prepend(element.after(container));
                 }
-                container.append(list);
+                self.list_container = list.hide();
+                container.append(self.list_container);
             }
         });
     }

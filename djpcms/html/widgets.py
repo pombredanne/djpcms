@@ -93,7 +93,6 @@ class Select(FieldWidget):
     inline = False
     attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
     _option = '<option value="%s"%s>%s</option>'
-    _media = Media(js=['djpcms/jquery.bsmselect.js'])
     _media = Media(js=['djpcms/plugins/multiselect.js'])
 
     def option(self, value, text, selected=False):
@@ -106,9 +105,7 @@ class Select(FieldWidget):
         # Set the value. We use the widget bound field to do that
         bfield = widget.internal.get('bfield', None)
         if bfield:
-            choices = bfield.field.choices
-            if val and choices.multiple and choices.mapper:
-                val = (el.id for el in val)
+            val = bfield.field.choices.html_value(val)
         if val:
             if not widget.attr('multiple'):
                 val = (val,)
@@ -120,11 +117,9 @@ class Select(FieldWidget):
     def _all_choices(self, bfield, selected):
         if bfield:
             choices = bfield.field.choices
-            if not bfield.field.required and not choices.multiple:
-                yield self.option('', choices.empty_label)
-            for id, val in choices.all(bfield):
-                id = to_string(id)
-                yield self.option(id, val, id in selected)
+            for value, text in choices.all(bfield, html=True):
+                value = to_string(value)
+                yield self.option(value, text, value in selected)
 
 
 class FileInput(InputWidget):

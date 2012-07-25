@@ -18,7 +18,7 @@ The file should look like::
 To run the server simply::
 
     python manage.py serve
-    
+
 To create the style sheet::
 
     python manage.py style
@@ -34,19 +34,18 @@ from djpcms.apps.nav import topbar_container, Breadcrumbs
 
 from stdcms.sessions import User
 from stdcms.sessions.handler import PermissionHandler
+from stdcms.social.applications import SocialUserApplication
 
-from social.applications import SocialUserApplication
-    
-    
+
 class UserApplication(SocialUserApplication):
     login = user.LoginView()
-    
-    
+
+
 class MainApplication(views.Application):
     home = views.View('/')
     favicon = static.FavIconView()
-    
-    
+
+
 class WebSite(cms.WebSite):
     settings_file = 'djpsite.settings'
     def load(self):
@@ -63,7 +62,7 @@ class WebSite(cms.WebSite):
         # AUTHENTICATION MIDDLEWARE
         self.add_wsgi_middleware(permissions.request_middleware())
         self.add_response_middleware(permissions.response_middleware())
-        
+
         # The root site
         site = cms.Site(settings, permissions=permissions)
         # admin site
@@ -77,7 +76,7 @@ class WebSite(cms.WebSite):
         site.addsite(settings, route='/admin/', permissions=permissions)
         self.page_layouts(site)
         return site
-    
+
     def urls(self, site):
         from djpsite.apps import design, jstests, geo
         return (
@@ -89,7 +88,7 @@ class WebSite(cms.WebSite):
                 UserApplication('/accounts/', User),
                 MainApplication('/')
                 )
-    
+
     def page_layouts(self, site):
         # Page template
         page_template = page(
@@ -105,13 +104,13 @@ class WebSite(cms.WebSite):
                              container('footer', grid('grid 100')))
         site.register_page_layout('default', page_template)
         site.register_page_layout('tiny', tiny_template)
-    
+
     def render_header(self, request, namespace, column, blocks):
         if column == 0:
             return Widget(None,
                    ('<h2>Dynamic content management system for Python</h2>',
                     Breadcrumbs().render(request))).render(request)
-    
+
     def render_footer(self, request, namespace, column, blocks):
         if column == 0:
             link = Widget('a','BSD license',
@@ -123,8 +122,8 @@ class WebSite(cms.WebSite):
                    ' {0}.{1}.{2}</a></p>'.format(*sys.version_info[:3])
         else:
             return html.NON_BREACKING_SPACE
-        
-    
+
+
 
 if __name__ == '__main__':
     cms.execute(WebSite())

@@ -398,14 +398,19 @@ is available, the name is set to ``view``.
         perm = view.permissions
         user = kwargs.pop('user', self.user)
         # if code is not provided we check if the page can be viewed
+        # A page model must be avaiable
         if code is None:
-            page = self.page
-            if page and not perm.has(self, permissions.VIEW, page, user=user):
-                return False
-            return perm.has(self, view.PERM, self.instance, user=user)
-        else:
+            model = self.model
+            Page = view.Page
+            if Page and model != Page:
+                if not perm.has(self, permissions.VIEW, self.page, Page, user):
+                    return False
+            return perm.has(self, view.PERM, self.instance, model, user)
+        elif instance is not None:
             # Check permissions on a different entity
-            return perm.has(self, code, obj=instance, user=user, **kwargs)
+            return perm.has(self, code, instance, None, user=user)
+        else:
+            return False
 
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):

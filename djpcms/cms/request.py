@@ -410,7 +410,7 @@ is available, the name is set to ``view``.
             # Check permissions on a different entity
             return perm.has(self, code, instance, None, user=user)
         else:
-            return False
+            return True
 
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):

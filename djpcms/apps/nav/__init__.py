@@ -50,13 +50,9 @@ def userlinks(request, asbuttons=False):
     if request:
         if request.user.is_authenticated():
             for a in views.application_views_links(request,
-                                        asbuttons = asbuttons,
-                                        include = ('userhome',),
-                                        instance = request.user):
-                yield a
-            for a in views.application_views_links(request,
-                                        asbuttons = asbuttons,
-                                        include = ('logout',)):
+                                        asbuttons=asbuttons,
+                                        include=('view','logout'),
+                                        instance=request.user):
                 yield a
             pk = request.view.settings.PROFILING_KEY
             if request.user.is_superuser and pk:
@@ -65,8 +61,8 @@ def userlinks(request, asbuttons=False):
                                       .format(request.path,pk))
         else:
             for a in views.application_views_links(request,
-                                                   asbuttons = asbuttons,
-                                                   include = ('login',)):
+                                                   asbuttons=asbuttons,
+                                                   include=('login',)):
                 yield a
 
 

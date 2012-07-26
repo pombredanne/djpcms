@@ -106,7 +106,7 @@ def application_views(request,
             descr = view.description or view.name
             req = request.for_path(view.path, instance=instance,
                                    urlargs=urlargs)
-            if not valid_request(req) or req.has_permission():
+            if not valid_request(req) or not req.has_permission():
                 continue
             elem = request_to_menu_link(req)
             yield elem
@@ -237,11 +237,11 @@ an application based on model is available.
 '''
     pagination = request.pagination
     appmodel = appmodel or request.appmodel
-    has = request.view.permissions.has
+    model = appmodel.model
     bulk_actions = []
     toolbox = {}
     for name, description, pcode in pagination.bulk_actions:
-        if has(request, pcode, None):
+        if request.has_permission(pcode, model=model):
             bulk_actions.append((name, description))
     if bulk_actions:
         toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}

@@ -33,7 +33,7 @@ class TabView(views.ViewView):
             order = appmodel.views_ordering.get(r.view.name,100)
             yield order,r
 
-    def render(self, request):
+    def render(self, request, block=None, **kwargs):
         instance = request.instance
         tabs = html.tabs().addData('options', {'ajax': True})
         first = True

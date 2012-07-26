@@ -3,18 +3,18 @@ from .exceptions import PermissionDenied
 
 # Main permission flags
 VIEW = 10
-ADD = 20
+CHANGE = 20
 COPY = 25
-CHANGE = 30
+ADD = 30
 DELETE = 40
 DELETEALL = 50
 PERMISSION_LIST = [
-                   (VIEW,'VIEW'),
-                   (ADD,'ADD'),
-                   (COPY,'COPY'),
-                   (CHANGE,'CHANGE'),
-                   (DELETE,'DELETE'),
-                   (DELETEALL,'DELETE ALL')
+                   (VIEW, 'VIEW'),
+                   (ADD, 'ADD'),
+                   (COPY, 'COPY'),
+                   (CHANGE, 'CHANGE'),
+                   (DELETE, 'DELETE'),
+                   (DELETEALL, 'DELETE ALL')
                   ]
 
 
@@ -28,7 +28,7 @@ class SimpleRobots(object):
         pass
 
     def __call__(self, request):
-        if request.has_permission(user = None):
+        if request.has_permission(user=None):
             #if not self.page or self.page.insitemap:
             return 'ALL'
         return 'NONE,NOARCHIVE'

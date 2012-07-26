@@ -89,7 +89,7 @@ class ChangeContentView(views.ChangeView):
         return jhtmls(identifier = '#' + self.instance.pluginid(),
                       html = self.instance.plugin_edit_block(request))
     
-    def render(self, request, url=None):
+    def render(self, request, url=None, **kwargs):
         formhtml = self.get_form(request,
                                  initial={'url': url},
                                  force_prefix=True)\

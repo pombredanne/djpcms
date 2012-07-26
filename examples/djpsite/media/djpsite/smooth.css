@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-26 12:45:05.980000
-Time taken 0.414 seconds
+Created by djpcms.style 2012-07-26 18:04:45.241000
+Time taken 0.415 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -3004,7 +3004,7 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
     background: #222222;
 }
 
-.content-edit .ui-widget {
+.content-edit .ui-widget.content-edit {
     background: #222222;
 }
 

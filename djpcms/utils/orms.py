@@ -56,7 +56,6 @@ class OrmWrapper(UnicodeMixin):
 
 '''
     orm = 'djpcms'
-    hash = None
     DoesNotExist = DoesNotExist
     FieldValueError = DoesNotExist
     model = None
@@ -71,7 +70,11 @@ class OrmWrapper(UnicodeMixin):
             model_from_hash[self.hash] = model
 
     def __unicode__(self):
-        return str(self.model)
+        return self.model.__name__
+
+    @property
+    def hash(self):
+        return 'djpcms-%s' % id(self.model)
 
     def setup(self):
         pass

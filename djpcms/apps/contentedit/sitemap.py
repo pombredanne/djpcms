@@ -10,7 +10,7 @@ from djpcms.utils.text import escape, mark_safe
 from djpcms.utils.async import is_async
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
-from djpcms.cms import Http404, messages, pageview
+from djpcms.cms import Http404, messages, pageview, permissions
 from djpcms.cms.formutils import request_get_data
 from djpcms.apps.nav import page_links
 from djpcms.apps.admin import AdminApplication
@@ -90,7 +90,7 @@ editing form.'''
         layout = page.layout
         layout = self.root.get_page_layout(layout)()
         # Insert edit page form container
-        edit_container = layout.maker.child_widget(self.edit_container,layout)
+        edit_container = layout.maker.child_widget(self.edit_container, layout)
         cls = layout.children.__class__
         children = cls({edit_container.key: edit_container})
         children.update(layout.children)

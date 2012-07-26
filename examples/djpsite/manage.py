@@ -33,7 +33,7 @@ from djpcms.html.layout import page, container, grid
 from djpcms.apps.nav import topbar_container, Breadcrumbs
 
 from stdcms.sessions import User
-from stdcms.sessions.handler import PermissionHandler
+from stdcms.sessions import PermissionHandler
 from stdcms.social.applications import SocialUserApplication
 
 

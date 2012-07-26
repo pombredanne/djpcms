@@ -45,9 +45,9 @@ views::
     from djpcms import views
 
     class MyApplication(views.Application):
-        home = views.View(renderer = lambda djp : 'Hello world')
+        home = views.View(renderer=lambda djp : 'Hello world')
         test = views.View('/testview/',
-                          renderer = lambda djp : 'Another view')
+                          renderer=lambda djp : 'Another view')
 
 :keyword route:
 
@@ -157,8 +157,8 @@ views::
 
         class MyApp(appsite.ModelApplication):
             search = ...
-            add = appview.AddView(redirect_to_view = 'search',
-                                  force_redirect = True)
+            add = appview.AddView(redirect_to_view='search',
+                                  force_redirect=True)
 
     It fine-tunes the response behaviour of your web site forms.
 
@@ -267,11 +267,11 @@ views::
     def warning_message(self, request):
         return None
 
-    def save(self, request, f, commit = True):
-        return f.save(commit = commit)
+    def save(self, request, f, commit=True):
+        return f.save(commit=commit)
 
-    def save_as_new(self, request, f, commit = True):
-        return f.save_as_new(commit = commit)
+    def save_as_new(self, request, f, commit=True):
+        return f.save_as_new(commit=commit)
 
     #DELEGATE RESPONSE TO THE APPMODEL
     def get_response(self, request):
@@ -314,6 +314,7 @@ There are three additional parameters that can be set:
 
 :keyword search_text: string identifier for text queries.
     '''
+    PERM = permissions.VIEWLIST
     has_plugin = True
     in_nav = 1
 

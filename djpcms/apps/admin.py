@@ -58,9 +58,11 @@ contains several :class:`ApplicationGroup`.'''
 
     def groups(self, request):
         for child in request.auth_children():
-            yield {'body':child.render(block=True),
-                   'title':child.title,
-                   'url': child.url}
+            body = child.render(block=True)
+            if body:
+                yield {'body': body,
+                       'title': child.title,
+                       'url': child.url}
 
     def query(self, request, **kwargs):
         for g in sorted(self.groups(request), key = lambda x : x['title']):
@@ -87,13 +89,16 @@ administer a group of :class:`djpcms.views.Applications`.'''
 
     @html.render_block
     def models_list(self, request, **kwargs):
-        def _make():
-            for c in self.query(request):
-                links=  Widget('div',
-                               views.application_views_links(c),
-                               cn=classes.button_holder)
-                yield Widget('dl', (Widget('a', c.title, href=c.url), links))
-        return Widget('div', cn=classes.object_definition).add(_make())
+        all = []
+        for c in self.query(request):
+            links = Widget('div',
+                           views.application_views_links(c),
+                           cn=classes.button_holder)
+            all.append(Widget('dl', (Widget('a', c.title, href=c.url), links)))
+        if all:
+            return Widget('div', all, cn=classes.object_definition)
+        else:
+            return ''
 
 
 class AdminApplicationSimple(views.Application):

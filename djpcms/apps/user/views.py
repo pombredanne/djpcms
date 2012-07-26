@@ -1,5 +1,5 @@
 from djpcms import views
-from djpcms.cms import HttpRedirect
+from djpcms.cms import HttpRedirect, permissions
 from djpcms.cms.formutils import saveform
 
 from .forms import HtmlLoginForm
@@ -11,6 +11,7 @@ __all__ = ['LogoutView',
 class LogoutView(views.ModelView):
     '''Logs out a user, if there is an authenticated user :)
     '''
+    PERM = permissions.NONE
     ICON = 'logout'
     default_route = 'logout'
     default_title = 'Log out'
@@ -18,7 +19,7 @@ class LogoutView(views.ModelView):
 
     def __call__(self, request):
         params = dict(request.GET.items())
-        url = params.get('next',None) or '/'
+        url = params.get('next', None) or '/'
         if request.view.permissions.logout(request.environ):
             raise HttpRedirect(url)
         raise ValueError('Could not logout')
@@ -28,6 +29,7 @@ class LoginView(views.ModelView):
     '''A Battery included Login view.
     '''
     ICON = 'login'
+    PERM = permissions.NONE
     form = HtmlLoginForm
     has_plugin = True
     redirect_to_view = 'home'

@@ -1,5 +1,5 @@
 from collections import namedtuple
-from inspect import isgenerator
+from inspect import isgenerator, isfunction, ismethod
 
 from djpcms.utils import orms
 from djpcms.utils.httpurl import query_from_querydict
@@ -22,6 +22,8 @@ application_action = namedtuple('application_action',
                                 'view display permission')
 menu_link = namedtuple('menu_link',
                        'view display title permission icon method ajax url')
+
+iscallable = lambda v: isfunction(v) or ismethod(v)
 
 def valid_request(request):
     if request is None or request.url is None or not request.has_permission():
@@ -135,11 +137,16 @@ an instance of a registered model) and its correspondent value.
 It is used by :meth:`Application.viewurl`.'''
     if field_name:
         value = getattr(instance, field_name, None)
-        if hasattr(value, '__call__'):
+        if iscallable(value):
             value = value()
-        if orms.mapper(value):
-            instance = value
-            value = None
+        # check that this is not an instance of a model
+        mapper = orms.mapper(value)
+        if mapper:
+            if isinstance(value, mapper.model):
+                instance = value
+                value = None
+            else:
+                value = mapper
         elif value is None and name is None:
             return None, None
     else:

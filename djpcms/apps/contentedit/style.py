@@ -13,7 +13,7 @@ cssv.cedit.link.hover.color = lazy(color.darken,
 
 css('.'+content_edit,
     gradient(cssv.cedit.background),
-    css('.'+classes.widget,
+    css('.%s.%s' % (classes.widget, content_edit),
         gradient(cssv.cedit.background)))
 
 css('.%s.%s' % (classes.widget, content_edit),

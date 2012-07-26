@@ -35,11 +35,11 @@ Usage::
 :parameter withdata: Force the form to have or not have bound data.
     If not supplied, the form is bound to data only if the request
     method is the same as the form method.
-    
+
     Default ``None``.
-    
+
 :parameter method: Form method.
-                     
+
     Default ``"post"``.
 '''
     data = request.REQUEST
@@ -72,7 +72,7 @@ def add_extra_fields(form, name, field):
 def add_hidden_field(form, name, required = False):
     return add_extra_fields(form,name,forms.CharField(\
                         widget=forms.HiddenInput, required = required))
-        
+
 def form_inputs(instance, own_view = False):
     '''Generate the submits elements to be added to the model form.
     '''
@@ -82,7 +82,7 @@ def form_inputs(instance, own_view = False):
                      name=forms.SAVE_AS_NEW_KEY)]
     else:
         sb = [Widget('input:submit', value='add', name=forms.SAVE_KEY)]
-        
+
     if own_view:
         sb.append(Widget('input:submit', value = 'save & continue',
                          name=forms.SAVE_AND_CONTINUE_KEY))
@@ -121,7 +121,7 @@ def get_form(request,
         else:
             own_view = False
         inputs = form_inputs(instance, own_view)
-    
+
     inputs = inputs if inputs is not None else []
     inputs.append(Widget('input:hidden', name=forms.REFERER_KEY,
                          value=referrer))
@@ -146,7 +146,7 @@ def return_form_errors(fhtml,request):
         return fhtml.maker.json_messages(fhtml.form)
     else:
         return request.view.handle_response(request)
-    
+
 def request_get_data(request):
     data = request.GET
     if request.is_xhr or request.POST:
@@ -156,17 +156,17 @@ def request_get_data(request):
         extra_data.update(data)
         data = extra_data
     return data
-    
+
 def get_redirect(request, instance = None, force_redirect = False):
     '''Obtain the most suitable url to redirect the request to
 according to the following algorithm:
- 
+
 * Check for ``next`` in the request environment query string
 * Check for ``next`` in the environment referrer query string
 * If *force_redirect* is ``True``, calculate next from the
-  :meth:`djpcms.views.djpcmsview.redirect_url` passing both *request*
+  :meth:`djpcms.cms.ViewHandler.redirect_url` passing both *request*
   and the optional *instance* parameter.
-  
+
 If none of the above works, it returns ``None``, otherwise it returns an
 absolute url.
 '''
@@ -179,7 +179,7 @@ absolute url.
             return request.view.redirect_url(request,instance=instance)
     n = _next()
     return request.build_absolute_uri(n) if n else None
-    
+
 def saveform(request, force_redirect=None):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
@@ -192,14 +192,14 @@ has been submitted, including possible asynchronous behavior.'''
     referrer = data.get(forms.REFERER_KEY)
     fhtml = view.get_form(request)
     f = fhtml.form
-    
+
     if forms.CANCEL_KEY in data:
         url = get_redirect(request, f.instance, True)
         raise HttpRedirect(url)
-        
+
     if forms.SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
         f.instance = view.mapper.save_as_new(f.instance, commit=False)
-        
+
     # The form is valid. Invoke the save method in the view
     if f.is_valid():
         editing = bool(f.instance and f.instance.id)
@@ -214,7 +214,7 @@ has been submitted, including possible asynchronous behavior.'''
             return fhtml.maker.json_messages(f)
         else:
             return view.get_response(request)
-        
+
 def _finish(request, editing, fhtml, force_redirect, response):
     view = request.view
     f = fhtml.form
@@ -223,11 +223,11 @@ def _finish(request, editing, fhtml, force_redirect, response):
     elif response == f:
         return fhtml.maker.json_messages(f)
     data = request.REQUEST
-    success_message = fhtml.success_message or view.success_message 
+    success_message = fhtml.success_message or view.success_message
     msg = success_message(request, response)
     f.add_message(msg)
-    
-    # Save and continue. Redirect to referrer if not AJAX or send messages 
+
+    # Save and continue. Redirect to referrer if not AJAX or send messages
     if forms.SAVE_AND_CONTINUE_KEY in data:
         if editing:
             if request.is_xhr:
@@ -243,7 +243,7 @@ def _finish(request, editing, fhtml, force_redirect, response):
         url = get_redirect(request,
                            instance=response,
                            force_redirect=force_redirect)
-    
+
     if not url:
         if request.is_xhr:
             return fhtml.maker.json_messages(f)
@@ -268,7 +268,7 @@ def deleteinstance(request, force_redirect=None):
     if next:
         messages.info(request,msg)
         raise HttpRedirect(next)
-    
+
 def fill_form_data(f):
     '''Utility for filling a dictionary with data contained in a form'''
     data = {}
@@ -282,7 +282,7 @@ def fill_form_data(f):
                  v = initial.get(field.name,None)
         if v is not None:
             data[field.html_name] = v
-    return data 
+    return data
 
 def message_or_dialog(request, message):
     view = request.view
@@ -292,7 +292,7 @@ def message_or_dialog(request, message):
         else:
             messages.info(request, message)
         raise HttpRedirect(request.url)
-    title = 'Failure' if is_failure(message) else 'success' 
+    title = 'Failure' if is_failure(message) else 'success'
     return ajax.dialog(request.environ,
                        hd=title,
                        bd=str(message),

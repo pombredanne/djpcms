@@ -1,0 +1,404 @@
+.. module:: djpcms
+
+===============
+API
+===============
+
+This section covers the entire djpcms API which is subdivided into four
+main sections: :ref:`CMS <api-cms>`, :ref:`views <api-views>`,
+:ref:`HTML <api-html>` and :ref:`forms <api-forms>`.
+
+.. autoclass:: Renderer
+   :members:
+   :member-order: bysource
+
+.. _api-cms:
+
+CMS
+============
+
+.. automodule:: djpcms.cms
+
+Site
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Site
+   :members:
+   :member-order: bysource
+
+Web Site
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: WebSite
+   :members:
+   :member-order: bysource
+
+Route
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Route
+   :members:
+   :member-order: bysource
+
+RouteMixin
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: RouteMixin
+   :members:
+   :member-order: bysource
+
+Renderer Mixin
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: RendererMixin
+   :members:
+   :member-order: bysource
+
+ResolverMixin
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ResolverMixin
+   :members:
+   :member-order: bysource
+
+ViewHandler
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ViewHandler
+   :members:
+   :member-order: bysource
+
+Request
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Request
+   :members:
+   :member-order: bysource
+
+.. _api-views:
+
+Views
+============
+
+.. automodule:: djpcms.views
+
+Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Application
+   :members:
+   :member-order: bysource
+
+Application View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: View
+   :members:
+   :member-order: bysource
+
+
+Model View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ModelView
+   :members:
+   :member-order: bysource
+
+Search View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SearchView
+   :members:
+   :member-order: bysource
+
+Add View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AddView
+   :members:
+   :member-order: bysource
+
+Object View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ObjectView
+   :members:
+   :member-order: bysource
+
+View View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ViewView
+   :members:
+   :member-order: bysource
+
+
+Change View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChangeView
+   :members:
+   :member-order: bysource
+
+
+Delete View
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DeleteView
+   :members:
+   :member-order: bysource
+
+.. _api-html:
+
+HTML
+=================
+
+.. automodule:: djpcms.html
+
+
+Widget Maker
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: WidgetMaker
+   :members:
+   :member-order: bysource
+
+
+Widget
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Widget
+   :members:
+   :member-order: bysource
+
+
+Pagination
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Pagination
+   :members:
+   :member-order: bysource
+
+
+Tabs
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: tabs
+
+
+.. _api-forms:
+
+Forms
+=====================
+
+.. automodule:: djpcms.forms
+
+Form
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Form
+   :members:
+   :member-order: bysource
+
+   .. automethod:: __init__
+
+HtmlForm
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HtmlForm
+   :members:
+   :member-order: bysource
+
+Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Field
+   :members:
+   :member-order: bysource
+
+CharField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: CharField
+   :members:
+   :member-order: bysource
+
+IntegerField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: IntegerField
+   :members:
+   :member-order: bysource
+
+FloatField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FloatField
+   :members:
+   :member-order: bysource
+
+DateField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DateField
+   :members:
+   :member-order: bysource
+
+DateTimeField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DateTimeField
+   :members:
+   :member-order: bysource
+
+BooleanField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: BooleanField
+   :members:
+   :member-order: bysource
+
+FileField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FileField
+   :members:
+   :member-order: bysource
+
+ChoiceField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChoiceField
+   :members:
+   :member-order: bysource
+
+FieldList
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: FieldList
+   :members:
+   :member-order: bysource
+
+ChoiceFieldOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChoiceFieldOptions
+   :members:
+   :member-order: bysource
+
+BoundField
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: BoundField
+   :members:
+   :member-order: bysource
+
+FormSet
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FormSet
+   :members:
+   :member-order: bysource
+
+
+
+.. _forms-layout:
+
+Form Layout API
+=====================
+
+.. automodule:: djpcms.forms.layout
+
+
+FormLayoutElement
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FormLayoutElement
+   :members:
+   :member-order: bysource
+
+FormLayout
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: FormLayout
+   :members:
+   :member-order: bysource
+
+
+Form Utilities API
+=====================
+
+.. automodule:: djpcms.cms.formutils
+
+get_form
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_form
+
+
+saveform
+~~~~~~~~~~~~~~
+
+.. autofunction:: saveform
+
+
+get_redirect
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_redirect
+
+
+fill_form_data
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: fill_form_data
+
+
+.. _api-media:
+
+Media and Style
+======================
+
+.. automodule:: djpcms.media
+
+Media
+~~~~~~~~~~~~~~
+
+.. autoclass:: Media
+   :members:
+   :member-order: bysource
+
+
+Object Relational Mapping
+===============================
+
+.. automodule:: djpcms.utils.orms
+
+OrmWrapper
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: OrmWrapper
+   :members:
+   :member-order: bysource
+
+
+.. _api-permission:
+
+Permissions
+======================
+
+.. automodule:: djpcms.cms.permissions
+
+PermissionHandler
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PermissionHandler
+   :members:
+   :member-order: bysource
+
+
+Authentication Backend
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AuthBackend
+   :members:
+   :member-order: bysource

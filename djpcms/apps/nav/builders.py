@@ -3,7 +3,7 @@ from djpcms.html import Widget, WidgetMaker, Anchor, List, NON_BREACKING_SPACE
 from djpcms.views import application_link
 
 from . import classes
-    
+
 
 __all__ = ['Navigator', 'Breadcrumbs']
 
@@ -14,23 +14,23 @@ class Navigator(WidgetMaker):
 :parameter levels: number of nesting in navigation.
 
     Default: ``2``
-    
+
 :parameter container: The container class for the inner part of the navigation.
     If available a ``div`` element with this class is created inside the
     navigation element.
 
     Default: ``None``.
-    
+
 :paremeter soft: If ``True`` this is a soft navigation, meaning it is a
     navigation relative to the closest view which has
-    :meth:`djpcms.views.djpcmsview.is_soft` returning ``True``.
-    
+    :meth:`djpcms.cms.ViewHandler.is_soft` returning ``True``.
+
     Default: ``False``.
 '''
     tag = 'div'
     main_layout = ('brand', 'nav')
     secondary_layout = ('search', 'nav')
-    
+
     def __init__(self, levels=4, secondary_after=100,
                  primary=None, secondary=None,
                  container=None, brand=None, search=None, soft=False,
@@ -52,7 +52,7 @@ class Navigator(WidgetMaker):
         nav = List(key='secondary', cn=('nav secondary-nav'))
         self.add(*reversed(self.elements(self.secondary_layout, nav,
                                          brand=brand, search=search)))
-    
+
     def elements(self, layout, nav, **extra):
         float = 'right' if nav.hasClass('secondary-nav') else 'left'
         elems = []
@@ -66,7 +66,7 @@ class Navigator(WidgetMaker):
             if elem is not None:
                 elems.append(elem)
         return elems
-    
+
     def get_context(self, request, widget, context):
         if request.valid:
             if self.brand:
@@ -83,7 +83,7 @@ class Navigator(WidgetMaker):
                 else:
                     primary.add(li)
         return context
-    
+
     def buildselects(self, request, urlselects):
         if self.soft and request.view.is_soft(request):
             return request
@@ -97,8 +97,8 @@ class Navigator(WidgetMaker):
                 pass
             return self.buildselects(parent, urlselects)
         return request
-    
-    
+
+
 def navstream(request, urlselects, secondary_after, level):
     for request, nav in sorted(((c, c.in_navigation)\
                 for c in request.auth_children()), key=lambda x : x[1]):
@@ -117,7 +117,7 @@ def navstream(request, urlselects, secondary_after, level):
                     ul.add(sli)
                 li.add(ul)
         yield li, secondary
-            
+
 
 class Breadcrumbs(object):
     '''A lazy class for building a site breadcrumb trail to keep track
@@ -129,19 +129,19 @@ with class name defaulted to ``"breadcrumbs"``.
         divider = divider or '&rsaquo;'
         self.divider = "<span class='divider'>"+divider+"</span>"
         self.min_length = min_length
-        self.render_empty = render_empty 
+        self.render_empty = render_empty
         self.widget = Widget(tag, cn=cn or classes.breadcrumbs)
-        
+
     def items(self, request):
         crumbs = []
         while request:
             crumbs.append(request)
             request = request.parent
-        
+
         cutoff = self.min_length-1
         if cutoff:
             crumbs = crumbs[:-cutoff]
-        
+
         position = len(crumbs)
         for request in crumbs:
             li = Widget('li', cn = 'position{0}'.format(position))
@@ -156,7 +156,7 @@ with class name defaulted to ``"breadcrumbs"``.
                 li.add(name)
             position -= 1
             yield li
-        
+
     def render(self, request):
         if request.valid:
             ul = Widget('ul')

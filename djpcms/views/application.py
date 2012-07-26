@@ -552,19 +552,20 @@ has been requested.
         maker = ObjectItem()
         return maker(instance=instance, appmodel=self)
 
-    def instance_field_value(self, request, instance, field_name, val = None):
-        '''Return the value associated with *field_name* for the
- object *instance*, an instance of :attr:`model`. This function is only used
- when the application as a model associated with it.
+    def instance_field_value(self, request, instance, field_name, val=None):
+        '''Return the value associated with *field_name* for an
+*instance* of :attr:`model`. This function is only used when the application
+as a model associated with it.
 
-:parameter request: a WSGI request.
+:parameter request: a :class:`djpcms.cms.Request`.
 :parameter instance: an instance of :attr:`model`.
-:parameter field_name: name of the field to obtain value from.
-:parameter val: A value of the field already obtained.
-:return: the value of *field_name*.
+:parameter field_name: name of the model field to obtain value from.
+:parameter val: The actual value of the field.
+:return: A new value for *field_name*. By default it returns *val*.
 
- By default it returns *val*.
- '''
+For more information and examples check the
+:ref:`field representation <application-field-representation>` tutorial.
+'''
         return val
 
     def urlbits(self, instance = None, data = None, bits = None):
@@ -610,7 +611,7 @@ It uses the :func:`instance_field_view_value` for the purpose.
 '''
         instance = instance or request.instance
         view, value = instance_field_view_value(request, instance, field_name,
-                                                name = name, urlargs = urlargs)
+                                                name=name, urlargs=urlargs)
         value = self.instance_field_value(request, instance, field_name, value)
         if asbutton is not None:
             return application_link(view, value=value, asbutton=asbutton,

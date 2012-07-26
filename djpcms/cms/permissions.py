@@ -1,4 +1,15 @@
-'''Permissions are controlled by the plugin the user provides.'''
+'''Permissions are controlled by a :class:`PermissionHandler`
+
+.. _api-permission-codes:
+
+Permissions Codes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``VIEW`` This is the lowest level of permission. Value ``10``.
+* ``CHANGE`` Allows to change/modify objects. Value ``20``.
+* ``COPY`` Allows to copy objects into new ones. Value ``25``.
+* ``ADD`` Allows to add new objects. Value ``30``.
+'''
 from .exceptions import PermissionDenied
 
 # Main permission flags
@@ -60,8 +71,8 @@ class PermissionHandler(object):
 
 .. attribute:: auth_backends
 
-    An iterable over authentication backends. An authentication backend is an
-    object with implement the :class:`AuthBackend` signature.
+    A list of authentication backends. An authentication backend is an
+    object which implements the :class:`AuthBackend` signature.
 
 .. attribute:: requires_login
 
@@ -71,8 +82,9 @@ class PermissionHandler(object):
 
 .. attribute:: permission_codes
 
-    A dictionary for mapping numeric codes to permission names. The higher the
-    numeric code the more permissions are required.
+    A dictionary for mapping numeric codes into
+    :ref:`permissions names <api-permission-codes>`. The higher the
+    numeric code the more restrictive the permission is.
 '''
     AuthenticationError = AuthenticationError
 
@@ -84,7 +96,9 @@ class PermissionHandler(object):
         self.permission_codes = dict(PERMISSION_LIST)
 
     def default_backends(self, settings):
-        '''Create the default authentication backends.'''
+        '''Create the default :class:`AuthBackend` list for this
+:class:`PermissionHandler`. This function is invoked only if no
+authentication backends are passed to the constructor.'''
         return []
 
     def request_middleware(self):
@@ -124,7 +138,7 @@ class PermissionHandler(object):
         return ((k, c[k]) for k in sorted(c))
 
     def authenticate_and_login(self, environ, **params):
-        '''authenticate and login user. If it fails raises
+        '''Authenticate and login user. If it fails raises
 a AuthenticationError exception.'''
         user = self.authenticate(environ, **params)
         if user is not None and user.is_authenticated():
@@ -205,14 +219,7 @@ if needed.
 :parameter request: a :class:`djpcms.Request` instance.
 :parameter perm_code: numeric code for permissions, the higher the code
     the more restrictive the permission. By default :mod:`djpcms` provides
-    the following codes::
-
-        VIEW = 10
-        ADD = 20
-        COPY = 25
-        CHANGE = 30
-        DELETE = 40
-        DELETEALL = 50
+    the :ref:`default permissions codes <api-permission-codes>`.
 
 :parameter instance: optional instance of an object for which we require
     permission.

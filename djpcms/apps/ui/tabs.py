@@ -38,14 +38,13 @@ css('.'+classes.tabs,
         border_right='none',
         border_left='none'),
     cssb('div',
-         border(color=cssv.widget.head.border.color,
-                width=spacing(0,px(1),px(1))),
+         border='none',
          padding=cssv.tabs.content.padding),
     padding=0,
-    )
-
-css('.ui-tabs-hide',
     display='none')
+
+# jQuery UI tab classes
+css('.ui-tabs-hide', display='none')
 
 css('.%s.standard' % classes.tabs,
     cssb('ul',

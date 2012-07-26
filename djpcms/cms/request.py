@@ -28,7 +28,7 @@ from .exceptions import *
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
-__all__ = ['Response', 'is_xhr']
+__all__ = ['Response', 'Request', 'is_xhr']
 
 
 def is_xhr(environ):
@@ -193,9 +193,7 @@ def build_request(environ, node, cache, instance):
 
 
 class Request(NodeEnvironMixin):
-    '''A lightweight class which wraps the WSGI_ request environment, the
-:class:`djpcms.views.djpcmsview` serving the request and the request
-arguments.
+    '''A wrapper for the WSGI_ environment.
 
 .. attribute:: environ
 
@@ -203,18 +201,19 @@ arguments.
 
 .. attribute:: view
 
-    The request handler
+    The :class:`ViewHandler` handler for this :class:`Request`.
 
 .. attribute:: urlargs
 
     Dictionary of arguments from the variable part of the :attr:`view`
-    route attribute (check :class:`djpcms.cms.Route` for more information).
+    route attribute (check :class:`Route` for more information).
 
 .. attribute:: instance
 
-    For some views, the variable part of the urls is used to retrieve an
-    instance of a :class:`djpcms.viewsApplication.model`.
-    in this case this attribute is that instance, otherwise it is ``None``.
+    For :class:`djpcms.views.ObjectView` handlers, the variable part of the
+    urls uniquely matches an instance of a
+    :class:`djpcms.views.Application.model`. In this case this attribute
+    is that instance, otherwise it is ``None``.
 
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
@@ -481,12 +480,12 @@ is available, the name is set to ``view``.
     def render(self, **kwargs):
         '''\
 Render the underlying view.
-A shortcut for :meth:`djpcms.views.djpcmsview.render`'''
+A shortcut for :meth:`ViewHandler.render`'''
         self.media.add(self.view.media(self))
         return self.view.render(self, **kwargs)
 
     def get_context(self, **kwargs):
-        '''Proxy of :meth:`djpcms.views.djpcmsview.get_context`, it return
+        '''Proxy of :meth:`ViewHandler.get_context`, it return
  a context dictionary for the view'''
         return self.view.get_context(self, **kwargs)
 

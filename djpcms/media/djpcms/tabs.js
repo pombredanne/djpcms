@@ -30,15 +30,23 @@
         name: "ui_tabs",
         selector: '.ui-tabs',
         config: {
-            effect: 'drop',
-            fadetime: 500,
-            ajax: false
-           //tabs: {cookie: {expiry: 7}},
+            effect: {
+                name: 'fade',
+                options: {},
+                speed: 50
+            },
+            ajax: false,
+            tabs: {
+                //cookie: {expiry: 7},
+            }
         },
         _create: function () {
-            var options = this.config,
+            var config = this.config,
+                effect = config.effect,
+                options = config.tabs,
+                element = this.element,
                 current;
-            if (options.ajax) {
+            if (config.ajax) {
                 options = $.extend({
                     select: function(event, ui) {
                         current=ui;
@@ -66,7 +74,12 @@
                     }
                 }, options);
             }
-            this.element.tabs(options).show(options.effect, {}, options.fadetime);
+            element.tabs(options);
+            if(effect.name) {
+                element.show(effect.name, effect.options, effect.speed);
+            } else {
+                element.show();
+            }
         }
     });
 }(jQuery));

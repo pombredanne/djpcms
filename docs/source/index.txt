@@ -12,52 +12,27 @@ Get it
 
 Djpcms is an opensource python library available as an easy-installable package at the
 `Python Package Index <http://pypi.python.org/pypi?:action=display&name=djpcms>`_. ::
-	
+
     easy_install djpcms
     pip install djpcms
 
 Development is hosted at github__ and there is a user `mailing list`__.
 
 __ http://github.com/lsbardel/djpcms
-__ http://groups.google.co.uk/group/djpcms-users   
+__ http://groups.google.co.uk/group/djpcms-users
 
-
-First steps
-==============
-
-**From scratch:**
-:ref:`Overview and Installing <intro-overview>` |
-:ref:`Changelog <changelog>`
-
-**Tutorials:**
-:ref:`Part 1 <intro-tutorial01>` |
-:ref:`Part 2 <intro-tutorial02>`
-
-**Managing Content:**
-:ref:`Plugins <plugins-index>` |
-:ref:`Inline editing <inline-editing>` |
-:ref:`Autocomplete <autocomplete>` |
-:ref:`Object Relational Mapping <orms>`
 
 Contents
 =====================
 .. toctree::
    :maxdepth: 1
-   
+
    overview
    tutorials/index
-   route
-   views
-   forms
-   plugins
-   html
-   orms
-   apps
-   internals
-   settings
+   api
    changelog
    license
-   
+
 
 Indices, glossary and tables
 ============================

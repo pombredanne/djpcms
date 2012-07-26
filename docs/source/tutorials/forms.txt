@@ -3,7 +3,7 @@
 Using Forms and form layouts
 =================================
 
-
+.. automodule:: djpcms.forms
 
 Layouts
 ==================
@@ -13,7 +13,7 @@ going to discuss the form used by ``djpcms`` to edit plugins. This form is
 implemented in the :mod:`djpcms.apps.included.contentedit` module::
 
     from djpcms import forms
-    
+
     class ContentBlockForm(forms.Form):
         url = forms.HiddenField(required = False)
         title = forms.CharField(required = False)
@@ -25,14 +25,14 @@ implemented in the :mod:`djpcms.apps.included.contentedit` module::
                                            help_text = 'A HTML element which wraps the plugin before it is rendered in the page.')
         for_not_authenticated = forms.BooleanField(default = False)
         view_permission = forms.CharField(required = False)
-        requires_login = forms.BooleanField(default = False) 
+        requires_login = forms.BooleanField(default = False)
 
 
 We use the uniforms layout to create a Layout for this form
 (from the :mod:`djpcms.apps.included.contentedit.layout` module)::
 
     from djpcms.forms.layout import uniforms
-    
+
     ContentBlockHtmlForm = forms.HtmlForm(
     ContentBlockForm,
     layout = uniforms.Layout(
@@ -45,4 +45,4 @@ We use the uniforms layout to create a Layout for this form
        )
     )
 
-    
+

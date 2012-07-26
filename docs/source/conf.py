@@ -14,11 +14,18 @@
 import sys, os
 
 # If your extensions are in another directory, add it here.
-source_dir = os.path.split(os.path.abspath(__file__))[0]
-docs_dir   = os.path.split(source_dir)[0]
-base_dir   = os.path.split(docs_dir)[0]
+source_dir = os.path.dirname(os.path.abspath(__file__))
+docs_dir = os.path.dirname(source_dir)
+base_dir = os.path.dirname(docs_dir)
 sys.path.append(os.path.join(source_dir, "_ext"))
-sys.path.insert(0,base_dir)
+sys.path.insert(0, base_dir)
+# check if pulsar is available
+try:
+    import pulsar
+except ImportError:
+    pulsar_dir = os.path.join(os.path.dirname(base_dir), 'pulsar')
+    if os.path.isdir(pulsar_dir):
+        sys.path.append(pulsar_dir)
 import djpcms
 
 version = djpcms.__version__
@@ -110,9 +117,6 @@ html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
-
-# HTML translator class for the builder
-html_translator_class = "djpcmsdoc.DjangoHTMLTranslator"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

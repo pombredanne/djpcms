@@ -42,7 +42,7 @@ def nicerepr(val,
              **kwargs):
     '''\
 Prettify a value to be displayed in html.
-    
+
 :parameter val: value to prettify.
 :parameter nd: numerical accuracy for floating point numbers.
 '''
@@ -67,8 +67,8 @@ Prettify a value to be displayed in html.
             if val.startswith('http://') or val.startswith('https://'):
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
             return val
-    
-    
+
+
 def field_repr(request, field_name, obj, appmodel = None, **kwargs):
     '''Retrive the value of attribute *field_name*
 from an object *obj* by trying out
@@ -94,17 +94,17 @@ several possibilities in the following order.
                          exc_info = True)
     elif hasattr(obj,'__getitem__') and field_name in obj:
         val = obj[field_name]
-    
+
     if appmodel:
         val = appmodel.instance_field_value(request, obj, field_name, val)
 
     return nicerepr(val, settings=request.settings)
-            
-            
-def results_for_item(request, headers, result, appmodel = None, 
+
+
+def results_for_item(request, headers, result, appmodel = None,
                      actions = None, **kwargs):
     '''Return an iterable over values in result given by attributes in headers.
-    
+
 :parameter headers: iterable over attribute names.
 :parameter result: instance of obhject to estract attributes from.
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
@@ -131,10 +131,10 @@ class get_result(object):
     def __call__(self, request, head, result, appmodel, **kwargs):
         return field_repr(request, head.attrname, result, appmodel = appmodel,
                           **kwargs)
-    
-    
+
+
 class get_iterable_result(object):
-    
+
     def __init__(self, results):
         self.iter = iter(results)
 
@@ -143,48 +143,51 @@ class get_iterable_result(object):
             return nicerepr(next(self.iter),**kwargs)
         except StopIteration:
             return None
-        
-    
+
+
 class get_app_result(object):
     '''Representation for an instance field'''
     __slots__ = ('mapper','actions','first',)
-    
+
     def __init__(self, mapper, actions = False):
         self.mapper = mapper
         self.actions = actions
         self.first = True
-        
+
     def id(self, result):
         try:
             return self.mapper.unique_id(result)
         except:
             return None
-    
+
     def __call__(self, request, head, result, appmodel, **kwargs):
         mapper = self.mapper
         first = self.first
         link = None
         if(first and not appmodel.list_display_links) or \
            head.code in appmodel.list_display_links:
-            first = False
+            if first:
+                name = 'view'
+                first = False
+            else:
+                name = None
             link = appmodel.instance_field_view(request, result,
                                                 field_name=head.code,
                                                 asbutton=False,
-                                                icon=False)
-            
+                                                icon=False,
+                                                name=name)
         if link and link.attr('href') != request.path:
             var = link.render()
         else:
             attrname = head.code if hasattr(result,head.code) else head.attrname
             var = field_repr(request, attrname, result,
                              appmodel = appmodel, **kwargs)
-        
+
         if self.first and self.actions and mapper:
             first = False
             var = action_checkbox(var, mapper.id(result))
-        
+
         esc = kwargs.get('escape', escape)
         var = esc(var)
         self.first = first
         return var
-    

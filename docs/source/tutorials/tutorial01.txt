@@ -1,37 +1,35 @@
 .. _intro-tutorial01:
 
-============
-Tutorial
-============
+===============
+Introduction
+===============
 
 
 What is Djpcms?
 =====================
 
-It's a content management system for *dynamic* 
+It's a content management system for *dynamic*
 web applications which uses python_
 on the server side and javascript on browser-side.
 The Javascript is largely built on top of jQuery_ and
 several open-source jQuery plugins (:ref:`check the list here <jquery-plugins>`).
-On the Python side no dependency are strictly required. 
+On the Python side the only strict dependency is pulsar_.
 
 
 What Djpcms is NOT?
 =====================
-It is not a web-framework in the sense that it does not provide all the
-nuts and bolts required by a web-application.
-It does what it is supposed to do, providing support
-for managing contents and interaction on the web in a fast and efficient manner.
+It is not a web-framework in the sense that it does not try to be
+as general as possible. It helps manage and display content on the web in
+a fast and efficient manner.
 You can also use it as a python library.
 
 
 Using Djpcms
-============================== 
+==============================
 With djpcms you can build web-sites with ease and add *dynamic*
 contents if you can write python code.
 It can be customized using :ref:`settings files <topics-settings>`
-and it can use several open-source python libraries to expand its capabilities:
-django_, stdnet_, etc... 
+and it can use several open-source python libraries to expand its capabilities.
 
 
 Hello World!
@@ -40,9 +38,11 @@ The djpcms *hello world!* example in few lines of code
 
 .. include:: ../commons/helloworld
 
+run::
+
+    python helloworld.py serve
 
 .. _python: http://www.python.org/
 .. _jquery: http://jquery.com/
-.. _django: http://www.djangoproject.com/
-.. _jinja2: http://jinja.pocoo.org/
+.. _pulsar: https://github.com/quantmind/pulsar
 .. _stdnet: http://lsbardel.github.com/python-stdnet/

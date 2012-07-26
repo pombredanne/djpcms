@@ -7,6 +7,7 @@ widget_head = 'ui-widget-header'
 widget_body = 'ui-widget-content'
 widget_foot = 'ui-widget-footer'
 
+standard = 'standard'
 clickable = 'ui-clickable'
 draggable = 'ui-draggable'
 dialog = 'ui-dialog'

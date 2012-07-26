@@ -14,6 +14,7 @@ INSTALLED_APPS = ('djpcms',
                   'djpcms.apps.page',
                   'djpcms.apps.ui',
                   'djpcms.apps.color',
+                  'djpcms.apps.contentedit',
                   #
                   'djpsite.apps.design',
                   'djpsite.apps.jstests',

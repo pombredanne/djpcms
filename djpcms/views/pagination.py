@@ -122,8 +122,8 @@ def application_views(request,
                 yield application_action_to_menu_link(elem,req.url)
 
 
-def instance_field_view_value(request, instance, field_name, name = None,
-                              urlargs = None):
+def instance_field_view_value(request, instance, field_name, name=None,
+                              urlargs=None):
     '''Retrieve a view for a field of an *instance* (if that field is
 an instance of a registered model) and its correspondent value.
 
@@ -134,14 +134,14 @@ an instance of a registered model) and its correspondent value.
 
 It is used by :meth:`Application.viewurl`.'''
     if field_name:
-        value = getattr(instance,field_name,None)
-        if hasattr(value,'__call__'):
+        value = getattr(instance, field_name, None)
+        if hasattr(value, '__call__'):
             value = value()
         if orms.mapper(value):
             instance = value
             value = None
-        elif value is None:
-            return None,None
+        elif value is None and name is None:
+            return None, None
     else:
         value = None
     return request.for_model(instance=instance,

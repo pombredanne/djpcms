@@ -1,21 +1,23 @@
 ::
-    
-    import djpcms
-    from djpcms.views import Application,View
-    
-    def urls():
-        '''Create a tuple with one application containg one view'''
-        return (
-            Application('/', name = 'Hello world!',
-                home = View(renderer = lambda djp : 'Hello world!')
-            ),)
-                 
-    djpcms.MakeSite(__file__,
-                    APPLICATION_URLS = urls,
-                    DEFAULT_TEMPLATE_NAME = ('djpcms/simple.html',),
-                    DEBUG = True,
-                    )
-    
+
+    from djpcms import cms, views
+
+    class HelloWorld(cms.WebSite):
+
+        def load(self):
+            settings = cms.get_settings(__file__,
+                                        APPLICATION_URLS=self.urls,
+                                        DEBUG=True)
+            return cms.Site(settings)
+
+        def urls(self, site):
+            '''Create a tuple with one application containing one view'''
+            return (
+                views.Application('/',
+                    name = 'Hello world example',
+                    routes = (views.View(renderer=lambda request : 'Hello world!'),)
+                ),)
+
+
     if __name__ == '__main__':
-        '''To run type python helloworld.py serve'''
-        djpcms.execute()
+        cms.execute(HelloWorld())

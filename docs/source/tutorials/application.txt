@@ -1,0 +1,21 @@
+.. _tutorial-application:
+
+.. module:: djpcms.views
+
+===============
+Application
+===============
+The :class:`Application` is at the core of djpcms dynamic content management.
+
+
+
+Selected Topics
+====================
+
+.. _application-field-representation:
+
+field representation for models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :meth:`Application.instance_field_value` allows to customize how a model
+field is rendered on a page.

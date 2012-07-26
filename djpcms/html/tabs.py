@@ -8,15 +8,15 @@ __all__ = ['tabs', 'pills', 'accordion', 'ajax_html_select']
 
 
 class TabWidget(Widget):
-    
+
     def addtab(self, key, value):
         '''Override to allow for tuples and single values.'''
         return self.add(((key,value),))
-        
+
     @property
     def data_stream(self):
         return tuple(self._unwind())
-    
+
     def _unwind(self):
         if self._data_stream:
             ul = Widget('ul').addClass(self.internal.get('type'))
@@ -29,32 +29,32 @@ class TabWidget(Widget):
                 ul.add(Widget('li', key, cn=classes.clickable))
             yield ul
             for div in divs:
-                yield div        
+                yield div
 
 
 class Accordion(TabWidget):
-    
+
     def _unwind(self):
         for key, val in self._data_stream:
             yield Widget('div', Widget('h3', key), cn=classes.clickable)
             yield Widget('div', val, cn=classes.widget_body)
-        
+
 
 tab_media = Media(js = ['djpcms/tabs.js'])
 
 tabs = WidgetMaker(tag='div',
                    widget=TabWidget,
-                   cn='ui-tabs standard djph',
+                   cn='%s %s' % (classes.tabs, classes.standard),
                    internal={'type':'tabs'},
                    media=tab_media)
 pills = WidgetMaker(tag='div',
                     widget=TabWidget,
-                    cn='ui-tabs pills',
+                    cn='%s %s' % (classes.tabs, classes.pills),
                     internal={'type':'pills'},
                     media=tab_media)
 accordion = WidgetMaker(tag='div',
                         widget=Accordion,
-                        cn='ui-accordion-container djph',
+                        cn='ui-accordion-container',
                         media=tab_media)
 
 
@@ -65,9 +65,9 @@ def ajax_html_select(name_title_html, **kwargs):
     target = Widget('div',id=htmlid)
     select = Widget('select', cn = 'text-select')\
                     .addData('target','#{0}'.format(htmlid))
-    
+
     for name,title,body in name_title_html:
         select.add((name,title))
         target.add(Widget('div', body, cn = '{0} target'.format(name)))
-                    
+
     return Widget(None,(select,target))

@@ -19,6 +19,7 @@ cssv.color.grayDark = color('444')
 cssv.color.gray = color('666')
 cssv.color.grayLight = color('999')
 cssv.color.grayLighter = color('e6e6e6')
+cssv.color.offwhite = color('f2f2f2')
 cssv.color.white = color('fff')
 
 # Global body variable

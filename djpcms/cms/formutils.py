@@ -5,6 +5,7 @@ from functools import partial
 from datetime import datetime
 
 from djpcms import forms, html, is_renderer, ajax
+from djpcms.forms.layout import FormWidget
 from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import urlsplit, QueryDict
 from djpcms.utils.dates import format
@@ -15,6 +16,15 @@ from . import messages
 
 logger = logging.getLogger('djpcms.forms')
 Widget = html.Widget
+
+form_actions = []
+
+def apply_form_actions(form_widget):
+    for form_action in form_actions:
+        container = form_action(form_widget)
+        if container is not None:
+            form_widget = FormWidget(None, container, form=form_widget.form)
+    return form_widget
 
 
 def set_request_message(f, request):
@@ -131,15 +141,20 @@ def get_form(request,
                              name=forms.PREFIX_KEY,
                              value=prefix))
     # Create the form widget
-    return form_factory(inputs=inputs,
-                        action=request.url,
-                        **form_kwargs(request=request,
-                                      initial=initial,
-                                      instance=instance,
-                                      model=model,
-                                      prefix=prefix,
-                                      withdata=withdata,
-                                      method=form_factory.attrs['method']))
+    widget = form_factory(inputs=inputs,
+                          action=request.url,
+                          **form_kwargs(request=request,
+                                        initial=initial,
+                                        instance=instance,
+                                        model=model,
+                                        prefix=prefix,
+                                        withdata=withdata,
+                                        method=form_factory.attrs['method']))
+    if not widget.form.is_bound:
+        # The form is not bound, check for form action
+        widget = apply_form_actions(widget)
+    return widget
+
 
 def return_form_errors(fhtml,request):
     if request.is_xhr:

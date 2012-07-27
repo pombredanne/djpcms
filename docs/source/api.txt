@@ -186,6 +186,11 @@ Tabs
 .. autofunction:: tabs
 
 
+Table headers
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: table_header
+
 .. _api-forms:
 
 Forms
@@ -310,14 +315,14 @@ Form Layout API
 
 
 FormLayoutElement
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: FormLayoutElement
    :members:
    :member-order: bysource
 
 FormLayout
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: FormLayout
    :members:
@@ -330,27 +335,54 @@ Form Utilities API
 .. automodule:: djpcms.cms.formutils
 
 get_form
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: get_form
 
 
 saveform
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: saveform
 
 
 get_redirect
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: get_redirect
 
 
 fill_form_data
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: fill_form_data
+
+
+Plugins
+===========
+
+.. automodule:: djpcms.cms.plugins
+
+DJPplugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DJPplugin
+   :members:
+   :inherited-members:
+   :member-order: bysource
+
+
+ThisPlugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ThisPlugin
+   :members:
+
+ApplicationPlugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ApplicationPlugin
+   :members:
 
 
 .. _api-media:
@@ -361,7 +393,7 @@ Media and Style
 .. automodule:: djpcms.media
 
 Media
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Media
    :members:
@@ -402,3 +434,19 @@ Authentication Backend
 .. autoclass:: AuthBackend
    :members:
    :member-order: bysource
+
+
+Exceptions
+=================
+
+.. module:: djpcms.cms.exceptions
+
+.. autoclass:: DjpcmsException
+
+.. autoclass:: ViewDoesNotExist
+
+.. module:: djpcms.forms.globals
+
+.. autoclass:: FormException
+
+.. autoclass:: ValidationError

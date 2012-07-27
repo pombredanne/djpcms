@@ -1,6 +1,6 @@
 .. _plugins-index:
 
-.. module:: djpcms.plugins
+.. module:: djpcms.cms.plugins
 
 ============================
 Plugins
@@ -26,47 +26,5 @@ in a page and how users can interact with them. Thats it!
 
     Including plugins in your application is easy, simply add their dotted
     path to the :setting:`DJPCMS_PLUGINS` setting.
-    
-    
-Plugin Class
-===========================
-
-.. autoclass:: djpcms.plugins.DJPplugin
-   :members:
-   :inherited-members:
-   :member-order: bysource
-
-
-Main Built-in
-========================
-
-Djpcms ships with some built-in plugins two of which are special since
-their behaviour depends on instances of :class:`djpcms.views.appview.AppViewBase`, the base
-class for application views.
-
-ThisPlugin
---------------
-
-.. autoclass:: djpcms.plugins.ThisPlugin
-   :members:
-   
-ApplicationPlugin
---------------------
-
-.. autoclass:: djpcms.plugins.ApplicationPlugin
-   :members:
-   
-
-.. _plugins-text:
-
-.. module:: djpcms.plugins
-
-
-Soft Navigation
-----------------------
-
-.. autoclass:: djpcms.plugins.defaults.SoftNavigation
-   :members:
-
 
 

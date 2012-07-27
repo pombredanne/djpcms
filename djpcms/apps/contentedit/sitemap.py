@@ -97,8 +97,8 @@ editing form.'''
         layout.children = children
         return layout
 
-    def render(self, request):
-        text = super(PageChangeView,self).render(request)
+    def render(self, request, block=None, **kwargs):
+        text = super(PageChangeView,self).render(request, block=True)
         links = page_links(request)
         return box(hd='Editing page {0}'.format(request.instance),
                    bd=text, collapsed=True, edit_menu=links)\

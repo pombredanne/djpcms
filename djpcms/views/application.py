@@ -14,7 +14,6 @@ from djpcms.cms.formutils import get_form
 from djpcms.cms.plugins import register_application
 
 from .appviews import View, ViewView
-from .objectdef import *
 from .pagination import *
 
 
@@ -253,7 +252,6 @@ overwritten to customize its behavior.
     nice_headers_handler = None
     url_bits_mapping = None
     in_nav = 1
-    instance_template = ObjectDef()
 
     def __init__(self, route, model=None, editavailable=None,
                  list_display_links=None, object_display=None,
@@ -441,9 +439,9 @@ data to the client.
     By default it returns ``None``.'''
         pass
 
-    def load_fields(self, headers = None):
-        '''Return a tuple containing the name of the fields to be loaded
-from attr:`model` if available. These fields are obtained from the
+    def load_fields(self, headers=None):
+        '''Return a tuple containing the field names to be loaded
+from :attr:`model` if available. These fields are obtained from the
 input *headers*.'''
         if headers:
             load_only = set((h.attrname for h in headers))
@@ -544,7 +542,8 @@ has been requested.
             return ''
 
     def render_instance_default(self, request, instance, block=None, **kwargs):
-        return self.instance_template(instance=instance,
+        return html.object_definition(request,
+                                      instance=instance,
                                       appmodel=self,
                                       block=block)
 

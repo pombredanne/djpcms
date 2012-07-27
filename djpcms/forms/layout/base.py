@@ -10,6 +10,7 @@ from . import classes
 __all__ = ['BaseFormLayout',
            'FormTemplate',
            'FormLayout',
+           'FormWidget',
            'FormLayoutElement',
            'FieldTemplate',
            'FormLayout',
@@ -134,7 +135,9 @@ form layout design.'''
         self.legend_html = '{0}'.format(legend) if legend else ''
         super(BaseFormLayout, self).__init__(**params)
         if self.legend_html:
-            self.add(html.WidgetMaker(tag='div',cn='legend',key='legend'))
+            self.add(html.WidgetMaker(tag='div',
+                                      cn=classes.legend,
+                                      key='legend'))
 
     def get_context(self, request, widget, context):
         if self.legend_html:

@@ -2,18 +2,21 @@ from datetime import date
 from inspect import isclass
 import logging
 
+from djpcms.utils.httpurl import zip
 from djpcms.utils.dates import smart_time
 from djpcms.utils.numbers import significant_format
 from djpcms.utils.text import to_string, mark_safe, escape, nicename, is_safe
 
 from .base import Widget
 from .icons import with_icon
+from . import classes
 
 
 __all__ = ['nicerepr',
            'field_repr',
            'results_for_item',
            'action_checkbox',
+           'object_definition',
            'NONE_VALUE']
 
 
@@ -191,3 +194,19 @@ class get_app_result(object):
         var = esc(var)
         self.first = first
         return var
+
+
+def object_definition(request, instance=None, appmodel=None, block=None):
+    appmodel = appmodel or request.view.appmodel
+    instance = instance or request.instance
+    if not appmodel or not instance:
+        return ''
+    headers = appmodel.object_display
+    mapper = appmodel.mapper
+    widget = Widget('div', cn=classes.object_definition)\
+                    .addClass(mapper.htmlclass)
+    ctx = results_for_item(request, headers, instance, appmodel)
+    display = ctx.pop('display')
+    items = (Widget('dl',(head.name,value))\
+                            for head,value in zip(headers, display))
+    return widget.add(items)

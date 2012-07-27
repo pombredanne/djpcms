@@ -1,4 +1,4 @@
-from djpcms.html import Widget, WidgetMaker, table_header 
+from djpcms.html import Widget, WidgetMaker, table_header
 from djpcms.utils.text import nicename
 
 from .base import FormWidget, FieldTemplate, FormLayoutElement, classes
@@ -9,16 +9,16 @@ __all__ = ['TableRow', 'TableFormElement', 'TableRelatedFieldset']
 
 class BaseTable(FormLayoutElement):
     default_style = classes.nolabel
-    
+
     def field_widget(self, widget):
         return Widget('div', widget.bfield.widget)
-    
-    
+
+
 class TableRow(BaseTable):
     '''A row in a table rendering a group of :class:`Fields`.'''
     field_widget_tag = 'td'
     field_widget_class = None
-    
+
     def stream_errors(self, request, children):
         '''Create the error ``td`` elements.
 They all have the class ``error``.'''
@@ -28,7 +28,7 @@ They all have the class ``error``.'''
                 yield '<td id="%s" class="error">%s</td>'%(b.errors_id,b.error)
             else:
                 yield '<td class="error"></td>'
-    
+
     def stream_fields(self, request, children):
         for w in children:
             b = w.bfield
@@ -37,7 +37,7 @@ They all have the class ``error``.'''
             elif b.widget.attrs.get('type') == 'checkbox':
                 w.addClass('checkbox')
             yield w.render(request)
-    
+
     def stream(self, request, widget, context):
         '''We override stream since we don't care about a legend in a
 table row'''
@@ -45,7 +45,7 @@ table row'''
         yield Widget('tr', self.stream_errors(request, children))\
                     .addClass('error-row')
         yield Widget('tr', self.stream_fields(request, children))
-        
+
 
 class TableFormElement(BaseTable):
     '''A :class:`FormLayoutElement` for rendering a group of :class:`Field`
@@ -55,7 +55,7 @@ in a table.
 '''
     tag = 'div'
     elem_css = "uniFormTable"
-        
+
     def __init__(self, headers, *rows, **kwargs):
         # each row must have the same number of columns as the number of headers
         self.headers = [table_header(name) for name in headers]
@@ -82,24 +82,26 @@ in a table.
                 if head.description:
                     label.addData('content', head.description);
             yield th.render(request)
-            
+
     def rows(self, widget):
         return widget.allchildren()
-    
+
     def row_generator(self, request, widget, context):
         for row in self.rows(widget):
             for tr in row.stream(request, context):
                 yield tr
-            
+
     def stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
+        for s in super(TableFormElement, self).stream(request, widget, context):
+            yield s
         tr = Widget('tr', self.render_heads(request, widget, context))
         head = Widget('thead', tr)
         body = Widget('tbody', self.row_generator(request, widget, context))
         table = Widget('table', (head, body))
         yield table.addClass(self.elem_css).render(request)
-        
+
 
 class TableRelatedFieldset(TableFormElement):
     '''A :class:`djpcms.forms.layout.TableFormElement`
@@ -112,7 +114,7 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
         super(TableRelatedFieldset,self).__init__(headers, **kwargs)
         self.row_maker = TableRow(*self.fields)
         self.row_maker.check_fields(list(self.fields))
-        
+
     def get_heads(self, fields):
         headers = list(fields or ())
         dfields = self.form_class.base_fields
@@ -133,15 +135,15 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
                                        label,
                                        field.help_text,
                                        extraclass=extraclass)
-    
+
     def rows(self, widget):
         formset = widget.form.form_sets[self.formset]
         for form in formset.forms:
             yield self.child_widget(self.row_maker, widget, form=form)
-    
+
     def stream(self, request, widget, context):
-        for data in super(TableRelatedFieldset,self).stream(request,\
-                                                    widget, context):
+        for data in super(TableRelatedFieldset, self).stream(request,\
+                                                             widget, context):
             yield data
         formset = widget.form.form_sets[self.formset]
         # Loop over hidden fields
@@ -152,4 +154,4 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
                      yield child.render(request)
         # the number of forms
         yield formset.num_forms().render(request)
-    
+

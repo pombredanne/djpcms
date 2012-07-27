@@ -3,7 +3,7 @@ from inspect import isclass
 from .httpurl import itervalues, to_string
 from .structures import OrderedDict
 from .importer import import_module
-from .text import nicename, UnicodeMixin
+from .text import nicename, UnicodeMixin, slugify
 
 model_wrappers = OrderedDict()
 model_from_hash = {}
@@ -75,6 +75,10 @@ class OrmWrapper(UnicodeMixin):
     @property
     def hash(self):
         return 'djpcms-%s' % id(self.model)
+
+    @property
+    def htmlclass(self):
+        return slugify(self.__unicode__()).lower()
 
     def setup(self):
         pass

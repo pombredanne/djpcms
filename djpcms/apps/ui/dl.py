@@ -21,4 +21,5 @@ css('.%s' % classes.object_definition,
         float='left',
         width=pc(100),
         margin= spacing(cssv.definition_list.spacing, 0, 0)),
-    float='left')
+    float='left',
+    width=pc(100))

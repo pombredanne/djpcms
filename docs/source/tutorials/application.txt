@@ -9,8 +9,17 @@ The :class:`Application` is at the core of djpcms dynamic content management.
 
 
 
-Selected Topics
+Model and fields
 ====================
+
+When dealing with :class:`Application` based on a model, there are several
+methods and attributes which can be specified to customise behaviour
+and datasource (databse or remote procedure calls) interaction.
+
+Loading fields
+~~~~~~~~~~~~~~~~~~~~~
+The :attr:`Application.always_load_fields` is a tuple which contains models fields
+which must always be loaded in queries.
 
 .. _application-field-representation:
 

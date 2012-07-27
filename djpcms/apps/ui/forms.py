@@ -30,6 +30,11 @@ cssv.alert_error.color = color('#B94A48')
 cssv.form.padding = cssv.input.padding # This controls the padding of all fields
 cssv.form.table_layout = 'auto'
 cssv.form.inlinelabels_width = pc(32)
+#
+cssv.form.legend.radius = cssv.body.radius
+cssv.form.legend.padding = spacing(5, 10)
+cssv.form.legend.background = cssv.color.offwhite
+cssv.form.legend.color = cssv.body.color
 ################################################################################
 
 
@@ -143,7 +148,6 @@ css('.alert',
 ############################################################    FORM
 css('form.%s' % classes.form,
     css('.errorlist,.form-messages', overflow='hidden', display='none'),
-    css('.legend', margin=cssv.form.padding),
     css('label'),
     css('.%s' % classes.required,
         cssb('.%s' % classes.label,
@@ -166,12 +170,20 @@ css('form.%s' % classes.form,
     css('.%s' % classes.blockLabels,
         css('.%s' % classes.label,
             margin_bottom=px(5))),
+    #
+    # legend
+    css('.%s' % classes.legend,
+        bcd(**cssv.form.legend.params()),
+        radius(cssv.form.legend.radius),
+        margin=spacing(0, cssv.form.padding, cssv.form.padding),
+        padding=cssv.form.legend.padding),
+    #
     # Control holder
     css('.%s' % classes.ctrlHolder,
         clearfix(),
-        css('.%s'%classes.align_right,
+        css('.%s' % classes.align_right,
             float='right'),
-        css('.%s'%classes.align_middle,
+        css('.%s' % classes.align_middle,
             text_align='center',
             margin_right=0,
             margin_left=0),
@@ -200,6 +212,8 @@ css('table.uniFormTable',
     table_layout = cssv.form.table_layout,
     width = '100%'
 )
+css('.%s' % classes.nolabel,
+    cssb('table.uniFormTable thead', display='none'))
 
 ############################################################    TEXTAREA
 css('textarea.taboverride',

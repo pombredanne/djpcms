@@ -2,7 +2,7 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-26 18:04:45.241000
+Created by djpcms.style 2012-07-27 12:18:30.418000
 Time taken 0.415 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
@@ -1358,10 +1358,6 @@ form.uniForm .form-messages {
     display: none;
 }
 
-form.uniForm .legend {
-    margin: 4px;
-}
-
 form.uniForm .required > .label {
     font-weight: None;
 }
@@ -1390,6 +1386,16 @@ form.uniForm .inline + .inline {
 
 form.uniForm .blockLabels .label {
     margin-bottom: 5px;
+}
+
+form.uniForm .legend {
+    padding: 5px 10px;
+    margin: 0 4px 4px;
+    background: #f2f2f2;
+    color: #444444;
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
 }
 
 form.uniForm .ctrlHolder {
@@ -1465,6 +1471,10 @@ table.uniFormTable:after {
 table.uniFormTable td.error {
     padding-top: 0;
     padding-bottom: 0;
+}
+
+.nolabel > table.uniFormTable thead {
+    display: none;
 }
 
 textarea.taboverride {
@@ -1939,6 +1949,7 @@ th.ui-clickable {
 }
 
 .object-definition {
+    width: 100%;
     float: left;
 }
 

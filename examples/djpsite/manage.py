@@ -57,6 +57,7 @@ class WebSite(cms.WebSite):
             )
         from djpsite.apps.geo import Geo
         Geo.username = settings.GEOUSERNAME
+        # Create the permission handler
         permissions = PermissionHandler(settings)
         backend = permissions.auth_backends[0]
         # AUTHENTICATION MIDDLEWARE
@@ -70,10 +71,7 @@ class WebSite(cms.WebSite):
             __file__,
             self.settings_file,
             APPLICATION_URLS  = admin.make_admin_urls())
-        permissions = PermissionHandler(settings,
-                                        auth_backends=permissions.auth_backends,
-                                        requires_login=True)
-        site.addsite(settings, route='/admin/', permissions=permissions)
+        site.addsite(settings, route='/admin/')
         self.page_layouts(site)
         return site
 

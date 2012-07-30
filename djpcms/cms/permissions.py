@@ -64,6 +64,15 @@ class AuthBackend(object):
     def create_user(self, *args, **kwargs):
         pass
 
+    def request_middleware(self):
+        return ()
+
+    def post_data_middleware(self):
+        return ()
+
+    def response_middleware(self):
+        return ()
+
 
 class PermissionHandler(object):
     '''Base class for permissions handlers.
@@ -107,10 +116,21 @@ authentication backends are passed to the constructor.'''
         return []
 
     def request_middleware(self):
+        '''Return a list of WSGI middlewares which are added to the WSGI
+handler. These middlewares are obtained by the list of :attr:`auth_backends`.'''
         middleware = [self.process_request]
         for b in self.auth_backends:
             try:
                 middleware.extend(b.request_middleware())
+            except:
+                pass
+        return middleware
+
+    def post_data_middleware(self):
+        middleware = []
+        for b in self.auth_backends:
+            try:
+                middleware.extend(b.post_data_middleware())
             except:
                 pass
         return middleware

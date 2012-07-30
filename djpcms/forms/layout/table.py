@@ -125,7 +125,7 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
         for name in headers:
             field = dfields.get(name)
             if field:
-                if field.is_hidden:
+                if field.widget.attr('type') == 'hidden':
                     self.hidden_fields.append(
                         FieldTemplate(internal={'field':name}))
                 else:

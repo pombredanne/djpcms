@@ -19,6 +19,7 @@ Widget = html.Widget
 
 form_actions = []
 
+
 def apply_form_actions(form_widget):
     for form_action in form_actions:
         container = form_action(form_widget)
@@ -34,6 +35,20 @@ def set_request_message(f, request):
     if '__all__' in f.messages:
         for msg in f.messages['__all__']:
             messages.info(request, msg)
+
+
+def data_files(request, withdata=None, method='post', initial=None):
+    data = request.REQUEST
+    if (withdata or (withdata is None and request.method == method.lower()))\
+        and data:
+        return data, request.FILES, initial
+    else:
+        if initial is None:
+            initial = data
+        else:
+            initial.update(data)
+        None, None, initial
+
 
 def form_kwargs(request, withdata=None, method='post', inputs=None,
                 initial=None, **kwargs):
@@ -108,8 +123,7 @@ def get_form(request,
              instance=None,
              model=None,
              force_prefix=True):
-    '''Comprehensive method for building a
-:class:`djpcms.forms.HtmlForm` instance:
+    '''Comprehensive method for building a :class:`djpcms.forms.HtmlForm`:
 
 :parameter form_factory: A required instance of :class:`HtmlForm`.
 :parameter initial: If not none, a dictionary of initial values.
@@ -119,37 +133,46 @@ def get_form(request,
                       available form class as no inputs associated with it.
                       Default ``None``.
 '''
-    referrer = request.environ.get('HTTP_REFERER')
-    data = request.REQUEST
-    prefix = data.get(forms.PREFIX_KEY, None)
-    inputs = form_factory.inputs
-    if inputs is not None:
-        inputs = [inp() for inp in inputs]
-    elif addinputs:
-        if not request.is_xhr:
-            own_view = request.path==request.url
-        else:
-            own_view = False
-        inputs = form_inputs(instance, own_view)
-
-    inputs = inputs if inputs is not None else []
-    inputs.append(Widget('input:hidden', name=forms.REFERER_KEY,
-                         value=referrer))
-    if prefix is None and force_prefix:
-        prefix = forms.generate_prefix()
-        inputs.append(Widget('input:hidden',
-                             name=forms.PREFIX_KEY,
-                             value=prefix))
+    method = form_factory.attrs['method']
+    data, files, initial = data_files(request, withdata=withdata, method=method)
+    submit_middleware = request.view.site.submit_middleware
+    # Not binding data
+    if data is not None:
+        inputs = form_factory.inputs
+        if inputs is not None:
+            inputs = [inp() for inp in inputs]
+        elif addinputs:
+            if not request.is_xhr:
+                own_view = request.path==request.url
+            else:
+                own_view = False
+            inputs = form_inputs(instance, own_view)
+        if inputs is None:
+            inputs = []
+        # Prefix
+        if prefix is None and force_prefix:
+            prefix = forms.generate_prefix()
+            inputs.append(Widget('input:hidden', name=forms.PREFIX_KEY,
+                                 value=prefix))
+        # Add hidden inputs specified by the site
+        for name, value in submit_middleware.extra_form_data():
+            inputs.append(Widget('input:hidden', name=name, value=value))
+        #referrer = request.environ.get('HTTP_REFERER')
+    else:
+        # Check the data
+        submit_middleware.check_submit_data(data)
+        if prefix is None:
+            prefix = data.get(forms.PREFIX_KEY)
     # Create the form widget
     widget = form_factory(inputs=inputs,
                           action=request.url,
-                          **form_kwargs(request=request,
-                                        initial=initial,
-                                        instance=instance,
-                                        model=model,
-                                        prefix=prefix,
-                                        withdata=withdata,
-                                        method=form_factory.attrs['method']))
+                          request=request,
+                          initial=initial,
+                          instance=instance,
+                          model=model,
+                          prefix=prefix,
+                          data=data,
+                          files=files)
     if not widget.form.is_bound:
         # The form is not bound, check for form action
         widget = apply_form_actions(widget)

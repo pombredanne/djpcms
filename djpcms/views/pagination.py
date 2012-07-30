@@ -187,16 +187,18 @@ the view name and a rendered html tag (either an anchor or a button).
                              title=elem.title,
                              asbutton=asbuttons,
                              size=icon_size)
-        a.addClass(view.name).addData({'view':view.name,
-                                       'method':elem.method,
-                                       'warning':view.warning_message(request),
-                                       'text':view.link_text})
+        a.addClass(view.name).addData({'view': view.name,
+                                       'method': elem.method,
+                                       'warning' :view.warning_message(request),
+                                       'text': view.link_text})
         if elem.ajax:
-            a.addClass(view.settings.HTML['ajax'])
-
+            method = elem.method.lower()
+            a.addClass('ajax')
+            if method == 'post':
+                data = view.site.get_submit_data(request)
+                a.addData('submit', data)
         if asbuttons:
             a.addClass(view.link_class)
-
         yield view.name, a
 
 

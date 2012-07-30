@@ -407,12 +407,6 @@ corner cases, users can subclass it to customize behavior.
 
     List of attributes supported by the widget.
 
-.. attribute:: is_hidden
-
-    If ``True`` the widget is hidden.
-
-    Default ``False``.
-
 .. attribute:: default_style
 
     default css class style for the widget.
@@ -463,7 +457,6 @@ corner cases, users can subclass it to customize behavior.
 '''
     tag = None
     key = None
-    is_hidden = False
     default_style = None
     inline = False
     attributes = ('id', 'title', 'dir', 'style')
@@ -481,7 +474,6 @@ corner cases, users can subclass it to customize behavior.
         self._media = media if media is not None else self._media
         self.description = description or self.description
         self.inline = inline if inline is not None else self.inline
-        self.is_hidden = params.pop('is_hidden',self.is_hidden)
         self.tag = params.pop('tag', self.tag)
         if internal:
             self.internal.update(internal)

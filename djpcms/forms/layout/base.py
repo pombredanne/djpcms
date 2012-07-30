@@ -13,6 +13,7 @@ __all__ = ['BaseFormLayout',
            'FormWidget',
            'FormLayoutElement',
            'FieldTemplate',
+           'SimpleLayout',
            'FormLayout',
            'SubmitElement',
            'Fieldset',
@@ -339,7 +340,38 @@ class Tabs(MultiElement):
         return tab.stream(request, context)
 
 
-class FormLayout(BaseFormLayout):
+class SimpleLayout(BaseFormLayout):
+    form_class = None
+    default_element = FormLayoutElement
+
+    def check_fields(self, missings):
+        '''Add missing fields to ``self``. This
+method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
+
+:parameter form: a :class:`djpcms.forms.Form` class.
+'''
+        children = self._children
+        del self._children
+        if SUBMITS not in missings:
+            missings.append(SUBMITS)
+        for field in children:
+            if isinstance(field, FormLayoutElement):
+                field.check_fields(missings, self)
+            self.add(field)
+        if missings:
+            addinputs = False
+            if SUBMITS in missings:
+                addinputs = True
+                missings.remove(SUBMITS)
+            fields = [self.default_element(*missings)]
+            if addinputs:
+                fields.append(SubmitElement())
+            for field in fields:
+                self.add(field)
+                field.check_fields(missings, self)
+
+
+class FormLayout(SimpleLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
  layout design.'''
     default_style  = classes.inlineLabels
@@ -371,32 +403,6 @@ class FormLayout(BaseFormLayout):
         for att in attrs:
             if att in kwargs:
                 setattr(self,att,kwargs.pop(att))
-
-    def check_fields(self, missings):
-        '''Add missing fields to ``self``. This
-method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
-
-:parameter form: a :class:`djpcms.forms.Form` class.
-'''
-        children = self._children
-        del self._children
-        if SUBMITS not in missings:
-            missings.append(SUBMITS)
-        for field in children:
-            if isinstance(field, FormLayoutElement):
-                field.check_fields(missings, self)
-            self.add(field)
-        if missings:
-            addinputs = False
-            if SUBMITS in missings:
-                addinputs = True
-                missings.remove(SUBMITS)
-            fields = [self.default_element(*missings)]
-            if addinputs:
-                fields.append(SubmitElement())
-            for field in fields:
-                self.add(field)
-                field.check_fields(missings, self)
 
     def get_context(self, request, widget, context):
         '''Overwrite the :meth:`djpcms.html.WidgetMaker.get_context` method.'''

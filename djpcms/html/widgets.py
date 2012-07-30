@@ -62,13 +62,12 @@ class SubmitInput(InputWidget):
 
 
 class HiddenInput(InputWidget):
-    is_hidden = True
     default_attrs = {'type': 'hidden'}
 
 
 class CheckboxInput(InputWidget):
     default_attrs = {'type': 'checkbox'}
-    attributes = InputWidget.makeattr('type','checked')
+    attributes = InputWidget.makeattr('type', 'checked')
 
     def set_value(self, value, widget):
         if value:

@@ -5,25 +5,25 @@
  * Contact:      luca.sbardella@gmail.com
  * web:          https://github.com/lsbardel/djpcms
  * @requires:    jQuery
- * 
+ *
  * Copyright (c) 2009-2012, Luca Sbardella
- * New BSD License 
+ * New BSD License
  * http://www.opensource.org/licenses/bsd-license.php
  *
  */
 /*globals window, document, jQuery, console*/
 /*jslint nomen: true, plusplus: true */
 /**
- * 
+ *
  * djpcms site handle.
- * 
+ *
  * It fires two events on the container it is built on.
- * 
+ *
  * "djpcms-before-loading" just before loading
  * "djpcms-after-loading" just after loading
- * 
+ *
  * Usage on the main page
- * 
+ *
  * $(document).djpcms();
  */
 (function ($) {
@@ -69,7 +69,7 @@
     };
     /**
      * Logging module for djpcms. Usage
-     * 
+     *
      * var logger = $.logging.getLogger();
      * logger.info('bla')
      */
@@ -211,7 +211,7 @@
         return logging;
     }());
     /**
-     * 
+     *
      * The global djpcms object
      */
     $.djpcms = {
@@ -605,16 +605,16 @@
     };
     /**
      *  DJPCMS AJAX DATA LOADER CLOSURE.
-     *  
+     *
      *  An utility which return a function which can be used to
      *  perform AJAX requests with confirmation and callbacks handled
      *  by djpcms callbacks.
-     *  
+     *
      *  For example
-     *  
+     *
      *  myloader = $.djpcms.ajax_loader('/my/path/','reload','post')
      *  myloader()
-     *  
+     *
      */
     $.djpcms.ajax_loader =  function djpcms_loader(url, action, method, data, conf) {
         var sendrequest = function (callback) {
@@ -675,7 +675,7 @@
         el.dialog("open");
     };
     /**
-     * 
+     *
      * JSON CALLBACKS
      */
     $.djpcms.addJsonCallBack({
@@ -824,7 +824,7 @@
     });
     /**
      * Dialog callback
-     * 
+     *
      * Create a jQuery dialog from JSON data
      */
     $.djpcms.addJsonCallBack({
@@ -886,7 +886,7 @@
     });
     /**
      * Ajax links, buttons, select and forms
-     * 
+     *
      * Decorate elements for jQuery ui if the jquery flag is true (default).
      * and apply ajax functionality where required.
      */
@@ -894,7 +894,7 @@
         name: "ajax",
         description: "add ajax functionality to links, buttons, selects and forms",
         defaultElement: '<a>',
-        selector: 'a.ajax, button.ajax, select.ajax, form.ajax',
+        selector: 'a.ajax, button.ajax, select.ajax, form.ajax, input.ajax',
         config: {
             dataType: "json",
             classes: {
@@ -936,6 +936,9 @@
                 element = self.element;
             if (element.is('select')) {
                 self.type = 'select';
+                self.create_select();
+            } else if (element.is('input')) {
+                self.type = 'input';
                 self.create_select();
             } else if (element.is('form')) {
                 self.type = 'form';
@@ -983,7 +986,7 @@
                         $.ajax(opts);
                     } else {
                         $.extend(opts, self.config.form);
-                        data.form[0].clk = self.element[0];
+                        //data.form[0].clk = self.element[0];
                         data.form.ajaxSubmit(opts);
                     }
                 }
@@ -1120,7 +1123,7 @@
     //        t = thousandsSep === undefined ? lang.thousandsSep : thousandsSep, s = n < 0 ? "-" : "",
     //        i = String(pInt(n = mathAbs(+n || 0).toFixed(c))),
     //        j = i.length > 3 ? i.length % 3 : 0;
-    //    
+    //
     //    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) +
     //        (c ? d + mathAbs(n - i).toFixed(c).slice(2) : "");
     //};

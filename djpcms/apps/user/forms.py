@@ -28,6 +28,15 @@ class LoginForm(forms.Form):
     save_as_new = save
 
 
+class LogoutForm(forms.Form):
+
+    def on_submit(self, commit):
+        if self.request:
+            if self.request.view.permissions.logout(self.request.environ):
+                return
+        raise ValueError('Could not logout')
+
+
 class PasswordChange(forms.Form):
     password = forms.CharField(max_length=32,
                                widget=html.PasswordInput())
@@ -117,7 +126,7 @@ def change_password_message(request, user):
         return '%s, you have successfully changed your password.' % user
     else:
         return 'Successfully changed password for %s.' % user
-    
+
 ############################################################## FORM LAYOUTS
 
 HtmlLoginForm = forms.HtmlForm(
@@ -125,6 +134,12 @@ HtmlLoginForm = forms.HtmlForm(
     success_message = lambda request, user:\
      '%s successfully signed in' % user,
     inputs = (('Sign in','login_user'),)
+)
+
+HtmlLogoutForm = forms.HtmlForm(
+    LogoutForm,
+    layout=uni.SimpleLayout(html.Div(key='logout')),
+    inputs=()
 )
 
 HtmlAddUserForm = forms.HtmlForm(

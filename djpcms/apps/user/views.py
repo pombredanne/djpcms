@@ -2,7 +2,7 @@ from djpcms import views
 from djpcms.cms import HttpRedirect, permissions
 from djpcms.cms.formutils import saveform
 
-from .forms import HtmlLoginForm
+from .forms import HtmlLoginForm, HtmlLogoutForm
 
 __all__ = ['LogoutView',
            'LoginView']
@@ -16,13 +16,18 @@ class LogoutView(views.ModelView):
     default_route = 'logout'
     default_title = 'Log out'
     default_link = 'Log out'
+    ajax_enabled = True
+    DEFAULT_METHOD = 'post'
+    form = HtmlLogoutForm
 
-    def __call__(self, request):
-        params = dict(request.GET.items())
-        url = params.get('next', None) or '/'
-        if request.view.permissions.logout(request.environ):
-            raise HttpRedirect(url)
-        raise ValueError('Could not logout')
+    def post_response(self, request):
+        return saveform(request)
+    #def __call__(self, request):
+    #    params = dict(request.GET.items())
+    #    url = params.get('next', None) or '/'
+    #    if request.view.permissions.logout(request.environ):
+    #        raise HttpRedirect(url)
+    #    raise ValueError('Could not logout')
 
 
 class LoginView(views.ModelView):

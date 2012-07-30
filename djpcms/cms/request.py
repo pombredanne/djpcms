@@ -643,6 +643,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
         return response
 
     def request(self):
+        '''Build the :class:`Request` for this path.'''
         tree, node, request, exc_info = None, None, None, None
         try:
             tree = self.page_tree()

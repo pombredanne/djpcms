@@ -500,10 +500,6 @@ and shouldn't be used otherwise.
         return '{0}: {1}'.format(self.name,self.value)
 
     @property
-    def is_hidden(self):
-        return self.field.is_hidden
-
-    @property
     def error(self):
         return self.form.errors.get(self.name,'')
 

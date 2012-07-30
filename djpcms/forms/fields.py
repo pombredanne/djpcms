@@ -216,10 +216,6 @@ Get the initial value of field if available.
     def model(self):
         return None
 
-    @property
-    def is_hidden(self):
-        return self.widget.is_hidden
-
     def html_name(self, name):
         return name
 
@@ -374,13 +370,10 @@ class BooleanField(Field):
 
     def clean(self, value, bfield):
         '''Clean the field value'''
-        if value in NOTHING:
-            return self.default
+        if value in ('False', '0'):
+            return False
         else:
-            if value in ('False', '0'):
-                return False
-            else:
-                return bool(value)
+            return bool(value)
 
 
 class MultipleMixin(Field):

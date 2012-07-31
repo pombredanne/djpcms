@@ -27,7 +27,6 @@ def apply_form_actions(form_widget):
             form_widget = FormWidget(None, container, form=form_widget.form)
     return form_widget
 
-
 def set_request_message(f, request):
     if '__all__' in f.errors:
         for msg in f.errors['__all__']:
@@ -36,12 +35,20 @@ def set_request_message(f, request):
         for msg in f.messages['__all__']:
             messages.info(request, msg)
 
-
-def data_files(request, withdata=None, method='post', initial=None):
-    data = request.REQUEST
-    if (withdata or (withdata is None and request.method == method.lower()))\
-        and data:
-        return data, request.FILES, initial
+def form_data_files(request, withdata=None, method='post', initial=None):
+    '''
+:parameter withdata: optional flag which can be used to avoid to bind
+    the form to data in the event the request method is the same as the
+    form action.
+'''
+    method = method.lower()
+    rmethod = request.method.lower()
+    data = request.POST if method == 'post' else request.GET
+    bind_data = None
+    if withdata or (withdata is None and rmethod == method):
+        bind_data = data
+    if bind_data is not None:
+        return bind_data, request.FILES, initial
     else:
         if initial is None:
             initial = data
@@ -49,54 +56,37 @@ def data_files(request, withdata=None, method='post', initial=None):
             initial.update(data)
         return None, None, initial
 
+def request_get_data(request):
+    data = request.GET
+    if request.is_xhr or request.POST:
+        ref = request.environ.get('HTTP_REFERER')
+        parts = urlsplit(ref)
+        extra_data = QueryDict(parts.query, request.encoding)
+        extra_data.update(data)
+        data = extra_data
+    return data
 
-def form_kwargs(request, withdata=None, method='post', inputs=None,
-                initial=None, **kwargs):
-    '''Form arguments aggregator.
-Usage::
+def get_redirect(request, data=None, instance=None):
+    '''Obtain the most suitable url to redirect the request
+according to the following algorithm:
 
-    form = MyForm(**form_kwargs(request))
+* Check for ``next`` in the request environment query string
+* Check for ``next`` in the environment referrer query string
+* If *force_redirect* is ``True``, calculate next from the
+  :meth:`djpcms.cms.ViewHandler.redirect_url` passing both *request*
+  and the optional *instance* parameter.
 
-:parameter withdata: Force the form to have or not have bound data.
-    If not supplied, the form is bound to data only if the request
-    method is the same as the form method.
-
-    Default ``None``.
-
-:parameter method: Form method.
-
-    Default ``"post"``.
+If none of the above works, it returns ``None``, otherwise it returns an
+absolute url.
 '''
-    data = request.REQUEST
-    if (withdata or (withdata is None and request.method == method.lower()))\
-        and data:
-        kwargs['data'] = data
-        kwargs['files'] = request.FILES
-    elif data:
-        if initial is None:
-            initial = data
-        else:
-            initial.update(data)
-    kwargs['initial'] = initial
-    kwargs['request'] = request
-    return kwargs
-
-def add_extra_fields(form, name, field):
-    '''form must be a form class, not an object
-    '''
-    fields = form.base_fields
-    if name not in fields:
-        fields[name] = field
-    meta = getattr(form,'_meta',None)
-    if meta:
-        fields = meta.fields
-        if fields and name not in fields:
-            fields.append(name)
-    return form
-
-def add_hidden_field(form, name, required = False):
-    return add_extra_fields(form,name,forms.CharField(\
-                        widget=forms.HiddenInput, required = required))
+    next = None
+    if data:
+        next = data.get('next')
+        if next:
+            return next
+    if next is None:
+        next = request.view.redirect_url(request, instance=instance)
+    return request.build_absolute_uri(next) if next else None
 
 def form_inputs(instance, own_view = False):
     '''Generate the submits elements to be added to the model form.
@@ -114,15 +104,8 @@ def form_inputs(instance, own_view = False):
         sb.append(Widget('input:submit', value='cancel', name=forms.CANCEL_KEY))
     return sb
 
-def get_form(request,
-             form_factory,
-             initial=None,
-             prefix=None,
-             addinputs=None,
-             withdata=None,
-             instance=None,
-             model=None,
-             force_prefix=True):
+def get_form(request, form_factory, initial=None, prefix=None, addinputs=None,
+             withdata=None, instance=None, model=None, force_prefix=True):
     '''Comprehensive method for building a :class:`djpcms.forms.HtmlForm`:
 
 :parameter form_factory: A required instance of :class:`HtmlForm`.
@@ -134,7 +117,9 @@ def get_form(request,
                       Default ``None``.
 '''
     method = form_factory.attrs['method']
-    data, files, initial = data_files(request, withdata=withdata, method=method)
+    action = request.get_full_path()
+    data, files, initial = form_data_files(request, withdata=withdata,
+                                           method=method, initial=initial)
     submit_middleware = request.view.site.submit_data_middleware
     # Not binding data
     if data is None:
@@ -142,10 +127,7 @@ def get_form(request,
         if inputs is not None:
             inputs = [inp() for inp in inputs]
         elif addinputs:
-            if not request.is_xhr:
-                own_view = request.path==request.url
-            else:
-                own_view = False
+            own_view = False if request.is_xhr else request.path==request.url
             inputs = form_inputs(instance, own_view)
         if inputs is None:
             inputs = []
@@ -165,15 +147,9 @@ def get_form(request,
         if prefix is None:
             prefix = data.get(forms.PREFIX_KEY)
     # Create the form widget
-    widget = form_factory(inputs=inputs,
-                          action=request.url,
-                          request=request,
-                          initial=initial,
-                          instance=instance,
-                          model=model,
-                          prefix=prefix,
-                          data=data,
-                          files=files)
+    widget = form_factory(inputs=inputs, action=action, request=request,
+                          initial=initial, instance=instance, model=model,
+                          prefix=prefix, data=data, files=files)
     if not widget.form.is_bound:
         # The form is not bound, check for form action
         widget = apply_form_actions(widget)
@@ -186,63 +162,27 @@ def return_form_errors(fhtml,request):
     else:
         return request.view.handle_response(request)
 
-def request_get_data(request):
-    data = request.GET
-    if request.is_xhr or request.POST:
-        ref = request.environ.get('HTTP_REFERER')
-        parts = urlsplit(ref)
-        extra_data = QueryDict(parts.query, request.encoding)
-        extra_data.update(data)
-        data = extra_data
-    return data
-
-def get_redirect(request, instance=None, force_redirect=False):
-    '''Obtain the most suitable url to redirect the request to
-according to the following algorithm:
-
-* Check for ``next`` in the request environment query string
-* Check for ``next`` in the environment referrer query string
-* If *force_redirect* is ``True``, calculate next from the
-  :meth:`djpcms.cms.ViewHandler.redirect_url` passing both *request*
-  and the optional *instance* parameter.
-
-If none of the above works, it returns ``None``, otherwise it returns an
-absolute url.
-'''
-    def _next():
-        data = request_get_data(request)
-        next = data.get('next')
-        if next:
-            return next
-        elif force_redirect:
-            return request.view.redirect_url(request,instance=instance)
-    n = _next()
-    return request.build_absolute_uri(n) if n else None
-
-def saveform(request, force_redirect=None):
+def submit_form(request, force_redirect=None):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted, including possible asynchronous behavior.'''
     view = request.view
     if force_redirect is None:
         force_redirect = view.force_redirect
-    data = request.REQUEST
-    curr = request.environ.get('HTTP_REFERER')
-    referrer = data.get(forms.REFERER_KEY)
     fhtml = view.get_form(request)
     f = fhtml.form
-
+    data = f.rawdata
+    # The form has been aborted
     if forms.CANCEL_KEY in data:
-        url = get_redirect(request, f.instance, True)
+        url = get_redirect(request, data, f.instance)
         raise HttpRedirect(url)
-
+    # Save as new
     if forms.SAVE_AS_NEW_KEY in data and f.instance and f.instance.id:
         f.instance = view.mapper.save_as_new(f.instance, commit=False)
-
-    # The form is valid. Invoke the save method in the view
+    # The form is valid. Invoke the submit_form method in the view
     if f.is_valid():
         editing = bool(f.instance and f.instance.id)
-        response = view.save(request, f)
+        response = view.submit_form(request, f)
         if is_async(response):
             return response.add_callback(partial(_finish, request, editing,
                                                  fhtml, force_redirect))
@@ -261,11 +201,11 @@ def _finish(request, editing, fhtml, force_redirect, response):
         return response
     elif response == f:
         return fhtml.maker.json_messages(f)
-    data = request.REQUEST
+    data = f.rawdata
     success_message = fhtml.success_message or view.success_message
     msg = success_message(request, response)
     f.add_message(msg)
-
+    url = None
     # Save and continue. Redirect to referrer if not AJAX or send messages
     if forms.SAVE_AND_CONTINUE_KEY in data:
         if editing:
@@ -278,10 +218,8 @@ def _finish(request, editing, fhtml, force_redirect, response):
                 raise HttpRedirect(curr)
         else:
             url = view.redirect_url(request, response, 'change')
-    else:
-        url = get_redirect(request,
-                           instance=response,
-                           force_redirect=force_redirect)
+    elif force_redirect:
+        url = get_redirect(request, data, response)
 
     if not url:
         if request.is_xhr:
@@ -299,7 +237,8 @@ def deleteinstance(request, force_redirect=None):
     view = request.view
     if force_redirect is None:
         force_redirect = view.force_redirect
-    next = get_redirect(request,force_redirect=force_redirect)
+    if force_redirect:
+        next = get_redirect(request, request.REQUEST)
     bid = view.appmodel.remove_instance(instance)
     msg = 'Successfully deleted %s' % instance
     if request.is_xhr and bid and not force_redirect:

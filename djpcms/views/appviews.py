@@ -7,7 +7,7 @@ from djpcms.html import classes, render_block
 from djpcms.utils.text import nicename
 from djpcms.cms import Route, Http404, permissions, ViewHandler
 from djpcms.cms.plugins import html_plugin_form
-from djpcms.cms.formutils import saveform, deleteinstance, get_redirect
+from djpcms.cms.formutils import submit_form, deleteinstance, get_redirect
 
 from .pagination import paginationResponse
 
@@ -163,13 +163,6 @@ views::
     It fine-tunes the response behaviour of your web site forms.
 
     Default: ``False``.
-
-.. attribute:: inherit_page
-
-    If ``True`` and a page is not available for the view, the parent view
-    page will be used (recursive).
-
-    Default ``True``.
 '''
     plugin_form = None
     has_plugins = False
@@ -267,11 +260,8 @@ views::
     def warning_message(self, request):
         return None
 
-    def save(self, request, f, commit=True):
-        return f.save(commit=commit)
-
-    def save_as_new(self, request, f, commit=True):
-        return f.save_as_new(commit=commit)
+    def submit_form(self, request, form, commit=True):
+        return form.submit(commit=commit)
 
     #DELEGATE RESPONSE TO THE APPMODEL
     def get_response(self, request):
@@ -350,7 +340,7 @@ and handles the saving as default ``POST`` response.'''
         return self.get_form(request, **kwargs).render(request)
 
     def post_response(self, request):
-        return saveform(request)
+        return submit_form(request)
 
     def success_message(self, request, response):
         mapper = self.appmodel.mapper
@@ -451,7 +441,7 @@ on an instance of a model.'''
         return self.get_form(request, **kwargs).render(request)
 
     def post_response(self, request):
-        return saveform(request, force_redirect=self.force_redirect)
+        return submit_form(request)
 
 
 # Edit/Change an object
@@ -462,7 +452,6 @@ an instance of a model.'''
     PERM = permissions.CHANGE
     ICON = 'pencil'
     default_link = 'edit'
-    force_redirect = True
 
     def success_message(self, request, response):
         mapper = self.appmodel.mapper

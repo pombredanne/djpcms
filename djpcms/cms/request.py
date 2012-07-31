@@ -52,95 +52,6 @@ def save_on_request(f):
         return getattr(request,name)
     return _
 
-
-class NodeEnvironMixin(UnicodeMixin):
-    view = None
-    page_editing = False
-    def __init__(self, environ, node, instance, url, exc_info=None):
-        self.environ = environ
-        self.node = node
-        if self.node is not None:
-            self.view = node.view
-        self.instance = instance
-        self.url = url
-        self.exc_info = exc_info
-
-    def __getitem__(self, key):
-        return self.environ[key]
-
-    def __setitem__(self, key, value):
-        self.environ[key] = value
-
-    def get(self, key, default = None):
-        return self.environ.get(key,default)
-
-    @property
-    def valid(self):
-        return not bool(self.exc_info)
-
-    @property
-    def urlargs(self):
-        return self.node.urlargs
-
-    @property
-    def settings(self):
-        return self.view.settings
-
-    @property
-    def page(self):
-        if self.view.inherit_page:
-            node = self.node
-            page = None
-            while not page and node:
-                page = node.page
-                node = node.parent
-            return page
-        else:
-            return self.node.page
-
-    @property
-    def name(self):
-        return self.view.name
-
-    @property
-    def model(self):
-        return getattr(self.view,'model',None)
-
-    @property
-    def tree(self):
-        return self.node.tree
-
-
-class RequestNode(NodeEnvironMixin):
-    '''Holds information and data to be reused during a single request.
-This is used as a way to speed up responses as well as for
-managing settings.'''
-    def __init__(self, node, instance, path):
-        environ = {'requests':{}, 'traces':[]}
-        super(RequestNode, self).__init__(environ, node, instance, path)
-        self.path = path
-
-    def __unicode__(self):
-        return self.name
-
-    @property
-    def requests(self):
-        return self.environ['requests']
-
-    @property
-    def request(self):
-        return self.requests.get(self.path)
-
-    @property
-    def media(self):
-        if not hasattr(self,'_media'):
-            m = self.view.default_media(self.request)
-            if m is None:
-                m = media.Media(settings=self.view.settings)
-            self._media = m
-        return self._media
-
-
 def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
     if not node.error:
@@ -162,7 +73,6 @@ def make_request(environ, node, instance=None, cache=True):
             instance = None
     return build_request(environ, node, cache, instance)
 
-
 def build_request(environ, node, cache, instance):
     exc_info=None
     if is_failure(instance):
@@ -174,26 +84,49 @@ def build_request(environ, node, cache, instance):
             urlargs = node.view.variables_from_instance(instance)
             node.urlargs.update(urlargs)
         url = node.url()
-    if 'DJPCMS' not in environ:
+    request_cache = environ.get('DJPCMS')
+    if request_cache is None:
         if url is None:
             raise ValueError('Critical error in request')
-        environ['DJPCMS'] = RequestNode(node, instance, url)
-
-    if cache and url is not None:
-        rn = environ['DJPCMS']
-        request = rn.requests.get(url)
+        request = Request(environ, node, instance, url, exc_info)
+        environ['DJPCMS'] = RequestCache(request)
+    elif cache and url is not None:
+        requests = request_cache['REQUESTS']
+        request = requests.get(url)
         if request is None:
             request = Request(environ, node, instance, url, exc_info)
-            rn.requests[url] = request
-        return request
+            requests[url] = request
     else:
         # if we are not caching, return a request regardless if it has
         # a valid url or not
-        return Request(environ, node, instance, url, exc_info)
+        request = Request(environ, node, instance, url, exc_info)
+    return request
 
 
-class Request(NodeEnvironMixin):
-    '''A wrapper for the WSGI_ environment.
+class RequestCache(dict):
+
+    def __init__(self, request):
+        r = {request.path: request}
+        super(RequestCache, self).__init__({'REQUESTS': r})
+        self.request = request
+        self.traces = []
+
+    @property
+    def view(self):
+        return self.request.view
+
+    @property
+    def media(self):
+        if not hasattr(self, '_media'):
+            m = self.view.default_media(self.request)
+            if m is None:
+                m = media.Media(settings=self.view.settings)
+            self._media = m
+        return self._media
+
+
+class Request(UnicodeMixin):
+    '''A wrapper for the WSGI_ *environ* dictionary.
 
 .. attribute:: environ
 
@@ -215,12 +148,45 @@ class Request(NodeEnvironMixin):
     :class:`djpcms.views.Application.model`. In this case this attribute
     is that instance, otherwise it is ``None``.
 
+.. attribute:: page
+
+    The page for this :class:`Request`. Only available if a valid Page model
+    is available.
+
+.. attribute:: closest_page
+
+    Equivalent to :attr:`page` if available, otherwise the
+    :attr:`page` of the closest ancestor with :attr:`page` available.
+    This attribute is used for retrieving permission on a request. Check
+    the :meth:`has_permission` method.
+
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
+    view = None
+    page_editing = False
+    def __init__(self, environ, node, instance, url, exc_info=None):
+        self.environ = environ
+        self.node = node
+        if self.node is not None:
+            self.view = node.view
+        self.instance = instance
+        self.url = url
+        self.exc_info = exc_info
+
+    def __getitem__(self, key):
+        return self.environ[key]
+
+    def __setitem__(self, key, value):
+        self.environ[key] = value
+
+    def get(self, key, default=None):
+        return self.environ.get(key, default)
+
     def for_path(self, path=None, urlargs=None, instance=None, cache=True):
-        '''Create a new :class:`Request` from a given *path*.'''
+        '''Create a new :class:`Request` from a given *path*. Additional
+path key-valued parameters can be passed via the *urlargs* parameter.'''
         path = path if path is not None else self.path
-        request = self.cache['requests'].get(path)
+        request = self.REQUESTS.get(path)
         if request:
             return request
         instance = instance if instance is not None else self.instance
@@ -271,7 +237,9 @@ is available, the name is set to ``view``.
             return view
 
     def __unicode__(self):
-        if self.url is not None:
+        if self.cache.request == self:
+            return self.path
+        elif self.url is not None:
             return self.url + ' (' + self.path + ')'
         elif self.node:
             return self.node.path + ' (' + self.path + ')'
@@ -298,6 +266,10 @@ is available, the name is set to ``view``.
     @property
     def method(self):
         return self.environ.get('REQUEST_METHOD','get').lower()
+
+    @property
+    def REQUESTS(self):
+        return self.cache['REQUESTS']
 
     @property
     def REQUEST(self):
@@ -335,20 +307,49 @@ is available, the name is set to ``view``.
         return self.environ.get('session')
 
     @property
-    def DJPCMS(self):
-        return self.environ['DJPCMS']
-
-    @property
     def cache(self):
-        return self.DJPCMS.environ
-
-    @property
-    def owner(self):
-        return self.DJPCMS.owner
+        return self.environ.get('DJPCMS')
 
     ############################################################################
     #    View methods and properties
     ############################################################################
+
+    @property
+    def valid(self):
+        return not bool(self.exc_info)
+
+    @property
+    def urlargs(self):
+        return self.node.urlargs
+
+    @property
+    def settings(self):
+        return self.view.settings
+
+    @property
+    def name(self):
+        return self.view.name
+
+    @property
+    def model(self):
+        return getattr(self.view,'model',None)
+
+    @property
+    def tree(self):
+        return self.node.tree
+
+    @property
+    def page(self):
+        return self.node.page
+
+    @lazyproperty
+    def closest_page(self):
+        node = self.node
+        page = None
+        while not page and node:
+            page = node.page
+            node = node.parent
+        return page
 
     @property
     def appmodel(self):
@@ -371,11 +372,7 @@ is available, the name is set to ``view``.
 
     @property
     def media(self):
-        return self.DJPCMS.media
-
-    @property
-    def on_document_ready(self):
-        return self.DJPCMS.on_document_ready
+        return self.cache.media
 
     @lazyproperty
     def title(self):
@@ -400,7 +397,7 @@ is available, the name is set to ``view``.
         # A page model must be available
         if code is None:
             model = self.model
-            page = self.page
+            page = self.closest_page
             instance = self.instance
             if page and page != instance:
                 if not perm.has(self, permissions.VIEW, page,
@@ -439,8 +436,8 @@ is available, the name is set to ``view``.
                 host = '%s:%s' % (host, server_port)
         return host
 
-    def get_full_path(self):
-        url = self.url
+    def get_full_path(self, url=None):
+        url = url or self.url
         qs = self.environ.get('QUERY_STRING', '')
         if url == self.path and qs:
             return url + '?' + iri_to_uri(qs)

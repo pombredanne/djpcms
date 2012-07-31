@@ -71,17 +71,17 @@ of this class are declared in the body of a :class:`Form`.
         self.initial_length = initial_length
         self.extra_length = extra_length
         FormSet.creation_counter += 1
-        self.form = None
+        self.related_form = None
 
-    def __call__(self, form):
+    def __call__(self, related_form):
         fset = copy(self)
-        fset.form = form
+        fset.related_form = related_form
         return fset
 
     @property
     def is_bound(self):
-        if self.form:
-            return self.form.is_bound
+        if self.related_form:
+            return self.related_form.is_bound
         else:
             return False
 
@@ -98,22 +98,22 @@ of this class are declared in the body of a :class:`Form`.
     def _unwind(self):
         if hasattr(self,'_forms'):
             return
-        form = self.form
-        if form is None:
-            raise ValueError('Form not specified')
-        self.prefix = '{0}_{1}_'.format(form.prefix or '',self.name)
+        related_form = self.related_form
+        if related_form is None:
+            raise ValueError('Related form not specified')
+        self.prefix = '{0}_{1}_'.format(related_form.prefix or '', self.name)
         errors = self._errors = {}
         forms = self._forms = []
         is_bound = self.is_bound
-        nf = '{0}{1}'.format(self.prefix,self.NUMBER_OF_FORMS_CODE)
+        nf = '{0}{1}'.format(self.prefix, self.NUMBER_OF_FORMS_CODE)
         instances = []
         if is_bound:
-            if nf not in form.rawdata:
+            if nf not in related_form.rawdata:
                 raise ValidationError(\
                     'Could not find number of "{0}" forms'.format(self.name))
-            num_forms = int(form.rawdata[nf])
+            num_forms = int(related_form.rawdata[nf])
         else:
-            related = form.instance
+            related = related_form.instance
             num_forms = 0
             if related.id:
                 if self.instances_from_related:
@@ -123,9 +123,8 @@ of this class are declared in the body of a :class:`Form`.
                                     **{self.related_name:related})
                 instances = list(instances)
                 num_forms = self.extra_length + len(instances)
-            num_forms = max(num_forms,self.initial_length)
-
-        self.num_forms = HiddenInput(name = nf, value = num_forms)
+            num_forms = max(num_forms, self.initial_length)
+        self.num_forms = HiddenInput(name=nf, value=num_forms)
 
         for idx,instance in zip_longest(range(num_forms),instances):
             f = self.get_form(self.prefix, idx, instance)
@@ -141,10 +140,10 @@ of this class are declared in the body of a :class:`Form`.
 
 
     def get_form(self, prefix, idx, instance=None):
-        form = self.form
-        related = form.instance
-        prefix = '{0}{1}_'.format(prefix,idx)
-        data = form.rawdata
+        related_form = self.related_form
+        related = related_form.instance
+        prefix = '{0}{1}_'.format(prefix, idx)
+        data = related_form.rawdata
         if data and related.id:
             id = data.get(prefix + 'id',None)
             if id is None:
@@ -155,8 +154,8 @@ of this class are declared in the body of a :class:`Form`.
                 instance = self.model(**{self.related_name:related})
         f = self.form_class(prefix=prefix,
                             model=self.model,
-                            data=form.rawdata,
-                            request=form.request,
+                            data=related_form.rawdata,
+                            request=related_form.request,
                             instance=instance)
         f._index = idx
         if not f.is_valid():
@@ -170,11 +169,12 @@ is the last step in the validation process for a set of related forms.
 This method can be overridden in the constructor.'''
         pass
 
-    def save(self):
+    def submit(self):
+        related_form = self.related_form
         for form in self.forms:
             if form.changed:
-                form.cleaned_data[self.related_name] = self.form.instance
-                form.save()
+                form.cleaned_data[self.related_name] = related_form.instance
+                form.submit()
 
     def set_save_as_new(self):
         for form in self.forms:

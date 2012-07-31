@@ -5,7 +5,7 @@ import json
 from djpcms import forms, html, Renderer
 from djpcms.html import classes, WidgetMaker, panel
 from djpcms.utils.text import capfirst, nicename
-from djpcms.cms.formutils import form_kwargs
+from djpcms.cms.formutils import form_data_files
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
@@ -47,8 +47,8 @@ def html_plugin_form(form):
     if isinstance(form,forms.HtmlForm):
         form.tag = None
     return form
-    
-    
+
+
 class DJPpluginMetaBase(type):
     '''
     Just a metaclass to differentiate plugins from other calsses
@@ -87,17 +87,17 @@ class DJPwrapper(DJPwrapperBase):
     def render(self, request, block, html):
         '''Wrap content for block and return safe HTML.
 This function should be implemented by derived classes.
-        
+
 :parameter cblock: instance of :class:'djpcms.core.page.Block`.
 :parameter html: safe unicode string of inner HTML.'''
         return html
-    
+
     def __call__(self, request, block, html):
         el = self.render(request, block, html)
         if self.template:
             el = self.template(el, id=block.htmlid())
         return el.addClass((classes.cms_block, 'plugin-'+block.plugin_name))
-    
+
     def _register(self):
         global _wrapper_dictionary
         _wrapper_dictionary[self.name] = self
@@ -106,7 +106,7 @@ This function should be implemented by derived classes.
 class DJPplugin(DJPpluginBase):
     '''Base class for Plugins. These classes are used to display contents
 on a ``djpcms`` powered web site. The basics:
-    
+
 * A Plugin is dynamic application.
 * It is rendered within a :class:`DJPwrapper`, and each :class:`DJPwrapper`
   displays a plugin.
@@ -118,7 +118,7 @@ on a ``djpcms`` powered web site. The basics:
 
     Optional ``name`` which associate this plugin with a css element.
 '''
-    
+
     virtual       = True
     '''If set to true, the class won't be registered with the plugin's dictionary. Default ``False``.'''
     name          = None
@@ -128,22 +128,22 @@ on a ``djpcms`` powered web site. The basics:
     form = None
     '''A :class:`djpcms.forms.Form` class or :class:`djpcms.forms.HtmlForm`
 instance for editing the plugin parameters.
-    
+
 Default: ``None``, the plugin has no arguments.'''
     permission = 'authenticated'
     css_name = None
-    
+
     def js(self, **kwargs):
         '''Function which can be used to inject javascript dynamically.'''
         return None
-    
+
     def css(self):
         '''Function which can be used to inject css dynamically.'''
         return None
-    
+
     def for_model(self, request):
         pass
-    
+
     def arguments(self, args):
         try:
             kwargs = json.loads(args)
@@ -156,19 +156,19 @@ Default: ``None``, the plugin has no arguments.'''
                 return {}
         except:
             return {}
-        
+
     def processargs(self, kwargs):
         '''You can use this hook to perform pre-processing on plugin parameters if :attr:`form` is set.
 By default do nothing.
         '''
         return kwargs
-    
+
     def __call__(self, request, args=None, block=None, prefix=None):
         return self.render(request, block, prefix, **self.arguments(args))
-        
+
     def edit_url(self, request, args = None):
         return None
-    
+
     def render(self, request, block, prefix, **kwargs):
         '''Render the plugin. It returns a safe string to be included in the
  HTML page. This is the function subclasses need to implement.
@@ -179,14 +179,14 @@ By default do nothing.
 :parameter kwargs: plugin specific key-valued arguments.
 '''
         return ''
-    
+
     def save(self, pform):
         '''Save the plugin data from the plugin form'''
         if pform:
             return json.dumps(pform.data)
         else:
             return json.dumps({})
-    
+
     def get_form(self, request, args=None, prefix=None, **kwargs):
         '''Return an instance of a :attr:`form` or `None`.
 Used to edit the plugin when in editing mode.
@@ -196,25 +196,30 @@ If your plugin needs input parameters when editing, simple set the
         form_factory = self.form
         if form_factory is not None:
             initial = self.arguments(args) or None
-            form = form_factory(**form_kwargs(request=request,
-                                              initial=initial,
-                                              prefix=prefix,
-                                              model=self.for_model(request),
-                                              **kwargs))
+            method = form_factory.attrs['method']
+            data, files, initial = form_data_files(request, initial=initial,
+                                                   method=method)
+            form = form_factory(request=request,
+                                initial=initial,
+                                prefix=prefix,
+                                model=self.for_model(request),
+                                data=data,
+                                files=files,
+                                **kwargs)
             return form
-    
+
     def _register(self):
         global _plugin_dictionary
         _plugin_dictionary[self.name] = self
-        
+
     def __eq__(self, other):
         if isinstance(other,DJPplugin):
             return self.name == other.name
         return False
-    
+
     def media(self, request):
         return None
-    
+
 
 class EmptyPlugin(DJPplugin):
     '''
@@ -222,7 +227,7 @@ class EmptyPlugin(DJPplugin):
     '''
     name         = ''
     description  = '--------------------'
-    
+
 
 class ThisPlugin(DJPplugin):
     '''Current view plugin. This plugin render the current view
@@ -232,17 +237,17 @@ the plugin will display the search view for that application.
     '''
     name        = 'this'
     description = 'Current View'
-    
+
     def render(self, request, block, prefix, **kwargs):
         return request.render(block=block)
-    
-    
+
+
 class ApplicationPlugin(DJPplugin):
     '''Plugin formed by :class:`djpcms.views.View` which have
 the :attr:`djpcms.views.RendererMixin.has_plugins` attribute
 set to ``True``.'''
     auto_register = False
-    
+
     def __init__(self, view, name=None, description=None):
         global _plugin_dictionary
         self.view = view
@@ -252,27 +257,27 @@ set to ``True``.'''
         self.name = name
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self
-        
+
     def render(self, request, block, prefix, **kwargs):
         req = request.for_path(self.view.path)
         if req and req.has_permission():
             return req.render(block=block, **kwargs)
         else:
             return ''
-    
+
 
 class JavascriptLogger(DJPplugin):
     description = 'Javascript Logging Panel'
-    
+
     def render(self, request, block, prefix, **kwargs):
         return '<div class="djp-logging-panel"></div>'
-    
-    
+
+
 class NoWrapper(DJPwrapper):
     name = '             nothing'
     description  = '--------------------'
-    
-    
+
+
 class FlatPanel(DJPwrapper):
     name = 'panel'
     description = 'Panel'

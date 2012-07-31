@@ -164,12 +164,13 @@ Attributes available:
         self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]
         self.request_processors = []
-        self.submit_data_middleware = SubmitDataMiddleware()
         if parent is None:
+            self.submit_data_middleware = SubmitDataMiddleware()
             settings = settings or get_settings()
             if not handlers.get('permissions'):
                 handlers['permissions'] = PermissionHandler(settings)
         else:
+            self.submit_data_middleware = parent.submit_data_middleware
             self.parent = parent
         if settings:
             self.internals['settings'] = settings

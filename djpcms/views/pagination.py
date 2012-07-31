@@ -26,7 +26,8 @@ menu_link = namedtuple('menu_link',
 iscallable = lambda v: isfunction(v) or ismethod(v)
 
 def valid_request(request):
-    if request is None or request.url is None or not request.has_permission():
+    if request is None or request.url is None:
+    #if request is None or request.url is None or not request.has_permission():
         return False
     return True
 

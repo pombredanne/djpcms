@@ -1,14 +1,20 @@
+from inspect import isclass
+
+from .exceptions import InvalidForm
+
+
+__all__ = ['SubmitMiddleware', 'Referrer']
 
 
 class SubmitMiddleware(object):
-    
+
     def extra_form_data(self, request):
         raise StopIteration()
-    
+
     def check(self, request, data):
         pass
-    
-    
+
+
 class SubmitDataMiddleware(object):
 
     def __init__(self):
@@ -22,17 +28,24 @@ class SubmitDataMiddleware(object):
 
     def check(self, request, data):
         for middleware in self._middleware:
-            middleware(request, data)
-            
-            
+            middleware.check(request, data)
+
+    def add(self, middleware):
+        if isclass(middleware):
+            middleware = middleware()
+        self._middleware.append(middleware)
+
+
 class Referrer(SubmitMiddleware):
-    
+
     def extra_form_data(self, request):
-        if request.method == 'GET':
-            yield '__referer__', request.path
-    
+        yield '__REFERRER__', request.get_full_path(request.path)
+
     def check(self, request, data):
-        referer = data.get('__referer__')
-        if referer:
-            pass
-    
+        referrer = data.pop('__REFERRER__', None)
+        if referrer:
+            if 'next' not in data:
+                data['next'] = referrer
+        else:
+            raise InvalidForm('referrer not available.')
+

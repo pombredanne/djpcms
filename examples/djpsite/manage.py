@@ -33,7 +33,7 @@ from djpcms.html.layout import page, container, grid
 from djpcms.apps.nav import topbar_container, Breadcrumbs
 
 from stdcms.sessions import User
-from stdcms.sessions import PermissionHandler
+from stdcms.sessions import PermissionHandler, CSRF
 from stdcms.social.applications import SocialUserApplication
 
 
@@ -63,9 +63,11 @@ class WebSite(cms.WebSite):
         # AUTHENTICATION MIDDLEWARE
         self.add_wsgi_middleware(permissions.request_middleware())
         self.add_response_middleware(permissions.response_middleware())
-
         # The root site
         site = cms.Site(settings, permissions=permissions)
+        site.submit_data_middleware.add(cms.Referrer)
+        # Add CSRF submit middleware
+        site.submit_data_middleware.add(CSRF)
         # admin site
         settings = cms.get_settings(
             __file__,

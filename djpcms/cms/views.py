@@ -7,7 +7,7 @@ from djpcms.utils.text import nicename, slugify, escape, UnicodeMixin
 
 from .routing import Route
 from .permissions import VIEW
-from .formutils import saveform
+from .formutils import submit_form
 
 __all__ = ['RouteMixin', 'ViewRenderer', 'RendererMixin', 'ViewHandler',
            'pageview', 'SPLITTER']
@@ -278,8 +278,18 @@ from the variable part of the url.'''
 
 
 class ViewRenderer(Renderer):
+    '''Base class:`Renderer` class for :class:`Site`, and
+:class:`RendererMixin`.
+
+.. attribute:: inherit_page
+
+    If ``True`` and a page is not available for the view, the parent view
+    page will be used (recursive).
+
+    Default ``True``.
+'''
     appmodel = None
-    inherit_page = False
+    inherit_page = True
 
     def parent_instance(self, instance):
         '''Return the parent instance for *instance*. This is the instance
@@ -463,7 +473,7 @@ method for this view.'''
 
     def post_response(self, request):
         '''The post response handler. It invkoes the render method.'''
-        return saveform(request)
+        return submit_form(request)
 
     def ajax_get_response(self, request):
         '''Default AJAX GET response. It renders and return a ajax dialog.'''

@@ -55,22 +55,19 @@ Prettify a value to be displayed in html.
         return val
     elif isinstance(val, date):
         return smart_time(val,dateformat,timeformat,settings)
-    elif isinstance(val,bool):
+    elif isinstance(val, bool):
         if val:
             return with_icon('true')
         else:
             return with_icon('false')
     else:
+        val = to_string(val)
         try:
-            return significant_format(val, n = nd, thousand_sep = None)
+            return significant_format(val, n=nd, thousand_sep=None)
         except TypeError:
-            if hasattr(val,'_meta'):
-                val = val._meta
-            val = to_string(val)
             if val.startswith('http://') or val.startswith('https://'):
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
             return val
-
 
 def field_repr(request, field_name, obj, appmodel = None, **kwargs):
     '''Retrive the value of attribute *field_name*
@@ -86,10 +83,10 @@ several possibilities in the following order.
 * Return ``None``
 '''
     val = None
-    if hasattr(obj,field_name):
+    if hasattr(obj, field_name):
         try:
-            val = getattr(obj,field_name)
-            if not isclass(val) and hasattr(val,'__call__'):
+            val = getattr(obj, field_name)
+            if not isclass(val) and hasattr(val, '__call__'):
                 val = val()
         except Exception as e:
             val = str(e)
@@ -97,10 +94,8 @@ several possibilities in the following order.
                          exc_info = True)
     elif hasattr(obj,'__getitem__') and field_name in obj:
         val = obj[field_name]
-
     if appmodel:
         val = appmodel.instance_field_value(request, obj, field_name, val)
-
     return nicerepr(val, settings=request.settings)
 
 
@@ -182,9 +177,9 @@ class get_app_result(object):
         if link and link.attr('href') != request.path:
             var = link.render()
         else:
-            attrname = head.code if hasattr(result,head.code) else head.attrname
+            attrname = head.code if hasattr(result, head.code) else head.attrname
             var = field_repr(request, attrname, result,
-                             appmodel = appmodel, **kwargs)
+                             appmodel=appmodel, **kwargs)
 
         if self.first and self.actions and mapper:
             first = False

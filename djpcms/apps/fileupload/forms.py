@@ -4,8 +4,8 @@ from djpcms.forms import layout
 
 class UploadForm(forms.Form):
     files = forms.FileField(multiple = True)
-    
-    def save(self, commit = True):
+
+    def on_submit(self, commit):
         results = []
         for appmodel in sites.for_model(self.model):
             storage = appmodel.site.storage
@@ -26,8 +26,8 @@ class UploadForm(forms.Form):
                                         "delete_type":"POST"})
                        #"thumbnail_url":thumb_url,
         return ajax.simplelem(results)
-                    
-    
+
+
 class FileInputHtml(layout.FieldTemplate):
     tag = 'div'
     default_class = "fileupload-buttonbar"
@@ -36,7 +36,7 @@ class FileInputHtml(layout.FieldTemplate):
                                 'fileupload/jquery.fileupload-ui.js',
                                 'fileupload/upload.js'],
             css = {'screen':['fileupload/jquery.fileupload-ui.css']})
-    
+
     def stream(self, djp, widget, context):
         yield '<label class="fileinput-button">\
 <span>Add files...</span>\

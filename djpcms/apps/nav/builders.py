@@ -76,7 +76,7 @@ class Navigator(WidgetMaker):
             secondary = widget.children['secondary']
             urlselects = []
             request = self.buildselects(request, urlselects)
-            for li ,s in navstream(request, urlselects, self.secondary_after,
+            for li, s in navstream(request, urlselects, self.secondary_after,
                                    self.levels-1):
                 if s:
                     secondary.add(li)

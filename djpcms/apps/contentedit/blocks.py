@@ -1,6 +1,5 @@
 from djpcms import forms, html, views, ajax
 from djpcms.cms.plugins import PLUGIN_DATA_FORM_CLASS
-from djpcms.cms.formutils import get_redirect
 from djpcms.cms.plugins.wrappers import CollapsedWrapper
 
 from .sitemap import underlying_response
@@ -237,6 +236,8 @@ The instance.plugin object is maintained but its fields may change.'''
 class DeleteContentView(views.DeleteView):
 
     def post_response(self, request):
+        if not request.is_xhr:
+            raise ValueError()
         instance = request.instance
         column = instance.column
         jquery = ajax.jcollection(request.environ)
@@ -257,11 +258,7 @@ class DeleteContentView(views.DeleteView):
                 b.save()
             pos += 1
         jquery.add(jatt)
-
-        if request.is_xhr:
-            return jquery
-        else:
-            return self.redirect(get_redirect(request,force_redirect=True))
+        return jquery
 
 
 class ContentApplication(views.Application):

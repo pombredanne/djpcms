@@ -158,10 +158,10 @@ since they seems to confuse jQuery selectors.'''
         name = obj.__name__ if isclass(obj) else obj.__class__.__name__
         return name.lower()
 
-    def save(self, data, instance = None, commit = True):
-        raise NotImplementedError
+    def save(self, data, instance=None, commit=True):
+        raise NotImplementedError()
 
-    def save_as_new(self, instance, data = None, commit = True):
+    def save_as_new(self, instance, data=None, commit=True):
         '''Save the existing *instance* as a new instance in the backend
  database.
 
@@ -170,7 +170,7 @@ since they seems to confuse jQuery selectors.'''
  :parameter commit: if to commit to backend
  :rtype: a new instance of :attr:`model`.
  '''
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def search_text(self, qs, search_string, slist):
         '''\

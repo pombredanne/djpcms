@@ -20,7 +20,7 @@ def get_layout_templates(bfield):
         root = bfield.request.view.root
         for name in root._page_layout_registry:
             yield name, nicename(name)
-    
+
 grid_choices = lambda bfield: ((name, nicename(name)) for name in grids())
 
 def initial_layout(f):
@@ -33,7 +33,7 @@ def initial_layout(f):
 
 class TemplateForm(forms.Form):
     name = forms.CharField()
-    template = forms.CharField(widget = html.TextArea())  
+    template = forms.CharField(widget = html.TextArea())
 
 
 class PageForm(forms.Form):
@@ -57,7 +57,7 @@ class PageForm(forms.Form):
     requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
     doctype = forms.ChoiceField(choices=html_choices, initial=htmldefaultdoc)
-    
+
     def clean_url(self, value):
         if self.mapper:
             try:
@@ -70,20 +70,20 @@ class PageForm(forms.Form):
         else:
             raise forms.ValidationError('No page model defined.')
         return value
-    
+
 
 class PluginChoice(forms.ChoiceField):
     widget = html.Select(cn='ajax')
-    
+
     def _clean(self, value, bfield):
         '''Overried default value to return a Content Type object
         '''
-        value = plugins.get_plugin(value) 
+        value = plugins.get_plugin(value)
         if not value:
             raise forms.ValidationError('%s not a plugin object' % name)
         return value
 
-    
+
 class ContentBlockForm(forms.Form):
     '''Form for editing a content block within a page.'''
     url = forms.HiddenField(required=False)
@@ -99,8 +99,8 @@ class ContentBlockForm(forms.Form):
     for_not_authenticated = forms.BooleanField(default=False)
     view_permission = forms.CharField(required=False)
     requires_login = forms.BooleanField(default=False)
-        
-    def save(self, commit = True):
+
+    def on_submit(self, commit):
         data = self.cleaned_data
         pt = data.pop('plugin_name')
         pe = data.pop('view_permission')
@@ -112,7 +112,7 @@ class ContentBlockForm(forms.Form):
         if pe:
             instance.requires_login = True
         if 'container_type' in data:
-            instance.container_type = data['container_type'] 
+            instance.container_type = data['container_type']
         cb = super(ContentBlockForm,self).save(commit=commit)
         #if commit and cb.id:
         #    ObjectPermission.objects.set_view_permission(cb, groups = pe)
@@ -140,7 +140,7 @@ class EditContentForm(forms.Form):
     markup  = forms.ChoiceField(choices=lambda bf : tuple(markups.choices()),
                                 initial=lambda form : markups.default(),
                                 required=False)
-    
+
 
 def _getid(obj):
     if obj:
@@ -150,4 +150,3 @@ def _getid(obj):
             return obj
     else:
         return obj
-        

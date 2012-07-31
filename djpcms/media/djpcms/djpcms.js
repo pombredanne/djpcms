@@ -905,28 +905,35 @@
                 'delete': 'Please confirm delete',
                 'flush': 'Please confirm flush'
             },
+            effect: {
+                name: 'fade',
+                options: {},
+                speed: 50
+            },
             form: {
                 iframe: false,
                 beforeSerialize: function (jqForm, opts) {
                     return true;
                 },
                 beforeSubmit: function (formData, jqForm, opts) {
-                    var self = jqForm[0].djpcms_widget;
-                    $.each($.djpcms.before_form_submit, function () {
-                        formData = this(formData, jqForm);
-                    });
-                    jqForm.addClass(self.config.classes.submit);
-                    return true;
+                    var self = jqForm[0].djpcms_widget,
+                        ok = !self.disabled;
+                    if (ok) {
+                        self.disabled = true;
+                        $.each($.djpcms.before_form_submit, function () {
+                            formData = this(formData, jqForm);
+                        });
+                        jqForm.addClass(self.config.classes.submit);
+                    }
+                    return ok;
                 },
                 success: function (o, s, xhr, jqForm) {
                     var self = jqForm[0].djpcms_widget;
-                    jqForm.removeClass(self.config.classes.submit);
-                    $.djpcms.jsonCallBack(o, s, jqForm);
+                    return self.finished(o, s, xhr);
                 },
                 error: function (o, s, xhr, jqForm) {
                     var self = jqForm[0].djpcms_widget;
-                    jqForm.removeClass(self.config.classes.submit);
-                    $.djpcms.jsonCallBack(o, s, jqForm);
+                    return self.finished(o, s, xhr);
                 }
             },
             timeout: 30
@@ -934,6 +941,7 @@
         _create: function () {
             var self = this,
                 element = self.element;
+            self.disabled = false;
             if (element.is('select')) {
                 self.type = 'select';
                 self.create_select();
@@ -948,6 +956,22 @@
                 self.create_link();
             }
         },
+        finished: function (o, s, xhr) {
+            var self = this,
+                jqForm = self.element,
+                effect = self.config.effect,
+                matched = $('.form-messages, .error', jqForm),
+                processed = 0;
+            jqForm.removeClass(self.config.classes.submit);
+            self.disabled = false;
+            matched.hide(effect.name, effect.options, effect.speed, function () {
+                processed += 1;
+                $(this).html('').show();
+                if(processed === matched.length) {
+                    $.djpcms.jsonCallBack(o, s, jqForm);
+                }
+            });
+        },
         form_data: function () {
             var elem = this.element,
                 form = elem.closest('form'),
@@ -955,7 +979,8 @@
                     conf: elem.data('warning'),
                     name: elem.attr('name'),
                     url: elem.attr('href') || elem.data('href'),
-                    type: elem.data('method') || 'get'
+                    type: elem.data('method') || 'get',
+                    submit: elem.data('submit')
                 };
             if (form.length === 1) {
                 data.form = form;
@@ -968,16 +993,18 @@
             }
             return data;
         },
+        // Submit data via ajax
         submit: function (data) {
             var self = this;
             //
             function loader(ok) {
                 if (ok) {
-                    var opts = {
+                    var submit_data = $.djpcms.ajaxparams(data.name, data.submit),
+                        opts = {
                             url: data.url,
                             type: data.type,
                             dataType: self.config.dataType,
-                            data: $.djpcms.ajaxparams(data.name)
+                            data: submit_data
                         };
                     self.info('Submitting ajax ' + opts.type +' request "' + data.name + '"');
                     if (!data.form) {

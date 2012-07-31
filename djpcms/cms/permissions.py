@@ -170,7 +170,7 @@ a AuthenticationError exception.'''
             if user.is_active:
                 return self.login(environ, user)
             else:
-                msg = '%s is not active' % username
+                msg = '%s is not active' % user
         else:
             msg = 'username or password not recognized'
         raise ValueError(msg)

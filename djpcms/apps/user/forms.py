@@ -23,9 +23,8 @@ class LoginForm(forms.Form):
 
         raise ValueError('No authentication backend available.')
 
-    def save(self,commit=True):
+    def on_submit(self, commit):
         return self.cleaned_data['user']
-    save_as_new = save
 
 
 class LogoutForm(forms.Form):
@@ -69,7 +68,7 @@ class PasswordChange(forms.Form):
 
 class PasswordChangeForm(PasswordChange):
 
-    def save(self, commit=True):
+    def on_submit(self, commit):
         request = self.request
         user = self.user
         if request:
@@ -101,12 +100,12 @@ class RegisterForm(PasswordChange):
     def clean(self):
         return self.double_check_password()
 
-    def save(self, commit = True):
+    def on_submit(self, commit):
         '''Create the new user.'''
         cd = self.cleaned_data
         pe = self.request.view.permissions
-        return pe.create_user(username = cd['username'],
-                              password = cd['password'])
+        return pe.create_user(username=cd['username'],
+                              password=cd['password'])
 
 
 class UserChangeForm(forms.Form):
@@ -139,7 +138,7 @@ HtmlLoginForm = forms.HtmlForm(
 HtmlLogoutForm = forms.HtmlForm(
     LogoutForm,
     layout=uni.SimpleLayout(html.Div(key='logout')),
-    inputs=()
+    inputs=(('logout', 'logout'),)
 )
 
 HtmlAddUserForm = forms.HtmlForm(

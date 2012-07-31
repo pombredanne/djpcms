@@ -70,7 +70,7 @@ class ApplicationMetaClass(type):
 
 
 class Application(ApplicationMetaClass('ApplicationBase', (object,), {}),
-                  ResolverMixin,RendererMixin):
+                  ResolverMixin, RendererMixin):
     '''Application class which implements :class:`djpcms.cms.ResolverMixin` and
 :class:`RendererMixin` and defines a set of :class:`View` instances
 which are somehow related

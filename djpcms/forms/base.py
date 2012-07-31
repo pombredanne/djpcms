@@ -410,20 +410,21 @@ fields for example. It doesn't need to return anything, just throw a
                 fset.set_save_as_new()
         return self.save(commit = commit)
 
-    def save(self, commit=True):
+    def submit(self, commit=True):
         '''Save the form and return a model instance.
 This method works if an instance or a model is available.
 
 :parameter commit: if ``True`` changes are committed to the model backend.
 :parameter as_new: if ``True`` the instance is saved as a new instance.
 '''
-        obj = self.on_submit(commit)
-        if not obj:
-            obj = self.mapper.save(self.cleaned_data, self.instance, commit)
+        response = self.on_submit(commit)
+        if response is None:
+            response = self.mapper.save(self.cleaned_data, self.instance,
+                                        commit)
             if commit:
                 for fset in self.form_sets.values():
-                    fset.save()
-        return obj
+                    fset.submit()
+        return response
 
     def on_submit(self, commit):
         '''Hook to modify/manipulate data before submitting the form.

@@ -50,7 +50,7 @@ class HtmlWidgetError(DjpcmsException):
  when they are not setup properly.'''
     pass
 
-    
+
 class UsernameAlreadyAvailable(Exception):
     pass
 
@@ -79,4 +79,7 @@ class PageNotFound(PageException):
 class BlockOutOfBound(PageException):
     '''A :class:`PageException` raised when requesting a block not available in page.'''
     pass
-    
+
+
+class InvalidForm(PermissionDenied):
+    pass

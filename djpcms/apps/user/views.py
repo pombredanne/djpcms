@@ -9,8 +9,7 @@ __all__ = ['LogoutView',
 
 
 class LogoutView(views.ModelView):
-    '''Logs out a user, if there is an authenticated user :)
-    '''
+    '''Logs out a user, via a POST request'''
     PERM = permissions.NONE
     ICON = 'logout'
     default_route = 'logout'
@@ -19,15 +18,10 @@ class LogoutView(views.ModelView):
     ajax_enabled = True
     DEFAULT_METHOD = 'post'
     form = HtmlLogoutForm
+    force_redirect = True
 
     def post_response(self, request):
         return saveform(request)
-    #def __call__(self, request):
-    #    params = dict(request.GET.items())
-    #    url = params.get('next', None) or '/'
-    #    if request.view.permissions.logout(request.environ):
-    #        raise HttpRedirect(url)
-    #    raise ValueError('Could not logout')
 
 
 class LoginView(views.ModelView):

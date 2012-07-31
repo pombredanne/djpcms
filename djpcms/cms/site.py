@@ -26,6 +26,7 @@ from .management import find_commands
 from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 from .views import ViewRenderer
+from .submit import SubmitDataMiddleware
 
 
 __all__ = ['Site', 'get_settings', 'WebSite', 'request_processor']
@@ -121,21 +122,6 @@ class WSGI(object):
 
     def __call__(self, environ, start_response):
         return DjpcmsResponseGenerator(self.website, environ, start_response)
-
-
-class SubmitDataMiddleware(object):
-
-    def __init__(self):
-        self._middleware = []
-
-    def extra_form_data(self, request):
-        for middleware in self._middleware:
-            for name, value in middleware.extra_form_data(request):
-                yield name, value
-
-    def check(self, request, data):
-        for middleware in self.submit_data_middleware:
-            middleware(request, data)
 
 
 class Site(ResolverMixin, ViewRenderer):

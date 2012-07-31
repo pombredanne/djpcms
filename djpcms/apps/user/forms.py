@@ -33,7 +33,7 @@ class LogoutForm(forms.Form):
     def on_submit(self, commit):
         if self.request:
             if self.request.view.permissions.logout(self.request.environ):
-                return
+                return True
         raise ValueError('Could not logout')
 
 

@@ -195,7 +195,8 @@ the view name and a rendered html tag (either an anchor or a button).
             method = elem.method.lower()
             a.addClass('ajax')
             if method == 'post':
-                data = view.site.get_submit_data(request)
+                data = dict(
+                    view.site.submit_data_middleware.extra_form_data(request))
                 a.addData('submit', data)
         if asbuttons:
             a.addClass(view.link_class)

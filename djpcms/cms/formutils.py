@@ -47,7 +47,7 @@ def data_files(request, withdata=None, method='post', initial=None):
             initial = data
         else:
             initial.update(data)
-        None, None, initial
+        return None, None, initial
 
 
 def form_kwargs(request, withdata=None, method='post', inputs=None,
@@ -135,9 +135,9 @@ def get_form(request,
 '''
     method = form_factory.attrs['method']
     data, files, initial = data_files(request, withdata=withdata, method=method)
-    submit_middleware = request.view.site.submit_middleware
+    submit_middleware = request.view.site.submit_data_middleware
     # Not binding data
-    if data is not None:
+    if data is None:
         inputs = form_factory.inputs
         if inputs is not None:
             inputs = [inp() for inp in inputs]
@@ -155,12 +155,13 @@ def get_form(request,
             inputs.append(Widget('input:hidden', name=forms.PREFIX_KEY,
                                  value=prefix))
         # Add hidden inputs specified by the site
-        for name, value in submit_middleware.extra_form_data():
+        for name, value in submit_middleware.extra_form_data(request):
             inputs.append(Widget('input:hidden', name=name, value=value))
         #referrer = request.environ.get('HTTP_REFERER')
     else:
         # Check the data
-        submit_middleware.check_submit_data(data)
+        inputs = None
+        submit_middleware.check(request, data)
         if prefix is None:
             prefix = data.get(forms.PREFIX_KEY)
     # Create the form widget
@@ -195,7 +196,7 @@ def request_get_data(request):
         data = extra_data
     return data
 
-def get_redirect(request, instance = None, force_redirect = False):
+def get_redirect(request, instance=None, force_redirect=False):
     '''Obtain the most suitable url to redirect the request to
 according to the following algorithm:
 

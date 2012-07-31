@@ -643,7 +643,7 @@ the instance.'''
                 c.add(ajax.jremove(request.environ, '#'+id))
         return c
 
-    def redirect_url(self, request, instance = None, name = None):
+    def redirect_url(self, request, instance=None, name=None):
         '''Evaluate a url for an applicationview.
 It uses the following algorithm:
 
@@ -667,12 +667,12 @@ It uses the following algorithm:
 '''
         name = name or request.view.redirect_to_view
         view = None
-        if hasattr(name,'__call__'):
-            view = name(request,instance)
+        if hasattr(name, '__call__'):
+            view = name(request, instance)
         elif name:
             view = self.views.get(name)
         if not view:
-            if instance and instance.id:
+            if self.model and isinstance(instance, self.model) and instance.id:
                 view = self.view_for_instance(request, instance)
             if not view:
                 view = self.root_view

@@ -26,11 +26,8 @@ ContentBlockHtmlForm = forms.HtmlForm(
         ContentBlockForm,
         inputs=(('save',forms.SAVE_KEY),),
         layout=uni.FormLayout(
-                    uni.Fieldset('plugin_name','container_type',
-                                      'title','view_permission'),
-                    uni.Columns(('for_not_authenticated',),
-                                     ('requires_login',),
-                                     default_style=uni.inlineLabels3),
+                    uni.Fieldset('plugin_name', 'container_type', 'title'),
+                    uni.Inlineset('for_not_authenticated'),
                     html.WidgetMaker(tag='div', key='plugin')
             )
     )

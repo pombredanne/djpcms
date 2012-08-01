@@ -31,7 +31,7 @@ def check_fields(fields, missings, layout=None):
     for field in fields:
         if field in missings:
             if field == SUBMITS:
-                field = SubmitElement(key=SUBMITS)
+                field = SubmitElement()
                 field.check_fields(missings, layout)
             else:
                 missings.remove(field)
@@ -164,7 +164,6 @@ components. An instance of this class render one or several form
     instances (allowing for nested specification).
 '''
     field_widget_class = classes.ctrlHolder
-    classes = 'layout-element'
     field_widget_tag = 'div'
 
     def check_fields(self, missings, layout=None):
@@ -221,7 +220,7 @@ class Fieldset(FormLayoutElement):
 class Inlineset(FormLayoutElement):
     tag = 'div'
     field_widget_class = 'inline'
-    classes = 'ctrlHolder'
+    classes = classes.ctrlHolder
 
     def __init__(self, *args, **kwargs):
         self.label = kwargs.pop('label', None)
@@ -231,6 +230,7 @@ class Inlineset(FormLayoutElement):
 
     def add(self, *widgets):
         if 'inputs' in self:
+            widgets = [w.addClass(self.field_widget_class) for w in widgets]
             return self['inputs'].add(*widgets)
         else:
             return super(Inlineset, self).add(*widgets)

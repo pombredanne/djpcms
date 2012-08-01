@@ -36,15 +36,9 @@ def action_checkbox(val, id):
     return mark_safe(val)
 
 
-def nicerepr(val,
-             nd = 3,
-             none_value = NONE_VALUE,
-             dateformat = None,
-             timeformat = None,
-             settings = None,
-             **kwargs):
-    '''\
-Prettify a value to be displayed in html.
+def nicerepr(val, nd=None, none_value=NONE_VALUE, dateformat=None,
+             timeformat=None, settings=None, **kwargs):
+    '''Prettify a value to be displayed in html.
 
 :parameter val: value to prettify.
 :parameter nd: numerical accuracy for floating point numbers.
@@ -63,8 +57,8 @@ Prettify a value to be displayed in html.
     else:
         val = to_string(val)
         try:
-            return significant_format(val, n=nd, thousand_sep=None)
-        except TypeError:
+            return significant_format(val, n=nd)
+        except ValueError:
             if val.startswith('http://') or val.startswith('https://'):
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
             return val

@@ -15,7 +15,7 @@ class ModelType(type):
     pass
 
 
-class Model(ModelType('ModelBase', (object,), {})):
+class Model(ModelType('ModelBase', (UnicodeMixin,), {})):
     id = None
 
     @classmethod

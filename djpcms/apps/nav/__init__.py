@@ -4,7 +4,7 @@ Dependency: ``None``
 '''
 from djpcms import forms, views, html
 from djpcms.html.layout import container, row, grid
-from djpcms.cms import Route
+from djpcms.cms import Route, NEXT_KEY
 from djpcms.cms.plugins import DJPplugin
 from djpcms.utils.httpurl import iri_to_uri
 
@@ -92,7 +92,7 @@ def page_links(request, asbuttons=False, ul=None):
             page_request = request.for_model(Page)
             if page_request is not None:
                 if page:
-                    kwargs = {'next': request.path}
+                    kwargs = {NEXT_KEY: request.path}
                     include = ('change',)
                 else:
                     kwargs = {'url': request.view.path}

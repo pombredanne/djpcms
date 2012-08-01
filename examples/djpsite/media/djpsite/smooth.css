@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-07-29 17:35:50.531446
-Time taken 0.495 seconds
+Created by djpcms.style 2012-08-01 18:02:48.509000
+Time taken 0.422 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1380,6 +1380,10 @@ form.uniForm .inline {
     display: inline-block;
 }
 
+form.uniForm .inline.ctrlHolder {
+    padding: 0;
+}
+
 form.uniForm .inline + .inline {
     margin-left: 10px;
 }
@@ -2136,11 +2140,21 @@ th.ui-clickable {
 }
 
 .multiSelectContainer {
-    overflow: hidden;
+    *zoom: 1;
+}
+
+.multiSelectContainer:before {
+    content: "";
+    display: table;
+}
+
+.multiSelectContainer:after {
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .multiSelectContainer > .ui-input + .ui-input {
-    overflow: hidden;
     margin-top: 0.25em;
 }
 

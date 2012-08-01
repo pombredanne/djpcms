@@ -4,18 +4,15 @@ from pulsar.utils.multipart import parse_form_data
 
 from .structures import MultiValueDict
 
+def _gen_query(query_string, encoding):
+    # keep_blank_values=True
+    for key, value in parse_qsl((query_string or ''), True):
+        yield to_string(key, encoding, errors='replace'),\
+              to_string(value, encoding, errors='replace')
 
-class QueryDict(MultiValueDict):
-    
-    def __init__(self, query_string, encoding = 'utf-8'):
-        super(QueryDict,self).__init__()
-        self.encoding = encoding
-        # keep_blank_values=True
-        for key, value in parse_qsl((query_string or ''), True):
-            self[to_string(key, encoding, errors='replace')] =\
-                            to_string(value, encoding, errors='replace')
-                            
-                            
+def QueryDict(query_string, encoding='utf-8'):
+    return MultiValueDict(_gen_query(query_string, encoding))
+
 def query_from_string(val):
     '''Conver a string into a parameters for a queryset.'''
     r = {}

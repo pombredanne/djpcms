@@ -141,7 +141,7 @@ The instance.plugin object is maintained but its fields may change.'''
                     return fhtml.maker.json_messages(pform.form)
                 # Check what action to perform.
                 action = forms.get_ajax_action(request.REQUEST)
-                instance = form.save(commit = commit)
+                instance = form.submit(commit=commit)
                 plugin = instance.plugin
                 if action:
                     action_func = getattr(plugin,'ajax__'+action,None)
@@ -155,7 +155,7 @@ The instance.plugin object is maintained but its fields may change.'''
                     instance.save()
                 plugin_form = pform.render(request)
             else:
-                instance = form.save(commit=commit)
+                instance = form.submit(commit=commit)
                 plugin_form = ''
             plugin_form = self.plugin_form_container(instance, plugin_form)
             jquery = ajax.jhtmls(request.environ,
@@ -164,7 +164,7 @@ The instance.plugin object is maintained but its fields may change.'''
                                  type = 'replacewith')
         else:
             # we are just rerendering the plugin with a different wrapper
-            instance = form.save(commit=commit)
+            instance = form.submit(commit=commit)
             jquery = ajax.jhtmls(request.environ)
 
         preview = self.get_preview(request, instance)

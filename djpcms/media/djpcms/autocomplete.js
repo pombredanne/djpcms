@@ -5,7 +5,7 @@
     "use strict";
     /**
      * AUTOCOMPLETE
-     * 
+     *
      * The actual values are stored in the data attribute of the input element.
      * The positioning is with respect the "widgetcontainer" parent element if
      * available.
@@ -16,7 +16,12 @@
         selector: 'input.autocomplete',
         config: {
             classes: {
-                autocomplete: 'autocomplete'
+                autocomplete: 'autocomplete',
+                list: 'multiSelectList',
+                container: 'multiSelectContainer'
+            },
+            removelink: function (self) {
+                return $('<a href="#"><i class="icon-remove"></i></a>');
             },
             minLength: 2,
             maxRows: 50,
@@ -27,48 +32,11 @@
         split: function (val) {
             return val.split(/,\s*/);
         },
-        clean_data: function (terms, data) {
-            var new_data = [];
-            $.each(terms, function (i, val) {
-                for (i = 0; i < data.length; i++) {
-                    if (data[i].label === val) {
-                        new_data.push(data[i]);
-                        break;
-                    }
-                }
-            });
-            return new_data;
-        },
-        // The call back from the form to obtain the real data for
-        // the autocomplete input field.
-        get_real_data: function (multiple, separator) {
-            var self = this;
-            return function (val) {
-                var data = '';
-                if (multiple) {
-                    data = [];
-                    $.each(self.clean_data(self.split(val), this.data), function (i, d) {
-                        data.push(d.value);
-                    });
-                    data = data.join(separator);
-                } else if (val && this.data.length) {
-                    data = this.data[0].real_value;
-                }
-                return data;
-            };
-        },
-        // CAllback received when an element is selected
+        // Callback received when an element is selected
         add_data: function (item) {
             var self = this;
             if (self.config.multiple) {
-                var terms = split(this.value);
-                terms.pop();
-                data = clean_data(terms, data);
-                terms.push(display);
-                new_data.push(item);
-                terms.push("");
-                display = terms.join(separator);
-                real_data['data'] = data;
+                self.addOption(item);
             } else {
                 self.real.val(item.real_value);
                 self.element.val(item.value);
@@ -80,32 +48,101 @@
             var value = this.element.val();
             if(this.multiple) {
                 //
-            } else {    
+            } else {
                 if (this.real.data('value') !== value) {
                     this.real.val(value);
                 }
             }
         },
+        // Add a new option to the multiselect element
+        addOption: function (elem) {
+            var self = this,
+                list = self.list,
+                selections = list.data('selections'),
+                options = self.config,
+                item = $('<li>'),
+                opt = $('<option>', {
+                    text: elem.label,
+                    val: elem.real_value
+                }),
+                val = opt.val();
+            if (selections.indexOf(val) === -1) {
+                self.real.append(opt);
+                selections.push(val);
+                item.append($('<span>', {html: elem.label}))
+                    .append(options.removelink(self))
+                    .data('option', opt).appendTo(self.list);
+                if (self.list.children().length) {
+                    self.list_container.show();
+                }
+                opt.prop('selected', true);
+                self.element.val('');
+            }
+        },
+        //
+        dropListItem: function (li) {
+            var opt = li.data('option'),
+                selections = this.list.data('selections'),
+                idx;
+            li.remove();
+            if (this.list.children().length === 0) {
+                this.list_container.hide();
+            }
+            var idx = selections.indexOf(opt.val());
+            if (idx !== -1) {
+                selections.splice(idx, 1);
+            }
+            opt.remove();
+        },
+        //
+        buildDom: function () {
+            var self = this,
+                options = self.config,
+                classes = $.djpcms.options.input.classes,
+                container = $('<div>', {'class': options.classes.container}),
+                list = self.list;
+            if (self.wrapper) {
+                self.wrapper.after(container);
+                container.addClass(classes.control)
+                         .prepend(self.wrapper.removeClass(classes.control));
+                list = $('<div>', {'class': classes.input}).addClass(options.classes.container).append(self.list);
+            } else {
+                container.prepend(element.after(container));
+            }
+            self.list_container = list.hide();
+            container.append(self.list_container);
+        },
+        //
         _create: function () {
-            var self = this,            
+            var self = this,
                 opts = self.config,
                 elem = this.element,
-                name = elem.attr('name');
+                name = elem.attr('name'),
+                name_len = name.length;
             opts.select = function (event, ui) {
                 return self.add_data(ui.item);
             };
-            // Bind to form pre-serialize 
-            //elem.closest('form').bind('form-pre-serialize',
-            //        $.proxy(self.get_autocomplete_data, self));
-            self.widget = elem.parent('.' + $.djpcms.options.input.classes.input);
-            if(!self.widget.length) {
-                self.widget = elem;
+            self.wrapper = elem.parent('.' + $.djpcms.options.input.classes.input);
+            if(!self.wrapper.length) {
+                self.wrapper = null;
             }
-            opts.position = {of: self.widget};
+            opts.position = {of: self.wrapper || elem};
             // Build the real (hidden) input
             if(opts.multiple) {
+                if (name.substring(name_len-2, name_len) === '[]') {
+                    name = name.substring(0, name_len-2);
+                }
                 self.real = $('<select name="'+ name +'[]" multiple="multiple"></select>');
-                options.focus = function() {
+                self.list = $('<ul>').data('selections', []).addClass(opts.classes.list);
+                self.buildDom();
+                //
+                self.list.delegate('a', 'click', function(e) {
+                    e.preventDefault();
+                    self.dropListItem($(this).closest('li'));
+                    return false;
+                });
+                //
+                opts.focus = function() {
                     return false;
                 };
                 elem.bind("keydown", function( event ) {
@@ -149,7 +186,7 @@
                         },
                         loader;
                     ajax_data[opts.search_string] = request.term;
-                    loader = $.djpcms.ajax_loader(opts.url, 'autocomplete', 'get', ajax_data);             
+                    loader = $.djpcms.ajax_loader(opts.url, 'autocomplete', 'get', ajax_data);
                     $.proxy(loader, response)();
                 };
                 elem.autocomplete(opts);

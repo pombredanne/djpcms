@@ -332,7 +332,6 @@ if it is bound.'''
             fields.append(bfield)
             dfields[name] = bfield
             field_value = None
-
             if is_bound:
                 rawvalue = field_value = field.value_from_datadict(
                                     rawdata, files, key)
@@ -485,7 +484,7 @@ and shouldn't be used otherwise.
         self.field = field
         self.request = form.request
         self.name = name
-        self.for_name = '{0}{1}'.format(prefix,name)
+        self.for_name = '%s%s' % (prefix, name)
         self.html_name = field.html_name(self.for_name)
         self.value = None
         if field.label is None:

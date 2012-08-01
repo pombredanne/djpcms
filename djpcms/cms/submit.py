@@ -2,8 +2,9 @@ from inspect import isclass
 
 from .exceptions import InvalidForm
 
+NEXT_KEY = 'next-url'
 
-__all__ = ['SubmitMiddleware', 'Referrer']
+__all__ = ['SubmitMiddleware', 'Referrer', 'NEXT_KEY']
 
 
 class SubmitMiddleware(object):
@@ -44,8 +45,8 @@ class Referrer(SubmitMiddleware):
     def check(self, request, data):
         referrer = data.pop('__REFERRER__', None)
         if referrer:
-            if 'next' not in data:
-                data['next'] = referrer
+            if NEXT_KEY not in data:
+                data[NEXT_KEY] = referrer
         else:
             raise InvalidForm('referrer not available.')
 

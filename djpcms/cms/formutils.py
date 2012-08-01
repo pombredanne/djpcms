@@ -7,12 +7,13 @@ from datetime import datetime
 from djpcms import forms, html, is_renderer, ajax
 from djpcms.forms.layout import FormWidget
 from djpcms.utils.text import to_string
-from djpcms.utils.httpurl import urlsplit, QueryDict
+from djpcms.utils.httpurl import urlsplit, QueryDict, iteritems
 from djpcms.utils.dates import format
 from djpcms.utils.async import is_async, is_failure
 
 from .exceptions import HttpRedirect
 from . import messages
+from .submit import NEXT_KEY
 
 logger = logging.getLogger('djpcms.forms')
 Widget = html.Widget
@@ -43,7 +44,16 @@ def form_data_files(request, withdata=None, method='post', initial=None):
 '''
     method = method.lower()
     rmethod = request.method.lower()
-    data = request.POST if method == 'post' else request.GET
+    get_data = request.GET
+    if method == 'post':
+        post = request.POST
+        data = post.copy()
+        # extend the dat with the GET dictionary, excluding the
+        data.update(((k,v) for k,v in iteritems(get_data)\
+                      if k is not NEXT_KEY and k not in post))
+    else:
+        data = get_data.copy()
+    #data = request.POST if method == 'post' else request.GET
     bind_data = None
     if withdata or (withdata is None and rmethod == method):
         bind_data = data
@@ -81,7 +91,7 @@ absolute url.
 '''
     next = None
     if data:
-        next = data.get('next')
+        next = data.get(NEXT_KEY)
         if next:
             return next
     if next is None:
@@ -154,7 +164,6 @@ def get_form(request, form_factory, initial=None, prefix=None, addinputs=None,
         # The form is not bound, check for form action
         widget = apply_form_actions(widget)
     return widget
-
 
 def return_form_errors(fhtml,request):
     if request.is_xhr:

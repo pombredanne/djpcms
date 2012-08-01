@@ -3,9 +3,9 @@ from .forms import *
 cssv.bsm.background = cssv.color.grayLighter
 
 css('.multiSelectContainer',
+    clearfix(),
     cssb('.{0} + .{0}'.format(classes.ui_input),
-         margin_top=em(0.25),
-         overflow='hidden'),
+         margin_top=em(0.25)),
     cssb('.{0}'.format(classes.ui_input),
          css('ul',
              cssb('li',
@@ -17,8 +17,7 @@ css('.multiSelectContainer',
             width=pc(100),
             float='left')),
     css('.disabled',
-        opacity(cssv.disabled.opacity)),
-    overflow='hidden')
+        opacity(cssv.disabled.opacity)))
 
 css('.multiSelectList',
     css('li',

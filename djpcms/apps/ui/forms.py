@@ -162,7 +162,9 @@ css('form.%s' % classes.form,
             margin_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2))),
         cssa('.%s' % classes.button_holder,
              padding_left=lazy(lambda: cssv.form.inlinelabels_width+pc(2)))),
+    # Inline inputs
     css('.inline',
+        cssa('.%s' % classes.ctrlHolder, padding=0),
         display='inline-block'),
     css('.inline + .inline',
         margin_left=px(10)),
@@ -190,7 +192,7 @@ css('form.%s' % classes.form,
         margin=0,
         padding=spacing(0, cssv.form.padding, cssv.form.padding),
         vertical_align='middle'),
-    css('.layout-element',
+    css('.%s' % classes.layout_block,
         margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5)))
     )
 

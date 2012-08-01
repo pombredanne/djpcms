@@ -8,6 +8,7 @@ from djpcms.html import table_header, StreamRenderer, Widget
 from djpcms.utils import orms
 from djpcms.utils.async import async_object
 from djpcms.utils.structures import OrderedDict
+from djpcms.utils.httpurl import to_string
 from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
                        UrlException, AlreadyRegistered, RendererMixin, SPLITTER
 from djpcms.cms.formutils import get_form
@@ -424,7 +425,7 @@ the *request*.'''
         if maxRows:
             qs = qs[:int(maxRows)]
         for q in qs:
-            l = str(q)
+            l = to_string(q)
             yield l, l, q.id
 
     def table_column_groups(self, request):

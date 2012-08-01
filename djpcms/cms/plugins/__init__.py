@@ -187,7 +187,8 @@ By default do nothing.
         else:
             return json.dumps({})
 
-    def get_form(self, request, args=None, prefix=None, **kwargs):
+    def get_form(self, request, args=None, prefix=None, withdata=None,
+                 **kwargs):
         '''Return an instance of a :attr:`form` or `None`.
 Used to edit the plugin when in editing mode.
 Usually, there is no need to override this function.
@@ -198,7 +199,7 @@ If your plugin needs input parameters when editing, simple set the
             initial = self.arguments(args) or None
             method = form_factory.attrs['method']
             data, files, initial = form_data_files(request, initial=initial,
-                                                   method=method)
+                                            method=method, withdata=withdata)
             form = form_factory(request=request,
                                 initial=initial,
                                 prefix=prefix,

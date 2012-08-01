@@ -97,35 +97,14 @@ class ContentBlockForm(forms.Form):
                             help_text='A HTML element which wraps the plugin\
  before it is rendered in the page.')
     for_not_authenticated = forms.BooleanField(default=False)
-    view_permission = forms.CharField(required=False)
-    requires_login = forms.BooleanField(default=False)
 
     def on_submit(self, commit):
         data = self.cleaned_data
         pt = data.pop('plugin_name')
-        pe = data.pop('view_permission')
         instance = self.instance
-        if pt:
-            instance.plugin_name = pt.name
-        else:
-            instance.plugin_name = ''
-        if pe:
-            instance.requires_login = True
+        instance.plugin_name = pt.name if pt else ''
         if 'container_type' in data:
             instance.container_type = data['container_type']
-        cb = super(ContentBlockForm,self).save(commit=commit)
-        #if commit and cb.id:
-        #    ObjectPermission.objects.set_view_permission(cb, groups = pe)
-        return cb
-
-    def clean(self):
-        cd = self.cleaned_data
-        rl = cd['requires_login']
-        na = cd['for_not_authenticated']
-        if rl and na:
-            raise forms.ValidationError("Cannot select 'requires login'\
- and 'for not authenticated' at the same time.")
-
 
 
 class EditContentForm(forms.Form):

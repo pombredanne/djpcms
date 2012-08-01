@@ -11,7 +11,7 @@ def registered_models(bfield, required=True):
     form = bfield.form
     request = form.request
     if not required:
-        yield ('','----------')    
+        yield ('','----------')
     if request:
         root = form.request.view.root
         models = set()
@@ -20,8 +20,7 @@ def registered_models(bfield, required=True):
                 models.add(app.model)
                 id = app.mapper.hash
                 if id and request.has_permission(instance=app.model):
-                    yield (id,str(app.mapper))
-
+                    yield (id, str(app.mapper))
 
 def get_contet_choices(bfield):
     model = bfield.form.model
@@ -34,15 +33,20 @@ def get_contet_choices(bfield):
             if request:
                 return request.view.query(request)
         return orms.mapper(model).query()
-    
-    
+
+def header_query(bfield):
+    form = bfield.form
+    data = form.request.POST
+    return ()
+
+
 class ForModelForm(forms.Form):
     for_model = forms.ChoiceField(
                       required = False,
                       widget = html.Select(default_class = 'ajax'),
                       choices = lambda x : sorted(registered_models(x,False),
                                                     key = lambda y : y[1]))
-    
+
     def clean_for_model(self, mhash):
         if mhash:
             try:
@@ -58,10 +62,11 @@ class ModelItemListForm(ForModelForm):
     filter = forms.CharField(required=False)
     exclude = forms.CharField(required=False)
     order_by = forms.CharField(required=False)
-    headers = forms.CharField(required=False,
-                              help_text='space separated list of headers.\
- If supplied, the widget will be displayed as a table with header given\
- by this input.')
+    #headers = forms.ChoiceField(choices=forms.ChoiceFieldOptions(
+    #                                query=header_query,
+    #                                autocomplete=True,
+    #                                multiple=True))
+    headers = forms.CharField(required=False)
     table_footer = forms.BooleanField(initial=False)
     display_if_empty = forms.BooleanField(initial=False)
 
@@ -85,7 +90,7 @@ class ModelLinksForm(forms.Form):
     for_instance = forms.BooleanField()
     exclude = forms.CharField(max_length=600, required=False)
     include = forms.CharField(max_length=600, required=False)
-    
+
 
 class ContentForm(forms.Form):
     content = forms.ChoiceField(choices=forms.ChoiceFieldOptions(\
@@ -105,7 +110,7 @@ class RenderObject(DJPplugin):
         model = self.for_model(request)
         if content and model:
             return orms.mapper(model).get(id=content)
-        
+
     def render(self, request, block, prefix, content=None, **kwargs):
         instance = self.get_object(request, content)
         if instance:
@@ -116,8 +121,8 @@ class RenderObject(DJPplugin):
                 return to_string(instance)
         else:
             return ''
-    
-    
+
+
 class ApplicationLinks(DJPplugin):
     '''Display links for an application.'''
     name = 'model-links'
@@ -126,7 +131,7 @@ class ApplicationLinks(DJPplugin):
                      'djpcms/components/links.html')
     asbuttons_class = 'asbuttons'
     form = ModelLinksForm
-    
+
     def render(self, request, wrapper, prefix, layout='group',
                size='', exclude='', include='',
                for_instance=False, **kwargs):
@@ -158,46 +163,46 @@ class ApplicationLinks(DJPplugin):
                            .addClass('model-links')\
                            .addClass(layout)\
                            .render(request)
-    
-    
+
+
 def attrquery(heads,query):
     for k in query:
         v = query[k]
         if k in heads:
             k = heads[k].attrname
         yield k,v
-    
-    
+
+
 class ModelItemsList(DJPplugin):
     '''Filter a model according to editable criteria snd displays a
 certain number of items as specified in the max display input.'''
     name = 'model-items'
     description = 'Filtered items for a model'
     form = ModelItemListForm
-    
+
     def ajax__for_model(self, request, for_model):
         pass
-    
+
     def render(self, request, block, prefix, for_model=None, max_display=5,
                pagination=False, filter=None, exclude=None, order_by =None,
                text_search=None, headers=None, display_if_empty='',
                table_footer=False, **kwargs):
         instance = request.instance
         request = request.for_model(for_model)
-        if request is None:
+        if request is None or request.model is None:
             return ''
         view = request.view
-        appmodel = view.appmodel 
+        appmodel = view.appmodel
         load_only = ()
         thead = None
         appheads = request.pagination.headers
-        
+
         if headers:
             thead = []
             for head in headers.split():
                 if head in appheads:
                     thead.append(appheads[head])
-        
+
         # Ordering
         if order_by:
             decr = False
@@ -207,24 +212,24 @@ certain number of items as specified in the max display input.'''
             order_by = html.attrname_from_header(appheads,order_by)
             if decr:
                 order_by = '-{0}'.format(order_by)
-        
+
         # query with the instancde of the current page
-        qs = view.query(request, instance = instance)
+        qs = view.query(request, instance=instance)
         if text_search:
             qs = qs.search(text_search)
         qs = qs.filter(**dict(attrquery(appheads,query_from_string(filter))))\
                .exclude(**dict(attrquery(appheads,query_from_string(exclude))))\
                .sort_by(order_by)\
                .load_only(*appmodel.load_fields(thead))
-               
+
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:
             return display_if_empty
-        
+
         if thead:
             pagination = html.Pagination(
-                            thead, 
+                            thead,
                             footer = table_footer,
                             html_data =  {'options': {'sDom':'t'}})
             return pagination.widget(
@@ -237,4 +242,4 @@ certain number of items as specified in the max display input.'''
             w.add((render_instance(request, item) for item in items))
             return w
 
-    
+

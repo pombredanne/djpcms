@@ -385,14 +385,14 @@ class MultipleMixin(Field):
         self._raise_error(kwargs)
 
     def html_name(self, name):
-        return name if not self.multiple else '{0}[]'.format(name)
+        return name if not self.multiple else '%s[]' % name
 
     def value_from_datadict(self, data, files, key):
-        return self._value_from_datadict(data,key)
+        return self._value_from_datadict(data, key)
 
     def _value_from_datadict(self, data, key):
         if key in data:
-            if self.multiple and hasattr(data,'getlist'):
+            if self.multiple and hasattr(data, 'getlist'):
                 return data.getlist(key)
             else:
                 return data[key]
@@ -565,12 +565,6 @@ is ``True``, in which case the value is returned.'''
         else:
             return value.id if isinstance(value,model) else value
 
-    def html_name(self, name):
-        if not self.autocomplete and self.multiple:
-            return '{0}[]'.format(name)
-        else:
-            return name
-
     def get_widget_data(self, bfield):
         '''Called by the :meth:`Field.get_widget_data` method of
 :class:`ChoiceField`.'''
@@ -670,9 +664,6 @@ form as only argument'''
 
     def get_widget_data(self, bfield):
         return self.choices.get_widget_data(bfield)
-
-    def html_name(self, name):
-        return self.choices.html_name(name)
 
 
 class EmailField(CharField):

@@ -165,7 +165,7 @@
                     self.wrapper.after(container);
                     container.addClass(classes.control)
                              .prepend(self.wrapper.removeClass(classes.control));
-                    list = $('<div>', {'class': classes.input}).append(self.list);
+                    list = $('<div>', {'class': classes.input}).addClass(classes.container).append(self.list);
                 } else {
                     container.prepend(element.after(container));
                 }

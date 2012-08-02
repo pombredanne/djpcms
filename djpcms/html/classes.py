@@ -21,6 +21,7 @@ state_active = 'ui-state-active'
 state_hover = 'ui-state-hover'
 state_error = 'ui-state-error'
 
+model = 'for-model'
 sitecontent = 'sitecontent'
 float_right = 'f-right'
 autocomplete = 'autocomplete'

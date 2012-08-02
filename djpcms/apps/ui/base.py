@@ -11,14 +11,14 @@ cssv.clickable.default.border.width = px(1)
 cssv.clickable.default.border.style = None
 #
 cssv.clickable.hover.background = ('v', color('#dadada'), color.darken('#dadada',10))
-cssv.clickable.hover.color = color('#555')
+cssv.clickable.hover.color = cssv.clickable.default.color
 cssv.clickable.hover.text_decoration = 'none'
 cssv.clickable.hover.border.color = color('999999')
 cssv.clickable.hover.border.width = cssv.clickable.default.border.width
 cssv.clickable.hover.border.style = None
 #
 cssv.clickable.active.background = color('#fff')
-cssv.clickable.active.color = color('#212121')
+cssv.clickable.active.color = cssv.clickable.default.color
 cssv.clickable.active.text_decoration = 'none'
 cssv.clickable.active.border.color = color('aaaaaa')
 cssv.clickable.active.border.width = cssv.clickable.default.border.width

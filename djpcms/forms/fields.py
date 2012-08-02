@@ -3,6 +3,7 @@ from datetime import datetime, date
 from copy import copy, deepcopy
 
 from djpcms import html
+from djpcms.html import Widget
 from djpcms.utils.text import escape, slugify, to_string
 from djpcms.utils.dates import parse as dateparser
 from djpcms.utils.files import File
@@ -478,6 +479,15 @@ queries on models as well as list of two-elements tuples ``(value, label)``.
             for v in query:
                 yield v
 
+    def values(self, bfield):
+        '''Generator of values in select'''
+        for o in self.all(bfield):
+            if isinstance(o, Widget):
+                v = o.attr('value')
+            else:
+                v = to_string(o[0])
+            yield v
+
     def html_value(self, val):
         '''Convert val into a suitable html value'''
         if val:
@@ -523,7 +533,7 @@ clean its values.'''
 
     def _clean_simple(self, value, bfield):
         '''Invoked by :meth:`clean` if :attr:`model` is not defined.'''
-        ch = set((to_string(x[0]) for x in self.all(bfield)))
+        ch = set(self.values(bfield))
         values = value if self.multiple else (value,)
         if not isinstance(values, (list, tuple)):
             raise ValidationError('Critical error. {0} is not a list'\

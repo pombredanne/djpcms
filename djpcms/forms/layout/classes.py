@@ -1,5 +1,6 @@
 from djpcms.html.classes import button_holder, button
 form = 'uniForm'
+inline = 'inline'
 inlineLabels = 'inlineLabels'
 inlineLabels2 = 'inlineLabels fullwidth'
 inlineLabels3 = 'inlineLabels auto'

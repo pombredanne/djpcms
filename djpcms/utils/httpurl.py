@@ -11,28 +11,10 @@ def _gen_query(query_string, encoding):
               to_string(value, encoding, errors='replace')
 
 def QueryDict(query_string, encoding='utf-8'):
-    return MultiValueDict(_gen_query(query_string, encoding))
-
-def query_from_string(val):
-    '''Conver a string into a parameters for a queryset.'''
-    r = {}
-    if val:
-        try:
-            q = QueryDict(val)
-            return query_from_querydict(q)
-        except:
-            return r
-    return r
-
-def query_from_querydict(q):
-    r = {}
-    for k,v in q.lists():
-        if len(v) > 1:
-            k = '{0}__in'.format(k)
-        else:
-            v = v[0]
-        r[k] = v
-    return r
+    if query_string:
+        return MultiValueDict(_gen_query(query_string, encoding))
+    else:
+        return MultiValueDict()
 
 def remove_end_slashes(url):
     if url.endswith('/'):

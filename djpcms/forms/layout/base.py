@@ -1,6 +1,6 @@
 from inspect import isclass
 
-from djpcms.utils.httpurl import zip
+from djpcms.utils.httpurl import zip, to_string
 from djpcms import html, ajax
 from djpcms.html.layout import equally_spaced_grid, container
 from djpcms.utils.text import nicename
@@ -96,49 +96,88 @@ class FieldTemplate(FormTemplate):
             parent = widget.internal.get('layout-element')
             if parent is not None:
                 wrapper = parent.field_widget(widget).addClass(w.classes)
-                label_style = parent.default_style
+                show_label = parent.show_field_labels
             else:
-                label_style = None
+                show_label = True
                 wrapper = w
             wrapper.addClass(bfield.name)
+            if show_label:
+                wrapper.addClass(classes.control)
             if w.attr('disabled') == 'disabled':
                 widget.addClass('disabled')
             if w.attr('readonly') == 'readonly':
                 widget.addClass('readonly')
             if bfield.required:
                 widget.addClass(classes.required)
-            if bfield.label:
-                # Checkbox and radio are special
-                input_type = w.attrs.get('type')
-                if input_type in ('checkbox', 'radio'):
-                    wrapper.tag = 'label'
-                    wrapper.addClass(input_type)\
-                           .addAttr('for', bfield.id).add(bfield.label)
+            # Checkbox and radio are special
+            input_type = w.attrs.get('type')
+            if input_type in ('checkbox', 'radio'):
+                wrapper.tag = 'label'
+                wrapper.addClass(input_type)\
+                       .addAttr('for', bfield.id).add(bfield.label)
+            else:
+                wrapper.addClass(classes.ui_input)
+                if show_label:
+                    widget.add("<label for='%s' class='%s'>%s</label>"\
+                               % (bfield.id, classes.label, bfield.label))
                 else:
-                    wrapper.addClass((classes.ui_input, classes.control))
-                    if label_style == classes.nolabel:
-                        if not w.attr('placeholder'):
-                            w.addAttr('placeholder', bfield.label)
-                    else:
-                        widget.add("<label for='%s' class='%s'>%s</label>"\
-                                   % (bfield.id, classes.label, bfield.label))
+                    if not w.attr('placeholder'):
+                        w.addAttr('placeholder', bfield.label)
             widget.add(wrapper)
 
 
 class BaseFormLayout(FormTemplate):
     '''A :class:`djpcms.html.WidgetMaker` for programmatic
-form layout design.'''
+form layout design. This is the base class for :class:`FormLayoutElement`
+and :class:`FormLayout`.
+
+.. attribute:: default_style
+
+    default css class style for the widget.
+
+    Default: ``None``.
+
+.. attribute:: show_field_labels
+
+    flag for switching off field labels rendering.
+
+    Default: ``True``.
+'''
     field_widget_tag = None
+    default_style = None
+    show_field_labels = True
 
     def __init__(self, *children, **params):
+        '''Initailize the form layout:
+
+:parameter children: list of children to include in this
+    :class:`BaseFormLayout`. Depending on the type, these children can be
+    field names and/or other :class:``BaseFormLayout`.
+:parameter legend: optional text to display as a legend above
+    this:class:`BaseFormLayout`.'''
         self._children = children
+        self.default_style = params.pop('default_style', self.default_style)
+        self.show_field_labels = params.pop('show_field_labels',
+                                            self.show_field_labels)
         legend = params.pop('legend', None)
-        self.legend_html = '{0}'.format(legend) if legend else ''
+        self.legend_html = to_string(legend or '')
         super(BaseFormLayout, self).__init__(**params)
         if self.legend_html:
             self.add(html.WidgetMaker(tag='div',
                                       cn=classes.legend,
                                       key='legend'))
+
+    def add(self, *widgets):
+        # Modify the add method so that default_style is propagated to
+        # children which haven't one.
+        if self.default_style:
+            ws = []
+            for w in widgets:
+                if isinstance(w, FormLayoutElement):
+                    w.set_style(self.default_style)
+                ws.append(w)
+            widgets = ws
+        return super(BaseFormLayout, self).add(*widgets)
 
     def get_context(self, request, widget, context):
         if self.legend_html:
@@ -150,21 +189,27 @@ form layout design.'''
         bfield = widget.bfield
         wrapper = html.Widget('div', bfield.widget)
         error = bfield.error
-        widget.add("<div id='{0}'>{1}</div>".format(bfield.errors_id, error))
+        widget.add("<div id='%s'>%s</div>" % (bfield.errors_id, error))
         return wrapper
 
 
 class FormLayoutElement(BaseFormLayout):
-    '''Base :class:`djpcms.html.WidgetMaker` class for :class:`FormLayout`
-components. An instance of this class render one or several form
-:class:`Field`.
+    '''A :class:`BaseFormLayout` class for :class:`FormLayout`
+components. An instance of this class render one or several
+:class:`Field` of a form.
 
-:parameter children: collection of strings indicating
-    :class:`djpcms.forms.Field` names and other :class:`FormLayoutElement`
-    instances (allowing for nested specification).
+.. attribute:: field_widget_tag
+
+    HTML tag for the widget wrapping each form fields included in this
+    :class:`FormLayoutElement`.
 '''
     field_widget_class = classes.ctrlHolder
     field_widget_tag = 'div'
+
+    def get_context(self, request, widget, context):
+        widget.addClass(self.default_style)
+        return super(FormLayoutElement, self).get_context(
+                                                request, widget, context)
 
     def check_fields(self, missings, layout=None):
         '''Check if the specified fields are available in the form and
@@ -183,6 +228,12 @@ remove available fields from the missing set.'''
                 ft = field
             ft.internal['layout-element'] = self
             self.add(ft)
+
+    def set_style(self, style):
+        if not self.default_style:
+            self.default_style = style
+        if self.default_style == classes.nolabel:
+            self.show_field_labels = False
 
 
 class SubmitElement(FormLayoutElement):
@@ -219,8 +270,9 @@ class Fieldset(FormLayoutElement):
 
 class Inlineset(FormLayoutElement):
     tag = 'div'
-    field_widget_class = 'inline'
+    field_widget_class = classes.inline
     classes = classes.ctrlHolder
+    show_field_labels = False
 
     def __init__(self, *args, **kwargs):
         self.label = kwargs.pop('label', None)
@@ -239,7 +291,7 @@ class Inlineset(FormLayoutElement):
         if self.label:
             context = context if context is not None else {}
             context['label'] = self.label
-        return context
+        return super(Inlineset, self).get_context(request, widget, context)
 
 
 class MultiElement(FormLayoutElement):
@@ -341,6 +393,7 @@ class Tabs(MultiElement):
 
 
 class SimpleLayout(BaseFormLayout):
+    tag = None
     form_class = None
     default_element = FormLayoutElement
 
@@ -374,7 +427,7 @@ method is called by the Form widget factory :class:`djpcms.forms.HtmlForm`.
 class FormLayout(SimpleLayout):
     '''A :class:`djpcms.html.WidgetMaker` class for :class:`djpcms.forms.Form`
  layout design.'''
-    default_style  = classes.inlineLabels
+    default_style = classes.inlineLabels
     submit_element = None
     '''Form template'''
     '''Template file for rendering form fields'''

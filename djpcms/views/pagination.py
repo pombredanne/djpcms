@@ -2,7 +2,6 @@ from collections import namedtuple
 from inspect import isgenerator, isfunction, ismethod
 
 from djpcms.utils import orms
-from djpcms.utils.httpurl import query_from_querydict
 from djpcms.html import anchor_or_button
 from djpcms.cms import permissions
 
@@ -294,6 +293,7 @@ it looks for the following inputs in the request data:
         appmodel = request.app_for_model(query.model)
     if toolbox is None:
         toolbox = table_toolbox(request, appmodel=appmodel)
+    mapper = appmodel.mapper
     inputs = request.REQUEST
     headers = toolbox['headers']
     ajax = None
@@ -307,8 +307,8 @@ it looks for the following inputs in the request data:
             render = False
         else:
             needbody = False
-    if needbody and request.GET:
-        query = query.filter(**query_from_querydict(request.GET))
+    if needbody and request.GET and mapper:
+        query = query.filter(**mapper.query_from_mapping(request.GET))
 
     sort_by = {}
     #search = inputs.get('sSearch')

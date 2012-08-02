@@ -309,7 +309,7 @@ if it is bound.'''
         if hasattr(self,'_data'):
             return
         self._data = data = {}
-        cleaned = {}
+        self._cleaned_data = cleaned = {}
         self._errors = errors = {}
         rawdata = self.additional_data()
         if rawdata:
@@ -353,8 +353,6 @@ if it is bound.'''
             bfield.value = field_value
 
         if is_bound and not errors:
-            self._cleaned_data = cleaned
-
             # Invoke the form clean method. Usefull for last minute
             # checking or cross field checking
             try:
@@ -362,6 +360,8 @@ if it is bound.'''
             except ValidationError as e:
                 form_message(errors, '__all__', to_string(e))
                 del self._cleaned_data
+        else:
+            del self._cleaned_data
 
     def form_message(self, container, key, msg):
         '''Add a message to a message container in the form.

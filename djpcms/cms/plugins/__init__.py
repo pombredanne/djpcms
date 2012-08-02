@@ -158,8 +158,8 @@ Default: ``None``, the plugin has no arguments.'''
             return {}
 
     def processargs(self, kwargs):
-        '''You can use this hook to perform pre-processing on plugin parameters if :attr:`form` is set.
-By default do nothing.
+        '''You can use this hook to perform pre-processing on plugin
+parameters if :attr:`form` is set. By default do nothing.
         '''
         return kwargs
 

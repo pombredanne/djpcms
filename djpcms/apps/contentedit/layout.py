@@ -1,4 +1,4 @@
-from djpcms import forms, html
+from djpcms import forms, html, media
 from djpcms.forms import layout as uni
 
 from .forms import *
@@ -12,33 +12,35 @@ __all__ = ['HtmlTemplateForm',
 HtmlTemplateForm = forms.HtmlForm(TemplateForm)
 
 HtmlPageForm = forms.HtmlForm(
-        PageForm,
-        layout=uni.FormLayout(
-                    uni.Columns(
-                        ('doctype','layout','inner_template','grid_system'),
-                        ('title','link','in_navigation','url'),
-                        ('requires_login','soft_root',uni.SUBMITS))
-                    ),
-        inputs=(('save', forms.SAVE_AND_CONTINUE_KEY),)
-    )
+    PageForm,
+    layout=uni.FormLayout(
+                uni.Columns(
+                    ('doctype','layout','inner_template','grid_system'),
+                    ('title','link','in_navigation','url'),
+                    ('requires_login','soft_root',uni.SUBMITS))
+                ),
+    inputs=(('save', forms.SAVE_AND_CONTINUE_KEY),)
+)
 
 ContentBlockHtmlForm = forms.HtmlForm(
-        ContentBlockForm,
-        inputs=(('save',forms.SAVE_KEY),),
-        layout=uni.FormLayout(
-                    uni.Fieldset('plugin_name', 'container_type', 'title'),
-                    uni.Inlineset('for_not_authenticated'),
-                    html.WidgetMaker(tag='div', key='plugin')
-            )
-    )
+    ContentBlockForm,
+    inputs=(('save',forms.SAVE_KEY),),
+    layout=uni.FormLayout(
+                uni.Fieldset('plugin_name', 'container_type', 'title'),
+                uni.Inlineset('for_not_authenticated'),
+                html.WidgetMaker(tag='div', key='plugin',
+                                 cn='form-plugin-container')
+        ),
+    media=media.Media(js=['djpcms/plugins/filters.js'])
+)
 
 HtmlEditContentForm = forms.HtmlForm(
-        EditContentForm,
-        layout=uni.FormLayout(
-            uni.Columns('title','markup',uni.SUBMITS),
-            uni.Tabs(uni.tab('html', uni.Fieldset('body')),
-                     uni.tab('javascript', uni.Fieldset('javascript')),
-                     default_style=uni.nolabel,
-                     tab_type='pills')
-            )
-    )
+    EditContentForm,
+    layout=uni.FormLayout(
+        uni.Columns('title','markup',uni.SUBMITS),
+        uni.Tabs(uni.tab('html', uni.Fieldset('body')),
+                 uni.tab('javascript', uni.Fieldset('javascript')),
+                 default_style=uni.nolabel,
+                 tab_type='pills')
+        )
+)

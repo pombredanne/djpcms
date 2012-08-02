@@ -548,9 +548,11 @@ has been requested.
                                       appmodel=self,
                                       block=block)
 
-    def render_instance_list(self, request, instance, **kwargs):
-        maker = ObjectItem()
-        return maker(instance=instance, appmodel=self)
+    def render_instance_list(self, request, instance, block=None, **kwargs):
+        return html.object_definition(request,
+                                      instance=instance,
+                                      appmodel=self,
+                                      block=block)
 
     def instance_field_value(self, request, instance, field_name, val=None):
         '''Return the value associated with *field_name* for an

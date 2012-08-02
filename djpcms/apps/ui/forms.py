@@ -38,6 +38,23 @@ cssv.form.legend.color = cssv.body.color
 ################################################################################
 
 
+class ui_input(mixin):
+
+    def __init__(self, background, color, placeholder_color=None):
+        self.background = gradient(background)
+        self.color = color
+        self.placeholder_color = placeholder_color
+
+    def __call__(self, elem):
+        css('.%s' % classes.ui_input,
+            gradient(self.background),
+            css('input[type="text"],input[type="password"],textarea,select',
+                placeholder(self.placeholder_color),
+                bcd(background=self.background, color=self.color)),
+            parent=elem)
+
+
+
 ################################################# CLEARINPUT
 class clearinp(mixin):
     '''For clearing floats to all *elements*.'''

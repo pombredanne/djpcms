@@ -44,9 +44,8 @@
                 } else {
                     self.wrapper = null;
                 }
-                self.proxy = $('<select>', {'class': options.classes.proxy})
-                                .append($('<option value=""></option>')
-                                .text(element.attr('title') || options.title));
+                // Create the proxy select element
+                self.proxy = $('<select>', {'class': options.classes.proxy});
                 // Build the item list
                 if (id) {
                     self.list = $('#' + id + options.select_list_suffix);
@@ -69,20 +68,33 @@
                 if (self.list.parent().length === 0) {
                     self.buildDom();
                 }
+                self.list.delegate('a', 'click', function(e) {
+                    e.preventDefault();
+                    self.dropListItem($(this).closest('li'));
+                    return false;
+                });
+                //
+                element.change(function () {
+                    self.refresh();
+                });
+                self.refresh();
+            },
+            // Build the proxy element and selected elements in list
+            refresh: function() {
+                var self = this,
+                    element = self.element,
+                    options = self.config;
+                self.list.empty();
+                self.proxy.empty().append($('<option value=""></option>')
+                                  .text(element.attr('title') || options.title));
                 // Loop over options and add selected items to the item list
-                element.children().each(function () {
+                element.hide().children().each(function () {
                     var el = $(this);
                     if (el.is('option')) {
                         self.addOption(el);
                     } else if (el.is('optgroup')) {
                         self.addOptionGroup(el);
                     }
-                });
-                //
-                self.list.delegate('a', 'click', function(e) {
-                    e.preventDefault();
-                    self.dropListItem($(this).closest('li'));
-                    return false;
                 });
             },
             //
@@ -94,16 +106,21 @@
             // Add a new option to the proxy element
             addOption: function (elem) {
                 var self = this,
+                    opt,
+                    selected,
+                    disabled;
+                if (elem.val()) {
                     opt = $('<option>', {
                         text: elem.text(),
                         val: elem.val()
-                    }).appendTo(self.proxy).data('original', elem),
+                    }).appendTo(self.proxy).data('original', elem);
                     selected = elem.prop('selected'),
                     disabled = elem.prop('disabled');
-                if (selected && !disabled) {
-                    self.addListItem(opt);
-                } else if (!selected && disabled) {
-                    self.disableSelectOption(opt);
+                    if (selected && !disabled) {
+                        self.addListItem(opt);
+                    } else if (!selected && disabled) {
+                        self.disableSelectOption(opt);
+                    }
                 }
             },
             addOptionGroup: function (elem) {
@@ -165,13 +182,13 @@
                     self.wrapper.after(container);
                     container.addClass(classes.control)
                              .prepend(self.wrapper.removeClass(classes.control));
-                    list = $('<div>', {'class': classes.input}).addClass(classes.container).append(self.list);
+                    list = $('<div>', {'class': classes.input}).addClass(options.classes.container).append(self.list);
                 } else {
                     container.prepend(element.after(container));
                 }
                 self.list_container = list.hide();
                 container.append(self.list_container);
-            }
+            },
         });
     }
 }(jQuery));

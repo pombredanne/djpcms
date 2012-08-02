@@ -1,26 +1,49 @@
-from djpcms import forms, html, views
+from djpcms import forms, html, views, media
+from djpcms.cms import permissions
+from djpcms.forms import layout as uni
 from djpcms.html import classes
 from djpcms.utils import orms
 from djpcms.utils.text import to_string
-from djpcms.utils.httpurl import query_from_string
+from djpcms.utils.httpurl import QueryDict
 from djpcms.cms.plugins import DJPplugin
 
+class ModelChoice(forms.ChoiceFieldOptions):
 
-def registered_models(bfield, required=True):
-    '''Generator of model Choices'''
-    form = bfield.form
-    request = form.request
-    if not required:
-        yield ('','----------')
-    if request:
-        root = form.request.view.root
-        models = set()
-        for app in root.applications():
-            if app.mapper and app.model not in models:
-                models.add(app.model)
-                id = app.mapper.hash
-                if id and request.has_permission(instance=app.model):
-                    yield (id, str(app.mapper))
+    def _query(self, bfield):
+        '''Generator of model Choices'''
+        form = bfield.form
+        request = form.request
+        if request:
+            root = form.request.view.root
+            models = set()
+            for app in root.applications():
+                mapper = app.mapper
+                if mapper and app.model not in models:
+                    models.add(app.model)
+                    req = request.for_app(app)
+                    if req.has_permission(permissions.ADD):
+                        yield mapper.hash, str(mapper), req
+
+    def query(self, bfield):
+        for id, text, req in sorted(self._query(bfield), key=lambda y : y[1]):
+            yield html.Widget('option', text, value=id, data={'href': req.url})
+
+
+class FieldChoices(forms.ChoiceFieldOptions):
+
+    def _query(self, bfield):
+        form = bfield.form
+        request = form.request
+        model = form.data.get('for_model')
+        if request and model:
+            app = request.app_for_model(model)
+            if app and app.pagination:
+                for head in app.pagination.list_display:
+                    yield head.code, head.name
+
+    def query(self, bfield):
+        return sorted(self._query(bfield), key=lambda y : y[1])
+
 
 def get_contet_choices(bfield):
     model = bfield.form.model
@@ -42,10 +65,9 @@ def header_query(bfield):
 
 class ForModelForm(forms.Form):
     for_model = forms.ChoiceField(
-                      required = False,
-                      widget = html.Select(default_class = 'ajax'),
-                      choices = lambda x : sorted(registered_models(x,False),
-                                                    key = lambda y : y[1]))
+                    required=False,
+                    choices=ModelChoice(empty_label='Select a model'),
+                    widget=html.Select(cn=classes.model))
 
     def clean_for_model(self, mhash):
         if mhash:
@@ -56,19 +78,32 @@ class ForModelForm(forms.Form):
 
 
 class ModelItemListForm(ForModelForm):
-    max_display = forms.IntegerField(initial=10)
-    pagination  = forms.BooleanField(initial=False)
+    max_display = forms.IntegerField(initial=10,
+                                     widget=html.TextInput(cn='span1'))
     text_search = forms.CharField(required=False)
     filter = forms.CharField(required=False)
     exclude = forms.CharField(required=False)
-    order_by = forms.CharField(required=False)
-    #headers = forms.ChoiceField(choices=forms.ChoiceFieldOptions(
-    #                                query=header_query,
-    #                                autocomplete=True,
-    #                                multiple=True))
-    headers = forms.CharField(required=False)
-    table_footer = forms.BooleanField(initial=False)
+    order_by = forms.ChoiceField(required=False,
+                                 widget=html.Select(cn='model-fields'),
+                                 choices=FieldChoices())
+    descending = forms.BooleanField(initial=False)
+    headers = forms.ChoiceField(required=False,
+                                widget=html.Select(cn='model-fields'),
+                                choices=FieldChoices(multiple=True))
+    table_footer = forms.BooleanField(initial=False, label='footer')
     display_if_empty = forms.BooleanField(initial=False)
+
+HtmlModelListForm = forms.HtmlForm(
+    ModelItemListForm,
+    layout=uni.FormLayout(
+                uni.Fieldset('for_model', 'text_search', 'filter', 'exclude'),
+                uni.Inlineset('order_by', 'descending', label='Ordering'),
+                uni.Inlineset('max_display', 'display_if_empty', 'table_footer',
+                              label='Max display'),
+                uni.Fieldset('headers'),
+                tag='div',
+                cn='model-filters'),
+)
 
 
 class FormModelForm(ForModelForm):
@@ -165,26 +200,25 @@ class ApplicationLinks(DJPplugin):
                            .render(request)
 
 
-def attrquery(heads,query):
-    for k in query:
-        v = query[k]
+def attrquery(heads, query):
+    for k, v in query.lists():
         if k in heads:
             k = heads[k].attrname
-        yield k,v
+        yield k, v
 
 
 class ModelItemsList(DJPplugin):
     '''Filter a model according to editable criteria snd displays a
 certain number of items as specified in the max display input.'''
     name = 'model-items'
-    description = 'Filtered items for a model'
-    form = ModelItemListForm
+    description = 'Items for a model'
+    form = HtmlModelListForm
 
     def ajax__for_model(self, request, for_model):
         pass
 
     def render(self, request, block, prefix, for_model=None, max_display=5,
-               pagination=False, filter=None, exclude=None, order_by =None,
+               filter=None, exclude=None, order_by =None, descending=False,
                text_search=None, headers=None, display_if_empty='',
                table_footer=False, **kwargs):
         instance = request.instance
@@ -193,35 +227,33 @@ certain number of items as specified in the max display input.'''
             return ''
         view = request.view
         appmodel = view.appmodel
+        mapper = appmodel.mapper
         load_only = ()
         thead = None
         appheads = request.pagination.headers
 
         if headers:
             thead = []
-            for head in headers.split():
+            for head in headers:
                 if head in appheads:
                     thead.append(appheads[head])
 
         # Ordering
         if order_by:
-            decr = False
-            if order_by.startswith('-'):
-                order_by = order_by[1:]
-                decr = True
-            order_by = html.attrname_from_header(appheads,order_by)
-            if decr:
+            order_by = html.attrname_from_header(appheads, order_by)
+            if order_by and descending:
                 order_by = '-{0}'.format(order_by)
 
         # query with the instancde of the current page
         qs = view.query(request, instance=instance)
         if text_search:
             qs = qs.search(text_search)
-        qs = qs.filter(**dict(attrquery(appheads,query_from_string(filter))))\
-               .exclude(**dict(attrquery(appheads,query_from_string(exclude))))\
-               .sort_by(order_by)\
+        filter = mapper.query_from_mapping(
+                                attrquery(appheads, QueryDict(filter)))
+        exclude = mapper.query_from_mapping(
+                                attrquery(appheads, QueryDict(exclude)))
+        qs = qs.filter(**filter).exclude(**exclude).sort_by(order_by)\
                .load_only(*appmodel.load_fields(thead))
-
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
         if not items:

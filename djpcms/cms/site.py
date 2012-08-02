@@ -229,14 +229,14 @@ Attributes available:
         self.routes.append(site)
         return site
 
-    def for_model(self, model, all = False, start = True):
+    def for_model(self, model, all=False, start=True):
         '''Obtain a :class:`Application` for model *model*.
 If the application is not available, it returns ``None``. It never fails.
 If *all* is set to ``True`` it returns a list of all the :class:`Application`
 for that model.'''
         if not model:
             return
-        if hasattr(model,'model'):
+        if hasattr(model, 'model'):
             model = model.model
         mapper = orms.mapper(model)
         if not mapper:

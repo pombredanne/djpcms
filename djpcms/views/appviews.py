@@ -273,6 +273,10 @@ views::
     def ajax_get_response(self, request):
         return self.appmodel.ajax_get_response(request)
 
+    def render(self, request, **kwargs):
+        return self.appmodel.render(request, **kwargs)
+
+    # AJAX VIEWS
     def ajax__autocomplete(self, request):
         fields = self.appmodel.autocomplete_fields
         params = request.REQUEST
@@ -283,8 +287,17 @@ views::
         auto_list = list(self.appmodel.gen_autocomplete(qs, maxRows))
         return ajax.CustomHeaderBody(request.environ, 'autocomplete', auto_list)
 
-    def render(self, request, **kwargs):
-        return self.appmodel.render(request, **kwargs)
+    def ajax__fields(self, request):
+        '''Obtain all the fields for the model'''
+        pagination = self.pagination or self.appmodel.pagination
+        if pagination:
+            headers = []
+            for head in pagination.list_display:
+                headers.append({'code': head.code,
+                                'text': head.name})
+        else:
+            headers = []
+        return ajax.CustomHeaderBody(request.environ, 'fields', headers)
 
 
 class ModelView(View):

@@ -1,6 +1,7 @@
 from inspect import isclass
+from collections import Mapping
 
-from .httpurl import itervalues, to_string
+from .httpurl import itervalues, iteritems, to_string
 from .structures import OrderedDict
 from .importer import import_module
 from .text import nicename, UnicodeMixin, slugify
@@ -24,6 +25,10 @@ class Model(ModelType('ModelBase', (UnicodeMixin,), {})):
 
     @classmethod
     def filter(cls, **kwargs):
+        raise NotImplementedError()
+
+    @classmethod
+    def exclude(cls, **kwargs):
         raise NotImplementedError()
 
 
@@ -89,6 +94,8 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
         if not isinstance(self.model, ModelType):
             raise ValueError()
 
+    # Query methods
+
     def query(self):
         '''Return a query class for the model.
 This method needs to be implemented by subclasses.'''
@@ -99,10 +106,31 @@ This method needs to be implemented by subclasses.'''
 This method needs to be implemented by subclasses.'''
         return self.model.filter(**kwargs)
 
+    def exclude(self, **kwargs):
+        '''Return a query class for the model.
+This method needs to be implemented by subclasses.'''
+        return self.model.exclude(**kwargs)
+
     def get(self, **kwargs):
         '''Return a single instance of the model base on some
 filtering (usually id). Similar to :meth:`fileter` method.'''
         return self.model.get(**kwargs)
+
+    def query_from_mapping(self, mapping):
+        '''Build a query from a *mapping*.
+
+:paramater mapping: a mapping inluding :class:`MultiValueDict`.
+:rtype: a dictionary of parameters to be passed to the :meth:`query` method'''
+        r = {}
+        if hasattr(mapping, 'lists'):
+            mapping = mapping.lists()
+        elif isinstance(mapping, Mapping):
+            mapping = iteritems(mapping)
+        for k, v in mapping:
+            if not isinstance(v, (list,tuple)):
+                v = (v,)
+            r['%s__in' % k] = v
+        return r
 
     def is_query(self, query):
         return True

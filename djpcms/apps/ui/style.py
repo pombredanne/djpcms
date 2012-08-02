@@ -7,3 +7,4 @@ from . import dl
 from . import button
 from . import autocomplete
 from . import multiselect
+from . import themes

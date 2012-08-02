@@ -291,7 +291,6 @@ is a factory of :class:`Widget`.
         self.addData(data)
         self.css(css)
         self._data_stream = []
-        self.addClass(maker.default_style)
         attributes = maker.attributes
         for att in list(params):
             if att in attributes:
@@ -315,6 +314,18 @@ is a factory of :class:`Widget`.
 
     def __iter__(self):
         return iter(self.data_stream)
+
+    def html(self):
+        t = []
+        text = True
+        for v in self:
+            if isinstance(v, Widget):
+                text = False
+            t.append(v)
+        if text:
+            return ''.join(t)
+        else:
+            return t
 
     def content_type(self):
         return 'text/html'
@@ -407,12 +418,6 @@ corner cases, users can subclass it to customize behavior.
 
     List of attributes supported by the widget.
 
-.. attribute:: default_style
-
-    default css class style for the widget.
-
-    Default ``None``.
-
 .. attribute:: inline
 
     If ``True`` the element is rendered as an inline element::
@@ -457,7 +462,6 @@ corner cases, users can subclass it to customize behavior.
 '''
     tag = None
     key = None
-    default_style = None
     inline = False
     attributes = ('id', 'title', 'dir', 'style')
     default_attrs = None
@@ -478,7 +482,6 @@ corner cases, users can subclass it to customize behavior.
         if internal:
             self.internal.update(internal)
         self.key = key if key is not None else self.key
-        self.default_style = params.pop('default_style', self.default_style)
         self._widget = widget or self._widget or Widget
         if self.default_attrs:
             p = self.default_attrs.copy()
@@ -528,8 +531,6 @@ corner cases, users can subclass it to customize behavior.
             if isinstance(widget, WidgetMaker):
                 key = widget.key or len(self.children)
                 self.children[key] = widget
-                if not widget.default_style:
-                    widget.default_style = self.default_style
                 for k in self.internal:
                     if k not in widget.internal:
                         widget.internal[k] = self.internal[k]

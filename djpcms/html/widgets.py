@@ -87,18 +87,17 @@ class TextArea(InputWidget):
         widget.add(escape(value))
 
 
+class Option(FieldWidget):
+    tag = 'option'
+    inline = False
+    attributes = FieldWidget.makeattr('selected')
+
+
 class Select(FieldWidget):
     tag = 'select'
     inline = False
     attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
-    _option = '<option value="%s"%s>%s</option>'
     _media = Media(js=['djpcms/plugins/multiselect.js'])
-
-    def option(self, value, text, selected=False):
-        if selected:
-            return self._option % (value,' selected="selected"', text)
-        else:
-            return self._option % (value,'', text)
 
     def set_value(self, val, widget):
         # Set the value. We use the widget bound field to do that
@@ -116,9 +115,12 @@ class Select(FieldWidget):
     def _all_choices(self, bfield, selected):
         if bfield:
             choices = bfield.field.choices
-            for value, text in choices.all(bfield, html=True):
-                value = to_string(value)
-                yield self.option(value, text, value in selected)
+            for opt in choices.all(bfield, html=True):
+                if not isinstance(opt, Widget):
+                    opt = Widget('option', opt[1], value=to_string(opt[0]))
+                if opt.attr('value') in selected:
+                    opt.addAttr('selected', 'selected')
+                yield opt
 
 
 class FileInput(InputWidget):
@@ -151,12 +153,14 @@ for tag in ('div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5',
     WidgetMaker(tag=tag)
 
 
+# Initialise so that default templates are available
 TextInput(default='input:text')
 InputWidget(default='input:password')
 SubmitInput(default='input:submit')
 HiddenInput(default='input:hidden')
 PasswordInput(default='input:password')
 CheckboxInput(default='input:checkbox')
+Option()
 Select(default='select')
 List(default='ul')
 DefinitionList(default='dl')

@@ -225,6 +225,9 @@ is available, the name is set to ``view``.
                 return
             model = mapper.model
         app = self.app_for_model(model, all=all, root=root)
+        return self.for_app(app, name, instance, urlargs)
+
+    def for_app(self, app, name=None, instance=None, urlargs=None):
         if app:
             view = app.views.get(name) if name else None
             if not view and instance:
@@ -405,6 +408,8 @@ is available, the name is set to ``view``.
                     return False
             return perm.has(self, view.PERM, instance, model, user)
         else:
+            model = model or self.model
+            instance = instance or self.instance
             return perm.has(self, code, instance, model, user)
 
     def _get_cookies(self):
@@ -520,10 +525,10 @@ A shortcut for :meth:`ViewHandler.render`'''
         else:
             model = native_str(model)
             site = self.view.root if root else self.view.site
-            if isinstance(model,str):
-                return site.for_hash(model, all = all)
+            if isinstance(model, str):
+                return site.for_hash(model, all=all)
             elif model is not None:
-                return site.for_model(model, all = all)
+                return site.for_model(model, all=all)
             else:
                 return None
 

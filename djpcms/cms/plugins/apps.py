@@ -211,7 +211,7 @@ class ModelItemsList(DJPplugin):
     '''Filter a model according to editable criteria snd displays a
 certain number of items as specified in the max display input.'''
     name = 'model-items'
-    description = 'Items for a model'
+    description = 'Filtered items for a model'
     form = HtmlModelListForm
 
     def ajax__for_model(self, request, for_model):

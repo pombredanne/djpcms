@@ -1,18 +1,4 @@
-import json
-
-from djpcms import forms, html
 from djpcms.cms.plugins.apps import RenderObject
-from djpcms.cms.formutils import form_kwargs
-from djpcms.cms import PermissionDenied
-from djpcms.utils.text import mark_safe
-
-
-def get_site_content(form):
-    from djpcms.models import SiteContent
-    if SiteContent:
-        return SiteContent.objects.all()
-    else:
-        return ()
 
 
 class Text(RenderObject):

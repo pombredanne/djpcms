@@ -1,3 +1,4 @@
+from djpcms import media
 from djpcms.html import Widget, WidgetMaker, table_header
 from djpcms.utils.text import nicename
 
@@ -8,9 +9,9 @@ __all__ = ['TableRow', 'TableFormElement', 'TableRelatedFieldset']
 
 
 class BaseTable(FormLayoutElement):
-    default_style = classes.nolabel
 
     def field_widget(self, widget):
+        # Override field_widget so that the container for errors is not added
         return Widget('div', widget.bfield.widget)
 
 
@@ -18,24 +19,27 @@ class TableRow(BaseTable):
     '''A row in a table rendering a group of :class:`Fields`.'''
     field_widget_tag = 'td'
     field_widget_class = None
+    show_field_labels = False
 
     def stream_errors(self, request, children):
         '''Create the error ``td`` elements.
 They all have the class ``error``.'''
         for w in children:
             b = w.bfield
+            w = Widget('td', cn='error')
             if b:
-                yield '<td id="%s" class="error">%s</td>'%(b.errors_id,b.error)
-            else:
-                yield '<td class="error"></td>'
+                w.addClass(b.widget.attrs.get('type'))\
+                 .add(b.error).addAttr('id', b.errors_id)
+            yield w
 
     def stream_fields(self, request, children):
         for w in children:
             b = w.bfield
             if not b:
-                w = Widget('td', w.maker.key).addClass('one-line')
-            elif b.widget.attrs.get('type') == 'checkbox':
-                w.addClass('checkbox')
+                # Not a field, add field name to classes
+                w = Widget('td', cn=('one-line', w.field))
+            else:
+                w.addClass(b.widget.attrs.get('type'))
             yield w.render(request)
 
     def stream(self, request, widget, context):
@@ -55,6 +59,7 @@ in a table.
 '''
     tag = 'div'
     elem_css = "uniFormTable"
+    _media = media.Media(js=['djpcms/plugins/delete_row.js'])
 
     def __init__(self, headers, *rows, **kwargs):
         # each row must have the same number of columns as the number of headers
@@ -62,7 +67,7 @@ in a table.
         self.fields = tuple(h.code for h in self.headers)
         trows = []
         for row in rows:
-            if not isinstance(row,TableRow):
+            if not isinstance(row, TableRow):
                 row = TableRow(*row)
             trows.append(row)
         super(TableFormElement,self).__init__(*trows, **kwargs)
@@ -71,16 +76,13 @@ in a table.
         '''Generator of rendered table heads'''
         for head in self.headers:
             name = head.code
-            th = Widget('th', cn = name)
-            if head.hidden:
-                th.addClass('djph')
-            else:
-                label = Widget('span', head.name,
-                               title=head.name,
-                               cn=classes.label)
-                th.addClass(head.extraclass).add(label)
-                if head.description:
-                    label.addData('content', head.description);
+            th = Widget('th', cn=name).addClass(head.extraclass)
+            label = Widget('span', head.name,
+                           title=head.description,
+                           cn=classes.label)
+            th.addClass(head.extraclass).add(label)
+            if head.description:
+                label.addData('content', head.description);
             yield th.render(request)
 
     def rows(self, widget):
@@ -107,9 +109,10 @@ class TableRelatedFieldset(TableFormElement):
     '''A :class:`djpcms.forms.layout.TableFormElement`
 class for handling ralated :class:`djpcms.forms.FieldSet`.'''
 
-    def __init__(self, form, formset, fields=None, **kwargs):
+    def __init__(self, form, formset, fields=None, delete_head='', **kwargs):
         self.formset = formset
         self.form_class = form.base_inlines[formset].form_class
+        self.delete_head = delete_head
         headers = list(self.get_heads(fields))
         super(TableRelatedFieldset,self).__init__(headers, **kwargs)
         self.row_maker = TableRow(*self.fields)
@@ -125,16 +128,15 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
         for name in headers:
             field = dfields.get(name)
             if field:
-                if field.widget.attr('type') == 'hidden':
-                    self.hidden_fields.append(
-                        FieldTemplate(internal={'field':name}))
-                else:
-                    label = field.label or nicename(name)
-                    extraclass = 'required' if field.required else None
-                    yield table_header(name,
-                                       label,
-                                       field.help_text,
-                                       extraclass=extraclass)
+                label = field.label or nicename(name)
+                cn = ('required' if field.required else None,
+                      field.widget.attr('type'))
+                yield table_header(name,
+                                   label,
+                                   field.help_text,
+                                   extraclass=cn)
+        if self.delete_head is not None:
+            yield table_header(classes.delete_row, self.delete_head)
 
     def rows(self, widget):
         formset = widget.form.form_sets[self.formset]
@@ -153,5 +155,5 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
                      child = self.child_widget(field, widget, form=form)
                      yield child.render(request)
         # the number of forms
-        yield formset.num_forms().render(request)
+        yield formset.num_forms(cn=classes.number_of_forms).render(request)
 

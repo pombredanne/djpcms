@@ -46,18 +46,21 @@ def table_header(code, name=None, description=None, function=None,
 :param attrname: optional attribute name, if not supplied the *code* will be
     used. The attrname is the actual attribute name in the object, and
     therefore the actual field in the database.
+:param extraclass: additional classes for HTML rendering.
 '''
-    if isinstance(code,table_header_):
+    if isinstance(code, table_header_):
         return code
     if not name:
-        if code == '__str__':
-            name = NON_BREACKING_SPACE
+        nice_code = nicename(code)
+        description = description or nice_code
+        if name is None:
+            name = nice_code
         else:
-            name = nicename(code)
+            name = NON_BREACKING_SPACE
     function = function or code
     attrname = attrname or code
-    return table_header_(code,name,description,function,sortable,width,
-                         extraclass,attrname,hidden)
+    return table_header_(code, name, description, function, sortable, width,
+                         extraclass, attrname, hidden)
 
 
 class TableMaker(WidgetMaker):
@@ -98,7 +101,7 @@ class TableMaker(WidgetMaker):
         for head in headers:
             w = Widget('th', cn = head.code)
             if head.description:
-                w.addData('description',head.description)
+                w.addData('description', head.description)
             yield w.render(inner = head.name)
 
     def aoColumns(self, headers):

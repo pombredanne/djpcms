@@ -312,7 +312,7 @@ There are three additional parameters that can be set:
 
 :keyword search_text: string identifier for text queries.
     '''
-    PERM = permissions.VIEWLIST
+    PERM = permissions.VIEW
     has_plugin = True
     in_nav = 1
 

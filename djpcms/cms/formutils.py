@@ -89,13 +89,9 @@ according to the following algorithm:
 If none of the above works, it returns ``None``, otherwise it returns an
 absolute url.
 '''
-    next = None
-    if data:
+    next = request.view.redirect_url(request, instance=instance)
+    if not next and data:
         next = data.get(NEXT_KEY)
-        if next:
-            return next
-    if next is None:
-        next = request.view.redirect_url(request, instance=instance)
     return request.build_absolute_uri(next) if next else None
 
 def form_inputs(instance, own_view = False):

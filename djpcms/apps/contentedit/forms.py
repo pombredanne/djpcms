@@ -54,7 +54,6 @@ class PageForm(forms.Form):
     inner_template = forms.ChoiceField(label='content grid',
                                        choices=grid_choices)
     grid_system = forms.ChoiceField(choices=grid_systems)
-    requires_login = forms.BooleanField()
     soft_root = forms.BooleanField()
     doctype = forms.ChoiceField(choices=html_choices, initial=htmldefaultdoc)
 
@@ -76,11 +75,10 @@ class PluginChoice(forms.ChoiceField):
     widget = html.Select(cn='ajax')
 
     def _clean(self, value, bfield):
-        '''Overried default value to return a Content Type object
-        '''
+        '''Overried default value to return a Content Type object'''
         value = plugins.get_plugin(value)
         if not value:
-            raise forms.ValidationError('%s not a plugin object' % name)
+            raise forms.ValidationError('%s not a plugin object' % value)
         return value
 
 

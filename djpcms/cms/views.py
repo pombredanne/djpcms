@@ -415,6 +415,7 @@ and :class:`ViewHandler`.
     dialog_height = 'auto'
     ajax_enabled = None
     pagination = None
+    hidden = False
     in_nav = 0
     has_plugins = True
     insitemap = True
@@ -425,7 +426,7 @@ and :class:`ViewHandler`.
                  ajax_enabled=None, form=None, template_file=None,
                  description=None, in_nav=None, has_plugins=None,
                  insitemap=None, body_class=None, view_ordering=None,
-                 cache_control=None):
+                 hidden=None, cache_control=None):
         self.creation_counter = RendererMixin.creation_counter
         self.view_ordering = view_ordering if view_ordering is not None else\
                                 self.creation_counter
@@ -447,10 +448,16 @@ and :class:`ViewHandler`.
             self.template_file = tuple(t)
         self.ajax_enabled = ajax_enabled if ajax_enabled is not None\
                                      else self.ajax_enabled
-        self.in_nav = in_nav if in_nav is not None else self.in_nav
+        self.hidden = hidden if hidden is not None else self.hidden
+        if self.hidden:
+            self.in_nav = 0
+            self.insitemap = False
+        else:
+            self.in_nav = in_nav if in_nav is not None else self.in_nav
+            self.insitemap = insitemap if insitemap is not None\
+                                else self.insitemap
         self.has_plugins = has_plugins if has_plugins is not None else\
                              self.has_plugins
-        self.insitemap = insitemap if insitemap is not None else self.insitemap
         if isinstance(form, forms.FormType):
             self.form = forms.HtmlForm(self.form)
         self.body_class = body_class if body_class is not None else\
@@ -510,13 +517,13 @@ if available. By defaults it invoke the ``query`` method in the
 :rtype: an iterable instance over model instances.'''
         if self.appmodel:
             return self.appmodel.query(request, **kwargs)
-    
+
     def model_fields(self, request, pagination=None):
         pagination = pagination or self.pagination
         if pagination:
             for head in pagination.list_display:
                 yield head.code, head.name
-                    
+
     def success_message(self, request, response):
         return str(response)
 
@@ -597,7 +604,7 @@ it is the base class of :class:`pageview` and :class:`djpcms.views.View`.
             if self.object_view:
                 return self.appmodel.variables_from_instance(instance)
         return ()
-    
+
     def model_fields(self, request, pagination=None):
         if self.appmodel:
             return self.appmodel.model_fields(request,
@@ -661,12 +668,10 @@ This default implementation should suffice'''
         page = request.page
         return page.in_navigation if page else 0
 
-    def redirect_url(self, request, instance = None, name = None):
+    def redirect_url(self, request, instance=None, name=None):
         '''Call the :meth:`Application.redirect_url` by default.'''
-        appmodel = self.appmodel
-        if appmodel:
-            return appmodel.redirect_url(request, instance, name)
-        return '/'
+        if self.appmodel:
+            return self.appmodel.redirect_url(request, instance, name)
 
     def warning_message(self, request):
         return None

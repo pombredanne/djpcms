@@ -31,8 +31,8 @@ utility methods for dealing with users and user data.'''
     exclude_links = ('login','logout')
     #
     home = views.SearchView()
-    login = LoginView()
-    logout = LogoutView()
+    login = LoginView(in_nav=0)
+    logout = LogoutView(in_nav=0)
     add = views.AddView(in_nav=0,
                         form=HtmlAddUserForm,
                         force_redirect=True)

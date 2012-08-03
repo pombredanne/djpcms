@@ -34,10 +34,9 @@ default_widgets_makers = {}
 NON_BREACKING_SPACE = mark_safe('&nbsp;')
 
 def attrsiter(attrs):
-    NOTHING = ('', None)
-    for k,v in attrs.items():
-        if v not in NOTHING:
-            yield " {0}='{1}'".format(k, escape(v,force=True))
+    for k, v in iteritems(attrs):
+        if v is not None:
+            yield " %s='%s'" % (k, escape(v, force=True))
 
 
 def flatatt(attrs):
@@ -91,7 +90,7 @@ def html_trace(exc_info, plain=False):
                     continue
                 w = Widget(ptag, escape(trace))
                 if counter:
-                    w.css({'margin-left':'{0}px'.format(20*counter)})
+                    w.css({'margin-left':'%spx' % (20*counter)})
                 error.add(w)
         return error.render()
 
@@ -219,10 +218,10 @@ with key ``name`` and value ``value`` and return ``self``.'''
             cs = ' '.join(self.classes)
             attrs['class'] = cs
         if self._css:
-            attrs['style'] = ''.join(('{0}:{1};'.format(k,v)\
+            attrs['style'] = ' '.join(('%s:%s;' % (k,v)\
                                        for k,v in self._css.items()))
-        for k,v in self.data.items():
-            attrs['data-{0}'.format(k)] = dump_data_value(v)
+        for k, v in self.data.items():
+            attrs['data-%s' % k] = dump_data_value(v)
         if attrs:
             return flatatt(attrs)
         else:
@@ -306,7 +305,7 @@ is a factory of :class:`Widget`.
         if self.tag:
             return '<' + self.tag + self.flatatt() + '>'
         else:
-            return '{0}({1})'.format(self.__class__.__name__,self.maker)
+            return '%s(%s)' % (self.__class__.__name__, self.maker)
     __str__ = __repr__
 
     def __len__(self):
@@ -490,7 +489,7 @@ corner cases, users can subclass it to customize behavior.
         for attr in self.attributes:
             if attr in params:
                 value = params.pop(attr)
-                attrp = 'process_{0}'.format(attr)
+                attrp = 'process_%s' % attr
                 if hasattr(self, attrp):
                     value = getattr(self, attrp)(value)
                 self.addAttr(attr, value)

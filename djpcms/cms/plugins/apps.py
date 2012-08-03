@@ -38,6 +38,8 @@ class FieldChoices(forms.ChoiceFieldOptions):
         if request and model:
             app = request.app_for_model(model, root=True)
             return app.model_fields(request)
+        else:
+            return ()
 
     def query(self, bfield):
         return sorted(self._query(bfield), key=lambda y : y[1])

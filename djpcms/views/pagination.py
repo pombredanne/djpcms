@@ -98,7 +98,7 @@ def application_views(request,
             if hasattr(view, 'root_view'):
                 view = view.root_view
             # if this is the current view skip
-            if not view or view is request.view:
+            if not view or view.hidden or view is request.view:
                 continue
             # If an instance is available include only object views
             elif instance is not None and not view.object_view and weak_include:

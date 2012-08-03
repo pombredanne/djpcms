@@ -199,7 +199,7 @@ it remains unbounded.
         if model:
             self.mapper = orms.mapper(model)
             if self.mapper is not None and not self.instance:
-                    self.instance = self.mapper()
+                self.instance = self.mapper()
         else:
             self.mapper = None
         self.form_sets = {}
@@ -260,23 +260,25 @@ validation.'''
     def _fill_initial(self):
         # Fill the initial dictionary with data from fields and from
         # the instance if available
-        initials = self.initial
+        old_initial = self.initial
+        self.initial = initial = {}
         instance = self.instance
         instance_id = instance.id if instance else None
         for name, field in iteritems(self.base_fields):
-            if name in initials:
-                continue
-            initial = field.get_initial(self)
+            if name in old_initial:
+                value = old_initial[name]
+            else:
+                value = field.get_initial(self)
             # Instance with id can override the initial value
-            if instance and instance_id:
+            if instance_id:
                 try:
+                    # First try the field method
                     value = field.value_from_instance(instance)
                 except ValueError:
+                    # otherwise try the form method
                     value = self.value_from_instance(instance, name)
-                if value is not None:
-                    initial = value
-            if initial is not None:
-                initials[name] = initial
+            if value is not None:
+                initial[name] = value
 
     def value_from_instance(self, instance, name):
         '''Utility function for extracting an attribute value from an

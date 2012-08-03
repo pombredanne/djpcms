@@ -88,12 +88,11 @@ class FieldTemplate(FormTemplate):
         w = bfield.widget
         w.addClass(w.tag)
         hidden = w.attr('type') == 'hidden' or  w.css('display') == 'none'
-        # Hidden
+        parent = widget.internal.get('layout-element')
+        # Hidden field. No need to do a lot of decoration here.
         if hidden:
-            widget.tag = None
-            widget.add(w)
+            widget.add(w).addClass('hidden')
         else:
-            parent = widget.internal.get('layout-element')
             if parent is not None:
                 wrapper = parent.field_widget(widget).addClass(w.classes)
                 show_label = parent.show_field_labels
@@ -213,7 +212,7 @@ components. An instance of this class render one or several
 
     def check_fields(self, missings, layout=None):
         '''Check if the specified fields are available in the form and
-remove available fields from the missing set.'''
+remove available fields from the *missings* set.'''
         children = self._children
         del self._children
         for field in check_fields(children, missings, layout):
@@ -223,6 +222,7 @@ remove available fields from the missing set.'''
                                        cn=self.field_widget_class)
                 else:
                     ft = FieldTemplate()
+                # set the field
                 ft.internal['field'] = field
             else:
                 ft = field
@@ -258,9 +258,9 @@ class SubmitElement(FormLayoutElement):
             inner = inputs
         else:
             inner = html.Widget('div', inputs,
-                                cn=(self.default_style, classes.button_holder))
-            widget.removeClass(self.default_style)
+                                cn=(classes.control, classes.button_holder))
         widget.add(inner)
+        return super(SubmitElement, self).get_context(request, widget, context)
 
 
 class Fieldset(FormLayoutElement):

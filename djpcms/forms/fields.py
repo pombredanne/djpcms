@@ -460,7 +460,8 @@ queries on models as well as list of two-elements tuples ``(value, label)``.
         self._setmodel(self.query)
 
     def all(self, bfield, html=False):
-        '''Generator of all choices.'''
+        '''Generator of all choices. If *html* is ``True`` it adds the
+:attr:`empty_label`` if required.'''
         if html and not self.multiple and\
              (self.with_empty_label or not bfield.field.required):
             yield ('', self.empty_label)

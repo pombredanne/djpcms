@@ -16,7 +16,6 @@ from .exceptions import PermissionDenied
 # the higher the number the more restrictive the permission is
 NONE = 0
 VIEW = 10
-VIEWLIST = 15
 CHANGE = 20
 COPY = 25
 ADD = 30
@@ -25,7 +24,6 @@ DELETEALL = 50
 PERMISSION_LIST = [
                    (NONE, 'NONE'),
                    (VIEW, 'VIEW'),
-                   (VIEWLIST, 'VIEW LIST'),
                    (ADD, 'ADD'),
                    (COPY, 'COPY'),
                    (CHANGE, 'CHANGE'),

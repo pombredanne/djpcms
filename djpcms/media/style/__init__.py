@@ -153,6 +153,8 @@ css('.'+classes.wrapper,
 css('.'+classes.float_right,
     float='right')
 
+css('.hidden', display='none')
+
 ################################################# LOGGING PANEL
 css('.djp-logging-panel',
     gradient(cssv.logging_panel.background),

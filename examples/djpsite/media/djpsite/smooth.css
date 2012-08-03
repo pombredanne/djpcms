@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-08-02 22:54:32.174480
-Time taken 0.463 seconds
+Created by djpcms.style 2012-08-03 17:37:07.925000
+Time taken 0.433 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -591,6 +591,10 @@ input:-ms-input-placeholder {
 
 .f-right {
     float: right;
+}
+
+.hidden {
+    display: none;
 }
 
 .djp-logging-panel {
@@ -2197,7 +2201,11 @@ th.ui-clickable {
 }
 
 .edit-user {
-    width: 400px;
+    max-width: 400px;
+}
+
+.permissions {
+    max-width: 400px;
 }
 
 @font-face {

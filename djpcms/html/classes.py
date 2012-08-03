@@ -22,6 +22,7 @@ state_hover = 'ui-state-hover'
 state_error = 'ui-state-error'
 
 model = 'for-model'
+delete = 'delete'
 sitecontent = 'sitecontent'
 float_right = 'f-right'
 autocomplete = 'autocomplete'

@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-08-02 16:52:18.590000
-Time taken 0.349 seconds
+Created by djpcms.style 2012-08-02 22:54:32.174480
+Time taken 0.463 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -739,14 +739,14 @@ input:-ms-input-placeholder {
 
 .ui-clickable:active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
 
 .ui-clickable.ui-state-active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -816,14 +816,14 @@ input:-ms-input-placeholder {
 
 .btn:active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
 
 .btn.ui-state-active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -1817,14 +1817,14 @@ th.ui-clickable {
 
 .data-table .dataTables_paginate .paginate_button:active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
 
 .data-table .dataTables_paginate .paginate_button.ui-state-active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -1847,7 +1847,7 @@ th.ui-clickable {
     text-decoration: none;
     border: 1px solid #d3d3d3;
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -1884,14 +1884,14 @@ th.ui-clickable {
 
 .data-table .dataTables_paginate .paginate_active:active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
 
 .data-table .dataTables_paginate .paginate_active.ui-state-active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -2123,14 +2123,14 @@ th.ui-clickable {
 
 .ui-autocomplete li a:active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
 
 .ui-autocomplete li a.ui-state-active {
     background: #ffffff;
-    color: #212121;
+    color: #555555;
     text-decoration: none;
     border: 1px solid #aaaaaa;
 }
@@ -2196,12 +2196,890 @@ th.ui-clickable {
     float: right;
 }
 
+.edit-user {
+    width: 400px;
+}
+
+@font-face {
+    font-weight: normal;
+    font-style: normal;
+    font-family: 'FontAwesome';
+    src: url('/media/fontawesome/fontawesome-webfont.eot');
+    src: url('/media/fontawesome/fontawesome-webfont.eot?#iefix') format('embedded-opentype'), url('/media/fontawesome/fontawesome-webfont.woff') format('woff'), url('/media/fontawesome/fontawesome-webfont.ttf') format('truetype'), url('/media/fontawesome/fontawesome-webfont.svg#FontAwesome') format('svg');
+}
+
+/*  Font Awesome
+    the iconic font designed for use with Twitter Bootstrap
+    -------------------------------------------------------
+    The full suite of pictographic icons, examples, and documentation
+    can be found at: http://fortawesome.github.com/Font-Awesome/
+
+    License
+    -------------------------------------------------------
+    The Font Awesome webfont, CSS, and LESS files are licensed under CC BY 3.0:
+    http://creativecommons.org/licenses/by/3.0/ A mention of
+    'Font Awesome - http://fortawesome.github.com/Font-Awesome' in human-readable
+    source code is considered acceptable attribution (most common on the web).
+    If human readable source code is not available to the end user, a mention in
+    an 'About' or 'Credits' screen is considered acceptable (most common in desktop
+    or mobile software).
+
+    Contact
+    -------------------------------------------------------
+    Email: dave@davegandy.com
+    Twitter: http://twitter.com/fortaweso_me
+    Work: http://lemonwi.se co-founder
+
+    */
+
+/*  Font Awesome styles
+    ------------------------------------------------------- */
+[class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  text-decoration: inherit;
+}
+a [class^="icon-"], a [class*=" icon-"] {
+  display: inline-block;
+  text-decoration: inherit;
+}
+/* makes the font 33% larger relative to the icon container */
+.icon-large:before {
+  vertical-align: top;
+  font-size: 1.3333333333333333em;
+}
+.btn [class^="icon-"], .btn [class*=" icon-"] {
+  /* keeps button heights with and without icons the same */
+
+  line-height: .9em;
+}
+li [class^="icon-"], li [class*=" icon-"] {
+  display: inline-block;
+  width: 1.25em;
+  text-align: center;
+}
+li .icon-large[class^="icon-"], li .icon-large[class*=" icon-"] {
+  /* 1.5 increased font size for icon-large * 1.25 width */
+
+  width: 1.875em;
+}
+li[class^="icon-"], li[class*=" icon-"] {
+  margin-left: 0;
+  list-style-type: none;
+}
+li[class^="icon-"]:before, li[class*=" icon-"]:before {
+  text-indent: -2em;
+  text-align: center;
+}
+li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
+  text-indent: -1.3333333333333333em;
+}
+/*  Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen
+    readers do not read off random characters that represent icons */
+.icon-glass:before                { content: "\f000"; }
+.icon-music:before                { content: "\f001"; }
+.icon-search:before               { content: "\f002"; }
+.icon-envelope:before             { content: "\f003"; }
+.icon-heart:before                { content: "\f004"; }
+.icon-star:before                 { content: "\f005"; }
+.icon-star-empty:before           { content: "\f006"; }
+.icon-user:before                 { content: "\f007"; }
+.icon-film:before                 { content: "\f008"; }
+.icon-th-large:before             { content: "\f009"; }
+.icon-th:before                   { content: "\f00a"; }
+.icon-th-list:before              { content: "\f00b"; }
+.icon-ok:before                   { content: "\f00c"; }
+.icon-remove:before               { content: "\f00d"; }
+.icon-zoom-in:before              { content: "\f00e"; }
+
+.icon-zoom-out:before             { content: "\f010"; }
+.icon-off:before                  { content: "\f011"; }
+.icon-signal:before               { content: "\f012"; }
+.icon-cog:before                  { content: "\f013"; }
+.icon-trash:before                { content: "\f014"; }
+.icon-home:before                 { content: "\f015"; }
+.icon-file:before                 { content: "\f016"; }
+.icon-time:before                 { content: "\f017"; }
+.icon-road:before                 { content: "\f018"; }
+.icon-download-alt:before         { content: "\f019"; }
+.icon-download:before             { content: "\f01a"; }
+.icon-upload:before               { content: "\f01b"; }
+.icon-inbox:before                { content: "\f01c"; }
+.icon-play-circle:before          { content: "\f01d"; }
+.icon-repeat:before               { content: "\f01e"; }
+
+/* \f020 doesn't work in Safari. all shifted one down */
+.icon-refresh:before              { content: "\f021"; }
+.icon-list-alt:before             { content: "\f022"; }
+.icon-lock:before                 { content: "\f023"; }
+.icon-flag:before                 { content: "\f024"; }
+.icon-headphones:before           { content: "\f025"; }
+.icon-volume-off:before           { content: "\f026"; }
+.icon-volume-down:before          { content: "\f027"; }
+.icon-volume-up:before            { content: "\f028"; }
+.icon-qrcode:before               { content: "\f029"; }
+.icon-barcode:before              { content: "\f02a"; }
+.icon-tag:before                  { content: "\f02b"; }
+.icon-tags:before                 { content: "\f02c"; }
+.icon-book:before                 { content: "\f02d"; }
+.icon-bookmark:before             { content: "\f02e"; }
+.icon-print:before                { content: "\f02f"; }
+
+.icon-camera:before               { content: "\f030"; }
+.icon-font:before                 { content: "\f031"; }
+.icon-bold:before                 { content: "\f032"; }
+.icon-italic:before               { content: "\f033"; }
+.icon-text-height:before          { content: "\f034"; }
+.icon-text-width:before           { content: "\f035"; }
+.icon-align-left:before           { content: "\f036"; }
+.icon-align-center:before         { content: "\f037"; }
+.icon-align-right:before          { content: "\f038"; }
+.icon-align-justify:before        { content: "\f039"; }
+.icon-list:before                 { content: "\f03a"; }
+.icon-indent-left:before          { content: "\f03b"; }
+.icon-indent-right:before         { content: "\f03c"; }
+.icon-facetime-video:before       { content: "\f03d"; }
+.icon-picture:before              { content: "\f03e"; }
+
+.icon-pencil:before               { content: "\f040"; }
+.icon-map-marker:before           { content: "\f041"; }
+.icon-adjust:before               { content: "\f042"; }
+.icon-tint:before                 { content: "\f043"; }
+.icon-edit:before                 { content: "\f044"; }
+.icon-share:before                { content: "\f045"; }
+.icon-check:before                { content: "\f046"; }
+.icon-move:before                 { content: "\f047"; }
+.icon-step-backward:before        { content: "\f048"; }
+.icon-fast-backward:before        { content: "\f049"; }
+.icon-backward:before             { content: "\f04a"; }
+.icon-play:before                 { content: "\f04b"; }
+.icon-pause:before                { content: "\f04c"; }
+.icon-stop:before                 { content: "\f04d"; }
+.icon-forward:before              { content: "\f04e"; }
+
+.icon-fast-forward:before         { content: "\f050"; }
+.icon-step-forward:before         { content: "\f051"; }
+.icon-eject:before                { content: "\f052"; }
+.icon-chevron-left:before         { content: "\f053"; }
+.icon-chevron-right:before        { content: "\f054"; }
+.icon-plus-sign:before            { content: "\f055"; }
+.icon-minus-sign:before           { content: "\f056"; }
+.icon-remove-sign:before          { content: "\f057"; }
+.icon-ok-sign:before              { content: "\f058"; }
+.icon-question-sign:before        { content: "\f059"; }
+.icon-info-sign:before            { content: "\f05a"; }
+.icon-screenshot:before           { content: "\f05b"; }
+.icon-remove-circle:before        { content: "\f05c"; }
+.icon-ok-circle:before            { content: "\f05d"; }
+.icon-ban-circle:before           { content: "\f05e"; }
+
+.icon-arrow-left:before           { content: "\f060"; }
+.icon-arrow-right:before          { content: "\f061"; }
+.icon-arrow-up:before             { content: "\f062"; }
+.icon-arrow-down:before           { content: "\f063"; }
+.icon-share-alt:before            { content: "\f064"; }
+.icon-resize-full:before          { content: "\f065"; }
+.icon-resize-small:before         { content: "\f066"; }
+.icon-plus:before                 { content: "\f067"; }
+.icon-minus:before                { content: "\f068"; }
+.icon-asterisk:before             { content: "\f069"; }
+.icon-exclamation-sign:before     { content: "\f06a"; }
+.icon-gift:before                 { content: "\f06b"; }
+.icon-leaf:before                 { content: "\f06c"; }
+.icon-fire:before                 { content: "\f06d"; }
+.icon-eye-open:before             { content: "\f06e"; }
+
+.icon-eye-close:before            { content: "\f070"; }
+.icon-warning-sign:before         { content: "\f071"; }
+.icon-plane:before                { content: "\f072"; }
+.icon-calendar:before             { content: "\f073"; }
+.icon-random:before               { content: "\f074"; }
+.icon-comment:before              { content: "\f075"; }
+.icon-magnet:before               { content: "\f076"; }
+.icon-chevron-up:before           { content: "\f077"; }
+.icon-chevron-down:before         { content: "\f078"; }
+.icon-retweet:before              { content: "\f079"; }
+.icon-shopping-cart:before        { content: "\f07a"; }
+.icon-folder-close:before         { content: "\f07b"; }
+.icon-folder-open:before          { content: "\f07c"; }
+.icon-resize-vertical:before      { content: "\f07d"; }
+.icon-resize-horizontal:before    { content: "\f07e"; }
+
+.icon-bar-chart:before            { content: "\f080"; }
+.icon-twitter-sign:before         { content: "\f081"; }
+.icon-facebook-sign:before        { content: "\f082"; }
+.icon-camera-retro:before         { content: "\f083"; }
+.icon-key:before                  { content: "\f084"; }
+.icon-cogs:before                 { content: "\f085"; }
+.icon-comments:before             { content: "\f086"; }
+.icon-thumbs-up:before            { content: "\f087"; }
+.icon-thumbs-down:before          { content: "\f088"; }
+.icon-star-half:before            { content: "\f089"; }
+.icon-heart-empty:before          { content: "\f08a"; }
+.icon-signout:before              { content: "\f08b"; }
+.icon-linkedin-sign:before        { content: "\f08c"; }
+.icon-pushpin:before              { content: "\f08d"; }
+.icon-external-link:before        { content: "\f08e"; }
+
+.icon-signin:before               { content: "\f090"; }
+.icon-trophy:before               { content: "\f091"; }
+.icon-github-sign:before          { content: "\f092"; }
+.icon-upload-alt:before           { content: "\f093"; }
+.icon-lemon:before                { content: "\f094"; }
+.icon-phone:before                { content: "\f095"; }
+.icon-check-empty:before          { content: "\f096"; }
+.icon-bookmark-empty:before       { content: "\f097"; }
+.icon-phone-sign:before           { content: "\f098"; }
+.icon-twitter:before              { content: "\f099"; }
+.icon-facebook:before             { content: "\f09a"; }
+.icon-github:before               { content: "\f09b"; }
+.icon-unlock:before               { content: "\f09c"; }
+.icon-credit-card:before          { content: "\f09d"; }
+.icon-rss:before                  { content: "\f09e"; }
+
+.icon-hdd:before                  { content: "\f0a0"; }
+.icon-bullhorn:before             { content: "\f0a1"; }
+.icon-bell:before                 { content: "\f0a2"; }
+.icon-certificate:before          { content: "\f0a3"; }
+.icon-hand-right:before           { content: "\f0a4"; }
+.icon-hand-left:before            { content: "\f0a5"; }
+.icon-hand-up:before              { content: "\f0a6"; }
+.icon-hand-down:before            { content: "\f0a7"; }
+.icon-circle-arrow-left:before    { content: "\f0a8"; }
+.icon-circle-arrow-right:before   { content: "\f0a9"; }
+.icon-circle-arrow-up:before      { content: "\f0aa"; }
+.icon-circle-arrow-down:before    { content: "\f0ab"; }
+.icon-globe:before                { content: "\f0ac"; }
+.icon-wrench:before               { content: "\f0ad"; }
+.icon-tasks:before                { content: "\f0ae"; }
+
+.icon-filter:before               { content: "\f0b0"; }
+.icon-briefcase:before            { content: "\f0b1"; }
+.icon-fullscreen:before           { content: "\f0b2"; }
+
+.icon-group:before                { content: "\f0c0"; }
+.icon-link:before                 { content: "\f0c1"; }
+.icon-cloud:before                { content: "\f0c2"; }
+.icon-beaker:before               { content: "\f0c3"; }
+.icon-cut:before                  { content: "\f0c4"; }
+.icon-copy:before                 { content: "\f0c5"; }
+.icon-paper-clip:before           { content: "\f0c6"; }
+.icon-save:before                 { content: "\f0c7"; }
+.icon-sign-blank:before           { content: "\f0c8"; }
+.icon-reorder:before              { content: "\f0c9"; }
+.icon-list-ul:before              { content: "\f0ca"; }
+.icon-list-ol:before              { content: "\f0cb"; }
+.icon-strikethrough:before        { content: "\f0cc"; }
+.icon-underline:before            { content: "\f0cd"; }
+.icon-table:before                { content: "\f0ce"; }
+
+.icon-magic:before                { content: "\f0d0"; }
+.icon-truck:before                { content: "\f0d1"; }
+.icon-pinterest:before            { content: "\f0d2"; }
+.icon-pinterest-sign:before       { content: "\f0d3"; }
+.icon-google-plus-sign:before     { content: "\f0d4"; }
+.icon-google-plus:before          { content: "\f0d5"; }
+.icon-money:before                { content: "\f0d6"; }
+.icon-caret-down:before           { content: "\f0d7"; }
+.icon-caret-up:before             { content: "\f0d8"; }
+.icon-caret-left:before           { content: "\f0d9"; }
+.icon-caret-right:before          { content: "\f0da"; }
+.icon-columns:before              { content: "\f0db"; }
+.icon-sort:before                 { content: "\f0dc"; }
+.icon-sort-down:before            { content: "\f0dd"; }
+.icon-sort-up:before              { content: "\f0de"; }
+
+.icon-envelope-alt:before         { content: "\f0e0"; }
+.icon-linkedin:before             { content: "\f0e1"; }
+.icon-undo:before                 { content: "\f0e2"; }
+.icon-legal:before                { content: "\f0e3"; }
+.icon-dashboard:before            { content: "\f0e4"; }
+.icon-comment-alt:before          { content: "\f0e5"; }
+.icon-comments-alt:before         { content: "\f0e6"; }
+.icon-bolt:before                 { content: "\f0e7"; }
+.icon-sitemap:before              { content: "\f0e8"; }
+.icon-umbrella:before             { content: "\f0e9"; }
+.icon-paste:before                { content: "\f0ea"; }
+
+.icon-user-md:before              { content: "\f200"; }
+
+.btn [class^="icon-"], .btn [class*=" icon-"] {
+	display: inline-block;
+	text-decoration: none !important;
+	overflow: visible;
+	position: relative;
+}
+.topbar {
+    height: 40px;
+    z-index: 10000;
+    overflow: visible;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: none;
+    background-color: #222222;
+    background-image: -moz-linear-gradient(top, #333333, #222222);
+    background-image: -ms-linear-gradient(top, #333333, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+    background-image: -webkit-linear-gradient(top, #333333, #222222);
+    background-image: -o-linear-gradient(top, #333333, #222222);
+    background-image: linear-gradient(top, #333333, #222222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
+}
+
+.topbar .nav {
+    display: block;
+    float: left;
+    position: relative;
+    padding: 0;
+    margin: 0 10px 0 0;
+}
+
+.topbar .nav > li {
+    cursor: pointer;
+    background-color: #222222;
+    background-image: -moz-linear-gradient(top, #333333, #222222);
+    background-image: -ms-linear-gradient(top, #333333, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+    background-image: -webkit-linear-gradient(top, #333333, #222222);
+    background-image: -o-linear-gradient(top, #333333, #222222);
+    background-image: linear-gradient(top, #333333, #222222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
+    display: block;
+    float: left;
+}
+
+.topbar .nav > li > a {
+    background: transparent;
+    color: #bfbfbf;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav > li:hover {
+    background: #333333;
+}
+
+.topbar .nav > li:hover > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav > li:hover > ul {
+    display: block;
+}
+
+.topbar .nav > li:active {
+    background: #000000;
+}
+
+.topbar .nav > li.ui-state-active {
+    background: #000000;
+}
+
+.topbar .nav > li.ui-state-active > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul {
+    list-style-image: none;
+    padding: 0;
+    z-index: 1000;
+    list-style: none;
+    top: 40px;
+    cursor: default;
+    width: 160px;
+    position: absolute;
+    margin: 0;
+    background: #333333;
+    display: none;
+}
+
+.topbar .nav ul li {
+    cursor: pointer;
+    background: #333333;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    border: none;
+    width: auto;
+}
+
+.topbar .nav ul li > a {
+    background: transparent;
+    color: #bfbfbf;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul li:hover {
+    background: #222222;
+}
+
+.topbar .nav ul li:hover > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul li:hover > ul {
+    display: block;
+}
+
+.topbar .nav ul li:active {
+    background: #000000;
+}
+
+.topbar .nav ul li.ui-state-active {
+    background: #000000;
+}
+
+.topbar .nav ul li.ui-state-active > a {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.topbar .nav ul li ul {
+    position: absolute;
+    top: 0;
+    background: #333333;
+    left: 160px;
+    right: auto;
+}
+
+.topbar .nav a {
+    padding: 10px 10px;
+    float: none;
+    line-height: 20px;
+    display: inline-block;
+}
+
+.topbar .nav.secondary-nav {
+    display: block;
+    float: right;
+    position: relative;
+    padding: 0;
+    margin: 0 0 0 10px;
+}
+
+.topbar .nav.secondary-nav > li {
+    cursor: pointer;
+    display: block;
+    float: left;
+}
+
+.topbar .nav.secondary-nav > li > a {
+    background: transparent;
+}
+
+.topbar .nav.secondary-nav > li:hover > ul {
+    display: block;
+}
+
+.topbar .nav.secondary-nav ul {
+    list-style-image: none;
+    padding: 0;
+    z-index: 1000;
+    list-style: none;
+    cursor: default;
+    width: 120px;
+    position: absolute;
+    margin: 0;
+    display: none;
+    right: 0;
+}
+
+.topbar .nav.secondary-nav ul li {
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    border: none;
+    width: auto;
+}
+
+.topbar .nav.secondary-nav ul li > a {
+    background: transparent;
+}
+
+.topbar .nav.secondary-nav ul li:hover > ul {
+    display: block;
+}
+
+.topbar .nav.secondary-nav ul li ul {
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 120px;
+}
+
+.topbar .nav.secondary-nav a {
+    float: none;
+    display: inline-block;
+}
+
+.topbar a.brand {
+    font-size: 20px;
+    color: #ffffff;
+    padding: 10px 20px 10px 20px;
+    line-height: 20px;
+    display: block;
+    padding: 0 20px;
+    height: 40px;
+}
+
+.topbar-container {
+    background-color: #222222;
+    background-image: -moz-linear-gradient(top, #333333, #222222);
+    background-image: -ms-linear-gradient(top, #333333, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+    background-image: -webkit-linear-gradient(top, #333333, #222222);
+    background-image: -o-linear-gradient(top, #333333, #222222);
+    background-image: linear-gradient(top, #333333, #222222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
+}
+
+.fixed {
+    left: 0;
+    top: 0;
+    right: 0;
+    position: fixed;
+    z-index: 2000;
+}
+
+.editable .topbar-fixed {
+    left: auto;
+    top: auto;
+    right: auto;
+    position: static;
+    z-index: auto;
+}
+
+.breadcrumbs {
+    font-weight: bold;
+    font-size: 130%;
+}
+
+.breadcrumbs ul {
+    list-style: none;
+    display: inline;
+}
+
+.breadcrumbs ul li {
+    list-style: none;
+    display: inline;
+}
+
+.breadcrumbs a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.breadcrumbs .divider {
+    padding: 0 5px;
+}
+
 #page-header {
+    min-height: 70px;
+    width: 100%;
+    background: #fafafa;
     padding: 10px;
     line-height: 20px;
     text-align: center;
 }
 
-.topbar a.brand {
-    padding: 0 20px;
+#page-content {
+    min-height: 400px;
+    width: 100%;
+    background-color: #ffffff;
+    background-image: -moz-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -ms-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafa), to(#ffffff));
+    background-image: -webkit-linear-gradient(top, #fafafa, #ffffff);
+    background-image: -o-linear-gradient(top, #fafafa, #ffffff);
+    background-image: linear-gradient(top, #fafafa, #ffffff);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fafafa', endColorstr='#ffffff', GradientType=0);
+}
+
+#page-footer {
+    min-height: 300px;
+    width: 100%;
+    background-color: #222222;
+    background-image: -moz-linear-gradient(top, #444444, #222222);
+    background-image: -ms-linear-gradient(top, #444444, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#444444), to(#222222));
+    background-image: -webkit-linear-gradient(top, #444444, #222222);
+    background-image: -o-linear-gradient(top, #444444, #222222);
+    background-image: linear-gradient(top, #444444, #222222);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#444444', endColorstr='#222222', GradientType=0);
+    color: #e6e6e6;
+}
+
+.ui-colorpicker,
+.ui-dialog.ui-colorpicker {
+    display: inline-block;
+	width: auto;
+
+	-webkit-touch-callout:	none;
+	-webkit-user-select:	none;
+	-khtml-user-select:		none;
+	-moz-user-select:		none;
+	-ms-user-select:		none;
+	user-select:			none;
+}
+
+.ui-colorpicker-inline {
+    position: static;
+}
+
+.ui-colorpicker-buttonset {
+	float: left;
+	margin-left: .4em;
+}
+
+.ui-colorpicker-buttonset .ui-button {
+	margin: .5em 0 .5em 0;
+	cursor: pointer;
+}
+
+.ui-colorpicker-buttonpane {
+	background-image: none;
+	margin:			.7em 0 0 0;
+	padding:		0 .2em;
+	border-left:	0;
+	border-right:	0;
+	border-bottom:	0;
+}
+
+.ui-colorpicker-buttonpane button {
+	float: right;
+	margin: .5em .2em .4em;
+	cursor: pointer;
+	padding: .2em .6em .3em .6em;
+	width:auto;
+	overflow:visible;
+}
+
+.ui-colorpicker-buttonpane button.ui-colorpicker-current {
+	float:left;
+}
+
+.ui-colorpicker table {
+    font-size: 100%; /* Reset browser table font-size */
+	margin: 0;
+}
+
+.ui-colorpicker table td {
+	vertical-align: top;
+}
+
+.ui-colorpicker-padding-left {
+	padding-left: 10px;
+}
+.ui-colorpicker-padding-top {
+	padding-top: 10px;
+}
+
+.ui-colorpicker-border {
+	border: 1px inset;
+    display: inline-block;
+}
+
+/* Bar & map */
+.ui-colorpicker-map > *,
+.ui-colorpicker-bar > * {
+    position: absolute;
+	cursor: crosshair;
+}
+
+.ui-colorpicker-map-pointer,
+.ui-colorpicker-bar-pointer {
+    position: absolute;
+}
+/* Map */
+.ui-colorpicker-map,
+.ui-colorpicker-map > * {
+    display: block;
+	width: 256px;
+	height: 256px;
+	overflow: hidden;
+}
+
+.ui-colorpicker-map-layer-1,
+.ui-colorpicker-map-layer-2 {
+	background: url(/media/color/colorpicker/images/map.png) no-repeat;
+}
+
+.ui-colorpicker-map-layer-alpha {
+	background: url(/media/color/colorpicker/images/map-opacity.png);
+}
+
+.ui-colorpicker-map-pointer {
+	display: inline-block;
+	width: 15px;
+	height: 15px;
+	background: url(/media/color/colorpicker/images/map-pointer.png) no-repeat;
+}
+
+
+/* Bar */
+.ui-colorpicker-bar,
+.ui-colorpicker-bar > * {
+    display: block;
+    width: 20px;
+    height: 256px;
+	overflow: hidden;
+    background-repeat: repeat-x;
+}
+
+.ui-colorpicker-bar-layer-1,
+.ui-colorpicker-bar-layer-2,
+.ui-colorpicker-bar-layer-3,
+.ui-colorpicker-bar-layer-4 {
+	background: url(/media/color/colorpicker/images/bar.png) repeat-x;
+}
+
+.ui-colorpicker-bar-layer-alpha {
+	background: url(/media/color/colorpicker/images/bar-opacity.png);
+}
+
+.ui-colorpicker-bar-layer-alphabar {
+	background: url(/media/color/colorpicker/images/bar-alpha.png);
+}
+
+.ui-colorpicker-bar-pointer {
+	display: inline-block;
+	width: 20px;
+	height: 7px;
+	background: url(/media/color/colorpicker/images/bar-pointer.png) no-repeat;
+}
+
+/* Preview */
+.ui-colorpicker-preview {
+	text-align: center;
+}
+
+.ui-colorpicker-preview-initial {
+    cursor: pointer;
+}
+
+.ui-colorpicker-preview-initial,
+.ui-colorpicker-preview-current {
+    width: 50px;
+    height: 20px;
+    display: inline-block;
+}
+
+.ui-colorpicker-preview-initial-alpha,
+.ui-colorpicker-preview-current-alpha {
+    width: 50px;
+    height: 20px;
+    display: inline-block;
+	background: url(/media/color/colorpicker/images/preview-opacity.png) repeat;
+}
+
+/* Inputs */
+.ui-colorpicker-rgb label,
+.ui-colorpicker-hsv label,
+.ui-colorpicker-hsl label,
+.ui-colorpicker-lab label,
+.ui-colorpicker-cmyk label,
+.ui-colorpicker-alpha label {
+    width: 1.5em;
+    display: inline-block;
+}
+
+.ui-colorpicker-number {
+	margin: .1em;
+	width: 4em;
+}
+
+/* Hex */
+.ui-colorpicker-hex {
+	text-align: center;
+}
+
+/* Swatches */
+.ui-colorpicker-swatches {
+	width: 84px;
+	height: 256px;
+	overflow: auto;
+	background-color: #f8f8f8;
+}
+
+.ui-colorpicker-swatch {
+	cursor: pointer;
+	float: left;
+	width: 11px;
+	height: 11px;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+}
+.content-edit {
+    background: #222222;
+}
+
+.content-edit .ui-widget.content-edit {
+    background: #222222;
+}
+
+.ui-widget.content-edit {
+    border: none;
+    background: transparent;
+}
+
+.ui-widget.content-edit > .ui-widget-header {
+    background: #222222;
+    color: #ffffff;
+    border: 1px solid #222222;
+}
+
+.ui-widget.content-edit > .ui-widget-content {
+    background: #222222;
+    color: #ffffff;
+    border: 1px solid #222222;
+}
+
+.ui-widget.content-edit > .ui-widget-content .ui-input {
+    background: #444444;
+}
+
+.ui-widget.content-edit > .ui-widget-content .ui-input input[type="text"] {
+    background: #444444;
+    color: #ffffff;
+}
+
+.ui-widget.content-edit > .ui-widget-content .ui-input input[type="password"] {
+    background: #444444;
+    color: #ffffff;
+}
+
+.ui-widget.content-edit > .ui-widget-content .ui-input textarea {
+    background: #444444;
+    color: #ffffff;
+}
+
+.ui-widget.content-edit > .ui-widget-content .ui-input select {
+    background: #444444;
+    color: #ffffff;
+}
+
+.ui-widget.content-edit > .ui-widget-footer {
+    padding: 3px 0 0;
+    border: none;
+    background: transparent;
+}
+
+.ui-widget.content-edit .cms-block {
+    margin-bottom: 0;
 }

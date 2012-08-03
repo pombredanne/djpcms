@@ -289,14 +289,9 @@ views::
 
     def ajax__fields(self, request):
         '''Obtain all the fields for the model'''
-        pagination = self.pagination or self.appmodel.pagination
-        if pagination:
-            headers = []
-            for head in pagination.list_display:
-                headers.append({'code': head.code,
-                                'text': head.name})
-        else:
-            headers = []
+        headers = []
+        for code, name in self.model_fields(request):
+            headers.append({'code': code, 'text': name})
         return ajax.CustomHeaderBody(request.environ, 'fields', headers)
 
 

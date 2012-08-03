@@ -30,16 +30,14 @@ class ModelChoice(forms.ChoiceFieldOptions):
 
 
 class FieldChoices(forms.ChoiceFieldOptions):
-
+    '''Manage a choice field based on fields of a model.'''
     def _query(self, bfield):
         form = bfield.form
         request = form.request
         model = form.data.get('for_model')
         if request and model:
-            app = request.app_for_model(model)
-            if app and app.pagination:
-                for head in app.pagination.list_display:
-                    yield head.code, head.name
+            app = request.app_for_model(model, root=True)
+            return app.model_fields(request)
 
     def query(self, bfield):
         return sorted(self._query(bfield), key=lambda y : y[1])

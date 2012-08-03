@@ -510,7 +510,13 @@ if available. By defaults it invoke the ``query`` method in the
 :rtype: an iterable instance over model instances.'''
         if self.appmodel:
             return self.appmodel.query(request, **kwargs)
-
+    
+    def model_fields(self, request, pagination=None):
+        pagination = pagination or self.pagination
+        if pagination:
+            for head in pagination.list_display:
+                yield head.code, head.name
+                    
     def success_message(self, request, response):
         return str(response)
 
@@ -590,6 +596,12 @@ it is the base class of :class:`pageview` and :class:`djpcms.views.View`.
         if self.appmodel:
             if self.object_view:
                 return self.appmodel.variables_from_instance(instance)
+        return ()
+    
+    def model_fields(self, request, pagination=None):
+        if self.appmodel:
+            return self.appmodel.model_fields(request,
+                                              pagination or self.pagination)
         return ()
 
     def __call__(self, request):

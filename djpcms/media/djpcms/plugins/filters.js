@@ -44,14 +44,14 @@
                     href = element.data('href');
                     self.model = element.val();
                     if (self.model && href) {
-                        submit_data = $.djpcms.ajaxparams('fields'),
+                        submit_data = $.djpcms.ajaxparams('fields');
                         opts = {
                             url: href,
                             type: 'get',
                             dataType: self.config.dataType,
                             data: submit_data
                         };
-                        self.info('Submitting ajax ' + opts.type +' request "fields"');
+                        self.info('Submitting ajax ' + opts.type + ' request "fields"');
                         opts.success = function (data, s) {
                             if (data.header === 'fields') {
                                 self._refresh(data.body, model_fields);
@@ -65,12 +65,21 @@
             },
             _refresh: function (fields, model_fields) {
                 var self = this;
-                $.each(model_fields, function() {
-                    var el = $(this);
+                $.each(model_fields, function () {
+                    var el = $(this),
+                        selected = [];
+                    $.each($(':selected', el), function () {
+                        selected.push(this.value);
+                    });
                     el.empty();
                     el.append($('<option>', {html: '-------------'}).val(''));
-                    $.each(fields, function(i, field) {
-                        el.append($('<option>', {html: field.text}).val(field.code));
+                    $.each(fields, function (i, field) {
+                        var idx = selected.indexOf(field.code),
+                            opt = $('<option>', {html: field.text}).val(field.code);
+                        el.append(opt);
+                        if (idx !== -1) {
+                            opt.prop('selected', true);
+                        }
                     });
                     el.trigger('change');
                 });

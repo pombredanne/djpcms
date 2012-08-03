@@ -311,13 +311,13 @@ overwritten to customize its behavior.
 
     def applications(self):
         for app in self:
-            if isinstance(app,Application):
+            if isinstance(app, Application):
                 yield app
                 for app in app.applications():
                     yield app
 
-    def for_model(self, model, all = False):
-        return self.parent.for_model(model, all = all)
+    def for_model(self, model, all=False):
+        return self.parent.for_model(model, all=all)
 
     def get_from_parent_object(self, parent, urlargs):
         return parent

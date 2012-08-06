@@ -298,7 +298,7 @@ is a factory of :class:`Widget`.
         self.internal.update(params)
         self.tag = self.maker.tag
         self.add(data_stream)
-        self.children.update(((k,maker.child_widget(c,self))\
+        self.children.update(((k, maker.child_widget(c, self))\
                                 for k, c in iteritems(maker.children)))
 
     def __repr__(self):

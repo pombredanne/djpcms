@@ -6,6 +6,7 @@ from djpcms import forms, html, Renderer
 from djpcms.html import classes, WidgetMaker, panel
 from djpcms.utils.text import capfirst, nicename
 from djpcms.cms.formutils import form_data_files
+from djpcms.utils.orms import JSONEncoder, json_hook
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
@@ -146,7 +147,7 @@ Default: ``None``, the plugin has no arguments.'''
 
     def arguments(self, args):
         try:
-            kwargs = json.loads(args)
+            kwargs = json.loads(args, object_hook=json_hook)
             if isinstance(kwargs,dict):
                 rargs = {}
                 for k,v in kwargs.items():
@@ -163,19 +164,21 @@ parameters if :attr:`form` is set. By default do nothing.
         '''
         return kwargs
 
-    def __call__(self, request, args=None, block=None, prefix=None):
-        return self.render(request, block, prefix, **self.arguments(args))
+    def __call__(self, request, args=None, **kwargs):
+        params = self.arguments(args)
+        params.update(kwargs)
+        params['withdata'] = False
+        return self.render(request, **params)
 
     def edit_url(self, request, args = None):
         return None
 
-    def render(self, request, block, prefix, **kwargs):
+    def render(self, request, **kwargs):
         '''Render the plugin. It returns a safe string to be included in the
  HTML page. This is the function subclasses need to implement.
 
 :parameter block: instance of a :class:`djpcms.core.page.Block` where
     the plugin is rendered.
-:parameter prefix: A prefix string for the block.
 :parameter kwargs: plugin specific key-valued arguments.
 '''
         return ''
@@ -183,12 +186,11 @@ parameters if :attr:`form` is set. By default do nothing.
     def save(self, pform):
         '''Save the plugin data from the plugin form'''
         if pform:
-            return json.dumps(pform.data)
+            return json.dumps(pform.cleaned_data, cls=JSONEncoder)
         else:
             return json.dumps({})
 
-    def get_form(self, request, args=None, prefix=None, withdata=None,
-                 **kwargs):
+    def get_form(self, request, args=None, withdata=None, **kwargs):
         '''Return an instance of a :attr:`form` or `None`.
 Used to edit the plugin when in editing mode.
 Usually, there is no need to override this function.
@@ -202,7 +204,6 @@ If your plugin needs input parameters when editing, simple set the
                                             method=method, withdata=withdata)
             form = form_factory(request=request,
                                 initial=initial,
-                                prefix=prefix,
                                 model=self.for_model(request),
                                 data=data,
                                 files=files,
@@ -239,8 +240,8 @@ the plugin will display the search view for that application.
     name        = 'this'
     description = 'Current View'
 
-    def render(self, request, block, prefix, **kwargs):
-        return request.render(block=block)
+    def render(self, request, **kwargs):
+        return request.render(**kwargs)
 
 
 class ApplicationPlugin(DJPplugin):
@@ -259,10 +260,10 @@ set to ``True``.'''
         self.description = nicename(description)
         _plugin_dictionary[self.name] = self
 
-    def render(self, request, block, prefix, **kwargs):
+    def render(self, request, **kwargs):
         req = request.for_path(self.view.path)
         if req and req.has_permission():
-            return req.render(block=block, **kwargs)
+            return req.render(**kwargs)
         else:
             return ''
 
@@ -270,7 +271,7 @@ set to ``True``.'''
 class JavascriptLogger(DJPplugin):
     description = 'Javascript Logging Panel'
 
-    def render(self, request, block, prefix, **kwargs):
+    def render(self, request, **kwargs):
         return '<div class="djp-logging-panel"></div>'
 
 

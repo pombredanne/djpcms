@@ -490,7 +490,8 @@ queries on models as well as list of two-elements tuples ``(value, label)``.
             yield v
 
     def html_value(self, val):
-        '''Convert val into a suitable html value'''
+        '''Convert *val* into a suitable value to be included in the
+widget HTML.'''
         if val:
             single_value = self.html_single_value
             if self.multiple:

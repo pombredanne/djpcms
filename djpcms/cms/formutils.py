@@ -110,8 +110,9 @@ def form_inputs(instance, own_view = False):
         sb.append(Widget('input:submit', value='cancel', name=forms.CANCEL_KEY))
     return sb
 
-def get_form(request, form_factory, initial=None, prefix=None, addinputs=None,
-             withdata=None, instance=None, model=None, force_prefix=True):
+def get_form(request, form_factory, initial=None, prefix=None,
+             withdata=None, instance=None, model=None, force_prefix=True,
+             block=None, inputs=None, addinputs=None):
     '''Comprehensive method for building a :class:`djpcms.forms.HtmlForm`:
 
 :parameter form_factory: A required instance of :class:`HtmlForm`.
@@ -129,7 +130,7 @@ def get_form(request, form_factory, initial=None, prefix=None, addinputs=None,
     submit_middleware = request.view.site.submit_data_middleware
     # Not binding data
     if data is None:
-        inputs = form_factory.inputs
+        inputs = forms.as_inputs(inputs) or form_factory.inputs
         if inputs is not None:
             inputs = [inp() for inp in inputs]
         elif addinputs:

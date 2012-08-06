@@ -63,7 +63,7 @@ cssv.breadcrumbs.color = None
 cssv.breadcrumbs.text_decoration = 'none'
 
 class topbar(mixin):
-    
+
     def __call__(self, elem):
         tb = cssv.topbar
         height = tb.height
@@ -74,7 +74,7 @@ class topbar(mixin):
         elem['margin-bottom'] = 0
         elem['border'] = 'none'
         gradient(tb.default.background)(elem)
-        
+
         css('.nav',
             horizontal_navigation(
                 default=bcd(**tb.default.params()),
@@ -132,7 +132,8 @@ class topbar(mixin):
 css('.'+classes.topbar, topbar())
 css('.'+classes.topbar_container,
     gradient(cssv.topbar.default.background))
-css('.'+classes.topbar_fixed, fixtop())
+css('div.'+classes.topbar_fixed,
+    fixtop())
 cssa('.editable',
      css('.topbar-fixed', unfixtop()))
 

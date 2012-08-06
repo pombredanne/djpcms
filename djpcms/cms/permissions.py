@@ -251,6 +251,9 @@ if needed.
 '''
         return True
 
+    def add_model(self, model):
+        pass
+
 
 def authenticated_view(f):
     '''Decorator which check if a request is authenticated'''

@@ -325,16 +325,11 @@ overwritten to customize its behavior.
     def _get_view_name(self, name):
         return '%s_%s' % (self.name,name)
 
-    def get_form(self, request, form_class=None, addinputs=True, instance=None,
-                 block=None, **kwargs):
+    def get_form(self, request, form_class=None, instance=None,
+                 addinputs=True, **kwargs):
         '''Build a form. This method is called by editing/adding views.
 
 :parameter form_class: form class to use.
-
-:parameter addinputs: boolean flag indicating if submit inputs should be added.
-
-    Default ``True``.
-
 :parameter instance: Instance of model or ``None`` or ``False``. If ``False``
     no instance will be passed to the form constructor.
     If ``None`` the instance will be obtained from '`request``.
@@ -362,8 +357,8 @@ overwritten to customize its behavior.
         return get_form(request,
                         form_class,
                         instance=instance,
-                        addinputs=addinputs,
                         model=self.model,
+                        addinputs=addinputs,
                         **kwargs)
 
     def table_generator(self, request, headers, qs):

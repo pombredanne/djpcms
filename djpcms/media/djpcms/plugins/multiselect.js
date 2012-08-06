@@ -11,6 +11,8 @@
         $.djpcms.decorator({
             name: 'multiSelect',
             selector: 'select[multiple="multiple"]',
+            defaultElement: '<select multiple="multiple">',
+            plugins: {},
             config: {
                 classes: {
                     proxy: 'proxySelect',
@@ -27,9 +29,7 @@
                 },
                 title: 'Select...',
                 animate: true,
-                highlight: true,
-                sortable: false,
-                plugins: []
+                highlight: true
             },
             _create: function () {
                 var self = this,
@@ -77,18 +77,24 @@
                 element.change(function () {
                     self.refresh();
                 });
+                $.each(self.plugins, function(name, plugin) {
+                    if(plugin.init) {
+                        plugin.init(self);
+                    }
+                });
                 self.refresh();
             },
             // Build the proxy element and selected elements in list
             refresh: function() {
                 var self = this,
                     element = self.element,
-                    options = self.config;
+                    options = element.hide().children();
+                element.html('');
                 self.list.empty();
                 self.proxy.empty().append($('<option value=""></option>')
-                                  .text(element.attr('title') || options.title));
+                                  .text(element.attr('title') || self.config.title));
                 // Loop over options and add selected items to the item list
-                element.hide().children().each(function () {
+                options.each(function () {
                     var el = $(this);
                     if (el.is('option')) {
                         self.addOption(el);
@@ -106,20 +112,16 @@
             // Add a new option to the proxy element
             addOption: function (elem) {
                 var self = this,
-                    opt,
                     selected,
                     disabled;
                 if (elem.val()) {
-                    opt = $('<option>', {
-                        text: elem.text(),
-                        val: elem.val()
-                    }).appendTo(self.proxy).data('original', elem);
+                    self.proxy.append(elem);
                     selected = elem.prop('selected'),
                     disabled = elem.prop('disabled');
                     if (selected && !disabled) {
-                        self.addListItem(opt);
+                        self.addListItem(elem);
                     } else if (!selected && disabled) {
-                        self.disableSelectOption(opt);
+                        self.disableSelectOption(elem);
                     }
                 }
             },
@@ -136,24 +138,16 @@
                     self.proxy.hide().show();
                 } // this forces IE to update display
             },
-            //
-            enableSelectOption: function (proxy_opt) {
-                var self = this,
-                    opt = proxy_opt.data('original');
-                proxy_opt.removeClass(self.config.classes.disabled)
-                    .prop('selected', false)
-                    .prop('disabled', false);
-                opt.prop('selected', false);
-            },
             // Add a selected option to the item list
             addListItem: function (proxy_opt) {
                 var self = this,
                     item = $('<li>'),
-                    opt = proxy_opt.data('original'),
-                    options = self.config;
-                if (!opt) {
-                    return;
-                }
+                    options = self.config,
+                    opt = $('<option>', {
+                        text: proxy_opt.text(),
+                        val: proxy_opt.val()
+                    }).appendTo(self.element);
+                proxy_opt.data('original', opt);
                 item.append($('<span>', {html: options.extractLabel(proxy_opt)}))
                     .append(options.removelink(self))
                     .data('option', proxy_opt).appendTo(self.list);
@@ -161,11 +155,17 @@
                     self.list_container.show();
                 }
                 self.disableSelectOption(proxy_opt);
-                opt.prop('selected', true);
+                self.element.append(opt.prop('selected', true));
             },
+            // Deselect an item
             dropListItem: function (li) {
-                var proxy_opt = li.data('option');
-                this.enableSelectOption(proxy_opt);
+                var self = this,
+                    proxy_opt = li.data('option'),
+                    opt = proxy_opt.data('original');
+                proxy_opt.removeClass(self.config.classes.disabled)
+                         .prop('selected', false)
+                         .prop('disabled', false);
+                opt.remove();
                 li.remove();
                 if (this.list.children().length === 0) {
                     this.list_container.hide();
@@ -184,11 +184,43 @@
                              .prepend(self.wrapper.removeClass(classes.control));
                     list = $('<div>', {'class': classes.input}).addClass(options.classes.container).append(self.list);
                 } else {
-                    container.prepend(element.after(container));
+                    container.prepend(self.element.after(container));
                 }
                 self.list_container = list.hide();
                 container.append(self.list_container);
             },
         });
+        //
+        /*
+         * Sortable plugin
+         */
+        $.djpcms.widgets.multiSelect.plugins.sortable = (function () {
+            var options = $.extend(true, $.djpcms.options.multiSelect, {
+                classes: {
+                    sortable: 'ui-draggable'
+                },
+                sortable: true
+            });
+            //
+            function onSort(self, e, ui) {
+                self.list.children().each(function() {
+                    $(this).data('option').data('original').detach().appendTo(self.element);
+                });
+            }
+            //
+            return {
+                init: function(self) {
+                    var config = self.config;
+                    if (config.sortable) {
+                        self.list.addClass(config.classes.sortable).sortable({
+                            containment: self.list
+                        });
+                        self.list.bind('sortupdate', function(e, ui) {
+                            onSort(self, e, ui);
+                        });
+                    }
+                }
+            };
+        }());
     }
 }(jQuery));

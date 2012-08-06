@@ -67,18 +67,40 @@
                 var self = this;
                 $.each(model_fields, function () {
                     var el = $(this),
-                        selected = [];
+                        selected = [],
+                        skip = [],
+                        multiple = el.prop('multiple'),
+                        dfields;
+                    // First we handle the selected element
                     $.each($(':selected', el), function () {
                         selected.push(this.value);
                     });
                     el.empty();
                     el.append($('<option>', {html: '-------------'}).val(''));
+                    // For multiple select, add selected values first so we preserve order.
+                    if(multiple && selected) {
+                        dfields = {};
+                        $.each(fields, function (i, field) {
+                            dfields[field.code] = field;
+                        });
+                        $.each(selected, function (i, value) {
+                            var field = dfields[value];
+                            if (field) {
+                                $('<option>', {html: field.text}).val(field.code).prop('selected', true).appendTo(el);
+                                skip.push(value);
+                            }
+                        });
+                        selected = [];
+                    }
                     $.each(fields, function (i, field) {
-                        var idx = selected.indexOf(field.code),
+                        var code = field.code,
+                            opt;
+                        if (skip.indexOf(code) === -1) {
                             opt = $('<option>', {html: field.text}).val(field.code);
-                        el.append(opt);
-                        if (idx !== -1) {
-                            opt.prop('selected', true);
+                            el.append(opt);
+                            if (selected.indexOf(code) !== -1) {
+                                opt.prop('selected', true);
+                            }
                         }
                     });
                     el.trigger('change');

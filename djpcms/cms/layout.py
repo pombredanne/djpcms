@@ -139,7 +139,7 @@ with the wrapper callable.'''
         plugin_response = None
         plugin = plugin or self.plugin
         wrapper = wrapper or self.wrapper
-        if plugin and request.has_permission(permissions.VIEW, self):
+        if plugin and request.has_permission(permissions.VIEW, instance=self):
             try:
                 request.media.add(plugin.media(request))
                 plugin_response = plugin(request, self.arguments, block=self)

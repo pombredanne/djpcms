@@ -27,6 +27,7 @@ cssv.form.legend.radius = cssv.body.radius
 cssv.form.legend.padding = spacing(5, 10)
 cssv.form.legend.background = cssv.color.offwhite
 cssv.form.legend.color = cssv.body.color
+cssv.form.submitted.opacity = 0.7
 ################################################################################
 
 
@@ -178,17 +179,20 @@ css('form.%s' % classes.form,
     # Control holder
     css('.%s' % classes.ctrlHolder,
         clearfix(),
-        css('.%s' % classes.align_right,
-            float='right'),
-        css('.%s' % classes.align_middle,
-            text_align='center',
-            margin_right=0,
-            margin_left=0),
+        cssa('.%s > *' % classes.align_right,
+             float='right'),
+        cssa('.%s > *' % classes.align_middle,
+             text_align='center',
+             margin_right=0,
+             margin_left=0),
         margin=0,
         padding=spacing(0, cssv.form.padding, cssv.form.padding),
         vertical_align='middle'),
     css('.%s' % classes.layout_block,
-        margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5)))
+        margin=lazy(lambda: spacing(0,0,cssv.form.padding*1.5))),
+    # Subbmitted
+    cssa('.submitted',
+         opacity(cssv.form.submitted.opacity))
     )
 
 

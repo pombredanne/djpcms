@@ -1,4 +1,6 @@
 from djpcms.media import js, Media
+from djpcms.utils.structures import OrderedDict
+from djpcms.utils.httpurl import itervalues
 from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
@@ -104,13 +106,17 @@ class Select(FieldWidget):
         bfield = widget.internal.get('bfield', None)
         if bfield:
             val = bfield.field.choices.html_value(val)
+        multiple = bool(widget.attr('multiple'))
         if val:
-            if not widget.attr('multiple'):
+            if not multiple:
                 val = (val,)
             selected = tuple((to_string(v) for v in val))
         else:
             selected = ()
-        widget.add(self._all_choices(bfield, selected))
+        if selected and multiple:
+            widget.add(self._all_ordered_choices(bfield, selected))
+        else:
+            widget.add(self._all_choices(bfield, selected))
 
     def _all_choices(self, bfield, selected):
         if bfield:
@@ -121,6 +127,16 @@ class Select(FieldWidget):
                 if opt.attr('value') in selected:
                     opt.addAttr('selected', 'selected')
                 yield opt
+
+    def _all_ordered_choices(self, bfield, selected):
+        options = OrderedDict(((opt.attr('value'), opt) for opt in\
+                                   self._all_choices(bfield, selected)))
+        for value in selected:
+            opt = options.pop(value, None)
+            if opt is not None:
+                yield opt
+        for opt in itervalues(options):
+            yield opt
 
 
 class FileInput(InputWidget):

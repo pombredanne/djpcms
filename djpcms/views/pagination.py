@@ -30,7 +30,7 @@ def valid_request(request):
         return False
     return True
 
-bulk_delete = application_action('bulk_delete', 'delete', permissions.DELETE)
+bulk_delete = application_action('bulk_delete', 'delete', permissions.DELETEALL)
 
 
 def application_action_to_menu_link(action, url):

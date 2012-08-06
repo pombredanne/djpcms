@@ -1,6 +1,8 @@
 from inspect import isclass
 from collections import Mapping
 
+from pulsar.utils import jsontools
+
 from .httpurl import itervalues, iteritems, to_string
 from .structures import OrderedDict
 from .importer import import_module
@@ -267,7 +269,6 @@ def getmodel(appmodel):
                 continue
         if not wrapper:
             return None
-            return DummyMapper(model)
         else:
             register_wrapper(wrapper)
     return wrapper
@@ -288,3 +289,21 @@ def registered_models_tuple():
         id = mp.hash
         if id:
             yield id, str(mp)
+
+
+class JSONEncoder(jsontools.JSONDateDecimalEncoder):
+    """
+    Provide custom serializers for JSON-RPC.
+    """
+    def default(self, obj):
+        try:
+            super(JSONEncoder, self).default(obj)
+        except ValueError:
+            mp = mapper(obj)
+            if mp:
+                return mp.hash
+            else:
+                raise ValueError("%s is not JSON serialisable" % obj)
+
+
+json_hook = jsontools.date_decimal_hook

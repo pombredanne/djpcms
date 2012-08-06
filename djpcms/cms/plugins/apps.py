@@ -69,12 +69,12 @@ class ForModelForm(forms.Form):
                     choices=ModelChoice(empty_label='Select a model'),
                     widget=html.Select(cn=classes.model))
 
-    def clean_for_model(self, mhash):
-        if mhash:
-            try:
-                return self.request.view.root.for_hash(mhash,safe=False)
-            except Exception as e:
-                raise forms.ValidationError(str(e))
+    #def clean_for_model(self, mhash):
+    #    if mhash:
+    #        try:
+    #            return self.request.view.root.for_hash(mhash,safe=False)
+    #        except Exception as e:
+    #            raise forms.ValidationError(str(e))
 
 
 class ModelItemListForm(ForModelForm):
@@ -146,12 +146,12 @@ class RenderObject(DJPplugin):
         if content and model:
             return orms.mapper(model).get(id=content)
 
-    def render(self, request, block, prefix, content=None, **kwargs):
+    def render(self, request, content=None, **kwargs):
         instance = self.get_object(request, content)
         if instance:
             request = request.for_model(instance=instance, name=self.view)
             if request:
-                return request.render(block=block)
+                return request.render(**kwargs)
             else:
                 return to_string(instance)
         else:
@@ -167,7 +167,7 @@ class ApplicationLinks(DJPplugin):
     asbuttons_class = 'asbuttons'
     form = ModelLinksForm
 
-    def render(self, request, wrapper, prefix, layout='group',
+    def render(self, request, layout='group',
                size='', exclude='', include='',
                for_instance=False, **kwargs):
         appmodel = request.view.appmodel
@@ -176,12 +176,12 @@ class ApplicationLinks(DJPplugin):
         exclude = None if not exclude else exclude.split(',')
         include = None if not include else include.split(',')
         instance = None if not for_instance else request.instance
-        links = views.application_links(
+        links = list(views.application_links(
                             views.application_views(request,
                                                     exclude=exclude,
                                                     include=include,
                                                     instance=instance),
-                            asbuttons=True)
+                            asbuttons=True))
         if appmodel.mapper:
             name = appmodel.mapper.class_name(appmodel.model)
         else:
@@ -217,13 +217,16 @@ certain number of items as specified in the max display input.'''
     def ajax__for_model(self, request, for_model):
         pass
 
-    def render(self, request, block, prefix, for_model=None, max_display=5,
+    def render(self, request, block=None, for_model=None, max_display=5,
                filter=None, exclude=None, order_by =None, descending=False,
                text_search=None, headers=None, display_if_empty='',
                table_footer=False, **kwargs):
         instance = request.instance
         request = request.for_model(for_model)
         if request is None or request.model is None:
+            return ''
+        # Check that we can actually see the model
+        if not request.has_permission(permissions.VIEW):
             return ''
         view = request.view
         appmodel = view.appmodel
@@ -256,17 +259,17 @@ certain number of items as specified in the max display input.'''
                .load_only(*appmodel.load_fields(thead))
         max_display = max(int(max_display),1)
         items = qs[0:max_display]
-        if not items:
-            return display_if_empty
-
+        if not items and not display_if_empty:
+            return ''
         if thead:
+            title = block.title if block is not None else None
             pagination = html.Pagination(
                             thead,
                             footer = table_footer,
                             html_data =  {'options': {'sDom':'t'}})
             return pagination.widget(
                     appmodel.table_generator(request, thead, items),
-                    title = block.title, appmodel = appmodel).render(request)
+                    title=title, appmodel=appmodel).render(request)
         else:
             w = html.Widget('div', cn = 'filtered-list')\
                     .addClass(appmodel.mapper.class_name())

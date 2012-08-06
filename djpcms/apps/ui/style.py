@@ -1,4 +1,5 @@
 from . import base
+from . import alert
 from . import forms
 from . import tabs
 from . import table

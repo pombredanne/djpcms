@@ -1110,31 +1110,6 @@
             });
         }
     });
-    //
-    $.djpcms.decorator({
-        name: 'message',
-        selector: 'li.messagelist, li.errorlist',
-        config: {
-            dismiss: true,
-            fade: 400,
-            float: 'right'
-        },
-        _create: function () {
-            var self = this,
-                opts = self.config,
-                a = $('<a><span class="ui-icon ui-icon-closethick"></span></a>')
-                    .css({'float': opts.float})
-                    .addClass('ui-corner-all')
-                    .mouseenter(function () {$(this).addClass('ui-state-hover'); })
-                    .mouseleave(function () {$(this).removeClass('ui-state-hover'); })
-                    .click(function () {
-                        $(this).parent('li').fadeOut(opts.fade, 'linear', function () {
-                            $(this).remove();
-                        });
-                    });
-            self.element.append(a);
-        }
-    });
     /**
      * Format a number and return a string based on input settings
      * @param {Number} number The input number to format

@@ -26,7 +26,8 @@ __all__ = ['AdminSite',
 
 
 class TabView(views.ViewView):
-    '''A view which displays children views in tabs.'''
+    '''A view which displays views for an instance in tabs if the editing flag
+is set, otherwise it falls back to the standard instance view.'''
     def get_views(self, request):
         appmodel = request.view.appmodel
         for r in views.application_views(request, exclude=('delete',)):

@@ -21,6 +21,7 @@ cssv.color.grayLight = color('999')
 cssv.color.grayLighter = color('e6e6e6')
 cssv.color.offwhite = color('f2f2f2')
 cssv.color.white = color('fff')
+cssv.border.width = px(1)
 
 # Global body variable
 cssv.html.background = None

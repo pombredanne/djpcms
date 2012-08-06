@@ -8,13 +8,13 @@
 
 Djpcms is a dynamic Content Management System which uses Python on the server side
 and Javascript with jQuery_ on the browser side.
-It is designed to handle dynamic applications which require
+It is designed to handle dynamic applications requiring
 high level of customization.
 Lots of AJAX enabled features including inline editing, autocomplete,
 ajax forms, dynamic tables and more.
 It works with Python_ 2.6 and up including python 3 series.
-Djpcms does not use any template language, it uses Python alone to render on the
-server side.
+Djpcms does not use any template specific language, it uses Python alone
+to render on the server side.
 
 
 .. contents::
@@ -25,18 +25,17 @@ server side.
 Features
 ===============================
 
-* Dynamic pages based on database models.
+* Dynamic pages based on database models or not.
 * Applications based on database model or not.
 * Extendible using ``plugins``.
 * Inline editing of ``plugins`` and ``pages``.
 * Move ``plugins`` in page using drag-and-drop functionalities.
 * Font icons from Fontawesome_.
-* ``Autocomplete`` for models.
+* ``Autocomplete`` functionality.
 * DataTables_ integration.
 * Extendible AJAX decorators.
-* Tagging included in distribution.
 * Several battery included application classes.
-* Nice form layout with extendible ``uniforms``.
+* Extendible form layouts.
 * Sitemap design.
 
 
@@ -90,9 +89,7 @@ and to check out the coverage report::
 	
 Optional requirements
 ========================
-The core library requires Python_ 2.6 or above, nothing else
-(the jinja2_ template engine is shipped with the distribution).
-Optional (recommended) requirements are
+The core library requires pulsar_. Optional (recommended) requirements are
 
 * stdnet_ for Redis object relational mapping.
 * sqlalchemy_ for relational databases.
@@ -111,28 +108,20 @@ Python
 
 JavaScript
 ------------
-* jQuery_ core and UI are the building block of the browser side of djpcms.
+* jQuery_ core and UI are the building block.
 * jQuery form_ plugin for AJAX forms.
-* jQuery DataTables_ plugin for managing dynamic tables. 
-* jQuery cycle_ plugin for photo galleries. 
-* jQuery bsmSelect_ plugin for multiple select.
-* Modernizr_, a small JavaScript library that detects the availability o
-  native implementations for next-generation web technologies.
+* jQuery DataTables_ plugin for managing dynamic tables.
 * Fontawesome_ for font icons (`djpcms.style.plugins.fontawesome`).
 
 
 .. _pypi: http://pypi.python.org/pypi?:action=display&name=djpcms
 .. _Python: http://www.python.org/
-.. _jinja2: http://jinja.pocoo.org/docs/
+.. _pulsar: https://github.com/quantmind/pulsar
 .. _django: http://www.djangoproject.com/
 .. _jQuery: http://jquery.com/
-.. _fabric: http://docs.fabfile.org/
 .. _pip: http://pip.openplans.org/
-.. _South: http://south.aeracode.org/
 .. _stdnet: http://lsbardel.github.com/python-stdnet/
-.. _Modernizr: http://www.modernizr.com/
 .. _cycle: http://jquery.malsup.com/cycle/
-.. _bsmSelect: https://github.com/vicb/bsmSelect
 .. _coverage: http://nedbatchelder.com/code/coverage/
 .. _DataTables: http://www.datatables.net/
 .. _form: http://jquery.malsup.com/form/

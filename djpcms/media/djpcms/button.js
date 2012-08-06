@@ -14,7 +14,7 @@
             classes: {
                 input: 'ui-input',
                 control: 'control',
-                focus: 'focus',
+                focus: 'focus'
             }
         },
         _create: function () {
@@ -64,6 +64,9 @@
         }
     });
     //
+    /*
+     * Add an icon to the element.
+     */
     $.djpcms.decorator({
         name: 'icon',
         defaultElement: 'i',
@@ -71,6 +74,8 @@
             fontawesome: function (self, icon) {
                 if (!icon) {
                     icon = 'icon-question-sign';
+                } else if (icon.substring(0, 5) !== 'icon-') {
+                    icon = 'icon-' + icon;
                 }
                 self.element.prepend('<i class="' + icon + '"></i>');
             }
@@ -171,6 +176,38 @@
                 $.djpcms.logger.debug('unchecked');
                 self.buttonElement.removeClass(classes.active);
             }
+        }
+    });
+    //
+    /*
+     * Decorator for adding a remove link to alert messages.
+     */
+    $.djpcms.decorator({
+        name: 'alert',
+        selector: '.alert',
+        config: {
+            dismiss: true,
+            icon: {fontawesome: 'remove'},
+            effect: {
+                name: 'fade',
+                options: {},
+                speed: 400
+            },
+            float: 'right'
+        },
+        _create: function () {
+            var self = this,
+                opts = self.config,
+                effect = opts.effect,
+                a = $("<a href='#'>")
+                    .css({'float': opts.float}).click(function (e) {
+                        e.preventDefault();
+                        self.element.hide(effect.name, effect.options, effect.speed, function () {
+                            $(this).remove();
+                        });
+                    });
+            $.djpcms.ui.icon(a, opts);
+            self.element.append(a);
         }
     });
 }(jQuery));

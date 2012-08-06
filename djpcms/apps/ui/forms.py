@@ -19,14 +19,6 @@ cssv.input.focus_color = None
 cssv.input.focus_shadow = '0 0 5px rgba(0,0,0,0.2)'
 cssv.input.required_font_weight = 'None'
 #
-cssv.alert.background = color('#FCF8E3')
-cssv.alert.color = color('#C09853')
-cssv.alert.radius = cssv.body.radius
-cssv.alert.border_color = lazy(color.darken, cssv.alert.background, 5)
-cssv.alert_error.background = color('#F2DEDE')
-cssv.alert_error.border_color = lazy(color.darken, cssv.alert_error.background, 5)
-cssv.alert_error.color = color('#B94A48')
-#
 cssv.form.padding = cssv.input.padding # This controls the padding of all fields
 cssv.form.table_layout = 'auto'
 cssv.form.inlinelabels_width = pc(32)
@@ -146,20 +138,6 @@ css('.radio.inline, checkbox.inline',
     vertical_align='middle')
 css('.radio.inline + .radio.inline, checkbox.inline + .checkbox.inline',
     margin_left=px(10))
-
-############################################################    ALERTS
-css('.alert',
-    gradient(cssv.alert.background),
-    radius(cssv.alert.radius),
-    cssa('.alert-error',
-         gradient(cssv.alert_error.background),
-         color=cssv.alert_error.color,
-         border_color=cssv.alert_error.border_color),
-    border_style='solid',
-    border_width=px(1),
-    border_color=cssv.alert.border_color,
-    color=cssv.alert.color,
-    padding='8px 35px 8px 14px')
 
 
 ############################################################    FORM

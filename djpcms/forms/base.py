@@ -273,22 +273,24 @@ validation.'''
                 value = field.get_initial(self)
             # Instance with id can override the initial value
             if instance_id:
-                value = self.value_from_instance(value, field, instance, name)
+                try:
+                    # First try the field method
+                    value = field.value_from_instance(instance)
+                except ValueError:
+                    value = self.value_from_instance(instance, name, value)
             if value is not None:
                 initial[name] = value
 
-    def value_from_instance(self, value, field, instance, name):
+    def value_from_instance(self, instance, name, value):
         '''Utility function for extracting an attribute value from an
 *instance*. This function is called when :class:`Form` is not bounded to data
 and an :attr:`instance` of a model is available.
 
-By default it returns the attribute value for the instance or ``None``.
+:parameter instance: model instance
+:parameter name: field name
+:parameter value: current value from the initial dictionary.
+
 Override if you need to.'''
-        try:
-            # First try the field method
-            return field.value_from_instance(instance)
-        except ValueError:
-            pass
         if hasattr(instance, name):
             value = getattr(instance, name)
             if hasattr(value, '__call__'):

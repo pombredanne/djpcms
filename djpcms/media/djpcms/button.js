@@ -4,6 +4,23 @@
 (function ($) {
     "use strict";
     //
+    /**
+     * Simulate a readonly select widget
+     */
+    $.djpcms.decorator({
+        name: 'readonly',
+        defaultElement: '<select>',
+        selector: 'select.readonly',
+        _create: function() {
+            var elem = this.element,
+                selected = $(':selected', elem);
+            elem.change(function () {
+                elem.children().prop('selected', false);
+                selected.prop('selected', true);
+            });
+        }
+    });
+    //
     $.djpcms.decorator({
         name: 'input',
         defaultElement: '<input type="text">',

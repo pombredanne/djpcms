@@ -10,11 +10,7 @@ as your user model, than you can define the application::
     UserApplication('/accounts/',User)
 
 '''
-
-from djpcms.forms import HtmlForm
-
-from .forms import LoginForm, HtmlRegisterForm, HtmlAddUserForm, \
-                    UserChangeForm, HtmlLoginForm, HtmlChangePassword
+from .forms import *
 from .views import *
 
 from djpcms import views
@@ -64,7 +60,7 @@ class UserApplication(UserAppBase):
 No assumption has been taken over which model is used for storing user data.'''
     in_nav = 0
     view = views.ViewView('<username>/')
-    change = views.ChangeView(form=HtmlForm(UserChangeForm))
+    change = views.ChangeView(form=HtmlUserChangeForm)
     change_password = views.ChangeView('change-password',
                                        linkname=lambda r: 'change password',
                                        icon='icon-key',

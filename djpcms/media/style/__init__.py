@@ -135,6 +135,11 @@ css('a',
 css('input',
     placeholder(cssv.input.placeholder_color))
 
+################################################# TABLE DEFAULTS
+css('table',
+    css('thead',
+        css('th', vertical_align='bottom')))
+
 ################################################# CONTENT BLOCKS
 css('.%s' % classes.cms_block,
     clearfix(),

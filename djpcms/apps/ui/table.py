@@ -3,7 +3,7 @@ from .base import *
 from djpcms.html.table import table_container_class
 
 ############################################################
-cssv.table.padding = spacing(px(4))
+cssv.table.padding = spacing(px(4), px(6))
 cssv.table.line_height = cssv.body.line_height
 
 cssv.table.odd_background_color = 'transparent'
@@ -20,9 +20,16 @@ cssv.table.head.padding = cssv.table.padding
 ################################################################################
 # SPECIAL CELL CLASSES
 ################################################################################
-css('td.checkbox', text_align='center')
 css('td.one-line', white_space='nowrap')
 css('th.%s' % classes.clickable, radius(0))
+
+
+css('table',
+    css('th, td',
+        padding=cssv.table.padding,
+        line_height=cssv.table.line_height,
+        vertical_align='center',
+        text_align='left'))
 
 ################################################################################
 # DATATABLE
@@ -41,17 +48,10 @@ css('.'+table_container_class,
             border(color=cssv.clickable.default.border.color,
                    width=spacing(0, border_width),
                    style=cssv.clickable.default.border.style)),
-        css('td',
-            vertical_align='center',
-            padding=cssv.table.padding,
-            line_height=cssv.table.line_height),
         css('th',
             bcd(**cssv.clickable.default.params()),
-            vertical_align='center',
             font_size=cssv.table.head.font_size,
-            font_weight=cssv.table.head.font_weight,
-            padding=cssv.table.head.padding,
-            line_height=cssv.table.line_height),
+            font_weight=cssv.table.head.font_weight),
         cssa('.nofooter',
              border(color=cssv.clickable.default.border.color,
                     width=spacing(0, 0, border_width),

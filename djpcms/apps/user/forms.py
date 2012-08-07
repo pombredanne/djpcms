@@ -109,11 +109,21 @@ class RegisterForm(PasswordChange):
 
 
 class UserChangeForm(forms.Form):
+    '''A form for editing the user details. This assume that the user
+model has the fields in this form.'''
     first_name = forms.CharField(required=False)
     last_name = forms.CharField(required=False)
     email_address = forms.CharField(required=False)
     is_superuser = forms.BooleanField()
     is_active = forms.BooleanField(initial=True)
+
+    def __init__(self, **kwargs):
+        super(UserChangeForm, self).__init__(**kwargs)
+        if not self.is_bound:
+            user = self.user
+            if not user or not user.is_superuser:
+                self.dfields['is_superuser'].widget.addClass('hidden')
+                self.dfields['is_active'].widget.addClass('hidden')
 
 
 class UserAddForm(RegisterForm, UserChangeForm):
@@ -161,4 +171,9 @@ HtmlChangePassword = forms.HtmlForm(
     PasswordChangeForm,
     success_message = change_password_message,
     inputs = (('change','change'),)
+)
+
+HtmlUserChangeForm = forms.HtmlForm(
+    UserChangeForm,
+    inputs = (('update', 'update'),)
 )

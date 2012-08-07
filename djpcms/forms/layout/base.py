@@ -35,11 +35,8 @@ def check_fields(fields, missings, layout=None):
                 field.check_fields(missings, layout)
             else:
                 missings.remove(field)
-        elif isinstance(field, html.WidgetMaker):
-            if isinstance(field, FormLayoutElement):
-                field.check_fields(missings, layout)
-        else:
-            field = FormTemplate(key=field)
+        elif isinstance(field, FormLayoutElement):
+            field.check_fields(missings, layout)
         yield field
 
 
@@ -83,6 +80,19 @@ class FieldTemplate(FormTemplate):
 :class:`djpcms.forms.Field`'''
     def get_context(self, request, widget, context):
         bfield = widget.bfield
+        # Not a form field
+        if bfield is None:
+            field = widget.field
+            form = widget.form
+            if field and form and hasattr(form, field):
+                value = getattr(form, field)
+                if hasattr(value, '__call__'):
+                    value = value()
+                widget.add(value)
+            elif not context or field not in context:
+                widget.add(field)
+            return
+        #
         if bfield.request is not request:
             bfield.request = request
         w = bfield.widget
@@ -217,12 +227,9 @@ remove available fields from the *missings* set.'''
         del self._children
         for field in check_fields(children, missings, layout):
             if not isinstance(field, html.WidgetMaker):
-                if self.field_widget_tag:
-                    ft = FieldTemplate(tag=self.field_widget_tag,
-                                       cn=self.field_widget_class)
-                else:
-                    ft = FieldTemplate()
-                # set the field
+                ft = FieldTemplate(tag=self.field_widget_tag,
+                                   cn=self.field_widget_class,
+                                   key=field)
                 ft.internal['field'] = field
             else:
                 ft = field

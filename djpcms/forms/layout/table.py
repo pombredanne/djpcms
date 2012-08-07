@@ -9,6 +9,8 @@ __all__ = ['TableRow', 'TableFormElement', 'TableRelatedFieldset']
 
 
 class BaseTable(FormLayoutElement):
+    show_field_labels = False
+    field_widget_class = None
 
     def field_widget(self, widget):
         # Override field_widget so that the container for errors is not added
@@ -18,8 +20,6 @@ class BaseTable(FormLayoutElement):
 class TableRow(BaseTable):
     '''A row in a table rendering a group of :class:`Fields`.'''
     field_widget_tag = 'td'
-    field_widget_class = None
-    show_field_labels = False
 
     def stream_errors(self, request, children):
         '''Create the error ``td`` elements.
@@ -36,8 +36,7 @@ They all have the class ``error``.'''
         for w in children:
             b = w.bfield
             if not b:
-                # Not a field, add field name to classes
-                w = Widget('td', cn=('one-line', w.field))
+                w.addClass(w.field)
             else:
                 w.addClass(b.widget.attrs.get('type'))
             yield w.render(request)
@@ -51,7 +50,7 @@ table row'''
         yield Widget('tr', self.stream_fields(request, children))
 
 
-class TableFormElement(BaseTable):
+class BaseTableElement(BaseTable):
     '''A :class:`FormLayoutElement` for rendering a group of :class:`Field`
 in a table.
 
@@ -61,32 +60,22 @@ in a table.
     elem_css = "uniFormTable"
     _media = media.Media(js=['djpcms/plugins/delete_row.js'])
 
-    def __init__(self, headers, *rows, **kwargs):
+    def __init__(self, headers, *children, **kwargs):
         # each row must have the same number of columns as the number of headers
         self.headers = [table_header(name) for name in headers]
         self.fields = tuple(h.code for h in self.headers)
-        trows = []
-        for row in rows:
-            if not isinstance(row, TableRow):
-                row = TableRow(*row)
-            trows.append(row)
-        super(TableFormElement,self).__init__(*trows, **kwargs)
+        super(BaseTableElement, self).__init__(*children, **kwargs)
 
     def render_heads(self, request, widget, context):
         '''Generator of rendered table heads'''
         for head in self.headers:
             name = head.code
-            th = Widget('th', cn=name).addClass(head.extraclass)
-            label = Widget('span', head.name,
-                           title=head.description,
-                           cn=classes.label)
-            th.addClass(head.extraclass).add(label)
-            if head.description:
-                label.addData('content', head.description);
+            th = Widget('th', head.name, cn=name, title=head.description)\
+                        .addClass(head.extraclass)
             yield th.render(request)
 
     def rows(self, widget):
-        return widget.allchildren()
+        raise NotImplementedError()
 
     def row_generator(self, request, widget, context):
         for row in self.rows(widget):
@@ -96,7 +85,7 @@ in a table.
     def stream(self, request, widget, context):
         '''We override inner so that the actual rendering is delegate to
  :class:`djpcms.html.Table`.'''
-        for s in super(TableFormElement, self).stream(request, widget, context):
+        for s in super(BaseTableElement, self).stream(request, widget, context):
             yield s
         tr = Widget('tr', self.render_heads(request, widget, context))
         head = Widget('thead', tr)
@@ -105,9 +94,35 @@ in a table.
         yield table.addClass(self.elem_css).render(request)
 
 
-class TableRelatedFieldset(TableFormElement):
+class TableFormElement(BaseTableElement):
+
+    def __init__(self, headers, *rows, **kwargs):
+        # each row must have the same number of columns as the number of headers
+        trows = []
+        for row in rows:
+            if not isinstance(row, TableRow):
+                row = TableRow(*row)
+            trows.append(row)
+        super(TableFormElement,self).__init__(headers, *trows, **kwargs)
+
+    def rows(self, widget):
+        return widget._rows
+
+    def stream(self, request, widget, context):
+        widget._rows = []
+        children = widget.children.__class__()
+        for row in widget.allchildren():
+            if isinstance(row.maker, TableRow):
+                widget._rows.append(row)
+            else:
+                children[row.key] = row
+        widget.children = children
+        return super(TableFormElement, self).stream(request, widget, context)
+
+
+class TableRelatedFieldset(BaseTableElement):
     '''A :class:`djpcms.forms.layout.TableFormElement`
-class for handling ralated :class:`djpcms.forms.FieldSet`.'''
+class for handling related :class:`djpcms.forms.FieldSet`.'''
 
     def __init__(self, form, formset, fields=None, delete_head='', **kwargs):
         self.formset = formset
@@ -131,10 +146,12 @@ class for handling ralated :class:`djpcms.forms.FieldSet`.'''
                 label = field.label or nicename(name)
                 cn = ('required' if field.required else None,
                       field.widget.attr('type'))
-                yield table_header(name,
-                                   label,
-                                   field.help_text,
-                                   extraclass=cn)
+                help_text = field.help_text
+            else:
+                label = nicename(name)
+                help_text = None
+                cn=None
+            yield table_header(name, label, help_text, extraclass=cn)
         if self.delete_head is not None:
             yield table_header(classes.delete_row, self.delete_head)
 

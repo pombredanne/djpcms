@@ -157,7 +157,8 @@ class AttributeMixin(object):
         '''Add the specific attribute to the attribute dictionary
 with key ``name`` and value ``value`` and return ``self``.'''
         if val is not None:
-            self.attrs[name] = val
+            if name in self.attributes:
+                self.attrs[name] = val
         return self
 
     def addAttrs(self, mapping):
@@ -336,6 +337,10 @@ is a factory of :class:`Widget`.
     @property
     def key(self):
         return self.maker.key
+
+    @property
+    def attributes(self):
+        return self.maker.attributes
 
     @property
     def root(self):

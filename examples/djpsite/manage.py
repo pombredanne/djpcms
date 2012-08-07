@@ -79,6 +79,8 @@ class WebSite(cms.WebSite):
 
     def urls(self, site):
         from djpsite.apps import design, jstests, geo
+        from stdcms.cms import Page
+        site.permissions.add_model(Page)
         return (
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),

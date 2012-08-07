@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-08-06 12:43:57.343000
-Time taken 0.453 seconds
+Created by djpcms.style 2012-08-07 12:49:39.250000
+Time taken 0.431 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -548,6 +548,24 @@ input:-moz-placeholder {
 
 input:-ms-input-placeholder {
     color: #999999;
+}
+
+table thead th {
+    vertical-align: bottom;
+}
+
+table th {
+    padding: 4px 6px;
+    vertical-align: center;
+    line-height: 18px;
+    text-align: left;
+}
+
+table td {
+    padding: 4px 6px;
+    vertical-align: center;
+    line-height: 18px;
+    text-align: left;
 }
 
 .cms-block {
@@ -1291,7 +1309,20 @@ select[readonly] {
     filter: alpha(opacity=70.0);
 }
 
-textarea[readonly]
+textarea[readonly] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+
+select.readonly {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: alpha(opacity=70.0);
+}
+
+select.readonly option
  {
     cursor: not-allowed;
     opacity: 0.7;
@@ -1422,14 +1453,14 @@ form.uniForm .ctrlHolder:after {
     clear: both;
 }
 
-form.uniForm .ctrlHolder .align-right {
+form.uniForm .ctrlHolder.align-right > * {
     float: right;
 }
 
-form.uniForm .ctrlHolder .align-middle {
+form.uniForm .ctrlHolder.align-middle > * {
     margin-right: 0;
-    margin-left: 0;
     text-align: center;
+    margin-left: 0;
 }
 
 form.uniForm .layout-element {
@@ -1444,7 +1475,6 @@ form.uniForm.submitted {
 table.uniFormTable {
     width: 100%;
     table-layout: auto;
-    *zoom: 1;
 }
 
 table.uniFormTable input[type="checkbox"] {
@@ -1452,31 +1482,20 @@ table.uniFormTable input[type="checkbox"] {
     margin: 0;
 }
 
-table.uniFormTable th {
-    padding: 4px;
-}
-
 table.uniFormTable td {
     padding: 4px;
 }
 
-table.uniFormTable th + th {
-    padding: 4px 4px 4px 0;
-}
-
 table.uniFormTable td + td {
-    padding: 4px 4px 4px 0;
+    padding-left: 0;
 }
 
-table.uniFormTable:before {
-    content: "";
-    display: table;
+table.uniFormTable th {
+    padding: 4px 10px 4px;
 }
 
-table.uniFormTable:after {
-    content: "";
-    display: table;
-    clear: both;
+table.uniFormTable th + th {
+    padding: 4px 6px 4px;
 }
 
 table.uniFormTable td.error {
@@ -1678,16 +1697,7 @@ th.ui-clickable {
     border-color: #d3d3d3;
 }
 
-.data-table table td {
-    padding: 4px;
-    vertical-align: center;
-    line-height: 18px;
-}
-
 .data-table table th {
-    padding: 4px;
-    vertical-align: center;
-    line-height: 18px;
     background-color: #cccccc;
     background-image: -moz-linear-gradient(top, #e6e6e6, #cccccc);
     background-image: -ms-linear-gradient(top, #e6e6e6, #cccccc);
@@ -2758,7 +2768,7 @@ li[class^="icon-"].icon-large:before, li[class*=" icon-"].icon-large:before {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
 }
 
-.fixed {
+div.fixed {
     left: 0;
     top: 0;
     right: 0;

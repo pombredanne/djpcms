@@ -26,17 +26,24 @@ __all__ = ['TextInput',
            'anchor_or_button']
 
 
-class FieldWidget(WidgetMaker):
-    attributes = WidgetMaker.makeattr('value', 'name', 'disabled', 'readonly')
+class ValueWidget(WidgetMaker):
+    '''Base class for widgets with a value attribute available'''
+    attributes = WidgetMaker.makeattr('value', 'disabled')
 
     def set_value(self, value, widget):
-        widget.addAttr('value',value)
+        widget.addAttr('value', value)
+
+
+class FieldWidget(ValueWidget):
+    '''Base class for widgets which are used to render
+:class:`djpcms.forms.Field`'''
+    attributes = ValueWidget.makeattr('name')
 
 
 class InputWidget(FieldWidget):
     tag = 'input'
     inline = True
-    attributes = FieldWidget.makeattr('type', 'placeholder')
+    attributes = FieldWidget.makeattr('type', 'placeholder', 'readonly')
 
 
 class TextInput(InputWidget):
@@ -89,15 +96,13 @@ class TextArea(InputWidget):
         widget.add(escape(value))
 
 
-class Option(FieldWidget):
+class Option(ValueWidget):
     tag = 'option'
-    inline = False
-    attributes = FieldWidget.makeattr('selected')
+    attributes = ValueWidget.makeattr('selected', 'label')
 
 
-class Select(FieldWidget):
+class Select(WidgetMaker):
     tag = 'select'
-    inline = False
     attributes = WidgetMaker.makeattr('name', 'disabled', 'multiple', 'size')
     _media = Media(js=['djpcms/plugins/multiselect.js'])
 

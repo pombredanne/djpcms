@@ -68,6 +68,11 @@ returning a :class:`djpcms.Site`. Tipical usage::
         website.callbacks.extend(self.web_site_callbacks)
         return website
 
+    def site(self):
+        if not hasattr(self, '_site'):
+            self._site = self.website()()
+        return self._site
+
     def load_site(self, website):
         '''Called by the *website* itself. Don't call directly unless you know
 what you are doing.'''

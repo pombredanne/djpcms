@@ -171,7 +171,7 @@ def return_form_errors(fhtml,request):
 def submit_form(request, force_redirect=None):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
-has been submitted, including possible asynchronous behavior.'''
+has been submitted, including possible asynchronous behaviour.'''
     view = request.view
     if force_redirect is None:
         force_redirect = view.force_redirect

@@ -65,7 +65,8 @@ css('.edit-menu',
 disabled_selector = '''\
 .disabled .{0}, .readonly .{0},
 input[disabled], select[disabled], textarea[disabled],
-input[readonly], select[readonly], textarea[readonly]
+input[readonly], select[readonly], textarea[readonly],
+select.readonly, select.readonly option
 '''.format(classes.ui_input)
 
 def size(n):
@@ -199,14 +200,27 @@ css('form.%s' % classes.form,
 ################################################################################
 #    TABLE LAYOUT
 ################################################################################
+class form_table_padding(mixin):
+
+    def __call__(self, elem):
+        padding = cssv.form.padding
+        css('td',
+            padding=padding,
+            parent=elem)
+        css('td + td',
+            padding_left=0,
+            parent=elem)
+        css('th',
+            padding=spacing(padding.top, 2*padding.left + px(2), padding.bottom),
+            parent=elem)
+        css('th + th',
+            padding=spacing(padding.top, padding.left + px(2), padding.bottom),
+            parent=elem)
+
+
 css('table.uniFormTable',
     css('input[type="checkbox"]', float='none', margin=0),
-    css('th, td',
-        padding=cssv.form.padding),
-    css('th + th, td + td',
-        padding=spacing(cssv.form.padding, cssv.form.padding,
-                        cssv.form.padding, 0)),
-    clearfix(),
+    form_table_padding(),
     css('td.error',
         padding_top=0,
         padding_bottom=0),

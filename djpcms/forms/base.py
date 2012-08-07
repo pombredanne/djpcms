@@ -28,8 +28,8 @@ NOTHING = ('', None)
 
 class FieldList(list):
     '''A list of :class:`Field` and :class:`FieldList`.
- It can be used to specify fields
- using a declarative list in a :class:`Form` class.
+ It can be used to specify fields using a declarative list in a
+ :class:`Form` class.
  For example::
 
      from djpcms import forms
@@ -37,6 +37,11 @@ class FieldList(list):
      class MyForm(forms.Form):
          some_fields = forms.FieldList(('name',forms.CharField()),
                                        ('description',forms.CharField()))
+
+.. attribute:: withprefix
+
+    if ``True`` the :class:`Fieldlist` attribute name in the form is
+    prefixed to the field names.
 '''
     def __init__(self, data=None, withprefix=True):
         self.withprefix = withprefix
@@ -51,7 +56,7 @@ class FieldList(list):
                     yield name2, field2
             else:
                 if prefix and self.withprefix:
-                    name = '{0}{1}'.format(prefix,name)
+                    name = '%s%s' % (prefix, name)
                 if isinstance(field, type):
                     field = field(initial=initial)
                 yield name, field
@@ -155,9 +160,6 @@ procedure calls validation.
 
     Default: ``None``.
 '''
-    prefix_input = '_prefixed'
-    request = None
-
     def __init__(self, data=None, files=None, initial=None, prefix=None,
                  model=None, instance=None, request=None, environ=None,
                  on_submit=None):
@@ -271,36 +273,27 @@ validation.'''
                 value = field.get_initial(self)
             # Instance with id can override the initial value
             if instance_id:
-                try:
-                    # First try the field method
-                    value = field.value_from_instance(instance)
-                except ValueError:
-                    # otherwise try the form method
-                    value = self.value_from_instance(instance, name)
+                value = self.value_from_instance(value, field, instance, name)
             if value is not None:
                 initial[name] = value
 
-    def value_from_instance(self, instance, name):
+    def value_from_instance(self, value, field, instance, name):
         '''Utility function for extracting an attribute value from an
 *instance*. This function is called when :class:`Form` is not bounded to data
 and an :attr:`instance` of a model is available.
 
 By default it returns the attribute value for the instance or ``None``.
 Override if you need to.'''
-        value = getattr(instance, name, None)
-        if hasattr(value, '__call__'):
-            value = value()
+        try:
+            # First try the field method
+            return field.value_from_instance(instance)
+        except ValueError:
+            pass
+        if hasattr(instance, name):
+            value = getattr(instance, name)
+            if hasattr(value, '__call__'):
+                value = value()
         return value
-
-    def get_prefix(self, prefix, data):
-        if data and self.prefix_input in data:
-            return data[self.prefix_input]
-        elif prefix:
-            if hasattr(prefix,'__call__'):
-                prefix = prefix()
-            return prefix
-        else:
-            return ''
 
     def additional_data(self):
         return None

@@ -77,7 +77,8 @@ Simple usage::
     default_attrs = {'method':'post',
                      'enctype':'multipart/form-data',
                      'action': '.'}
-    attributes = html.WidgetMaker.makeattr('method','enctype','action')
+    attributes = html.WidgetMaker.makeattr('action', 'accept', 'accept-charset',
+                                           'enctype', 'method', 'name')
 
     def __init__(self, form_class,
                  layout=None,

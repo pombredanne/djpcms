@@ -35,7 +35,7 @@ __all__ = ['Site', 'get_settings', 'WebSite', 'request_processor']
 logger = logging.getLogger('djpcms')
 
 
-def get_settings(name = None, settings = None, **params):
+def get_settings(name=None, settings=None, **params):
     '''Extra configuration parameters,can be passed as key-value pairs:
 
 :parameter name: file or directory name which specifies the
@@ -80,8 +80,8 @@ Default ``None``
         settings_module_name = None
 
     return Config(settings_module_name,
-                  SITE_DIRECTORY = site_path,
-                  SITE_MODULE = name,
+                  SITE_DIRECTORY=site_path,
+                  SITE_MODULE=name,
                   **params)
 
 
@@ -420,7 +420,7 @@ for djpcms web sites.
         if settings_file is not None:
             self._settings_file = settings_file
         self.callbacks = []
-        params.pop('site',None)
+        params.pop('site', None)
         self.params = params
 
     def _set_settings_file(self, settings):

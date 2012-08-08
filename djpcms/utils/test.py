@@ -1,9 +1,9 @@
-'''Mixins for running tests with djpcms
-'''
+'''Mixins for running tests with djpcms'''
 import json
 import os
 import re
 import sys
+from collections import Mapping
 
 from pulsar.apps.test import unittest
 
@@ -17,6 +17,7 @@ from djpcms import views, forms
 from djpcms.cms import Site, WebSite, get_settings
 from djpcms.cms.formutils import fill_form_data
 from djpcms.utils import orms
+from djpcms.utils.httpurl import Headers
 
 from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                      urlparse, BytesIO
@@ -327,8 +328,9 @@ in testing. Typical usage, from within a test case function::
         self.cookies = SimpleCookie()
         self.errors = BytesIO()
         self.response_data = None
+        self.headers = Headers(kind='client')
 
-    def _base_environ(self, ajax = False, **request):
+    def _base_environ(self, ajax=False, **request):
         """The base environment for a request.
         """
         cookie = self.cookies
@@ -352,12 +354,15 @@ in testing. Typical usage, from within a test case function::
             'wsgi.run_once': False,
         }
         environ.update(self.defaults)
+        for header, value in self.headers:
+            name = 'HTTP_%s' % header.upper()
+            environ[name] = value
         environ.update(request)
         if ajax:
             environ['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
         return environ
 
-    def request(self, status_code, **request):
+    def request(self, status_code=200, **request):
         "Construct a generic wsgi environ object."
         environ = self._base_environ(**request)
         r = Response(environ)
@@ -368,30 +373,28 @@ in testing. Typical usage, from within a test case function::
         self.test.assertEqual(r.response.status_code, status_code)
         return r
 
-    def get(self, path, data={}, ajax = False, status_code = 200, **extra):
+    def get(self, path, data={}, **extra):
         "Construct a GET request"
         parsed = urlparse(path)
         r = {
-            'CONTENT_TYPE':    'text/html; charset=utf-8',
-            'PATH_INFO':       unquote(parsed[2]),
-            'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
+            'CONTENT_TYPE': 'text/html; charset=utf-8',
+            'PATH_INFO': unquote(parsed[2]),
+            'QUERY_STRING': urlencode(data, doseq=True) or parsed[4],
             'REQUEST_METHOD': 'GET',
-            'wsgi.input':      BytesIO()
+            'wsgi.input': BytesIO()
         }
         r.update(extra)
-        return self.request(status_code, **r)
+        return self.request(**r)
 
-    def post(self, path, data={}, content_type=MULTIPART_CONTENT,
-             status_code = 200, **extra):
-        "Construct a POST request."
-        if content_type is MULTIPART_CONTENT:
+    def post(self, path, data={}, content_type=MULTIPART_CONTENT, **extra):
+        ''''Construct a POST request'''
+        parsed = urlparse(path)
+        if isinstance(data, Mapping) and content_type is MULTIPART_CONTENT:
             post_data = encode_multipart(BOUNDARY, data)
         else:
             match = CONTENT_TYPE_RE.match(content_type)
             charset = match.group(1) if match else self.settings.DEFAULT_CHARSET
             post_data = to_bytes(data, encoding=charset)
-
-        parsed = urlparse(path)
         r = {
             'CONTENT_LENGTH': len(post_data),
             'CONTENT_TYPE':   content_type,
@@ -401,11 +404,10 @@ in testing. Typical usage, from within a test case function::
             'wsgi.input':     BytesIO(post_data),
         }
         r.update(extra)
-        return self.request(status_code, **r)
+        return self.request(**r)
 
     def head(self, path, data={}, **extra):
         "Construct a HEAD request."
-
         parsed = urlparse(path)
         r = {
             'CONTENT_TYPE':    'text/html; charset=utf-8',

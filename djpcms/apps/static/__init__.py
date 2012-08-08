@@ -23,9 +23,9 @@ wm = html.WidgetMaker
 static_index = wm().add(wm(tag='h1', key='title'),
                         html.List(key='nav'))
 
-    
+
 class pathHandler(object):
-    
+
     def __init__(self, name, path, mediadir):
         self.name     = name
         self.base     = path
@@ -47,23 +47,23 @@ It looks for the ``media`` directory in each installed application.'''
                 processed = True
                 handler = tp.handler(app)
                 break
-        
+
         if not processed:
             handler = pathHandler
-        
+
         if not handler:
             continue
-        
+
         sapp = app.split('.')
         name = sapp[-1]
-            
+
         try:
             module = import_module(app)
         except:
             if not safe:
                 raise
             continue
-        
+
         path = getattr(module,'__path__',None)
         if path:
             h = handler(name, path[0], mediadir)
@@ -74,20 +74,20 @@ It looks for the ``media`` directory in each installed application.'''
 
 class StaticMapMixin(views.View):
     _methods = ('get',)
-    
+
     def title(self, request):
         return 'Index of ' + request.path
-    
+
     def get_response(self, request):
         return self.render(request)
     ajax_get_response = get_response
-    
+
     def add_media(self, m):
         pass
-    
+
     def default_media(self, request):
         pass
-        
+
     @property
     def media_mapping(self):
         '''Load application media.'''
@@ -95,7 +95,10 @@ class StaticMapMixin(views.View):
         if _media is None:
             _media = application_map(self.settings.INSTALLED_APPS)
         return _media
-    
+
+    def has_permission(self, request, **kwargs):
+        return True
+
 
 class StaticRootView(StaticMapMixin):
     '''The root view for static files'''
@@ -111,7 +114,7 @@ class StaticRootView(StaticMapMixin):
 
 class StaticFileView(StaticMapMixin):
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
-    
+
     def render(self, request, **kwargs):
         mapping = self.media_mapping
         paths = request.urlargs['path'].split('/')
@@ -130,7 +133,7 @@ class StaticFileView(StaticMapMixin):
                 raise Http404()
         else:
             raise Http404()
-        
+
     def directory_index(self, request, fullpath):
         names = [w('a', '../', href = '../', cn = 'folder')]
         files = []
@@ -144,7 +147,7 @@ class StaticFileView(StaticMapMixin):
         return static_index().render(request,
                             {'title': self.title(request),
                              'nav': names})
-        
+
     def serve_file(self, request, fullpath):
         # Respect the If-Modified-Since header.
         statobj = os.stat(fullpath)
@@ -163,18 +166,18 @@ class StaticFileView(StaticMapMixin):
                             encoding=encoding)
         response.headers["Last-Modified"] = http_date(statobj[stat.ST_MTIME])
         return response
-    
+
     def was_modified_since(self, header=None, mtime=0, size=0):
         """
         Was something modified since the user last downloaded it?
-    
+
         header
           This is the value of the If-Modified-Since header.  If this is None,
           I'll just return True.
-    
+
         mtime
           This is the modification time of the item we're talking about.
-    
+
         size
           This is the size of the item we're talking about.
         """
@@ -196,7 +199,7 @@ class StaticFileView(StaticMapMixin):
 
 class FavIconView(StaticFileView):
     default_route = '/favicon.ico'
-    
+
     def render(self, request, **kwargs):
         if not request.urlargs:
             settings = self.settings
@@ -207,7 +210,7 @@ class FavIconView(StaticFileView):
                 fullpath = os.path.join(hd.absolute_path,'favicon.ico')
                 return self.serve_file(request, fullpath)
         raise Http404()
-    
+
 
 class Static(views.Application):
     '''A simple application for handling static files.
@@ -219,7 +222,7 @@ class Static(views.Application):
     cache_control = CacheControl(maxage=86400)
     root = StaticRootView()
     path = StaticFileView('<path:path>', parent_view = 'root')
-    
+
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)
         super(Static,self).__init__(*args,**kwargs)

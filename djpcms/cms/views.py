@@ -6,7 +6,7 @@ from djpcms.utils.httpurl import range
 from djpcms.utils.text import nicename, slugify, escape, UnicodeMixin
 
 from .routing import Route
-from .permissions import VIEW
+from . import permissions
 from .formutils import submit_form
 
 __all__ = ['RouteMixin', 'ViewRenderer', 'RendererMixin', 'ViewHandler',
@@ -83,7 +83,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
 
     web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
-    PERM = VIEW
+    PERM = permissions.VIEW
 
     def __init__(self, route):
         if not isinstance(route, Route):
@@ -246,7 +246,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
  :meth:`instance_from_variables` function.'''
         raise StopIteration
 
-    def get_url(self, urlargs, instance = None):
+    def get_url(self, urlargs, instance=None):
         '''Retrieve the :attr:`route` full *url* from a dictionary of
 url attributes and, optionally, an instance of an element constructed
 from the variable part of the url.'''
@@ -705,6 +705,26 @@ This default implementation should suffice'''
             return self.appmodel.site
         else:
             return self.parent
+
+    def has_permission(self, request, code=None, model=None, instance=None,
+                       **kwargs):
+        '''Check view permissions.'''
+        perm = self.permissions
+        user = kwargs.pop('user', request.user)
+        # if code is not provided we check if the page can be viewed
+        # A page model must be available
+        if code is None:
+            page = request.closest_page
+            if page and page != instance:
+                if not perm.has(request, permissions.VIEW, page,
+                                self.Page.model, user):
+                    return False
+            code = self.PERM
+        model = model or request.model
+        instance = instance or request.instance
+        if not model or not isinstance(instance, model):
+            instance = None
+        return perm.has(request, code, instance, model, user)
 
 
 class pageview(ViewHandler):

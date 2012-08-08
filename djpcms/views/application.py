@@ -607,14 +607,21 @@ This method is called by both :meth:`variables_from_instance` and
 It uses the :func:`instance_field_view_value` for the purpose.
 '''
         instance = instance or request.instance
-        view, value = instance_field_view_value(request, instance, field_name,
+        req, value = instance_field_view_value(request, instance, field_name,
                                                 name=name, urlargs=urlargs)
-        value = self.instance_field_value(request, instance, field_name, value)
-        if asbutton is not None:
-            return application_link(view, value=value, asbutton=asbutton,
-                                    icon=icon)
-        else:
-            return view
+        #TODO
+        #We should check if the user has permission to see the view.
+        #however it can be quite expensive. Improve this by
+        #devising a better algorith for checking instance prmissions
+        #if req and req.has_permission():
+        if req:
+            value = self.instance_field_value(request, instance, field_name,
+                                              value)
+            if asbutton is not None:
+                return application_link(req, value=value, asbutton=asbutton,
+                                        icon=icon)
+            else:
+                return req
 
     def remove_instance(self, instance):
         '''Remove a model instance. must return the unique id for

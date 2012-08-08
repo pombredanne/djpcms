@@ -121,7 +121,7 @@ def application_views(request,
             else:
                 req = request.for_path(view.path)
             if req is not None:
-                yield application_action_to_menu_link(elem,req.url)
+                yield application_action_to_menu_link(elem, req.url)
 
 
 def instance_field_view_value(request, instance, field_name, name=None,

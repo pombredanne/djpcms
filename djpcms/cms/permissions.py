@@ -100,7 +100,7 @@ class PermissionHandler(object):
 '''
     AuthenticationError = AuthenticationError
 
-    def __init__(self, settings, auth_backends=None, requires_login=False):
+    def __init__(self, settings=None, auth_backends=None, requires_login=False):
         if auth_backends is None:
             auth_backends = self.default_backends(settings)
         self.auth_backends = auth_backends
@@ -148,12 +148,9 @@ handler. These middlewares are obtained by the list of :attr:`auth_backends`.'''
 
     def addcode(self, code, name):
         '''Add a permission code to the list'''
-        try:
-            code = int(code)
-        except ValueError:
-            return
-        if code not in self.permission_codes:
-             self.permission_codes[code] = name
+        code = int(code)
+        if code > 0:
+             self.permission_codes[code] = name.upper()
              return code
 
     def permission_choices(self):

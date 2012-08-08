@@ -70,10 +70,7 @@ select.readonly, select.readonly option
 '''.format(classes.ui_input)
 
 def size(n):
-    if n == 1:
-        return 30
-    else:
-        return 60*(n-1)
+    return 30*n
 
 
 def process_elems(elem, data):
@@ -113,9 +110,8 @@ css('.%s.focus' % classes.ui_input,
     shadow(cssv.input.focus_shadow),
     border_color=cssv.input.focus_color)
 
-for n in range(1,10):
-    css('.%s.span%s' % (classes.ui_input, n),
-         width=px(size(n)))
+for n in range(1, 21):
+    css('.span%s' % n, width=px(size(n)))
 
 css(disabled_selector,
     opacity(cssv.disabled.opacity),

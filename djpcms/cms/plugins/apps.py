@@ -234,20 +234,17 @@ certain number of items as specified in the max display input.'''
         load_only = ()
         thead = None
         appheads = request.pagination.headers
-
         if headers:
             thead = []
             for head in headers:
                 if head in appheads:
                     thead.append(appheads[head])
-
         # Ordering
         if order_by:
             order_by = html.attrname_from_header(appheads, order_by)
             if order_by and descending:
                 order_by = '-{0}'.format(order_by)
-
-        # query with the instancde of the current page
+        # query with the instance of the current page
         qs = view.query(request, instance=instance)
         if text_search:
             qs = qs.search(text_search)
@@ -265,8 +262,8 @@ certain number of items as specified in the max display input.'''
             title = block.title if block is not None else None
             pagination = html.Pagination(
                             thead,
-                            footer = table_footer,
-                            html_data =  {'options': {'sDom':'t'}})
+                            footer=table_footer,
+                            html_data={'options': {'sDom':'t'}})
             return pagination.widget(
                     appmodel.table_generator(request, thead, items),
                     title=title, appmodel=appmodel).render(request)

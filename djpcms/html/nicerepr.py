@@ -93,8 +93,8 @@ several possibilities in the following order.
     return nicerepr(val, settings=request.settings)
 
 
-def results_for_item(request, headers, result, appmodel = None,
-                     actions = None, **kwargs):
+def results_for_item(request, headers, result, appmodel=None, actions=None,
+                     **kwargs):
     '''Return an iterable over values in result given by attributes in headers.
 
 :parameter headers: iterable over attribute names.
@@ -102,7 +102,7 @@ def results_for_item(request, headers, result, appmodel = None,
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
 '''
     if appmodel and appmodel.mapper:
-        getr = get_app_result(appmodel.mapper,actions)
+        getr = get_app_result(appmodel.mapper, actions)
         id = getr.id(result)
     else:
         id = None
@@ -141,7 +141,7 @@ class get_app_result(object):
     '''Representation for an instance field'''
     __slots__ = ('mapper','actions','first',)
 
-    def __init__(self, mapper, actions = False):
+    def __init__(self, mapper, actions=False):
         self.mapper = mapper
         self.actions = actions
         self.first = True
@@ -163,7 +163,8 @@ class get_app_result(object):
                 first = False
             else:
                 name = None
-            link = appmodel.instance_field_view(request, result,
+            link = appmodel.instance_field_view(request,
+                                                result,
                                                 field_name=head.code,
                                                 asbutton=False,
                                                 icon=False,

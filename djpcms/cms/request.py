@@ -392,25 +392,9 @@ is available, the name is set to ``view``.
             icon = icon(self)
         return icon
 
-    def has_permission(self, code=None, instance=None, model=None, **kwargs):
-        view = self.view
-        perm = view.permissions
-        user = kwargs.pop('user', self.user)
-        # if code is not provided we check if the page can be viewed
-        # A page model must be available
-        if code is None:
-            model = self.model
-            page = self.closest_page
-            instance = self.instance
-            if page and page != instance:
-                if not perm.has(self, permissions.VIEW, page,
-                                view.Page.model, user):
-                    return False
-            return perm.has(self, view.PERM, instance, model, user)
-        else:
-            model = model or self.model
-            instance = instance or self.instance
-            return perm.has(self, code, instance, model, user)
+    def has_permission(self, code=None, model=None, instance=None, **kwargs):
+        return self.view.has_permission(self, code=code, model=model,
+                                        instance=instance, **kwargs)
 
     def _get_cookies(self):
         if not hasattr(self, '_cookies'):

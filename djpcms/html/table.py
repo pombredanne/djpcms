@@ -361,8 +361,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         else:
             return pagi,None
 
-    def widget(self, body, toolbox = None, pagination = None, ajax = None,
-               **kwargs):
+    def widget(self, body, toolbox=None, pagination=None, ajax=None, **kwargs):
         '''Return the pagination :class:`Widget`. This is either a *table* or
 a standard pagination.
 
@@ -381,9 +380,7 @@ a standard pagination.
         if 'options' not in data:
             options = {}
             data['options'] = options
-
         options = data['options']
-
         if self.astable:
             if ajax:
                 options['bProcessing'] = True
@@ -393,7 +390,6 @@ a standard pagination.
             maker = partial(table, headers)
         else:
             maker = self.widget_factory
-
         kwargs['actions'] = data.get('actions')
         return maker(body, pagination=pagination, data=data,
                      footer=self.footer, **kwargs)

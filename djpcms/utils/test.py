@@ -5,7 +5,7 @@ import re
 import sys
 from collections import Mapping
 
-from pulsar.apps.test import unittest
+from pulsar.apps.test import unittest, HttpTestClient
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -84,11 +84,9 @@ what you are doing.'''
         website.add_response_middleware(self.response_middleware())
         return Site(settings)
 
-    def client(self, **defaults):
+    def client(self, **kwargs):
         website = self.website()
-        settings = website().settings
-        wsgi = website.wsgi()
-        return HttpTestClientRequest(self, wsgi, settings, **defaults)
+        return HttpTestClient(self, website.wsgi(), **kwargs)
 
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site
@@ -224,55 +222,6 @@ and sending AJAX requests.'''
         return fill_form_data(form(request = request)) if form else {}
 
 
-BOUNDARY = 'BoUnDaRyStRiNg'
-MULTIPART_CONTENT = 'multipart/form-data; boundary=%s' % BOUNDARY
-
-def encode_multipart(boundary, data):
-    """
-    Encodes multipart POST data from a dictionary of form values.
-
-    The key will be used as the form data name; the value will be transmitted
-    as content. If the value is a file, the contents of the file will be sent
-    as an application/octet-stream; otherwise, str(value) will be sent.
-    """
-    lines = []
-    # Not by any means perfect, but good enough for our purposes.
-    is_file = lambda thing: hasattr(thing, "read") and\
-                             hasattr(thing.read,'__call__')
-
-    # Each bit of the multipart form data could be either a form value or a
-    # file, or a *list* of form values and/or files. Remember that HTTP field
-    # names can be duplicated!
-    for (key, value) in data.items():
-        value = native_str(value)
-        if is_file(value):
-            lines.extend(encode_file(boundary, key, value))
-        elif not isinstance(value,str) and hasattr(value,'__iter__'):
-            for item in value:
-                if is_file(item):
-                    lines.extend(encode_file(boundary, key, item))
-                else:
-                    lines.extend([
-                        '--' + boundary,
-                        'Content-Disposition: form-data; name="%s"' % to_str(key),
-                        '',
-                        item
-                    ])
-        else:
-            lines.extend([
-                '--' + boundary,
-                'Content-Disposition: form-data; name="{0}"'.format(key),
-                '',
-                str(value)
-            ])
-
-    lines.extend([
-        '--' + boundary + '--',
-        '',
-    ])
-    return '\r\n'.join(lines)
-
-
 def encode_file(boundary, key, file):
     to_str = lambda s: smart_str(s, settings.DEFAULT_CHARSET)
     content_type = mimetypes.guess_type(file.name)[0]
@@ -307,167 +256,6 @@ class Response(object):
     def status_code(self):
         if self.status:
             return int(self.status.split()[0])
-
-
-class HttpTestClientRequest(object):
-    """Class that lets you create mock HTTP environment objects for use
-in testing. Typical usage, from within a test case function::
-
-    def testMyTestFunction(self):
-        handler = ...
-        client = HttpTestRequest(self,handler)
-        get_request = client.get('/hello/')
-        post_request = client.post('/submit/', {'foo': 'bar'})
-
-"""
-    def __init__(self, test, handler, settings, **defaults):
-        self.test = test
-        self.settings = settings
-        self.handler = handler
-        self.defaults = defaults
-        self.cookies = SimpleCookie()
-        self.errors = BytesIO()
-        self.response_data = None
-        self.headers = Headers(kind='client')
-
-    def _base_environ(self, ajax=False, **request):
-        """The base environment for a request.
-        """
-        cookie = self.cookies
-        if isinstance(cookie, SimpleCookie):
-            cookie = self.cookies.output(header='', sep='; ')
-        environ = {
-            'HTTP_COOKIE': cookie,
-            'PATH_INFO': '/',
-            'QUERY_STRING': '',
-            'REMOTE_ADDR': '127.0.0.1',
-            'REQUEST_METHOD': 'GET',
-            'SCRIPT_NAME': '',
-            'SERVER_NAME': 'testserver',
-            'SERVER_PORT': '80',
-            'SERVER_PROTOCOL': 'HTTP/1.1',
-            'wsgi.version': (1,1),
-            'wsgi.url_scheme': 'http',
-            'wsgi.errors': self.errors,
-            'wsgi.multiprocess': False,
-            'wsgi.multithread': False,
-            'wsgi.run_once': False,
-        }
-        environ.update(self.defaults)
-        for header, value in self.headers:
-            name = 'HTTP_%s' % header.upper()
-            environ[name] = value
-        environ.update(request)
-        if ajax:
-            environ['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        return environ
-
-    def request(self, status_code=200, **request):
-        "Construct a generic wsgi environ object."
-        environ = self._base_environ(**request)
-        r = Response(environ)
-        r.response = self.handler(environ, r)
-        for head, value in r.response_headers:
-            if head.lower() == 'set-cookie':
-                self.cookies = value
-        self.test.assertEqual(r.response.status_code, status_code)
-        return r
-
-    def get(self, path, data={}, **extra):
-        "Construct a GET request"
-        parsed = urlparse(path)
-        r = {
-            'CONTENT_TYPE': 'text/html; charset=utf-8',
-            'PATH_INFO': unquote(parsed[2]),
-            'QUERY_STRING': urlencode(data, doseq=True) or parsed[4],
-            'REQUEST_METHOD': 'GET',
-            'wsgi.input': BytesIO()
-        }
-        r.update(extra)
-        return self.request(**r)
-
-    def post(self, path, data={}, content_type=MULTIPART_CONTENT, **extra):
-        ''''Construct a POST request'''
-        parsed = urlparse(path)
-        if isinstance(data, Mapping) and content_type is MULTIPART_CONTENT:
-            post_data = encode_multipart(BOUNDARY, data)
-        else:
-            match = CONTENT_TYPE_RE.match(content_type)
-            charset = match.group(1) if match else self.settings.DEFAULT_CHARSET
-            post_data = to_bytes(data, encoding=charset)
-        r = {
-            'CONTENT_LENGTH': len(post_data),
-            'CONTENT_TYPE':   content_type,
-            'PATH_INFO':      unquote(parsed[2]),
-            'QUERY_STRING':   parsed[4],
-            'REQUEST_METHOD': 'POST',
-            'wsgi.input':     BytesIO(post_data),
-        }
-        r.update(extra)
-        return self.request(**r)
-
-    def head(self, path, data={}, **extra):
-        "Construct a HEAD request."
-        parsed = urlparse(path)
-        r = {
-            'CONTENT_TYPE':    'text/html; charset=utf-8',
-            'PATH_INFO':       unquote(parsed[2]),
-            'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
-            'REQUEST_METHOD': 'HEAD',
-            'wsgi.input':      BytesIO()
-        }
-        r.update(extra)
-        return self.request(**r)
-
-    def options(self, path, data={}, **extra):
-        "Constrict an OPTIONS request"
-
-        parsed = urlparse(path)
-        r = {
-            'PATH_INFO':       unquote(parsed[2]),
-            'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
-            'REQUEST_METHOD': 'OPTIONS',
-            'wsgi.input':      BytesIO()
-        }
-        r.update(extra)
-        return self.request(**r)
-
-    def put(self, path, data={}, content_type=MULTIPART_CONTENT, **extra):
-        "Construct a PUT request."
-        if content_type is MULTIPART_CONTENT:
-            post_data = encode_multipart(BOUNDARY, data)
-        else:
-            post_data = data
-
-        # Make `data` into a querystring only if it's not already a string. If
-        # it is a string, we'll assume that the caller has already encoded it.
-        query_string = None
-        if not isinstance(data, basestring):
-            query_string = urlencode(data, doseq=True)
-
-        parsed = urlparse(path)
-        r = {
-            'CONTENT_LENGTH': len(post_data),
-            'CONTENT_TYPE':   content_type,
-            'PATH_INFO':      unquote(parsed[2]),
-            'QUERY_STRING':   query_string or parsed[4],
-            'REQUEST_METHOD': 'PUT',
-            'wsgi.input':     BytesIO(post_data),
-        }
-        r.update(extra)
-        return self.request(**r)
-
-    def delete(self, path, data={}, **extra):
-        "Construct a DELETE request."
-        parsed = urlparse(path)
-        r = {
-            'PATH_INFO':       unquote(parsed[2]),
-            'QUERY_STRING':    urlencode(data, doseq=True) or parsed[4],
-            'REQUEST_METHOD': 'DELETE',
-            'wsgi.input':      BytesIO()
-        }
-        r.update(extra)
-        return self.request(**r)
 
 
 ################################################################################

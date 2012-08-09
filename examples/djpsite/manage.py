@@ -47,14 +47,11 @@ class MainApplication(views.Application):
 
 
 class WebSite(cms.WebSite):
-    settings_file = 'djpsite.settings'
+    _settings_file = 'djpsite.settings'
     def load(self):
-        settings = cms.get_settings(
-                __file__,
-                self.settings_file,
-                APPLICATION_URLS = self.urls,
-                DEBUG = True
-            )
+        params = self.params.copy()
+        params.update({'APPLICATION_URLS': self.urls})
+        settings = cms.get_settings(__file__, self.settings_file, **params)
         from djpsite.apps.geo import Geo
         Geo.username = settings.GEOUSERNAME
         # Create the permission handler

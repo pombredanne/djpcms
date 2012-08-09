@@ -6,26 +6,32 @@ try:
     from stdcms.utils import test
     installed = True
 except ImportError:
-    installed = True
+    installed = False
 
 
 @skipUnless(installed, 'Requires stdcms')
 class TestCase(test.TestCase):
-    
+
     def website(self):
         from djpsite.manage import WebSite
-        from stdnet import orm
-        self.orm = orm
-        if not hasattr(self, 'site'):
-            self._website = WebSite(settings_file='djpsite.conf')
-            self.site = self._website()
+        if not hasattr(self, '_website'):
+            self._website = WebSite(DEBUG=False,
+                                    SESSION_COOKIE_NAME='djpsite-test',
+                                    SECRET_KEY='djpsite-test')
         return self._website
-    
-    def setUp(self):
-        self.site = self.website()()
-        self.assertTrue(self.odm.flush_models())
-        
-    def tearDown(self):
-        self.odm.flush_models()
-    
-    
+
+    def site(self):
+        return self.website()()
+
+    def _pre_setup(self):
+        self.flush()
+        self._create_users()
+
+    def _post_teardown(self):
+        self.flush()
+
+    def flush(self):
+        site = self.site()
+
+    def _create_users(self):
+        pass

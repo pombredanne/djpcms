@@ -111,6 +111,10 @@ class WSGI(object):
         self.website = website
 
     @property
+    def site(self):
+        return self.website()
+
+    @property
     def route(self):
         return self.site.route
 
@@ -453,7 +457,7 @@ for djpcms web sites.
 
     def add_wsgi_middleware(self, m):
         '''Add a wsgi callable middleware or a list of middlewares'''
-        if isinstance(m,(list,tuple)):
+        if isinstance(m, (list,tuple)):
             self._wsgi_middleware.extend(m)
         else:
             self._wsgi_middleware.append(m)

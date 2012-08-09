@@ -2,8 +2,8 @@
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 Theme "smooth"
-Created by djpcms.style 2012-08-07 12:49:39.250000
-Time taken 0.431 seconds
+Created by djpcms.style 2012-08-08 21:39:12.624477
+Time taken 0.492 seconds
 ------------------------------------------------------------------
 ------------------------------------------------------------------ */
 
@@ -1229,40 +1229,84 @@ table td {
             box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
 
-.ui-input.span1 {
+.span1 {
     width: 30px;
 }
 
-.ui-input.span2 {
+.span2 {
     width: 60px;
 }
 
-.ui-input.span3 {
+.span3 {
+    width: 90px;
+}
+
+.span4 {
     width: 120px;
 }
 
-.ui-input.span4 {
+.span5 {
+    width: 150px;
+}
+
+.span6 {
     width: 180px;
 }
 
-.ui-input.span5 {
+.span7 {
+    width: 210px;
+}
+
+.span8 {
     width: 240px;
 }
 
-.ui-input.span6 {
+.span9 {
+    width: 270px;
+}
+
+.span10 {
     width: 300px;
 }
 
-.ui-input.span7 {
+.span11 {
+    width: 330px;
+}
+
+.span12 {
     width: 360px;
 }
 
-.ui-input.span8 {
+.span13 {
+    width: 390px;
+}
+
+.span14 {
     width: 420px;
 }
 
-.ui-input.span9 {
+.span15 {
+    width: 450px;
+}
+
+.span16 {
     width: 480px;
+}
+
+.span17 {
+    width: 510px;
+}
+
+.span18 {
+    width: 540px;
+}
+
+.span19 {
+    width: 570px;
+}
+
+.span20 {
+    width: 600px;
 }
 
 .disabled .ui-input {
@@ -1659,10 +1703,6 @@ textarea.taboverride {
     background: transparent;
     line-height: 18px;
     margin: 0;
-}
-
-td.checkbox {
-    text-align: center;
 }
 
 td.one-line {

@@ -44,8 +44,7 @@ class TestWebSite(WebSite):
 
 class TestCase(unittest.TestCase):
     '''A :class:`TestCase` class which adds the :meth:`website` method for
-easy testing web site applications. To use the Http client you need
-to derive from this class.'''
+easy testing web site applications.'''
     installed_apps = ('djpcms',)
     settings = None
     web_site_callbacks = []
@@ -235,27 +234,6 @@ def encode_file(boundary, key, file):
         '',
         file.read()
     ]
-
-
-class Response(object):
-
-    def __init__(self, environ):
-        self.environ = environ
-        self.status = None
-        self.response_headers = None
-        self.exc_info = None
-        self.response = None
-
-    def __call__(self, status, response_headers, exc_info=None):
-        '''Mock the wsgi start_response callable'''
-        self.status = status
-        self.response_headers = response_headers
-        self.exc_info = exc_info
-
-    @property
-    def status_code(self):
-        if self.status:
-            return int(self.status.split()[0])
 
 
 ################################################################################

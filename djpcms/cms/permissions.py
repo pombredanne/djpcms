@@ -10,6 +10,7 @@ Permissions Codes
 * ``COPY`` Allows to copy objects into new ones. Value ``25``.
 * ``ADD`` Allows to add new objects. Value ``30``.
 '''
+from pulsar.apps.wsgi import authorization_middleware
 from .exceptions import PermissionDenied
 
 # Main permission flags
@@ -59,7 +60,16 @@ class AuthBackend(object):
     def logout(self, environ, user):
         pass
 
+    def get_user(self, *args, **kwargs):
+        '''Retrieve a user.'''
+        pass
+
     def create_user(self, *args, **kwargs):
+        '''Create a standard user.'''
+        pass
+
+    def create_superuser(self, *args, **kwargs):
+        '''Create a user with *superuser* permissions.'''
         pass
 
     def request_middleware(self):
@@ -157,6 +167,16 @@ handler. These middlewares are obtained by the list of :attr:`auth_backends`.'''
         c = self.permission_codes
         return ((k, c[k]) for k in sorted(c))
 
+    def get_user(self, *args, **kwargs):
+        '''Retrieve a user.'''
+        for b in self.auth_backends:
+            try:
+                user = b.get_user(*args, **kwargs)
+                if user is not None:
+                    return user
+            except:
+                continue
+
     def authenticate_and_login(self, environ, **params):
         '''Authenticate and login user. If it fails raises
 a AuthenticationError exception.'''
@@ -170,10 +190,10 @@ a AuthenticationError exception.'''
             msg = 'username or password not recognized'
         raise ValueError(msg)
 
-    def authenticate(self, request, **params):
+    def authenticate(self, environ, **params):
         for b in self.auth_backends:
             try:
-                user = b.authenticate(request, **params)
+                user = b.authenticate(environ, **params)
                 if user is not None:
                     return user
             except:
@@ -206,6 +226,16 @@ a AuthenticationError exception.'''
             except:
                 continue
         raise ValueError('Could not create user')
+
+    def create_superuser(self, *args, **kwargs):
+        for b in self.auth_backends:
+            try:
+                user = b.create_superuser(*args, **kwargs)
+                if user:
+                    return user
+            except:
+                continue
+        raise ValueError('Could not create superuser')
 
     def set_password(self, user, password):
         '''Loop though all :attr:`athentication_backends` and try to set
@@ -251,6 +281,14 @@ if needed.
     def add_model(self, model):
         pass
 
+    def header_authentication_middleware(self, environ, start_response):
+        '''Middleware for basic Authentication via Header'''
+        authorization_middleware(environ, start_response)
+        auth = environ.get('HTTP_AUTHORIZATION')
+        if auth:
+            environ['user'] = self.authenticate(environ,
+                                                username=auth.username,
+                                                password=auth.password)
 
 def authenticated_view(f):
     '''Decorator which check if a request is authenticated'''

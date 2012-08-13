@@ -27,14 +27,14 @@ To create the style sheet::
 import sys
 
 from djpcms import cms, views, html
-from djpcms.apps import admin, static, user
+from djpcms.apps import admin, static, user, dummy
 from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
 from djpcms.apps.nav import topbar_container, Breadcrumbs
 
 from stdcms.sessions import User
 from stdcms.sessions import PermissionHandler, CSRF
-from stdcms.social.applications import SocialUserApplication
+from stdcms.social import SocialUserApplication, SocialAuthBackend
 
 
 class UserApplication(SocialUserApplication):
@@ -56,6 +56,7 @@ class WebSite(cms.WebSite):
         Geo.username = settings.GEOUSERNAME
         # Create the permission handler
         permissions = PermissionHandler(settings)
+        permissions.auth_backends.append(SocialAuthBackend())
         backend = permissions.auth_backends[0]
         # AUTHENTICATION MIDDLEWARE
         self.add_wsgi_middleware(permissions.request_middleware())
@@ -81,6 +82,7 @@ class WebSite(cms.WebSite):
         return (
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
+                dummy.PassThrough('a'),
                 design.DesignApplication('/design', design.Theme),
                 jstests.Application('/jstests'),
                 geo.Application('/apps/geo', geo.Geo),

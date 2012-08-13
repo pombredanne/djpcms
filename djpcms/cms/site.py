@@ -541,6 +541,7 @@ This function can be overwritten by user implementation.'''
             if request.is_xhr:
                 content = ajax.jredirect(request.environ, location)
             else:
+                content_type = None
                 response.headers['Location'] = iri_to_uri(location)
                 content = ''
         else:

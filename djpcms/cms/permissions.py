@@ -282,7 +282,8 @@ if needed.
         pass
 
     def header_authentication_middleware(self, environ, start_response):
-        '''Middleware for basic Authentication via Header'''
+        '''A middleware for basic Authentication via Headers. Add
+as first request middleware if you want to support this.'''
         authorization_middleware(environ, start_response)
         auth = environ.get('HTTP_AUTHORIZATION')
         if auth:

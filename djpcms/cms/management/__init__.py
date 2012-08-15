@@ -8,7 +8,7 @@ import djpcms
 from djpcms.utils.importer import import_module
 
 from .base import Command, CommandError, CommandOption
-                                        
+
 __all__ = ['Command', 'CommandError', 'CommandOption', 'execute',
            'fetch_command']
 
@@ -45,7 +45,7 @@ def fetch_command(website, command, argv=None, stdout=None, stderr=None):
     cmd = utility.fetch_command(command)
     return lambda: cmd.run_from_argv(website, command, argv,
                                      stdout=stdout, stderr=stderr)
-    
+
 
 class ManagementUtility(object):
     """
@@ -54,7 +54,7 @@ class ManagementUtility(object):
     A ManagementUtility has a number of commands, which can be manipulated
     by editing the self.commands dictionary.
     """
-    def __init__(self, website, argv = None):
+    def __init__(self, website, argv=None):
         if argv is None:
             argv = sys.argv[:]
         self.prog_name = os.path.basename(argv[0])
@@ -76,7 +76,7 @@ class ManagementUtility(object):
                        version=self.website.version or djpcms.__version__,
                        help='Print the version.')
         return p
-        
+
     def get_usage(self):
         """
         Returns the script's main help text, as a string.
@@ -130,5 +130,5 @@ and runs it."""
             # this should fail unless we pass -h
             parser = self.get_parser(nargs=1)
             parser.parse_args()
-        
+
 

@@ -2,7 +2,8 @@ import logging
 import sys
 
 from pulsar.utils.log import dictConfig, NullHandler
-        
+from pulsar.utils.version import get_version
+
 
 # We can't log memory info without psutil
 try:         # pragma nocover
@@ -17,12 +18,12 @@ def get_mem_rss():
         return _p.get_memory_info().rss/1024
     else:
         return 0.0
-    
+
 class ProcessInfoLogger(logging.Logger):
     """Custom logger that allows process information to be logged.
     Supported items:
         *:mem_rss: resident set size, in KB
-    """ 
+    """
     def makeRecord(self, *args, **kwargs):
         rv = logging.Logger.makeRecord(self, *args, **kwargs)
         if _p:
@@ -34,8 +35,8 @@ logger = logging.getLogger('djpcms')
 
 if not logger.handlers:
     logger.addHandler(NullHandler())
-        
-        
+
+
 class AdminEmailHandler(logging.Handler):
     """An exception log handler that emails log entries to site admins
 

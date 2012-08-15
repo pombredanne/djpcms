@@ -27,7 +27,7 @@ To create the style sheet::
 import sys
 
 from djpcms import cms, views, html
-from djpcms.apps import admin, static, user, dummy
+from djpcms.apps import admin, static, user #, dummy
 from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
 from djpcms.apps.nav import topbar_container, Breadcrumbs
@@ -59,6 +59,7 @@ class WebSite(cms.WebSite):
         permissions.auth_backends.append(SocialAuthBackend())
         backend = permissions.auth_backends[0]
         # AUTHENTICATION MIDDLEWARE
+        self.add_wsgi_middleware(permissions.header_authentication_middleware)
         self.add_wsgi_middleware(permissions.request_middleware())
         self.add_response_middleware(permissions.response_middleware())
         # The root site
@@ -82,7 +83,7 @@ class WebSite(cms.WebSite):
         return (
                 #Serve static files during development
                 static.Static(site.settings.MEDIA_URL),
-                dummy.PassThrough('a'),
+                #dummy.PassThrough('a'),
                 design.DesignApplication('/design', design.Theme),
                 jstests.Application('/jstests'),
                 geo.Application('/apps/geo', geo.Geo),

@@ -281,9 +281,10 @@ and add testing plugins.'''
     if pulsar:
         os.environ['djpcms_test_suite'] = 'pulsar'
         from pulsar.apps.test import TestSuite
-        from pulsar.apps.test.plugins import profile
+        from pulsar.apps.test.plugins import bench, profile
         if stdnet_test and plugins is None:
             plugins = (stdnet_test.PulsarStdnetServer(),
+                       bench.BenchMark(),
                        profile.Profile())
         suite = TestSuite(modules=modules,
                           plugins=plugins,

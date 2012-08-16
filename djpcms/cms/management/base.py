@@ -4,14 +4,16 @@ Command management. Originally from django. Modified and reduced.
 import os
 import sys
 import argparse
+import logging
+from copy import copy
 
 import djpcms
 from djpcms.cms.exceptions import CommandError
 from djpcms.utils.log import dictConfig
-        
-        
+
+
 class CommandOption(object):
-    
+
     def __init__(self, name=None, cli=None, type=None, nargs=None,
                  action=None, description=None, default=None):
         self.name = name
@@ -21,12 +23,12 @@ class CommandOption(object):
         self.action = action
         self.description = description
         self.default = default
-    
+
     def add_argument(self, parser):
         kwargs = {}
         if self.type and self.type != 'string':
             kwargs["type"] = self.type
-            
+
         if self.cli:
             args = tuple(self.cli)
             kwargs.update({
@@ -47,7 +49,7 @@ class CommandOption(object):
                            'default': self.default})
         else:
             return
-        
+
         parser.add_argument(*args, **kwargs)
 
 
@@ -65,58 +67,52 @@ response.
     help = ''
     option_list = ()
 
+    def __init__(self, name):
+        self.name = name
+
+    def clone(self, website, argv, stdout=None, stderr=None):
+        me = copy(self)
+        me._website = website
+        me.argv = argv
+        me.stdout = stdout
+        me.stderr = stderr
+        me.logger = logging.getLogger('Command.%s' % me.name)
+        return me
+
     def get_version(self):
         """Return the djpcms version, which should be correct for all
 built-in djpcms commands. User-supplied commands should override this method.
         """
         return djpcms.__version__
 
-    def create_parser(self, command):
-        """
-        Create and return the ``OptionParser`` which will be used to
-        parse the arguments to this command.
-        """
-        parser = argparse.ArgumentParser(description = self.help or command)
+    def get_options(self):
+        '''Parse the command arguments and return options.'''
+        parser = argparse.ArgumentParser(description=self.help or self.name)
         parser.add_argument('--version',
-                            action = 'version',
-                            version = self.get_version(),
-                            help = "Show the command's version number and exit")
+                            action='version',
+                            version=self.get_version(),
+                            help="Show the command's version number and exit")
         for opt in self.option_list:
             opt.add_argument(parser)
-        return parser
+        return parser.parse_args(self.argv)
 
-    def print_help(self, prog_name, subcommand):
-        """
-        Print the help message for this command, derived from
-        ``self.usage()``.
-
-        """
-        parser = self.create_parser(prog_name, subcommand)
-        parser.print_help()
-
-    def execute(self, options, stdout=None, stderr=None, **kwargs):
-        """Try to execute this command. If the command raises a
-        ``CommandError``, intercept it and print it sensibly to
-        stderr.
-        """
+    def __call__(self, **kwargs):
+        '''Execute this command'''
+        options = self.get_options()
+        sys_stdout = sys.stdout
+        sys_stderr = sys.stderr
+        sys.stdout = self.stdout or sys_stdout
+        sys.stderr = self.stderr or sys_stderr
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
         try:
-            self.stdout = stdout or sys.stdout
-            self.stderr = stderr or sys.stderr
-            output = self.handle(options, **kwargs)
-            if output:
-                self.stdout.write(output)
+            return self.handle(options, **kwargs)
         except CommandError as e:
-            self.stderr.write(self.style.ERROR('Error: %s\n' % e))
-            sys.exit(1)
+            self.logger.critical('Command error', exc_info=True)
+        finally:
+            sys.stdout = sys_stdout
+            sys.stderr = sys_stderr
 
-    def run_from_argv(self, website, command, argv, stdout=None, stderr=None,
-                      **kwargs):
-        parser = self.create_parser(command)
-        options = parser.parse_args(argv)
-        self._website = website
-        self.execute(options, stdout=stdout, stderr=stderr, **kwargs)
-        return self
-    
     def handle(self, site_factory, options):
         """The actual logic of the command. Subclasses must implement
         this method.
@@ -127,7 +123,7 @@ built-in djpcms commands. User-supplied commands should override this method.
         site = self._website()
         self.setup_logging(site.settings, options)
         return site
-        
+
     def setup_logging(self, settings, options):
         '''Setup logging for :class:`Command`. Override if you need to.'''
         LOGGING = {

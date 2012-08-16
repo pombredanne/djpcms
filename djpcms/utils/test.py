@@ -3,7 +3,7 @@ import json
 import os
 import re
 import sys
-from collections import Mapping, namedtuple
+from collections import Mapping
 from io import StringIO
 
 from pulsar.apps.test import unittest, HttpTestClient
@@ -21,17 +21,23 @@ from djpcms.utils import orms
 from djpcms.utils.httpurl import Headers
 
 from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
-                     urlparse, BytesIO
+                     urlparse, ispy3k
+
+if ispy3k:
+    from io import StringIO as Stream
+else:
+    from io import BytesIO as Stream
 
 skipUnless = unittest.skipUnless
-command_and_output = namedtuple('command_and_output', 'command output error')
 CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
 
 
 class TestWebSite(WebSite):
+    '''The website for testing. It delegates the loading to the
+:meth:`TestCase.load_site` method.'''
     def __init__(self, test):
         self.test = test
-        super(TestWebSite,self).__init__()
+        super(TestWebSite, self).__init__()
 
     def load(self):
         return self.test.load_site(self)
@@ -56,27 +62,21 @@ easy testing web site applications.'''
     def _post_teardown(self):
         orms.flush_models()
 
+    #    DJPCMS SPECIFIC UTILITY METHODS
+
     def website(self):
-        '''Return a :class:`djpcms.WebSite` loader, a callable object
-returning a :class:`djpcms.Site`. Tipical usage::
-
-    website = self.website()
-
-    site = website()
-    wsgi = website.wsgi()
-'''
-        website = TestWebSite(self)
-        website.callbacks.extend(self.web_site_callbacks)
-        return website
+        '''Return a :class:`djpcms.cms.WebSite`.'''
+        if not hasattr(self, '_website'):
+            self._website = TestWebSite(self)
+            self._website.callbacks.extend(self.web_site_callbacks)
+        return self._website
 
     def site(self):
-        if not hasattr(self, '_site'):
-            self._site = self.website()()
-        return self._site
+        return self.website()()
 
     def load_site(self, website):
         '''Called by the *website* itself. Don't call directly unless you know
-what you are doing.'''
+what you are doing. Override if you need more granular control.'''
         settings=get_settings(settings=self.settings,
                                 APPLICATION_URLS=self.urls,
                                 INSTALLED_APPS=self.installed_apps)
@@ -85,13 +85,14 @@ what you are doing.'''
         return Site(settings)
 
     def fetch_command(self, command, argv=None):
-        std_io = StringIO()
-        err_io = StringIO()
+        '''Fetch a command.'''
         argv = ('test',) + tuple(argv or ())
-        command = fetch_command(self.website(), command, argv,
-                                stdout=std_io, stderr=std_io)
-        return command_and_output(command, std_io, err_io) 
-        
+        cmd = fetch_command(self.website(), command, argv,
+                            stdout=Stream(), stderr=Stream())
+        self.assertTrue(cmd.logger)
+        self.assertEqual(cmd.name, command)
+        return cmd
+
     def client(self, **kwargs):
         website = self.website()
         return HttpTestClient(self, website.wsgi(), **kwargs)

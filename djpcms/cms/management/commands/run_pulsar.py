@@ -6,7 +6,7 @@ from djpcms import cms
 
 
 class WSGIServer(wsgi.WSGIServer):
-    
+
     def handler(self):
         website = self.callable
         middleware = website.wsgi_middleware()
@@ -22,14 +22,12 @@ class AsyncTestPlugin(test.Plugin):
 
 class Command(cms.Command):
     help = "Starts a fully-functional Web server using pulsar."
-    
-    def run_from_argv(self, website, command, argv, **kwargs):
+
+    def get_options(self):
         #Override so that we use pulsar parser
-        self._website = website
-        self.execute(argv, **kwargs)
-        return self
-        
-    def handle(self, argv):
+        return self.argv
+
+    def handle(self, argv, start=True):
         website = self._website
         site = self.website(argv)
         # get the full path of the setting file
@@ -45,7 +43,10 @@ class Command(cms.Command):
         callback = getattr(website, 'on_pulsar_app_ready', None)
         if callback:
             callback(app)
-        app.start()
-        
+        if start:
+            app.start()
+        else:
+            return app
+
     def setup_logging(self, settings, options):
         pass

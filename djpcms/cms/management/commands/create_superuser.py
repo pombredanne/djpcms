@@ -79,5 +79,5 @@ class Command(cms.Command):
             params['username'] = username
             params['password'] = password
         user = site.permissions.create_superuser(**params)
-        self.stdout.write("Superuser %s created successfully.\n" % user)
+        self.logger.info("Superuser %s created successfully.\n" % user)
 

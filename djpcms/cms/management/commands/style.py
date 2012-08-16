@@ -1,5 +1,3 @@
-'''Requires style
-'''
 import os
 import logging
 from optparse import make_option
@@ -14,7 +12,7 @@ LOGGER = logging.getLogger('djpcms.command.style')
 def render(site, theme, target, apps, mediaurl, dump_variables):
     LOGGER.info('Building theme "%s"' % theme)
     module = None
-    applications = list(apps or site.settings.INSTALLED_APPS) 
+    applications = list(apps or site.settings.INSTALLED_APPS)
     imported = {}
     mediaurl = mediaurl or site.settings.MEDIA_URL
     if site.settings.SITE_MODULE not in applications:
@@ -25,7 +23,7 @@ def render(site, theme, target, apps, mediaurl, dump_variables):
         if modname in imported:
             continue
         try:
-            imported[modname] = import_module(modname) 
+            imported[modname] = import_module(modname)
             LOGGER.info('Successfully imported style from "{0}".'\
                         .format(modname))
         except ImportError as e:
@@ -42,7 +40,7 @@ def render(site, theme, target, apps, mediaurl, dump_variables):
                     pfil = pdir + '.py'
                     if os.path.exists(pdir) or os.path.exists(pfil):
                         log = True
-            if log:  
+            if log:
                 LOGGER.error('Cannot import application {0}: "{1}"'\
                             .format(app,e))
     #mediaurl = mediaurl
@@ -74,7 +72,7 @@ class Command(cms.Command):
                                 description='Specify the media url.\
  Override settings value.')
                    )
-    
+
     def handle(self, options):
         site = self.website(options)
         target = options.file
@@ -89,6 +87,5 @@ class Command(cms.Command):
             target = '%s.json' % self.theme
         self.target = target
         render(site, self.theme, self.target, apps, mediaurl, options.variables)
-        
-        
-        
+
+

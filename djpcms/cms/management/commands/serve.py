@@ -10,7 +10,7 @@ DEFAULT_PORT = 8060
 LOGGER = logging.getLogger('djpcms.server')
 
 
-def serve(site_factory, port = 0, use_reloader = False, dry = False):
+def serve(site_factory, port=0, use_reloader=False, dry=False):
     """Create a new WSGI server listening on `host` and `port` for `app`"""
     server = WSGIServer(('', port), WSGIRequestHandler)
     server.set_app(site_factory.wsgi())
@@ -35,20 +35,20 @@ class Command(cms.Command):
             default = False,
             description='Run the command without actually starting the server')
     )
-    
+
     def handle(self, options):
         site = self.website(options)
         serve(self._website, port=options.port, dry=options.dryrun)
-        
+
     def setup_logging(self, settings, options):
         LOGGING = settings.LOGGING
         if LOGGING:
             if settings.DEBUG:
                 handlers = ['console']
-                LOGGING['handlers']['console']['level'] = 'DEBUG' 
+                LOGGING['handlers']['console']['level'] = 'DEBUG'
                 LOGGING['root'] = {
                                 'handlers': handlers,
                                 'level': 'DEBUG',
                                 }
             dictConfig(settings.LOGGING)
-        
+

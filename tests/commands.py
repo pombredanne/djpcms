@@ -1,33 +1,30 @@
-import sys
 import os
-
 from djpcms.utils import test
-from djpcms.cms import fetch_command, execute, Command
 
 
 class CommandTests(test.TestCase):
-    
+
     def testServe(self):
-        c = fetch_command(self.website(), 'serve')
-        self.assertTrue(isinstance(c, Command))
-        self.assertEqual(c.help,\
+        command = self.fetch_command('serve')
+        self.assertEqual(command.help,\
 "Serve the application using WSGIserver from the standard library.")
-        self.assertEqual(len(c.option_list),2)
-        
+        self.assertEqual(len(command.option_list), 2)
+
     def testServeDry(self):
-        argv = sys.argv[:1] + ['serve','9000','--dryrun']
-        execute(self.website(), argv)
-        
-    def testEnvironment(self):
-        argv = sys.argv[:1] + ['environ']
-        execute(self.website(), argv)
-        
+        command = self.fetch_command('serve', ['9000','--dryrun'])
+        command()
+
     def testStyle(self):
-        argv = sys.argv[:1] + ['style','-t','teststyle']
-        cmd = execute(self.website(), argv)
-        self.assertEqual(cmd.theme,'teststyle')
-        os.remove(cmd.target)
-        
+        command = self.fetch_command('style', ['-t','teststyle'])
+        command()
+        self.assertEqual(command.theme, 'teststyle')
+        os.remove(command.target)
+
     def testShell(self):
-        c = fetch_command(self.website(), 'shell')
-        self.assertTrue(isinstance(c,Command)), m
+        command = self.fetch_command('shell')
+
+    def test_run_pulsar(self):
+        command = self.fetch_command('run_pulsar')
+        self.assertEqual(len(command.option_list), 0)
+        app = command(start=False)
+        self.assertTrue(app)

@@ -33,7 +33,7 @@ def load_command_class(app_name, name):
     (ImportError, AttributeError) are allowed to propagate.
     """
     module = import_module('%s.management.commands.%s' % (app_name, name))
-    return module.Command()
+    return module.Command(name)
 
 def execute(website, argv=None, stdout=None, stderr=None):
     '''Execute a command against a sites instance'''
@@ -42,10 +42,8 @@ def execute(website, argv=None, stdout=None, stderr=None):
 
 def fetch_command(website, command, argv=None, stdout=None, stderr=None):
     utility = ManagementUtility(website, argv)
-    cmd = utility.fetch_command(command)
-    return lambda **kwargs: cmd.run_from_argv(website, command, utility.argv,
-                                              stdout=stdout, stderr=stderr,
-                                              **kwargs)
+    return utility.command_to_run(command, utility.argv,
+                                  stdout=stdout, stderr=stderr)
 
 
 class ManagementUtility(object):
@@ -112,7 +110,11 @@ appropriate command called from the command line (usually
             klass = load_command_class(app_name, subcommand)
         return klass
 
-    def execute(self, stdout=None, stderr=None):
+    def command_to_run(self, command, argv, stdout=None, stderr=None):
+        cmd = self.fetch_command(command)
+        return cmd.clone(self.website, argv, stdout=stdout, stderr=stderr)
+
+    def execute(self, stdout=None, stderr=None, **kwargs):
         """Given the command-line arguments, this figures out which
 subcommand is being run, creates a parser appropriate to that command,
 and runs it."""
@@ -123,10 +125,10 @@ and runs it."""
         parser = self.get_parser(add_help=False)
         args, argv = parser.parse_known_args(argv)
         if args.command:
-            # Command is available. delegate the arg parsing to it
-            cmd = self.fetch_command(args.command)
-            return cmd.run_from_argv(self.website, args.command, argv,
-                                     stdout=stdout, stderr=stderr)
+            # Command is available. delegate the argv parsing to it
+            command = self.command_to_run(args.command, argv,
+                                          stdout=stdout, stderr=stderr)
+            return command(**kwargs)
         else:
             # this should fail unless we pass -h
             parser = self.get_parser(nargs=1)

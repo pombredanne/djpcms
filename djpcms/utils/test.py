@@ -3,7 +3,8 @@ import json
 import os
 import re
 import sys
-from collections import Mapping
+from collections import Mapping, namedtuple
+from io import StringIO
 
 from pulsar.apps.test import unittest, HttpTestClient
 
@@ -14,7 +15,7 @@ except ImportError: # pragma nocover
 
 import djpcms
 from djpcms import views, forms
-from djpcms.cms import Site, WebSite, get_settings
+from djpcms.cms import Site, WebSite, get_settings, fetch_command
 from djpcms.cms.formutils import fill_form_data
 from djpcms.utils import orms
 from djpcms.utils.httpurl import Headers
@@ -23,7 +24,7 @@ from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                      urlparse, BytesIO
 
 skipUnless = unittest.skipUnless
-
+command_and_output = namedtuple('command_and_output', 'command output error')
 CONTENT_TYPE_RE = re.compile('.*; charset=([\w\d-]+);?')
 
 
@@ -83,6 +84,14 @@ what you are doing.'''
         website.add_response_middleware(self.response_middleware())
         return Site(settings)
 
+    def fetch_command(self, command, argv=None):
+        std_io = StringIO()
+        err_io = StringIO()
+        argv = ('test',) + tuple(argv or ())
+        command = fetch_command(self.website(), command, argv,
+                                stdout=std_io, stderr=std_io)
+        return command_and_output(command, std_io, err_io) 
+        
     def client(self, **kwargs):
         website = self.website()
         return HttpTestClient(self, website.wsgi(), **kwargs)

@@ -1,21 +1,21 @@
 '''A dynamic content management system using jQuery and Python'''
-VERSION = (0, 9, 0)
+VERSION = (0, 9, 0, 'alpha', 0)
 
+import os
+import sys
+
+from .utils.version import get_version
 
 # This list is updated by the views.appsite.appsite handler
 empty_choice = ('','-----------------')
 
 
-__version__   = '.'.join(map(str,VERSION))
-__license__   = "BSD"
-__author__    = "Luca Sbardella"
-__contact__   = "luca.sbardella@gmail.com"
-__homepage__  = "http://djpcms.com/"
-__docformat__ = "restructuredtext"
-
-
-import os
-import sys
+__version__ = version = get_version(VERSION)
+__license__ = "BSD"
+__author__ = "Luca Sbardella"
+__contact__ = "luca.sbardella@gmail.com"
+__homepage__ = "http://djpcms.com/"
+__docformat__ = "restructuredtext"
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 LIBRARY_NAME = os.path.basename(PACKAGE_DIR)

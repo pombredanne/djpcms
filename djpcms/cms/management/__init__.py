@@ -43,8 +43,9 @@ def execute(website, argv=None, stdout=None, stderr=None):
 def fetch_command(website, command, argv=None, stdout=None, stderr=None):
     utility = ManagementUtility(website, argv)
     cmd = utility.fetch_command(command)
-    return lambda: cmd.run_from_argv(website, command, argv,
-                                     stdout=stdout, stderr=stderr)
+    return lambda **kwargs: cmd.run_from_argv(website, command, utility.argv,
+                                              stdout=stdout, stderr=stderr,
+                                              **kwargs)
 
 
 class ManagementUtility(object):

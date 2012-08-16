@@ -221,11 +221,11 @@ grid system.'''
 class page(elem):
     '''HTML layout for a page. It is the first (and only) div element within
 the body tag. A page contains a list of :class:`container`.'''
-    columns = 12
+    grid_columns = 12
     role = 'page'
     
     def __init__(self, *containers, **kwargs):
-        self.columns = kwargs.pop('columns', self.columns)
+        self.grid_columns = kwargs.pop('columns', self.grid_columns)
         if not containers:
             containers = (container('content'),)
         super(page, self).__init__(*containers, **kwargs)

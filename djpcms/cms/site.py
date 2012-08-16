@@ -73,7 +73,7 @@ Default ``None``
         else:
             sett = '{0}.py'.format(os.path.join(site_path,settings))
             if os.path.isfile(sett):
-                settings_module_name = '{0}.{1}'.format(name,settings)
+                settings_module_name = '{0}.{1}'.format(name, settings)
             else:
                 settings_module_name = settings
     else:

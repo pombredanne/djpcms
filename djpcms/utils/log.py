@@ -2,7 +2,6 @@ import logging
 import sys
 
 from pulsar.utils.log import dictConfig, NullHandler
-from pulsar.utils.version import get_version
 
 
 # We can't log memory info without psutil

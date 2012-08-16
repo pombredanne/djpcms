@@ -35,7 +35,7 @@ def get_def_username(site):
 class Command(cms.Command):
     help = 'Used to create a superuser.'
 
-    def handle(self, options):
+    def handle(self, options, interactive=True, **params):
         site = self.website(options)
         if not site.User:
             raise RuntimeError('User model not available')
@@ -45,37 +45,39 @@ class Command(cms.Command):
         input_msg = 'Username'
         if def_username:
             input_msg += ' (Leave blank to use %s)' % def_username
-        try:
-            # Get a username
-            while not username:
-                username = input(input_msg + ': ')
-                if def_username and username == '':
-                    username = def_username
-                if not RE_VALID_USERNAME.match(username):
-                    sys.stderr.write('Error: That username is invalid. Use '
-                                     'only letters, digits and underscores.\n')
-                    username = None
-                elif site.permissions.get_user(username=username):
-                    sys.stderr.write("Error: That username is already taken.\n")
-                    username = None
-            # Get a password
-            while 1:
-                if not password:
-                    password = getpass.getpass()
-                    password2 = getpass.getpass('Password (again): ')
-                    if password != password2:
-                        sys.stderr.write("Error: Your passwords didn't match.\n")
+        if interactive:
+            try:
+                # Get a username
+                while not username:
+                    username = input(input_msg + ': ')
+                    if def_username and username == '':
+                        username = def_username
+                    if not RE_VALID_USERNAME.match(username):
+                        sys.stderr.write('Error: That username is invalid. Use '
+                                         'only letters, digits and underscores.\n')
+                        username = None
+                    elif site.permissions.get_user(username=username):
+                        sys.stderr.write("Error: That username is already taken.\n")
+                        username = None
+                # Get a password
+                while 1:
+                    if not password:
+                        password = getpass.getpass()
+                        password2 = getpass.getpass('Password (again): ')
+                        if password != password2:
+                            sys.stderr.write("Error: Your passwords didn't match.\n")
+                            password = None
+                            continue
+                    if password.strip() == '':
+                        sys.stderr.write("Error: Blank passwords aren't allowed.\n")
                         password = None
                         continue
-                if password.strip() == '':
-                    sys.stderr.write("Error: Blank passwords aren't allowed.\n")
-                    password = None
-                    continue
-                break
-        except KeyboardInterrupt:
-            sys.stderr.write("\nOperation cancelled.\n")
-            sys.exit(1)
-        user = site.permissions.create_superuser(username=username,
-                                                 password=password)
+                    break
+            except KeyboardInterrupt:
+                sys.stderr.write("\nOperation cancelled.\n")
+                sys.exit(1)
+            params['username'] = username
+            params['password'] = password
+        user = site.permissions.create_superuser(**params)
         self.stdout.write("Superuser %s created successfully.\n" % user)
 

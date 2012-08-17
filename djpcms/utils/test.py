@@ -15,7 +15,8 @@ except ImportError: # pragma nocover
 
 import djpcms
 from djpcms import views, forms
-from djpcms.cms import Site, WebSite, get_settings, fetch_command
+from djpcms.cms import Site, WebSite, get_settings, fetch_command, Request
+from djpcms.cms.request import RequestCache
 from djpcms.cms.formutils import fill_form_data
 from djpcms.utils import orms
 from djpcms.utils.httpurl import Headers
@@ -96,6 +97,11 @@ what you are doing. Override if you need more granular control.'''
     def client(self, **kwargs):
         website = self.website()
         return HttpTestClient(self, website.wsgi(), **kwargs)
+
+    def dummy_request(self, url='/', instance=None, **environ):
+        request = Request(environ, None, instance, url)
+        environ['DJPCMS'] = RequestCache(request)
+        return request
 
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site

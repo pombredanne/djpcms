@@ -236,7 +236,7 @@ def headers_from_groups(pagination, groups):
             yield col
 
 
-def table_toolbox(request, appmodel=None, all=True):
+def table_toolbox(request, appmodel=None, perm_level=None, all=True):
     '''\
 Create a toolbox for a table if possible. A toolbox is created when
 an application based on model is available.
@@ -251,7 +251,8 @@ an application based on model is available.
     bulk_actions = []
     toolbox = {}
     for name, description, pcode in pagination.bulk_actions:
-        if request.has_permission(pcode, model=model):
+        if (perm_level is None and request.has_permission(pcode, model=model))\
+                or perm_level >= pcode:
             bulk_actions.append((name, description))
     if bulk_actions:
         toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}
@@ -273,7 +274,8 @@ an application based on model is available.
     return toolbox
 
 
-def paginationResponse(request, query, block=None, toolbox=None, **kwargs):
+def paginationResponse(request, query, block=None, toolbox=None,
+                       perm_level=None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
 
 :parameter query: a query on a model.
@@ -292,7 +294,8 @@ it looks for the following inputs in the request data:
     elif hasattr(query, 'model'):
         appmodel = request.app_for_model(query.model)
     if toolbox is None:
-        toolbox = table_toolbox(request, appmodel=appmodel)
+        toolbox = table_toolbox(request, appmodel=appmodel,
+                                perm_level=perm_level)
     mapper = appmodel.mapper
     inputs = request.REQUEST
     headers = toolbox['headers']

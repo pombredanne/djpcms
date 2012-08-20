@@ -5,8 +5,14 @@ import tempfile
 import cProfile as profiler
 import pstats
 from io import StringIO
- 
-from djpcms.html import Pagination, Widget, tabs
+
+from djpcms.html import Pagination, Widget, tabs, html_doc_stream
+from djpcms.utils.httpurl import ispy3k, to_bytes
+
+if ispy3k:
+    from io import StringIO as Stream
+else:
+    from io import BytesIO as Stream
 
 words_re = re.compile( r'\s+' )
 line_func = re.compile(r'(?P<line>\d+)\((?P<func>\w+)\)')
@@ -30,19 +36,19 @@ profile_table3 = Pagination(('module','filename','time','cumtime'),
 
 
 class mod_helper(object):
-    
+
     def __init__(self, app = None):
         self.app = app
-        
+
     def __call__(self, res):
         app = self.app
         res = res.groups()
-        if app: 
+        if app:
             bits = res[0]
         else:
             app,bits = res
         return app,bits
-            
+
 
 
 def add_app_group(app,apps,groupre):
@@ -51,8 +57,8 @@ def add_app_group(app,apps,groupre):
         rex = "^.*/" + app + "/(.*)"
         groupre.append((mod_helper(app),re.compile(rex)))
         apps.add(app)
-    
-    
+
+
 def group_prefix(settings):
     '''Loop over applications so that we can group them during profiling'''
     global group_prefix_re
@@ -67,13 +73,13 @@ def group_prefix(settings):
             add_app_group(app,apps,group_prefix_re)
         for app in deferred:
             add_app_group(app,apps,group_prefix_re)
-    
+
         # module in site_packages
         for rex in ("^.*/site-packages/(\w+)/(.*)",
                     "^.*/dist-packages/(\w+)/(.*)"):
-            group_prefix_re.append((mod_helper(),re.compile(rex))) 
+            group_prefix_re.append((mod_helper(),re.compile(rex)))
     return group_prefix_re
-    
+
 
 def get_group(filename,settings):
     for func,rex in group_prefix(settings):
@@ -81,7 +87,7 @@ def get_group(filename,settings):
         x = rex.match(filename)
         if x:
             return func(x)
-        
+
 
 def summary_for_files(stats_str, mygroups, sum, sumc, settings):
     other = 'other'
@@ -99,13 +105,13 @@ def summary_for_files(stats_str, mygroups, sum, sumc, settings):
         if match:
             lineno,func = match.groups()
             filename = ''.join(filenames)
-            filename = filename.replace('\\','/')    
+            filename = filename.replace('\\','/')
             mod,filename = get_group(filename,settings) or (other,filename)
         else:
             mod,lineno,func = other,'',''
         sum += time
         sumc += cumtime
-        
+
         if not mod in mygroups:
             mygroups[mod] = {'time':0,
                              'cumtime':0,
@@ -119,7 +125,7 @@ def summary_for_files(stats_str, mygroups, sum, sumc, settings):
                                'cumtime':0}
         files[filename]['time'] += time
         files[filename]['cumtime'] += cumtime
-            
+
         yield ncalls,tcalls,time,percall,cumtime,percall2,mod,filename,\
                 lineno,func
 
@@ -131,7 +137,7 @@ def make_stat_table(request, stats_str):
     settings = request.settings
     data1 = list(summary_for_files(stats_str, groups, sum, sumc, settings))
     table1 = profile_table1.widget(data1)
-    
+
     data2 = []
     data3 = []
     for mod,val in groups.items():
@@ -143,7 +149,7 @@ def make_stat_table(request, stats_str):
     return (('global',table1.render(request)),
             ('modules',table2.render(request)),
             ('files',table3.render(request)))
-    
+
 
 def data_stream(lines, num = None):
     if num:
@@ -158,34 +164,20 @@ def data_stream(lines, num = None):
             except:
                 continue
             yield fields
-                        
+
 
 def make_header(headers):
     for h in headers:
         if h:
             yield '<p>{0}</p>'.format(h)
 
-
-#class profile_response(objectk):
-#    
-#    def __init__(self, callable):
-#        self.tmp = tempfile.mktemp()
-#        self.out = StringIO()    
-#        self.prof = profiler.Profile()
-#        self.response = prof.runcall(callback, environ, start_response)
-    
-def profile_response(environ, start_response, callback):
-    """Displays profiling for any view.
-http://yoursite.com/yourview/?prof
-
-Add the "prof" key to query string by appending ?prof (or &prof=)
-and you'll see the profiling results in your browser."""
+def profile(request, callback, Response):
     tmp = tempfile.mktemp()
-    out = StringIO()    
+    out = Stream()
     prof = profiler.Profile()
-    response = prof.runcall(callback, environ, start_response)
+    response = prof.runcall(callback)
     prof.dump_stats(tmp)
-    stats = pstats.Stats(tmp,stream=out)
+    stats = pstats.Stats(tmp, stream=out)
     #stats.strip_dirs()          # Must happen prior to sort_stats
     stats.sort_stats('time', 'calls')
     stats.print_stats()
@@ -194,11 +186,31 @@ and you'll see the profiling results in your browser."""
     stats_str = stats_str.split('\n')
     headers = '\n'.join(make_header(stats_str[:4]))
     data = data_stream(stats_str[6:],100)
-    request = environ['DJPCMS'].request
     tables = make_stat_table(request, data)
     w = Widget(cn = 'profiler')
     w.add(Widget('div', headers, cn = 'legend'))
     w.add(tabs(tables))
-    context = {'inner': w.render(request),
-               'title': 'Profile of {0}'.format(request.path)}    
-    return request.view.response.render_to_response(request, context)
+    content = w.render(request)
+    return to_bytes('\n'.join(html_doc_stream(request, content, 200)))
+
+
+class profile_generator(object):
+
+    def __init__(self, request, gen, Response):
+        self.request = request
+        self.gen = gen
+        self.Response = Response
+
+    def __iter__(self):
+        yield profile(self.request, self.generate, self.Response)
+
+    def generate(self):
+        data = []
+        for d in self.gen:
+            data.append(d)
+        return data
+
+
+
+
+

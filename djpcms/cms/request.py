@@ -23,10 +23,10 @@ from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  has_empty_content
 
 from .tree import DjpcmsTree, BadNode
+from .profiler import profile_generator
 from .exceptions import *
 
 absolute_http_url_re = re.compile(r"^https?://", re.I)
-
 
 __all__ = ['Response', 'Request', 'is_xhr']
 
@@ -34,23 +34,13 @@ __all__ = ['Response', 'Request', 'is_xhr']
 def is_xhr(environ):
     return environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-def save_on_cache(f):
-    name = getattr(f,'cache_key',f.__name__)
-    def _(self,request):
-        cache = request.cache
-        if name not in cache:
-            cache[name] = f(self,request)
-        return cache[name]
-    return _
-
-
-def save_on_request(f):
-    name = '_cached_function_' + f.__name__
-    def _(self,request):
-        if not hasattr(request,name):
-            setattr(request, name, f(self,request))
-        return getattr(request,name)
-    return _
+def get_request(environ, charset=None):
+    request_cache = environ.get('DJPCMS')
+    if request_cache is None:
+        request = Request(environ)
+        request.encoding = charset or 'utf-8'
+        environ['DJPCMS'] = RequestCache(request)
+    return environ['DJPCMS'].request
 
 def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
@@ -85,17 +75,14 @@ def build_request(environ, node, cache, instance):
             node.urlargs.update(urlargs)
         url = node.url()
     request_cache = environ.get('DJPCMS')
-    if request_cache is None:
-        if url is None:
-            raise ValueError('Critical error in request')
-        request = Request(environ, node, instance, url, exc_info)
-        environ['DJPCMS'] = RequestCache(request)
-    elif cache and url is not None:
+    if url is not None:
         requests = request_cache['REQUESTS']
         request = requests.get(url)
         if request is None:
             request = Request(environ, node, instance, url, exc_info)
             requests[url] = request
+        else:
+            request.update(node, instance, url, exc_info)
     else:
         # if we are not caching, return a request regardless if it has
         # a valid url or not
@@ -117,15 +104,17 @@ class RequestCache(dict):
 
     @property
     def media(self):
-        if not hasattr(self, '_media'):
-            m = self.view.default_media(self.request)
-            if m is None:
-                m = media.Media(settings=self.view.settings)
-            self._media = m
-        return self._media
+        view = self.view
+        if view is not None:
+            if not hasattr(self, '_media'):
+                m = view.default_media(self.request)
+                if m is None:
+                    m = media.Media(settings=view.settings)
+                self._media = m
+            return self._media
 
 
-class Request(UnicodeMixin):
+class Request(object):
     '''A wrapper for the WSGI_ *environ* dictionary.
 
 .. attribute:: environ
@@ -162,13 +151,13 @@ class Request(UnicodeMixin):
 
 .. _WSGI: http://www.wsgi.org/en/latest/index.html
 '''
-    view = None
-    page_editing = False
-    def __init__(self, environ, node, instance, url, exc_info=None):
+    encoding = None
+    page_editing = None
+
+    def __init__(self, environ, node=None, instance=None, url=None,
+                 exc_info=None):
         self.environ = environ
         self.node = node
-        if self.node is not None:
-            self.view = node.view
         self.instance = instance
         self.url = url
         self.exc_info = exc_info
@@ -181,63 +170,6 @@ class Request(UnicodeMixin):
 
     def get(self, key, default=None):
         return self.environ.get(key, default)
-
-    def for_path(self, path=None, urlargs=None, instance=None, cache=True):
-        '''Create a new :class:`Request` from a given *path*. Additional
-path key-valued parameters can be passed via the *urlargs* parameter.'''
-        path = path if path is not None else self.path
-        request = self.REQUESTS.get(path)
-        if request:
-            return request
-        instance = instance if instance is not None else self.instance
-        urlargs = urlargs if urlargs is not None else self.urlargs
-        node = self.tree.get(path, urlargs)
-        if not node:
-            try:
-                node = self.tree.resolve(path)
-            except Http404:
-                return None
-        return make_request(self.environ, node, instance, cache=cache)
-
-    def for_model(self, model=None, all=False, root=False, name=None,
-                  urlargs=None, instance=None):
-        '''Create a new :class:`Request` instance for a model class. The
-model can be specified directly or indirectly via the *instance* parameter.
-
-:parameter model: model class to search.
-:parameter model: all check all sites.
-:parameter root: Start the search from the root site.
-:parameter name: Optional view name if you require a non standard view
-    (root view when instance is ``None`` or the
-    :meth:`djpcms.views.Application.view_for_instance` result).
-:parameter urlargs: url variables.
-:parameter instance: optional instance of model.
-
-If *instance* is provided, *model* is given by the instance class and therefore
-overrides the *model* input. In addition if *name* is not given and *instance*
-is available, the name is set to ``view``.
-'''
-        if instance is None:
-            model = model or self.model
-        else:
-            mapper = orms.mapper(instance)
-            if not mapper:
-                return
-            model = mapper.model
-        app = self.app_for_model(model, all=all, root=root)
-        return self.for_app(app, name, instance, urlargs)
-
-    def for_app(self, app, name=None, instance=None, urlargs=None):
-        if app:
-            view = app.views.get(name) if name else None
-            if not view and instance:
-                view = app.view_for_instance(self, instance)
-            view = view or app.root_view
-            if view and not isinstance(view, self.__class__):
-                view = self.for_path(view.path,
-                                     urlargs=urlargs,
-                                     instance=instance)
-            return view
 
     def __unicode__(self):
         if self.cache.request == self:
@@ -313,9 +245,76 @@ is available, the name is set to ``view``.
     def cache(self):
         return self.environ.get('DJPCMS')
 
+    def update(self, node, instance, url, exc_info):
+        self.node = node
+        self.instance = instance
+        self.url = url
+        self.exc_info = exc_info
+
+    def for_path(self, path=None, urlargs=None, instance=None, cache=True):
+        '''Create a new :class:`Request` from a given *path*. Additional
+path key-valued parameters can be passed via the *urlargs* parameter.'''
+        path = path if path is not None else self.path
+        request = self.REQUESTS.get(path)
+        if request:
+            return request
+        instance = instance if instance is not None else self.instance
+        urlargs = urlargs if urlargs is not None else self.urlargs
+        node = self.tree.get(path, urlargs)
+        if not node:
+            try:
+                node = self.tree.resolve(path)
+            except Http404:
+                return None
+        return make_request(self.environ, node, instance, cache=cache)
+
+    def for_model(self, model=None, all=False, root=False, name=None,
+                  urlargs=None, instance=None):
+        '''Create a new :class:`Request` instance for a model class. The
+model can be specified directly or indirectly via the *instance* parameter.
+
+:parameter model: model class to search.
+:parameter model: all check all sites.
+:parameter root: Start the search from the root site.
+:parameter name: Optional view name if you require a non standard view
+    (root view when instance is ``None`` or the
+    :meth:`djpcms.views.Application.view_for_instance` result).
+:parameter urlargs: url variables.
+:parameter instance: optional instance of model.
+
+If *instance* is provided, *model* is given by the instance class and therefore
+overrides the *model* input. In addition if *name* is not given and *instance*
+is available, the name is set to ``view``.
+'''
+        if instance is None:
+            model = model or self.model
+        else:
+            mapper = orms.mapper(instance)
+            if not mapper:
+                return
+            model = mapper.model
+        app = self.app_for_model(model, all=all, root=root)
+        return self.for_app(app, name, instance, urlargs)
+
+    def for_app(self, app, name=None, instance=None, urlargs=None):
+        if app:
+            view = app.views.get(name) if name else None
+            if not view and instance:
+                view = app.view_for_instance(self, instance)
+            view = view or app.root_view
+            if view and not isinstance(view, self.__class__):
+                view = self.for_path(view.path,
+                                     urlargs=urlargs,
+                                     instance=instance)
+            return view
+
     ############################################################################
-    #    View methods and properties
+    #    DJPCMS shortcuts
     ############################################################################
+    @property
+    def view(self):
+        if self.node:
+            return self.node.view
 
     @property
     def valid(self):
@@ -357,10 +356,6 @@ is available, the name is set to ``view``.
     @property
     def appmodel(self):
         return self.view.appmodel
-
-    @lazyproperty
-    def encoding(self):
-        return self.view.encoding(self)
 
     @lazyproperty
     def content_type(self):
@@ -553,18 +548,26 @@ A shortcut for :meth:`ViewHandler.render`'''
             if isinstance(request, Request):
                 yield request
 
+
+
+
 Response = WsgiResponse
 
 
-class DjpcmsResponseGenerator(WsgiResponseGenerator):
-    '''Asynchronous response generator invoked by the djpcms WSGI middleware'''
-    def __init__(self, website, environ, start_response):
+class RequestMiddleware(object):
+    def __init__(self, website):
         self.website = website
-        super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
 
     @property
     def site(self):
         return self.website()
+
+
+class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
+    '''Asynchronous response generator invoked by the djpcms WSGI middleware'''
+    def __init__(self, website, environ, start_response):
+        super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
+        RequestMiddleware.__init__(self, website)
 
     def __iter__(self):
         #query = self.environ.get('QUERY_STRING','')
@@ -677,3 +680,33 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator):
             return content
         except Exception as e:
             return as_failure(e)
+
+
+class request_start_middleware(RequestMiddleware):
+
+    def __call__(self, environ, start_response):
+        settings = self.site.settings
+        get_request(environ, settings.DEFAULT_CHARSET)
+
+
+class request_end_middleware(RequestMiddleware):
+    '''Djpcms WSGI handler.'''
+    @property
+    def route(self):
+        return self.site.route
+
+    def __str__(self):
+        return self.site.path
+
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__, self)
+
+    def __call__(self, environ, start_response):
+        settings = self.site.settings
+        request = get_request(environ, settings.DEFAULT_CHARSET)
+        query = request.GET
+        PK = settings.get('PROFILING_KEY')
+        g = DjpcmsResponseGenerator(self.website, environ, start_response)
+        if PK and PK in query:
+            g = profile_generator(request, g, Response)
+        return g

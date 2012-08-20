@@ -18,8 +18,8 @@ from djpcms.utils.path import Path
 from djpcms.utils.structures import OrderedDict
 
 from .conf import Config
-from .profiler import profile_response
-from .request import DjpcmsResponseGenerator, WsgiHandler
+from .request import request_start_middleware, request_end_middleware,\
+                     WsgiHandler
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
@@ -103,29 +103,6 @@ def add_default_handlers(site):
 def request_processor(f):
     f.request_processor = True
     return f
-
-
-class WSGI(object):
-    '''Djpcms WSGI handler.'''
-    def __init__(self, website):
-        self.website = website
-
-    @property
-    def site(self):
-        return self.website()
-
-    @property
-    def route(self):
-        return self.site.route
-
-    def __str__(self):
-        return self.site.path
-
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self)
-
-    def __call__(self, environ, start_response):
-        return DjpcmsResponseGenerator(self.website, environ, start_response)
 
 
 class Site(ResolverMixin, ViewRenderer):
@@ -485,9 +462,10 @@ for djpcms web sites.
     def wsgi_middleware(self):
         '''Return a list of WSGI middleware for serving wsgi requests.'''
         site = self()
-        m = self._wsgi_middleware or []
-        m = copy(m)
-        m.append(WSGI(self))
+        m = [request_start_middleware(self)]
+        if self._wsgi_middleware:
+            m.extend(self._wsgi_middleware)
+        m.append(request_end_middleware(self))
         return m
 
     def response_middleware(self):

@@ -2,6 +2,7 @@ import logging
 from copy import copy
 
 from djpcms import Renderer, forms, media, ajax
+from djpcms.html import NON_BREACKING_SPACE
 from djpcms.utils.httpurl import range
 from djpcms.utils.text import nicename, slugify, escape, UnicodeMixin
 
@@ -522,7 +523,10 @@ if available. By defaults it invoke the ``query`` method in the
         pagination = pagination or self.pagination
         if pagination:
             for head in pagination.list_display:
-                yield head.code, head.name
+                name = head.name
+                if not name or name == NON_BREACKING_SPACE:
+                    name = head.description or head.code
+                yield head.code, name
 
     def success_message(self, request, response):
         return str(response)

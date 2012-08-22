@@ -198,3 +198,4 @@ def SelectWithAction(choices, action_url, **kwargs):
     s = Select(choices = choices, **kwargs).addClass('ajax actions')
     return a.render()+s.render()
 
+

@@ -18,6 +18,5 @@ def _icon(name, size=None, widget=None):
     else:
         return ''
 
-
 _icon_handler = _icon
     

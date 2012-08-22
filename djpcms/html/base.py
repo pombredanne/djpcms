@@ -75,11 +75,11 @@ def update_mapping(d, u):
 
 def html_trace(exc_info, plain=False):
     if exc_info:
-        error = Widget()
-        ptag = None if plain else 'p'
         trace = exc_info[2]
         if istraceback(trace):
             trace = traceback.format_exception(*exc_info)
+        error = Widget()
+        ptag = None if plain else 'p'
         for traces in trace:
             counter = 0
             for trace in traces.split('\n'):

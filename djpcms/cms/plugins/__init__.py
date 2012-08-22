@@ -145,6 +145,12 @@ Default: ``None``, the plugin has no arguments.'''
     def for_model(self, request):
         pass
 
+    def __repr__(self):
+        return 'Plugin: %s' % self.name
+
+    def __str__(self):
+        return self.__repr__()
+
     def arguments(self, args):
         try:
             kwargs = json.loads(args, object_hook=json_hook)

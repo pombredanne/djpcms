@@ -206,8 +206,7 @@ views::
             self.success_message = success_message
         if force_redirect is not None:
             self.force_redirect = force_redirect
-        if query:
-            self.query = query
+        self._query = query
         # Overrides
         self.PERM = permission if permission is not None else self.PERM
         if icon is not None:
@@ -275,6 +274,11 @@ views::
 
     def render(self, request, **kwargs):
         return self.appmodel.render(request, **kwargs)
+
+    def query(self, request, query=None, **kwargs):
+        if self._query and query is None:
+            query = self._query(request)
+        return self.appmodel.query(request, query=query, **kwargs)
 
     # AJAX VIEWS
     def ajax__autocomplete(self, request):

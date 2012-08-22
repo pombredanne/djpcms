@@ -405,7 +405,13 @@ is available, the name is set to ``view``.
     COOKIES = property(_get_cookies, _set_cookies)
 
     def get_host(self):
-        """Returns the HTTP host using the environment or request headers."""
+        '''Returns the HTTP host using the environment or request headers,
+using the algorithm from PEP 3333.
+SERVER_NAME combined with SCRIPT_NAME and PATH_INFO, can be used to
+complete the URL. Note, however, that HTTP_HOST, if present, should be used
+in preference to SERVER_NAME for reconstructing the request URL.
+SERVER_NAME and SERVER_PORT can never be empty strings, and so are always
+required.'''
         # We try three options, in order of decreasing preference.
         environ = self.environ
         if 'HTTP_X_FORWARDED_HOST' in environ:
@@ -413,7 +419,6 @@ is available, the name is set to ``view``.
         elif 'HTTP_HOST' in environ:
             host = environ['HTTP_HOST']
         else:
-            # Reconstruct the host using the algorithm from PEP 333.
             host = environ['SERVER_NAME']
             server_port = str(environ['SERVER_PORT'])
             if server_port != (self.is_secure and '443' or '80'):

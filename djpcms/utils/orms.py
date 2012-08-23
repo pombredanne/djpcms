@@ -66,7 +66,6 @@ class OrmWrapper(UnicodeMixin):
     DoesNotExist = DoesNotExist
     FieldValueError = DoesNotExist
     model = None
-    short_description = 'short_description'
 
     def __init__(self, model):
         self.model = model
@@ -159,15 +158,6 @@ filtering (usually id). Similar to :meth:`fileter` method.'''
         self.object_display = appmodel.object_display or self.list_display
         self.list_display_links = appmodel.list_display_links or []
         self.search_fields = appmodel.search_fields or []
-
-    def label_for_field(self, field):
-        if hasattr(field,'name'):
-            return field.name
-        elif hasattr(self.model,field):
-            fun = getattr(self.model,field)
-            if hasattr(fun,self.short_description):
-                return fun.short_description
-        return nicename(field)
 
     def id(self, obj):
         return obj.id

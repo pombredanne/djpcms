@@ -403,7 +403,7 @@ for djpcms web sites.
         self.callbacks = []
         params.pop('site', None)
         self.params = params
-
+        
     def _set_settings_file(self, settings):
         self._settings_file = settings
         self.local.pop('site',None)

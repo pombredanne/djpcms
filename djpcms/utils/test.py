@@ -58,13 +58,15 @@ easy testing web site applications.'''
     web_site_callbacks = []
 
     def _pre_setup(self):
-        orms.flush_models()
+        self.flush()
 
     def _post_teardown(self):
-        orms.flush_models()
+        self.flush()
 
     #    DJPCMS SPECIFIC UTILITY METHODS
-
+    def flush(self):
+        orms.flush_models()
+        
     def website(self):
         '''Return a :class:`djpcms.cms.WebSite`.'''
         if not hasattr(self, '_website'):
@@ -102,6 +104,12 @@ what you are doing. Override if you need more granular control.'''
         request = Request(environ, None, instance, url)
         environ['DJPCMS'] = RequestCache(request)
         return request
+    
+    def form_data(self, data, prefix=''):
+        if prefix:
+            data = dict((('%s%s' % (k,prefix), v) for k,v in data.items()))
+        data[forms.PREFIX_KEY] = prefix
+        return data
 
     def wsgi_middleware(self):
         '''Override this method to add wsgi middleware to the test site

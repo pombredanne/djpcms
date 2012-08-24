@@ -21,10 +21,13 @@ class Config(object):
             self.fill(settings_module)
         self.__dict__['path'] = path
         self.update(kwargs)
+        site_module = self.get('SITE_MODULE')
         apps = ['djpcms']
         for app in self.INSTALLED_APPS:
-            if app not in apps:
+            if app not in apps and app != site_module:
                 apps.append(app)
+        if site_module:
+            apps.append(site_module)
         self.INSTALLED_APPS = tuple(apps)
 
     def __repr__(self):

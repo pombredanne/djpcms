@@ -16,7 +16,8 @@ __all__ = (
 
 def add_message(request, level, message, extra_tags=''):
     """Add a message to the request using the 'messages' app."""
-    if hasattr(request,'session'):
+    session = request.session
+    if session is not None:
         session = request.session
         if MESSAGE_KEY in session:
             messages = session[MESSAGE_KEY]

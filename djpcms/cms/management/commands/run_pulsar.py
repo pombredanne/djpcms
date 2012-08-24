@@ -44,7 +44,7 @@ class Command(cms.Command):
         if callback:
             callback(app)
         if start:
-            app.start()
+            return app.start()
         else:
             return app
 

@@ -1,6 +1,8 @@
+from collections import Mapping
+
 from djpcms.media import js, Media
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.httpurl import itervalues
+from djpcms.utils.httpurl import itervalues, iteritems
 from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
@@ -23,7 +25,8 @@ __all__ = ['TextInput',
            'HiddenInput',
            'SelectWithAction',
            'DefinitionList',
-           'anchor_or_button']
+           'anchor_or_button',
+           'definition_list']
 
 
 class ValueWidget(WidgetMaker):
@@ -198,4 +201,9 @@ def SelectWithAction(choices, action_url, **kwargs):
     s = Select(choices = choices, **kwargs).addClass('ajax actions')
     return a.render()+s.render()
 
-
+def definition_list(data):
+    if isinstance(data, Mapping):
+        data = iteritems(data)
+    widget = Widget('div', cn=classes.object_definition)
+    items = (Widget('dl', pair) for pair in data)
+    return widget.add(items)

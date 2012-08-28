@@ -1,10 +1,26 @@
 import sys
 import os
+import io
 import unittest as test
 
 from djpcms.media.style import *
 from djpcms.apps.nav.style import topbar
         
+
+class TestStyling(test.TestCase):
+    
+    def get_original(self):
+        return set(css.body().all_css_children())
+        
+    def setUp(self):
+        self.original = self.get_original()
+        
+    def tearDown(self):
+        for c in list(css.body().all_css_children()):
+            if c not in self.original:
+                c.destroy()
+        self.assertEqual(self.original, self.get_original())
+
 
 class Tvariable(object):
     
@@ -37,14 +53,14 @@ class TestSymbol(test.TestCase):
     
     def testUnit(self):
         a = Variable('left')
-        self.assertNotEqual(a.unit,a.unit)
+        self.assertNotEqual(a.unit, a.unit)
         self.assertEqual(a.value,'left')
         
     def testNotEqual(self):
         a = Variable('left')
         b = Variable('bla')
-        self.assertNotEqual(a,a)
-        self.assertNotEqual(a,b)
+        self.assertNotEqual(a, a)
+        self.assertNotEqual(a, b)
     
     
 class TestSize(Tvariable,test.TestCase):
@@ -99,6 +115,12 @@ class TestSize(Tvariable,test.TestCase):
         self.assertEqual(b.value,5)
         self.assertEqual(str(b),'5px')
         self.assertRaises(TypeError,lambda: a/b)
+        
+    def testVariable(self):
+        v = Variables()
+        v.size = px(5)
+        self.assertEqual(str(v.size), '5px')
+        self.assertEqual(px(v.size), v.size)
         
 
 class TestSpacing(Tvariable,test.TestCase):
@@ -166,16 +188,28 @@ class TestSpacing(Tvariable,test.TestCase):
     def testVariable(self):
         # Create a named variable
         v = Variables()
-        v.bla = px(5)
-        # build a spacing from the named variable
-        sp = spacing(v.bla)
-        self.assertEqual(str(sp),'5px')
-        self.assertEqual(len(sp),1)
-        self.assertEqual(sp.top,px(5))
         #
-        v.foo = spacing(10)
+        v.bla = px(5)
+        sp = spacing(v.bla)
+        self.assertEqual(sp, v.bla)
+        self.assertEqual(sp.top, px(5))
+        self.assertEqual(str(sp), '5px')
+        #
+        v.foo = 5
         sp = spacing(v.foo)
-        self.assertEqual(str(sp),'10px')
+        # Not equal because there is no unit
+        self.assertNotEqual(sp, v.foo)
+        self.assertEqual(id(sp), id(v.foo))
+        self.assertRaises(AttributeError, lambda: sp.top)
+        self.assertEqual(str(sp), '5')
+        
+    def testBadVariable(self):
+        v = Variables()
+        v.bla = spacing(5, 4)
+        sp = spacing(v.bla, px(3))
+        self.assertEqual(sp.top, v.bla)
+        self.assertEqual(sp.bottom, v.bla)
+        self.assertRaises(TypeError, sp.tocss)
         
     def testMultiply(self):
         a = spacing(5, 10)
@@ -206,6 +240,22 @@ class TestVariables(test.TestCase):
         self.assertTrue(isinstance(bla,Variables))
         self.assertEqual(bla, v.bla)
         self.assertEqual(bla.parent, v)
+        
+    def testCopyVarables(self):
+        v = Variables()
+        v.bla.default.color = '#222'
+        v.bla.default.background = '#444'
+        v.bla.hover.background = '#111'
+        v.foo = v.bla.copy()
+        self.assertEqual(str(v.foo.default.color), '#222')
+        # No change the value of the original variable
+        v.bla.default.color = '#333'
+        self.assertEqual(str(v.foo.default.color), '#333')
+        self.assertEqual(str(v.bla.default.color), '#333')
+        # Now override value
+        v.foo.default.color = '#777'
+        self.assertEqual(str(v.foo.default.color), '#777')
+        self.assertEqual(str(v.bla.default.color), '#333')
         
     def testNestednamespace(self):
         v = Variables()
@@ -424,26 +474,33 @@ class TestVariable(test.TestCase):
         self.assertEqual(Variable.pyvalue(lambda: 5),5)
         
     
-class TestCSS(test.TestCase):
+class TestCSS(TestStyling):
     
-    def testSimple(self):
-        # the variable does not exist
-        c = css('#random', margin = cssv.skjncdfcd)
-        self.assertFalse(c._attributes)
+    def testBody(self):
+        body = css('body')
+        self.assertTrue(body.is_body)
+        self.assertEqual(body, css.body())
         
     def testClone(self):
-        c = css('body')
-        self.assertFalse(c._clone)
-        c2 = c.clone()
-        self.assertFalse(c._clone)
-        self.assertNotEqual(c, c2)
-        self.assertTrue(c2._clone)
-        c3 = c2.clone()
-        self.assertTrue(c3._clone)
-        self.assertEqual(c2, c3)
+        body = css.body().clone()
+        self.assertTrue(body._clone)
+        def test_children(elem):
+            self.assertTrue(elem._clone)
+            self.assertTrue(isinstance(elem, css))
+            for cl in elem.children.values():
+                self.assertTrue(cl)
+                for child in cl:
+                    test_children(child)                    
+        test_children(body)
+        
+    def testSimple(self):
+        # the variable does not exist
+        c = css('#random', margin=cssv.skjncdfcd)
+        self.assertFalse(c.attributes)
+        self.assertEqual(c.parent, css('body'))
         
     
-class TestMixins(test.TestCase):
+class TestMixins(TestStyling):
     '''Test the simple mixins'''
     def testNotImplemented(self):
         m = mixin()
@@ -452,7 +509,7 @@ class TestMixins(test.TestCase):
     def test_clearfix(self):
         s = css('.bla',
                 clearfix(),
-                display = 'block')
+                display='block')
         text = s.render()
         self.assertTrue('*zoom: 1;' in text)
         self.assertEqual(text,\
@@ -461,13 +518,14 @@ class TestMixins(test.TestCase):
     *zoom: 1;
 }
 
-.bla:before,
-.bla:after {
+.bla:before {
     content: "";
     display: table;
 }
 
 .bla:after {
+    content: "";
+    display: table;
     clear: both;
 }
 ''')
@@ -511,7 +569,7 @@ class TestMixins(test.TestCase):
     
     def testBorder(self):
         b = border(color='#555')
-        self.assertTrue(isinstance(b.color, color))
+        self.assertEqual(b.color, '#555')
         s = css('.bla', b)
         text = s.render()
         self.assertEqual(text,\
@@ -567,10 +625,11 @@ class TestMixins(test.TestCase):
     color: #333333;
 }
 ''')
-        s = css('.click', clickable(default=bcd(color = '#333333'),
-                                    hover=bcd(color = '#000000'),
-                                    active=bcd(color = '#222222')))
-        self.assertEqual(s.render(),'''.click {
+        s = css('.click', clickable(default=bcd(color='#333333'),
+                                    hover=bcd(color='#000000'),
+                                    active=bcd(color='#222222')))
+        text = s.render()
+        self.assertEqual(text, '''.click {
     cursor: pointer;
     color: #333333;
 }
@@ -579,17 +638,21 @@ class TestMixins(test.TestCase):
     color: #000000;
 }
 
+.click.ui-state-hover {
+    color: #000000;
+}
+
 .click:active {
     color: #222222;
 }
 
-.click.active {
+.click.ui-state-active {
     color: #222222;
 }
 ''')
         
 
-class TestGradient(test.TestCase):
+class TestGradient(TestStyling):
     
     def test_vgradient(self):
         s = css('.bla',
@@ -622,7 +685,7 @@ class TestGradient(test.TestCase):
         self.assertRaises(ValueError, lambda: gradient((4,5,6,7))(d))
         
         
-class TestGrid(test.TestCase):
+class TestGrid(TestStyling):
     
     def test_grid940(self):
         g = grid(12,60,20)
@@ -639,15 +702,34 @@ class TestGrid(test.TestCase):
         self.assertTrue('color: #333;' in text)
         
     
-class TestNavigation(test.TestCase):
+class TestBCD(TestStyling):
+    
+    def testObject(self):
+        b = bcd()
+        self.assertFalse(b.color)
+        self.assertFalse(b.text_decoration)
+        self.assertFalse(b.text_shadow)
+        
+    def testCss(self):
+        c = css('#testbcd', bcd(color='#444'))
+        self.assertTrue(c.children)
+        text = c.render()
+        self.assertEqual(text,\
+'''#testbcd {
+    color: #444444;
+}
+''')
+
+    
+class TestNavigation(TestStyling):
     
     def testMeta(self):
         nav = horizontal_navigation()
-        self.assertEqual(nav.float,'left')
-        nav = horizontal_navigation(float=  'bla')
-        self.assertEqual(nav.float,'left')
-        nav = horizontal_navigation(float=  'right')
-        self.assertEqual(nav.float,'right')
+        self.assertEqual(nav.float, 'left')
+        nav = horizontal_navigation(float='bla')
+        self.assertEqual(nav.float, 'left')
+        nav = horizontal_navigation(float='right')
+        self.assertEqual(nav.float, 'right')
         
     def testRender(self):
         nav = css('.nav', horizontal_navigation())
@@ -655,7 +737,7 @@ class TestNavigation(test.TestCase):
         self.assertTrue(text)
         
         
-class TestTopBar(test.TestCase):
+class TestTopBar(TestStyling):
     
     def test_meta(self):
         tb = css('.topbar', topbar())
@@ -663,7 +745,7 @@ class TestTopBar(test.TestCase):
         self.assertTrue(text)
         
         
-class TestScript(test.TestCase):
+class TestScript(TestStyling):
     
     def testArgParser(self):
         parser = add_arguments()
@@ -671,25 +753,22 @@ class TestScript(test.TestCase):
         
     def testRender(self):
         # for coverage
-        main(argv = ['-v'])
+        stream = main(argv=['-v'], stream=io.StringIO())
+        self.assertTrue(stream)
         # dump css file
-        main(argv = ['-o','pytest.css'])
-        f = open('pytest.css')
-        data = f.read()
-        f.close()
-        os.remove('pytest.css')
-        self.assertTrue(data)
+        stream = main(argv=[], stream=io.StringIO())
+        self.assertTrue(stream)
         self.assertTrue('''
 body {
     font-size: 14px;
-    color: #222222;
+    color: #444444;
     text-align: left;
     height: 100%;
-    background: #ffffff;
     min-width: 960px;
     line-height: 18px;
     font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
-}''' in data)
+    background: #ffffff;
+}''' in stream)
     
     
 if __name__ == '__main__':

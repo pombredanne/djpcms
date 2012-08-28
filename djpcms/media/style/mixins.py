@@ -49,12 +49,12 @@ class clearfix(mixin):
     def __call__(self, elem):
         elem['*zoom'] = 1
         cssa(':before,:after',
-             parent = elem,
-             display = 'table',
-             content = '""')
+             parent=elem,
+             display='table',
+             content='""')
         cssa(':after',
-             parent = elem,
-             clear = 'both')
+             parent=elem,
+             clear='both')
 
 
 class clear_anchor(mixin):
@@ -263,9 +263,9 @@ class clickable(mixin):
     def __init__(self, default=None, hover=None, active=None, cursor='pointer',
                  **kwargs):
         self.cursor = cursor
-        self.default = self.cleanup(default,'default', bcd)
-        self.hover = self.cleanup(hover,'hover', bcd)
-        self.active = self.cleanup(active,'active', bcd)
+        self.default = self.cleanup(default, 'default', bcd)
+        self.hover = self.cleanup(hover, 'hover', bcd)
+        self.active = self.cleanup(active, 'active', bcd)
 
     def __call__(self, elem):
         elem['cursor'] = self.cursor
@@ -317,27 +317,27 @@ class horizontal_navigation(clickable):
 
     def list(self, maker, parent, default, hover, active):
         return maker('li',
-                  default.background,
-                  cssb('a',
-                       bcd(background='transparent',
-                           color=default.color,
-                           text_decoration=default.text_decoration,
-                           text_shadow=default.text_shadow)),
-                  cssa(':hover',
-                       hover.background,
-                       cssb('a',
-                            bcd(color=hover.color,
-                                text_decoration=hover.text_decoration,
-                                text_shadow=hover.text_shadow)),
-                       cssb('ul', display='block')),
-                  cssa(':active, .%s' % classes.state_active,
-                       active.background,
-                       cssb('a',
-                            bcd(color=active.color,
-                                text_decoration=active.text_decoration,
-                                text_shadow=active.text_shadow))),
-                  cursor='pointer',
-                  parent=parent)
+                     default.background,
+                     cssb('a',
+                          bcd(background='transparent',
+                              color=default.color,
+                              text_decoration=default.text_decoration,
+                              text_shadow=default.text_shadow)),
+                     cssa(':hover',
+                          hover.background,
+                          cssb('a',
+                               bcd(color=hover.color,
+                                   text_decoration=hover.text_decoration,
+                                   text_shadow=hover.text_shadow)),
+                          cssb('ul', display='block')),
+                     cssa(':active, .%s' % classes.state_active,
+                          active.background,
+                          cssb('a',
+                               bcd(color=active.color,
+                                   text_decoration=active.text_decoration,
+                                   text_shadow=active.text_shadow))),
+                     cursor='pointer',
+                     parent=parent)
 
     def __call__(self, elem):
         elem['display'] = 'block'
@@ -494,7 +494,7 @@ size for one column and the *gutter* size between columns.'''
         return '-'+str(int(self.width))
 
     def row(self, tag, **kwargs):
-        m = '{0}{1}'.format(self.gutter,self.unit)
+        m = '%s%s' % (self.gutter, self.unit)
         return css(tag,
                    clearfix(),
                    **kwargs)

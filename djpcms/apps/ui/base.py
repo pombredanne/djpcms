@@ -23,6 +23,11 @@ cssv.clickable.active.text_decoration = 'none'
 cssv.clickable.active.border.color = color('aaaaaa')
 cssv.clickable.active.border.width = cssv.clickable.default.border.width
 cssv.clickable.active.border.style = None
+#
+cssv.clickdanger.default = cssv.clickable.default
+cssv.clickdanger.hover = cssv.clickable.hover
+cssv.clickdanger.active = cssv.clickable.active
+cssv.clickdanger.default.background = ('v', color('#D53934'), color.darken('#D53934',10))
 
 cssv.widget.padding = spacing(px(6), px(10))
 cssv.widget.border.color = cssv.color.grayLight
@@ -72,17 +77,19 @@ css('body',
                          'media','ui.css')))
 
 ################################################################ CLICKABLE
-clickable_default = lambda: clickable(\
-            default=bcd(**cssv.clickable.default.params()),\
-            hover=bcd(**cssv.clickable.hover.params()),\
-            active=bcd(**cssv.clickable.active.params()))
+ui_clickable = lambda params: clickable(\
+            default=bcd(**params.default.params()),\
+            hover=bcd(**params.hover.params()),\
+            active=bcd(**params.active.params()))
 
-css('.%s, .%s'%(classes.clickable,classes.button),
+css('.%s, .%s' % (classes.clickable, classes.button),
     clickable(default=bcd(**cssv.clickable.default.params()),
               hover=bcd(**cssv.clickable.hover.params()),
               active=bcd(**cssv.clickable.active.params())),
     radius(cssv.clickable.radius),
-    clear_anchor())
+    clear_anchor(),
+    cssa('.%s' % classes.state_error,
+         ui_clickable(cssv.clickdanger)))         
 
 
 ################################################################ WIDGET

@@ -1,5 +1,5 @@
 '''Test the test suite and the package information'''
-import djpcms as package
+import djpcms
 from djpcms.cms import ImproperlyConfigured
 from djpcms.utils import test
 
@@ -7,30 +7,30 @@ from djpcms.utils import test
 class TestInitFile(test.TestCase):
 
     def test_version(self):
-        self.assertTrue(package.VERSION)
-        self.assertTrue(package.__version__)
-        v = tuple((int(v) for v in package.__version__.split('.')))
-        self.assertEqual(v,package.VERSION)
-        self.assertTrue(len(package.VERSION) >= 2)
+        self.assertTrue(djpcms.VERSION)
+        self.assertTrue(djpcms.__version__)
+        self.assertTrue(djpcms.__version__, djpcms.version)
+        self.assertTrue(len(djpcms.VERSION) >= 2)
         
     def testLibrary(self):
-        self.assertEqual(package.LIBRARY_NAME,'djpcms')
-        self.assertTrue(package.PACKAGE_DIR)
+        self.assertEqual(djpcms.LIBRARY_NAME, 'djpcms')
+        self.assertTrue(djpcms.PACKAGE_DIR)
 
     def test_meta(self):
         for m in ("__author__", "__contact__", "__homepage__", "__doc__"):
-            self.assertTrue(getattr(package, m, None))
+            self.assertTrue(getattr(djpcms, m, None))
     
     def test_client(self):
         client = self.client()
         self.assertTrue(client)
-        middleware = client.handler.middleware
-        self.assertTrue(middleware)
-        self.assertTrue(middleware[-1].site)
         
     def test_client_post_json(self):
         client = self.client()
         result = client.post('/', body='bla', content_type='application/json')
+        
+    def test_renderer(self):
+        r = djpcms.Renderer()
+        self.assertEqual(r.content_type(), 'text/plain')
 
 
 class TestNoFile(test.TestCase):

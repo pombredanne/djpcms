@@ -1,18 +1,19 @@
 import sys
 from math import fabs
+default_significant = 4
 
 def significant(number, n=None):
     '''Round a number up to a given number ``n`` of significant figures.
 Rounding to ``n`` significant digits is a more general-purpose technique
 than rounding to ``n`` decimal places, since it handles numbers
 of different scales in a uniform way.'''
-    n = n if n is not None else 4
+    n = n if n is not None else default_significant
     r = '%.' + str(n) + 'g'
     v = float(r % float(number))
     i = int(v)
     return i if i == v else v
 
-def significant_format_old(number, n=4):
+def significant_format_old(number, n=None):
     """Format a number according to a given number of significant figures."""
     number = significant(number, n)
     str_number = str(number)
@@ -37,7 +38,7 @@ def significant_format_old(number, n=4):
         return int_part
 
 if sys.version_info >= (2,7):
-    def significant_format(number, n=3):
+    def significant_format(number, n=None):
         number = significant(number, n)
         return '{:,}'.format(number)
 else:

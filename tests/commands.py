@@ -1,9 +1,17 @@
 import os
+import io
 from djpcms.utils import test
 
 
 class CommandTests(test.TestCase):
-
+    installed_apps = ('djpcms.apps.color',
+                      'djpcms.apps.contentedit',
+                      'djpcms.apps.fileupload',
+                      'djpcms.apps.fontawesome',
+                      'djpcms.apps.nav',
+                      'djpcms.apps.page',
+                      'djpcms.apps.ui')
+    
     def testServe(self):
         command = self.fetch_command('serve')
         self.assertEqual(command.help,\
@@ -19,7 +27,16 @@ class CommandTests(test.TestCase):
         command()
         self.assertEqual(command.theme, 'teststyle')
         os.remove(command.target)
+        
+    def test_nginx(self):
+        command = self.fetch_command('nginx')
+        stream = io.StringIO()
+        command(target=stream)
 
+    def test_create_superuser(self):
+        command = self.fetch_command('create_superuser')
+        self.assertEqual(command(interactive=False), None)
+        
     def testShell(self):
         command = self.fetch_command('shell')
 

@@ -208,8 +208,8 @@ Return an iterable over items'''
 
     @classmethod
     def setup_environment(cls,sites):
-        '''Setup the environment for thei ORM  library. Called during
- site initialization.'''
+        '''Setup the environment for the ORM  library. Called during
+ site initialisation.'''
         pass
 
     @classmethod

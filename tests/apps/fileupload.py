@@ -1,11 +1,10 @@
-import unittest as test
-
-from fileupload.forms import FileUploadForm
+from djpcms.utils import test
 
 
 class TestUploadForm(test.TestCase):
         
     def testLayout(self):
+        from djpcms.apps.fileupload import FileUploadForm
         f = FileUploadForm(action = '/bla/')
         layout = f.layout
         c = layout.allchildren[0]
@@ -14,6 +13,7 @@ class TestUploadForm(test.TestCase):
         self.assertTrue('button' in html)
         
     def testForm(self):
+        from djpcms.apps.fileupload import FileUploadForm
         f = FileUploadForm(action = '/bla/')
         self.assertTrue(f.form)
         html = f.render()

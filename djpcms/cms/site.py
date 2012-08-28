@@ -160,10 +160,6 @@ Attributes available:
 
     def setup_environment(self):
         '''Set up the the site.'''
-        if self.root == self:
-            for wrapper in orms.model_wrappers.values():
-                wrapper.setup_environment(self)
-            add_default_handlers(self)
         for app in self.settings.INSTALLED_APPS:
             try:
                 mod = import_module(app+'.request')
@@ -173,6 +169,10 @@ Attributes available:
                         self.request_processors.append(processor)
             except ImportError:
                 pass # No management module
+        if self.root == self:
+            for wrapper in orms.model_wrappers.values():
+                wrapper.setup_environment(self)
+            add_default_handlers(self)
         appurls = self.settings.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls, '__call__'):
@@ -450,7 +450,7 @@ for djpcms web sites.
         if self.site is None:
             load = self.load
             if self.name:
-                load = getattr(self,'load_{0}'.format(self.name))
+                load = getattr(self, 'load_{0}'.format(self.name), load)
             self.local['site'] = load()
             if self.site is not None:
                 self.load_site()

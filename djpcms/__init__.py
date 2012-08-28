@@ -92,30 +92,3 @@ It should be overwritten by derived classes.'''
     
 def is_renderer(obj):
     return isinstance(obj, Renderer)
-    
-HTML = {
-    'ajax': 'ajax',
-    'button': 'btn',
-    'post_view_key': 'xhr',
-    'errorlist': 'errorlist',
-    'formmessages': 'form-messages',
-    'multi_autocomplete_class': 'multi',
-    'calendar_class': 'dateinput',
-    'currency_input': 'currency-input',
-    'edit': 'editable',
-    'delete': 'deletable',
-    'objectdef': 'object-definition',
-    'main_nav': 'main-nav',
-    'link_active': 'ui-state-active',
-    'link_default': '',
-    'secondary_in_list': 'secondary',
-    'error': 'status-error',
-    'legend': 'legend ui-state-default ui-corner-all'
-    }
-
-def secret_key():
-    '''Secret Key used as base key in encryption algorithm'''
-    if sites.settings:
-        return sites.settings.get('SECRET_KEY','sk').encode()
-    else:
-        return b'sk'

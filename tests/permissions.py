@@ -15,5 +15,4 @@ class TestPermissions(test.TestCase):
     def testCreateUser(self):
         from djpcms.cms import permissions
         hnd = permissions.PermissionHandler()
-        self.assertRaises(ValueError, hnd.create_user, username='bla',
-                          password='foo')
+        self.assertEqual(hnd.create_user(username='bla', password='foo'), None)

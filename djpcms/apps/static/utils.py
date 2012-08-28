@@ -1,12 +1,7 @@
 import os
 
-import djpcms
 from djpcms.apps.static import application_map
-
-if djpcms.ispy3k:
-    from urllib.parse import urlparse
-else:
-    from urlparse import urlparse
+from djpcms.utils.httpurl import urlparse
     
     
 def server_info(server):
@@ -80,7 +75,7 @@ serving media files.
             self.data = self.site.template.render(self.template_file,
                                                   self.params)
             f = self.target
-            if not hasattr(f,'write'):
+            if not hasattr(f, 'write'): #pragma    nocover
                 self.target = os.path.abspath(self.target)
                 f = open(self.target,'w')
             f.write(self.data)

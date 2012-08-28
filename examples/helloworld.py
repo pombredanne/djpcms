@@ -9,17 +9,14 @@ from djpcms import cms, views
 class HelloWorld(cms.WebSite):
     
     def load(self):
-        settings = cms.get_settings(__file__,
-                                    APPLICATION_URLS=self.urls,
-                                    DEBUG=True)
+        settings = cms.get_settings(__file__, APPLICATION_URLS=self.urls)
         return cms.Site(settings)
     
     def urls(self, site):
         '''Create a tuple with one application containing one view'''
         return (
             views.Application('/',
-                name = 'Hello world example',
-                routes = (views.View(renderer=lambda request : 'Hello world!'),)
+                routes = (views.View(renderer=lambda request : 'Hello World!'),)
             ),)
 
 

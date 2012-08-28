@@ -225,7 +225,6 @@ a AuthenticationError exception.'''
                     return user
             except:
                 continue
-        raise ValueError('Could not create user')
 
     def create_superuser(self, *args, **kwargs):
         for b in self.auth_backends:
@@ -235,7 +234,6 @@ a AuthenticationError exception.'''
                     return user
             except:
                 continue
-        raise ValueError('Could not create superuser')
 
     def set_password(self, user, password):
         '''Loop though all :attr:`athentication_backends` and try to set

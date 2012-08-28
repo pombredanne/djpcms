@@ -36,9 +36,8 @@ class TestDjpSite(base.TestCase):
         self.assertEqual(r.environ['PATH_INFO'], url)
         
     def testAdmin(self):
-        user = self.create_user(login=True)
+        user = self.create_user()
+        self.assertTrue(user)
         client = self.client()
         response = client.get('/admin/')
-        self.assertTrue(user)
-        
         

@@ -37,15 +37,13 @@ class Command(cms.Command):
 
     def handle(self, options, interactive=True, **params):
         site = self.website(options)
-        if not site.User:
-            raise RuntimeError('User model not available')
         username = None
         password = None
         def_username = get_def_username(site)
         input_msg = 'Username'
         if def_username:
             input_msg += ' (Leave blank to use %s)' % def_username
-        if interactive:
+        if interactive: #pragma    nocover
             try:
                 # Get a username
                 while not username:
@@ -79,5 +77,10 @@ class Command(cms.Command):
             params['username'] = username
             params['password'] = password
         user = site.permissions.create_superuser(**params)
-        self.logger.info("Superuser %s created successfully.\n" % user)
+        if user:    #pragma    nocover
+            self.logger.info("Superuser %s created successfully.\n" % user)
+        else:
+            self.logger.info("Could not create superuser")
+        return user
+            
 

@@ -15,7 +15,8 @@ from djpcms.utils.log import dictConfig
 class CommandOption(object):
 
     def __init__(self, name=None, cli=None, type=None, nargs=None,
-                 action=None, description=None, default=None):
+                 action=None, description=None, default=None,
+                 metavar=None):
         self.name = name
         self.cli = cli
         self.type = type
@@ -23,12 +24,14 @@ class CommandOption(object):
         self.action = action
         self.description = description
         self.default = default
+        self.metavar = metavar
 
     def add_argument(self, parser):
         kwargs = {}
         if self.type and self.type != 'string':
             kwargs["type"] = self.type
-
+        if self.metavar:
+            kwargs["metavar"] = self.metavar
         if self.cli:
             args = tuple(self.cli)
             kwargs.update({

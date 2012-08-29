@@ -58,6 +58,7 @@ easy testing web site applications.'''
     web_site_callbacks = []
 
     def _pre_setup(self):
+        self.site()
         self.flush()
 
     def _post_teardown(self):

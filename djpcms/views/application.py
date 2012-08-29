@@ -384,13 +384,6 @@ the *request*.'''
                     instance = parent.instance
                     if instance and not isinstance(instance,self.model):
                         qs = qs.filter(**{related_field:instance})
-            search_string = inputs.get('search_string', forms.SEARCH_STRING)
-            search = inputs.get(search_string)
-            if search:
-                qs = qs.search(search)
-            if hasattr(qs,'ordering') and not qs.ordering and\
-                                                 self.pagination.ordering:
-                qs = qs.sort_by(self.pagination.ordering)
             return qs
         else:
             return request.auth_children()

@@ -11,7 +11,7 @@ if not ispy3k:  # pragma: no cover
 
 __all__ = ['RGBA', 'color', 'lighten', 'darken', 'mix_colors']
 
-clamprgb = lambda v : int(clamp(round(v),255))
+clamprgb = lambda v : int(clamp(round(v), 255))
 
 hex2 = lambda v : '0'+hex(v)[2:] if v < 16 else hex(v)[2:]
 
@@ -42,9 +42,9 @@ to and from HSL_ and HSV representations.
     
 .. _HSL: http://en.wikipedia.org/wiki/HSL_and_HSV
 '''
-    def __new__(cls, r, g, b, alpha = 1):
-        return super(RGBA,cls).__new__(cls,clamprgb(r),clamprgb(g),clamprgb(b),
-                                       clamp(alpha))
+    def __new__(cls, r, g, b, alpha=1):
+        return super(RGBA,cls).__new__(cls, clamprgb(r), clamprgb(g),
+                                       clamprgb(b), clamp(alpha))
     
     def __unicode__(self):
         return to_string(self.tocss())

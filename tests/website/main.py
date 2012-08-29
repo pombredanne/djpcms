@@ -1,6 +1,8 @@
 from . import base
+from .base import skipUnless, installed
 
 
+@skipUnless(installed, 'Requires stdcms and social packages')
 class TestDjpSite(base.TestCase):
         
     def testSite(self):

@@ -4,12 +4,13 @@ skipUnless = test.skipUnless
 
 try:
     from stdcms.utils import test
+    import social
     installed = True
 except ImportError:
     installed = False
 
 
-@skipUnless(installed, 'Requires stdcms')
+@skipUnless(installed, 'Requires stdcms and social packages')
 class TestCase(test.TestCase):
 
     def website(self):

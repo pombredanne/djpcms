@@ -1,6 +1,7 @@
 from collections import namedtuple
 from inspect import isgenerator, isfunction, ismethod
 
+from djpcms import forms
 from djpcms.utils import orms
 from djpcms.html import anchor_or_button
 from djpcms.cms import permissions
@@ -312,12 +313,17 @@ it looks for the following inputs in the request data:
             needbody = False
     if needbody and request.GET and mapper:
         query = query.filter(**mapper.query_from_mapping(request.GET))
-
-    sort_by = {}
-    #search = inputs.get('sSearch')
-    #if search:
-    #    query = query.search(search)
-
+    #
+    # Search text
+    search_string = inputs.get('search_string', forms.SEARCH_STRING)
+    search = inputs.get(search_string)
+    if search:
+        query = query.search(search)
+    #
+    # Sorting fields
+    sort_by = []
+    if pagination.ordering:
+        sort_by.append(pagination.ordering)
     if pagination.astable:
         sortcols = inputs.get('iSortingCols')
         load_only = appmodel.load_fields(headers)
@@ -329,12 +335,15 @@ it looks for the following inputs in the request data:
                     d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
                              else ''
                     head = headers[c]
-                    query = query.sort_by('{0}{1}'.format(d,head.attrname))
-
-    # Reduce the ammount of data
+                    sort_by.append('%s%s' % (d, head.attrname))
+    if hasattr(query, 'ordering') and sort_by:
+        query = query.sort_by(sort_by[-1])
+    #
+    # Reduce the ammount of data by loading selected fields
     if load_only and hasattr(query, 'load_only'):
         query = query.load_only(*load_only)
-
+    #
+    # Pagination
     start = inputs.get('iDisplayStart', 0)
     per_page = inputs.get('iDisplayLength', pagination.size)
     pag, body = pagination.paginate(query, start, per_page, withbody=needbody)

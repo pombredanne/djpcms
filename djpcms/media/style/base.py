@@ -5,12 +5,12 @@ import argparse
 import json
 import threading
 import logging
-from io import StringIO
 from copy import copy
 from datetime import datetime
 from inspect import isgenerator
 
 from djpcms.utils.structures import OrderedDict
+from djpcms.utils.test import Stream
 from djpcms.utils.text import UnicodeMixin, to_string
 from djpcms.utils.httpurl import itervalues, iteritems, native_str, ispy3k
 
@@ -20,8 +20,8 @@ from pulsar.utils.system import convert_bytes
 __all__ = ['css', 'cssa', 'cssb', 'css_stream',
            'Variable', 'NamedVariable', 'mixin',
            'cssv', 'lazy', 'px', 'em', 'pc',
-           'spacing', 'dump_theme', 'main', 'Variables',
-           'add_arguments', 'Spacing']
+           'spacing', 'dump_theme', 'Variables',
+           'Spacing']
 
 LOGGER = logging.getLogger('djpcms.media.style')
 nan = float('nan')
@@ -242,10 +242,10 @@ different themes. Themes override the default value.
     current theme
 '''
     def __init__(self, hnd, name, value=None):
+        super(NamedVariable, self).__init__({})
         self.hnd = hnd
         self._name = name
         theme = self.theme
-        super(NamedVariable, self).__init__({})
         self.value = value
         if None not in self._value:
             self._value[None] = Variable()
@@ -918,19 +918,14 @@ If the body namespace is not available is automatically created.
             if isinstance(value, Variables):
                 v = value
                 v._reserved.update({'parent': self, 'name': name})
-            elif isinstance(value, NamedVariable):
-                v = value
-            elif value is None:
-                v = NamedVariable(self, name)
-            elif isinstance(value, (str, float, int, list, tuple, dict,
-                                    Variable)):
-                v = self.get(name)
-                if isinstance(v, NamedVariable):
-                    v.value = value
-                else:
+            else:
+                v = self.__dict__.get(name)
+                if v is None:
                     v = NamedVariable(self, name, value)
+                else:
+                    v.value = value 
             self.__dict__[name] = v
-            if v and self.parent and self.name not in self.parent:
+            if self.parent and self.name not in self.parent:
                 setattr(self.parent, self.name, self)
     
     def __getattr__(self, name):
@@ -948,14 +943,10 @@ cssv = Variables()
 def csscompress(target):  # pragma: no cover
     os.system('yuicompressor.jar --type css -o {0} {0}'.format(target))
 
-def dump_theme(theme, target, dump_variables=False, minify=False):
-    file_name = None
-    if not hasattr(target, 'write'):    #pragma    nocover
-        file_name = target
-        target = StringIO()
+def dump_theme(theme=None, dump_variables=False, minify=False):
+    target = Stream()
     with cssv.theme(theme) as t:
         if dump_variables:
-            LOGGER.info('Dump styling variables on %s' % target)
             data = cssv.tojson()
             target.write(json.dumps(data, indent=4))
             data = target.getvalue()
@@ -967,37 +958,6 @@ def dump_theme(theme, target, dump_variables=False, minify=False):
             data = target.getvalue()
             b = convert_bytes(len(data))
             LOGGER.info('Dumped css of %s in size.'% b)
-        if file_name: #pragma    nocover
-            with open(file_name, 'w') as f:
-                f.write(data)
         return data
-    
-def add_arguments(argparser=None):
-    argparser = argparser or argparse.ArgumentParser('Python CSS generator')
-    argparser.add_argument('source',
-                           nargs='*',
-                           help='Dotted path to source files or directories.')
-    argparser.add_argument('-t', '--theme',
-                           default=None,
-                           help='Theme name')
-    argparser.add_argument('-o', '--output',
-                           help='File path to store CSS into.',
-                           default='style.css')
-    argparser.add_argument('-v','--variables',
-                           action='store_true',
-                           default=False,
-                           help='List all variables values')
-    argparser.add_argument('-m','--minify',
-                           action='store_true',
-                           default=False,
-                           help='Minify output file')
-    return argparser
-    
-def main(argparser=None, argv=None, stream=None):
-    argparser = add_arguments(argparser)
-    opts = argparser.parse_args(argv)
-    for source in opts.source:
-        mod = import_module(source)
-    output = stream if stream is not None else opts.output 
-    return dump_theme(opts.theme, output, opts.variables, opts.minify)    
+  
     

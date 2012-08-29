@@ -193,7 +193,7 @@ Attributes available:
     def _site(self):
         return self
 
-    def addsite(self, settings = None, route = None, **handlers):
+    def addsite(self, settings=None, route=None, **handlers):
         '''Add a new :class:`Site` to ``self``.
 
 :parameter settings: Optional settings for the site.
@@ -293,7 +293,6 @@ consequently its children.'''
                                         for name in find_commands(path))))
                 except ImportError:
                     pass # No management module
-
         return self._commands
 
     def register_app(self, application):

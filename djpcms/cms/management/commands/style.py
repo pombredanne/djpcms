@@ -9,7 +9,7 @@ from djpcms.media.style import css, cssv, dump_theme
 
 LOGGER = logging.getLogger('djpcms.command.style')
 
-def render(site, theme, target, apps, mediaurl, dump_variables):
+def render(site, theme, apps, mediaurl, dump_variables):
     LOGGER.info('Building theme "%s"' % theme)
     module = None
     applications = list(apps or site.settings.INSTALLED_APPS)
@@ -44,7 +44,7 @@ def render(site, theme, target, apps, mediaurl, dump_variables):
                 LOGGER.error('Cannot import application {0}: "{1}"'\
                             .format(app,e))
     #mediaurl = mediaurl
-    dump_theme(theme, target, dump_variables=dump_variables)
+    return dump_theme(theme, dump_variables=dump_variables)
 
 
 class Command(cms.Command):
@@ -73,19 +73,23 @@ class Command(cms.Command):
  Override settings value.')
                    )
 
-    def handle(self, options):
+    def handle(self, options, dump=True):
         site = self.website(options)
         target = options.file
         mediaurl = options.mediaurl
         apps = options.apps
         self.theme = options.theme or site.settings.STYLING
-        if not target:
+        if not target and not options.variables:
             target = '{0}.css'.format(self.theme)
             target = site_media_file(site.settings, target, directory=True)\
                      or target
-        if options.variables:
-            target = '%s.json' % self.theme
-        self.target = target
-        render(site, self.theme, self.target, apps, mediaurl, options.variables)
+        data = render(site, self.theme, apps, mediaurl, options.variables)
+        if dump:
+            if target:
+                with open(target, 'w') as f:
+                    f.write(data)
+            else:
+                print(data)
+        return data
 
 

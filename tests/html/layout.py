@@ -11,7 +11,7 @@ class TestLayout(test.TestCase):
         self.assertEqual(page_template.tag,'div')
         self.assertEqual(page_template.data,{'role':'page'})
         self.assertEqual(page_template.numcolumns, 0)
-        self.assertFalse(page_template.is_block())
+        self.assertFalse(page_template.is_column())
         self.assertRaises(ValueError, page_template.add, self)
         self.assertEqual(len(page_template.children),1)
         #
@@ -40,7 +40,7 @@ class TestLayout(test.TestCase):
         self.assertEqual(col.numcolumns, 1)
         d = col.block_dictionary()
         self.assertEqual(d, {0: col})
-        self.assertTrue(col.is_block())
+        self.assertTrue(col.is_column())
         self.assertRaises(ValueError, column, 2)
         
     def testNestingColumns(self):

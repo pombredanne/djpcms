@@ -1,5 +1,4 @@
 '''Application for searching models.'''
-from djpcms import cms
 from djpcms.utils import test
 
 
@@ -12,6 +11,7 @@ class DummyEngine(object):
 class TestSearchMeta(test.TestCase):
     
     def testSearchApplication(self):
+        from djpcms import cms
         from djpcms.apps import search
         engine = DummyEngine()
         app = search.Application('search/', engine = engine)
@@ -24,4 +24,15 @@ class TestSearchMeta(test.TestCase):
         self.assertEqual(len(site.urls()),1)
         self.assertEqual(site.search_engine,app)
         self.assertEqual(site.search_engine.engine,engine)
+        
+    def testSearchForm(self):
+        '''Test the search form in :mod:`djpcms.plugins.apps`'''
+        from djpcms.apps import search
+        HtmlSearchForm = search.search_form()
+        self.assertEqual(len(HtmlSearchForm.inputs),0)
+        w = HtmlSearchForm()
+        form = w.internal['form']
+        self.assertFalse(form.is_bound)
+        html = w.render()
+        self.assertTrue(html)
         

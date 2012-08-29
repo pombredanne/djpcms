@@ -97,16 +97,16 @@ class border(mixin):
         self.width = width
 
     def __call__(self, elem):
-        color = ascolor(self.color)
+        c = color(self.color)
         if color:
             style = Variable.cssvalue(self.style) or 'solid'
             width = '%s' % (Variable.cssvalue(self.width) or px(1))
             if ' ' in width:
                 elem['border-width'] = width
                 elem['border-style'] = style
-                elem['border-color'] = color
+                elem['border-color'] = c
             else:
-                elem['border'] = '%s %s %s' % (width, style, color)
+                elem['border'] = '%s %s %s' % (width, style, c)
 g_border = border
 
 ################################################# CSS3 BOX SHADOW
@@ -165,12 +165,12 @@ class gradient(mixin):
             else:
                 d = int(d)
                 decorate = self.dgradient
-            s = ascolor(s)
-            e = ascolor(e)
+            s = color(s)
+            e = color(e)
             decorate(elem, d, s, e)
         else:
             # a simple scalar, just set the background
-            elem['background'] = ascolor(val)
+            elem['background'] = color(val)
 
     def _gradient(self, elem, l, s, e):
         p = '100% 0' if l == 'left' else '0 100%'
@@ -251,7 +251,7 @@ mixin.
 
     def __call__(self, elem):
         self.background(elem)
-        elem['color'] = ascolor(self.color)
+        elem['color'] = color(self.color)
         elem['text-shadow'] = self.text_shadow
         elem['text_decoration'] = self.text_decoration
         if self.border:

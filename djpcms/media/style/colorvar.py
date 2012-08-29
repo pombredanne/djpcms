@@ -1,14 +1,15 @@
 import colorsys
 from collections import namedtuple
 
-from .base import ispy3k, Variable, clamp, native_str, to_string
+from .base import ispy3k, Variable, ProxyVariable, lazy, clamp, native_str,\
+                     to_string
 
 if not ispy3k:  # pragma: no cover
     from itertools import izip
     zip = izip
 
 
-__all__ = ['RGBA','color','ascolor']
+__all__ = ['RGBA', 'color', 'lighten', 'darken', 'mix_colors']
 
 clamprgb = lambda v : int(clamp(round(v),255))
 
@@ -16,20 +17,7 @@ hex2 = lambda v : '0'+hex(v)[2:] if v < 16 else hex(v)[2:]
 
 HSLA = namedtuple('HSLA','h s l alpha')
 HSVA = namedtuple('HSVA','h s v alpha')
-
-
-def ascolor(col):
-    col = native_str(col)
-    if col is None or isinstance(col, color):
-        return col
-    else:
-        try:
-            c = Variable.pyvalue(col)
-            return color(c) if c else None
-        except:
-            if isinstance(col, str):
-                return col
-            raise
+string_colors = frozenset(('transparent', 'inherit'))
     
 
 class RGBA(namedtuple('RGBA','r g b alpha')):
@@ -146,15 +134,16 @@ new :class:`RGBA` color with lightness increased by that amount.'''
                 rgb = tuple(col)
             else:
                 col = str(col)
-                if col.startswith('#'):
+                if col in string_colors:
+                    return col
+                elif col.startswith('#'):
                     col = col[1:]
                 if len(col) == 6:
                     rgb = tuple((int(col[2*i:2*(i+1)],16) for i in range(3)))
                 elif len(col) == 3:
                     rgb = tuple((int(2*col[i],16) for i in range(3)))
                 else:
-                    raise ValueError('Could not recognize color "{0}"'\
-                                     .format(col))
+                    raise ValueError('Could not recognize color "%s"' % col)
             rgb += (1 if alpha is None else alpha,)
             return cls(*rgb)
         
@@ -171,12 +160,15 @@ new :class:`RGBA` color with lightness increased by that amount.'''
                    p*rgb1.alpha + (1-p)*rgb2.alpha)
         
 
-class color(Variable):
+class Color(Variable):
     '''A :class:`Variable` wrapping a :class:`RGBA` color.'''
-    def __init__(self, col, alpha=None, unit=None):
-        if isinstance(col, color):
-            col = col._value
-        super(color,self).__init__(RGBA.make(col, alpha))
+    @classmethod
+    def from_value(cls, col, alpha=None, **kwargs):
+        col = RGBA.make(col, alpha)
+        if isinstance(col, RGBA):
+            return cls(col)
+        else:
+            return col
         
     def _unit(self):
         return 'color'
@@ -205,18 +197,31 @@ class color(Variable):
     
     def tohsva(self):
         return self.value.tohsva()
-        
-    @classmethod
-    def mix(cls, color1, color2, weight=50):
-        return cls(RGBA.mix(color1._value, color2._value, weight))
     
-    @classmethod
-    def darken(cls, col, weight):
-        '''Darken :class:`color` *col* by a given percentage *weight*'''
-        return cls(col).value.darken(weight)
-    
-    @classmethod
-    def lighten(cls, col, weight):
-        '''Lighten :class:`color` *col* by a given percentage *weight*'''
-        return cls(col).value.lighten(weight)
 
+################################################################################
+##    color factory
+color = lambda col, alpha=None, **kwargs: Color.make(col, alpha=alpha, **kwargs)
+
+def darken(col, weight):
+    c = Color.make(col)
+    if isinstance(c, ProxyVariable):
+        return lazy(lambda : color(c.value).value.darken(weight))
+    else:
+        return c.value.darken(weight)
+
+def lighten(col, weight):
+    c = Color.make(col)
+    if isinstance(c, ProxyVariable):
+        return lazy(lambda : color(c.value).value.lighten(weight))
+    else:
+        return c.value.lighten(weight)
+
+def mix_colors(col1, col2, weight=50):
+    c1 = Color.make(col1)
+    c2 = Color.make(col2)
+    if isinstance(c1, ProxyVariable) or isinstance(c2, ProxyVariable):
+        return lazy(lambda : RGBA.mix(c1.value, c2.value, weight))
+    else:
+        return RGBA.mix(c1.value, c2.value, weight)
+    

@@ -3,8 +3,14 @@ import os
 import io
 import unittest as test
 
+import djpcms.apps.page.style
+import djpcms.apps.color.style
+import djpcms.apps.contentedit.style
+import djpcms.apps.fontawesome.style
+import djpcms.apps.ui.style
 from djpcms.media.style import *
 from djpcms.apps.nav.style import topbar
+from djpcms.html import classes
         
 
 class TestStyling(test.TestCase):
@@ -179,7 +185,8 @@ class TestSpacing(Tvariable,test.TestCase):
     def testBadSpacing(self):
         self.assertRaises(ValueError, spacing, 5,4,5,6,7)
         self.assertRaises(ValueError, spacing, 5, 'bla')
-        self.assertRaises(TypeError, spacing, 5, None)
+        sp = spacing(5, None)
+        self.assertEqual(str(sp), '5px')
         
     def testLazy(self):
         sp = lazy(lambda : spacing(5))
@@ -282,8 +289,8 @@ class TestVariables(test.TestCase):
 class TestRGBA(test.TestCase):
     
     def testRGBA(self):
-        c = RGBA(34.67,156.98,245.1)
-        self.assertEqual(c,(35,157,245,1))
+        c = RGBA(34.67, 156.98, 245.1)
+        self.assertEqual(c, (35, 157, 245, 1))
         self.assertRaises(ValueError, lambda: c + 4)
         
     def testRGBAMeta(self):
@@ -368,15 +375,22 @@ class TestColor(test.TestCase):
     
     def testSimple(self):
         c = color('f0f8ff')
-        self.assertEqual(c.alpha,1)
-        self.assertEqual(c.value,(240,248,255,1))
+        self.assertEqual(c.alpha, 1)
+        self.assertEqual(c.value, (240, 248, 255, 1))
         self.assertEqual(str(c),'#f0f8ff')
         
+    def testStr(self):
+        c = color('transparent')
+        self.assertEqual(c, 'transparent')
+        c = color('inherit')
+        self.assertEqual(c, 'inherit')
+        self.assertRaises(ValueError, color, 'skjbjbc')
+        
     def testOpacity(self):
-        c = color('f0f8ff',0.7)
-        self.assertEqual(c.alpha,0.7)
-        self.assertEqual(c.value,(240,248,255,0.7))
-        self.assertEqual(str(c),'rgba(240, 248, 255, 0.7)')
+        c = color('f0f8ff', 0.7)
+        self.assertEqual(c.alpha, 0.7)
+        self.assertEqual(c.value, (240, 248, 255, 0.7))
+        self.assertEqual(str(c), 'rgba(240, 248, 255, 0.7)')
         
     def testAdd(self):
         c1 = color('000')
@@ -441,9 +455,9 @@ class TestColor(test.TestCase):
         
     def testmake(self):
         # Make sure we cover RGBA.make
-        c = color((-1,145,145,0.7))
-        self.assertEqual(c.alpha,0.7)
-        self.assertEqual(c.value,(0,145,145,0.7))
+        c = color((-1, 145, 145, 0.7))
+        self.assertEqual(c.alpha, 0.7)
+        self.assertEqual(c.value, (0, 145, 145, 0.7))
         #
         c = RGBA.make('000',0.6)
         self.assertEqual(c,(0,0,0,0.6))
@@ -461,10 +475,16 @@ class TestColor(test.TestCase):
     def testMix(self):
         c1 = color('000')
         c2 = color('333')
-        c3 = color.mix(c1,c2)
-        self.assertEqual(c3.alpha,c1.alpha)
-        l1 = color.lighten(c1, 10)
-        self.assertEqual(c1.value, color.darken(l1, 10))
+        c3 = mix_colors(c1, c2)
+        self.assertEqual(c3.alpha, c1.alpha)
+        l1 = lighten(c1, 10)
+        self.assertEqual(c1.value, darken(l1, 10))
+        
+    def testFromVariable(self):
+        v = Variables()
+        v.foo = '#fff'
+        c = color(v.foo)
+        self.assertEqual(id(v.foo), id(c))
 
 
 class TestVariable(test.TestCase):
@@ -581,6 +601,20 @@ class TestMixins(TestStyling):
     def testBorderVariables(self):
         c = Variables()
         c.border.color = '#222'
+        c.border.style = 'dotted'
+        c.border.width = None
+        b = border(**c.border.params())
+        s = css('.bla', b)
+        text = s.render()
+        self.assertEqual(text,\
+'''.bla {
+    border: 1px dotted #222;
+}
+''')
+        
+    def testBorderVariables2(self):
+        c = Variables()
+        c.border.color = color('222')
         c.border.style = 'dotted'
         c.border.width = None
         b = border(**c.border.params())
@@ -744,7 +778,16 @@ class TestTopBar(TestStyling):
         text = tb.render()
         self.assertTrue(text)
         
-        
+
+class TestUi(TestStyling):
+    
+    def testDefinitionList(self):
+        dl = css.body().children['.%s' % classes.object_definition]
+        self.assertEqual(len(dl), 1)
+        dl = dl[0]
+        text = dl.render()
+        self.assertTrue('.%s dl' % classes.object_definition in text)
+    
 class TestScript(TestStyling):
     
     def testArgParser(self):
@@ -769,14 +812,6 @@ body {
     font-family: Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
     background: #ffffff;
 }''' in stream)
-    
-    
-if __name__ == '__main__':
-    try:
-        import nose
-    except ImportError:
-        test.main()
-    else:
-        nose.main()
+
     
     

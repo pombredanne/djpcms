@@ -3,14 +3,14 @@ from djpcms.media.style import *
 from djpcms.html import classes
 
 cssv.clickable.radius = cssv.body.radius
-cssv.clickable.default.background = ('v', color('#e6e6e6'), color.darken('#e6e6e6',10))
+cssv.clickable.default.background = ('v', color('#e6e6e6'), darken('#e6e6e6',10))
 cssv.clickable.default.color = color('#555')
 cssv.clickable.default.text_decoration = 'none'
 cssv.clickable.default.border.color = color('d3d3d3')
 cssv.clickable.default.border.width = px(1)
 cssv.clickable.default.border.style = None
 #
-cssv.clickable.hover.background = ('v', color('#dadada'), color.darken('#dadada',10))
+cssv.clickable.hover.background = ('v', color('#dadada'), darken('#dadada',10))
 cssv.clickable.hover.color = cssv.clickable.default.color
 cssv.clickable.hover.text_decoration = 'none'
 cssv.clickable.hover.border.color = color('999999')
@@ -24,10 +24,18 @@ cssv.clickable.active.border.color = color('aaaaaa')
 cssv.clickable.active.border.width = cssv.clickable.default.border.width
 cssv.clickable.active.border.style = None
 #
-cssv.clickdanger.default = cssv.clickable.default
-cssv.clickdanger.hover = cssv.clickable.hover
-cssv.clickdanger.active = cssv.clickable.active
-cssv.clickdanger.default.background = ('v', color('#D53934'), color.darken('#D53934',10))
+cssv.clickdanger.default = cssv.clickable.default.copy()
+cssv.clickdanger.hover = cssv.clickable.hover.copy()
+cssv.clickdanger.active = cssv.clickable.active.copy()
+cssv.clickdanger.default.background = ('v', color('#DE625E'), darken('#DE625E',10))
+cssv.clickdanger.hover.background = ('v', color('#DE625E'), lighten('#DE625E',10))
+cssv.clickdanger.active.background = darken('#DE625E',10)
+cssv.clickdanger.default.color = color('fff')
+cssv.clickdanger.hover.color = cssv.clickdanger.default.color
+cssv.clickdanger.active.color = cssv.clickdanger.default.color
+cssv.clickdanger.default.border.color = color('D53934')
+cssv.clickdanger.hover.border.color = cssv.clickdanger.default.border.color
+cssv.clickdanger.active.border.color = cssv.clickdanger.default.border.color
 
 cssv.widget.padding = spacing(px(6), px(10))
 cssv.widget.border.color = cssv.color.grayLight

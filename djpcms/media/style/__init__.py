@@ -53,7 +53,7 @@ cssv.link.default.background = None
 cssv.link.default.text_decoration = 'none'
 cssv.link.default.text_shadow = None
 # hover
-cssv.link.hover.color = lazy(color.darken, cssv.link.default.color, 15)
+cssv.link.hover.color = darken(cssv.link.default.color, 15)
 cssv.link.hover.background = None
 cssv.link.hover.text_decoration = 'underline'
 cssv.link.hover.text_shadow = None

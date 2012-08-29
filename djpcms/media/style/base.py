@@ -69,10 +69,7 @@ class Variable(UnicodeMixin):
         return self._unit()
     
     def __unicode__(self):
-        try:
-            return to_string(self.tocss())
-        except:
-            raise
+        return to_string(self.tocss())
     
     def tojson(self):
         return str(self)
@@ -140,22 +137,28 @@ in a css file.'''
             return o
             
     @classmethod
-    def make(cls, val, unit=None):
+    def make(cls, val, unit=None, **kwargs):
         if isinstance(val, tuple) and len(val) == 1:
             val = val[0]
         o = None
         if isinstance(val, Variable):
             if unit and val.unit != unit:
                 raise ValueError('units are not compatible')
-            o = cls.from_variable(val)
+            o = cls.from_variable(val, **kwargs)
+        elif val is None or isinstance(val, Variables):
+            return None
         if o is None:
-            o = cls(val, unit=unit)
+            o = cls.from_value(val, unit=unit, **kwargs)
         return o
     
     @classmethod
-    def from_variable(cls, val):
-        if isinstance(val, (cls, NamedVariable)):
+    def from_variable(cls, val, **kwargs):
+        if isinstance(val, (cls, ProxyVariable)):
             return val
+        
+    @classmethod
+    def from_value(cls, val, **kwargs):
+        return cls(val, **kwargs)
         
     ##    INTERNALS
     
@@ -422,7 +425,9 @@ the form (top, right, bottom, left).'''
             raise ValueError('Spacing must have at most 4 elements')
         new_values = []
         for v in value:
-            new_values.append(Size.make(v))
+            v = Size.make(v)
+            if v is not None:
+                new_values.append(v)
         return new_values
     
     def _do_operation(self, ope, oval):
@@ -480,6 +485,7 @@ class css(object):
     # pointer to the global css body. The root of all css elements
     lock = threading.Lock()
     rendered = False
+    comment = None
     parent_link = {'child': ' ',
                    'attribute': '',
                    'bigger': ' > '}
@@ -493,8 +499,10 @@ class css(object):
             elems = [cls.make(tag)]
         parent = attributes.pop('parent', None)
         parent_relationship = attributes.pop('parent_relationship', 'child')
+        comment = attributes.pop('comment', None)
         for self in elems:
             self.parent_relationship = parent_relationship
+            self.comment = comment
             for name, value in iteritems(attributes):
                 self[name] = value
             self._set_parent(parent)
@@ -670,6 +678,10 @@ class css(object):
                 data.append('    {0}: {1};'.format(k,v))
         if data:
             # yield the element
+            if self.comment:
+                yield '/*---------------------------------------------------'
+                yield self.comment
+                yield '---------------------------------------------------*/'
             yield self.tag + ' {'
             for s in data:
                 yield s
@@ -686,10 +698,12 @@ class css(object):
         '''Clone the current :class:`css` element and execute all
 :class:`mixin` in the process.'''
         if self._clone:
-            self._set_parent(parent)
+            if parent is not None:
+                self._set_parent(parent)
             return self
         elem = self.make(self._tag, clone=True)
         elem.parent_relationship = self.parent_relationship
+        elem.comment = self.comment
         elem._attributes.extend(self._attributes)
         parent = parent if parent is not None else self.parent
         if parent is not None:
@@ -935,7 +949,10 @@ def csscompress(target):  # pragma: no cover
     os.system('yuicompressor.jar --type css -o {0} {0}'.format(target))
 
 def dump_theme(theme, target, dump_variables=False, minify=False):
-    file_name = None if hasattr(target, 'write') else target
+    file_name = None
+    if not hasattr(target, 'write'):    #pragma    nocover
+        file_name = target
+        target = StringIO()
     with cssv.theme(theme) as t:
         if dump_variables:
             LOGGER.info('Dump styling variables on %s' % target)

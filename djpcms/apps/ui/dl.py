@@ -22,4 +22,5 @@ css('.%s' % classes.object_definition,
         width=pc(100),
         margin= spacing(cssv.definition_list.spacing, 0, 0)),
     float='left',
-    width=pc(100))
+    width=pc(100),
+    comment='Object definition list')

@@ -9,8 +9,7 @@ cssv.cedit.color = cssv.color.white
 cssv.cedit.font_size = pc(90)
 cssv.cedit.link.hover.text_decoration = 'none'
 cssv.cedit.link.default.color = cssv.color.grayLighter
-cssv.cedit.link.hover.color = lazy(color.darken,
-                                  cssv.edit.link.default.color, 15)
+cssv.cedit.link.hover.color = darken(cssv.cedit.link.default.color, 15)
 cssv.cedit.input.background = cssv.color.grayDark
 cssv.cedit.input.color = cssv.color.white
 

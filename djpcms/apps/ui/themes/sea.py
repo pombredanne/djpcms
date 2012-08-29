@@ -5,9 +5,9 @@ storm_sky = '#909daa'
 azzurro = '#87B0DB'
 new_door = 'fcffc0'
 white = '#fafafa'
-mighty_stale_darker = color.darken(mighty_stale, 15)
-storm_sky_dark = color.darken('#909daa', 10)
-storm_sky_darker = color.darken('#909daa', 20)
+mighty_stale_darker = darken(mighty_stale, 15)
+storm_sky_dark = darken('#909daa', 10)
+storm_sky_darker = darken('#909daa', 20)
 
 with cssv.theme('sea') as t:
     t.widget.head.background = azzurro

@@ -4,13 +4,13 @@ cssv.alert.padding = spacing(6, 10)
 cssv.alert.background = color('#FCF8E3')
 cssv.alert.color = color('#C09853')
 cssv.alert.radius = cssv.body.radius
-cssv.alert.border.color = lazy(color.darken, cssv.alert.background, 5)
+cssv.alert.border.color = darken(cssv.alert.background, 5)
 cssv.alert.border.style = None
 cssv.alert.border.width = cssv.border.width
 
 cssv.alert_error.background = color('#F2DEDE')
 cssv.alert_error.color = color('#B94A48')
-cssv.alert_error.border.color = lazy(color.darken, cssv.alert_error.background, 5)
+cssv.alert_error.border.color = darken(cssv.alert_error.background, 5)
 cssv.alert_error.border.style = cssv.alert.border.style
 cssv.alert_error.border.width = cssv.alert.border.width
 

@@ -8,7 +8,7 @@ cssv.tabs.border_color = cssv.body.border_color
 cssv.tabs.default.color = cssv.link.default.color
 cssv.tabs.active.background = cssv.body.background
 cssv.tabs.active.color = cssv.body.color
-cssv.tabs.hover.background = lazy(color.lighten, cssv.tabs.border_color, 5)
+cssv.tabs.hover.background = lighten(cssv.tabs.border_color, 5)
 
 cssv.pills.padding = spacing(px(10), px(10))
 

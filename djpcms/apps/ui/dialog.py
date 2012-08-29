@@ -35,4 +35,5 @@ css('.%s' % classes.dialog,
     position='absolute',
     overflow='hidden',
     padding=0,
-    width=px(300))
+    width=px(300),
+    comment='Pop up dialog')

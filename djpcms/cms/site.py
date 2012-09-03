@@ -508,7 +508,7 @@ This function can be overwritten by user implementation.'''
         settings = request.settings
         status = 500
         if exc_info and exc_info[0] is not None:
-            status = getattr(exc_info[1],'status',status)
+            status = getattr(exc_info[1], 'status', status)
         else:
             exc_info = None
         # 302 is a special case, we redirect

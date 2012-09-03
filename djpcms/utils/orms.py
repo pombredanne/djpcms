@@ -69,7 +69,6 @@ class OrmWrapper(UnicodeMixin):
 
     def __init__(self, model):
         self.model = model
-        self.appmodel = None
         self.test()
         self.setup()
         if self.hash:
@@ -95,6 +94,11 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
         if not isinstance(self.model, ModelType):
             raise ValueError()
 
+    # Metadata methods
+    def has_field(self, name):
+        '''Check if the field *name* is available in the underlying model.'''
+        return True
+    
     # Query methods
 
     def query(self):
@@ -127,10 +131,11 @@ filtering (usually id). Similar to :meth:`fileter` method.'''
             mapping = mapping.lists()
         elif isinstance(mapping, Mapping):
             mapping = iteritems(mapping)
-        for k, v in mapping:
-            if not isinstance(v, (list,tuple)):
-                v = (v,)
-            r['%s__in' % k] = v
+        for field, v in mapping:
+            if self.has_field(field):
+                if not isinstance(v, (list,tuple)):
+                    v = (v,)
+                r['%s__in' % k] = v
         return r
 
     def is_query(self, query):
@@ -151,13 +156,6 @@ filtering (usually id). Similar to :meth:`fileter` method.'''
 
     def query_instance(self, qs, instance = None):
         return qs
-
-    def set_application(self, appmodel):
-        self.appmodel = appmodel
-        self.list_display = appmodel.list_display or []
-        self.object_display = appmodel.object_display or self.list_display
-        self.list_display_links = appmodel.list_display_links or []
-        self.search_fields = appmodel.search_fields or []
 
     def id(self, obj):
         return obj.id

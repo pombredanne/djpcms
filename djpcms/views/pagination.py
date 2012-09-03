@@ -246,8 +246,11 @@ an application based on model is available.
 :rtype: A dictionary containing information for building the toolbox.
     If the toolbox is not available it returns ``None``.
 '''
-    pagination = request.pagination
+    toolbox = {}
     appmodel = appmodel or request.appmodel
+    if not appmodel:
+        return toolbox
+    pagination = request.view.pagination or appmodel.pagination
     model = appmodel.model
     bulk_actions = []
     toolbox = {}
@@ -269,7 +272,7 @@ an application based on model is available.
     if groups:
         if len(groups) > 1:
             toolbox['groups'] = groups
-        toolbox['headers'] = tuple(headers_from_groups(pagination,groups))
+        toolbox['headers'] = tuple(headers_from_groups(pagination, groups))
     else:
         toolbox['headers'] = pagination.list_display
     return toolbox
@@ -287,13 +290,15 @@ it looks for the following inputs in the request data:
 * `iSortingCols` for sorting.
 '''
     render = True
-    pagination = request.pagination
     view = request.view
+    pagination = view.pagination
     appmodel = view.appmodel
     if isgenerator(query):
         query = list(query)
     elif hasattr(query, 'model'):
         appmodel = request.app_for_model(query.model)
+    if not pagination and appmodel:
+        pagination = appmodel.pagination
     if toolbox is None:
         toolbox = table_toolbox(request, appmodel=appmodel,
                                 perm_level=perm_level)

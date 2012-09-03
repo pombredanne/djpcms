@@ -276,6 +276,10 @@ if needed.
 '''
         return True
 
+    def level(self, model, instance, user):
+        '''The level of permission for *user* on *instance*.'''
+        return DELETE 
+        
     def add_model(self, model):
         pass
 

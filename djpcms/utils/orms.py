@@ -95,9 +95,9 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
             raise ValueError()
 
     # Metadata methods
-    def has_field(self, name):
+    def field_for_query(self, name):
         '''Check if the field *name* is available in the underlying model.'''
-        return True
+        return name
     
     # Query methods
 
@@ -132,10 +132,11 @@ filtering (usually id). Similar to :meth:`fileter` method.'''
         elif isinstance(mapping, Mapping):
             mapping = iteritems(mapping)
         for field, v in mapping:
-            if self.has_field(field):
-                if not isinstance(v, (list,tuple)):
+            field = self.field_for_query(field)
+            if field:
+                if not isinstance(v, (list, tuple)):
                     v = (v,)
-                r['%s__in' % k] = v
+                r[field] = v
         return r
 
     def is_query(self, query):

@@ -6,7 +6,7 @@ from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string,\
 from djpcms import html, forms, ajax
 from djpcms.html import table_header, StreamRenderer, Widget
 from djpcms.utils import orms
-from djpcms.utils.async import async_object
+from djpcms.utils.async import maybe_async
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.httpurl import to_string
 from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
@@ -392,7 +392,7 @@ the *request*.'''
         '''Default render method for this application.'''
         if 'query' not in context:
             context['query'] = self.query(request)
-        return async_object(
+        return maybe_async(
                     StreamRenderer(
                         context,
                         renderer=lambda r: self.render_query(request, **r)))

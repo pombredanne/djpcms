@@ -8,7 +8,7 @@ from djpcms import Renderer
 from djpcms.utils.text import slugify, escape, mark_safe
 from djpcms.utils.decorators import lazymethod
 from djpcms.utils.structures import OrderedDict
-from djpcms.utils.async import MultiDeferred, Deferred, async_object
+from djpcms.utils.async import MultiDeferred, Deferred, maybe_async
 from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
                                  is_string_or_native_string, itervalues
 
@@ -373,7 +373,7 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
-        return async_object(StreamRenderer(self.stream(request, context)))
+        return maybe_async(StreamRenderer(self.stream(request, context)))
 
     def stream(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
@@ -546,7 +546,7 @@ corner cases, users can subclass it to customize behavior.
         '''Called by *widget* to add a new *element* to its data stream.
  By default it simply append *element* to the :attr:`Widget.data_stream`
  attribute. It can be overwritten but call super for consistency.'''
-        element = async_object(element)
+        element = maybe_async(element)
         if element is not None:
             if isinstance(element, Widget):
                 element.internal['parent'] = widget

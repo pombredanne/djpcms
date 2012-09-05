@@ -14,7 +14,7 @@ from djpcms.cms import permissions
 from djpcms.html import html_doc_stream
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.async import is_async, is_failure, async_object, as_failure
+from djpcms.utils.async import is_async, is_failure, maybe_async, as_failure
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -646,10 +646,10 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
         except Exception as e:
             exc_info = sys.exc_info()
         else:
-            request = async_object(request)
+            request = maybe_async(request)
             while is_async(request):
                 yield
-                request = async_object(request)
+                request = maybe_async(request)
             if is_failure(request):
                 exc_info = request.trace
                 request = None
@@ -677,11 +677,11 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
             return DjpcmsTree(tree)
 
     def safe_render(self, request, content):
-        content = async_object(content)
+        content = maybe_async(content)
         try:
             if is_renderer(content):
                 self.content_type = content.content_type()
-                content = async_object(content.render(request))
+                content = maybe_async(content.render(request))
             return content
         except Exception as e:
             return as_failure(e)

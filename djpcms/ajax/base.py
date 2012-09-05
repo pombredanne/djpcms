@@ -4,7 +4,7 @@ interaction with ``djpcms.js``
 import json
 
 from djpcms import Renderer
-from djpcms.utils.async import MultiDeferred, is_async, async_object
+from djpcms.utils.async import MultiDeferred, is_async, maybe_async
 from djpcms.utils.httpurl import accept_content_type
 from djpcms.utils.text import to_string, string_type
 from djpcms.utils.structures import OrderedDict
@@ -58,7 +58,7 @@ as JSON string.
     
     def render(self, request=None, **kwargs):
         '''Serialize ``self`` as a ``JSON`` string'''
-        elem=async_object(self.serialize(request))
+        elem = maybe_async(self.serialize(request))
         if is_async(elem):
             return elem.add_callback(self.dump)
         else:

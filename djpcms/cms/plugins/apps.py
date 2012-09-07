@@ -45,7 +45,7 @@ class FieldChoices(forms.ChoiceFieldOptions):
         return sorted(self._query(bfield), key=lambda y : y[1])
 
 
-def get_contet_choices(bfield):
+def get_content_choices(bfield):
     model = bfield.form.model
     if not model:
         return []
@@ -129,7 +129,7 @@ class ModelLinksForm(forms.Form):
 
 class ContentForm(forms.Form):
     content = forms.ChoiceField(choices=forms.ChoiceFieldOptions(\
-                                    query=get_contet_choices))
+                                    query=get_content_choices))
 #TODO, MAKE THIS AUTOCOMPLETE IF POSSIBLE
                                     #autocomplete = True))
 #

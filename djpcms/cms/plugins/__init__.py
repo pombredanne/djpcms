@@ -31,7 +31,7 @@ get_plugin = lambda name, default = None:  _plugin_dictionary.get(name,default)
 get_wrapper = lambda name, default = None: _wrapper_dictionary.get(name,default)
 
 
-def register_application(app, name = None, description = None):
+def register_application(app, name=None, description=None):
     '''Register an application view as a plugin
 * *app* is an instance of an :class:`djpcms.views.appview.AppViewBase`
 * *name* name for this plugin'''
@@ -40,6 +40,14 @@ def register_application(app, name = None, description = None):
         p = app.get_plugin()
     else:
         p = ApplicationPlugin(app)
+        
+
+def serialize_form_data(form):
+    #TODO. This is a ACK. Needs proper implementation.
+    for k, value in form.cleaned_data.items():
+        if hasattr(value, 'id'):
+            value = value.id
+        yield k, value        
 
 
 def html_plugin_form(form):
@@ -192,7 +200,8 @@ parameters if :attr:`form` is set. By default do nothing.
     def save(self, pform):
         '''Save the plugin data from the plugin form'''
         if pform:
-            return json.dumps(pform.cleaned_data, cls=JSONEncoder)
+            data = dict(((k, v) for k, v in serialize_form_data(pform)))
+            return json.dumps(data, cls=JSONEncoder)
         else:
             return json.dumps({})
 

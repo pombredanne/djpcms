@@ -1,8 +1,9 @@
 import functools
 
+from .async import is_async
+
 
 __all__ = ['memoized',
-           'storegenarator',
            'LazyMethod',
            'lazymethod',
            'lazyproperty']
@@ -37,32 +38,10 @@ class memoized(object):
         """Support instance methods."""
         return functools.partial(self.__call__, obj)
     
-    
-def storegenarator(f):
-    '''Decorator which can be used on a member function
-returning a generator. It stores the generated results for future use.
-    '''
-    name = '_generated_%s' % f.__name__
-    def _(self, *args, **kwargs):
-        if not hasattr(self,name):
-            items = []
-            setattr(self,name,items)
-            append = items.append
-            for g in f(self, *args, **kwargs):
-                append(g)
-                yield g
-        else:
-            for g in getattr(self,name):
-                yield g
-                
-    _.__doc__ = f.__doc__
-    
-    return _
-
 
 class LazyMethod(object):
     
-    def __init__(self, safe = False, as_property = False):
+    def __init__(self, safe=False, as_property=False):
         self.safe = safe
         self.as_property = as_property
         
@@ -74,13 +53,19 @@ to store the result for futures uses.'''
         def _(obj, *args, **kwargs):
             if not hasattr(obj, name):
                 try:
-                    v = f(obj, *args, **kwargs)
+                    value = f(obj, *args, **kwargs)
                 except:
                     if self.safe:
                         return None
                     else:
                         raise
-                setattr(obj, name, v)
+                setattr(obj, name, value)
+                if is_async(value):
+                    value.add_callback(
+                            lambda r: self._store_value(obj, name, r))
+                    if self.safe:
+                        value.add_errback(
+                            lambda r: self._store_value(obj, name, None))
             return getattr(obj, name)
             
         _.__doc__ = f.__doc__
@@ -90,6 +75,10 @@ to store the result for futures uses.'''
             _ = property(_)
             
         return _
+    
+    def _store_value(self, obj, name, value):
+        setattr(obj, name, value)
+        return value
     
     
 def lazymethod(f):

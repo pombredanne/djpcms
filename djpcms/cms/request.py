@@ -616,10 +616,12 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
                 if request.method not in request.methods():
                     raise HttpException(status=405)
                 perm = maybe_async(request.has_permission())
-                if is_async(perm):
+                while is_async(perm):
                     yield None
                     perm = maybe_async(perm)
-                if not perm:
+                if is_failure(perm):
+                    request.exc_info = perm.trace
+                elif not perm:
                     raise PermissionDenied()
                 else:
                     content = request.view(request)

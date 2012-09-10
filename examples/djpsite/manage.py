@@ -51,8 +51,6 @@ class MainApplication(views.Application):
 class WebSite(cms.WebSite):
     _settings_file = 'djpsite.settings'
     def load(self):
-        from stdnet.lib.redis.async import RedisConnection
-        stdnet_settings.RedisConnectionClass = RedisConnection
         params = self.params.copy()
         params.update({'APPLICATION_URLS': self.urls})
         settings = cms.get_settings(__file__, self.settings_file, **params)

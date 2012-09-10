@@ -32,6 +32,8 @@ from djpcms.html import Widget
 from djpcms.html.layout import page, container, grid
 from djpcms.apps.nav import topbar_container, Breadcrumbs
 
+from stdnet.conf import settings as stdnet_settings
+
 from stdcms.sessions import User
 from stdcms.sessions import PermissionHandler, CSRF
 from stdcms.social import SocialUserApplication, SocialAuthBackend
@@ -49,6 +51,8 @@ class MainApplication(views.Application):
 class WebSite(cms.WebSite):
     _settings_file = 'djpsite.settings'
     def load(self):
+        from stdnet.lib.redis.async import RedisConnection
+        stdnet_settings.RedisConnectionClass = RedisConnection
         params = self.params.copy()
         params.update({'APPLICATION_URLS': self.urls})
         settings = cms.get_settings(__file__, self.settings_file, **params)

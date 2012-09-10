@@ -316,7 +316,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
 '''
         per_page = per_page or self.size
         if not per_page:
-            return self._paginate(None,data,withbody)
+            return self._paginate(None, data, withbody)
         try:
             total = data.count()
         except:

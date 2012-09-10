@@ -12,9 +12,10 @@ from pulsar.apps.wsgi import WsgiResponse, WsgiHandler, WsgiResponseGenerator
 from djpcms import media, is_renderer
 from djpcms.cms import permissions
 from djpcms.html import html_doc_stream
+from djpcms.utils.async import is_async, async, maybe_async, is_failure,\
+                                safe_async, as_failure
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.async import is_async, is_failure, maybe_async, as_failure
 from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -575,16 +576,31 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
         RequestMiddleware.__init__(self, website)
 
     def __iter__(self):
-        #query = self.environ.get('QUERY_STRING','')
-        #PK = self.site.settings.PROFILING_KEY
-        #gen = self.generate()
-        #if PK and PK in query:
-        #    profiler(self.generate)
-        #    return profile_response(response)
-        for request in self.request():
-            if request is not None:
-                break
+        path = self.environ.get('PATH_INFO','/')
+        tree = maybe_async(safe_async(self.page_tree))
+        while is_async(tree):
             yield b''
+            tree = maybe_async(tree)
+        if is_failure(tree):
+            request = self.bad_request(tree, route=path)
+        else:
+            try:
+                node = tree.resolve(path)
+            except Exception as e:
+                request = self.bad_request(as_failure(e), tree=tree)
+            else:
+                request = maybe_async(safe_async(make_request,
+                                                 (self.environ, node)))
+                while is_async(request):
+                    yield b''
+                    request = maybe_async(request)
+                if is_failure(request):
+                    request = self.bad_request(request, node=node)
+        for processor in self.site.request_processors:
+            try:
+                processor(request)
+            except:
+                pass
         for response in self.response(request):
             if response is not None:
                 break
@@ -599,7 +615,11 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
             try:
                 if request.method not in request.methods():
                     raise HttpException(status=405)
-                elif not request.has_permission():
+                perm = maybe_async(request.has_permission())
+                if is_async(perm):
+                    yield None
+                    perm = maybe_async(perm)
+                if not perm:
                     raise PermissionDenied()
                 else:
                     content = request.view(request)
@@ -635,44 +655,27 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
             if cache_control:
                 cache_control(response.headers)
         return response
-
-    def request(self):
-        '''Build the :class:`Request` for this path.'''
-        tree, node, request, exc_info = None, None, None, None
-        try:
-            tree = self.page_tree()
-            node = tree.resolve(self.environ['PATH_INFO'])
-            request = make_request(self.environ, node)
-        except Exception as e:
-            exc_info = sys.exc_info()
-        else:
-            request = maybe_async(request)
-            while is_async(request):
-                yield
-                request = maybe_async(request)
-            if is_failure(request):
-                exc_info = request.trace
-                request = None
-        if request is None:
-            if node is None:
-                match = getattr(exc_info[1], 'handler', None)
-                handler = self.site if match is None else match.handler()
-                node = BadNode(tree, handler)
-            request = make_request(self.environ, node)
-            request.exc_info = exc_info
-        for processor in self.site.request_processors:
-            try:
-                processor(request)
-            except:
-                pass
-        yield request
+        
+    def bad_request(self, failure, tree=None, node=None, route=None):
+        exc_info = failure.trace
+        if node is None:
+            match = getattr(exc_info[1], 'handler', None)
+            handler = self.site if match is None else match.handler()
+            node = BadNode(tree, handler, route=route)
+        request = make_request(self.environ, node)
+        request.exc_info = exc_info
+        return request
 
     def page_tree(self):
         site = self.site
         Page = site.Page
         tree = site.tree
         if Page:
-            return DjpcmsTree(tree, Page.query())
+            pages = Page.query().all()
+            if is_async(pages):
+                return pages.add_callback(lambda pg: DjpcmsTree(tree, pg))
+            else:
+                return DjpcmsTree(tree, pages)
         else:
             return DjpcmsTree(tree)
 

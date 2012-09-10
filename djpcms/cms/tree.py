@@ -113,7 +113,7 @@ class MultiNode(UnicodeMixin):
         self.tree = tree
         self.__route = route
         if urlargs:
-            urlargs = dict(((k,unquote_unreserved(v))\
+            urlargs = dict(((k, unquote_unreserved(v))\
                              for k,v in urlargs.items()))
         else:
             urlargs = {}
@@ -248,10 +248,11 @@ class MultiTree(object):
 class DjpNode(MultiNode):
     '''Node used by djpcms to handle responses.'''
     error = False
-    def __init__(self, tree, view, page, **kwargs):
+    def __init__(self, tree, view, page, route=None, **kwargs):
         self.page = page
         self._view = view
-        route = view.route if view is not None else page.route
+        if route is None:
+            route = view.route if view is not None else page.route
         super(DjpNode,self).__init__(tree, route, **kwargs)
     
     @property
@@ -270,8 +271,8 @@ class DjpNode(MultiNode):
 
 class BadNode(DjpNode):
     error = True
-    def __init__(self, tree, view):
-        super(BadNode,self).__init__(tree, view, None)
+    def __init__(self, tree=None, view=None, route=None):
+        super(BadNode,self).__init__(tree, view, None, route)
         
     
 class DjpcmsTree(MultiTree):

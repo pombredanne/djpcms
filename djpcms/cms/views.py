@@ -310,7 +310,7 @@ is used by the :attr:`djpcms.Request.parent` attribute.'''
             m.add_js(settings.DEFAULT_JAVASCRIPT)
             if settings.DEFAULT_STYLE_SHEET:
                 m.add_css(settings.DEFAULT_STYLE_SHEET)
-            elif settings.STYLING:
+            if settings.STYLING:
                 target = media.site_media_file(settings)
                 if target:
                     m.add_css({'all': (target,)})

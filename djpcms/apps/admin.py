@@ -47,14 +47,10 @@ is set, otherwise it falls back to the standard instance view.'''
 
 
 class AdminSite(views.Application):
-    '''An :class:`djpcms.views.Application` for a site Admin. It
+    '''A :class:`djpcms.views.Application` for an Admin site. It
 contains several :class:`ApplicationGroup`.'''
     has_plugins = False
     in_nav = 1000
-    pagination = html.Pagination(layout=html.accordion,
-                                 ajax=False,
-                                 size=None)
-
     home = views.View(in_nav=1, icon='admin')
 
     def groups(self, request):
@@ -69,10 +65,13 @@ contains several :class:`ApplicationGroup`.'''
         for g in sorted(self.groups(request), key = lambda x : x['title']):
             url = g['url']
             if url:
-                a = Widget('a', g['title'], href = url)
+                a = Widget('a', g['title'], href=url)
             else:
                 a = g['title']
             yield a, g['body']
+
+    def render(self, request, **kwargs):
+        return html.accordion(self.query(request))
 
 
 class ApplicationGroup(views.Application):

@@ -34,7 +34,8 @@ class Navigator(WidgetMaker):
     def __init__(self, levels=4, secondary_after=100,
                  primary=None, secondary=None,
                  container=None, brand=None, search=None, soft=False,
-                 main_layout=None, secondary_layout=None, **kwargs):
+                 brand_link='/', main_layout=None, secondary_layout=None,
+                 **kwargs):
         super(Navigator, self).__init__(**kwargs)
         self.main_layout = main_layout if main_layout\
                             is not None else self.main_layout
@@ -42,7 +43,7 @@ class Navigator(WidgetMaker):
                                  is not None else self.secondary_layout
         self.brand = brand
         if brand:
-            brand = WidgetMaker(tag='a', key='brand').addAttr('href','/')
+            brand = Anchor(key='brand', href=brand_link, cn='brand')
         self.soft = soft
         self.levels = max(levels,1)
         self.secondary_after = secondary_after

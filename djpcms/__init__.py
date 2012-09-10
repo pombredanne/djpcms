@@ -1,5 +1,5 @@
 '''A dynamic content management system using jQuery and Python'''
-VERSION = (0, 9, 0, 'alpha', 0)
+VERSION = (0, 9, 0, 'alpha', 1)
 
 import os
 import sys

@@ -255,8 +255,11 @@ an application based on model is available.
     bulk_actions = []
     toolbox = {}
     for name, description, pcode in pagination.bulk_actions:
-        if (perm_level is None and request.has_permission(pcode, model=model))\
-                or perm_level >= pcode:
+        if perm_level is None:
+            ok = request.has_permission(pcode, model=model)
+        else:
+            ok = perm_level >= pcode
+        if ok:
             bulk_actions.append((name, description))
     if bulk_actions:
         toolbox['actions'] = {'choices':bulk_actions, 'url':request.url}

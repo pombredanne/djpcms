@@ -26,6 +26,7 @@ class TestAttributes(test.TestCase):
 
     def testWidegtRepr(self):
         c = w('div', cn='bla')
+        self.assertEqual(c.content_type(), 'text/html')
         self.assertEqual(str(c), "<div class='bla'>")
         c = w(cn='bla')
         self.assertEqual(c.tag, None)
@@ -73,15 +74,15 @@ class TestAttributes(test.TestCase):
         self.assertEqual(c.data['table']['rows'],40)
 
     def testEmptyAttr(self):
-        c = w()
-        c.addAttr('value',None)
-        self.assertEqual(c.attr('value'),None)
-        self.assertEqual(c.flatatt(),'')
-        c.addAttr('value','')
+        c = w('input:text')
+        c.addAttr('value', None)
+        self.assertEqual(c.attr('value'), None)
+        self.assertEqual(c.flatatt(), " type='text'")
+        c.addAttr('value', '')
         self.assertEqual(c.attr('value'),'')
-        self.assertEqual(c.flatatt(), " value=''")
-        c.addAttr('value',0)
-        self.assertEqual(c.flatatt(), " value='0'")
+        self.assertTrue(" value=''" in c.flatatt())
+        c.addAttr('value', 0)
+        self.assertTrue(" value='0'" in c.flatatt())
         self.assertEqual(c.attr('value'), 0)
 
     def testEmptyAttribute(self):
@@ -89,6 +90,12 @@ class TestAttributes(test.TestCase):
         self.assertEqual(opt.attr('value'), '')
         text = opt.render()
         self.assertTrue(" value=''" in text)
+        
+    def testHide(self):
+        c = w('div', 'foo').hide()
+        self.assertEqual(c.flatatt(), " style='display:none;'")
+        c.show()
+        self.assertEqual(c.flatatt(), "")
 
 
 class TestInputs(test.TestCase):

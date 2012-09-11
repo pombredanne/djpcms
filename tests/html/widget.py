@@ -1,4 +1,5 @@
 from djpcms import html
+from djpcms.html import classes
 from djpcms.utils import test
 
 w = html.Widget
@@ -8,7 +9,7 @@ class TestInputs(test.TestCase):
     
     def testSubmit(self):
         s = html.SubmitInput()
-        self.assertTrue(s.hasClass('button'))
+        self.assertTrue(s.hasClass(classes.button))
         self.assertEqual(s.attr('type'),'submit')
 
 class TestWidgets(test.TestCase):
@@ -58,18 +59,38 @@ class TestWidgets(test.TestCase):
 
     def testBox(self):
         box = html.box(hd='This is a box', bd='bla bla ...')
-        self.assertEqual(len(box), 2)
+        self.assertEqual(len(box.children), 2)
         text = box.render()
         box = html.box(hd='This is a box', bd='bla bla ...', ft='...')
-        self.assertEqual(len(box), 3)
+        self.assertEqual(len(box.children), 3)
 
     def testBoxMenu(self):
         box = html.box(hd='This is a box', bd='bla bla ...', collapsable=True)
-        self.assertEqual(len(box), 2)
+        self.assertEqual(len(box.children), 2)
+        self.assertTrue('hd' in box.children)
+        self.assertTrue('bd' in box.children)
 
     def testDefinitionList(self):
-        dl = w('dl', [('first','bla'),('second','foo'),('third','pippo')])
+        dl = w('dl', ('first', 'bla', 'second', 'foo', 'third', 'pippo'))
         self.assertEqual(len(dl), 6)
         text = dl.render()
         self.assertTrue('dt' in text)
         self.assertTrue('dd' in text)
+        
+    def testDefinitionList2(self):
+        dl = html.definition_list((('first', 'bla'),
+                                   ('second', 'foo'),
+                                   ('third', 'pippo')))
+        self.assertEqual(len(dl), 3)
+        text = dl.render()
+        self.assertTrue('dt' in text)
+        self.assertTrue('dd' in text)
+        
+    def test_anchor_or_button(self):
+        a = html.anchor_or_button('bla', href='/')
+        self.assertEqual(a.tag, 'a')
+        self.assertFalse(a.hasClass(classes.button))
+        self.assertEqual(a.attr('href'), '/')
+        a = html.anchor_or_button('bla', href='/', asbutton=True)
+        self.assertTrue(a.hasClass(classes.button))
+        

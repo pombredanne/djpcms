@@ -12,8 +12,8 @@ class TestTable(test.TestCase):
         self.assertTrue(pag.list_display)
         self.assertEqual(len(pag.headers),len(pag.list_display))
         self.assertTrue(pag.astable)
-        for c,head in zip(self.heads,pag.list_display):
-            self.assertEqual(c,head.code)
+        for c, head in zip(self.heads, pag.list_display):
+            self.assertEqual(c, head.code)
         return pag
         
     def testTablePagination(self):
@@ -23,13 +23,13 @@ class TestTable(test.TestCase):
         p = self.pagination()
         tbl = p.widget(())
         ht = tbl.render()
-        self.assertTrue('<table>' in ht)
+        self.assertTrue('<table' in ht)
         self.assertTrue('</table>' in ht)
-        self.assertTrue('<thead>' in ht)
+        self.assertTrue('<thead' in ht)
         self.assertTrue('</thead>' in ht)
-        self.assertTrue('<tbody>' in ht)
+        self.assertTrue('<tbody' in ht)
         self.assertTrue('</tbody>' in ht)
-        self.assertFalse('<tfoot>' in ht)
+        self.assertFalse('<tfoot' in ht)
         self.assertFalse('</tfoot>' in ht)
         self.assertTrue('<tbody></tbody>' in ht)
         self.assertTrue('</tbody></table>' in ht)

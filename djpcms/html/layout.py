@@ -1,6 +1,7 @@
 '''Page layout and grids'''
 from collections import deque, namedtuple
 
+from djpcms.utils.async import on_result
 from .base import WidgetMaker, Widget
 from . import classes
 
@@ -71,7 +72,7 @@ def columns_deque(request, namespace, all_columns, grid):
     '''Return a `deque` containing all columns for a given namespace'''
     num_columns = grid.numcolumns
     new_columns = deque()
-    columns = all_columns.get(namespace,{})
+    columns = all_columns.get(namespace, {})
     for column in range(num_columns):
         blocks = columns.get(column)
         if blocks is None:
@@ -107,17 +108,21 @@ def columns_deque(request, namespace, all_columns, grid):
     return namespace_columns(namespace, new_columns)
 
 def all_columns(request):
+    '''Retrive all columns for the current web page in request. This is
+potentially an asynchronous result.'''
+    def _all_columns(blocks):
+        namespaces = {}
+        for b in blocks:
+            namespace = get_or_update_dict(namespaces, b.namespace)
+            column = get_or_update_dict(namespace, b.column)
+            column[b.position] = b
+        return namespaces
     mapper = request.view.Page
     if not mapper:
         return {}
     model = mapper.model
     pageobj = request.page
-    namespaces = {}
-    for b in model.blocks(pageobj):
-        namespace = get_or_update_dict(namespaces, b.namespace)
-        column = get_or_update_dict(namespace, b.column)
-        column[b.position] = b
-    return namespaces
+    return on_result(model.blocks(pageobj), _all_columns)
 
 def edit_blocks(request, blocks):
     '''Renders blocks in editing mode.'''
@@ -346,7 +351,7 @@ default :class:`Grid` element is created.'''
                     data = blocks
             widget.add(data)
         else:
-            all_columns = context.pop('all_columns',{})
+            all_columns = context.pop('all_columns', {})
             if widget_data is not None:
                 context['widget_data'] = widget_data
             else:

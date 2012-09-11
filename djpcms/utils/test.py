@@ -26,7 +26,7 @@ from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
 
 if ispy3k:
     from io import StringIO as Stream
-else:
+else:   #pragma    nocover
     from io import BytesIO as Stream
 
 skipUnless = unittest.skipUnless
@@ -266,17 +266,12 @@ def encode_file(boundary, key, file):
 ################################################################################
 try:
     import nose
-except ImportError:
+except ImportError: #pragma    nocover
     nose = None
 
 try:
-    import pulsar
-except ImportError:
-    pulsar = None
-
-try:
     from stdnet import test as stdnet_test
-except ImportError:
+except ImportError: #pragma    nocover
     stdnet_test = None
 
 def addoption(argv, *vals, **kwargs):
@@ -296,14 +291,22 @@ def start(argv=None, modules=None, nose_options=None, description=None,
     '''Start djpcms tests. Use this function to start tests for
 djpcms aor djpcms applications. It check for pulsar and nose
 and add testing plugins.'''
-    global pulsar
+    use_nose = False
     argv = argv or sys.argv
     description = description or 'Djpcms Asynchronous test suite'
     version = version or djpcms.__version__
     if len(argv) > 1 and argv[1] == 'nose':
-        pulsar = None
+        use_nose = True
         sys.argv.pop(1)
-    if pulsar:
+    if use_nose:
+        os.environ['djpcms_test_suite'] = 'nose'
+        if stdnet_test and plugins is None:
+            plugins = [stdnet_test.NoseStdnetServer()]
+        argv = list(argv)
+        if nose_options:
+            nose_options(argv)
+        nose.main(argv=argv, addplugins=plugins)
+    else:
         os.environ['djpcms_test_suite'] = 'pulsar'
         from pulsar.apps.test import TestSuite
         from pulsar.apps.test.plugins import bench, profile
@@ -316,14 +319,3 @@ and add testing plugins.'''
                           description=description,
                           version=version)
         suite.start()
-    elif nose:
-        os.environ['djpcms_test_suite'] = 'nose'
-        if stdnet_test and plugins is None:
-            plugins = [stdnet_test.NoseStdnetServer()]
-        argv = list(argv)
-        if nose_options:
-            nose_options(argv)
-        nose.main(argv=argv, addplugins=plugins)
-    else:
-        raise NotImplementedError(
-                    'To run tests you need either pulsar or nose.')

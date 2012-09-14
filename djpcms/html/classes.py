@@ -1,5 +1,6 @@
 '''HTML classes for styling'''
 cms_block = 'cms-block'
+clearfix = 'clearfix'
 
 # Widget
 widget = 'ui-widget'

@@ -126,6 +126,9 @@ css('p',
          margin=0),
     margin=cssv.paragraph.margin)
 
+################################################# CLEARFIX
+css('.%s' % classes.clearfix, clearfix())
+
 ################################################# DEFAULT CLICKABLE ANCHORS
 css('a',
     clickable(**cssv.link.params()),

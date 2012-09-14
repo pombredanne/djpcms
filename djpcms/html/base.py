@@ -238,6 +238,16 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self
         else:
             return self._css.get(mapping)
+        
+    def hide(self):
+        '''Set the ``css`` ``display`` property to ``none`` and return self
+for concatenation.'''
+        self.css({'display':'none'})
+        return self
+
+    def show(self):
+        self._css.pop('display', None)
+        return self
 
 
 class Widget(Renderer, AttributeMixin):
@@ -386,16 +396,6 @@ request object and a dictionary for rendering children with a key.
             raise RuntimeError('{0} Already streamed'.format(self))
         self._streamed = True
         return self.maker.stream_from_widget(request, self, context)
-
-    def hide(self):
-        '''Set the ``css`` ``display`` property to ``none`` and return self
-for concatenation.'''
-        self.css({'display':'none'})
-        return self
-
-    def show(self):
-        self.css.pop('display',None)
-        return self
 
 
 class WidgetMaker(Renderer, AttributeMixin):
@@ -567,6 +567,7 @@ information contained in this :class:`WidgetMaker`.'''
             if widget.tag:
                 yield '<' + widget.tag + widget.flatatt() + '/>'
         else:
+            # Get the context dictionary which can contain asynchronous data
             context = self.get_context(request, widget, context)
             if widget.tag:
                 yield '<' + widget.tag + widget.flatatt() + '>'
@@ -584,6 +585,7 @@ inner part of the widget.
 
 :rtype: a generator of strings and :class:`ContextRenderer`.
 '''
+        # The widget key is specified in the context dictionary
         if self.key and context and self.key in context:
             ctx = context.pop(self.key)
             if isinstance(ctx, dict):

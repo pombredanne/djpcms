@@ -30,7 +30,14 @@ if os.environ.get('DJPCMS_ASYNCHRONOUS_FRAMEWORK') == 'twisted':
 else:
     from pulsar.async.defer import *
     
-
+def on_result(result, callback, *args, **kwargs):
+    result = maybe_async(result)
+    if is_async(result):
+        return result.add_callback(lambda result:\
+                    callback(result, *args, **kwargs))
+    else:
+        return callback(result, *args, **kwargs)
+    
 def log_and_execute(failure, errback, *args, **kwargs):
     log_failure(failure)
     return errback(failure, *args, **kwargs)

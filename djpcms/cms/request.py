@@ -172,7 +172,7 @@ class Request(object):
     def get(self, key, default=None):
         return self.environ.get(key, default)
 
-    def __unicode__(self):
+    def __repr__(self):
         if self.cache.request == self:
             return self.path
         elif self.url is not None:
@@ -181,7 +181,7 @@ class Request(object):
             return self.node.path + ' (' + self.path + ')'
         else:
             return self.path
-
+    __str__ = __repr__
     ############################################################################
     #    environment shortcuts
     ############################################################################

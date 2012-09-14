@@ -11,7 +11,7 @@ from . import classes
 
 if ispy3k:
     from itertools import zip_longest
-else:
+else:   #pragma    nocover
     from itertools import izip_longest as zip_longest
 
 __all__ = ['TextInput',
@@ -168,7 +168,7 @@ class DefinitionList(WidgetMaker):
         n = len(widget)
         tag = 'dt' if (n // 2)*2 == n else 'dd'
         return super(DefinitionList, self).add_to_widget(widget,
-                                                         Widget(tag,elem))
+                                                         Widget(tag, elem))
 
 
 for tag in ('div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5',

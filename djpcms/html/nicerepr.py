@@ -63,33 +63,23 @@ def nicerepr(val, nd=None, none_value=NONE_VALUE, dateformat=None,
                 val = mark_safe('<a href="{0}">{0}</a>'.format(val))
             return val
 
-def field_repr(request, field_name, obj, appmodel = None, **kwargs):
-    '''Retrive the value of attribute *field_name*
-from an object *obj* by trying out
-several possibilities in the following order.
-
-* If *field_name* is not defined or empty it returns ``None``.
-* If *field_name* is an attribute of *obj* it returns the value.
-* If *obj* is a dictionary type object and *field_value* is in *obj*
-     it returns the vaue.
-* If *appmodel* is defined it invokes the
-  :meth:`djpcms.views.Application.object_field_value`
-* Return ``None``
-'''
+def field_repr(request, head, obj, appmodel):
+    '''Retrive the value of field specified in *head* from an object *obj*.'''
     val = None
-    if hasattr(obj, field_name):
+    attrname = head.attrname
+    if hasattr(obj, attrname):
         try:
-            val = getattr(obj, field_name)
+            val = getattr(obj, attrname)
             if not isclass(val) and hasattr(val, '__call__'):
                 val = val()
         except Exception as e:
             val = str(e)
             logger.error('Unhadled exception in field representation',
-                         exc_info = True)
-    elif hasattr(obj,'__getitem__') and field_name in obj:
+                         exc_info=True)
+    elif hasattr(obj, '__getitem__') and field_name in obj:
         val = obj[field_name]
     if appmodel:
-        val = appmodel.instance_field_value(request, obj, field_name, val)
+        val = appmodel.instance_field_value(request, obj, head.code, val)
     return nicerepr(val, settings=request.settings)
 
 
@@ -121,8 +111,7 @@ class get_result(object):
         self.first = True
 
     def __call__(self, request, head, result, appmodel, **kwargs):
-        return field_repr(request, head.attrname, result, appmodel = appmodel,
-                          **kwargs)
+        return field_repr(request, head, result, appmodel)
 
 
 class get_iterable_result(object):
@@ -172,14 +161,10 @@ class get_app_result(object):
         if link and link.attr('href') != request.path:
             var = link.render()
         else:
-            attrname = head.code if hasattr(result, head.code) else head.attrname
-            var = field_repr(request, attrname, result,
-                             appmodel=appmodel, **kwargs)
-
+            var = field_repr(request, head, result, appmodel)
         if self.first and self.actions and mapper:
             first = False
             var = action_checkbox(var, mapper.id(result))
-
         esc = kwargs.get('escape', escape)
         var = esc(var)
         self.first = first

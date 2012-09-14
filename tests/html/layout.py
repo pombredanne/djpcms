@@ -8,8 +8,8 @@ class TestLayout(test.TestCase):
     def testBasePage(self):
         # this is just an empty page layout
         page_template = page()
-        self.assertEqual(page_template.tag,'div')
-        self.assertEqual(page_template.data,{'role':'page'})
+        self.assertEqual(page_template.tag, 'div')
+        self.assertEqual(page_template.data, {'role': 'page'})
         self.assertEqual(page_template.numcolumns, 0)
         self.assertFalse(page_template.is_column())
         self.assertRaises(ValueError, page_template.add, self)

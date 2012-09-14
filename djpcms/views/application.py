@@ -9,7 +9,7 @@ from djpcms.utils import orms
 from djpcms.utils.async import maybe_async
 from djpcms.utils.structures import OrderedDict
 from djpcms.utils.httpurl import to_string
-from djpcms.cms import ResolverMixin, PermissionDenied, Http404,\
+from djpcms.cms import RouteMixin, ResolverMixin, PermissionDenied, Http404,\
                        UrlException, AlreadyRegistered, RendererMixin, SPLITTER
 from djpcms.cms.formutils import get_form
 from djpcms.cms.plugins import register_application
@@ -34,15 +34,14 @@ in 'attrs', plus any similar fields on the base classes (in 'bases')."""
                 pviews.update(((r.name, r) for r in base.base_routes))
     for app_name, obj in list(attrs.items()):
         if hasattr(obj, '__class__'):
-            if isinstance(obj, View) or\
-                 isinstance(obj.__class__, ApplicationMetaClass):
+            if isinstance(obj, RouteMixin):
                 r = attrs.pop(app_name)
                 r.name = app_name
                 if r.name in pviews:
                     # pick up the same order number
-                    r.view_ordering = pviews[r.name].view_ordering
+                    r.route_ordering = pviews[r.name].route_ordering
                 pviews[r.name] = r
-    return list(sorted(itervalues(pviews), key= lambda x: x.view_ordering))
+    return list(sorted(itervalues(pviews), key= lambda x: x.route_ordering))
 
 
 def store_on_instance(f):
@@ -70,8 +69,9 @@ class ApplicationMetaClass(type):
         return new_class
 
 
-class Application(ApplicationMetaClass('ApplicationBase', (object,), {}),
-                  ResolverMixin, RendererMixin):
+ApplicationBase = ApplicationMetaClass('ApplicationBase', (object,), {})
+
+class Application(ApplicationBase, ResolverMixin, RendererMixin):
     '''Application class which implements :class:`djpcms.cms.ResolverMixin` and
 :class:`RendererMixin` and defines a set of :class:`View` instances
 which are somehow related
@@ -740,7 +740,7 @@ Can be overritten to include request dictionary.'''
                                     .format(self.__repr__()))
         # Add routes sorted by creation counter
         for route in sorted(itervalues(processed),
-                            key=lambda x: x.view_ordering):
+                            key=lambda x: x.route_ordering):
             if route.path == '/':
                 self.root_view = route
             if isinstance(route, View) and route.object_view:

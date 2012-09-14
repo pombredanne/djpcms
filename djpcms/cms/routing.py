@@ -108,7 +108,7 @@ class Route(UnicodeMixin):
     
 .. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
-    def __init__(self, rule, defaults = None, append_slash = False):
+    def __init__(self, rule, defaults=None, append_slash=False):
         rule = remove_double_slash(str(rule))
         # all rules must start with a slash
         if rule.startswith('/'):

@@ -85,8 +85,13 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
     PERM = permissions.VIEW
+    creation_counter = 0 
 
-    def __init__(self, route):
+    def __init__(self, route, route_ordering=None):
+        self.creation_counter = RouteMixin.creation_counter
+        self.route_ordering = route_ordering if route_ordering is not None else\
+                                self.creation_counter
+        RouteMixin.creation_counter += 1
         if not isinstance(route, Route):
             route = Route(route)
         self._rel_route = route
@@ -405,7 +410,6 @@ and :class:`ViewHandler`.
 
     proxy of the :attr:`ApplicationSite.settings` from :attr:`site` attribute
 '''
-    creation_counter = 0
     cache_control = None
     appmodel = None
     template_file = None
@@ -426,12 +430,8 @@ and :class:`ViewHandler`.
     def __init__(self, name=None, parent_view=None, pagination=None,
                  ajax_enabled=None, form=None, template_file=None,
                  description=None, in_nav=None, has_plugins=None,
-                 insitemap=None, body_class=None, view_ordering=None,
-                 hidden=None, cache_control=None):
-        self.creation_counter = RendererMixin.creation_counter
-        self.view_ordering = view_ordering if view_ordering is not None else\
-                                self.creation_counter
-        RendererMixin.creation_counter += 1
+                 insitemap=None, body_class=None, hidden=None,
+                 cache_control=None):
         self.name = name if name is not None else self.name
         self.description = description if description is not None else\
                             self.description

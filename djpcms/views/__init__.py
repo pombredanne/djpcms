@@ -2,3 +2,4 @@
 from .pagination import *
 from .appviews import *
 from .application import *
+from .ws import *

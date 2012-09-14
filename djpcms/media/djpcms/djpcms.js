@@ -190,7 +190,7 @@
                 }
             };
             // Add console handle
-            if (typeof console !== "undefined" && typeof console.log !== "undefined") {
+            if (console !== undefined && console.log !== undefined) {
                 logger.addHandler(function (msg) {
                     console.log(msg);
                 });
@@ -967,7 +967,7 @@
             matched.hide(effect.name, effect.options, effect.speed, function () {
                 processed += 1;
                 $(this).html('').show();
-                if(processed === matched.length) {
+                if (processed === matched.length) {
                     $.djpcms.jsonCallBack(o, s, jqForm);
                 }
             });
@@ -1006,7 +1006,7 @@
                             dataType: self.config.dataType,
                             data: submit_data
                         };
-                    self.info('Submitting ajax ' + opts.type +' request "' + data.name + '"');
+                    self.info('Submitting ajax ' + opts.type + ' request "' + data.name + '"');
                     if (!data.form) {
                         opts.data.value = self.element.val();
                         opts.success = $.djpcms.jsonCallBack;
@@ -1137,7 +1137,7 @@
         if (!precision) {
             precision = 3;
         }
-        s = s.replace(/,/g,'');
+        s = s.replace(/, /g, '');
         var c = parseFloat(s),
             isneg = false,
             decimal = false,

@@ -38,3 +38,10 @@ css('.topbar',
     css('a.brand',
         height=cssv.topbar.height,
         padding=spacing(0,px(20))))
+
+
+css('.chatroom',
+    border(color=cssv.input.border.color),
+    background=cssv.input.background,
+    padding=px(10),
+    height=px(500))

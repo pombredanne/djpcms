@@ -67,7 +67,8 @@ class WebSite(cms.WebSite):
         self.add_wsgi_middleware(permissions.header_authentication_middleware)
         self.add_wsgi_middleware(permissions.request_middleware())
         self.add_response_middleware(permissions.response_middleware())
-        self.add_wsgi_middleware(ws.WebSocket(WebSocketApps('/ws/')))
+        # WEB SOCKET MIDDLEWARE
+        self.add_wsgi_middleware(ws.WebSocket(WebSocketApps('/ws/', settings)))
         # The root site
         site = cms.Site(settings, permissions=permissions)
         site.submit_data_middleware.add(cms.Referrer)

@@ -1,7 +1,11 @@
+import json
+
 from djpcms import forms, views, html, media
+from djpcms.utils.text import to_string
 from djpcms.forms import layout as uni
 
 from stdnet.apps import pubsub
+from stdcms.websocket import pubsub_server
 
 
 class ChatForm(forms.Form):
@@ -11,9 +15,12 @@ class ChatForm(forms.Form):
         if commit:
             text = self.cleaned_data.get('text')
             if text:
-                self.request.appmodel.publish('chat', text)
-            
-
+                user = self.request.user
+                msg = json.dumps({'user': to_string(user),
+                                  'message': text})
+                self.request.appmodel.publish('chat', msg)
+        return True
+        
 
 ChatFormHtml = forms.HtmlForm(
     ChatForm,
@@ -23,13 +30,12 @@ ChatFormHtml = forms.HtmlForm(
 
 class ChatApplication(views.Application):
     _media = media.Media(js=['djpsite/chat.js'])
-    publisher = pubsub.Publisher()
-    subscriber = pubsub.Subscriber()
     home = views.View()
     chat = views.View('chat', form=ChatFormHtml, has_plugins=True)
     
-    def publish(self, text):
-        self.publisher.publish(text)
+    def publish(self, channels, text):
+        p = pubsub_server(self.settings)
+        return p.publish(channels, text)
         
     def render(self, request, **kwargs):
         return html.Widget('div', cn='chatroom').render(request)

@@ -13,10 +13,16 @@
                 url = 'ws://' + window.location.host + self.config.path,
                 ws = new WebSocket(url);
             ws.onmessage = function(e) {
-                var data = $.parseJSON(e.data);
-                html = data.user + ': ' + data.message
-                self.element.append(html)
-                ws.send('');
+            	var data, html, msg, i;
+            	if(e.data) {
+            		data = $.parseJSON(e.data)['chat'];
+            		for(i=data.length-1; i>=0; i--) {
+            			msg = data[i];
+            			html = "<p><span class='user'>" + msg.user + '</span> : ' + msg.message + "</p>";
+                		self.element.prepend(html);
+            		}
+            	}
+            	ws.send('');
             };
             ws.onopen = function() {
                 ws.send('hi');

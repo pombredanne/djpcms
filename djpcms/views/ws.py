@@ -2,14 +2,14 @@ from copy import deepcopy
 
 from pulsar.apps import ws
 
-from djpcms import cms
+from djpcms.cms import RouteMixin, ResolverMixin
 
 from .application import ApplicationBase
 
 __all__ = ['WsView', 'WebSocketApp']
 
 
-class WsView(cms.RouteMixin, ws.WS):
+class WsView(RouteMixin, ws.WS):
     
     def __init__(self, route=None):
         super(WsView, self).__init__(route or '/')
@@ -38,12 +38,14 @@ class WebSocketRequest:
         return self.view.on_message(self, msg)
     
 
-class WebSocketApp(ApplicationBase, cms.ResolverMixin, ws.WS):
-    ViewClass = WsView
+class WebSocketApp(ApplicationBase, ResolverMixin, ws.WS):
+    
+    def __init__(self, route, settings):
+        ResolverMixin.__init__(self, route)
+        self.internals['settings'] = settings
     
     def match(self, environ):
-        view_args = cms.ResolverMixin.match(self,
-                                            environ.get('PATH_INFO', '/')[1:])
+        view_args = ResolverMixin.match(self, environ.get('PATH_INFO', '/')[1:])
         if view_args:
             environ['websocket-request'] = WebSocketRequest(environ, *view_args)
             return True
@@ -62,6 +64,7 @@ class WebSocketApp(ApplicationBase, cms.ResolverMixin, ws.WS):
         for route in self.base_routes:
             route = deepcopy(route)
             routes.append(route)
+            route.parent = self
         for route in sorted(routes, key=lambda x: x.route_ordering):
             if route.path == '/':
                 self.root_view = route

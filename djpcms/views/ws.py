@@ -41,19 +41,21 @@ class WebSocketRequest:
 class WebSocketApp(ApplicationBase, cms.ResolverMixin, ws.WS):
     ViewClass = WsView
     
+    def match(self, environ):
+        view_args = cms.ResolverMixin.match(self,
+                                            environ.get('PATH_INFO', '/')[1:])
+        if view_args:
+            environ['websocket-request'] = WebSocketRequest(environ, *view_args)
+            return True
+    
     def on_open(self, environ):
-        # Called when the web socket establish connection
-        path = environ.get('PATH_INFO', '/')[1:]
-        match = self.rel_route.match(path)
-        if match:
-            remaining_path = match.pop('__remaining__','')
-            view, urlargs = self.resolve(path)
-            request = WebSocketRequest(environ, view, urlargs)
-            environ['websocket-request'] = request
-            return request.on_open()
+        return environ['websocket-request'].on_open()
         
     def on_message(self, environ, msg):
-        return environ['websocket-hadler'].on_message(msg)
+        return environ['websocket-request'].on_message(msg)
+    
+    def on_close(self, environ):
+        return environ['websocket-request'].on_close()
     
     def _load(self):
         routes = []

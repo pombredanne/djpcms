@@ -558,7 +558,7 @@ For more information and examples check the
 '''
         return val
 
-    def urlbits(self, instance = None, data = None, bits = None):
+    def urlbits(self, instance=None, data=None, bits=None):
         '''Generator of key, value pairs of url variables
 from an *instance* of :attr:`model` or from a *data* dictionary.
 It loops through the :attr:`djpcms.cms.RouteMixin.route` variables, map them

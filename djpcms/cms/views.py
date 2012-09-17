@@ -579,8 +579,8 @@ it is the base class of :class:`pageview` and :class:`djpcms.views.View`.
 
     _methods      = ('get',)
 
-    def __init__(self, route='', parent=None, **kwargs):
-        RouteMixin.__init__(self, route)
+    def __init__(self, route='', parent=None, route_ordering=None, **kwargs):
+        RouteMixin.__init__(self, route, route_ordering=route_ordering)
         RendererMixin.__init__(self, **kwargs)
         if parent is not None:
             self.parent = parent

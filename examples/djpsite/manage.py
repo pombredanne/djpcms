@@ -26,6 +26,8 @@ To create the style sheet::
 '''
 import sys
 
+from pulsar.apps import ws
+
 from djpcms import cms, views, html
 from djpcms.apps import admin, static, user #, dummy
 from djpcms.html import Widget
@@ -55,6 +57,7 @@ class WebSite(cms.WebSite):
         params.update({'APPLICATION_URLS': self.urls})
         settings = cms.get_settings(__file__, self.settings_file, **params)
         from djpsite.apps.geo import Geo
+        from djpsite.apps.ws import WebSocketApps
         Geo.username = settings.GEOUSERNAME
         # Create the permission handler
         permissions = PermissionHandler(settings)
@@ -64,6 +67,7 @@ class WebSite(cms.WebSite):
         self.add_wsgi_middleware(permissions.header_authentication_middleware)
         self.add_wsgi_middleware(permissions.request_middleware())
         self.add_response_middleware(permissions.response_middleware())
+        self.add_wsgi_middleware(ws.WebSocket(WebSocketApps('/ws/')))
         # The root site
         site = cms.Site(settings, permissions=permissions)
         site.submit_data_middleware.add(cms.Referrer)
@@ -79,7 +83,7 @@ class WebSite(cms.WebSite):
         return site
 
     def urls(self, site):
-        from djpsite.apps import design, jstests, geo
+        from djpsite.apps import design, jstests, geo, chat
         from stdcms.cms import Page
         site.permissions.add_model(Page)
         return (
@@ -89,6 +93,7 @@ class WebSite(cms.WebSite):
                 design.DesignApplication('/design', design.Theme),
                 jstests.Application('/jstests'),
                 geo.Application('/apps/geo', geo.Geo),
+                chat.ChatApplication('/apps/chat'),
                 UserApplication('/accounts/', User),
                 MainApplication('/')
                 )

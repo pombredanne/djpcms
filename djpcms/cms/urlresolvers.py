@@ -119,7 +119,16 @@ class ResolverMixin(RouteMixin):
                     yield route
             else:
                 yield child
-                    
+    
+    def match(self, path):
+        match = self.rel_route.match(path)
+        if match:
+            remaining_path = match.pop('__remaining__','')
+            try:
+                return self.resolve(remaining_path)
+            except Http404:
+                pass
+            
     def resolve(self, path, urlargs=None):
         '''Resolve a *path* recursively.'''
         try:

@@ -273,7 +273,10 @@ views::
         return self.appmodel.ajax_get_response(request)
 
     def render(self, request, **kwargs):
-        return self.appmodel.render(request, **kwargs)
+        if self.form is not None:
+            return self.get_form(request, **kwargs).render(request)
+        else:
+            return self.appmodel.render(request, **kwargs)
 
     def query(self, request, query=None, **kwargs):
         if self._query and query is None:

@@ -36,7 +36,7 @@ ContentBlockHtmlForm = forms.HtmlForm(
 HtmlEditContentForm = forms.HtmlForm(
     EditContentForm,
     layout=uni.FormLayout(
-        uni.Columns('title','markup',uni.SUBMITS),
+        uni.Columns('title', 'markup', uni.SUBMITS),
         uni.Tabs(uni.tab('html', uni.Fieldset('body')),
                  uni.tab('javascript', uni.Fieldset('javascript')),
                  default_style=uni.nolabel,

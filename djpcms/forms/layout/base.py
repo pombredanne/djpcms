@@ -311,24 +311,17 @@ class MultiElement(FormLayoutElement):
         elements = []
         for column in children:
             if isinstance(column, (list, tuple)):
-                group = []
-                for el in column:
-                    if isinstance(el, html.WidgetMaker):
-                        if group:
-                            elements.append(
-                                    self.default_element(layout, *group))
-                            group = []
-                        elements.append(el)
-                    else:
-                        group.append(el)
-                if group:
-                    elements.append(self.default_element(layout, *group))
+                if len(column) == 1:
+                    elements.append(column[0])
+                elif len(column) > 1:
+                    elements.append(self.default_element(layout, *column))
             elif not isinstance(column, html.WidgetMaker):
                 elements.append(self.default_element(layout, column))
             else:
                 elements.append(column)
         for element in elements:
-            element.check_fields(missings, layout)
+            if isinstance(element, FormLayoutElement):
+                element.check_fields(missings, layout)
             self.add(element)
 
     def default_element(self, layout, *elems):
@@ -371,6 +364,7 @@ class tab(object):
 
 
 class Tabs(MultiElement):
+    '''Display group of fields in tabs.'''
     classes = "formTabs"
     tabtemplate = html.tabs
 

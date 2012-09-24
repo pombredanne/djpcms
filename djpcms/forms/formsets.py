@@ -115,7 +115,7 @@ of this class are declared in the body of a :class:`Form`.
         else:
             related = related_form.instance
             num_forms = 0
-            if related.id:
+            if related is not None and related.id:
                 if self.instances_from_related:
                     instances = self.instances_from_related(related)
                 else:

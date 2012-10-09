@@ -77,19 +77,12 @@ def request_get_data(request):
     return data
 
 def get_redirect(request, data=None, instance=None):
-    '''Obtain the most suitable url to redirect the request
-according to the following algorithm:
-
-* Check for ``next`` in the request environment query string
-* Check for ``next`` in the environment referrer query string
-* If *force_redirect* is ``True``, calculate next from the
-  :meth:`djpcms.cms.ViewHandler.redirect_url` passing both *request*
-  and the optional *instance* parameter.
-
-If none of the above works, it returns ``None``, otherwise it returns an
-absolute url.
-'''
-    next = request.view.redirect_url(request, instance=instance)
+    '''Obtain the most suitable url to redirect the request.'''
+    if instance is not None:
+        req = request.for_model(instance=instance)
+        if req:
+            return req.url
+    next = request.view.redirect_url(request)
     if not next and data:
         next = data.get(NEXT_KEY)
     return request.build_absolute_uri(next) if next else None

@@ -14,8 +14,6 @@ from djpcms.utils.httpurl import http_date, CacheControl
 from djpcms.utils.importer import import_module
 from djpcms.cms import Http404, Response, PermissionDenied
 
-# Third party application list.
-third_party_applications = []
 _media = None
 w = html.Widget
 wm = html.WidgetMaker
@@ -25,49 +23,33 @@ static_index = wm().add(wm(tag='h1', key='title'),
 
 
 class pathHandler(object):
+    mediadir = 'media'
+    def __init__(self, name, path):
+        self.name = name
+        self.base = path
+        self.mpath = os.path.join(path, self.mediadir)
+        self.absolute_path = os.path.join(self.mpath, name)
+        self.url = '/{0}/{1}/'.format(self.mediadir, name)
 
-    def __init__(self, name, path, mediadir):
-        self.name     = name
-        self.base     = path
-        self.mpath    = os.path.join(path,mediadir)
-        self.absolute_path = os.path.join(self.mpath,name)
-        self.exists   = os.path.exists(self.mpath)
-        self.url = '/{0}/{1}/'.format(mediadir,name)
 
-
-def application_map(applications, safe = True):
+def application_map(applications, safe=True):
     '''Very very useful function for finding static media directories.
 It looks for the ``media`` directory in each installed application.'''
     map = {}
-    mediadir = 'media'
     for app in applications:
-        processed = False
-        for tp in third_party_applications:
-            if tp.check(app):
-                processed = True
-                handler = tp.handler(app)
-                break
-
-        if not processed:
-            handler = pathHandler
-
-        if not handler:
-            continue
-
         sapp = app.split('.')
         name = sapp[-1]
-
         try:
             module = import_module(app)
         except:
             if not safe:
                 raise
             continue
-
-        path = getattr(module,'__path__',None)
+        path = getattr(module, '__path__', None)
         if path:
-            h = handler(name, path[0], mediadir)
-            if h.exists:
+            handler = getattr(module, 'mediaPath', pathHandler)
+            h = handler(name, path[0])
+            if os.path.exists(h.mpath):
                 map[name] = h
     return map
 

@@ -21,12 +21,15 @@ __all__ = ['TableMaker',
            'ListItems',
            'table_header',
            'attrname_from_header',
-           'simple_table_dom']
+           'simple_table_dom',
+           'field_filters']
 
-
+_filters = ('select', 'input', 'range')
+field_filters = namedtuple('table_field_filters',' '.join(_filters))(*_filters)
 table_container_class = 'data-table'
 table_header_ = namedtuple('table_header_',
-'code name description function sortable width extraclass attrname hidden')
+'code name description function sortable width extraclass attrname hidden '
+'filter')
 
 simple_table_dom = {'sDom':'t'}
 
@@ -39,7 +42,7 @@ def attrname_from_header(header, code):
 
 def table_header(code, name=None, description=None, function=None,
                  attrname=None, sortable=True, width=None,
-                 extraclass=None, hidden=False):
+                 extraclass=None, hidden=False, filter=None):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
 
 :param code: unique code for the header
@@ -47,6 +50,8 @@ def table_header(code, name=None, description=None, function=None,
     used. The attrname is the actual attribute name in the object, and
     therefore the actual field in the database.
 :param extraclass: additional classes for HTML rendering.
+:param filter: to specify a filter type. This will render into a input
+    element in the header or footer of the table.
 '''
     if isinstance(code, table_header_):
         return code
@@ -60,7 +65,7 @@ def table_header(code, name=None, description=None, function=None,
     function = function or code
     attrname = attrname or code
     return table_header_(code, name, description, function, sortable, width,
-                         extraclass, attrname, hidden)
+                         extraclass, attrname, hidden, filter)
 
 
 class TableMaker(WidgetMaker):
@@ -116,10 +121,11 @@ javascript plugin'''
                 cn.append('sortable')
             yield {'bSortable':head.sortable,
                    'sClass':' '.join(cn),
-                   'sName':head.code,
-                   'sTitle':head.name,
-                   'sWidth':head.width,
-                   'description':head.description}
+                   'sFilter': head.filter,
+                   'sName': head.code,
+                   'sTitle': head.name,
+                   'sWidth': head.width,
+                   'description': head.description}
 
     def stream(self, request, widget, context):
         title = context.get('title')
@@ -285,9 +291,9 @@ class Pagination(object):
         self.widget_factory = layout if layout is not None else ListItems()
         heads = {}
         ld = []
-        if headers:
+        if headers: # headers are available. This will render as a table
             for head in headers:
-                head = table_header(head, sortable = sortable)
+                head = table_header(head, sortable=sortable)
                 heads[head.code] = head
                 ld.append(head)
         self.list_display = tuple(ld)
@@ -304,7 +310,7 @@ class Pagination(object):
         else:
             return deepcopy(self.flat_defaults)
 
-    def paginate(self, data, start = 0, per_page = None, withbody = True):
+    def paginate(self, data, start=0, per_page=None, withbody=True):
         '''paginate *data* according to :attr:`size` and return a two elements
 tuple containing the pagination dictionary and the (possibly) reduced data.
 
@@ -348,7 +354,7 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
                 'page_menu':page_menu}
         return self._paginate(pagi, data, withbody)
 
-    def _paginate(self,pagi,data,withbody):
+    def _paginate(self, pagi, data, withbody):
         # Return a tuple with the pagination info dictionary and
         # a list of elements if the body is required, otherwise None.
         if withbody:

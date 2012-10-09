@@ -280,7 +280,8 @@
                     tbl = $('table', elem).addClass('main display'),
                     actions,
                     r,
-                    s;
+                    s,
+                    columns = opts.aoColumns;
                 elem.show();
                 //
                 function redirect(url) {
@@ -320,8 +321,12 @@
                 //buttons.push("csv");
                 //buttons.push("pdf");
                 opts.oTableTools.aButtons = buttons;
+                if (opts.filters) {
+                    self.filters(tbl, columns);
+                }
                 // Create the datatable
-                tbl.dataTable(opts).fnSetFilteringDelay(1000);
+                var dt = tbl.dataTable(opts);
+                dt.fnSetFilteringDelay(1000);
                 //
                 // Add Actions on Rows
                 if (elem.data('actions')) {
@@ -342,6 +347,32 @@
                 $('.dataTables_filter input').addClass('ui-widget-content');
                 tbl.width('100%');
                 elem.show();
+            },
+            filters: function (dt, columns) {
+                var tr = $(document.createElement('tr')).addClass('filters'),
+                    has = false;
+                if(columns) {
+                    $.each(columns, function (i, col) {
+                        var th = $(document.createElement('th')).addClass(col.sName).appendTo(tr);
+                        if(col.sFilter === 'range') {
+                            var input1 = $(document.createElement('input')).attr({
+                                type: 'text',
+                                name: col.code + '__ge',
+                                placeholder: 'from'
+                            }),
+                            input2 = $(document.createElement('input')).attr({
+                                type: 'text',
+                                name: col.code + '__le',
+                                placeholder: 'to'
+                            });
+                            th.append(input1).append(input2);
+                            has = true;
+                        }
+                    });
+                    if (has) {
+                        dt.find('thead').append(tr);
+                    }
+                }
             }
         });
     }

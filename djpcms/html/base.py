@@ -618,7 +618,10 @@ inner part of the widget.
         p.update(widget.internal)
         p.update(params)
         p['parent'] = widget
-        return child_maker(**p)
+        if isinstance(child_maker, WidgetMaker):
+            return child_maker(**p)
+        else:
+            return ''
 
     def media(self, request, widget):
         return self._media

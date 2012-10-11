@@ -23,6 +23,9 @@ cssv.table.head.padding = cssv.table.padding
 css('td.one-line', white_space='nowrap')
 css('th.%s' % classes.clickable, radius(0))
 
+css('th.input-filter',   
+    css('input', display='block', margin='auto', padding=px(2),
+        width=px(60)))
 
 css('table',
     css('th, td',

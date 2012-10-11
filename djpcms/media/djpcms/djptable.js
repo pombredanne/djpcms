@@ -65,7 +65,6 @@
                 return nRow;
             }
 	    };
-        //
         $.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
             /*
              * Inputs:      object:oSettings - dataTables settings object - automatically given
@@ -79,18 +78,20 @@
             iDelay = (typeof iDelay === 'undefined') ? 250 : iDelay;
             this.each(function (i) {
                 $.fn.dataTableExt.iApiIndex = i;
-                var $this = this,
+                var $this = $(this),
                     oTimerId = null,
-                    sPreviousSearch = null,
-                    anControl = $('input', that.fnSettings().aanFeatures.f);
-                anControl.unbind('keyup').bind('keyup', function () {
-                    if (sPreviousSearch === null || sPreviousSearch !== anControl.val()) {
-                        window.clearTimeout(oTimerId);
-                        sPreviousSearch = anControl.val();
-                        oTimerId = window.setTimeout(function () {
+                    sPreviousSearch = null;
+                $('input', that.fnSettings().aanFeatures.f).addClass('input-filter');
+                $('.input-filter', $this).unbind('keyup').bind('keyup', function () {
+                    var input = $(this),
+                        sPreviousSearch = input.data('sPreviousSearch');
+                    if (sPreviousSearch === undefined || sPreviousSearch !== input.val()) {
+                        window.clearTimeout(input.data('oTimerId'));
+                        input.data('sPreviousSearch', input.val());
+                        input.data('oTimerId', window.setTimeout(function () {
                             $.fn.dataTableExt.iApiIndex = i;
-                            that.fnFilter(anControl.val());
-                        }, iDelay);
+                            that.fnFilter(input.val(), input.data('column'));
+                        }, iDelay));
                     }
                 });
                 return this;
@@ -327,6 +328,9 @@
                 // Create the datatable
                 var dt = tbl.dataTable(opts);
                 dt.fnSetFilteringDelay(1000);
+                if (opts.filters) {
+                    self.initialize_filters(dt);
+                }
                 //
                 // Add Actions on Rows
                 if (elem.data('actions')) {
@@ -348,31 +352,82 @@
                 tbl.width('100%');
                 elem.show();
             },
+            // Column filters
             filters: function (dt, columns) {
                 var tr = $(document.createElement('tr')).addClass('filters'),
                     has = false;
+                $.valHooks.th = {
+                    get: function (elem, attr) {
+                        var self = $(elem),
+                            value = {};
+                        if(self.hasClass('input-filter')) {
+                            $.each($('input', self), function () {
+                                var input = $(this),
+                                    val = input.val();
+                                if (val) {
+                                    value[input.attr('name')] = val;
+                                }
+                            });
+                            return $.param(value);
+                        }
+                    },
+                    set: function (elem, value, attr) {
+                        var self = $(elem),
+                            data;
+                        if(self.hasClass('input-filter')) {
+                            data = {}
+                            if (value) {
+                                $.each(value.split("&"), function () {
+                                    var pair = this.split('=');
+                                    if(pair.length === 2) {
+                                        data[pair[0]] = pair[1]; 
+                                    }
+                                });
+                            }
+                            $.each($('input', self), function () {
+                                var input = $(this);
+                                input.val(data[input.attr('name')]);
+                            });
+                        }
+                    }
+                };
                 if(columns) {
                     $.each(columns, function (i, col) {
-                        var th = $(document.createElement('th')).addClass(col.sName).appendTo(tr);
+                        var th = $(document.createElement('th')).addClass('input-filter').addClass(col.sName)
+                                                                .data('column', i).appendTo(tr);
                         if(col.sFilter === 'range') {
                             var input1 = $(document.createElement('input')).attr({
-                                type: 'text',
-                                name: col.code + '__ge',
-                                placeholder: 'from'
-                            }),
-                            input2 = $(document.createElement('input')).attr({
-                                type: 'text',
-                                name: col.code + '__le',
-                                placeholder: 'to'
-                            });
+                                    type: 'text',
+                                    name: 'ge',
+                                    placeholder: 'from'
+                                }),
+                                input2 = $(document.createElement('input')).attr({
+                                    type: 'text',
+                                    name: 'le',
+                                    placeholder: 'to'
+                                });
                             th.append(input1).append(input2);
                             has = true;
                         }
                     });
                     if (has) {
-                        dt.find('thead').append(tr);
+                        dt.find('thead').prepend(tr);
                     }
                 }
+            },
+            initialize_filters: function (dt) {
+                var settings = dt.fnSettings();
+                $.each(dt, function (i) {
+                    var self = $(this);
+                    $.fn.dataTableExt.iApiIndex = i;
+                    $.each(self.find('th.input-filter'), function () {
+                        var th = $(this),
+                            icol = th.data('column'),
+                            cset = settings.aoPreSearchCols[icol],
+                            search = cset ? cset.sSearch : '';
+                        th.val(search);
+                    });
+                });
             }
         });
     }

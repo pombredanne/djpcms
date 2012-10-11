@@ -3,6 +3,7 @@ from inspect import isgenerator, isfunction, ismethod
 
 from djpcms import forms
 from djpcms.utils import orms
+from djpcms.utils.httpurl import parse_qsl
 from djpcms.html import anchor_or_button
 from djpcms.cms import permissions
 
@@ -281,6 +282,32 @@ an application based on model is available.
     return toolbox
 
 
+def clean_inputs(input, search_string):
+    search = {}
+    sort = {}
+    params = {'search_columns': search,
+              'sort': sort}
+    for k, v in input.items():
+        if not v:
+            continue
+        if k.startswith(search_string):
+            ss = k.split('_')
+            if len(ss) == 2:
+                search[int(ss[1])] = parse_qsl(v) or [('contains', v)]
+            else:
+                params['search'] = v
+        elif k.startswith('iSortCol'):
+            ss = k.split('_')
+            if len(ss) == 2:
+                sort[int(v)] = input.get('sSortDir_%s' % ss[1], '')
+        elif k.startswith('sSortDir'):
+            continue
+        else:
+            params[k] = v
+    return params
+                
+            
+        
 def paginationResponse(request, query, block=None, toolbox=None,
                        perm_level=None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.
@@ -306,7 +333,7 @@ it looks for the following inputs in the request data:
         toolbox = table_toolbox(request, appmodel=appmodel,
                                 perm_level=perm_level)
     mapper = appmodel.mapper
-    inputs = request.REQUEST
+    inputs = dict(((k,v) for k,v in request.REQUEST.items() if v))
     headers = toolbox['headers']
     ajax = None
     load_only = None
@@ -324,28 +351,30 @@ it looks for the following inputs in the request data:
     #
     # Search text
     search_string = inputs.get('search_string', forms.SEARCH_STRING)
-    search = inputs.get(search_string)
+    inputs = clean_inputs(request.REQUEST, search_string)
+    search = inputs.get('search')
     if search:
         query = query.search(search)
     #
     # Sorting fields
-    sort_by = []
+    sort_by = None
     if pagination.ordering:
-        sort_by.append(pagination.ordering)
+        sort_by = pagination.ordering
     if pagination.astable:
-        sortcols = inputs.get('iSortingCols')
         load_only = appmodel.load_fields(headers)
-        if sortcols:
-            head = None
-            for col in range(int(sortcols)):
-                c = int(inputs['iSortCol_{0}'.format(col)])
-                if c < len(headers):
-                    d = '-' if inputs['sSortDir_{0}'.format(col)] == 'desc'\
-                             else ''
-                    head = headers[c]
-                    sort_by.append('%s%s' % (d, head.attrname))
+        for c, v in inputs.get('sort').items():
+            if c < len(headers):
+                head = headers[c]
+                sort_by = '%s%s' % ('-' if v == 'desc' else '', head.attrname)
+        for c, v in inputs.get('search_columns').items():
+            if c < len(headers):
+                head = headers[c]
+                kwargs = dict((('%s__%s' % (head.attrname, lookup), value) for\
+                               lookup, value in v))
+                query = query.filter(**kwargs)
+    #
     if hasattr(query, 'ordering') and sort_by:
-        query = query.sort_by(sort_by[-1])
+        query = query.sort_by(sort_by)
     #
     # Reduce the ammount of data by loading selected fields
     if load_only and hasattr(query, 'load_only'):

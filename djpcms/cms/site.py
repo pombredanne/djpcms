@@ -65,7 +65,6 @@ Default ``None``
     base, name = site_path.split()
     if base not in sys.path:
         sys.path.insert(0, str(base))
-
     # Import settings
     if settings:
         if '.' in settings:
@@ -78,7 +77,6 @@ Default ``None``
                 settings_module_name = settings
     else:
         settings_module_name = None
-
     return Config(settings_module_name,
                   SITE_DIRECTORY=site_path,
                   SITE_MODULE=name,

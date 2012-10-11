@@ -8,8 +8,8 @@ cssv.table.line_height = cssv.body.line_height
 
 cssv.table.odd_background_color = 'transparent'
 cssv.table.even_background_color = 'transparent'
-cssv.table.even_sort_background = None
-cssv.table.odd_sort_background = None
+cssv.table.even_sort_background = cssv.color.offwhite
+cssv.table.odd_sort_background = cssv.table.even_sort_background
 cssv.table.border_color = None
 
 cssv.table.head.font_size = None
@@ -50,7 +50,11 @@ css('.'+table_container_class,
             bcd(**cssv.widget.body.params()),
             border(color=cssv.clickable.default.border.color,
                    width=spacing(0, border_width),
-                   style=cssv.clickable.default.border.style)),
+                   style=cssv.clickable.default.border.style),
+            css('.odd',
+                css('.sorting_1', background=cssv.table.odd_sort_background)),
+            css('.even',
+                css('.sorting_1', background=cssv.table.even_sort_background))),
         css('th',
             bcd(**cssv.clickable.default.params()),
             font_size=cssv.table.head.font_size,

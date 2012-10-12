@@ -203,7 +203,7 @@ class Static(views.Application):
     show_indexes = True
     cache_control = CacheControl(maxage=86400)
     root = StaticRootView()
-    path = StaticFileView('<path:path>', parent_view = 'root')
+    path = StaticFileView('<path:path>', parent_view='root')
 
     def __init__(self, *args, **kwargs):
         self.show_indexes = kwargs.pop('show_indexes',self.show_indexes)

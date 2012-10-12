@@ -45,7 +45,7 @@ class Navigator(WidgetMaker):
         if brand:
             brand = Anchor(key='brand', href=brand_link, cn='brand')
         self.soft = soft
-        self.levels = max(levels,1)
+        self.levels = max(levels, 1)
         self.secondary_after = secondary_after
         nav = List(key='primary', cn='nav')
         self.add(*self.elements(self.main_layout, nav,

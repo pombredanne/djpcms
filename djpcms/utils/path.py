@@ -53,8 +53,8 @@ class Path(string_type):
             p = p.parent
         return p
         
-    def add2python(self, module = None, up = 0, down = None, front = False,
-                   must_exist = True):
+    def add2python(self, module=None, up=0, down=None, front=False,
+                   must_exist=True):
         '''Add a directory to the python path.
         
 :parameter module: Optional module name to try to import once we have found

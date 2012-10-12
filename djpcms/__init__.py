@@ -23,12 +23,8 @@ SOFTWARE_NAME = LIBRARY_NAME + ' ' +  __version__
 
 
 def DEFAULT_JAVASCRIPT(*extra):
-    js = ['djpcms/jquery.cookie.js',
-          'djpcms/jquery.form.js',
-          'djpcms/showdown.js',
-          'djpcms/djpcms.js',
-          'djpcms/button.js',
-          'djpcms/autocomplete.js']
+    js = ['djpcms/djpcms.js',
+          'djpcms/showdown.js']
     js.extend(extra)
     return js
 

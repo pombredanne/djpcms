@@ -433,7 +433,9 @@ data to the client.
 from :attr:`model` if available. These fields are obtained from the
 input *headers*.'''
         if headers:
-            load_only = set((h.attrname for h in headers))
+            load_only = set()
+            for h in headers:
+                load_only.update(h.fields)
             # If the application has a related_field make sure it is in the
             # load_only tuple.
             if self.related_field:
@@ -578,13 +580,13 @@ This method is called by both :meth:`variables_from_instance` and
         bits = bits if bits is not None else ()
         mapping = self.url_bits_mapping
         for name in self.model_url_bits:
-            attrname = mapping.get(name)
-            if attrname:
+            aname = mapping.get(name)
+            if aname:
                 if instance:
-                    if name not in bits and hasattr(instance, attrname):
-                        yield name,getattr(instance,attrname)
+                    if name not in bits and hasattr(instance, aname):
+                        yield name,getattr(instance,aname)
                 else:
-                    yield attrname, data[name]
+                    yield aname, data[name]
 
     def instance_field_view(self, request, instance=None, field_name=None,
                             name=None, urlargs=None, asbutton=None,

@@ -105,6 +105,9 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
         '''Return a query class for the model.
 This method needs to be implemented by subclasses.'''
         return self.model
+    
+    def filter_query(self, query, **filters):
+        return query
 
     def filter(self, **kwargs):
         '''Return a query class for the model.
@@ -134,8 +137,8 @@ filtering (usually id). Similar to :meth:`fileter` method.'''
         for field, v in mapping:
             field = self.field_for_query(field)
             if field:
-                if not isinstance(v, (list, tuple)):
-                    v = (v,)
+                if isinstance(v, (list, tuple)) and len(v) == 1:
+                    v = v[0]
                 r[field] = v
         return r
 

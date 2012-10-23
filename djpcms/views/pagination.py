@@ -371,7 +371,7 @@ it looks for the following inputs in the request data:
                 head = headers[c]
                 kwargs = dict((('%s__%s' % (head.attrname, lookup), value) for\
                                lookup, value in v))
-                query = query.filter(**kwargs)
+                query = mapper.filter_query(query, **kwargs)
     #
     if hasattr(query, 'ordering') and sort_by:
         query = query.sort_by(sort_by)

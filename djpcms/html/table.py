@@ -29,7 +29,7 @@ field_filters = namedtuple('table_field_filters',' '.join(_filters))(*_filters)
 table_container_class = 'data-table'
 table_header_ = namedtuple('table_header_',
 'code name description function sortable width extraclass attrname hidden '
-'filter')
+'filter fields')
 
 simple_table_dom = {'sDom':'t'}
 
@@ -64,8 +64,14 @@ def table_header(code, name=None, description=None, function=None,
             name = NON_BREACKING_SPACE
     function = function or code
     attrname = attrname or code
+    if not isinstance(attrname, (tuple,list)):
+        attrname = (attrname,)
+    else:
+        attrname = tuple(attrname)
+    fields = attrname
+    attrname = fields[0] 
     return table_header_(code, name, description, function, sortable, width,
-                         extraclass, attrname, hidden, filter)
+                         extraclass, attrname, hidden, filter, fields)
 
 
 class TableMaker(WidgetMaker):

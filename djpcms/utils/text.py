@@ -2,7 +2,7 @@ import re
 from unicodedata import normalize
 from uuid import uuid4
 
-from .httpurl import to_string, string_type, ispy3k
+from .httpurl import to_string, string_type, ispy3k, is_string
 
 NOTHING = ('', None)
 

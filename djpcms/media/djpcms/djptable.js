@@ -82,9 +82,8 @@
                     oTimerId = null,
                     sPreviousSearch = null;
                 $('input', that.fnSettings().aanFeatures.f).addClass('input-filter');
-                $('.input-filter', $this).unbind('keyup').bind('keyup', function () {
-                    var input = $(this),
-                        sPreviousSearch = input.data('sPreviousSearch');
+                function server_request (input) {
+                    var sPreviousSearch = input.data('sPreviousSearch');
                     if (sPreviousSearch === undefined || sPreviousSearch !== input.val()) {
                         window.clearTimeout(input.data('oTimerId'));
                         input.data('sPreviousSearch', input.val());
@@ -93,6 +92,13 @@
                             that.fnFilter(input.val(), input.data('column'));
                         }, iDelay));
                     }
+                }
+                //
+                $('.input-filter', $this).unbind('keyup').bind('keyup', function () {
+                    server_request($(this));
+                });
+                $('.input-filter.hasDatepicker', $this).bind('change', function () {
+                    $(this).parent('th').trigger('keyup');
                 });
                 return this;
             });
@@ -356,6 +362,15 @@
             filters: function (dt, columns) {
                 var tr = $(document.createElement('tr')).addClass('filters'),
                     has = false;
+                //
+                function new_input(th, type, name, placeholder) {
+                    th.append($(document.createElement('input')).attr({
+                        'type': type,
+                        'name': name,
+                        'placeholder': placeholder
+                    }));
+                }
+                //
                 $.valHooks.th = {
                     get: function (elem, attr) {
                         var self = $(elem),
@@ -394,20 +409,22 @@
                 if(columns) {
                     $.each(columns, function (i, col) {
                         var th = $(document.createElement('th')).addClass('input-filter').addClass(col.sName)
-                                                                .data('column', i).appendTo(tr);
-                        if(col.sFilter === 'range') {
-                            var input1 = $(document.createElement('input')).attr({
-                                    type: 'text',
-                                    name: 'ge',
-                                    placeholder: 'from'
-                                }),
-                                input2 = $(document.createElement('input')).attr({
-                                    type: 'text',
-                                    name: 'le',
-                                    placeholder: 'to'
-                                });
-                            th.append(input1).append(input2);
+                                                                .data('column', i).appendTo(tr),
+                            filter_bits = col.sFilter ? col.sFilter.split('-') : [],
+                            filter = filter_bits.length ? filter_bits[0] : null,
+                            inputs;
+                        if(filter === 'range') {
+                            new_input(th, 'text', 'ge', 'from');
+                            new_input(th, 'text', 'le', 'to');
+                        } else if (filter === 'input') {
+                            new_input(th, 'text', 'contains', 'search');
+                        }
+                        inputs = th.children('input');
+                        if(inputs.length) {
                             has = true;
+                            if(filter_bits[1] === 'date') {
+                                inputs.datepicker();
+                            }
                         }
                     });
                     if (has) {

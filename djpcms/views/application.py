@@ -521,7 +521,7 @@ has been requested.
         instance = instance if instance is not None else request.instance
         if instance is not None:
             context = context or 'default'
-            attr = getattr(self,'render_instance_{0}'.format(context),
+            attr = getattr(self, 'render_instance_%s' % context,
                            self.render_instance_default)
             result = attr(request, instance, **kwargs)
             if isinstance(result, Widget):

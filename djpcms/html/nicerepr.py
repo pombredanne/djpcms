@@ -158,7 +158,7 @@ class get_app_result(object):
                                                 asbutton=False,
                                                 icon=False,
                                                 name=name)
-        if link and link.attr('href') != request.path:
+        if link:
             var = link.render()
         else:
             var = field_repr(request, head, result, appmodel)

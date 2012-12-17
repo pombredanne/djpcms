@@ -176,7 +176,7 @@ def object_definition(request, instance=None, appmodel=None, block=None):
     instance = instance or request.instance
     if not appmodel or not instance:
         return ''
-    headers = appmodel.object_display
+    headers = appmodel.object_fields(request)
     mapper = appmodel.mapper
     widget = Widget('div', cn=classes.object_definition)\
                     .addClass(mapper.htmlclass)

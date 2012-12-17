@@ -279,15 +279,7 @@ overwritten to customize its behavior.
         if self.parent_view and not self.related_field:
             raise UrlException('Parent view "{0}" specified in\
  application {1} without a "related_field".'.format(self.parent_view,self))
-        object_display = object_display or self.object_display
-        if not object_display:
-            self.object_display = self.pagination.list_display
-        else:
-            d = []
-            for head in object_display or ():
-                head = table_header(head)
-                d.append(self.pagination.headers.get(head.code,head))
-            self.object_display = tuple(d)
+        self.object_display = object_display or self.object_display
         self.url_bits_mapping = self.url_bits_mapping or url_bits_mapping
         self.clear()
 
@@ -695,6 +687,18 @@ It uses the following algorithm:
 
     def meta_viewport(self, request):
         return self.settings.META_VIEWPORT
+    
+    def object_fields(self, request):
+        object_display = self.object_display
+        headers, ld = self.pagination.header_info(request)
+        if not object_display:
+            return ld
+        else:
+            d = []
+            for head in object_display or ():
+                head = table_header(head)
+                d.append(headers.get(head.code, head))
+            return tuple(d)
 
     ############################################################################
     #TODO

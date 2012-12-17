@@ -290,25 +290,40 @@ class Pagination(object):
         self.bulk_actions = tuple(bulk_actions or ())
         self.footer = footer
         self.size = size
+        self.sortable = sortable
         self.size_choices = size_choices
         self.ordering = ordering
         self.sizetolerance = sizetolerance
         self.ajax = ajax
         self.widget_factory = layout if layout is not None else ListItems()
+        self.html_data = html_data or {}
+        if not hasattr(headers, '__call__'):
+            headers, list_display = self._head_info(headers)
+            self._headers = headers
+            self._list_display = list_display
+        else:
+            self._headers = headers
+            
+    def header_info(self, request):
+        if hasattr(self._headers, '__call__'):
+            headers = self._headers(request)
+            return self._head_info(headers)
+        else:
+            return self._headers, self._list_display
+
+    def _head_info(self, headers):
         heads = {}
         ld = []
         if headers: # headers are available. This will render as a table
             for head in headers:
-                head = table_header(head, sortable=sortable)
+                head = table_header(head, sortable=self.sortable)
                 heads[head.code] = head
                 ld.append(head)
-        self.list_display = tuple(ld)
-        self.headers = heads
-        self.html_data = html_data or {}
-
+        return heads, tuple(ld)
+        
     @property
     def astable(self):
-        return bool(self.headers)
+        return bool(self._headers)
 
     def defaultdata(self):
         if self.astable:
@@ -373,7 +388,8 @@ tuple containing the pagination dictionary and the (possibly) reduced data.
         else:
             return pagi,None
 
-    def widget(self, body, toolbox=None, pagination=None, ajax=None, **kwargs):
+    def widget(self, request, body, toolbox=None, pagination=None,
+               ajax=None, **kwargs):
         '''Return the pagination :class:`Widget`. This is either a *table* or
 a standard pagination.
 
@@ -388,7 +404,7 @@ a standard pagination.
             data.update(toolbox)
             headers = toolbox['headers']
         else:
-            headers = self.list_display
+            headers = self.header_info(request)[1]
         if 'options' not in data:
             options = {}
             data['options'] = options
@@ -407,7 +423,7 @@ a standard pagination.
                      footer=self.footer, **kwargs)
 
     def ajaxresponse(self, request, body, **kwargs):
-        widget = self.widget(body, **kwargs)
+        widget = self.widget(request, body, **kwargs)
         pagination = widget.internal.get('pagination')
         if self.astable:
             aaData = []

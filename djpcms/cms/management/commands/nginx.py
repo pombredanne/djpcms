@@ -5,7 +5,7 @@ from djpcms import cms
 from djpcms.apps.static.utils import nginx_reverse_proxy_config 
 
 
-class Command(cms.Command):
+class Command(lux.Command):
     option_list = (
         cms.CommandOption('nginx',('-n','--nginx'),
                 default='http://{0}'.format(platform.node()),

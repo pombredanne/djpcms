@@ -233,7 +233,7 @@ certain number of items as specified in the max display input.'''
         mapper = appmodel.mapper
         load_only = ()
         thead = None
-        appheads = request.pagination.headers
+        appheads, _ = request.pagination.header_info(request)
         if headers:
             thead = []
             for head in headers:
@@ -264,7 +264,7 @@ certain number of items as specified in the max display input.'''
                             thead,
                             footer=table_footer,
                             html_data={'options': {'sDom':'t'}})
-            return pagination.widget(
+            return pagination.widget(request,
                     appmodel.table_generator(request, thead, items),
                     title=title, appmodel=appmodel).render(request)
         else:

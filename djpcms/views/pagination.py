@@ -228,12 +228,11 @@ def application_link(view, value=None, asbutton=True, icon=True, text=True,
             return link
 
 
-def headers_from_groups(pagination, groups):
-    ld = pagination.list_display
+def headers_from_groups(list_display, groups):
     ldsubset = set()
     for group in groups:
         ldsubset.update(group['cols'])
-    for col in ld:
+    for col in list_display:
         if col.code in ldsubset:
             yield col
 
@@ -273,12 +272,14 @@ an application based on model is available.
     groups = appmodel.table_column_groups(request)
     if isgenerator(groups):
         groups = tuple(groups)
+        
+    headers, list_display = pagination.header_info(request)
     if groups:
         if len(groups) > 1:
             toolbox['groups'] = groups
-        toolbox['headers'] = tuple(headers_from_groups(pagination, groups))
+        toolbox['headers'] = tuple(headers_from_groups(list_display, groups))
     else:
-        toolbox['headers'] = pagination.list_display
+        toolbox['headers'] = list_display
     return toolbox
 
 
@@ -390,7 +391,7 @@ it looks for the following inputs in the request data:
 
     if render:
         title = block.title if block else None
-        return pagination.widget(
+        return pagination.widget(request,
                      body, pagination=pag,
                      ajax=ajax, toolbox=toolbox,
                      appmodel=appmodel, title=title).render(request)

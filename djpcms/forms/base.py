@@ -216,6 +216,10 @@ it remains unbounded.
     @property
     def model(self):
         return self.mapper.model if self.mapper is not None else None
+    
+    @property
+    def settings(self):
+        return self.request.settings
 
     @property
     def data(self):
@@ -479,7 +483,6 @@ and shouldn't be used otherwise.
     def __init__(self, form, field, name, prefix):
         self.form = form
         self.field = field
-        self.request = form.request
         self.name = name
         self.for_name = '%s%s' % (prefix, name)
         self.html_name = field.html_name(self.for_name)
@@ -499,6 +502,14 @@ and shouldn't be used otherwise.
     @property
     def error(self):
         return self.form.errors.get(self.name,'')
+    
+    @property
+    def request(self):
+        return self.form.request
+    
+    @property
+    def settings(self):
+        return self.form.request.settings
 
     def clean(self, value):
         '''Return a cleaned value for ``value`` by running the validation

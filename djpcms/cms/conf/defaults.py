@@ -11,8 +11,6 @@ INSTALLED_APPS = () # These must be dotted python paths
 DATASTORE = {}
 # Dictionary used to configure applications
 INSTALLED_APPS_CONF = {}
-APPLICATION_URLS = None
-
 
 #######################################    META ATTRIBUTE
 META_TAGS = ('charset', 'robots', 'description',

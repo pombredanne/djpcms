@@ -522,7 +522,8 @@ if available. By defaults it invoke the ``query`` method in the
     def model_fields(self, request, pagination=None):
         pagination = pagination or self.pagination
         if pagination:
-            for head in pagination.list_display:
+            _, list_display = pagination.header_info(request)
+            for head in list_display:
                 name = head.name
                 if not name or name == NON_BREACKING_SPACE:
                     name = head.description or head.code

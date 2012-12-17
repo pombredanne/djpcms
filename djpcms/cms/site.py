@@ -137,8 +137,9 @@ Attributes available:
     profilig_key = None
 
     def __init__(self, settings=None, route='/', parent=None,
-                 routes=None, **handlers):
+                 routes=None, APPLICATION_URLS=None, **handlers):
         super(Site, self).__init__(route, routes=routes)
+        self.APPLICATION_URLS = APPLICATION_URLS
         self._model_registry = {}
         self._page_layout_registry = OrderedDict()
         self.plugin_choices = [('','-----------------')]
@@ -171,7 +172,7 @@ Attributes available:
             for wrapper in orms.model_wrappers.values():
                 wrapper.setup_environment(self)
             add_default_handlers(self)
-        appurls = self.settings.APPLICATION_URLS
+        appurls = self.APPLICATION_URLS
         if appurls:
             if not hasattr(appurls, '__call__'):
                 if isinstance(appurls, str):
@@ -191,7 +192,8 @@ Attributes available:
     def _site(self):
         return self
 
-    def addsite(self, settings=None, route=None, **handlers):
+    def addsite(self, settings=None, route=None, APPLICATION_URLS=None,
+                **handlers):
         '''Add a new :class:`Site` to ``self``.
 
 :parameter settings: Optional settings for the site.
@@ -201,9 +203,10 @@ Attributes available:
 '''
         if self.isbound:
             raise ValueError('Cannot add a new site.')
-        site = Site(settings = settings,
-                    route = route or '',
-                    parent = self,
+        site = Site(settings=settings,
+                    route=route or '',
+                    parent=self,
+                    APPLICATION_URLS=APPLICATION_URLS,
                     **handlers)
         self.routes.append(site)
         return site
@@ -350,8 +353,7 @@ in a multiprocessing framework. Typical usage::
     class Loader(djpcms.SiteLoader):
 
         def load(self):
-            settings = djpcms.get_settings(__file__,
-                                           APPLICATION_URLS = self.urls)
+            settings = djpcms.get_settings(__file__)
             return djpcms.Site(settings)
 
         def urls(self, site):
@@ -512,7 +514,7 @@ This function can be overwritten by user implementation.'''
         # 302 is a special case, we redirect
         content_type = request.content_type
         if status in REDIRECT_CODES:
-            location = exc_info[1].location
+            location = dict(exc_info[1].headers)['location']
             if request.is_xhr:
                 content = ajax.jredirect(request.environ, location)
             else:

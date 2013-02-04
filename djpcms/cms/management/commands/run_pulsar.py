@@ -11,7 +11,7 @@ class WSGIServer(wsgi.WSGIServer):
         website = self.callable
         middleware = website.wsgi_middleware()
         resp_middleware = website.response_middleware()
-        return self.wsgi_handler(middleware, resp_middleware)
+        return wsgi.WsgiHandler(middleware, resp_middleware)
 
 
 class AsyncTestPlugin(test.Plugin):

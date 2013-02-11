@@ -289,7 +289,7 @@
                     r,
                     s,
                     columns = opts.aoColumns;
-                elem.show();
+                //elem.show();
                 //
                 function redirect(url) {
                     return function () {
@@ -356,7 +356,9 @@
                 }
                 $('.dataTables_filter input').addClass('ui-widget-content');
                 tbl.width('100%');
+                //elem.trigger('datatable-ready');
                 elem.show();
+                elem.trigger('datatable-ready');
             },
             // Column filters
             filters: function (dt, columns) {

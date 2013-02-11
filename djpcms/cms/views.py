@@ -657,7 +657,7 @@ it is the base class of :class:`pageview` and :class:`djpcms.views.View`.
         if not link:
             link = self.default_link or \
                     (self.appmodel.description if self.appmodel else '')
-        return escape(link.format(request.urlargs,request.instance))
+        return escape(link.format(request.urlargs, request.instance))
 
     def breadcrumb(self, request):
         return self.linkname(request)

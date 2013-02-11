@@ -92,6 +92,7 @@ def results_for_item(request, headers, result, appmodel=None, actions=None,
 :parameter appmodel: optional instance of :class:`djpcms.views.Application`.
 '''
     if appmodel and appmodel.mapper:
+        result = appmodel.mapper.instance(result)
         getr = get_app_result(appmodel.mapper, actions)
         id = getr.id(result)
     else:

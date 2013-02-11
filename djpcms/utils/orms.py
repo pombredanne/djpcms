@@ -14,6 +14,10 @@ model_from_hash = {}
 ORMS = lambda : model_wrappers.values()
 
 
+def orm_instance(instance):
+    return getattr(instance, 'underlying_model_instance', instance)
+
+
 class ModelType(type):
     pass
 
@@ -94,6 +98,9 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
         if not isinstance(self.model, ModelType):
             raise ValueError()
 
+    def instance(self, instance):
+        raise NotImplementedError
+    
     # Metadata methods
     def field_for_query(self, name):
         '''Check if the field *name* is available in the underlying model.'''
@@ -249,7 +256,7 @@ def getmodel(appmodel):
     elif isinstance(model, OrmWrapper):
         return model
     elif not isinstance(model, type):
-        instance = model
+        instance = orm_instance(model)
         model = instance.__class__
     wrapper = getattr(model,'_djpcms_orm_wrapper',None)
     if not wrapper:

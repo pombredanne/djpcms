@@ -9,7 +9,7 @@ from copy import deepcopy
 from collections import namedtuple
 
 from djpcms import ajax, media
-from djpcms.utils.text import nicename
+from djpcms.utils.text import nicename, slugify
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
@@ -28,8 +28,8 @@ _filters = ('select', 'input', 'range')
 field_filters = namedtuple('table_field_filters',' '.join(_filters))(*_filters)
 table_container_class = 'data-table'
 table_header_ = namedtuple('table_header_',
-'code name description function sortable width extraclass attrname hidden '
-'filter fields')
+'code name description fields attrname sortable width extraclass '
+'hidden filter')
 
 simple_table_dom = {'sDom':'t'}
 
@@ -40,7 +40,7 @@ def attrname_from_header(header, code):
     return code
 
 
-def table_header(code, name=None, description=None, function=None,
+def table_header(code, name=None, description=None, fields=None,
                  attrname=None, sortable=True, width=None,
                  extraclass=None, hidden=False, filter=None):
     '''Utility for creating an instance of a :class:`table_header_` namedtuple.
@@ -55,23 +55,16 @@ def table_header(code, name=None, description=None, function=None,
 '''
     if isinstance(code, table_header_):
         return code
-    if not name:
-        nice_code = nicename(code)
-        description = description or nice_code
-        if name is None:
-            name = nice_code
-        else:
-            name = NON_BREACKING_SPACE
-    function = function or code
-    attrname = attrname or code
-    if not isinstance(attrname, (tuple,list)):
-        attrname = (attrname,)
+    if name is None:
+        name = nicename(code)
+    attrname = attrname or slugify(code)
+    fields = fields or attrname
+    if not isinstance(fields, (list, tuple)):
+        fields = (fields,)
     else:
-        attrname = tuple(attrname)
-    fields = attrname
-    attrname = fields[0] 
-    return table_header_(code, name, description, function, sortable, width,
-                         extraclass, attrname, hidden, filter, fields)
+        fields = tuple(fields)
+    return table_header_(code, name, description, fields, attrname, sortable,
+                         width, extraclass, hidden, filter)
 
 
 class TableMaker(WidgetMaker):

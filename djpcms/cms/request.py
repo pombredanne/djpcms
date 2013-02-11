@@ -45,6 +45,7 @@ def get_request(environ, charset=None):
 
 def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
+    instance = orms.orm_instance(instance)
     if not node.error:
         view = node.view
         model = view.model

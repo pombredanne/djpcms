@@ -2,6 +2,7 @@ from datetime import date
 from inspect import isclass
 import logging
 
+from djpcms.utils import orms
 from djpcms.utils.httpurl import zip
 from djpcms.utils.dates import smart_time
 from djpcms.utils.numbers import significant_format
@@ -79,6 +80,7 @@ def field_repr(request, head, obj, appmodel):
     elif hasattr(obj, '__getitem__') and field_name in obj:
         val = obj[field_name]
     if appmodel:
+        obj = orms.orm_instance(obj)
         val = appmodel.instance_field_value(request, obj, head.code, val)
     return nicerepr(val, settings=request.settings)
 

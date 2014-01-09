@@ -1,6 +1,7 @@
 from copy import copy
 
-from djpcms.utils.text import UnicodeMixin, ispy3k, to_string
+from pulsar.utils.html import UnicodeMixin, ispy3k, to_string
+
 from djpcms.utils import orms
 from djpcms.html import HiddenInput
 

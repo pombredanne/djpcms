@@ -1,10 +1,11 @@
 import logging
 from copy import copy
 
+from pulsar.utils.pep import range
+from pulsar.utils.html import nicename, slugify, escape, UnicodeMixin
+
 from djpcms import Renderer, forms, media, ajax
 from djpcms.html import NON_BREACKING_SPACE
-from djpcms.utils.httpurl import range
-from djpcms.utils.text import nicename, slugify, escape, UnicodeMixin
 
 from .routing import Route
 from . import permissions
@@ -85,7 +86,7 @@ routing and handler classes in djpcms including, but not only, :class:`Site`,
     web site settings dictionary, available when :attr:`isbound` is ``True``.
 '''
     PERM = permissions.VIEW
-    creation_counter = 0 
+    creation_counter = 0
 
     def __init__(self, route, route_ordering=None):
         self.creation_counter = RouteMixin.creation_counter

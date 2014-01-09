@@ -7,16 +7,13 @@ from functools import partial
 from datetime import datetime, timedelta
 
 # IMPORT PULSAR STUFF
-from pulsar.apps.wsgi import WsgiResponse, WsgiHandler, WsgiResponseGenerator
+from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
 
 from djpcms import media, is_renderer
 from djpcms.cms import permissions
 from djpcms.html import html_doc_stream
-from djpcms.utils.async import is_async, async, maybe_async, is_failure,\
-                                safe_async, as_failure
 from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
-from djpcms.utils.text import UnicodeMixin
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
                                  itervalues, ispy3k, native_str, to_bytes,\
@@ -570,7 +567,7 @@ class RequestMiddleware(object):
         return self.website()
 
 
-class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
+class DjpcmsResponseGenerator(RequestMiddleware):
     '''Asynchronous response generator invoked by the djpcms WSGI middleware'''
     def __init__(self, website, environ, start_response):
         super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
@@ -658,7 +655,7 @@ class DjpcmsResponseGenerator(WsgiResponseGenerator, RequestMiddleware):
             if cache_control:
                 cache_control(response.headers)
         return response
-        
+
     def bad_request(self, failure, tree=None, node=None, route=None):
         exc_info = failure.trace
         if node is None:

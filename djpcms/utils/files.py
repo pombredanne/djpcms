@@ -1,8 +1,10 @@
 import os
 import itertools
 
+from pulsar.utils.pep import to_string
+
 from . import locks
-from .httpurl import urlbits, urlfrombits, to_string
+from .httpurl import urlbits, urlfrombits
 
 
 __all__ = ['File', 'Filehandler', 'Disk', 'Disksite']
@@ -20,7 +22,7 @@ class File(object):
         self.content_type = content_type
         if size:
             self._size = size
-        
+
     @property
     def size(self):
         if not hasattr(self, '_size'):
@@ -31,7 +33,7 @@ class File(object):
             else:
                 raise AttributeError("Unable to determine the file's size.")
         return self._size
-    
+
     def chunks(self, chunk_size=None):
         """
         Read the file and yield chucks of ``chunk_size`` bytes (defaults to
@@ -47,7 +49,7 @@ class File(object):
                 raise StopIteration
             else:
                 yield chunk
-                
+
         #while counter > 0:
         #    r = self.file.read(chunk_size)
         #    counter -= chunk_size
@@ -139,7 +141,7 @@ the backened storage.'''
         Returns an absolute URL where the file's contents can be accessed
         directly by a Web browser.
         """
-        raise NotImplementedError()        
+        raise NotImplementedError()
 
     def accessed_time(self, name):
         """
@@ -161,32 +163,32 @@ the backened storage.'''
         specified by name.
         """
         raise NotImplementedError()
-    
-    
+
+
 class Disk(Filehandler):
-    
+
     def __init__(self, location=None, base_url=None, permission = None):
         self.location = os.path.abspath(location)
         self.base_url = base_url
         self.permission = permission
-        
+
     def path(self, name):
         return os.path.join(self.location,name)
-    
+
     def exists(self, name):
         return os.path.exists(self.path(name))
-        
+
     def open(self, name, mode='rb'):
         return File(open(self.path(name), mode))
-    
+
     def delete(self, name):
         name = self.path(name)
         if os.path.exists(name):
             os.remove(name)
-    
+
     def url(self, name):
         return os.path.join(self.base_url,name)
-    
+
     def _save(self, name, content):
         full_path = self.path(name)
 
@@ -237,13 +239,13 @@ class Disk(Filehandler):
             os.chmod(full_path, self.permission)
 
         return name
-    
+
 
 class Disksite(object):
-    
+
     def __init__(self, location=None):
         self.location = location
-        
+
     def __call__(self, settings):
         base = settings.SITE_DIRECTORY
         name = settings.SITE_MODULE

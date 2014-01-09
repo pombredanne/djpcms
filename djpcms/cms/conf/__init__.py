@@ -1,7 +1,6 @@
 import os
 
-from djpcms.utils.httpurl import is_string_or_native_string
-from djpcms.utils.importer import import_module
+from pulsar.utils.importer import import_module
 
 from . import defaults
 

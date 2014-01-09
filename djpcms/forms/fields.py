@@ -2,9 +2,10 @@ from inspect import isclass
 from datetime import datetime, date
 from copy import copy, deepcopy
 
+from pulsar.utils.html import escape, slugify, to_string
+
 from djpcms import html
 from djpcms.html import Widget
-from djpcms.utils.text import escape, slugify, to_string
 from djpcms.utils.dates import parse as dateparser
 from djpcms.utils.files import File
 from djpcms.utils import orms

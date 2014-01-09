@@ -2,11 +2,12 @@ import os
 import logging
 import json
 
+from pulsar.utils.html import nicename
+
 from djpcms import forms, html, Renderer
 from djpcms.html import classes, WidgetMaker, panel
-from djpcms.utils.text import capfirst, nicename
 from djpcms.cms.formutils import form_data_files
-from djpcms.utils.orms import JSONEncoder, json_hook
+#from djpcms.utils.orms import JSONEncoder, json_hook
 
 _plugin_dictionary = {}
 _wrapper_dictionary = {}
@@ -40,14 +41,14 @@ def register_application(app, name=None, description=None):
         p = app.get_plugin()
     else:
         p = ApplicationPlugin(app)
-        
+
 
 def serialize_form_data(form):
     #TODO. This is a ACK. Needs proper implementation.
     for k, value in form.cleaned_data.items():
         if hasattr(value, 'id'):
             value = value.id
-        yield k, value        
+        yield k, value
 
 
 def html_plugin_form(form):

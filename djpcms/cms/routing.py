@@ -12,8 +12,9 @@ Original License
 '''
 import re
 
-from djpcms.utils.text import UnicodeMixin, to_string
-from djpcms.utils.httpurl import iteritems, iri_to_uri, remove_double_slash
+from pulsar.utils.pep import iteritems
+from pulsar.utils.html import UnicodeMixin, to_string
+from pulsar.utils.httpurl import iri_to_uri, remove_double_slash
 
 from .exceptions import UrlException
 
@@ -80,32 +81,32 @@ def parse_rule(rule):
 
 class Route(UnicodeMixin):
     '''Routing in djpcms with ideas from werkzeug_.
-    
+
 :parameter rule: Rule strings basically are just normal URL paths
     with placeholders in the format ``<converter(arguments):name>``
     where the converter and the arguments are optional.
     If no converter is defined the `default` converter is used which
     means `string`.
-    
+
 :parameter defaults: optional dictionary of default values for variables.
 :parameter append_slash: Force a slash to be the last character of the rule.
     In doing so the :attr:`is_leaf` is guaranteed to be ``False``.
-    
-    
+
+
 .. attribute:: is_leaf
 
     If ``True``, the route is equivalen to a file and no sub-routes can be
     added.
-    
+
 .. attribute:: path
 
     The full path for this route including initial ``'/'``.
-    
+
 .. attribute:: arguments
 
     a set of arguments for this route. If the route has no variables, the
     set is empty.
-    
+
 .. _werkzeug: https://github.com/mitsuhiko/werkzeug
 '''
     def __init__(self, rule, defaults=None, append_slash=False):
@@ -145,44 +146,44 @@ class Route(UnicodeMixin):
                     variable = bit
                     regex_parts.append(re.escape(variable))
                     breadcrumbs.append((False,variable))
-                    
+
         self.breadcrumbs = tuple(breadcrumbs)
         self._regex_string = '/'.join(regex_parts)
         if self._regex_string and not self.is_leaf:
             self._regex_string += '/'
         self._regex = re.compile(self.regex, re.UNICODE)
-            
-    
+
+
     @property
     def regex(self):
         if self.is_leaf:
             return '^' + self._regex_string + '$'
         else:
             return '^' + self._regex_string
-    
+
     def ordered_variables(self):
         return tuple((b for dyn,b in self.breadcrumbs if dyn))
-    
+
     def __hash__(self):
         return hash(self.rule)
-    
+
     def __unicode__(self):
         return self.path
-    
+
     @property
     def level(self):
         return len(self.breadcrumbs)
-        
+
     @property
     def path(self):
         return '/' + self.rule
-    
+
     def __eq__(self, other):
         if isinstance(other,self.__class__):
             return str(self) == str(other)
         else:
             return False
-        
+
     def __lt__(self, other):
         if isinstance(other,self.__class__):
             return to_string(self) < to_string(other)
@@ -194,7 +195,7 @@ class Route(UnicodeMixin):
             if is_dynamic:
                 val = self._converters[val].to_url(values[val])
             yield val
-            
+
     def url(self, **values):
         '''Build a *url* from key valued pairs of variable values.'''
         if self.defaults:
@@ -207,7 +208,7 @@ class Route(UnicodeMixin):
         else:
             url = '/' + url
             return url if self.is_leaf else url + '/'
-        
+
     def safe_url(self, params=None):
         try:
             if params:
@@ -216,7 +217,7 @@ class Route(UnicodeMixin):
                 return self.url()
         except KeyError:
             return None
-    
+
     def match(self, path):
         '''Match a path and return ``None`` if no matching, otherwise
  a dictionary of matched variables with values. If there is more
@@ -240,7 +241,7 @@ class Route(UnicodeMixin):
     @property
     def bits(self):
         return tuple((b[1] for b in self.breadcrumbs))
-        
+
     def split(self):
         '''Return a two element tuple containing the parent route and
 the last url bit as route. If this route is the root route, it returns
@@ -249,14 +250,14 @@ the root route and ``None``. '''
         if not self.is_leaf:
             rule = rule[:-1]
         if not rule:
-            return Route('/'),None 
+            return Route('/'),None
         bits = ('/'+rule).split('/')
-        last = Route(bits[-1] if self.is_leaf else bits[-1] + '/')  
+        last = Route(bits[-1] if self.is_leaf else bits[-1] + '/')
         if len(bits) > 1:
             return Route('/'.join(bits[:-1]) + '/'),last
         else:
             return last,None
-        
+
     def __add__(self, other):
         if self.is_leaf:
             raise ValueError('Cannot prepend {0} to {1}. '\
@@ -269,14 +270,14 @@ the root route and ``None``. '''
         else:
             rule = str(other)
         return cls(self.rule + rule, defaults)
-    
+
     def __deepcopy__(self, memo):
         return self.__copy__()
-    
+
     def __copy__(self):
         return self.__class__(self.rule, self.defaults.copy())
-        
-        
+
+
 
 class BaseConverter(object):
     """Base class for all converters."""
@@ -376,7 +377,7 @@ class NumberConverter(BaseConverter):
         if (self.min is not None and value < self.min) or \
            (self.max is not None and value > self.max):
             raise ValueError()
-        if self.fixed_digits: 
+        if self.fixed_digits:
             value = ('%%0%sd' % self.fixed_digits) % value
         return str(value)
 
@@ -445,7 +446,7 @@ def get_converter(name, arguments):
     else:
         return c()
 
-    
+
 #: the default converter mapping for the map.
 _CONVERTERS = {
     'default':          UnicodeConverter,

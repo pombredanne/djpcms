@@ -4,12 +4,12 @@ import logging
 from functools import partial
 from datetime import datetime
 
+from pulsar.utils.pep import to_string
+
 from djpcms import forms, html, is_renderer, ajax
 from djpcms.forms.layout import FormWidget
-from djpcms.utils.text import to_string
 from djpcms.utils.httpurl import urlsplit, QueryDict, iteritems
 from djpcms.utils.dates import format
-from djpcms.utils.async import is_async, is_failure
 
 from .exceptions import HttpRedirect
 from . import messages

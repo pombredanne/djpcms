@@ -1,14 +1,13 @@
 from copy import copy, deepcopy
 
+from pulsar.utils.pep import iteritems, is_string, itervalues, to_string
+from pulsar.utils.structures import OrderedDict
+
 import djpcms
-from djpcms.utils.httpurl import iteritems, is_string, itervalues, to_string,\
-                                    CacheControl
+from djpcms.utils.httpurl import CacheControl
 from djpcms import html, forms, ajax
-from djpcms.html import table_header, StreamRenderer, Widget
+from djpcms.html import table_header, Widget
 from djpcms.utils import orms
-from djpcms.utils.async import maybe_async
-from djpcms.utils.structures import OrderedDict
-from djpcms.utils.httpurl import to_string
 from djpcms.cms import RouteMixin, ResolverMixin, PermissionDenied, Http404,\
                        UrlException, AlreadyRegistered, RendererMixin, SPLITTER
 from djpcms.cms.formutils import get_form
@@ -687,7 +686,7 @@ It uses the following algorithm:
 
     def meta_viewport(self, request):
         return self.settings.META_VIEWPORT
-    
+
     def object_fields(self, request):
         object_display = self.object_display
         headers, ld = self.pagination.header_info(request)

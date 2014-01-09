@@ -5,21 +5,22 @@ import traceback
 from inspect import isclass
 from copy import copy
 
+from pulsar.utils.path import Path
+from pulsar.utils.log import local_method
+from pulsar.utils.structures import OrderedDict
+from pulsar.utils.importer import (import_module, module_attribute,
+                                   import_modules)
+from pulsar.apps.wsgi import LazyWsgi, WsgiHandler
+
 from djpcms import is_renderer, ajax
 from djpcms.utils import orms
 from djpcms.html import layout, Widget, error_title, classes, html_trace
 from djpcms.utils.decorators import lazyproperty
-from djpcms.utils.text import escape
 from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri,\
                                     REDIRECT_CODES
-from djpcms.utils.importer import import_module, module_attribute,\
-                                  import_modules
-from djpcms.utils.path import Path
-from djpcms.utils.structures import OrderedDict
 
 from .conf import Config
-from .request import request_start_middleware, request_end_middleware,\
-                     WsgiHandler
+from .request import request_start_middleware, request_end_middleware
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
@@ -342,9 +343,9 @@ consequently its children.'''
         raise layout.LayoutDoesNotExist(', '.join(names))
 
 
-class WebSite(object):
-    '''A class for callable objects used to load and configure a web site.
-Users can subclass this class and override the :meth:`load` method or
+class WebSite(LazyWsgi):
+    '''The lazy Wsgi handler.
+Users can subclass this class and override the :meth:`setup` method or
 the ``load_{{ name }}`` where ``name`` is the value of the
 :attr:`name` attribute.
 Instances are pickable so that they can be used to create site applications
@@ -391,179 +392,19 @@ for djpcms web sites.
 
 '''
     version = None
-    _settings_file = None
-    wsgihandler = WsgiHandler
+    settings_file = None
 
-    def __init__(self, name=None, settings_file=None, **params):
-        self.name = name
-        self.local = {}
-        if settings_file is not None:
-            self._settings_file = settings_file
-        self.callbacks = []
-        params.pop('site', None)
-        self.params = params
-        
-    def _set_settings_file(self, settings):
-        self._settings_file = settings
-        self.local.pop('site',None)
-    def _get_settings_file(self):
-        return self._settings_file
-    settings_file = property(_get_settings_file,_set_settings_file)
-
-    def __getstate__(self):
-        d = self.__dict__.copy()
-        d['local'] = {}
-        return d
-
-    @property
-    def site(self):
-        return self.local.get('site')
-
-    @property
-    def _wsgi_middleware(self):
-        if '_wsgi_middleware' not in self.local:
-            self.local['_wsgi_middleware'] = []
-        return self.local['_wsgi_middleware']
-
-    @property
-    def _response_middleware(self):
-        if '_response_middleware' not in self.local:
-            self.local['_response_middleware'] = []
-        return self.local['_response_middleware']
-
-    def add_wsgi_middleware(self, m):
-        '''Add a wsgi callable middleware or a list of middlewares'''
-        if isinstance(m, (list,tuple)):
-            self._wsgi_middleware.extend(m)
-        else:
-            self._wsgi_middleware.append(m)
-
-    def add_response_middleware(self, m):
-        '''Add a callable response middleware or a list of middleware'''
-        if isinstance(m,(list,tuple)):
-            self._response_middleware.extend(m)
-        else:
-            self._response_middleware.append(m)
-
-    def __call__(self):
-        if self.site is None:
-            load = self.load
-            if self.name:
-                load = getattr(self, 'load_{0}'.format(self.name), load)
-            self.local['site'] = load()
-            if self.site is not None:
-                self.load_site()
-                for callback in self.callbacks:
-                    callback(self)
-                self.finish()
-        return self.site
-
-    def wsgi_middleware(self):
-        '''Return a list of WSGI middleware for serving wsgi requests.'''
-        site = self()
-        m = [request_start_middleware(self)]
-        if self._wsgi_middleware:
-            m.extend(self._wsgi_middleware)
-        m.append(request_end_middleware(self))
-        return m
-
-    def response_middleware(self):
-        '''Return a list of response middleware.'''
-        site = self()
-        return self._response_middleware or []
-
-    def load(self):
+    def setup(self, environ=None):
         '''create the :class:`Site` for your web.
 
-:rtype: an instance of :class:`Site`.
-'''
-        settings = get_settings(settings = self.settings)
+        :rtype: an instance of :class:`Site`.
+        '''
+        return WsgiHandler(self.site())
+
+    @local_method
+    def site(self):
+        return self._create_site()
+
+    def _create_site(self):
+        settings = get_settings(settings=self.settings)
         return Site(settings)
-
-    def finish(self):
-        '''Callback once the site is loaded.'''
-        pass
-
-    def wsgi(self):
-        '''Return the WSGI handeler for your application.'''
-        hnd = self.wsgihandler(self.wsgi_middleware())
-        response_middleware = self.response_middleware()
-        if response_middleware:
-            hnd.response_middleware.extend(response_middleware)
-        return hnd
-
-    def load_site(self):
-        self.site.load()
-
-    def render_error_500(self, request, status):
-        return "<p>Whoops! Server error. Something did not quite work right, sorry.</p>"
-
-    def render_error_404(self, request, status):
-        return "<p>Whoops! We can't find what you are looking for, sorry.</p>"
-
-    def handle_error(self, request, response):
-        '''Render an error into text or Html depending on *content_type*.
-This function can be overwritten by user implementation.'''
-        exc_info = request.exc_info
-        settings = request.settings
-        status = 500
-        if exc_info and exc_info[0] is not None:
-            status = getattr(exc_info[1], 'status', status)
-        else:
-            exc_info = None
-        # 302 is a special case, we redirect
-        content_type = request.content_type
-        if status in REDIRECT_CODES:
-            location = dict(exc_info[1].headers)['location']
-            if request.is_xhr:
-                content = ajax.jredirect(request.environ, location)
-            else:
-                content_type = None
-                response.headers['Location'] = iri_to_uri(location)
-                content = ''
-        else:
-            err_cls = '%s%s' % (classes.error, status)
-            err_title = '%s %s' % (status, error_title(status))
-            if content_type == 'text/plain':
-                content = err_title
-                if settings.DEBUG:
-                    content += '\n\n' + html_trace(exc_info, plain=True)
-            else:
-                inner = Widget('div', cn=(classes.error, err_cls))
-                if settings.DEBUG:
-                    inner.addClass('debug')
-                    inner.add(Widget('h2', err_title))
-                    inner.add(Widget('a', request.path, href=request.path))
-                    inner.add(html_trace(exc_info))
-                else:
-                    func_name = 'render_error_%s' % status
-                    if hasattr(self, func_name):
-                        text = getattr(self, func_name)(request, status)
-                    else:
-                        text = error_title
-                    inner.add(text)
-                if request.is_xhr:
-                    content = ajax.jservererror(request.environ,
-                                                inner.render(request))
-                else:
-                    try:
-                        layout = request.view.root.get_page_layout(err_cls,
-                                                                   classes.error,
-                                                                   'default')
-                        outer = layout()
-                        content = outer.render(request,
-                                               context={'content': inner})
-                    except:
-                        logger.error('Could not render %s error on %s layout',
-                                     status, layout, exc_info=True)
-                        content = inner.render(request)
-        if is_renderer(content):
-            response.status_code = 200
-            response.content_type = content.content_type()
-            content = content.render(request)
-        else:
-            response.content_type = content_type
-            response.status_code = status
-        if status == 500:
-            logger.critical('Interval server error', exc_info=exc_info)
-        return content

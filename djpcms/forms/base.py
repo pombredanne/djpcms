@@ -5,11 +5,12 @@ Several parts are originally from django
 import json
 from collections import Mapping
 
+from pulsar.utils.structures import OrderedDict, AttributeDictionary
+from pulsar.utils.html import nicename, UnicodeMixin, to_string
+
 from djpcms.utils import orms
 from djpcms.utils.httpurl import iteritems
-from djpcms.utils.structures import OrderedDict, AttributeDictionary
 from djpcms.utils.decorators import lazyproperty
-from djpcms.utils.text import nicename, UnicodeMixin, to_string
 from djpcms.html import SubmitInput
 
 from .globals import *
@@ -217,7 +218,7 @@ it remains unbounded.
     @property
     def model(self):
         return self.mapper.model if self.mapper is not None else None
-    
+
     @property
     def settings(self):
         return self.request.settings
@@ -503,11 +504,11 @@ and shouldn't be used otherwise.
     @property
     def error(self):
         return self.form.errors.get(self.name,'')
-    
+
     @property
     def request(self):
         return self.form.request
-    
+
     @property
     def settings(self):
         return self.form.request.settings

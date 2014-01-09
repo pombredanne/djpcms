@@ -1,6 +1,7 @@
+from pulsar.utils.html import nicename
+
 from djpcms import media
 from djpcms.html import Widget, WidgetMaker, table_header
-from djpcms.utils.text import nicename
 
 from .base import FormWidget, FieldTemplate, FormLayoutElement, classes
 

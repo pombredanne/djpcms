@@ -4,13 +4,16 @@
 import os
 import sys
 
+from pulsar.utils.importer import import_module
+
 import djpcms
-from djpcms.utils.importer import import_module
 
 from .base import Command, CommandError, CommandOption
 
+
 __all__ = ['Command', 'CommandError', 'CommandOption', 'execute',
            'fetch_command']
+
 
 def find_commands(management_dir):
     """
@@ -26,6 +29,7 @@ def find_commands(management_dir):
     except OSError:
         return ()
 
+
 def load_command_class(app_name, name):
     """
     Given a command name and an application name, returns the Command
@@ -35,10 +39,12 @@ def load_command_class(app_name, name):
     module = import_module('%s.management.commands.%s' % (app_name, name))
     return module.Command(name)
 
+
 def execute(website, argv=None, stdout=None, stderr=None):
     '''Execute a command against a sites instance'''
     utility = ManagementUtility(website, argv)
     return utility.execute(stdout=stdout, stderr=stderr)
+
 
 def fetch_command(website, command, argv=None, stdout=None, stderr=None):
     utility = ManagementUtility(website, argv)
@@ -80,7 +86,7 @@ class ManagementUtility(object):
         """
         Returns the script's main help text, as a string.
         """
-        site = self.website()
+        site = self.website.site()
         commands = site.get_commands()
         usage = "\nType '{0} <command> --help' for help on a specific\
  command.\n\nAvailable commands:\n".format(self.prog_name)
@@ -97,7 +103,7 @@ class ManagementUtility(object):
 appropriate command called from the command line (usually
         "django-admin.py" or "manage.py") if it can't be found.
         """
-        site = self.website()
+        site = self.website.site()
         try:
             app_name = site.get_commands()[subcommand]
         except KeyError:
@@ -133,5 +139,3 @@ and runs it."""
             # this should fail unless we pass -h
             parser = self.get_parser(nargs=1)
             parser.parse_args()
-
-

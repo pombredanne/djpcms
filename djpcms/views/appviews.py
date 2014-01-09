@@ -1,10 +1,6 @@
-from functools import partial
-
 import djpcms
-from djpcms.utils.httpurl import zip
 from djpcms import forms, ajax, html
 from djpcms.html import classes, render_block
-from djpcms.utils.text import nicename
 from djpcms.cms import Route, Http404, permissions, ViewHandler
 from djpcms.cms.plugins import html_plugin_form
 from djpcms.cms.formutils import submit_form, deleteinstance, get_redirect

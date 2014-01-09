@@ -10,11 +10,12 @@ registered in the same ApplicationSite::
                  )
 
 '''
+from pulsar.utils.importer import import_module
+from pulsar.utils.html import nicename
+
 from djpcms import views, html
 from djpcms.html import Widget, classes
 from djpcms.utils.httpurl import iteritems, remove_end_slashes
-from djpcms.utils.importer import import_module
-from djpcms.utils.text import nicename
 from djpcms.cms import ImproperlyConfigured
 
 __all__ = ['AdminSite',

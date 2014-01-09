@@ -7,7 +7,7 @@ from collections import Mapping
 
 from djpcms.utils import orms
 from djpcms.utils.httpurl import iteritems
-from djpcms.utils.structures import OrderedDict
+from djpcms.utils.structures import OrderedDict, AttributeDictionary
 from djpcms.utils.decorators import lazyproperty
 from djpcms.utils.text import nicename, UnicodeMixin, to_string
 from djpcms.html import SubmitInput
@@ -162,7 +162,7 @@ procedure calls validation.
 '''
     def __init__(self, data=None, files=None, initial=None, prefix=None,
                  model=None, instance=None, request=None, environ=None,
-                 on_submit=None):
+                 on_submit=None, **params):
         '''Initialize a :class:`Form` with *data* or *initial* values.
 If *data* is not ``None`` the form will bound itself to the data, otherwise
 it remains unbounded.
@@ -192,6 +192,7 @@ it remains unbounded.
         self.messages = {}
         self.request = request
         self.environ = environ
+        self.params = AttributeDictionary(params)
         if environ is None:
             self.environ = getattr(request, 'environ', None)
         self.changed = False

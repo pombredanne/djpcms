@@ -1,9 +1,10 @@
 from copy import copy
 from inspect import isclass
 
+from pulsar.utils.pep import iteritems
+from pulsar.utils.html import slugify, escape
+
 from djpcms import html
-from djpcms.utils.httpurl import iteritems
-from djpcms.utils.text import slugify, escape
 from djpcms.utils.orms import mapper
 
 from .globals import *

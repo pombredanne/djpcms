@@ -1,16 +1,12 @@
 '''A dynamic content management system using jQuery and Python'''
-VERSION = (0, 9, 0, 'alpha', 1)
-
 import os
 import sys
-
-from .utils.version import get_version
 
 # This list is updated by the views.appsite.appsite handler
 empty_choice = ('','-----------------')
 
 
-__version__ = version = get_version(VERSION)
+__version__ = version = '0.9.0'
 __license__ = "BSD"
 __author__ = "Luca Sbardella"
 __contact__ = "luca.sbardella@gmail.com"
@@ -68,23 +64,23 @@ class Renderer(object):
 .. attribute:: description
 
     An optional description of the renderer.
-    
+
     Default ``None``
 '''
     description = None
-    
+
     def render(self, request=None, **kwargs):
         '''render ``self`` as a string or bytes.'''
         raise NotImplementedError()
-    
+
     def content_type(self):
         '''Content Type for this renderer'''
-        return 'text/plain' 
-    
+        return 'text/plain'
+
     def media(self, request):
         '''It returns an instance of :class:`djpcms.media.Media` or ``None``.
 It should be overwritten by derived classes.'''
         return None
-    
+
 def is_renderer(obj):
     return isinstance(obj, Renderer)

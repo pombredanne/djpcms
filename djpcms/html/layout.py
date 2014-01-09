@@ -1,7 +1,6 @@
 '''Page layout and grids'''
 from collections import deque, namedtuple
 
-from djpcms.utils.async import on_result
 from .base import WidgetMaker, Widget
 from . import classes
 
@@ -32,7 +31,7 @@ grid_system = namedtuple('grid_system','fixed columns')
 namespace_columns = namedtuple('namespace_columns','namespace columns')
 
 def get_grid_system(request=None):
-    if request: 
+    if request:
         page = request.underlying().page
         system = page.grid_system if page else None
         system = system or request.settings.LAYOUT_GRID_SYSTEM
@@ -130,7 +129,7 @@ def edit_blocks(request, blocks):
         edit_block = request.for_model(instance=block, name='change')
         if edit_block:
             yield edit_block.render()
-                
+
 def default_renderer(request, namespace, column, blocks):
     '''The default renderer check if plugins are specified'''
     if blocks:
@@ -145,15 +144,15 @@ def default_renderer(request, namespace, column, blocks):
         return column
     elif request:
         return request.render()
-    
+
 
 class PageElemWidget(Widget):
     '''Add the :attr:`numcolumns` attribute to a :class:`Widget`.'''
     @property
     def numcolumns(self):
         return self.maker.numcolumns
-    
-    
+
+
 class elem(WidgetMaker):
     '''Base class for all page layout templates. These templates contain all
 the information for rendering and styling a web page using a very flexible
@@ -161,7 +160,7 @@ grid system.'''
     tag = 'div'
     role = None
     _widget = PageElemWidget
-    
+
     def __init__(self, *children, **kwargs):
         role = kwargs.pop('role',self.role)
         if role:
@@ -173,11 +172,11 @@ grid system.'''
         if cr:
             self.internal['context_request'] = cr
         self.add(*children)
-        
+
     def context_request(self, request, widget):
         cr = widget.internal.get('context_request', context_request)
         return cr(request)
-    
+
     def get_context(self, request, widget, context):
         context = context.copy() if context is not None else {}
         grid = context.get('grid_system')
@@ -187,26 +186,26 @@ grid system.'''
             context['grid_system'] = grid
             self.add_css_data(widget, grid)
         return context
-            
+
     def get_grid_system(self, request, widget, context):
         '''Retrieve the gri system for this request'''
         return get_grid_system(request)
-    
+
     @property
     def numcolumns(self):
         return len(tuple(self.columns()))
-    
+
     def is_column(self):
         '''``True`` if this :class:`elem` is a :class:`column` element'''
         return False
-    
+
     def columns(self):
         '''Generator of columns.'''
         # loop over children
         for child in self.allchildren():
             for column in child.columns():
                 yield column
-    
+
     def add(self, *widgets):
         child_type = self.childtype()
         for w in widgets:
@@ -214,44 +213,44 @@ grid system.'''
                 raise ValueError('"{0}" cannot be a child of "{1}".'\
                                  .format(w, self))
         return super(elem, self).add(*widgets)
-    
+
     @classmethod
     def childtype(cls):
         return WidgetMaker
-        
+
     def add_css_data(self, widget, grid):
         pass
-    
-    
+
+
 class page(elem):
     '''HTML layout for a page. It is the first (and only) div element within
 the body tag. A page contains a list of :class:`container`.'''
     grid_columns = 12
     role = 'page'
-    
+
     def __init__(self, *containers, **kwargs):
         self.grid_columns = kwargs.pop('columns', self.grid_columns)
         if not containers:
             containers = (container('content'),)
         super(page, self).__init__(*containers, **kwargs)
         self.addClass(classes.wrapper)
-        
+
     @classmethod
     def childtype(cls):
         return container
-    
+
     def get_context(self, request, widget, context):
         context = super(page, self).get_context(request, widget, context)
         if request:
             request = self.context_request(request, widget)
             context['all_columns'] = all_columns(request)
         return context
-                
-        
+
+
 class Grid(elem):
     '''A grid element is the container of :class:`row`.'''
     tag = 'div'
-    
+
     def __init__(self, *rows, **kwargs):
         cleaned_rows = []
         self.default_columns = kwargs.pop('default_columns', 12)
@@ -261,11 +260,11 @@ class Grid(elem):
             else:
                 cleaned_rows.append(row)
         super(Grid, self).__init__(*cleaned_rows, **kwargs)
-        
+
     @classmethod
     def childtype(cls):
         return row
-        
+
     def get_context(self, request, widget, context):
         if self.is_nested(widget):
             context = context.copy() if context is not None else {}
@@ -278,18 +277,18 @@ class Grid(elem):
             context['columns'] = namespace_columns(None, cols)
             widget._data_stream = []
         return context
-            
+
     def register(self, name):
         name = name.lower()
         _grid_layouts[name] = self
         return self
-    
+
     def add_css_data(self, widget, grid):
         #ADD CLASS ONLY IF PARENT IS A CONTAINER
         if not self.is_nested(widget):
             suffix = ('{0}' if grid.fixed else 'fluid-{0}').format(grid.columns)
             widget.addClass('grid-container-'+suffix)
-    
+
     def is_nested(self, widget):
         parent = widget.parent
         return parent is None or not isinstance(parent.maker, container)
@@ -305,14 +304,14 @@ default :class:`Grid` element is created.'''
         self.grid_fixed = kwargs.pop('grid_fixed', self.grid_fixed)
         self.renderer = kwargs.pop('renderer', default_renderer)
         super(grid_holder, self).__init__(*grid, **kwargs)
-    
+
     @classmethod
     def childtype(cls):
         return Grid
-    
+
     def default_inner_grid(self, request):
         return None
-    
+
     def get_context(self, request, widget, context):
         # Override get_context so that we retrieve the context of
         # underlying columns if they exists
@@ -364,8 +363,8 @@ default :class:`Grid` element is created.'''
                 inner_grid = self.child_widget(inner_grid, widget)
             widget.children[key] = inner_grid
             return context
-            
-    
+
+
 class container(grid_holder):
     '''A container of a grid system. It contains a :class:`grid` element
 only. It is associated with a :attr:`WidgetMaker.key` attribute.'''
@@ -375,11 +374,11 @@ only. It is associated with a :attr:`WidgetMaker.key` attribute.'''
         kwargs['role'] = key
         kwargs['id'] = 'page-'+key
         super(container, self).__init__(*grid, **kwargs)
-    
+
     def default_inner_grid(self, request):
         return grid('grid 100')
-    
-    
+
+
 class column(grid_holder):
     '''A column is a special container. It is the container which holds djpcms
 plugins, unless it has children containers.'''
@@ -392,14 +391,14 @@ plugins, unless it has children containers.'''
             raise ValueError('Column span "{0}" is greater than one!'\
                              .format(self.span))
         super(column, self).__init__(*grid, **kwargs)
-        
+
     @property
     def span(self):
         return float(self.size)/self.over
-    
+
     def is_column(self):
         return not bool(self.children)
-    
+
     def columns(self):
         '''Override the columns generator since column si special. If there are
 no children, it return self as the only child.'''
@@ -408,12 +407,12 @@ no children, it return self as the only child.'''
         else:
             for child in super(column, self).columns():
                 yield child
-                
+
     def add_css_data(self, widget, grid):
         span = self.size * grid.columns // self.over
         widget.addClass('span{0}'.format(span))
-                
-    
+
+
 class row(elem):
     '''A row element contains columns. It is rendered as a div element
 with row or row-fluid class.'''
@@ -421,23 +420,23 @@ with row or row-fluid class.'''
         if not columns:
             columns = (column(),)
         super(row, self).__init__(*columns, **kwargs)
-        
+
     @classmethod
     def childtype(cls):
         return column
-    
+
     def add_css_data(self, widget, grid):
         suffix = ('{0}' if grid.fixed else 'fluid-{0}').format(grid.columns)
         widget.addClass('row-'+suffix)
-        
-    
+
+
 class tabs(row):
-    
+
     def __init__(self, *columns, **kwargs):
         if not columns:
             columns = (column(),)
         super(row, self).__init__(*columns, **kwargs)
-        
+
 
 def equally_spaced_grid(ncols):
     pc = 100//ncols
@@ -448,7 +447,7 @@ def equally_spaced_grid(ncols):
         cols = [column(1,ncols)]*ncols
         grid = Grid(row(*cols)).register(name)
     return grid
-    
+
 # Simple grids registration
 equally_spaced_grid(1)
 equally_spaced_grid(2)

@@ -1,12 +1,10 @@
 from inspect import isclass
 from collections import Mapping
 
-from pulsar.utils import jsontools
-
-from .httpurl import itervalues, iteritems, to_string
-from .structures import OrderedDict
-from .importer import import_module
-from .text import nicename, UnicodeMixin, slugify
+from pulsar.utils.pep import itervalues, iteritems, to_string
+from pulsar.utils.structures import OrderedDict
+from pulsar.utils.importer import import_module
+from pulsar.utils.html import nicename, UnicodeMixin, slugify
 
 model_wrappers = OrderedDict()
 model_from_hash = {}
@@ -100,19 +98,19 @@ must raise a ValueError. This method needs to be implemented by subclasses.'''
 
     def instance(self, instance):
         raise NotImplementedError
-    
+
     # Metadata methods
     def field_for_query(self, name):
         '''Check if the field *name* is available in the underlying model.'''
         return name
-    
+
     # Query methods
 
     def query(self):
         '''Return a query class for the model.
 This method needs to be implemented by subclasses.'''
         return self.model
-    
+
     def filter_query(self, query, **filters):
         return query
 
@@ -288,21 +286,3 @@ def registered_models_tuple():
         id = mp.hash
         if id:
             yield id, str(mp)
-
-
-class JSONEncoder(jsontools.JSONDateDecimalEncoder):
-    """
-    Provide custom serializers for JSON-RPC.
-    """
-    def default(self, obj):
-        try:
-            super(JSONEncoder, self).default(obj)
-        except ValueError:
-            mp = mapper(obj)
-            if mp:
-                return mp.hash
-            else:
-                raise ValueError("%s is not JSON serialisable" % obj)
-
-
-json_hook = jsontools.date_decimal_hook

@@ -2,11 +2,12 @@ from datetime import date
 from inspect import isclass
 import logging
 
+from pulsar.utils.pep import zip, to_string
+from pulsar.utils.html import mark_safe, escape, nicename, is_safe
+
 from djpcms.utils import orms
-from djpcms.utils.httpurl import zip
 from djpcms.utils.dates import smart_time
 from djpcms.utils.numbers import significant_format
-from djpcms.utils.text import to_string, mark_safe, escape, nicename, is_safe
 
 from .base import Widget
 from .icons import with_icon

@@ -1,4 +1,5 @@
-from djpcms.utils.text import gen_unique_id
+from pulsar.utils.security import gen_unique_id
+
 from djpcms.media import Media
 
 from .base import Widget, WidgetMaker, iterable_for_widget

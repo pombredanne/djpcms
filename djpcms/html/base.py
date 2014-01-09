@@ -4,13 +4,14 @@ from collections import Mapping
 from inspect import istraceback
 from copy import copy, deepcopy
 
+from pulsar import multi_async, maybe_async, is_failure
+from pulsar.utils.html import slugify, escape, mark_safe
+from pulsar.utils.structures import OrderedDict
+from pulsar.utils.pep import (ispy3k, is_string, to_string, iteritems,
+                              itervalues)
+
 from djpcms import Renderer
-from djpcms.utils.text import slugify, escape, mark_safe
-from djpcms.utils.decorators import lazymethod
-from djpcms.utils.structures import OrderedDict
-from djpcms.utils.async import MultiDeferred, Deferred, maybe_async
-from djpcms.utils.httpurl import ispy3k, is_string, to_string, iteritems,\
-                                 is_string_or_native_string, itervalues
+
 
 if ispy3k:
     from itertools import zip_longest
@@ -20,7 +21,6 @@ else:   # pragma nocover
 __all__ = ['flatatt',
            'render',
            'html_trace',
-           'StreamRenderer',
            'WidgetMaker',
            'Widget',
            'Div',
@@ -61,7 +61,7 @@ def iterable_for_widget(data):
     if isinstance(data, dict):
         return iteritems(data)
     elif not isinstance(data, Widget) and hasattr(data,'__iter__') and\
-         not is_string_or_native_string(data):
+         not is_string(data):
         return data
     else:
         return (data,)
@@ -95,28 +95,26 @@ def html_trace(exc_info, plain=False):
         return error.render()
 
 
-class StreamRenderer(Deferred):
+if ispy3k:
 
-    def __init__(self, stream, renderer=None, **params):
-        super(StreamRenderer, self).__init__()
-        self._m = MultiDeferred(stream, fireOnOneErrback=True, **params)\
-                    .lock().addBoth(self.callback)
-        self.renderer = renderer
-        self.add_callback(self.post_process).add_callback(mark_safe)
-
-    def post_process(self, stream):
-        if self.renderer:
-            return self.renderer(stream)
-        else:
-            return ''.join(self._post_process(stream))
-
-    def _post_process(self, stream):
+    def stream_to_string(stream):
         for value in stream:
             if value is None:
                 continue
             elif isinstance(value, bytes):
                 yield value.decode('utf-8')
             elif isinstance(value, str):
+                yield value
+            else:
+                yield str(value)
+
+else:  # pragma nocover
+
+    def stream_to_string(stream):
+        for value in stream:
+            if value is None:
+                continue
+            elif isinstance(value, unicode):
                 yield value
             else:
                 yield str(value)
@@ -238,7 +236,7 @@ with key ``name`` and value ``value`` and return ``self``.'''
             return self
         else:
             return self._css.get(mapping)
-        
+
     def hide(self):
         '''Set the ``css`` ``display`` property to ``none`` and return self
 for concatenation.'''
@@ -376,6 +374,26 @@ is a factory of :class:`Widget`.
     def insert(self, position, element):
         self.maker.add_to_widget(self, element, position)
 
+    def content(self, request=None):
+        '''Return a :class:`pulsar.Deferred` called once the string is ready.
+
+        This method can be called once only since it invokes the :meth:`stream`
+        method.
+        '''
+        stream = self.stream(request)
+        return multi_async(stream).add_callback(self.to_string)
+
+    def to_string(self, stream):
+        '''Once the :class:`pulsar.Deferred`, returned by :meth:`content`
+        method, is ready, this method get called to transform the stream into
+        the content string. This method can be overwritten by derived classes.
+
+        :param stream: a collections containing ``strings/bytes`` used to
+            build the final ``string/bytes``.
+        :return: a string or bytes
+        '''
+        return ''.join(stream_to_string(stream))
+
     def render(self, request=None, context=None):
         '''Render the widget. It accept two optional parameters, a http
 request object and a dictionary for rendering children with a key.
@@ -383,6 +401,10 @@ request object and a dictionary for rendering children with a key.
 :parameter request: Optional request object.
 :parameter request: Optional context dictionary.
 '''
+        value = maybe_async(self.content(request))
+        if is_failure(value):
+            value.throw()
+        return value
         return maybe_async(StreamRenderer(self.stream(request, context)))
 
     def stream(self, request=None, context=None):
@@ -538,7 +560,7 @@ corner cases, users can subclass it to customize behavior.
                 for k in self.internal:
                     if k not in widget.internal:
                         widget.internal[k] = self.internal[k]
-            elif is_string_or_native_string(widget):
+            elif is_string(widget):
                 self.children[len(self.children)] = widget
         return self
 

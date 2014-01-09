@@ -1,9 +1,10 @@
 from collections import Mapping
 
+from pulsar.utils.structures import OrderedDict
+from pulsar.utils.pep import itervalues, iteritems, ispy3k, to_string
+from pulsar.utils.html import escape
+
 from djpcms.media import js, Media
-from djpcms.utils.structures import OrderedDict
-from djpcms.utils.httpurl import itervalues, iteritems
-from djpcms.utils.text import escape, ispy3k, to_string
 
 from .base import WidgetMaker, Widget
 from .icons import with_icon

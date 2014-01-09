@@ -8,8 +8,9 @@ from functools import partial
 from copy import deepcopy
 from collections import namedtuple
 
+from pulsar.utils.html import nicename, slugify
+
 from djpcms import ajax, media
-from djpcms.utils.text import nicename, slugify
 
 from .nicerepr import *
 from .base import Widget, WidgetMaker, NON_BREACKING_SPACE
@@ -296,7 +297,7 @@ class Pagination(object):
             self._list_display = list_display
         else:
             self._headers = headers
-            
+
     def header_info(self, request):
         if hasattr(self._headers, '__call__'):
             headers = self._headers(request)
@@ -313,7 +314,7 @@ class Pagination(object):
                 heads[head.code] = head
                 ld.append(head)
         return heads, tuple(ld)
-        
+
     @property
     def astable(self):
         return bool(self._headers)

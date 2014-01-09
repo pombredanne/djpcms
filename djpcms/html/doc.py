@@ -1,9 +1,11 @@
 import json
 
+from pulsar.utils.html import UnicodeMixin, ispy3k
+
 from djpcms.html import Widget, WidgetMaker
-from djpcms.utils.text import UnicodeMixin, ispy3k
 
 from . import classes
+
 
 if ispy3k:
     from http.client import responses
@@ -37,17 +39,17 @@ def Meta(*args,**kwargs):
 
 
 class HTMLdoc(UnicodeMixin):
-    
+
     def __init__(self, typ, name, html, vimg = None, slash = ""):
         self.typ = typ
         self.name = name
         self.html = html
         self.vimg = vimg
         self.slash = slash
-        
+
     def __unicode__(self):
         return self.name
-    
+
     def meta(self, name, value):
         if value:
             if name == 'charset':
@@ -58,26 +60,26 @@ class HTMLdoc(UnicodeMixin):
                                 .attr('http-equiv','content-type')
             else:
                 return Meta(name = name, content = value)
-                        
+
 
 htmldocs = (
-            (1, 
+            (1,
              HTMLdoc(1,'HTML 4.01',
     """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN
 http://www.w3.org/TR/html4/strict.dtd">""",
                      "valid-html401")),
-            (2, 
+            (2,
              HTMLdoc(2,'HTML 4.01 Transitional',
     """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN
 http://www.w3.org/TR/html4/loose.dtd">""",
                      "valid-html401")),
-            (3, 
+            (3,
              HTMLdoc(3,'XHTML 1.0 Strict',
                      """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
                         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">""",
                      "valid-xhtml10",
                      "/")),
-            (4, 
+            (4,
              HTMLdoc(4,'XHTML 1.0 Transitional',
     """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
 http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -85,7 +87,7 @@ http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
              "valid-xhtml10",
              "/",
              )),
-            (5, 
+            (5,
              HTMLdoc(5,'HTML5',
                      """<!DOCTYPE html>\n<html>"""),
             )
@@ -152,8 +154,8 @@ def html_doc_stream(request, stream, status=200):
         yield js
         yield page_script(request)
     yield '</body>\n</html>'
-    
-    
+
+
 def page_script(request):
         settings = request.view.settings
         html_options = {'debug':settings.DEBUG,

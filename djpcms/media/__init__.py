@@ -2,8 +2,8 @@
 import os
 from copy import deepcopy
 
-from djpcms.utils.text import mark_safe, escape
-from djpcms.utils.httpurl import urljoin
+from pulsar.utils.html import slugify, escape, mark_safe
+from pulsar.utils.httpurl import urljoin
 
 from .js import *
 
@@ -19,13 +19,13 @@ def site_media_file(settings, name=None, directory=False):
             return os.path.join(mdir, name)
     else:
         return '%s/%s' % (settings.SITE_MODULE, name)
-    
-    
+
+
 class Media(object):
     '''Originally from django, it is used for manipulating media
 files such as style sheet and javascript.'''
     __slots__ = ('_css','_js','_settings')
-    
+
     def __init__(self, media=None, settings=None, **kwargs):
         if media:
             media_attrs = {'_css':media._css,'_js':media_js}
@@ -42,7 +42,7 @@ files such as style sheet and javascript.'''
     @property
     def settings(self):
         return self._settings
-    
+
     def render_js(self):
         '''Generator over javascript scripts to be included in the page.'''
         prefix = self.settings.get('MEDIA_URL','')
@@ -51,12 +51,12 @@ files such as style sheet and javascript.'''
             if not path.startswith('<script'):
                 path = '<script type="text/javascript" src="%s"></script>'\
                          % absolute(path, prefix)
-            yield path                         
-    
+            yield path
+
     @property
     def all_js(self):
         return '\n'.join(self.render_js())
-    
+
     @property
     def render_css(self):
         prefix = self.settings.get('MEDIA_URL','')
@@ -75,7 +75,7 @@ files such as style sheet and javascript.'''
                 if len(path) == 2:
                     link = '<!--[if %s]>%s<![endif]-->' % (path[1],link)
                 yield mark_safe(link)
-        
+
     def absolute_path(self, path, prefix=None):
         if path.startswith('http://') or path.startswith('https://')\
          or path.startswith('/'):

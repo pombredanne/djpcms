@@ -1,9 +1,10 @@
 from inspect import isclass
 
-from djpcms.utils.httpurl import zip, to_string
+from pulsar.utils.pep import zip, to_string
+from pulsar.utils.html import nicename
+
 from djpcms import html, ajax
 from djpcms.html.layout import equally_spaced_grid, container
-from djpcms.utils.text import nicename
 from . import classes
 
 

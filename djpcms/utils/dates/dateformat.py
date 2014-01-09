@@ -15,7 +15,7 @@ import re
 import time
 import calendar
 
-from djpcms.utils.text import to_string
+from pulsar.utils.pep import to_string
 
 from .dates import MONTHS, MONTHS_3, MONTHS_AP, WEEKDAYS, WEEKDAYS_ABBR
 from .tzinfo import LocalTimezone
@@ -27,14 +27,14 @@ re_escaped = re.compile(r'\\(.)')
 
 
 class Formatter(object):
-    
+
     def pieces(self, formatstr):
         for i, piece in enumerate(re_formatchars.split(to_string(formatstr))):
             if i % 2:
                 yield to_string(getattr(self, piece)())
             elif piece:
                 yield re_escaped.sub(r'\1', piece)
-                
+
     def format(self, formatstr):
         return ''.join(self.pieces(formatstr))
 

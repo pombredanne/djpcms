@@ -3,7 +3,7 @@ import time
 import locale
 from datetime import timedelta, tzinfo
 
-from djpcms.utils.text import to_string
+from pulsar.utils.pep import to_string
 
 try:
     DEFAULT_LOCALE_ENCODING = locale.getdefaultlocale()[1] or 'ascii'

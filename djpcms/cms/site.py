@@ -1,26 +1,25 @@
 import os
 import sys
 import logging
-import traceback
 from inspect import isclass
 from copy import copy
 
+from pulsar import coroutine_return
 from pulsar.utils.path import Path
 from pulsar.utils.log import local_method
 from pulsar.utils.structures import OrderedDict
 from pulsar.utils.importer import (import_module, module_attribute,
                                    import_modules)
-from pulsar.apps.wsgi import LazyWsgi, WsgiHandler
+from pulsar.apps.wsgi import LazyWsgi, WsgiHandler, WsgiResponse
+from pulsar.utils.log import lazyproperty
 
 from djpcms import is_renderer, ajax
 from djpcms.utils import orms
 from djpcms.html import layout, Widget, error_title, classes, html_trace
-from djpcms.utils.decorators import lazyproperty
-from djpcms.utils.httpurl import iteritems, itervalues, native_str, iri_to_uri,\
-                                    REDIRECT_CODES
+from djpcms.utils.httpurl import (iteritems, itervalues, native_str,
+                                  iri_to_uri, REDIRECT_CODES)
 
 from .conf import Config
-from .request import request_start_middleware, request_end_middleware
 from .exceptions import *
 from .urlresolvers import ResolverMixin
 from .management import find_commands
@@ -28,12 +27,11 @@ from .permissions import PermissionHandler, SimpleRobots
 from .cache import CacheHandler
 from .views import ViewRenderer
 from .submit import SubmitDataMiddleware
+from .request import get_request
+from .tree import DjpcmsTree, BadNode
 
 
 __all__ = ['Site', 'get_settings', 'WebSite', 'request_processor']
-
-
-logger = logging.getLogger('djpcms')
 
 
 def get_settings(name=None, settings=None, **params):
@@ -135,7 +133,7 @@ Attributes available:
     as hidden fields.
 
 '''
-    profilig_key = None
+    logger = None
 
     def __init__(self, settings=None, route='/', parent=None,
                  routes=None, APPLICATION_URLS=None, **handlers):
@@ -157,6 +155,7 @@ Attributes available:
             self.internals['settings'] = settings
         self.internals.update(handlers)
         self.register_page_layout('default')
+        self.logger = logging.getLogger('djpcms')
 
     def setup_environment(self):
         '''Set up the the site.'''
@@ -167,8 +166,8 @@ Attributes available:
                     processor = getattr(mod, name)
                     if getattr(processor, 'request_processor', False):
                         self.request_processors.append(processor)
-            except ImportError:
-                pass # No management module
+            except ImportError as e:
+                pass
         if self.root == self:
             for wrapper in orms.model_wrappers.values():
                 wrapper.setup_environment(self)
@@ -342,6 +341,23 @@ consequently its children.'''
                 continue
         raise layout.LayoutDoesNotExist(', '.join(names))
 
+    def __call__(self, environ, start_response):
+        try:
+            page = self.models.page
+        except AttributeError:
+            tree = DjpcmsTree(self.tree)
+        else:
+            pages = yield page.query().all()
+            tree = DjpcmsTree(self.tree, pages)
+        node = tree.resolve(environ['PATH_INFO'])
+        request = get_request(environ, node=node)
+        content = request.view(request)
+        if isinstance(content, WsgiResponse):
+            response = content
+        else:
+            response = yield content.http_response(request)
+        coroutine_return(response)
+
 
 class WebSite(LazyWsgi):
     '''The lazy Wsgi handler.
@@ -403,7 +419,12 @@ for djpcms web sites.
 
     @local_method
     def site(self):
-        return self._create_site()
+        site = self._create_site()
+        site.load()
+        return site
+
+    def on_pulsar_app_ready(self, app):
+        pass
 
     def _create_site(self):
         settings = get_settings(settings=self.settings)

@@ -1,3 +1,4 @@
+import pulsar
 from pulsar.apps import wsgi, test
 
 from djpcms import cms, __version__
@@ -36,14 +37,12 @@ class Command(cms.Command):
                          argv=argv,
                          version=website.version or __version__,
                          config=config)
-        #app.cfg.djpcms_settings = site.settings
-        callback = getattr(website, 'on_pulsar_app_ready', None)
-        if callback:
-            callback(app)
+        on_start = app()
+        website.on_pulsar_app_ready(app)
         if start:
-            return app.start()
-        else:
-            return app
+            arbiter = pulsar.arbiter()
+            if arbiter and on_start:
+                arbiter.start()
 
     def setup_logging(self, settings, options):
         pass

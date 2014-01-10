@@ -621,7 +621,7 @@ it is the base class of :class:`pageview` and :class:`djpcms.views.View`.
         method = request.method
         if not request.is_xhr:
             # not and AJAX REQUEST
-            callable = getattr(self,'%s_response' % method)
+            callable = getattr(self, '%s_response' % method)
         else:
             data = request.REQUEST
             ajax_action = forms.get_ajax_action(data)

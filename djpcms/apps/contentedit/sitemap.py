@@ -4,10 +4,10 @@ following to your application urls tuple::
     SiteMapApplication('/sitemap/',
                         name = 'sitemap')
 '''
+from pulsar.utils.html import escape, mark_safe
+
 from djpcms import views, media
 from djpcms.utils import markups
-from djpcms.utils.text import escape, mark_safe
-from djpcms.utils.async import is_async
 from djpcms.html import box, Pagination, table_header, Widget, htmldoc
 from djpcms.html.layout import grid, container
 from djpcms.cms import Http404, messages, pageview, permissions
@@ -35,6 +35,7 @@ def underlying_response(request, page):
                                 lambda r: _underlying_response(request, r))
         else:
             return _underlying_response(request, underlying)
+
 
 def _underlying_response(request, underlying):
     if not underlying:

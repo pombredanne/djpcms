@@ -33,7 +33,7 @@ def block(stream, id = None, cn = None, djp = None):
 class blockelement(Widget):
     maker = 'div'
     wrap_class = 'djpcms-block-element'
-    
+
     def __init__(self, b, **kwargs):
         self._b = b
         super(blockelement,self).__init__(**kwargs)
@@ -42,9 +42,11 @@ class blockelement(Widget):
     def render(self, djp = None, inner = None):
         inner = self._b.render(djp)
         return super(blockelement,self).render(djp,inner)
-    
+
+
 def legend(text, cn='legend', **kwargs):
     return Widget('div', text, cn=cn, **kwargs)
+
 
 def render_block(f):
     def _(self, request, block=None, **kwargs):

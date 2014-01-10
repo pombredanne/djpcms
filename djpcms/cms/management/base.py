@@ -123,7 +123,7 @@ built-in djpcms commands. User-supplied commands should override this method.
         raise NotImplementedError()
 
     def website(self, options):
-        site = self._website()
+        site = self._website.site()
         self.setup_logging(site.settings, options)
         return site
 

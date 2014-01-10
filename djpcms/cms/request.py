@@ -7,12 +7,13 @@ from functools import partial
 from datetime import datetime, timedelta
 
 # IMPORT PULSAR STUFF
-from pulsar.apps.wsgi import WsgiResponse, WsgiHandler
+from pulsar.apps.wsgi import WsgiRequest, WsgiResponse, WsgiHandler
+from pulsar.utils.structures import AttributeDictionary
+from pulsar.utils.log import lazyproperty, lazymethod
 
 from djpcms import media, is_renderer
 from djpcms.cms import permissions
 from djpcms.html import html_doc_stream
-from djpcms.utils.decorators import lazyproperty, lazymethod
 from djpcms.utils import orms
 from djpcms.utils.httpurl import parse_cookie, BytesIO, urljoin,\
                                  MultiValueDict, QueryDict, is_string,\
@@ -26,19 +27,19 @@ from .exceptions import *
 
 absolute_http_url_re = re.compile(r"^https?://", re.I)
 
-__all__ = ['Response', 'Request', 'is_xhr']
 
+def get_request(environ, node=None):
+    request = Request(environ, node=node)
+    if request.cache.requests is None:
+        request.cache.requests = {request.path: request}
+    view = request.view
+    if view and request.media is None:
+        m = view.default_media(request)
+        if m is None:
+            m = media.Media(settings=view.settings)
+        request.cache.media = m
+    return request
 
-def is_xhr(environ):
-    return environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
-
-def get_request(environ, charset=None):
-    request_cache = environ.get('DJPCMS')
-    if request_cache is None:
-        request = Request(environ)
-        request.encoding = charset or 'utf-8'
-        environ['DJPCMS'] = RequestCache(request)
-    return environ['DJPCMS'].request
 
 def make_request(environ, node, instance=None, cache=True):
     '''Internal method for creating a :class:`Request` instance.'''
@@ -61,6 +62,7 @@ def make_request(environ, node, instance=None, cache=True):
         else:
             instance = None
     return build_request(environ, node, cache, instance)
+
 
 def build_request(environ, node, cache, instance):
     exc_info=None
@@ -89,31 +91,7 @@ def build_request(environ, node, cache, instance):
     return request
 
 
-class RequestCache(dict):
-
-    def __init__(self, request):
-        r = {request.path: request}
-        super(RequestCache, self).__init__({'REQUESTS': r})
-        self.request = request
-        self.traces = []
-
-    @property
-    def view(self):
-        return self.request.view
-
-    @property
-    def media(self):
-        view = self.view
-        if view is not None:
-            if not hasattr(self, '_media'):
-                m = view.default_media(self.request)
-                if m is None:
-                    m = media.Media(settings=view.settings)
-                self._media = m
-            return self._media
-
-
-class Request(object):
+class Request(WsgiRequest):
     '''A wrapper for the WSGI_ *environ* dictionary.
 
 .. attribute:: environ
@@ -156,19 +134,13 @@ class Request(object):
     def __init__(self, environ, node=None, instance=None, url=None,
                  exc_info=None):
         self.environ = environ
+        if 'pulsar.cache' not in environ:
+            environ['pulsar.cache'] = AttributeDictionary()
+            self.cache.mixins = {}
         self.node = node
         self.instance = instance
         self.url = url
         self.exc_info = exc_info
-
-    def __getitem__(self, key):
-        return self.environ[key]
-
-    def __setitem__(self, key, value):
-        self.environ[key] = value
-
-    def get(self, key, default=None):
-        return self.environ.get(key, default)
 
     def __repr__(self):
         if self.cache.request == self:
@@ -180,26 +152,12 @@ class Request(object):
         else:
             return self.path
     __str__ = __repr__
-    ############################################################################
+    ###########################################################################
     #    environment shortcuts
-    ############################################################################
-
-    @property
-    def is_xhr(self):
-        return is_xhr(self.environ)
-
-    @property
-    def is_secure(self):
-        return 'wsgi.url_scheme' in self.environ \
-            and self.environ['wsgi.url_scheme'] == 'https'
-
-    @property
-    def path(self):
-        return self.environ.get('PATH_INFO', '/')
-
+    ###########################################################################
     @property
     def method(self):
-        return self.environ.get('REQUEST_METHOD','get').lower()
+        return self.environ.get('REQUEST_METHOD', 'get').lower()
 
     @property
     def REQUESTS(self):
@@ -233,16 +191,16 @@ class Request(object):
         return self.cache['FILES']
 
     @property
+    def models(self):
+        return self.cache.models
+
+    @property
     def user(self):
-        return self.environ.get('user')
+        return self.cache.user
 
     @property
     def session(self):
-        return self.environ.get('session')
-
-    @property
-    def cache(self):
-        return self.environ.get('DJPCMS')
+        return self.cache.session
 
     def update(self, node, instance, url, exc_info):
         self.node = node
@@ -551,170 +509,3 @@ A shortcut for :meth:`ViewHandler.render`'''
             request = make_request(environ, node, instance)
             if isinstance(request, Request):
                 yield request
-
-
-
-
-Response = WsgiResponse
-
-
-class RequestMiddleware(object):
-    def __init__(self, website):
-        self.website = website
-
-    @property
-    def site(self):
-        return self.website()
-
-
-class DjpcmsResponseGenerator(RequestMiddleware):
-    '''Asynchronous response generator invoked by the djpcms WSGI middleware'''
-    def __init__(self, website, environ, start_response):
-        super(DjpcmsResponseGenerator, self).__init__(environ, start_response)
-        RequestMiddleware.__init__(self, website)
-
-    def __iter__(self):
-        path = self.environ.get('PATH_INFO','/')
-        tree = maybe_async(safe_async(self.page_tree))
-        while is_async(tree):
-            yield b''
-            tree = maybe_async(tree)
-        if is_failure(tree):
-            request = self.bad_request(tree, route=path)
-        else:
-            try:
-                node = tree.resolve(path)
-            except Exception as e:
-                request = self.bad_request(as_failure(e), tree=tree)
-            else:
-                request = maybe_async(safe_async(make_request,
-                                                 (self.environ, node)))
-                while is_async(request):
-                    yield b''
-                    request = maybe_async(request)
-                if is_failure(request):
-                    request = self.bad_request(request, node=node)
-        for processor in self.site.request_processors:
-            try:
-                processor(request)
-            except:
-                pass
-        for response in self.response(request):
-            if response is not None:
-                break
-            yield b''
-        for c in self.start(response):
-            yield c
-
-    def response(self, request):
-        '''Generate the Response'''
-        self.content_type, response = request.content_type, None
-        if not request.exc_info:
-            try:
-                if request.method not in request.methods():
-                    raise HttpException(status=405)
-                perm = maybe_async(request.has_permission())
-                while is_async(perm):
-                    yield None
-                    perm = maybe_async(perm)
-                if is_failure(perm):
-                    request.exc_info = perm.trace
-                elif not perm:
-                    raise PermissionDenied()
-                else:
-                    content = request.view(request)
-            except Exception as e:
-                request.exc_info = sys.exc_info()
-        if request.exc_info is None:
-            content = self.safe_render(request, content)
-            while is_async(content):
-                yield
-                content = self.safe_render(request, content)
-            if is_failure(content):
-                request.exc_info = content.trace
-                content = b''
-            elif isinstance(content, WsgiResponse):
-                response = content
-        # Response not yet available, build it from content or exc_info
-        if response is None:
-            response = Response(content_type=self.content_type,
-                                encoding=request.encoding)
-            if request.exc_info is not None:
-                content = self.website.handle_error(request, response)
-            if response.content_type == 'text/html' and not request.is_xhr:
-                content = '\n'.join(html_doc_stream(request, content,
-                                                    response.status_code))
-            response.content = (to_bytes(content, response.encoding),)
-        yield self.cache(request, response)
-
-    def cache(self, request, response):
-        '''Apply cache control headers of successful non ajax GET requests'''
-        if request.method == 'get' and response.status_code == 200 and\
-                not request.is_xhr:
-            cache_control = request.view.get_cache_control()
-            if cache_control:
-                cache_control(response.headers)
-        return response
-
-    def bad_request(self, failure, tree=None, node=None, route=None):
-        exc_info = failure.trace
-        if node is None:
-            match = getattr(exc_info[1], 'handler', None)
-            handler = self.site if match is None else match.handler()
-            node = BadNode(tree, handler, route=route)
-        request = make_request(self.environ, node)
-        request.exc_info = exc_info
-        return request
-
-    def page_tree(self):
-        site = self.site
-        Page = site.Page
-        tree = site.tree
-        if Page:
-            pages = Page.query().all()
-            if is_async(pages):
-                return pages.add_callback(lambda pg: DjpcmsTree(tree, pg))
-            else:
-                return DjpcmsTree(tree, pages)
-        else:
-            return DjpcmsTree(tree)
-
-    def safe_render(self, request, content):
-        content = maybe_async(content)
-        try:
-            if is_renderer(content):
-                self.content_type = content.content_type()
-                content = maybe_async(content.render(request))
-            return content
-        except Exception as e:
-            return as_failure(e)
-
-
-class request_start_middleware(RequestMiddleware):
-
-    def __call__(self, environ, start_response):
-        settings = self.site.settings
-        get_request(environ, settings.DEFAULT_CHARSET)
-
-
-class request_end_middleware(RequestMiddleware):
-    '''Djpcms WSGI handler.'''
-    @property
-    def route(self):
-        return self.site.route
-
-    def __str__(self):
-        return self.site.path
-
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self)
-
-    def __call__(self, environ, start_response):
-        settings = self.site.settings
-        request = get_request(environ, settings.DEFAULT_CHARSET)
-        query = request.GET
-        PK = settings.get('PROFILING_KEY')
-        g = DjpcmsResponseGenerator(self.website, environ, start_response)
-        if PK and PK in query:
-            g = profile_generator(request, g, Response)
-        return g

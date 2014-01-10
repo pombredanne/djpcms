@@ -1,9 +1,9 @@
 from copy import copy
 
 from pulsar.utils.html import UnicodeMixin
+from pulsar.utils.log import lazyproperty, lazymethod
 
 from djpcms.utils.httpurl import unquote_unreserved, itervalues
-from djpcms.utils.decorators import lazyproperty, lazymethod
 
 from .exceptions import Http404
 from .views import pageview

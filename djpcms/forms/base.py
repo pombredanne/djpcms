@@ -7,10 +7,10 @@ from collections import Mapping
 
 from pulsar.utils.structures import OrderedDict, AttributeDictionary
 from pulsar.utils.html import nicename, UnicodeMixin, to_string
+from pulsar.utils.log import lazyproperty
 
 from djpcms.utils import orms
 from djpcms.utils.httpurl import iteritems
-from djpcms.utils.decorators import lazyproperty
 from djpcms.html import SubmitInput
 
 from .globals import *

@@ -1,5 +1,6 @@
+from pulsar.utils.security import gen_unique_id
+
 from djpcms import views, forms, html, media
-from djpcms.utils.text import gen_unique_id
 
 import dynts
 from ccy import dateFromString
@@ -15,22 +16,22 @@ class EcoForm(forms.Form):
     windows = forms.CharField(\
             required = False,
             help_text='Comma separated list of time windows (e.g. 3y,2y,1y,6m)')
-    
-    
+
+
 class PlotSettings(forms.Form):
     line_fill = forms.BooleanField()
     bar_fill = forms.BooleanField()
-    
-    
+
+
 class TimeSeriesAppMixin(object):
-    
+
     def get_code_object(self, request):
         return None
-    
+
     def getdata(self, request, expression, start, end, **kwargs):
         res = dynts.evaluate(expression, start = start, end = end)
         return res.dump('flot')
-    
+
 
 class TimeSeriesView(views.ModelView):
     '''``djpcms`` application view for retrieving time-series data as object.
@@ -41,7 +42,7 @@ for fetching data.'''
     description = 'Timeseries and Scatter Plots'
     flot_media = FLOT_MEDIA
     _methods = ('get',)
-    
+
     def get_widget(self, request, height=400, service_url = None,
                    method = 'get', windows=None, start = None, **kwargs):
         service_url = service_url or self.path
@@ -58,16 +59,16 @@ for fetching data.'''
             options['command'] = {'show':False, 'symbol':code}
         return html.Widget('div', id = id, cn = 'econometric-plot')\
                    .addData('options',options)
-            
+
     def render(self, request, **kwargs):
         return self.get_widget(request, **kwargs).render(request)
-    
+
     def get_code_object(self, request):
         return self.appmodel.get_code_object(request)
-    
+
     def ajax_get_response(self, request):
         return self.econometric_data(request, dict(request.GET.items()))
-           
+
     def econometric_data(self, request, data):
         #Obtain the data
         cts    = data.get('command',None)
@@ -82,7 +83,6 @@ for fetching data.'''
         if end:
             end = dateFromString(str(end))
         return self.appmodel.getdata(request,cts,start,end)
-    
+
     def media(self, request):
         return self.flot_media
-    

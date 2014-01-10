@@ -9,11 +9,12 @@ handlers implemented:
 To use it::
 
     from djpcms.utils import markups
-    
+
     html = markups.get('rst')(txt)
 '''
 import os
-from djpcms.utils.importer import import_module
+
+from pulsar.utils.importer import import_module
 
 from .base import *
 
@@ -35,6 +36,6 @@ def load():
                 else:
                     add(appmod.Application())
         _loaded = True
-        
+
 
 load()

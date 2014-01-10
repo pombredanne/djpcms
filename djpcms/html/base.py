@@ -4,7 +4,7 @@ from collections import Mapping
 from inspect import istraceback
 from copy import copy, deepcopy
 
-from pulsar import multi_async, maybe_async, is_failure
+from pulsar import multi_async, maybe_async, is_failure, coroutine_return
 from pulsar.utils.html import slugify, escape, mark_safe
 from pulsar.utils.structures import OrderedDict
 from pulsar.utils.pep import (ispy3k, is_string, to_string, iteritems,
@@ -66,12 +66,14 @@ def iterable_for_widget(data):
     else:
         return (data,)
 
+
 def update_mapping(d, u):
     for k, v in iteritems(u):
         if isinstance(v, Mapping):
             v = update_mapping(d.get(k, {}), v)
         d[k] = v
     return d
+
 
 def html_trace(exc_info, plain=False):
     if exc_info:
@@ -276,6 +278,7 @@ handling HTML classes, attributes and data on a html element::
     If the element has no :attr:`parent`, return ``self``.
 '''
     maker = None
+    context = None
     _streamed = False
     def __init__(self, maker=None, data_stream=None,
                  cn=None, data=None, options=None,
@@ -418,6 +421,13 @@ request object and a dictionary for rendering children with a key.
             raise RuntimeError('{0} Already streamed'.format(self))
         self._streamed = True
         return self.maker.stream_from_widget(request, self, context)
+
+    def http_response(self, request):
+        response = request.response
+        response.content_type = self.content_type
+        body = yield self.content(request)
+        response.content = body
+        coroutine_return(response)
 
 
 class WidgetMaker(Renderer, AttributeMixin):
@@ -662,6 +672,7 @@ class Anchor(WidgetMaker):
 
 class Div(WidgetMaker):
     tag = 'div'
+
 
 # set defaults
 DefaultMaker = WidgetMaker()

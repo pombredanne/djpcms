@@ -5,4 +5,4 @@ from .views import *
 from .urlresolvers import *
 from .submit import *
 from .site import *
-from .request import *
+from .request import Request

@@ -7,10 +7,11 @@ import sys
 import re
 import logging
 
+from pulsar.utils.html import escape, to_string, NOTHING
+
 from djpcms.html import NON_BREACKING_SPACE, htmldoc
 from djpcms.html.layout import grid
 from djpcms.utils import markups
-from djpcms.utils.text import escape, to_string, NOTHING
 
 from .exceptions import BlockOutOfBound
 from .routing import Route

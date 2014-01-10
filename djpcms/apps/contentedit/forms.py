@@ -1,9 +1,10 @@
 from copy import copy
 
+from pulsar.utils.html import nicename
+
 from djpcms import forms, html
 from djpcms.html import classes
 from djpcms.utils import orms, markups
-from djpcms.utils.text import nicename
 from djpcms.html import html_choices, htmldefaultdoc
 from djpcms.html.layout import grid_systems, grids
 from djpcms.cms import plugins

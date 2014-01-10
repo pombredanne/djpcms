@@ -30,6 +30,7 @@ _grid_layouts = {}
 grid_system = namedtuple('grid_system','fixed columns')
 namespace_columns = namedtuple('namespace_columns','namespace columns')
 
+
 def get_grid_system(request=None):
     if request:
         page = request.underlying().page

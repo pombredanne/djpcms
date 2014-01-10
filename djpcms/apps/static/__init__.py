@@ -9,10 +9,11 @@ import stat
 import mimetypes
 from email.utils import parsedate_tz, mktime_tz
 
+from pulsar.utils.importer import import_module
+
 from djpcms import views, html
 from djpcms.utils.httpurl import http_date, CacheControl
-from djpcms.utils.importer import import_module
-from djpcms.cms import Http404, Response, PermissionDenied
+from djpcms.cms import Http404, PermissionDenied
 
 _media = None
 w = html.Widget

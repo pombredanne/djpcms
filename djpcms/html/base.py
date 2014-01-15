@@ -424,7 +424,7 @@ request object and a dictionary for rendering children with a key.
 
     def http_response(self, request):
         response = request.response
-        response.content_type = self.content_type
+        response.content_type = self.content_type()
         body = yield self.content(request)
         response.content = body
         coroutine_return(response)

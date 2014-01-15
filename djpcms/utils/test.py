@@ -7,19 +7,13 @@ from collections import Mapping
 from io import StringIO
 
 from pulsar.apps.test import unittest, HttpTestClient
-
-try:
-    from BeautifulSoup import BeautifulSoup
-except ImportError: # pragma nocover
-    BeautifulSoup = None
+from pulsar.utils.httpurl import Headers
 
 import djpcms
 from djpcms import views, forms
 from djpcms.cms import Site, WebSite, get_settings, fetch_command, Request
-from djpcms.cms.request import RequestCache
 from djpcms.cms.formutils import fill_form_data
 from djpcms.utils import orms
-from djpcms.utils.httpurl import Headers
 
 from .httpurl import native_str, to_bytes, SimpleCookie, urlencode, unquote,\
                      urlparse, ispy3k
@@ -67,7 +61,7 @@ easy testing web site applications.'''
     #    DJPCMS SPECIFIC UTILITY METHODS
     def flush(self):
         orms.flush_models()
-        
+
     def website(self):
         '''Return a :class:`djpcms.cms.WebSite`.'''
         if not hasattr(self, '_website'):
@@ -105,7 +99,7 @@ what you are doing. Override if you need more granular control.'''
         request = Request(environ, None, instance, url)
         environ['DJPCMS'] = RequestCache(request)
         return request
-    
+
     def form_data(self, data, prefix=''):
         if prefix:
             data = dict((('%s%s' % (k,prefix), v) for k,v in data.items()))
@@ -121,9 +115,6 @@ WSGI handler.'''
         '''Override this method to add response middleware to the test site
 WSGI handler.'''
         return []
-
-    def bs(self, doc):  # pragma nocover
-        return BeautifulSoup(doc)
 
     def urls(self, site):
         '''This should be configured by tests requiring the web

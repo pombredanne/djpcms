@@ -117,12 +117,10 @@ potentially an asynchronous result.'''
             column = get_or_update_dict(namespace, b.column)
             column[b.position] = b
         return namespaces
-    mapper = request.view.Page
-    if not mapper:
+    blockcontent = request.models.blockcontent
+    if not blockcontent:
         return {}
-    model = mapper.model
-    pageobj = request.page
-    return on_result(model.blocks(pageobj), _all_columns)
+    return _all_columns(blockcontent.all_blocks(request.page))
 
 def edit_blocks(request, blocks):
     '''Renders blocks in editing mode.'''

@@ -14,3 +14,4 @@ MANIFEST
 examples/runfab.py
 examples/djpsite/settings.py
 examples/djpsite/logs
+node_modules

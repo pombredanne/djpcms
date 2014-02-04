@@ -75,11 +75,11 @@ def application_views(request,
 '''
     appmodel = request.view.appmodel
     if not appmodel:
-        raise StopIteration()
+        raise StopIteration
     exclude = set(exclude if exclude is not None else appmodel.exclude_links)
     if appmodel.model:
         instance = request.instance or instance
-        instance = instance if isinstance(instance,appmodel.model) else None
+        instance = instance if isinstance(instance, appmodel.model) else None
     else:
         instance = None
 
@@ -272,7 +272,7 @@ an application based on model is available.
     groups = appmodel.table_column_groups(request)
     if isgenerator(groups):
         groups = tuple(groups)
-        
+
     headers, list_display = pagination.header_info(request)
     if groups:
         if len(groups) > 1:
@@ -306,9 +306,9 @@ def clean_inputs(input, search_string):
         else:
             params[k] = v
     return params
-                
-            
-        
+
+
+
 def paginationResponse(request, query, block=None, toolbox=None,
                        perm_level=None, **kwargs):
     '''Used by :class:`Application` to perform pagination of a query.

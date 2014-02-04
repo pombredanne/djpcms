@@ -1,0 +1,24 @@
+{
+    "name": "djpcms",
+    "title": "djpcms",
+    "version": "0.1.0",
+    "homepage": "https://github.com/lsbardel/djpcms",
+    "author": {
+        "name": "Luca Sbardella",
+        "email": "luca.sbardella@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lsbardel/djpcms"
+    },
+    "licenses": [{"type": "BSD"}],
+    "dependencies": {"jQuery": ""},
+    "devDependencies": {
+        "grunt": "~0.4.0",
+        "grunt-contrib-jshint": "~0.6.0",
+        "grunt-contrib-uglify": "~0.2.4",
+        "grunt-contrib-concat": ""
+    },
+    "keywords": [],
+    "contributors": []
+}

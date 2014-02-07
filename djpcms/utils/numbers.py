@@ -39,7 +39,10 @@ def significant_format_old(number, n=None):
 
 if sys.version_info >= (2,7):
     def significant_format(number, n=None):
-        number = significant(number, n)
-        return '{:,}'.format(number)
+        try:
+            number = significant(number, n)
+            return '{:,}'.format(number)
+        except Exception:
+            return number
 else:
     significant_format = significant_format_old

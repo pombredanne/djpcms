@@ -687,7 +687,7 @@ It uses the following algorithm:
 
     def meta_viewport(self, request):
         return self.settings.META_VIEWPORT
-    
+
     def object_fields(self, request):
         object_display = self.object_display
         headers, ld = self.pagination.header_info(request)

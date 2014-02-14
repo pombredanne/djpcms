@@ -55,6 +55,8 @@ def nicerepr(val, nd=None, none_value=NONE_VALUE, dateformat=None,
             return with_icon('true')
         else:
             return with_icon('false')
+    elif hasattr(val, '_meta'):
+        return val._meta.name
     else:
         val = to_string(val)
         try:

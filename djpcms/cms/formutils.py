@@ -105,7 +105,7 @@ def form_inputs(instance, own_view = False):
 
 def get_form(request, form_factory, initial=None, prefix=None,
              withdata=None, instance=None, model=None, force_prefix=True,
-             block=None, inputs=None, addinputs=None):
+             block=None, inputs=None, addinputs=None, **kw):
     '''Comprehensive method for building a :class:`djpcms.forms.HtmlForm`:
 
 :parameter form_factory: A required instance of :class:`HtmlForm`.
@@ -149,7 +149,7 @@ def get_form(request, form_factory, initial=None, prefix=None,
     # Create the form widget
     widget = form_factory(inputs=inputs, action=action, request=request,
                           initial=initial, instance=instance, model=model,
-                          prefix=prefix, data=data, files=files)
+                          prefix=prefix, data=data, files=files, **kw)
     if not widget.form.is_bound:
         # The form is not bound, check for form action
         widget = apply_form_actions(widget)
@@ -161,14 +161,14 @@ def return_form_errors(fhtml,request):
     else:
         return request.view.handle_response(request)
 
-def submit_form(request, force_redirect=None):
+def submit_form(request, force_redirect=None, **kw):
     '''Comprehensive save method for forms.
 This method try to deal with all possible events occurring after a form
 has been submitted, including possible asynchronous behaviour.'''
     view = request.view
     if force_redirect is None:
         force_redirect = view.force_redirect
-    fhtml = view.get_form(request)
+    fhtml = view.get_form(request, **kw)
     f = fhtml.form
     data = f.rawdata
     # The form has been aborted

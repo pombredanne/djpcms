@@ -199,7 +199,7 @@ $.djpcms = {
         // Create the widget on element
         create: function (element, options) {
             var maker = this,
-                data = element.data('options') || element.data(), 
+                data = element.data('options') || element.data(),
                 self,
                 instance_id;
             self = $.extend({}, maker.factory);
@@ -381,11 +381,10 @@ $.djpcms = (function (djpcms) {
         var id  = data.header,
             jcb = jsonCallBacks[id];
         if (jcb) {
-            jcb = jcb.handle(data.body, elem, defaults) && data.error;
+            return jcb.handle(data.body, elem, defaults);
         } else {
             logger.error('Could not find callback ' + id);
         }
-        return jcb;
     }
     // Add new action
     function addAction(id, action) {

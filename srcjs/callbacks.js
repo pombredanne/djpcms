@@ -291,6 +291,6 @@ $.djpcms.addJsonCallBack({
         });
         options.buttons = buttons;
         el.dialog(options);
-        return true;
+        return el;
     }
 });

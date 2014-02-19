@@ -175,7 +175,7 @@ of this field. Returns None if it's not provided.
     def value_from_instance(self, instance):
         '''Extract a value from an *instance*. By default it raises a ValueError
 so that the :meth:`Form.value_from_instance` is used.'''
-        raise ValueError()
+        raise ValueError
 
     def _raise_error(self, kwargs):
         keys = list(kwargs)
@@ -513,7 +513,7 @@ widget HTML.'''
         return initial
 
     def value_from_instance(self, field, instance):
-        raise ValueError()
+        raise ValueError
 
     def url(self, request):
         '''Retrieve a url for search.'''
@@ -575,7 +575,7 @@ is ``True``, in which case the value is returned.'''
         if self.multiple:
             return [v.id if isinstance(v,model) else v for v in value]
         else:
-            return value.id if isinstance(value,model) else value
+            return value.id if isinstance(value, model) else value
 
     def get_widget_data(self, bfield):
         '''Called by the :meth:`Field.get_widget_data` method of

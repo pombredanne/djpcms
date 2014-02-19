@@ -32,8 +32,8 @@ logger = logging.getLogger('djpcms.nicerepr')
 def action_checkbox(val, id):
     '''Return html for the action checkbox'''
     if val:
-        chk = Widget('input:checkbox', name = 'action-item', value = id)
-        val = divchk.format(chk.render(),val)
+        chk = Widget('input:checkbox', name = 'action-item', value=id)
+        val = divchk.format(chk.render(), val)
     return mark_safe(val)
 
 
